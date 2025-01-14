@@ -16,7 +16,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
 
     identifier: 'linear-gauge',
     moduleFactory: (ctx) => new LinearGaugeSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
+    tooltipDefaults: { range: 10 },
     defaultAxes: [
         { type: CARTESIAN_AXIS_TYPE.NUMBER, line: { enabled: false } },
         { type: CARTESIAN_AXIS_TYPE.NUMBER, line: { enabled: false } },

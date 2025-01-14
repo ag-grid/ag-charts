@@ -85,7 +85,7 @@ type Axes = Record<Required<AgCartesianSeriesOptions>['type'], AgCartesianChartO
 type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> = Axes[SeriesType] | ((series: any) => Axes[SeriesType]);
 
 export type SeriesTooltipDefaults = {
-    range: 'exact' | 'nearest';
+    range: 'exact' | 'nearest' | number;
 };
 
 export interface SeriesModule<

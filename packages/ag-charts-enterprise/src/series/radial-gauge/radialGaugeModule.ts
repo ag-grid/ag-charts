@@ -16,7 +16,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
 
     identifier: 'radial-gauge',
     moduleFactory: (ctx) => new RadialGaugeSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
+    tooltipDefaults: { range: 10 },
     defaultAxes: [
         { type: POLAR_AXIS_TYPE.ANGLE_NUMBER, line: { enabled: false } },
         { type: POLAR_AXIS_TYPE.RADIUS_NUMBER, line: { enabled: false } },
