@@ -89,3 +89,54 @@ export function batchExecutor<ExecutorOptions>(
         }
     };
 }
+
+export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
+    return async function* (
+        taskGraph: TaskGraph,
+        inputs: Record<string, ExecutorOptions>,
+        overrides: ExecutorOptions,
+        context: ExecutorContext
+    ): AsyncGenerator<BatchExecutorTaskResult, any, unknown> {
+        const results: Map<string, Promise<BatchExecutorTaskResult>> = new Map();
+
+        const { Tinypool } = await import('tinypool');
+        const pool = new Tinypool({
+            runtime: 'child_process',
+            filename: workerModule,
+        });
+        process.on('exit', () => {
+            pool.cancelPendingTasks();
+            pool.destroy().catch((e) => console.error(e));
+        });
+
+        const tasks = Object.keys(inputs);
+
+        for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
+            const taskName = tasks[taskIndex];
+            const task = taskGraph.tasks[taskName];
+            const inputOptions = inputs[taskName];
+
+            const opts = {
+                options: { ...inputOptions, ...overrides },
+                context: {
+                    ...context,
+                    projectName: task.target.project,
+                    targetName: task.target.target,
+                    configurationName: task.target.configuration,
+                },
+                taskName,
+            };
+            results.set(taskName, pool.run(opts));
+        }
+
+        // Run yield loop after dispatch to avoid serializing execution.
+        for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
+            const taskName = tasks[taskIndex];
+            yield results.get(taskName);
+        }
+
+        await Promise.allSettled([...results.values()]);
+
+        await pool.destroy();
+    };
+}

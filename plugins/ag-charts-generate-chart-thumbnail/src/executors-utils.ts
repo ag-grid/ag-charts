@@ -3,6 +3,7 @@ import type { ExecutorContext, TaskGraph } from '@nx/devkit';
 import { readFileSync } from 'fs';
 import * as fs from 'fs/promises';
 import * as glob from 'glob';
+import * as os from 'os';
 import * as path from 'path';
 import * as ts from 'typescript';
 
@@ -71,7 +72,7 @@ export function batchExecutor<ExecutorOptions>(
         const tasks = Object.keys(inputs);
 
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
-            const taskName = tasks[taskIndex++];
+            const taskName = tasks[taskIndex];
             const task = taskGraph.tasks[taskName];
             const inputOptions = inputs[taskName];
 
@@ -110,6 +111,7 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
         const pool = new Tinypool({
             runtime: 'child_process',
             filename: workerModule,
+            maxThreads: os.cpus().length / 2,
         });
         process.on('exit', () => {
             pool.cancelPendingTasks();
@@ -119,7 +121,7 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
         const tasks = Object.keys(inputs);
 
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
-            const taskName = tasks[taskIndex++];
+            const taskName = tasks[taskIndex];
             const task = taskGraph.tasks[taskName];
             const inputOptions = inputs[taskName];
 
@@ -138,9 +140,11 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
 
         // Run yield loop after dispatch to avoid serializing execution.
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
-            const taskName = tasks[taskIndex++];
+            const taskName = tasks[taskIndex];
             yield results.get(taskName);
         }
+
+        await Promise.allSettled([...results.values()]);
 
         await pool.destroy();
     };
