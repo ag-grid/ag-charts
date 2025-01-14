@@ -1,5 +1,5 @@
-import { countLines, isObject } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
+import { iterate, countLines, isObject } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { CategoryScale } from '../../scale/categoryScale';
@@ -8,7 +8,6 @@ import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { getAngleRatioRadians, normalizeAngle360, toRadians } from '../../util/angle';
 import { extent, sortBasedOnArray, toArray, unique } from '../../util/array';
-import { iterate } from '../../util/iterator';
 import { inRange } from '../../util/number';
 import { BaseProperties, PropertiesArray } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
