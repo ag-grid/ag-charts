@@ -78,6 +78,7 @@ export class DragInterpreter {
             const thresholdSquared = DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX;
             if (distanceSquared >= thresholdSquared) {
                 this.dispatch(this.dragStartEvent);
+                this.dispatch({ ...this.dragStartEvent, type: 'drag-move' });
                 this.dragStartEvent = undefined;
                 this.isDragging = true;
             }
