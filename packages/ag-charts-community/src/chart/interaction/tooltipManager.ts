@@ -2,7 +2,12 @@ import type { DOMManager } from '../../dom/domManager';
 import { StateTracker } from '../../util/stateTracker';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { SeriesTooltip } from '../series/seriesTooltip';
-import { type ErrorBoundSeriesNodeDatum, type SeriesNodeDatum, getDatumRefPoint } from '../series/seriesTypes';
+import {
+    type ErrorBoundSeriesNodeDatum,
+    type ISeries,
+    type SeriesNodeDatum,
+    getDatumRefPoint,
+} from '../series/seriesTypes';
 import type { Tooltip, TooltipContent, TooltipMeta, TooltipPointerEvent } from '../tooltip/tooltip';
 
 interface TooltipState {
@@ -78,10 +83,11 @@ export class TooltipManager {
 
     public static makeTooltipMeta(
         event: TooltipPointerEvent,
+        series: ISeries<any, any>,
         datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
     ): TooltipMeta {
         const { canvasX, canvasY } = event;
-        const tooltip = datum.series.properties.tooltip as SeriesTooltip<any>;
+        const tooltip = series.properties.tooltip as SeriesTooltip<any>;
         const meta: TooltipMeta = {
             canvasX,
             canvasY,
@@ -95,7 +101,7 @@ export class TooltipManager {
             },
         };
 
-        const refPoint = getDatumRefPoint(datum);
+        const refPoint = getDatumRefPoint(series, datum);
         if ((tooltip.position.type === 'node' || tooltip.position.type === 'sparkline') && refPoint) {
             return { ...meta, canvasX: refPoint.canvasX, canvasY: refPoint.canvasY };
         }

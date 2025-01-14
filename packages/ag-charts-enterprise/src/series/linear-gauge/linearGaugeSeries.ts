@@ -1106,7 +1106,7 @@ export class LinearGaugeSeries
 
         return tooltip.formatTooltip(
             {
-                data: [{ label: text ?? '', value: this.formatLabel(value) }],
+                data: [{ label: text, fallbackLabel: 'Value', value: this.formatLabel(value) }],
             },
             { seriesId, title: undefined, datum: undefined, value }
         );

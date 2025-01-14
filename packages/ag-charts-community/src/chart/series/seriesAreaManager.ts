@@ -508,7 +508,7 @@ export class SeriesAreaManager extends BaseManager {
         this.focusIndicator.clip = pick.clipFocusBox;
         this.focusIndicator.focus = pick.showFocusBox ? pick.bounds : undefined;
 
-        const keyboardEvent = makeKeyboardPointerEvent(hoverRect, pick);
+        const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
 
         // Update highlight/tooltip for keyboard users:
         if (keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
@@ -520,7 +520,7 @@ export class SeriesAreaManager extends BaseManager {
             this.highlight.stashedHoverEvent = undefined;
 
             const tooltipContent = focus.series.getTooltipContent(datum);
-            const meta = TooltipManager.makeTooltipMeta(keyboardEvent, datum);
+            const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
             if (!refresh) {
@@ -630,7 +630,7 @@ export class SeriesAreaManager extends BaseManager {
         const tooltipEnabled = this.chart.tooltip.enabled && pick.series.tooltipEnabled;
         const shouldUpdateTooltip = tooltipEnabled && content != null;
         if (shouldUpdateTooltip) {
-            const meta = TooltipManager.makeTooltipMeta({ type, canvasX, canvasY }, pick.datum);
+            const meta = TooltipManager.makeTooltipMeta({ type, canvasX, canvasY }, pick.series, pick.datum);
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content);
         }
     }
