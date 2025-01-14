@@ -218,7 +218,9 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.press('ArrowLeft');
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`sankey-node-highlight.png`);
 
-        await page.keyboard.press('ArrowDown');
+        for (let datum = 0; datum < 11; datum += 1) {
+            await page.keyboard.press('ArrowRight');
+        }
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`sankey-link-highlight.png`);
     });
 
