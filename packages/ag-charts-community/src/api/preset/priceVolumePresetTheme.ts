@@ -1,45 +1,61 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import type { AgAnnotationsThemeableOptions, WithThemeParams } from 'ag-charts-types';
 
-const { ThemeSymbols } = _ModuleSupport;
+import {
+    DEFAULT_ANNOTATION_HANDLE_FILL,
+    DEFAULT_ANNOTATION_STATISTICS_COLOR,
+    DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
+    DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
+    DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
+    DEFAULT_ANNOTATION_STATISTICS_FILL,
+    DEFAULT_ANNOTATION_STATISTICS_STROKE,
+    DEFAULT_FIBONACCI_STROKES,
+    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
+    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
+    DEFAULT_TEXTBOX_COLOR,
+    DEFAULT_TEXTBOX_FILL,
+    DEFAULT_TEXTBOX_STROKE,
+    DEFAULT_TEXT_ANNOTATION_COLOR,
+    PALETTE_DOWN_FILL,
+    PALETTE_UP_FILL,
+} from '../../chart/themes/symbols';
 
 const stroke = {
-    stroke: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
+    stroke: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
 };
 
 const handle = {
-    fill: ThemeSymbols.DEFAULT_ANNOTATION_HANDLE_FILL,
+    fill: DEFAULT_ANNOTATION_HANDLE_FILL,
 };
 
 const axisLabel = {
-    fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
+    fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
 };
 
 const lineText = {
-    color: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
+    color: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
 };
 
 const font = {
-    color: ThemeSymbols.DEFAULT_TEXT_ANNOTATION_COLOR,
+    color: DEFAULT_TEXT_ANNOTATION_COLOR,
     fontSize: 14,
     fontFamily: { ref: 'fontFamily' as const },
 };
 
 const text = {
     ...font,
-    color: ThemeSymbols.DEFAULT_TEXT_ANNOTATION_COLOR,
+    color: DEFAULT_TEXT_ANNOTATION_COLOR,
     textAlign: 'left',
 };
 
 const measurerStatistics = {
     ...font,
     fontSize: { ref: 'fontSize' as const },
-    color: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_COLOR,
-    fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_FILL,
-    stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_STROKE,
+    color: DEFAULT_ANNOTATION_STATISTICS_COLOR,
+    fill: DEFAULT_ANNOTATION_STATISTICS_FILL,
+    stroke: DEFAULT_ANNOTATION_STATISTICS_STROKE,
     strokeWidth: 1,
     divider: {
-        stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
+        stroke: DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
         strokeWidth: 1,
         strokeOpacity: 0.5,
     },
@@ -48,7 +64,7 @@ const measurerStatistics = {
 const measurer = {
     ...stroke,
     background: {
-        fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
+        fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
         fillOpacity: 0.2,
     },
     handle: { ...handle },
@@ -80,7 +96,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     'disjoint-channel': {
         ...stroke,
         background: {
-            fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
+            fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
             fillOpacity: 0.2,
         },
         handle: { ...handle },
@@ -89,7 +105,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     'parallel-channel': {
         ...stroke,
         background: {
-            fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
+            fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
             fillOpacity: 0.2,
         },
         handle: { ...handle },
@@ -99,8 +115,8 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Fibonnaccis
     'fibonacci-retracement': {
         ...stroke,
-        strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
-        rangeStroke: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
+        strokes: DEFAULT_FIBONACCI_STROKES as unknown as string[],
+        rangeStroke: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
         label: { ...font, color: undefined, fontSize: 10 },
@@ -108,8 +124,8 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
 
     'fibonacci-retracement-trend-based': {
         ...stroke,
-        strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
-        rangeStroke: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
+        strokes: DEFAULT_FIBONACCI_STROKES as unknown as string[],
+        rangeStroke: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
         label: { ...font, color: undefined, fontSize: 10 },
@@ -121,7 +137,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...text,
         color: { ref: 'foregroundColor' },
         handle: { ...handle },
-        fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
+        fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
         fillOpacity: 0.2,
     },
     comment: {
@@ -129,19 +145,19 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         color: 'white',
         fontWeight: 700,
         handle: { ...handle },
-        fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
+        fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
     },
     note: {
         ...text,
-        color: ThemeSymbols.DEFAULT_TEXTBOX_COLOR,
-        fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
+        color: DEFAULT_TEXTBOX_COLOR,
+        fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
         stroke: { ref: 'backgroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
         handle: { ...handle },
         background: {
-            fill: ThemeSymbols.DEFAULT_TEXTBOX_FILL,
-            stroke: ThemeSymbols.DEFAULT_TEXTBOX_STROKE,
+            fill: DEFAULT_TEXTBOX_FILL,
+            stroke: DEFAULT_TEXTBOX_STROKE,
             strokeWidth: 1,
         },
     },
@@ -157,12 +173,12 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         text: { ...lineText },
     },
     'arrow-up': {
-        fill: ThemeSymbols.PALETTE_UP_FILL,
-        handle: { ...handle, stroke: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR },
+        fill: PALETTE_UP_FILL,
+        handle: { ...handle, stroke: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR },
     },
     'arrow-down': {
-        fill: ThemeSymbols.PALETTE_DOWN_FILL,
-        handle: { ...handle, stroke: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR },
+        fill: PALETTE_DOWN_FILL,
+        handle: { ...handle, stroke: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR },
     },
 
     // Measurers
@@ -178,13 +194,13 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     'quick-date-price-range': {
         up: {
             ...stroke,
-            fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
+            fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
             fillOpacity: 0.2,
             handle: { ...handle },
             statistics: {
                 ...measurerStatistics,
                 color: '#fff',
-                fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
+                fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
                 strokeWidth: 0,
                 divider: {
                     stroke: '#fff',
@@ -195,17 +211,17 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         },
         down: {
             ...stroke,
-            stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
-            fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
+            stroke: DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
+            fill: DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
             fillOpacity: 0.2,
             handle: {
                 ...handle,
-                stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
+                stroke: DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
             },
             statistics: {
                 ...measurerStatistics,
                 color: '#fff',
-                fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
+                fill: DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
                 strokeWidth: 0,
                 divider: {
                     stroke: '#fff',

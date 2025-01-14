@@ -1,4 +1,3 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
 import { Logger, isObject } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
