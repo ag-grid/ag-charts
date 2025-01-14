@@ -1,5 +1,5 @@
 // Globals (side-effects)
-export * as Logger from './globals/logger';
+export * from './globals';
 
 // Interfaces
 export * from './interfaces/globalTypes';
