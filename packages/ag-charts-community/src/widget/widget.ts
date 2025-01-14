@@ -252,9 +252,9 @@ export abstract class Widget<
         }
     }
 
-    setMultiTouchEnabled(multitouch: true) {
+    setDragTouchEnabled(dragTouchEnabled: boolean) {
         this.internalListener ??= new WidgetListenerInternal(this.onDispatch.bind(this));
-        this.internalListener.dragTouchEnabled = !multitouch;
+        this.internalListener.dragTouchEnabled = dragTouchEnabled;
     }
 
     private onDispatch<K extends keyof WidgetEventMap_Internal>(type: K, event: WidgetEventMap_Internal[K]) {

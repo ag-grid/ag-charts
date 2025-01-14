@@ -184,7 +184,7 @@ const GlobalCallbacks: {
 } = {};
 
 export class WidgetListenerInternal {
-    public dragTouchEnabled = true;
+    public dragTouchEnabled = false;
     private dragTriggerRemover?: () => void;
     private dragStartListeners?: EventHandler<Targetable>[];
     private dragMoveListeners?: EventHandler<Targetable>[];
