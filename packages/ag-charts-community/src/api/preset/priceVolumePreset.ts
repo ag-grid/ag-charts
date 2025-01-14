@@ -1,3 +1,4 @@
+import { _ModuleSupport, _Theme } from 'ag-charts-community';
 import { Logger, isObject } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
@@ -31,6 +32,7 @@ import {
     PALETTE_UP_STROKE,
 } from '../../chart/themes/symbols';
 import { mergeDefaults } from '../../util/object';
+import { annotationsTheme } from './priceVolumePresetTheme';
 
 type ThemeType = AgChartTheme | AgChartThemeName;
 
@@ -219,6 +221,7 @@ export function priceVolume(
                         chartToolbar: {
                             enabled: toolbar,
                         },
+                        annotations: { ...annotationsTheme },
                     },
                 },
             }),
