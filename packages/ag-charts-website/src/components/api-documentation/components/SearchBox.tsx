@@ -112,7 +112,7 @@ function useSearch(
         const inputSearchQuery = event.currentTarget.value.trim().toLowerCase();
 
         const searchableEntries = searchDataIndex
-            .search(inputSearchQuery)
+            .search(inputSearchQuery, 500)
             .find(({ field }) => field === INDEXED_SEARCH_FIELD);
 
         const dataResults =
