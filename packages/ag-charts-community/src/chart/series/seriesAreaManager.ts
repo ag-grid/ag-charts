@@ -118,20 +118,20 @@ export class SeriesAreaManager extends BaseManager {
         this.focusIndicator = new FocusIndicator(this.swapChain);
         this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
 
-        const { seriesWidget, containerWidget } = chart.ctx.widgets;
+        const { seriesDragInterpreter, seriesWidget, containerWidget } = chart.ctx.widgets;
         seriesWidget.setTabIndex(-1);
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
             seriesWidget.addListener('focus', () => this.swapChain.focus()),
-            seriesWidget.addListener('drag-move', (event) => this.onDragMove(event)),
             seriesWidget.addListener('mousemove', (event) => this.onHover(event)),
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
             seriesWidget.addListener('keydown', (event) => this.onKeyDown(event)),
             seriesWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
-            seriesWidget.addListener('click', (event, current) => this.onClick(event, current)),
-            seriesWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
+            seriesDragInterpreter.addListener('drag-move', (event) => this.onDragMove(event)),
+            seriesDragInterpreter.addListener('click', (event) => this.onClick(event, seriesWidget)),
+            seriesDragInterpreter.addListener('dblclick', (event) => this.onClick(event, seriesWidget)),
             containerWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
             containerWidget.addListener('click', (event, current) => this.onClick(event, current)),
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
@@ -274,10 +274,9 @@ export class SeriesAreaManager extends BaseManager {
         this.previousInputDevice = 'mouse';
     }
 
-    private onDragMove(event: DragWidgetEvent<'drag-move'>): void {
+    private onDragMove(_event: DragWidgetEvent<'drag-move'>): void {
         if (!this.isState(InteractionState.Clickable)) return;
         this.focusIndicator?.overrideFocusVisible(false);
-        this.onHoverLikeEvent(event);
     }
 
     private onHover(event: MouseWidgetEvent<'mousemove'>): void {
