@@ -56,10 +56,11 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
     invert(position: number, nearest = false): D | undefined {
         this.refresh();
 
-        const index = this.invertNearestIndex(position);
+        const offset = nearest ? this.bandwidth / 2 : 0;
+        const index = this.invertNearestIndex(Math.max(0, position - offset));
         const matches = nearest || position === this.ordinalRange(index);
 
-        return matches ? this.domain[index] : undefined!;
+        return matches ? this.domain[index] : undefined;
     }
 
     protected getIndex(value: D) {

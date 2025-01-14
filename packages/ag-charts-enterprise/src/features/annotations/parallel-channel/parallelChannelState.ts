@@ -1,9 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNumber } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType, type Point } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { snapPoint } from '../utils/coords';
+import { getGroupingValue } from '../utils/scale';
 import { ParallelChannelProperties } from './parallelChannelProperties';
 import type { ParallelChannelScene } from './parallelChannelScene';
 
@@ -69,10 +71,15 @@ export class ParallelChannelStateMachine extends StateMachine<
         const actionHeightUpdate = ({ point }: { point: Point }) => {
             const { datum, node } = this;
 
-            if (datum?.start.y == null || datum?.end.y == null) return;
+            const { value: endY } = getGroupingValue(datum?.end.y);
+            const { value: startY } = getGroupingValue(datum?.start.y);
 
-            const height = datum.end.y - (point.y ?? 0);
-            const bottomStartY = datum.start.y - height;
+            const { y: pointY } = point;
+
+            if (datum == null || !isNumber(startY) || !isNumber(endY) || !isNumber(pointY)) return;
+
+            const height = endY - (pointY ?? 0);
+            const bottomStartY = startY - height;
 
             node?.toggleHandles({ bottomLeft: true, bottomRight: true });
 
@@ -90,10 +97,15 @@ export class ParallelChannelStateMachine extends StateMachine<
         const actionHeightFinish = ({ point }: { point: Point }) => {
             const { datum, node } = this;
 
-            if (datum?.start.y == null || datum?.end.y == null) return;
+            const { value: endY } = getGroupingValue(datum?.end.y);
+            const { value: startY } = getGroupingValue(datum?.start.y);
 
-            const height = datum.end.y - (point.y ?? 0);
-            const bottomStartY = datum.start.y - height;
+            const { y: pointY } = point;
+
+            if (datum == null || !isNumber(startY) || !isNumber(endY) || !isNumber(pointY)) return;
+
+            const height = endY - (pointY ?? 0);
+            const bottomStartY = startY - height;
 
             node?.toggleHandles(true);
 

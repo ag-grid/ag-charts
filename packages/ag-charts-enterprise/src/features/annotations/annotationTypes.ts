@@ -1,5 +1,7 @@
 import type { AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 
+import type { PointType } from './utils/scale';
+
 export type Constructor<T = object> = new (...args: any[]) => T;
 
 export enum AnnotationType {
@@ -91,8 +93,8 @@ export interface Bounds {
 }
 
 export interface Point {
-    x?: number | string | Date;
-    y?: number;
+    x?: PointType;
+    y?: PointType;
 }
 
 export interface Padding {
@@ -118,6 +120,7 @@ export interface AnnotationAxisContext
     > {
     bounds: _ModuleSupport.BBox;
     labelPadding: number;
+    snapToGroup: boolean;
 }
 
 export type AnnotationContext = {

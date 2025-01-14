@@ -66,7 +66,10 @@ export class AnnotationManager
     }
 
     public getAnnotationTypeStyles(
-        type: keyof Omit<AgAnnotationsThemeableOptions, 'axesButtons' | 'enabled' | 'optionsToolbar' | 'toolbar'>
+        type: keyof Omit<
+            AgAnnotationsThemeableOptions,
+            'axesButtons' | 'enabled' | 'optionsToolbar' | 'toolbar' | 'snap'
+        >
     ) {
         return this.styles?.[type];
     }

@@ -2,6 +2,7 @@ import { type Direction, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
+import { type PointType, getGroupingValue } from './scale';
 
 export function validateDatumLine(
     context: AnnotationContext,
@@ -19,7 +20,7 @@ export function validateDatumLine(
 
 export function validateDatumValue(
     context: AnnotationContext,
-    datum: { value?: string | number | Date; direction?: Direction },
+    datum: { value?: PointType; direction?: Direction },
     warningPrefix: string
 ) {
     const axis = datum.direction === 'horizontal' ? context.yAxis : context.xAxis;
@@ -61,9 +62,10 @@ export function validateDatumPoint(
     return true;
 }
 
-function validateDatumPointDirection(value: any, context: AnnotationAxisContext) {
+function validateDatumPointDirection(d: any, context: AnnotationAxisContext) {
     const { domain } = context.scale;
-    if (domain && context.continuous) {
+    const { value } = getGroupingValue(d);
+    if (domain && value != null && context.continuous) {
         return value >= domain[0] && value <= domain.at(-1);
     }
     return true; // domain.includes(value); // TODO: does not work with dates

@@ -76,45 +76,27 @@ const options: AgChartOptions = {
             {
                 type: 'horizontal-line',
                 value: 76.0,
-                stroke: '#089981',
-                axisLabel: {
-                    fill: '#089981',
-                },
             },
             {
                 type: 'horizontal-line',
                 value: 82.0,
-                stroke: '#089981',
-                axisLabel: {
-                    fill: '#089981',
-                },
                 text: {
                     label: 'Support Level',
                     position: 'center',
                     alignment: 'right',
-                    color: '#089981',
                 },
             },
             {
                 type: 'horizontal-line',
                 value: 67.8,
-                stroke: '#F23645',
-                axisLabel: {
-                    fill: '#F23645',
-                },
             },
             {
                 type: 'horizontal-line',
                 value: 80.8,
-                stroke: '#F23645',
-                axisLabel: {
-                    fill: '#F23645',
-                },
                 text: {
                     label: 'Resistance',
                     position: 'center',
                     alignment: 'left',
-                    color: '#F23645',
                 },
             },
             {
@@ -123,14 +105,8 @@ const options: AgChartOptions = {
                     label: 'Short-term Support',
                     position: 'top',
                     alignment: 'center',
-                    fontSize: 10,
-                    color: '#a5a9ac',
                 },
                 value: 79.03092783505156,
-                axisLabel: {
-                    fill: '#a5a9ac',
-                },
-                stroke: '#a5a9ac',
                 lineStyle: 'dotted',
             },
             {
@@ -147,12 +123,6 @@ const options: AgChartOptions = {
             },
             {
                 type: 'callout',
-                color: '#040404',
-                fill: '#6baaf3',
-                fillOpacity: 0.6,
-                stroke: '#2395ff',
-                strokeOpacity: 1,
-                strokeWidth: 2,
                 text: 'Markup',
                 start: {
                     x: 165,
@@ -174,7 +144,6 @@ const options: AgChartOptions = {
                     y: 81,
                 },
                 extendEnd: true,
-                strokeWidth: 2,
                 lineStyle: 'dashed',
             },
         ],

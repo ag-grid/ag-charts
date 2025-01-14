@@ -141,6 +141,7 @@ export function priceVolume(
             optionsToolbar: {
                 enabled: toolbar,
             },
+            snap: true,
             // @ts-expect-error undocumented option
             __axesButtons: {
                 enabled: toolbar,

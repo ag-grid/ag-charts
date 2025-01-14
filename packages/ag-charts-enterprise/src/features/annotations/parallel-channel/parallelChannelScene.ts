@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNumber } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -7,6 +8,7 @@ import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import { updateChannelText } from '../utils/lineWithText';
+import { getGroupingValue } from '../utils/scale';
 import { isPoint, validateDatumPoint } from '../utils/validation';
 import { invertCoords } from '../utils/values';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
@@ -93,14 +95,15 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         }
 
         // Adjust the height if dragging a middle handle
-        if ((activeHandle === 'topMiddle' || activeHandle === 'bottomMiddle') && datum.start.y != null) {
+        const { value: startY } = getGroupingValue(datum.start.y);
+        if ((activeHandle === 'topMiddle' || activeHandle === 'bottomMiddle') && startY != null && isNumber(startY)) {
             const topLeft = invertCoords(Vec2.add(handles.topLeft.handle, offset), context);
 
             if (validateDatumPoint(context, topLeft)) {
                 if (activeHandle === 'topMiddle') {
-                    datum.height += topLeft.y - datum.start.y;
+                    datum.height += topLeft.y - startY;
                 } else {
-                    datum.height -= topLeft.y - datum.start.y;
+                    datum.height -= topLeft.y - startY;
                 }
             }
         }
@@ -114,7 +117,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
                     break;
 
                 case 'topRight':
-                    datum.end.x = invertedMove.x;
+                    datum.end.x = invertedMove.y;
                     datum.end.y = invertedMove.y;
                     break;
             }
