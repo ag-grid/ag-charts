@@ -1,5 +1,5 @@
+import { countLines, isObject, iterate } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
-import { iterate, countLines, isObject } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { CategoryScale } from '../../scale/categoryScale';
