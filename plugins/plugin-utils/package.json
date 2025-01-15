@@ -1,0 +1,16 @@
+{
+  "name": "plugin-utils",
+  "version": "11.0.3-beta.20250112",
+  "private": true,
+  "dependencies": {
+    "glob": "8.0.3",
+    "typescript": "^5.4.5",
+    "@nx/devkit": "^18.3.4",
+    "@swc/helpers": "0.5.3",
+    "tinypool": "^1.0.2",
+    "process": "0.11.10"
+  },
+  "type": "commonjs",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts"
+}

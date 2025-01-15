@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import path from 'path';
+import { deleteFile, writeFile } from 'plugin-utils';
 
-import { deleteFile, writeFile } from '../../executors-utils';
 import { getGeneratedContents } from './generator/examplesGenerator';
 import { FRAMEWORKS } from './generator/types';
 
