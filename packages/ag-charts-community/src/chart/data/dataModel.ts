@@ -1,7 +1,6 @@
-import { Logger, isObject } from 'ag-charts-core';
+import { Logger, isObject, iterate } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
-import { iterate } from '../../util/iterator';
 import { isNegative } from '../../util/number';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';

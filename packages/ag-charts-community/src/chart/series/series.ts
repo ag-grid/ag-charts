@@ -617,7 +617,7 @@ export abstract class Series<
         throw new Error('AG Charts - Series.pickNodeClosestDatum() not implemented');
     }
 
-    protected pickNodeNearestDistantObject<T extends Node & DistantObject>(point: Point, items: Iterable<T>) {
+    public pickNodeNearestDistantObject<T extends Node & DistantObject>(point: Point, items: Iterable<T>) {
         const match = nearestSquared(point.x, point.y, items);
         if (match.nearest !== undefined && match.nearest.datum.missing !== true) {
             return { datum: match.nearest.datum, distance: Math.sqrt(match.distanceSquared) };
