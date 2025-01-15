@@ -1,5 +1,5 @@
+import { getDocument, getWindow } from '../core';
 import { setAttribute } from './attributeUtil';
-import { getDocument, getWindow } from './dom';
 
 export class GuardedElement {
     private readonly destroyFns: (() => void)[] = [];

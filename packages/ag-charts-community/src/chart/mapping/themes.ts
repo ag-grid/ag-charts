@@ -1,4 +1,4 @@
-import { Logger, type OptionsDefs, arrayOf, isValid, object, or, string } from 'ag-charts-core';
+import { Logger, type OptionsDefs, arrayOf, object, or, string, validate } from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeName,
@@ -64,10 +64,16 @@ function createChartTheme(value: unknown): ChartTheme {
         return lightTheme();
     }
 
-    if (isValid(value, themeOptionsDef, 'theme')) {
+    const { errors } = validate(value, themeOptionsDef, 'theme');
+
+    if (!errors.length) {
         const flattenedTheme = reduceThemeOptions(value);
         const baseTheme: any = flattenedTheme.baseTheme ? getChartTheme(flattenedTheme.baseTheme) : lightTheme();
         return new baseTheme.constructor(flattenedTheme);
+    }
+
+    for (const { message } of errors) {
+        Logger.warnOnce(message);
     }
 
     return lightTheme();

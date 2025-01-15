@@ -1,5 +1,5 @@
+import { getWindow } from '../../core';
 import { Debug } from '../../util/debug';
-import { getWindow } from '../../util/dom';
 import type { ChartMode } from '../chartMode';
 import { type CachedData, canReuseCachedData } from './caching';
 import {

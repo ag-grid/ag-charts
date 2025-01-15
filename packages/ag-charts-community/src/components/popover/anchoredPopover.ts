@@ -1,4 +1,4 @@
-import { getWindow } from '../../util/dom';
+import { getWindow } from '../../core';
 import { clamp } from '../../util/number';
 import type { Vec2 } from '../../util/vector';
 import { Popover, type PopoverOptions } from './popover';

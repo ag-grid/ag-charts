@@ -1,6 +1,6 @@
+import { createElement } from '../../core';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
-import { createElement } from '../../util/dom';
 import { BaseProperties } from '../../util/properties';
 import { BOOLEAN, FUNCTION, STRING, Validate } from '../../util/validation';
 import type { AnimationManager } from '../interaction/animationManager';

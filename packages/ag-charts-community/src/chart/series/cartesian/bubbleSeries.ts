@@ -16,7 +16,7 @@ import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { PlacedLabel } from '../../../scene/util/labelPlacement';
-import { extent } from '../../../util/array';
+import { extent } from '../../../util/extent';
 import { mergeDefaults } from '../../../util/object';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import { ChartAxisDirection } from '../../chartAxisDirection';

@@ -1,4 +1,4 @@
-import { Logger, isDefined, isFiniteNumber, isFunction } from 'ag-charts-core';
+import { Logger, groupBy, isDefined, isFiniteNumber, isFunction } from 'ag-charts-core';
 import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateLegendOptions } from 'ag-charts-types';
 
 import type { AxisOptionModule } from '../module/axisOptionModule';
@@ -12,7 +12,6 @@ import { BBox } from '../scene/bbox';
 import type { Gradient } from '../scene/gradient/gradient';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
-import { groupBy } from '../util/array';
 import { AsyncAwaitQueue, pause } from '../util/async';
 import { Debug } from '../util/debug';
 import { isInputPending } from '../util/dom';

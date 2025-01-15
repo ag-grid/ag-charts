@@ -1,4 +1,4 @@
-import { getDocument, getWindow } from './dom';
+import { getDocument, getWindow } from '../core';
 
 export type Size = {
     width: number;

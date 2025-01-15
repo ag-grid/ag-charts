@@ -1,8 +1,8 @@
 import { describe, expect, test } from '@jest/globals';
 
-import { arraysEqual, extent } from './array';
+import { extent } from './extent';
 
-describe('array module', () => {
+describe('extent module', () => {
     describe('extent with isContinuous', () => {
         test('returns lowest and highest numbers from list of numbers', () => {
             {
@@ -71,24 +71,6 @@ describe('array module', () => {
 
             expect(result?.[0]).toBe(earliest);
             expect(result?.[1]).toBe(latest);
-        });
-    });
-
-    describe('arraysEqual util', () => {
-        test('returns expected result with simple arrays', () => {
-            expect(arraysEqual([1, 2, 3], [1, 2, 3])).toBe(true);
-            expect(arraysEqual([1, 2, 3], [3, 2, 1])).toBe(false);
-            expect(arraysEqual([[1], 2, 3], [[1], 2, 4])).toBe(false);
-        });
-
-        test('returns expected result with nested arrays', () => {
-            expect(arraysEqual([[1], 2, 3], [[1], 2, 4])).toBe(false);
-            expect(arraysEqual([[1], 2, [[3]]], [[1], 2, [[3]]])).toBe(true);
-        });
-
-        test('returns expected result with different size array', () => {
-            expect(arraysEqual([1, 2, 3], [1, 2])).toBe(false);
-            expect(arraysEqual([1, 2], [1, 2, 3])).toBe(false);
         });
     });
 });

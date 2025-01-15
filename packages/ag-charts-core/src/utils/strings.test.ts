@@ -1,6 +1,6 @@
 import { countLines, joinFormatted, stringifyValue } from './strings';
 
-describe('Strings utils', () => {
+describe('Strings Utilities', () => {
     describe('joinFormatted', () => {
         it('joins a single value without a conjunction', () => {
             const result = joinFormatted(['apple']);

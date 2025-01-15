@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import colorPickerTemplate from './colorPickerTemplate.html';
 
-const { createElement, Color, clamp } = _ModuleSupport;
+const { Color, clamp, createElement } = _ModuleSupport;
 
 export interface ColorPickerOptions extends _ModuleSupport.AnchoredPopoverOptions {
     color?: string;

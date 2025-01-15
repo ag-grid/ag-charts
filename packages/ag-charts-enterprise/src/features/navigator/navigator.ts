@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
@@ -110,7 +111,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         }
     }
 
-    async onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
+    onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
         const { x, width } = opts.series.rect;
         const { y, height } = this;
 
@@ -124,7 +125,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         this.x = x;
         this.width = width;
 
-        await this.miniChart?.layout(width, height);
+        this.miniChart?.layout(width, height).catch((e) => Logger.error(e));
     }
 
     private canDrag() {

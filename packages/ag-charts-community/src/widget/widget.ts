@@ -1,3 +1,4 @@
+import { getWindow } from '../core';
 import {
     type BaseAttributeTypeMap,
     type BaseStyleTypeMap,
@@ -7,7 +8,7 @@ import {
     setElementStyles,
 } from '../util/attributeUtil';
 import type { BBoxValues } from '../util/bboxinterface';
-import { getElementBBox, getWindow, setElementBBox } from '../util/dom';
+import { getElementBBox, setElementBBox } from '../util/dom';
 import { type WidgetEventMap, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
 import { WidgetListenerHTML } from './widgetListenerHTML';
 import { WidgetListenerInternal } from './widgetListenerInternal';

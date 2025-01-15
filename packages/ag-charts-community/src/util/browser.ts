@@ -1,6 +1,6 @@
 import { Logger } from 'ag-charts-core';
 
-import { getWindow } from './dom';
+import { getWindow } from '../core';
 
 const isSafariRegexp = /^((?!chrome|android).)*safari/i;
 const safariVersionRegexp = /Version\/(\d+(\.\d+)?)/;
@@ -10,14 +10,14 @@ const isEdge = /Edg/;
 const isOpera = /OPR/;
 
 export function isUnsupportedBrowser() {
-    const { userAgent } = getWindow().navigator;
+    const { userAgent } = getWindow('navigator');
 
     if (isSafariRegexp.test(userAgent)) {
         const version = parseFloat(safariVersionRegexp.exec(userAgent)?.[1] ?? '0');
 
         const supported = Math.floor(version) > 16;
         if (!supported) {
-            Logger.warnOnce(`Unsupported Safari version: ${version} ; ${userAgent}`);
+            Logger.warnOnce(`Unsupported Safari version: ${version}; ${userAgent}`);
         }
 
         return !supported;
@@ -28,7 +28,7 @@ export function isUnsupportedBrowser() {
         const supported = version > 126;
 
         if (!supported) {
-            Logger.warnOnce(`Unsupported Chrome version: ${version} ; ${userAgent}`);
+            Logger.warnOnce(`Unsupported Chrome version: ${version}; ${userAgent}`);
         }
 
         return !supported;
