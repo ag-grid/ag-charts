@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
+import { inputGlob, parseFile } from 'plugin-utils';
 import * as ts from 'typescript';
-
-import { inputGlob, parseFile } from '../executors-utils';
 
 type NodeType = any;
 type HeritageType =

@@ -64,8 +64,8 @@
       "options": {
         "parallel": false,
         "commands": [
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" == \"0\") ; then nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website ; fi"
+          "if (test \"${BUILD_BATCH}\" != \"0\") ; then npx nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website --batch ; fi",
+          "if (test \"${BUILD_BATCH}\" == \"0\") ; then npx nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website ; fi"
         ]
       }
     },
@@ -125,7 +125,7 @@
     },
     "clean": {
       "cache": false,
-      "command": "rimraf dist/ 'packages/*/dist/' 'packages/ag-charts-website/node_modules/.vite/'"
+      "command": "rimraf dist/ 'packages/*/dist/' 'libraries/*/dist/' 'plugins/*/dist/' 'packages/ag-charts-website/node_modules/.vite/'"
     },
     "nuke": {
       "cache": false,

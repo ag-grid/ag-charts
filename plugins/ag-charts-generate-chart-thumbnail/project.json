@@ -12,7 +12,8 @@
       "dependsOn": [
         "ag-charts-community:build:package",
         "ag-charts-enterprise:build:package",
-        "ag-charts-generate-thumbnail:build"
+        "ag-charts-generate-thumbnail:build",
+        "plugin-utils:build"
       ],
       "options": {
         "outputPath": "{projectRoot}/dist",

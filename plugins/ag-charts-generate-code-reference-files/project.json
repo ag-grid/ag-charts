@@ -9,6 +9,7 @@
       "inputs": ["{projectRoot}/src/**"],
       "outputs": ["{options.outputPath}"],
       "cache": true,
+      "dependsOn": ["plugin-utils:build"],
       "options": {
         "outputPath": "{projectRoot}/dist",
         "main": "{projectRoot}/src/index.ts",

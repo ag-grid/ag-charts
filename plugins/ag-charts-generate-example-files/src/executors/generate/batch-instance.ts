@@ -10,11 +10,11 @@ export type Message = {
 };
 
 export default async function processor(msg: Message) {
-    const { options, context, taskName } = msg;
+    const { options, taskName } = msg;
 
     let result: BatchExecutorTaskResult;
     try {
-        await generateFiles(options, context);
+        await generateFiles(options);
         result = { task: taskName, result: { success: true, terminalOutput: '' } };
     } catch (e) {
         result = { task: taskName, result: { success: false, terminalOutput: `${e}` } };

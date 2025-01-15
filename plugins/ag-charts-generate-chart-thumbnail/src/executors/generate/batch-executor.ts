@@ -1,6 +1,6 @@
+import { batchExecutor, batchWorkerExecutor } from 'plugin-utils';
 import { versions } from 'process';
 
-import { batchExecutor, batchWorkerExecutor } from '../../executors-utils';
 import { generateFiles } from './executor';
 
 let executor;
