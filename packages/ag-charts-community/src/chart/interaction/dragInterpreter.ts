@@ -74,10 +74,11 @@ export class DragInterpreter {
     private onDragMove(event: DragWidgetEvent<'drag-move'>) {
         if (this.dragStartEvent != null) {
             const { originDeltaX: dx, originDeltaY: dy } = event;
-            const distanceSquared = dx * dx * (dy * dy);
+            const distanceSquared = dx * dx + dy * dy;
             const thresholdSquared = DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX;
             if (distanceSquared >= thresholdSquared) {
                 this.dispatch(this.dragStartEvent);
+                this.dispatch({ ...this.dragStartEvent, type: 'drag-move' });
                 this.dragStartEvent = undefined;
                 this.isDragging = true;
             }
