@@ -212,14 +212,6 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         return this;
     }
 
-    combine(other: BBox) {
-        const { x, y, width, height } = this;
-        this.x = Math.min(x, other.x);
-        this.y = Math.min(y, other.y);
-        this.width = Math.max(x + width, other.x + other.width) - this.x;
-        this.height = Math.max(y + height, other.y + other.height) - this.y;
-    }
-
     [interpolate](other: BBox, d: number) {
         return new BBox(
             this.x * (1 - d) + other.x * d,

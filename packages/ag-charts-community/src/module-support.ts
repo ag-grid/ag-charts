@@ -53,7 +53,6 @@ export * from './chart/layout/layoutManager';
 export * from './chart/interaction/animationManager';
 export * from './chart/interaction/chartEventManager';
 export * from './chart/interaction/contextMenuRegistry';
-export * from './chart/interaction/cursorManager';
 export * from './chart/interaction/highlightManager';
 export * from './chart/interaction/interactionManager';
 export * from './chart/interaction/tooltipManager';

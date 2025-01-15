@@ -7,7 +7,6 @@ import type { DataService } from '../chart/data/dataService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { ContextMenuRegistry } from '../chart/interaction/contextMenuRegistry';
-import type { CursorManager } from '../chart/interaction/cursorManager';
 import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
 import type { SyncManager } from '../chart/interaction/syncManager';
@@ -42,7 +41,6 @@ export interface ModuleContext {
     readonly annotationManager: AnnotationManager;
     readonly chartEventManager: ChartEventManager;
     readonly contextMenuRegistry: ContextMenuRegistry;
-    readonly cursorManager: CursorManager;
     readonly domManager: DOMManager;
     readonly highlightManager: HighlightManager;
     readonly historyManager: HistoryManager;

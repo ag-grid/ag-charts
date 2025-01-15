@@ -264,7 +264,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        this.chart.ctx.cursorManager.updateCursor(this.id);
+        this.chart.ctx.domManager.updateCursor(this.id);
         if (!this.focusIndicator.isFocusVisible()) this.clearAll();
     }
 
@@ -298,9 +298,9 @@ export class SeriesAreaManager extends BaseManager {
             const { currentX: x, currentY: y } = event;
             const found = pickNode(this.series, { x, y }, 'event');
             if (found?.series.hasEventListener('nodeClick') || found?.series.hasEventListener('nodeDoubleClick')) {
-                this.chart.ctx.cursorManager.updateCursor(this.id, 'pointer');
+                this.chart.ctx.domManager.updateCursor(this.id, 'pointer');
             } else {
-                this.chart.ctx.cursorManager.updateCursor(this.id);
+                this.chart.ctx.domManager.updateCursor(this.id);
             }
         }
     }
@@ -650,10 +650,10 @@ export class SeriesAreaManager extends BaseManager {
 
         // Adjust cursor if a specific datum is highlighted, rather than just a series.
         if (lastSeries?.properties.cursor && lastDatum) {
-            this.chart.ctx.cursorManager.updateCursor(lastSeries.id);
+            this.chart.ctx.domManager.updateCursor(lastSeries.id);
         }
         if (newSeries?.properties.cursor && newSeries?.properties.cursor !== 'default' && newDatum) {
-            this.chart.ctx.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
+            this.chart.ctx.domManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
         const updateAll = newSeries == null || lastSeries == null;
