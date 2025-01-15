@@ -8122,7 +8122,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "minAngle": 0,
+        "minAngle": 0.001,
         "offset": 3,
       },
       "calloutLabelKey": "type",

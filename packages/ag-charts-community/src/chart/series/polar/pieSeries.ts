@@ -493,7 +493,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             legendItem?: { key: string; text: string };
         } = {};
 
-        if (calloutLabelKey && span > toRadians(calloutLabel.minAngle)) {
+        if (calloutLabelKey && span >= toRadians(calloutLabel.minAngle)) {
             result.calloutLabel = {
                 ...this.getTextAlignment(midAngle),
                 text: this.getLabelText(calloutLabel, {

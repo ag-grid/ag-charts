@@ -17,7 +17,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             fontFamily: { ref: 'fontFamily' },
             color: { ref: 'foregroundColor' },
             offset: 3,
-            minAngle: 0,
+            minAngle: 0.001,
         },
         sectorLabel: {
             enabled: true,
