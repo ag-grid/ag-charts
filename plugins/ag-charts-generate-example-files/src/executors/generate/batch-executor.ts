@@ -1,6 +1,15 @@
-import { batchExecutor } from '../../executors-utils';
+import { batchExecutor, batchWorkerExecutor } from 'ag-shared/plugin-utils';
+import { versions } from 'process';
+
 import { generateFiles } from './executor';
 
-const executor = batchExecutor(generateFiles);
+let executor;
+if (versions.node < '18.18') {
+    // eslint-disable-next-line no-console
+    console.warn('Upgrade Node.js to v18.18.0 for multi-threaded thumbnail generation; found: ' + versions.node);
+    executor = batchExecutor(generateFiles);
+} else {
+    executor = batchWorkerExecutor(`${module.path}/batch-instance.js`);
+}
 
 export default executor;

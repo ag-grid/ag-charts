@@ -1,8 +1,8 @@
-/* eslint-disable no-console */
 import type { ExecutorContext, TaskGraph } from '@nx/devkit';
 import { readFileSync } from 'fs';
 import * as fs from 'fs/promises';
 import * as glob from 'glob';
+import * as os from 'os';
 import * as path from 'path';
 import * as ts from 'typescript';
 
@@ -18,10 +18,10 @@ export type BatchExecutorTaskResult = {
     result: TaskResult;
 };
 
-async function exists(filePath: string) {
+export async function exists(filePath: string) {
     try {
         return (await fs.stat(filePath))?.isFile();
-    } catch (e) {
+    } catch {
         return false;
     }
 }
@@ -39,13 +39,16 @@ export async function writeJSONFile(filePath: string, data: unknown, indent = 2)
     await writeFile(filePath, dataContent);
 }
 
-export async function ensureDirectory(dirPath: string) {
-    await fs.mkdir(dirPath, { recursive: true });
+export async function writeFile(filePath: string, newContent: string | Buffer) {
+    const outputDir = path.dirname(filePath);
+    await fs.mkdir(outputDir, { recursive: true });
+    await fs.writeFile(filePath, newContent);
 }
 
-export async function writeFile(filePath: string, newContent: string | Buffer) {
-    await ensureDirectory(path.dirname(filePath));
-    await fs.writeFile(filePath, newContent);
+export async function deleteFile(filePath: string) {
+    if (await exists(filePath)) {
+        await fs.rm(filePath);
+    }
 }
 
 export function parseFile(filePath: string) {
@@ -59,11 +62,15 @@ export function inputGlob(fullPath: string) {
     });
 }
 
+export async function ensureDirectory(dirPath: string) {
+    await fs.mkdir(dirPath, { recursive: true });
+}
+
 export function batchExecutor<ExecutorOptions>(
     executor: (opts: ExecutorOptions, ctx: ExecutorContext) => Promise<void>
 ) {
     return async function* (
-        taskGraph: TaskGraph,
+        _taskGraph: TaskGraph,
         inputs: Record<string, ExecutorOptions>,
         overrides: ExecutorOptions,
         context: ExecutorContext
@@ -71,28 +78,19 @@ export function batchExecutor<ExecutorOptions>(
         const tasks = Object.keys(inputs);
 
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
-            const taskName = tasks[taskIndex++];
-            const task = taskGraph.tasks[taskName];
-            const inputOptions = inputs[taskName];
+            const task = tasks[taskIndex];
+            const inputOptions = inputs[task];
 
             let success = false;
             let terminalOutput = '';
             try {
-                await executor(
-                    { ...inputOptions, ...overrides },
-                    {
-                        ...context,
-                        projectName: task.target.project,
-                        targetName: task.target.target,
-                        configurationName: task.target.configuration,
-                    }
-                );
+                await executor({ ...inputOptions, ...overrides }, context);
                 success = true;
             } catch (e) {
                 terminalOutput += `${e}`;
             }
 
-            yield { task: taskName, result: { success, terminalOutput } };
+            yield { task, result: { success, terminalOutput } };
         }
     };
 }
@@ -106,10 +104,15 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
     ): AsyncGenerator<BatchExecutorTaskResult, any, unknown> {
         const results: Map<string, Promise<BatchExecutorTaskResult>> = new Map();
 
+        let threadCount = os.cpus().length;
+        if (process.env.CI == null) {
+            threadCount /= 2;
+        }
         const { Tinypool } = await import('tinypool');
         const pool = new Tinypool({
             runtime: 'child_process',
             filename: workerModule,
+            maxThreads: threadCount,
         });
         process.on('exit', () => {
             pool.cancelPendingTasks();
@@ -118,8 +121,10 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
 
         const tasks = Object.keys(inputs);
 
+        console.info(`Batched execution of ${tasks.length} tasks, using ${pool.threads.length} threads...`);
+        const start = performance.now();
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
-            const taskName = tasks[taskIndex++];
+            const taskName = tasks[taskIndex];
             const task = taskGraph.tasks[taskName];
             const inputOptions = inputs[taskName];
 
@@ -138,9 +143,14 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
 
         // Run yield loop after dispatch to avoid serializing execution.
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
-            const taskName = tasks[taskIndex++];
-            yield results.get(taskName);
+            const taskName = tasks[taskIndex];
+            yield results.get(taskName)!;
         }
+
+        await Promise.allSettled(results.values());
+
+        const duration = performance.now() - start;
+        console.info(`Batched execution of ${tasks.length} jobs complete in ${Math.floor(duration / 100) / 10}s`);
 
         await pool.destroy();
     };

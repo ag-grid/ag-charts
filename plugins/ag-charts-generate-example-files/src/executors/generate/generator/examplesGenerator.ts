@@ -1,7 +1,7 @@
+import { readFile } from 'ag-shared/plugin-utils';
 import fs from 'fs/promises';
 import path from 'path';
 
-import { readFile } from '../../../executors-utils';
 import { ANGULAR_GENERATED_MAIN_FILE_NAME, SOURCE_ENTRY_FILE_NAME } from './constants';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';

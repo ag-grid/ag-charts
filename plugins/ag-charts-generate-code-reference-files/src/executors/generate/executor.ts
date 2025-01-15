@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
+import { writeJSONFile } from 'ag-shared/plugin-utils';
 import * as ts from 'typescript';
 
 import { patchDocInterfaces } from '../../doc-interfaces/patch-doc-interfaces';
 import { TypeMapper } from '../../doc-interfaces/types-utils';
-import { writeJSONFile } from '../../executors-utils';
 
 type OptionsMode = 'debug-interfaces' | 'docs-interfaces';
 type ExecutorOptions = { mode: OptionsMode; inputs: string[]; output: string };

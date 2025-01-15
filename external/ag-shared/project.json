@@ -6,12 +6,23 @@
   "targets": {
     "build": {
       "executor": "nx:noop",
-      "dependsOn": ["build:types"],
+      "dependsOn": ["build:types", "build:package"],
       "inputs": [],
       "outputs": [],
       "configurations": {
         "watch": {},
         "production": {}
+      }
+    },
+    "build:package": {
+      "executor": "@nx/js:swc",
+      "inputs": ["{projectRoot}/scripts/plugin-utils/**/*.ts"],
+      "outputs": ["{options.outputPath}"],
+      "cache": true,
+      "options": {
+        "outputPath": "{projectRoot}/dist/package",
+        "main": "{projectRoot}/scripts/plugin-utils/index.ts",
+        "tsConfig": "{projectRoot}/tsconfig.lib.json"
       }
     },
     "build:types": {
@@ -21,6 +32,7 @@
         "{projectRoot}/package.json",
         "{projectRoot}/src/**/*",
         "{projectRoot}/tsconfig.*.json",
+        "{projectRoot}/scripts/plugin-utils/**/*.ts",
         "tsDeclarations",
         "sharedGlobals",
         "defaultExcludes",

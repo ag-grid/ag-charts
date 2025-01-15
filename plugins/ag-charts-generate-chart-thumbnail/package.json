@@ -3,6 +3,7 @@
   "version": "11.0.3-beta.20250112",
   "private": true,
   "dependencies": {
+    "ag-shared": "0.0.1",
     "ag-charts-generate-example-files": "11.0.3-beta.20250112",
     "glob": "8.0.3",
     "typescript": "^5.4.5",
@@ -13,7 +14,6 @@
     "ag-charts-enterprise": "11.0.3-beta.20250112",
     "ag-charts-test": "11.0.3-beta.20250112",
     "@swc/helpers": "0.5.3",
-    "tinypool": "^0.8.1",
     "process": "0.11.10"
   },
   "type": "commonjs",
