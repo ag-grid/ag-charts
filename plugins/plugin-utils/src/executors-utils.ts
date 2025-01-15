@@ -141,7 +141,7 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
             yield results.get(taskName);
         }
 
-        await Promise.allSettled([...results.values()]);
+        await Promise.allSettled(results.values());
 
         const duration = performance.now() - start;
         console.info(`Batched execution of ${tasks.length} jobs complete in ${Math.floor(duration / 100) / 10}s`);
