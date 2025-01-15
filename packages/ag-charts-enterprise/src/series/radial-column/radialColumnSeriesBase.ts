@@ -105,7 +105,9 @@ export abstract class RadialColumnSeriesBase<
             return dataModel.getDomain(this, 'angleValue', 'key', processedData);
         } else {
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData);
-            const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
+            const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
+                ? [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]]
+                : [];
             return fixNumericExtent(fixedYExtent);
         }
     }
