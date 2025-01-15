@@ -1,7 +1,8 @@
 import { BBox } from '../scene/bbox';
 import type { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
-import { type ISeries, getDatumRefPoint } from './series/seriesTypes';
+import type { ISeries } from './series/seriesTypes';
+import { getDatumRefPoint } from './series/util';
 import type { TooltipPointerEvent } from './tooltip/tooltip';
 
 type PickProperties = {
