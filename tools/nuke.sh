@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. ./tools/clean.sh
+
 read -p "This will clean the entire repo of all modifications, are you sure (y/N)? " confirm
 
 if [[ "${confirm}" != "y" && "${confirm}" != "Y" ]] ; then

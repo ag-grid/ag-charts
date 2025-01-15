@@ -125,11 +125,10 @@
     },
     "clean": {
       "cache": false,
-      "command": "rimraf dist/ 'packages/*/dist/' 'libraries/*/dist/' 'plugins/*/dist/' 'external/*/dist/' 'packages/ag-charts-website/node_modules/.vite/' && nx reset"
+      "command": "./tools/clean.sh"
     },
     "nuke": {
       "cache": false,
-      "dependsOn": ["clean"],
       "command": "./tools/nuke.sh"
     },
     "benchmark": {
