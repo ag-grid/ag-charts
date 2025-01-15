@@ -13,7 +13,7 @@
         "ag-charts-community:build:package",
         "ag-charts-enterprise:build:package",
         "ag-charts-generate-thumbnail:build",
-        "plugin-utils:build"
+        "ag-shared:build"
       ],
       "options": {
         "outputPath": "{projectRoot}/dist",

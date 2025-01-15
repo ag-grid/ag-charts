@@ -125,7 +125,7 @@
     },
     "clean": {
       "cache": false,
-      "command": "rimraf dist/ 'packages/*/dist/' 'libraries/*/dist/' 'plugins/*/dist/' 'packages/ag-charts-website/node_modules/.vite/'"
+      "command": "rimraf dist/ 'packages/*/dist/' 'libraries/*/dist/' 'plugins/*/dist/' 'external/*/dist/' 'packages/ag-charts-website/node_modules/.vite/'"
     },
     "nuke": {
       "cache": false,

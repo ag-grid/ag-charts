@@ -1,6 +1,6 @@
+import { readFile } from 'ag-shared';
 import fs from 'fs/promises';
 import path from 'path';
-import { readFile } from 'plugin-utils';
 
 import { ANGULAR_GENERATED_MAIN_FILE_NAME, SOURCE_ENTRY_FILE_NAME } from './constants';
 import { transformPlainEntryFile } from './transformPlainEntryFile';

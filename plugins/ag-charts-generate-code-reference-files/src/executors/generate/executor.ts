@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { writeJSONFile } from 'plugin-utils';
+import { writeJSONFile } from 'ag-shared';
 import * as ts from 'typescript';
 
 import { patchDocInterfaces } from '../../doc-interfaces/patch-doc-interfaces';

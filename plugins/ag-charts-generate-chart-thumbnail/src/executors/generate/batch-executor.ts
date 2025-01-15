@@ -1,4 +1,4 @@
-import { batchExecutor, batchWorkerExecutor } from 'plugin-utils';
+import { batchExecutor, batchWorkerExecutor } from 'ag-shared';
 import { versions } from 'process';
 
 import { generateFiles } from './executor';
