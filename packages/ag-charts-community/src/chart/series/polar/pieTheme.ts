@@ -18,7 +18,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             fontFamily: { ref: 'fontFamily' },
             color: { ref: 'foregroundColor' },
             offset: 3,
-            minAngle: 0,
+            minAngle: 0.001,
         },
         sectorLabel: {
             enabled: true,
