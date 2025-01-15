@@ -10,16 +10,16 @@ const {
     Vec2,
     createButton,
     createCheckbox,
-    createElement,
     createElementId,
     createSelect,
     createTextArea,
     initRovingTabIndex,
     getIconClassNames,
-    getWindow,
     mapValues,
     setAttribute,
     setAttributes,
+    createElement,
+    getWindow,
 } = _ModuleSupport;
 
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {}

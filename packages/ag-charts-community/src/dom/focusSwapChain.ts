@@ -1,5 +1,5 @@
+import { createElement } from '../core';
 import { type BaseAttributeTypeMap, setAttribute, setAttributes, setElementStyle } from '../util/attributeUtil';
-import { createElement } from '../util/dom';
 
 type SwapChainEventMap = { focus: FocusEvent; blur: FocusEvent; swap: HTMLElement };
 

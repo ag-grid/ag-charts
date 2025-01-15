@@ -1,4 +1,4 @@
-import { createSvgElement } from '../../util/dom';
+import { createSvgElement } from '../../core';
 import type { DistantObject } from '../../util/nearest';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { ChildNodeCounts, RenderContext } from '../node';

@@ -1,4 +1,4 @@
-import { createSvgElement, getDocument } from '../util/dom';
+import { createElement, createSvgElement } from '../core';
 import { Widget } from './widget';
 
 // This class represents text that is sized by bounds rather than font size.
@@ -24,7 +24,7 @@ export class BoundedTextWidget extends Widget<HTMLDivElement> {
     }
 
     constructor() {
-        super(getDocument().createElement('div'));
+        super(createElement('div'));
         this.textElement = createSvgElement('text');
         this.textElement.role = 'presentation';
 

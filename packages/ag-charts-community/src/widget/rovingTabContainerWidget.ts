@@ -1,5 +1,5 @@
+import { createElement } from '../core';
 import { getAttribute, setAttribute } from '../util/attributeUtil';
-import { getDocument } from '../util/dom';
 import { PREV_NEXT_KEYS, hasNoModifiers } from '../util/keynavUtil';
 import type { ButtonWidget } from './buttonWidget';
 import type { NativeWidget } from './nativeWidget';
@@ -22,7 +22,7 @@ export abstract class RovingTabContainerWidget extends Widget<HTMLDivElement, Ro
     }
 
     constructor(initialOrientation: RovingDirection, role: 'toolbar' | 'list') {
-        super(getDocument().createElement('div'));
+        super(createElement('div'));
         this.orientation = initialOrientation;
         setAttribute(this.elem, 'role', role);
     }

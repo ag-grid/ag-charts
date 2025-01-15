@@ -8,8 +8,8 @@ const {
     NUMBER,
     POSITIVE_NUMBER,
     RATIO,
-    createElement,
     calculatePlacement,
+    createElement,
 } = _ModuleSupport;
 
 export class Image extends BaseProperties {

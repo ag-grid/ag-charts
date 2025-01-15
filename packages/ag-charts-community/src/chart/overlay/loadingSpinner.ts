@@ -1,5 +1,5 @@
+import { createElement } from '../../core';
 import { PHASE_METADATA } from '../../motion/animation';
-import { createElement } from '../../util/dom';
 import { DEFAULT_OVERLAY_CLASS } from './overlay';
 
 export function getLoadingSpinner(text: string, defaultDuration: number) {

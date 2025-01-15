@@ -1,5 +1,5 @@
+import { createElement } from '../core';
 import { setAttribute, setElementStyle } from '../util/attributeUtil';
-import { getDocument } from '../util/dom';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
 import { type BeforeWidget, Widget } from './widget';
 
@@ -16,11 +16,11 @@ export class ListWidget extends RovingTabContainerWidget {
     }
 
     protected override addChildToDOM(child: TChildWidget, before: BeforeWidget<TChildWidget> | undefined) {
-        const listitem: HTMLDivElement = getDocument().createElement('div');
-        setAttribute(listitem, 'role', 'listitem');
-        setElementStyle(listitem, 'position', 'absolute');
-        Widget.setElementContainer(child, listitem);
-        this.appendOrInsert(listitem, before);
+        const listItem: HTMLDivElement = createElement('div');
+        setAttribute(listItem, 'role', 'listitem');
+        setElementStyle(listItem, 'position', 'absolute');
+        Widget.setElementContainer(child, listItem);
+        this.appendOrInsert(listItem, before);
         this.setHidden(false);
     }
 

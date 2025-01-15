@@ -1,7 +1,8 @@
+import { createElement, createSvgElement, getWindow } from '../core';
 import { BBox } from '../scene/bbox';
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
-import { createSvgElement, getDocument, getWindow, setElementBBox } from '../util/dom';
+import { setElementBBox } from '../util/dom';
 import { ObserveChanges } from '../util/proxy';
 import type { FocusSwapChain } from './focusSwapChain';
 
@@ -23,12 +24,12 @@ export class FocusIndicator {
     clip: boolean = false;
 
     constructor(private readonly swapChain: FocusSwapChain) {
-        this.div = getDocument().createElement('div');
+        this.div = createElement('div');
         this.svg = createSvgElement('svg');
         this.path = createSvgElement('path');
         this.svg.append(this.path);
 
-        this.element = getDocument().createElement('div');
+        this.element = createElement('div');
         this.element.classList.add('ag-charts-focus-indicator');
         this.element.ariaHidden = 'true';
         this.element.append(this.svg);

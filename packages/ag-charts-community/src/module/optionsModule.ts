@@ -1,6 +1,8 @@
 import type { DeepPartial } from 'ag-charts-core';
 import {
     Logger,
+    circularSliceArray,
+    groupBy,
     isArray,
     isEnumValue,
     isFiniteNumber,
@@ -8,6 +10,7 @@ import {
     isPlainObject,
     isString,
     isSymbol,
+    unique,
 } from 'ag-charts-core';
 import {
     type AgBaseAxisOptions,
@@ -42,9 +45,8 @@ import {
     isSeriesOptionType,
 } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
-import { circularSliceArray, groupBy, unique } from '../util/array';
+import { setDocument, setWindow } from '../core';
 import { Debug } from '../util/debug';
-import { setDocument, setWindow } from '../util/dom';
 import { deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { type PaletteType, paletteType } from './coreModulesTypes';

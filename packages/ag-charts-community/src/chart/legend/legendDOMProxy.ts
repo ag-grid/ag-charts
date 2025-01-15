@@ -1,3 +1,4 @@
+import { createElement } from '../../core';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { Node } from '../../scene/node';
@@ -5,7 +6,6 @@ import type { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { DestroyFns } from '../../util/destroy';
-import { createElement } from '../../util/dom';
 import type { ButtonWidget } from '../../widget/buttonWidget';
 import type { GroupWidget } from '../../widget/groupWidget';
 import type { ListWidget } from '../../widget/listWidget';

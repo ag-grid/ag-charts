@@ -19,7 +19,7 @@ import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
-import { extent } from '../../../util/array';
+import { extent } from '../../../util/extent';
 import { mergeDefaults } from '../../../util/object';
 import { isContinuous } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';

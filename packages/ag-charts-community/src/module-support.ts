@@ -1,13 +1,14 @@
 import * as fromToMotion from './motion/fromToMotion';
 import * as resetMotion from './motion/resetMotion';
 
+export * from './core';
 export * from './util/angle';
-export * from './util/array';
 export * from './util/date';
 export * from './util/default';
 export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties } from './util/decorator';
 export * from './util/dom';
 export * from './util/deprecation';
+export * from './util/extent';
 export * from './util/format.util';
 export * from './util/json';
 export * from './util/keynavUtil';

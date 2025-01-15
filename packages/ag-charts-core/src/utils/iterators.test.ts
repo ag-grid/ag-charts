@@ -1,6 +1,6 @@
-import { iterate, toIterable } from './iterator';
+import { iterate, toIterable } from './iterators';
 
-describe('iterator utils', () => {
+describe('Iterators Utilities', () => {
     describe('iterate generator function', () => {
         it('should iterate over multiple arrays', () => {
             const array1 = [1, 2];

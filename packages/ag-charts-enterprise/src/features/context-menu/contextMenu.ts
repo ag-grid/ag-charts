@@ -16,7 +16,7 @@ type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
 type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
-const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } =
+const { BOOLEAN, Validate, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry, createElement } =
     _ModuleSupport;
 
 const moduleId = 'context-menu';

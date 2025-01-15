@@ -1,5 +1,5 @@
+import { downloadUrl } from '../core';
 import { Debug } from '../util/debug';
-import { downloadUrl } from '../util/dom';
 import { createId } from '../util/id';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';

@@ -11,9 +11,9 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { getDocument } from '../../core';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
-import { getDocument } from '../../util/dom';
 import {
     CANVAS_HEIGHT,
     CANVAS_TO_BUFFER_DEFAULTS,
