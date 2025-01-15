@@ -1,11 +1,12 @@
 import { findMaxIndex, findMinIndex } from 'ag-charts-core';
 
 import type { Point } from '../../scene/point';
+import { Transformable } from '../../scene/transformable';
 import { NumberAxis } from '../axis/numberAxis';
 import { TimeAxis } from '../axis/timeAxis';
 import type { ChartAxis } from '../chartAxis';
 import type { Series, SeriesNodePickIntent } from './series';
-import type { SeriesNodeDatum } from './seriesTypes';
+import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from './seriesTypes';
 
 type PickedNode = {
     series: Series<unknown, any, any>;
@@ -153,4 +154,17 @@ export function clippedRangeIndices(
     xMaxIndex = Math.min(xMaxIndex + 1, length);
 
     return [xMinIndex, xMaxIndex];
+}
+
+export function getDatumRefPoint(
+    series: ISeries<any, any>,
+    datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
+): { canvasX: number; canvasY: number } | undefined {
+    // On `line` and `scatter` series, the tooltip covers the top of error-bars when using datum.midPoint.
+    // Using datum.yBar.upperPoint renders the tooltip higher up.
+    const refPoint = datum.yBar?.upperPoint ?? datum.midPoint ?? series.datumMidPoint?.(datum);
+    if (refPoint) {
+        const { x, y } = Transformable.toCanvasPoint(series.contentGroup, refPoint.x, refPoint.y);
+        return { canvasX: Math.round(x), canvasY: Math.round(y) };
+    }
 }
