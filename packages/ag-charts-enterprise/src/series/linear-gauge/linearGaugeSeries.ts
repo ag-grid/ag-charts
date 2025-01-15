@@ -7,6 +7,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
+import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
@@ -180,7 +181,7 @@ export class LinearGaugeSeries
         this.scaleGroup,
         () => this.nodeFactory()
     );
-    public datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum> = Selection.select(
+    private datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory()
     );
@@ -197,6 +198,7 @@ export class LinearGaugeSeries
     private highlightTargetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> =
         Selection.select(this.highlightTargetGroup, () => this.markerFactory());
 
+    public datumUnion: DatumUnion<_ModuleSupport.Rect, LinearGaugeNodeDatum> = new DatumUnion();
     private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
     public contextNodeData?: LinearGaugeNodeDataContext;
@@ -825,6 +827,29 @@ export class LinearGaugeSeries
 
             if (animationDisabled || rect.previousDatum == null) {
                 rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
+            }
+        });
+
+        this.datumUnion.update(datumSelection, this.itemGroup, _ModuleSupport.Rect, (node, first, last) => {
+            node.clipBBox ??= new BBox(NaN, NaN, NaN, NaN);
+            node.x = node.clipBBox.x = first.x;
+            node.y = node.clipBBox.y = first.y;
+            if (this.properties.direction === 'horizontal') {
+                node.height = node.clipBBox.height = last.height;
+                node.width = last.x + last.width;
+                node.clipBBox.width = node.width - (last.width - (last.clipBBox?.width ?? last.width));
+                node.topLeftCornerRadius = first.topLeftCornerRadius;
+                node.bottomLeftCornerRadius = first.bottomLeftCornerRadius;
+                node.topRightCornerRadius = last.topRightCornerRadius;
+                node.bottomRightCornerRadius = last.bottomRightCornerRadius;
+            } else {
+                node.width = node.clipBBox.width = last.width;
+                node.height = last.y + (last.clipBBox?.height ?? 0);
+                node.clipBBox.height = node.height - (last.height - (last.clipBBox?.height ?? last.height));
+                node.topLeftCornerRadius = first.topLeftCornerRadius;
+                node.topRightCornerRadius = first.topRightCornerRadius;
+                node.bottomLeftCornerRadius = last.bottomLeftCornerRadius;
+                node.bottomRightCornerRadius = last.bottomRightCornerRadius;
             }
         });
     }
