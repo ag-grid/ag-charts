@@ -1,7 +1,10 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
+import { getGroupingValue } from './scale';
+
+const { clampArray } = _ModuleSupport;
 
 export function convertLine(
     datum: { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'> },
@@ -24,11 +27,15 @@ export function convertPoint(point: Point, context: AnnotationContext) {
     return { x, y };
 }
 
-export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext, 'scale'>) {
+export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext, 'scale' | 'snapToGroup'>) {
     if (p == null) return 0;
 
-    const halfBandwidth = (context.scale.bandwidth ?? 0) / 2;
-    return context.scale.convert(p) + halfBandwidth;
+    const { value, groupPercentage } = getGroupingValue(p);
+
+    const { scale, snapToGroup } = context;
+    const bandwidth = scale.bandwidth ?? 0;
+    const offset = snapToGroup ? bandwidth / 2 : bandwidth * groupPercentage;
+    return scale.convert(value) + offset;
 }
 
 export function invertCoords(coords: _ModuleSupport.Vec2, context: AnnotationContext) {
@@ -42,9 +49,16 @@ export function invert(
     n: _ModuleSupport.Vec2['x' | 'y'],
     context: Pick<AnnotationAxisContext, 'scale' | 'continuous' | 'scaleInvert' | 'scaleInvertNearest'>
 ) {
-    const halfBandwidth = (context.scale.bandwidth ?? 0) / 2;
     if (context.continuous) {
-        return context.scaleInvert(n - halfBandwidth);
+        return context.scaleInvert(n);
     }
-    return context.scaleInvertNearest(n - halfBandwidth);
+
+    const { scale } = context;
+    const value = context.scaleInvertNearest(n);
+    const bandStart = scale.convert(value);
+    const bandEnd = bandStart + (scale.bandwidth ?? 0);
+    const position = clampArray(n, scale.range);
+    const groupPercentage = bandStart === bandEnd ? 0 : (position - bandStart) / (bandEnd - bandStart);
+
+    return { value, groupPercentage };
 }

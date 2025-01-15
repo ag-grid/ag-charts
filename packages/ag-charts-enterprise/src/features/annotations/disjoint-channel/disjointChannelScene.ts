@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNumber } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -6,6 +7,7 @@ import { ChannelScene } from '../scenes/channelScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import { updateChannelText } from '../utils/lineWithText';
+import { getGroupingValue } from '../utils/scale';
 import { invertCoords } from '../utils/values';
 import type { DisjointChannelProperties } from './disjointChannelProperties';
 
@@ -51,6 +53,9 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         const prev = datum.toJson();
         const angle = datum.snapToAngle;
 
+        const { value: endY } = getGroupingValue(datum.end.y);
+        const { value: startY } = getGroupingValue(datum.start.y);
+
         switch (activeHandle) {
             case 'topLeft':
             case 'bottomLeft': {
@@ -69,9 +74,9 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
                           y: handles.bottomLeft.handle.y + offset.y * -direction,
                       });
 
-                if (start?.y == null || bottomStart?.y == null || datum.start.y == null) return;
+                if (start?.y == null || bottomStart?.y == null || startY == null || !isNumber(startY)) return;
 
-                const startHeight = datum.startHeight + (start.y - datum.start.y) * 2;
+                const startHeight = datum.startHeight + (start.y - startY) * 2;
 
                 datum.start.x = start.x;
                 datum.start.y = start.y;
@@ -88,9 +93,9 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
                           y: handles.topRight.handle.y + offset.y,
                       });
 
-                if (end?.y == null || datum.end.y == null) return;
+                if (end?.y == null || endY == null || !isNumber(endY)) return;
 
-                const endHeight = datum.endHeight + (end.y - datum.end.y) * 2;
+                const endHeight = datum.endHeight + (end.y - endY) * 2;
 
                 datum.end.x = end.x;
                 datum.end.y = end.y;
@@ -109,9 +114,9 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
                     y: handles.bottomRight.handle.y + offset.y,
                 });
 
-                if (!bottomStart || !bottomEnd || datum.start.y == null || datum.end.y == null) return;
+                if (!bottomStart || !bottomEnd || datum.start.y == null || endY == null || !isNumber(endY)) return;
 
-                const endHeight = datum.end.y - bottomEnd.y;
+                const endHeight = endY - bottomEnd.y;
                 const startHeight = datum.startHeight - (datum.endHeight - endHeight);
 
                 datum.startHeight = startHeight;

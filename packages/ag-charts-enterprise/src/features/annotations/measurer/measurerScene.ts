@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNumber } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -8,6 +9,7 @@ import { CollidableText } from '../scenes/collidableTextScene';
 import { StartEndScene } from '../scenes/startEndScene';
 import { WithBackgroundScene } from '../scenes/withBackgroundScene';
 import { updateLineText } from '../utils/lineWithText';
+import { getGroupingValue } from '../utils/scale';
 import { convertLine } from '../utils/values';
 import {
     DateRangeProperties,
@@ -393,7 +395,13 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             throw new Error('Can not create a price range measurement of a non-numeric y-axis');
         }
 
-        return (datum.end.y - datum.start.y) / datum.start.y;
+        const { value: endY } = getGroupingValue(datum.end.y);
+        const { value: startY } = getGroupingValue(datum.start.y);
+
+        if (!isNumber(endY) || !isNumber(startY)) {
+            throw new Error('Can not create a price range measurement of a non-numeric y-axis');
+        }
+        return (endY - startY) / startY;
     }
 
     private getPriceRangeValue(datum: MeasurerTypeProperties) {
@@ -401,7 +409,14 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             throw new Error('Can not create a price range measurement of a non-numeric y-axis');
         }
 
-        return datum.end.y - datum.start.y;
+        const { value: endY } = getGroupingValue(datum.end.y);
+        const { value: startY } = getGroupingValue(datum.start.y);
+
+        if (!isNumber(endY) || !isNumber(startY)) {
+            throw new Error('Can not create a price range measurement of a non-numeric y-axis');
+        }
+
+        return endY - startY;
     }
 
     private getVolume(datum: MeasurerTypeProperties) {

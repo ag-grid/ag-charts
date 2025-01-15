@@ -1,9 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNumber } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType, type Point } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { snapPoint } from '../utils/coords';
+import { getGroupingValue } from '../utils/scale';
 import { DisjointChannelProperties } from './disjointChannelProperties';
 import type { DisjointChannelScene } from './disjointChannelScene';
 
@@ -60,13 +62,18 @@ export class DisjointChannelStateMachine extends StateMachine<
         const actionHeightUpdate = ({ point }: { point: Point }) => {
             const { datum, node } = this;
 
-            if (datum?.start.y == null || datum?.end.y == null) return;
+            const { value: endY } = getGroupingValue(datum?.end.y);
+            const { value: startY } = getGroupingValue(datum?.start.y);
 
-            const endHeight = datum.end.y - (point.y ?? 0);
-            const startHeight = (datum.start.y - datum.end.y) * 2 + endHeight;
+            const { y: pointY } = point;
 
-            const bottomStart = { x: datum.start.x, y: datum.start.y - startHeight };
-            const bottomEnd = { x: datum.end.x, y: point.y };
+            if (datum == null || !isNumber(startY) || !isNumber(endY) || !isNumber(pointY)) return;
+
+            const endHeight = endY - (pointY ?? 0);
+            const startHeight = (startY - endY) * 2 + endHeight;
+
+            const bottomStart = { x: datum?.start.x, y: startY - startHeight };
+            const bottomEnd = { x: datum?.end.x, y: point.y };
 
             node?.toggleHandles({ bottomLeft: true, bottomRight: true });
 
@@ -81,12 +88,17 @@ export class DisjointChannelStateMachine extends StateMachine<
         const actionHeightFinish = ({ point }: { point: Point }) => {
             const { datum, node } = this;
 
-            if (datum?.start.y == null || datum?.end.y == null) return;
+            const { value: endY } = getGroupingValue(datum?.end.y);
+            const { value: startY } = getGroupingValue(datum?.start.y);
 
-            const endHeight = datum.end.y - (point.y ?? 0);
-            const startHeight = (datum.start.y - datum.end.y) * 2 + endHeight;
+            const { y: pointY } = point;
 
-            const bottomStart = { x: datum.start.x, y: datum.start.y - endHeight };
+            if (datum == null || !isNumber(startY) || !isNumber(endY) || !isNumber(pointY)) return;
+
+            const endHeight = endY - (pointY ?? 0);
+            const startHeight = (startY - endY) * 2 + endHeight;
+
+            const bottomStart = { x: datum.start.x, y: startY - endHeight };
             const bottomEnd = { x: datum.end.x, y: point.y };
 
             node?.toggleHandles(true);

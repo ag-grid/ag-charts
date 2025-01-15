@@ -90,6 +90,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     @Validate(OBJECT)
     public __axesButtons = new AxesButtons();
 
+    @Validate(BOOLEAN)
+    public snap: boolean = false;
+
     // Hidden options for use with measurer statistics
     public data?: any[] = undefined;
     public xKey?: string = undefined;
@@ -707,13 +710,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const lineDirection = axisCtx.direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
 
-        const { __axesButtons: axesButtons } = this;
+        const { __axesButtons: axesButtons, snap } = this;
         const buttonEnabled =
             this.enabled && axesButtons.enabled && (axesButtons.axes === 'xy' || axesButtons.axes === direction);
         if (buttonEnabled) {
             button ??= new AxisButton(
                 this.ctx,
-                axisCtx,
+                { ...axisCtx, snapToGroup: snap },
                 (coords) => this.onAxisButtonClick(coords, lineDirection),
                 seriesRect
             );
@@ -812,7 +815,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private getAnnotationContext(): AnnotationContext | undefined {
-        const { seriesRect, xAxis, yAxis } = this;
+        const { seriesRect, xAxis, yAxis, snap } = this;
 
         if (!(seriesRect && xAxis && yAxis)) {
             return;
@@ -824,11 +827,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ...xAxis.context,
                 bounds: xAxis.bounds,
                 labelPadding: calculateAxisLabelPadding(xAxis.layout),
+                snapToGroup: snap,
             },
             yAxis: {
                 ...yAxis.context,
                 bounds: yAxis.bounds,
                 labelPadding: calculateAxisLabelPadding(xAxis.layout),
+                snapToGroup: snap,
             },
         };
     }

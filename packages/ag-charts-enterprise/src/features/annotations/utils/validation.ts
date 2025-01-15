@@ -2,6 +2,7 @@ import { type Direction, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
+import { getGroupingValue } from './scale';
 
 export function validateDatumLine(
     context: AnnotationContext,
@@ -19,14 +20,15 @@ export function validateDatumLine(
 
 export function validateDatumValue(
     context: AnnotationContext,
-    datum: { value?: string | number | Date; direction?: Direction },
+    datum: { value?: Point['x' | 'y']; direction?: Direction },
     warningPrefix: string
 ) {
     const axis = datum.direction === 'horizontal' ? context.yAxis : context.xAxis;
     const valid = validateDatumPointDirection(datum.value, axis);
 
     if (!valid && warningPrefix) {
-        Logger.warnOnce(`${warningPrefix}is outside the axis domain, ignoring. - value: [${datum.value}]]`);
+        const { value } = getGroupingValue(datum.value);
+        Logger.warnOnce(`${warningPrefix}is outside the axis domain, ignoring. - value: [${value}]]`);
     }
 
     return valid;
@@ -53,7 +55,9 @@ export function validateDatumPoint(
         if (validX) text = 'y domain';
         if (validY) text = 'x domain';
         if (warningPrefix) {
-            Logger.warnOnce(`${warningPrefix}is outside the ${text}, ignoring. - x: [${point.x}], y: ${point.y}]`);
+            const { value: xValue } = getGroupingValue(point.x);
+            const { value: yValue } = getGroupingValue(point.y);
+            Logger.warnOnce(`${warningPrefix}is outside the ${text}, ignoring. - x: [${xValue}], y: ${yValue}]`);
         }
         return false;
     }
@@ -61,9 +65,10 @@ export function validateDatumPoint(
     return true;
 }
 
-function validateDatumPointDirection(value: any, context: AnnotationAxisContext) {
+function validateDatumPointDirection(d: any, context: AnnotationAxisContext) {
     const { domain } = context.scale;
-    if (domain && context.continuous) {
+    const { value } = getGroupingValue(d);
+    if (domain && value != null && context.continuous) {
         return value >= domain[0] && value <= domain.at(-1);
     }
     return true; // domain.includes(value); // TODO: does not work with dates

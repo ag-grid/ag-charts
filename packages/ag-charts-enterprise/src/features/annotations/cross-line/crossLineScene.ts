@@ -7,6 +7,7 @@ import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { UnivariantHandle } from '../scenes/handle';
 import { updateLineText } from '../utils/lineWithText';
+import { getGroupingValue } from '../utils/scale';
 import { convert, invert, invertCoords } from '../utils/values';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
@@ -137,9 +138,10 @@ export class CrossLineScene extends AnnotationScene {
                 return;
             }
 
+            const { value } = getGroupingValue(datum.value);
             axisLabel.update({
                 ...Vec2.add(labelCorner, Vec2.required(seriesRect)),
-                value: datum.value,
+                value,
                 styles: datum.axisLabel,
                 context: axisContext,
             });
@@ -275,9 +277,8 @@ export class CrossLineScene extends AnnotationScene {
         let y1 = 0;
         let x2: number, y2: number;
 
-        const { bounds, scale } = context;
-        const halfBandwidth = (scale.bandwidth ?? 0) / 2;
-        const scaledValue = scale.convert(datum.value) + halfBandwidth;
+        const { bounds } = context;
+        const scaledValue = convert(datum.value, context);
 
         if (HorizontalLineProperties.is(datum)) {
             x2 = bounds.width;

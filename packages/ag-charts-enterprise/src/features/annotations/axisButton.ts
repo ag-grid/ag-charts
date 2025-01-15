@@ -18,7 +18,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
-        private readonly axisCtx: _ModuleSupport.AxisContext,
+        private readonly axisCtx: _ModuleSupport.AxisContext & { snapToGroup: boolean },
         private readonly onButtonClick: (coords?: _ModuleSupport.Vec2) => void,
         private seriesRect: _ModuleSupport.BBox
     ) {

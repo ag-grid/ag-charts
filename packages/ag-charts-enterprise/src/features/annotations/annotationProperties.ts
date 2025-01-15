@@ -7,6 +7,7 @@ import type {
     TextAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { isObject } from 'ag-charts-core';
 
 import type {
     AnnotationContext,
@@ -16,6 +17,7 @@ import type {
     LineTextAlignment,
     LineTextPosition,
 } from './annotationTypes';
+import type { PointType } from './utils/scale';
 
 const {
     BOOLEAN,
@@ -36,19 +38,26 @@ const {
     UNION,
     BaseProperties,
     Validate,
+    predicateWithMessage,
     generateUUID,
 } = _ModuleSupport;
 
 /**************
  * Components *
  **************/
-type XType = string | number | Date;
-export class PointProperties extends BaseProperties {
-    @Validate(OR(STRING, NUMBER, DATE))
-    x?: XType;
 
-    @Validate(NUMBER)
-    y?: number;
+const GROUPING_VALUE_KEYS = ['value', 'groupPercentage'];
+const GROUPING_VALUE = predicateWithMessage(
+    (value) => isObject(value) && Object.keys(value).every((key) => GROUPING_VALUE_KEYS.includes(key)),
+    "objects with grouping value properties such as 'value' or 'groupPercentage'"
+);
+
+export class PointProperties extends BaseProperties {
+    @Validate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
+    x?: PointType;
+
+    @Validate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
+    y?: PointType;
 }
 
 export class ChannelAnnotationMiddleProperties extends Stroke(LineStyle(Visible(BaseProperties))) {}
@@ -126,19 +135,19 @@ export function Line<T extends Constructor>(Parent: T) {
 
 export function Point<T extends Constructor>(Parent: T) {
     class PointInternal extends Parent {
-        @Validate(OR(STRING, NUMBER, DATE))
-        x?: XType;
+        @Validate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
+        x?: PointType;
 
-        @Validate(NUMBER)
-        y?: number;
+        @Validate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
+        y?: PointType;
     }
     return PointInternal;
 }
 
 export function Value<T extends Constructor>(Parent: T) {
     class ValueInternal extends Parent {
-        @Validate(OR(STRING, NUMBER, DATE))
-        value?: XType;
+        @Validate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
+        value?: PointType;
     }
     return ValueInternal;
 }
