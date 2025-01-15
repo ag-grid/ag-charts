@@ -4,6 +4,9 @@ export * from './globals';
 // Interfaces
 export * from './interfaces/globalTypes';
 
+// Classes
+export * from './classes/eventEmitter';
+
 // Utils
 export * from './utils/arrays';
 export * from './utils/binarySearch';

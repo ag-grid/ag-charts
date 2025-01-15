@@ -9,11 +9,11 @@ import { getDocument } from './globalsProxy';
  */
 export function createElement<K extends keyof HTMLElementTagNameMap>(
     tagName: K,
+    className?: string,
     style?: Partial<CSSStyleDeclaration>
 ): HTMLElementTagNameMap[K];
 export function createElement<K extends keyof HTMLElementTagNameMap>(
     tagName: K,
-    className?: string,
     style?: Partial<CSSStyleDeclaration>
 ): HTMLElementTagNameMap[K];
 export function createElement<K extends keyof HTMLElementTagNameMap>(

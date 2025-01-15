@@ -589,5 +589,5 @@ export function computeLegendBBox(chart: Chart): BBox {
 
 export function getCursor(chart: Chart | AgChartProxy): string {
     const ctx = deproxy(chart).getModuleContext();
-    return ctx.cursorManager.getCursor();
+    return ctx.domManager.getCursor();
 }

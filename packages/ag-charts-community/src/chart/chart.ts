@@ -82,11 +82,6 @@ type SeriesChangeType =
     | 'series-count-changed'
     | 'updated';
 
-type ObservableLike = {
-    addEventListener(key: string, cb: TypedEventListener): void;
-    clearEventListeners(): void;
-};
-
 class SeriesArea extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
     clip?: boolean;
@@ -1104,7 +1099,6 @@ export abstract class Chart extends Observable {
     }
 
     private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;
-    private filterMiniChartSeries(series: AgChartOptions['series']): AgChartOptions['series'];
     private filterMiniChartSeries(series: any[] | undefined): any[] | undefined {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
@@ -1574,7 +1568,7 @@ export abstract class Chart extends Observable {
         }
     }
 
-    private registerListeners(source: ObservableLike, listeners: Record<string, TypedEventListener>) {
+    private registerListeners(source: Observable, listeners: Record<string, TypedEventListener>) {
         source.clearEventListeners();
         for (const [property, listener] of Object.entries(listeners)) {
             if (isFunction(listener)) {

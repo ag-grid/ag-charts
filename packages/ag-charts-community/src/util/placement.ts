@@ -17,7 +17,7 @@ export type Placement = {
 export function calculatePlacement(
     naturalWidth: number,
     naturalHeight: number,
-    container: Pick<DOMRect, 'width' | 'height' | 'x' | 'y'>,
+    container: Pick<DOMRect, 'width' | 'height'>,
     bounds: Bounds
 ): Placement {
     let { top, right, bottom, left, width, height } = bounds;

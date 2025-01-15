@@ -8,6 +8,7 @@ import { BaseManager } from '../util/baseManager';
 import { GuardedElement } from '../util/guardedElement';
 import { stopPageScrolling } from '../util/keynavUtil';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
+import { StateTracker } from '../util/stateTracker';
 // TODO move to utils
 import BASE_DOM from './domLayout.html';
 
@@ -90,6 +91,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     private readonly observer?: IntersectionObserver;
     private readonly sizeMonitor = new SizeMonitor();
+    private readonly cursorState = new StateTracker('default');
 
     constructor(container?: HTMLElement, styleContainer?: HTMLElement) {
         super();
@@ -104,7 +106,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
                 const cssClass = `ag-charts-${c}`;
                 const el = this.element.classList.contains(cssClass)
                     ? this.element
-                    : (this.element.querySelector(`.${cssClass}`) as HTMLElement);
+                    : this.element.querySelector<HTMLElement>(`.${cssClass}`);
 
                 if (!el) throw new Error(`AG Charts - unable to find DOM element ${cssClass}`);
 
@@ -443,8 +445,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.removeChild('styles', id);
     }
 
-    updateCursor(style: string) {
-        this.element.style.cursor = style;
+    updateCursor(callerId: string, style?: string) {
+        this.cursorState.set(callerId, style);
+        this.element.style.cursor = this.cursorState.stateValue()!;
     }
 
     getCursor() {

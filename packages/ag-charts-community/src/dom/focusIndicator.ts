@@ -29,8 +29,7 @@ export class FocusIndicator {
         this.path = createSvgElement('path');
         this.svg.append(this.path);
 
-        this.element = createElement('div');
-        this.element.classList.add('ag-charts-focus-indicator');
+        this.element = createElement('div', 'ag-charts-focus-indicator');
         this.element.ariaHidden = 'true';
         this.element.append(this.svg);
         this.swapChain.addListener('swap', (parent) => this.onSwap(parent));
