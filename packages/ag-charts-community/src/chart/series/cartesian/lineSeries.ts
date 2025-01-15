@@ -235,11 +235,10 @@ export class LineSeries extends CartesianSeries<
         return fixNumericExtent(yExtent);
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): number[] {
         const stackCount = this.seriesGrouping?.stackCount ?? 1;
         const yKey = stackCount > 1 ? 'yValueEnd' : 'yValueRaw';
-        const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange, true);
-        return [Math.min(y0, 0), Math.max(y1, 0)];
+        return this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange, true);
     }
 
     protected aggregateData(
