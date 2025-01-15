@@ -146,6 +146,57 @@ const options: AgChartOptions = {
                 extendEnd: true,
                 lineStyle: 'dashed',
             },
+            {
+                type: 'arrow-up',
+                x: 165,
+                y: 73,
+            },
+            {
+                type: 'arrow-down',
+                x: 220,
+                y: 73,
+            },
+            {
+                type: 'note',
+                text: 'This is a note',
+                x: 180,
+                y: 80,
+            },
+            {
+                type: 'vertical-line',
+                text: {
+                    label: 'Vertical Line',
+                    position: 'center',
+                },
+                value: 240,
+                strokeWidth: 3,
+            },
+            {
+                type: 'disjoint-channel',
+                start: {
+                    x: 220,
+                    y: 81,
+                },
+                end: {
+                    x: 235,
+                    y: 75,
+                },
+                startHeight: 6,
+                endHeight: -4,
+            },
+            {
+                type: 'arrow',
+                start: {
+                    x: 165,
+                    y: 81,
+                },
+                end: {
+                    x: 265,
+                    y: 69,
+                },
+                lineStyle: 'dotted',
+                strokeWidth: 6,
+            },
         ],
     },
 };

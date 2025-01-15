@@ -32,10 +32,14 @@ export const DEFAULT_GAUGE_SERIES_COLOR_RANGE = Symbol('default-gauge-series-col
 export const DEFAULT_FUNNEL_SERIES_COLOR_RANGE = Symbol('default-funnel-series-colour-range') as unknown as string;
 export const DEFAULT_HIERARCHY_FILLS = Symbol('default-hierarchy-fills') as unknown as string;
 export const DEFAULT_HIERARCHY_STROKES = Symbol('default-hierarchy-strokes') as unknown as string;
-export const DEFAULT_ANNOTATION_COLOR = Symbol('default-annotation-stroke') as unknown as string;
+export const DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR = Symbol(
+    'default-financial-charts-annotation-stroke'
+) as unknown as string;
 export const DEFAULT_FIBONACCI_STROKES = Symbol('default-hierarchy-strokes') as unknown as string;
 export const DEFAULT_TEXT_ANNOTATION_COLOR = Symbol('default-text-annotation-color') as unknown as string;
-export const DEFAULT_ANNOTATION_BACKGROUND_FILL = Symbol('default-annotation-background-fill') as unknown as string;
+export const DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL = Symbol(
+    'default-financial-charts-annotation-background-fill'
+) as unknown as string;
 export const DEFAULT_ANNOTATION_HANDLE_FILL = Symbol('default-annotation-handle-fill') as unknown as string;
 export const DEFAULT_ANNOTATION_STATISTICS_FILL = Symbol('default-annotation-statistics-fill') as unknown as string;
 export const DEFAULT_ANNOTATION_STATISTICS_STROKE = Symbol('default-annotation-statistics-stroke') as unknown as string;

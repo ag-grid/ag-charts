@@ -10,8 +10,18 @@ import {
     TEXT_ANNOTATION_ITEMS,
 } from './annotationsMenuOptions';
 
-const { ARRAY, BOOLEAN, UNION, ActionOnSet, LayoutElement, Menu, PropertiesArray, ToolbarButtonProperties, Validate } =
-    _ModuleSupport;
+const {
+    ARRAY,
+    BOOLEAN,
+    UNION,
+    POSITIVE_NUMBER,
+    ActionOnSet,
+    LayoutElement,
+    Menu,
+    PropertiesArray,
+    ToolbarButtonProperties,
+    Validate,
+} = _ModuleSupport;
 
 interface EventMap {
     'cancel-create-annotation': void;
@@ -46,6 +56,12 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         },
     })
     public enabled?: boolean = true;
+
+    /**
+     * The padding between the toolbar and the chart area.
+     */
+    @Validate(POSITIVE_NUMBER)
+    padding: number = 20;
 
     @Validate(ARRAY)
     public buttons = new PropertiesArray(AnnotationsToolbarButtonProperties);
@@ -131,7 +147,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     private onLayoutStart(event: _ModuleSupport.LayoutContext) {
         if (!this.enabled) return;
         this.toolbar.updateButtons(this.buttons);
-        this.toolbar.layout(event.layoutBox);
+        this.toolbar.layout(event.layoutBox, this.padding);
     }
 
     private onToolbarButtonPress({

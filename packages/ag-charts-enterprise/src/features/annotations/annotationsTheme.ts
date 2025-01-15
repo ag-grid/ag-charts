@@ -9,7 +9,7 @@ import {
 const { ThemeSymbols } = _ModuleSupport;
 
 const stroke = {
-    stroke: ThemeSymbols.DEFAULT_ANNOTATION_COLOR,
+    stroke: { ref: 'foregroundColor' as const },
     strokeOpacity: 1,
     strokeWidth: 2,
 };
@@ -21,7 +21,7 @@ const handle = {
 };
 
 const font = {
-    color: ThemeSymbols.DEFAULT_TEXT_ANNOTATION_COLOR,
+    color: { ref: 'backgroundColor' as const },
     fontSize: 14,
     fontFamily: { ref: 'fontFamily' as const },
 };
@@ -29,14 +29,12 @@ const font = {
 const axisLabel = {
     ...font,
     enabled: true,
-    color: 'white',
-    fill: ThemeSymbols.DEFAULT_ANNOTATION_COLOR,
+    fill: { ref: 'foregroundColor' as const },
     fontSize: { ref: 'fontSize' as const },
 };
 
 const text = {
     ...font,
-    color: ThemeSymbols.DEFAULT_TEXT_ANNOTATION_COLOR,
     textAlign: 'left',
 };
 
@@ -44,7 +42,7 @@ const lineText = {
     ...font,
     position: 'top' as const,
     alignment: 'center' as const,
-    color: ThemeSymbols.DEFAULT_ANNOTATION_COLOR,
+    color: { ref: 'foregroundColor' as const },
 };
 
 const measurerStatistics = {
@@ -64,8 +62,8 @@ const measurerStatistics = {
 const measurer = {
     ...stroke,
     background: {
-        fill: ThemeSymbols.DEFAULT_ANNOTATION_BACKGROUND_FILL,
-        fillOpacity: 0.2,
+        fill: { ref: 'foregroundColor' as const },
+        fillOpacity: 0.075,
     },
     handle: { ...handle },
     text: { ...lineText },
@@ -95,6 +93,8 @@ const toolbar: AgAnnotationsToolbar = {
             value: 'clear',
         },
     ],
+    // @ts-expect-error undocumented option
+    padding: { ref: 'padding' },
 };
 
 const optionsToolbar: AgAnnotationOptionsToolbar = {
@@ -176,8 +176,8 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     'disjoint-channel': {
         ...stroke,
         background: {
-            fill: ThemeSymbols.DEFAULT_ANNOTATION_BACKGROUND_FILL,
-            fillOpacity: 0.2,
+            fill: { ref: 'foregroundColor' },
+            fillOpacity: 0.075,
         },
         handle: { ...handle },
         text: { ...lineText },
@@ -189,8 +189,8 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
             strokeWidth: 1,
         },
         background: {
-            fill: ThemeSymbols.DEFAULT_ANNOTATION_BACKGROUND_FILL,
-            fillOpacity: 0.2,
+            fill: { ref: 'foregroundColor' },
+            fillOpacity: 0.075,
         },
         handle: { ...handle },
         text: { ...lineText },
@@ -200,7 +200,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     'fibonacci-retracement': {
         ...stroke,
         strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
-        rangeStroke: ThemeSymbols.DEFAULT_ANNOTATION_COLOR,
+        rangeStroke: { ref: 'foregroundColor' },
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
         label: { ...font, color: undefined, fontSize: 10 },
@@ -209,7 +209,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     'fibonacci-retracement-trend-based': {
         ...stroke,
         strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
-        rangeStroke: ThemeSymbols.DEFAULT_ANNOTATION_COLOR,
+        rangeStroke: { ref: 'foregroundColor' },
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
         label: { ...font, color: undefined, fontSize: 10 },
@@ -221,20 +221,19 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...text,
         color: { ref: 'foregroundColor' },
         handle: { ...handle },
-        fill: ThemeSymbols.DEFAULT_ANNOTATION_BACKGROUND_FILL,
-        fillOpacity: 0.2,
+        fill: { ref: 'foregroundColor' },
+        fillOpacity: 0.075,
     },
     comment: {
         ...text,
-        color: 'white',
         fontWeight: 700,
         handle: { ...handle },
-        fill: ThemeSymbols.DEFAULT_ANNOTATION_COLOR,
+        fill: { ref: 'foregroundColor' },
     },
     note: {
         ...text,
         color: ThemeSymbols.DEFAULT_TEXTBOX_COLOR,
-        fill: ThemeSymbols.DEFAULT_ANNOTATION_COLOR,
+        fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
         stroke: { ref: 'backgroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
@@ -247,6 +246,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
     text: {
         ...text,
+        color: { ref: 'foregroundColor' },
         handle: { ...handle },
     },
 
@@ -258,11 +258,11 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
     'arrow-up': {
         fill: ThemeSymbols.PALETTE_UP_FILL,
-        handle: { ...handle, stroke: ThemeSymbols.DEFAULT_ANNOTATION_COLOR },
+        handle: { ...handle, stroke: { ref: 'foregroundColor' } },
     },
     'arrow-down': {
         fill: ThemeSymbols.PALETTE_DOWN_FILL,
-        handle: { ...handle, stroke: ThemeSymbols.DEFAULT_ANNOTATION_COLOR },
+        handle: { ...handle, stroke: { ref: 'foregroundColor' } },
     },
 
     // Measurers
@@ -278,13 +278,13 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     'quick-date-price-range': {
         up: {
             ...stroke,
-            fill: ThemeSymbols.DEFAULT_ANNOTATION_BACKGROUND_FILL,
+            fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
             fillOpacity: 0.2,
             handle: { ...handle },
             statistics: {
                 ...measurerStatistics,
                 color: '#fff',
-                fill: ThemeSymbols.DEFAULT_ANNOTATION_BACKGROUND_FILL,
+                fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
                 strokeWidth: 0,
                 divider: {
                     stroke: '#fff',
@@ -315,7 +315,6 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
             },
         },
     },
-
     // Toolbars
     toolbar,
     optionsToolbar,
