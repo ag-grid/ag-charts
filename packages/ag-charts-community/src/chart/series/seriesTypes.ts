@@ -80,13 +80,14 @@ export type NodeDataDependencies = { seriesRectWidth: number; seriesRectHeight: 
 export type NodeDataDependant = { readonly nodeDataDependencies: NodeDataDependencies };
 
 export function getDatumRefPoint(
+    series: ISeries<any, any>,
     datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
 ): { canvasX: number; canvasY: number } | undefined {
     // On `line` and `scatter` series, the tooltip covers the top of error-bars when using datum.midPoint.
     // Using datum.yBar.upperPoint renders the tooltip higher up.
-    const refPoint = datum.yBar?.upperPoint ?? datum.midPoint ?? datum.series.datumMidPoint?.(datum);
+    const refPoint = datum.yBar?.upperPoint ?? datum.midPoint ?? series.datumMidPoint?.(datum);
     if (refPoint) {
-        const { x, y } = Transformable.toCanvasPoint(datum.series.contentGroup, refPoint.x, refPoint.y);
+        const { x, y } = Transformable.toCanvasPoint(series.contentGroup, refPoint.x, refPoint.y);
         return { canvasX: Math.round(x), canvasY: Math.round(y) };
     }
 }

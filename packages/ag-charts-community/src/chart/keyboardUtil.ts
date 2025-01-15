@@ -1,18 +1,18 @@
 import { BBox } from '../scene/bbox';
 import type { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
-import { getDatumRefPoint } from './series/seriesTypes';
+import { type ISeries, getDatumRefPoint } from './series/seriesTypes';
 import type { TooltipPointerEvent } from './tooltip/tooltip';
 
 type PickProperties = {
     bounds: Path | BBox | undefined;
-    datum: Parameters<typeof getDatumRefPoint>[0];
+    datum: Parameters<typeof getDatumRefPoint>[1];
     showFocusBox: boolean;
     clipFocusBox: boolean;
 };
 
-function computeCenter(hoverRect: BBox, pick: PickProperties) {
-    const refPoint = getDatumRefPoint(pick.datum);
+function computeCenter(series: ISeries<any, any>, hoverRect: BBox, pick: PickProperties) {
+    const refPoint = getDatumRefPoint(series, pick.datum);
     if (refPoint != null) return { x: refPoint.canvasX, y: refPoint.canvasY };
 
     const bboxOrPath = pick.bounds;
@@ -34,10 +34,11 @@ export function getPickedFocusBBox({ bounds }: PickProperties): Readonly<BBox> {
 }
 
 export function makeKeyboardPointerEvent(
+    series: ISeries<any, any>,
     hoverRect: BBox,
     pick: PickProperties
 ): TooltipPointerEvent<'keyboard'> | undefined {
-    const { x: canvasX, y: canvasY } = computeCenter(hoverRect, pick) ?? {};
+    const { x: canvasX, y: canvasY } = computeCenter(series, hoverRect, pick) ?? {};
     if (canvasX !== undefined && canvasY !== undefined) {
         return { type: 'keyboard', canvasX, canvasY };
     }
