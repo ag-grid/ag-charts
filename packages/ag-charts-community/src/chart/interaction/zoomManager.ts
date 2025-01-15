@@ -428,6 +428,8 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     private autoScaleYZoom(callerId: string, applyChanges = true) {
+        if (!this.isZoomEnabled()) return;
+
         const { independentAxes, autoScaleYAxis } = this;
 
         const zoom = this.getZoom();
