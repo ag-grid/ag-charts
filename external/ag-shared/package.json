@@ -5,10 +5,18 @@
   "main": "./dist/package/src/main.js",
   "types": "./dist/types/src/main.d.ts",
   "exports": {
-    "import": "./dist/package/src/main.js",
-    "require": "./dist/package/src/main.js",
-    "types": "./dist/types/src/main.d.ts",
-    "default": "./dist/package/src/main.js"
+    ".": {
+      "import": "./dist/package/src/main.js",
+      "require": "./dist/package/src/main.js",
+      "types": "./dist/types/src/main.d.ts",
+      "default": "./dist/package/src/main.js"
+    },
+    "./plugin-utils": {
+      "import": "./dist/package/scripts/plugin-utils/index.js",
+      "require": "./dist/package/scripts/plugin-utils/index.js",
+      "types": "./dist/types/scripts/plugin-utils/index.d.ts",
+      "default": "./dist/package/scripts/plugin-utils/index.js"
+    }
   },
   "scripts": {},
   "repository": {

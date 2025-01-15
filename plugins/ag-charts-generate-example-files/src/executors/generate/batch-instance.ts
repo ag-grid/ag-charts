@@ -1,5 +1,5 @@
 import type { ExecutorContext } from '@nx/devkit';
-import type { BatchExecutorTaskResult } from 'ag-shared';
+import type { BatchExecutorTaskResult } from 'ag-shared/plugin-utils';
 
 import { type ExecutorOptions, generateFiles } from './executor';
 

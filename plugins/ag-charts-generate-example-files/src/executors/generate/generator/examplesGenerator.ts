@@ -1,4 +1,4 @@
-import { readFile } from 'ag-shared';
+import { readFile } from 'ag-shared/plugin-utils';
 import fs from 'fs/promises';
 import path from 'path';
 

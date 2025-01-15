@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { inputGlob, parseFile } from 'ag-shared';
+import { inputGlob, parseFile } from 'ag-shared/plugin-utils';
 import * as ts from 'typescript';
 
 type NodeType = any;
