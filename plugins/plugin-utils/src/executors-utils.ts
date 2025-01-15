@@ -2,6 +2,7 @@ import type { ExecutorContext, TaskGraph } from '@nx/devkit';
 import { readFileSync } from 'fs';
 import * as fs from 'fs/promises';
 import * as glob from 'glob';
+import * as os from 'os';
 import * as path from 'path';
 import * as ts from 'typescript';
 
@@ -103,10 +104,15 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
     ): AsyncGenerator<BatchExecutorTaskResult, any, unknown> {
         const results: Map<string, Promise<BatchExecutorTaskResult>> = new Map();
 
+        let threadCount = os.cpus().length;
+        if (process.env.CI == null) {
+            threadCount /= 2;
+        }
         const { Tinypool } = await import('tinypool');
         const pool = new Tinypool({
             runtime: 'child_process',
             filename: workerModule,
+            maxThreads: threadCount,
         });
         process.on('exit', () => {
             pool.cancelPendingTasks();
@@ -115,7 +121,7 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
 
         const tasks = Object.keys(inputs);
 
-        console.info(`Batched execution of ${tasks.length} jobs, using ${pool.threads.length} threads...`);
+        console.info(`Batched execution of ${tasks.length} tasks, using ${pool.threads.length} threads...`);
         const start = performance.now();
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
             const taskName = tasks[taskIndex];
@@ -138,7 +144,7 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
         // Run yield loop after dispatch to avoid serializing execution.
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
             const taskName = tasks[taskIndex];
-            yield results.get(taskName);
+            yield results.get(taskName)!;
         }
 
         await Promise.allSettled(results.values());
