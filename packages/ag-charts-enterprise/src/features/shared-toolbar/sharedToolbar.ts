@@ -17,7 +17,7 @@ export interface SharedToolbarWithSection<
         | 'toggleButtonEnabledByIndex'
         | 'clearActiveButton'
     > {
-    layout: (layoutBox: _ModuleSupport.BBox) => void;
+    layout: (layoutBox: _ModuleSupport.BBox, padding?: number) => void;
 }
 
 export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
@@ -66,7 +66,7 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
         const sharedToolbar = this.sharedToolbar!;
 
         const withSection = {
-            layout: (layoutBox: _ModuleSupport.BBox) => {
+            layout: (layoutBox: _ModuleSupport.BBox, padding?: number) => {
                 // Only perform the layout for the first section to call to prevent multiple shrinkings per update
                 if (
                     this.firstLayoutSection != null &&
@@ -84,7 +84,7 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
                     width: width,
                 });
 
-                layoutBox.shrink({ left: width + sharedToolbar.horizontalSpacing });
+                layoutBox.shrink({ left: width + sharedToolbar.horizontalSpacing + (padding ?? 0) });
             },
             addToolbarListener: <K extends keyof _ModuleSupport.ToolbarEventMap & string>(
                 eventType: K,

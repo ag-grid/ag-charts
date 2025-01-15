@@ -135,15 +135,16 @@ export function priceVolume(
     const annotationOpts = {
         annotations: {
             enabled: toolbar,
-            toolbar: {
-                enabled: toolbar,
-                buttons: toolbarButtons,
-            },
             optionsToolbar: {
                 enabled: toolbar,
             },
             snap: true,
-            // @ts-expect-error undocumented option
+            toolbar: {
+                enabled: toolbar,
+                buttons: toolbarButtons,
+                // @ts-expect-error undocumented option
+                padding: 0,
+            },
             __axesButtons: {
                 enabled: toolbar,
             },

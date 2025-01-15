@@ -93,6 +93,8 @@ const toolbar: AgAnnotationsToolbar = {
             value: 'clear',
         },
     ],
+    // @ts-expect-error undocumented option
+    padding: { ref: 'padding' },
 };
 
 const optionsToolbar: AgAnnotationOptionsToolbar = {
