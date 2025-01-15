@@ -436,9 +436,14 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         if (zoom?.x == null || !autoScaleYAxis.enabled || autoScaleYAxis.manuallyAdjusted) return;
 
         const { padding } = autoScaleYAxis;
-        const zoomY = independentAxes
-            ? this.primaryAxisZoom(ChartAxisDirection.Y, zoom.x, { padding })
-            : this.combinedAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
+        let zoomY: ZoomState | undefined;
+        if (zoom.x?.min === 0 && zoom.x?.max === 1) {
+            zoomY = { min: 0, max: 1 };
+        } else if (independentAxes) {
+            zoomY = this.primaryAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
+        } else {
+            zoomY = this.combinedAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
+        }
         if (zoomY == null) return;
 
         if (independentAxes) {
