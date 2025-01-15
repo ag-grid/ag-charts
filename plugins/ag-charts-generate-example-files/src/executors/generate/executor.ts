@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+import { deleteFile, writeFile } from 'ag-shared/plugin-utils';
 import path from 'path';
-import { deleteFile, writeFile } from 'plugin-utils';
 
 import { getGeneratedContents } from './generator/examplesGenerator';
 import { FRAMEWORKS } from './generator/types';

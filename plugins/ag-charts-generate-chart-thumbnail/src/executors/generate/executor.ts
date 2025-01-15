@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 import type { ExecutorContext } from '@nx/devkit';
+import { consolePrefix, ensureDirectory, readJSONFile } from 'ag-shared/plugin-utils';
 import { Canvas, CanvasRenderingContext2D } from 'canvas';
 import path from 'path';
 import { Path2D, applyPath2DToCanvasRenderingContext } from 'path2d';
-import { consolePrefix, ensureDirectory, readJSONFile } from 'plugin-utils';
 
 import type { AgChartThemeName } from 'ag-charts-community';
 
