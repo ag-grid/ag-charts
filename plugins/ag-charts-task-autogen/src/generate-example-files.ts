@@ -20,6 +20,9 @@ export function createTask(parentProject: string, srcRelativeInputPath: string):
                 outputPath: `dist/generated-examples/${parentProject}/${srcRelativeInputPath}`,
             },
             configurations: {
+                staging: {
+                    mode: 'prod',
+                },
                 production: {
                     mode: 'prod',
                 },

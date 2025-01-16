@@ -47,7 +47,7 @@ const chart = AgCharts.create(options);
 export const getGeneratedContentsFileList = async (params: FileListParams): Promise<string[]> => {
     const { internalFramework, folderPath, isDev } = params;
 
-    const entryFileName = getEntryFileName(internalFramework)!;
+    const entryFileName = getEntryFileName(internalFramework);
     const sourceFileList = await fs.readdir(folderPath);
 
     const scriptFiles = await getOtherScriptFiles({
@@ -86,7 +86,7 @@ type GeneratedContentParams = {
  * Get generated contents for an example
  */
 export const getGeneratedContents = async (params: GeneratedContentParams): Promise<GeneratedContents | undefined> => {
-    const { internalFramework, folderPath, ignoreDarkMode, isDev = false } = params;
+    const { internalFramework, folderPath, ignoreDarkMode, isDev } = params;
     let { extractOptions = false } = params;
     const sourceFileList = await fs.readdir(folderPath);
 
@@ -208,7 +208,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         layout,
         hasLocale,
         exampleConfig,
-        scriptFiles: scriptFiles!,
+        scriptFiles,
         styleFiles: Object.keys(styleFiles),
         htmlFiles: Object.keys(htmlFiles),
         sourceFileList,
@@ -216,7 +216,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         files: Object.assign(styleFiles, htmlFiles, files, providedExamples),
         // Files without provided examples
         generatedFiles: files,
-        boilerPlateFiles: boilerPlateFiles!,
+        boilerPlateFiles,
         providedExamples,
         entryFileName,
         mainFileName,
