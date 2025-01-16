@@ -353,7 +353,7 @@ test.describe('keyboard-nav', () => {
                 await container.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('linear-gauge-corners-segmented-item.png');
+                await expect(page).toHaveScreenshot('linear-gauge-corners-segmented-container.png');
             });
         });
 
@@ -392,7 +392,7 @@ test.describe('keyboard-nav', () => {
                 await container.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('radial-gauge-corners-segmented-item.png');
+                await expect(page).toHaveScreenshot('radial-gauge-corners-segmented-container.png');
             });
         });
     });
