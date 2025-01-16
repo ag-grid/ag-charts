@@ -88,7 +88,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     });
 
     @Validate(OBJECT)
-    public __axesButtons = new AxesButtons();
+    public axesButtons = new AxesButtons();
 
     @Validate(BOOLEAN)
     public snap: boolean = false;
@@ -710,7 +710,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const lineDirection = axisCtx.direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
 
-        const { __axesButtons: axesButtons, snap } = this;
+        const { axesButtons, snap } = this;
         const buttonEnabled =
             this.enabled && axesButtons.enabled && (axesButtons.axes === 'xy' || axesButtons.axes === direction);
         if (buttonEnabled) {

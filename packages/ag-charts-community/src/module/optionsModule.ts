@@ -359,13 +359,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private splitAnnotationsOptions(annotations: any) {
-        const { enabled = null, optionsToolbar = null, toolbar = null, ...annotationsThemes } = annotations;
+        const {
+            axesButtons = null,
+            enabled = null,
+            optionsToolbar = null,
+            toolbar = null,
+            ...annotationsThemes
+        } = annotations;
 
-        if (enabled == null && optionsToolbar == null && toolbar == null) {
+        if (axesButtons == null && enabled == null && optionsToolbar == null && toolbar == null) {
             return [{}, annotationsThemes];
         }
 
-        return [{ annotations: { enabled, optionsToolbar, toolbar } }, annotationsThemes];
+        return [{ annotations: { axesButtons, enabled, optionsToolbar, toolbar } }, annotationsThemes];
     }
 
     private processAxesOptions(options: T, axesThemes: any) {
