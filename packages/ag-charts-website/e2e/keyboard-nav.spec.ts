@@ -267,44 +267,54 @@ test.describe('keyboard-nav', () => {
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-bar-highlight.png`);
     });
 
-    test('radial gauge chart with needle', async ({ page }) => {
-        const { url } = toExamplePageUrl('radial-gauge', 'needle', 'vanilla');
+    test.describe('radial gauge chart with needle', () => {
+        let canvas: Locator, hideNeedle: Locator, showNeedle: Locator, hideBar: Locator, showBar: Locator;
+        test.beforeEach(async ({ page }) => {
+            await gotoExample(page, toExamplePageUrl('radial-gauge', 'needle', 'vanilla').url);
+            canvas = page.locator(SELECTORS.canvasCenter).first();
+            hideNeedle = page.getByText('Hide Needle').first();
+            showNeedle = page.getByText('Show Needle').first();
+            hideBar = page.getByText('Hide Bar').first();
+            showBar = page.getByText('Show Bar').first();
+        });
 
-        await gotoExample(page, url);
+        test('init', async ({ page }) => {
+            await canvas.click();
+            await page.keyboard.press('ArrowLeft');
+            await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-hideBar.png`);
+        });
 
-        const canvas = page.locator(SELECTORS.canvasCenter).first();
-        const hideNeedle = page.getByText('Hide Needle').first();
-        const showNeedle = page.getByText('Show Needle').first();
-        const hideBar = page.getByText('Hide Bar').first();
-        const showBar = page.getByText('Show Bar').first();
+        test('hideNeedle hideBar', async ({ page }) => {
+            await hideNeedle.click();
+            await hideBar.click();
+            await canvas.click();
+            await page.keyboard.press('ArrowLeft');
+            await expect(canvas).toHaveScreenshot(`radial-gauge-hideNeedle-hideBar.png`);
+        });
 
-        await canvas.click();
-        await page.keyboard.press('ArrowLeft');
-        await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-hideBar.png`);
+        test('hideNeedle showBar', async ({ page }) => {
+            await hideNeedle.click();
+            await showBar.click();
+            await canvas.click();
+            await page.keyboard.press('ArrowLeft');
+            await expect(canvas).toHaveScreenshot(`radial-gauge-hideNeedle-showBar.png`);
+        });
 
-        await hideNeedle.click();
-        await hideBar.click();
-        await canvas.click();
-        await page.keyboard.press('ArrowLeft');
-        await expect(canvas).toHaveScreenshot(`radial-gauge-hideNeedle-hideBar.png`);
+        test('showNeedle hideBar', async ({ page }) => {
+            await showNeedle.click();
+            await hideBar.click();
+            await canvas.click();
+            await page.keyboard.press('ArrowLeft');
+            await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-hideBar.png`);
+        });
 
-        await hideNeedle.click();
-        await showBar.click();
-        await canvas.click();
-        await page.keyboard.press('ArrowLeft');
-        await expect(canvas).toHaveScreenshot(`radial-gauge-hideNeedle-showBar.png`);
-
-        await showNeedle.click();
-        await hideBar.click();
-        await canvas.click();
-        await page.keyboard.press('ArrowLeft');
-        await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-hideBar.png`);
-
-        await showNeedle.click();
-        await showBar.click();
-        await canvas.click();
-        await page.keyboard.press('ArrowLeft');
-        await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-showBar.png`);
+        test('showNeedle showBar', async ({ page }) => {
+            await showNeedle.click();
+            await showBar.click();
+            await canvas.click();
+            await page.keyboard.press('ArrowLeft');
+            await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-showBar.png`);
+        });
     });
 
     test.describe('gauge corner radii', () => {
