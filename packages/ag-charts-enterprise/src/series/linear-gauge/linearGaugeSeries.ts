@@ -1107,7 +1107,8 @@ export class LinearGaugeSeries
     }
 
     override getSeriesDomain() {
-        return [NaN, NaN];
+        // Not used - required to be set to a finite for animations
+        return [0, 1];
     }
 
     override getSeriesRange(
