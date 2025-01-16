@@ -25,6 +25,7 @@ import { getStyleFiles } from './utils/getStyleFiles';
 type FileListParams = {
     internalFramework: InternalFramework;
     folderPath: string;
+    isDev: boolean;
 };
 
 const PLACEHOLDER_MAIN_TS = `
@@ -44,7 +45,7 @@ const chart = AgCharts.create(options);
  * (without generating the contents)
  */
 export const getGeneratedContentsFileList = async (params: FileListParams): Promise<string[]> => {
-    const { internalFramework, folderPath } = params;
+    const { internalFramework, folderPath, isDev } = params;
 
     const entryFileName = getEntryFileName(internalFramework)!;
     const sourceFileList = await fs.readdir(folderPath);
@@ -53,6 +54,7 @@ export const getGeneratedContentsFileList = async (params: FileListParams): Prom
         folderPath,
         sourceFileList,
         transformTsFileExt: getTransformTsFileExt(internalFramework),
+        isDev,
     });
     const styleFiles = await getStyleFiles({
         folderPath,
@@ -126,6 +128,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         folderPath,
         sourceFileList,
         transformTsFileExt: getTransformTsFileExt(internalFramework),
+        isDev,
     });
     const providedExampleFileNames = getProvidedExampleFiles({ folderPath, internalFramework });
 

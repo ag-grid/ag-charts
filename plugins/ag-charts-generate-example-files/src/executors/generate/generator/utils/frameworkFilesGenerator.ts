@@ -48,7 +48,7 @@ type ConfigGenerator = ({
 }) => Promise<FrameworkFiles>;
 
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
-    vanilla: async ({ entryFile, indexHtml, typedBindings, otherScriptFiles, ignoreDarkMode }) => {
+    vanilla: async ({ entryFile, indexHtml, typedBindings, otherScriptFiles, ignoreDarkMode, isDev }) => {
         const internalFramework: InternalFramework = 'vanilla';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -91,10 +91,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs = mainJs + '\n\n' + getDarkModeSnippet({ chartAPI: 'AgCharts' });
         }
 
-        mainJs = await prettier.format(mainJs, {
-            parser: 'babel',
-            embeddedLanguageFormatting: 'off',
-        });
+        if (!isDev) {
+            mainJs = await prettier.format(mainJs, {
+                parser: 'babel',
+                embeddedLanguageFormatting: 'off',
+            });
+        }
 
         return {
             files: {
@@ -140,10 +142,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainTs = mainTs + '\n' + getDarkModeSnippet({ chartAPI });
         }
 
-        mainTs = await prettier.format(mainTs, {
-            parser: 'typescript',
-            embeddedLanguageFormatting: 'off',
-        });
+        if (!isDev) {
+            mainTs = await prettier.format(mainTs, {
+                parser: 'typescript',
+                embeddedLanguageFormatting: 'off',
+            });
+        }
 
         return {
             files: {
@@ -170,10 +174,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             indexJsx = indexJsx + '\n' + getDarkModeSnippet();
         }
 
-        indexJsx = await prettier.format(indexJsx, {
-            parser: 'babel',
-            embeddedLanguageFormatting: 'off',
-        });
+        if (!isDev) {
+            indexJsx = await prettier.format(indexJsx, {
+                parser: 'babel',
+                embeddedLanguageFormatting: 'off',
+            });
+        }
 
         return {
             files: {
@@ -201,10 +207,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             indexTsx = indexTsx + '\n' + getDarkModeSnippet();
         }
 
-        indexTsx = await prettier.format(indexTsx, {
-            parser: 'typescript',
-            embeddedLanguageFormatting: 'off',
-        });
+        if (!isDev) {
+            indexTsx = await prettier.format(indexTsx, {
+                parser: 'typescript',
+                embeddedLanguageFormatting: 'off',
+            });
+        }
 
         return {
             files: {
@@ -231,10 +239,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             appComponent = appComponent + '\n' + getDarkModeSnippet();
         }
 
-        appComponent = await prettier.format(appComponent, {
-            parser: 'typescript',
-            embeddedLanguageFormatting: 'off',
-        });
+        if (!isDev) {
+            appComponent = await prettier.format(appComponent, {
+                parser: 'typescript',
+                embeddedLanguageFormatting: 'off',
+            });
+        }
 
         return {
             files: {
@@ -262,10 +272,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs = mainJs + '\n' + getDarkModeSnippet();
         }
 
-        mainJs = await prettier.format(mainJs, {
-            parser: 'babel',
-            embeddedLanguageFormatting: 'off',
-        });
+        if (!isDev) {
+            mainJs = await prettier.format(mainJs, {
+                parser: 'babel',
+                embeddedLanguageFormatting: 'off',
+            });
+        }
 
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;

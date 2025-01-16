@@ -67,7 +67,8 @@ export async function ensureDirectory(dirPath: string) {
 }
 
 export function batchExecutor<ExecutorOptions>(
-    executor: (opts: ExecutorOptions, ctx: ExecutorContext) => Promise<void>
+    executor: (opts: ExecutorOptions, ctx: ExecutorContext) => Promise<void>,
+    completeCb?: () => Promise<void> | void
 ) {
     return async function* (
         _taskGraph: TaskGraph,
@@ -92,6 +93,8 @@ export function batchExecutor<ExecutorOptions>(
 
             yield { task, result: { success, terminalOutput } };
         }
+
+        await completeCb?.();
     };
 }
 

@@ -62,10 +62,12 @@ export const getOtherScriptFiles = async ({
     folderPath,
     sourceFileList,
     transformTsFileExt,
+    isDev,
 }: {
     folderPath: string;
     sourceFileList: string[];
     transformTsFileExt?: TransformTsFileExt;
+    isDev: boolean;
 }) => {
     const otherTsGeneratedFileContents = await getOtherTsGeneratedFiles({
         folderPath,
@@ -79,6 +81,11 @@ export const getOtherScriptFiles = async ({
 
     const contents: Record<string, string> = {};
     for (const [filename, content] of Object.entries(otherTsGeneratedFileContents)) {
+        if (isDev) {
+            contents[filename] = content;
+            continue;
+        }
+
         contents[filename] = await prettier.format(content, {
             parser: 'typescript',
             embeddedLanguageFormatting: 'off',
@@ -86,6 +93,11 @@ export const getOtherScriptFiles = async ({
     }
 
     for (const [filename, content] of Object.entries(otherJsFileContents)) {
+        if (isDev) {
+            contents[filename] = content;
+            continue;
+        }
+
         contents[filename] = await prettier.format(content, {
             parser: 'typescript',
             embeddedLanguageFormatting: 'off',

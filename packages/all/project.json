@@ -55,19 +55,40 @@
         "production": {}
       }
     },
-    "dev:setup": {
-      "executor": "nx:run-commands",
+    "generate-examples": {
       "dependsOn": ["^build:types", "^build:package"],
+      "executor": "nx:run-commands",
       "inputs": [],
       "outputs": [],
       "cache": false,
       "options": {
         "parallel": false,
         "commands": [
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then npx nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" == \"0\") ; then npx nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website ; fi"
+          "if (test \"${BUILD_BATCH}\" != \"0\") ; then npx nx run-many --output-style compact -t generate-examples -p ag-charts-website --batch ; fi",
+          "if (test \"${BUILD_BATCH}\" == \"0\") ; then npx nx run-many --output-style compact -t generate-examples -p ag-charts-website ; fi"
         ]
       }
+    },
+    "generate-thumbnails": {
+      "dependsOn": ["^build:types", "^build:package"],
+      "executor": "nx:run-commands",
+      "inputs": [],
+      "outputs": [],
+      "cache": false,
+      "options": {
+        "parallel": false,
+        "commands": [
+          "if (test \"${BUILD_BATCH}\" != \"0\") ; then npx nx run-many --output-style compact -t generate-thumbnails -p ag-charts-website --batch ; fi",
+          "if (test \"${BUILD_BATCH}\" == \"0\") ; then npx nx run-many --output-style compact -t generate-thumbnails -p ag-charts-website ; fi"
+        ]
+      }
+    },
+    "dev:setup": {
+      "executor": "nx:noop",
+      "dependsOn": ["^build:types", "^build:package", "generate-examples", "generate-thumbnails"],
+      "inputs": [],
+      "outputs": [],
+      "cache": false
     },
     "dev": {
       "executor": "nx:run-commands",
@@ -114,14 +135,10 @@
       "outputs": []
     },
     "blt": {
-      "executor": "nx:run-commands",
-      "dependsOn": ["build", "lint", "format-check"],
+      "executor": "nx:noop",
+      "dependsOn": ["build", "lint", "format-check", "test", "^validate-examples"],
       "inputs": [],
-      "cache": false,
-      "options": {
-        "parallel": false,
-        "commands": ["nx run-many -t test --parallel 1", "nx run-many -t validate-examples"]
-      }
+      "cache": false
     },
     "clean": {
       "cache": false,
