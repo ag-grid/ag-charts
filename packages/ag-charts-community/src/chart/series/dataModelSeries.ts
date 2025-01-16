@@ -109,15 +109,15 @@ export abstract class DataModelSeries<
             const { missing = false, enabled = true, focusable = true } = nodeData[datumIndex];
             return !missing && enabled && focusable;
         };
-        const searchBackward = (datumIndex: number): number | undefined => {
+        const searchBackward = (datumIndex: number, delta: number): number | undefined => {
             while (datumIndex >= 0 && !isDatumEnabled(datumIndex)) {
-                datumIndex += opts.datumIndexDelta;
+                datumIndex += delta;
             }
             return datumIndex === -1 ? undefined : datumIndex;
         };
-        const searchForward = (datumIndex: number): number | undefined => {
+        const searchForward = (datumIndex: number, delta: number): number | undefined => {
             while (datumIndex < nodeData.length && !isDatumEnabled(datumIndex)) {
-                datumIndex += opts.datumIndexDelta;
+                datumIndex += delta;
             }
             return datumIndex === nodeData.length ? undefined : datumIndex;
         };
@@ -126,11 +126,11 @@ export abstract class DataModelSeries<
         let datumIndex: number | undefined;
         const clampedIndex = clamp(0, opts.datumIndex, nodeData.length - 1);
         if (opts.datumIndexDelta < 0) {
-            datumIndex = searchBackward(clampedIndex);
+            datumIndex = searchBackward(clampedIndex, opts.datumIndexDelta);
         } else if (opts.datumIndexDelta > 0) {
-            datumIndex = searchForward(clampedIndex);
+            datumIndex = searchForward(clampedIndex, opts.datumIndexDelta);
         } /* opts.datumIndexDelta === 0 */ else {
-            datumIndex = searchForward(clampedIndex) ?? searchBackward(clampedIndex);
+            datumIndex = searchForward(clampedIndex, +1) ?? searchBackward(clampedIndex, -1);
         }
 
         if (datumIndex === undefined) {
