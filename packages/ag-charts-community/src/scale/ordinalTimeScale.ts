@@ -191,7 +191,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         const { domain } = this;
 
         if (nearest) {
-            const index = this.invertNearestIndex(position - this.bandwidth / 2);
+            const index = this.invertNearestIndex(position);
             return index != null ? domain[index] : undefined;
         }
 

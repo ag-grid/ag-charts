@@ -33,9 +33,8 @@ export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext
     const { value, groupPercentage } = getGroupingValue(p);
 
     const { scale, snapToGroup } = context;
-    const width = scale.bandwidth === 0 ? scale.step ?? 0 : scale.bandwidth ?? 0;
-
-    const offset = snapToGroup ? width / 2 : width * groupPercentage;
+    const bandwidth = scale.bandwidth ?? 0;
+    const offset = snapToGroup ? bandwidth / 2 : bandwidth * groupPercentage;
     return scale.convert(value) + offset;
 }
 
@@ -50,15 +49,14 @@ export function invert(
     n: _ModuleSupport.Vec2['x' | 'y'],
     context: Pick<AnnotationAxisContext, 'scale' | 'continuous' | 'scaleInvert' | 'scaleInvertNearest'>
 ) {
-    const { scale } = context;
-    if (context.continuous && scale.step == null) {
+    if (context.continuous) {
         return context.scaleInvert(n);
     }
 
+    const { scale } = context;
     const value = context.scaleInvertNearest(n);
-    const width = scale.bandwidth === 0 ? scale.step : scale.bandwidth ?? 0;
     const bandStart = scale.convert(value);
-    const bandEnd = bandStart + width;
+    const bandEnd = bandStart + (scale.bandwidth ?? 0);
     const position = clampArray(n, scale.range);
     const groupPercentage = bandStart === bandEnd ? 0 : (position - bandStart) / (bandEnd - bandStart);
 
