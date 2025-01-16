@@ -127,23 +127,17 @@ function makeTouchDrag<K extends DragEvents>(
 function startTouchDrag(
     that: { globalTouchDragCallbacks?: TouchDragCallbacks },
     myCallbacks: TouchDragCallbacks,
-    initialTouch: Touch
+    initialTouch: Touch,
+    target: HTMLElement
 ) {
     if (that.globalTouchDragCallbacks != null) return;
 
-    const findInitialFinger = (touches: TouchList): Touch | undefined =>
-        Array.from(touches).find((v) => v.identifier === initialTouch.identifier);
-
-    const window = getWindow();
-
-    const touchstart = (startEvent: TouchEvent) => {
-        startEvent.stopPropagation();
-        startEvent.stopImmediatePropagation();
-        startEvent.preventDefault();
+    const findInitialFinger = (...touchLists: TouchList[]): Touch | undefined => {
+        const touches: Touch[] = touchLists.map((touchList) => Array.from(touchList)).flat();
+        return Array.from(touches).find((v) => v.identifier === initialTouch.identifier);
     };
+
     const touchmove = (moveEvent: TouchEvent) => {
-        moveEvent.stopPropagation();
-        moveEvent.stopImmediatePropagation();
         moveEvent.preventDefault();
         const touch = findInitialFinger(moveEvent.targetTouches);
         if (touch != null) {
@@ -151,24 +145,24 @@ function startTouchDrag(
         }
     };
     const touchend = (endEvent: TouchEvent) => {
-        endEvent.stopPropagation();
-        endEvent.stopImmediatePropagation();
         endEvent.preventDefault();
-        const touch = findInitialFinger(endEvent.changedTouches);
+        const touch = findInitialFinger(endEvent.changedTouches, endEvent.touches);
         if (touch != null) {
-            window.removeEventListener('touchstart', touchstart, { capture: true });
-            window.removeEventListener('touchmove', touchmove, { capture: true });
-            window.removeEventListener('touchend', touchend, { capture: true });
-            window.removeEventListener('touchcancel', touchend, { capture: true });
+            target.removeEventListener('touchstart', touchend);
+            target.removeEventListener('touchmove', touchmove);
+            target.removeEventListener('touchend', touchend);
+            target.removeEventListener('touchcancel', touchend);
             that.globalTouchDragCallbacks?.touchend(endEvent, touch);
             that.globalTouchDragCallbacks = undefined;
         }
     };
 
-    window.addEventListener('touchstart', touchstart, { capture: true, passive: true });
-    window.addEventListener('touchmove', touchmove, { capture: true, passive: true });
-    window.addEventListener('touchend', touchend, { capture: true, passive: true });
-    window.addEventListener('touchcancel', touchend, { capture: true, passive: true });
+    // "drag-move" happens when there is exactly 1 finger on the screen, so callback touchend whenever a finger is
+    // removed or added.
+    target.addEventListener('touchmove', touchmove, { passive: false });
+    target.addEventListener('touchstart', touchend, { passive: false });
+    target.addEventListener('touchend', touchend, { passive: false });
+    target.addEventListener('touchcancel', touchend, { passive: false });
     that.globalTouchDragCallbacks = myCallbacks;
 }
 
@@ -184,7 +178,6 @@ const GlobalCallbacks: {
 } = {};
 
 export class WidgetListenerInternal {
-    public dragTouchEnabled = false;
     private dragTriggerRemover?: () => void;
     private dragStartListeners?: EventHandler<Targetable>[];
     private dragMoveListeners?: EventHandler<Targetable>[];
@@ -303,7 +296,7 @@ export class WidgetListenerInternal {
 
     private triggerTouchDrag<T extends Targetable>(current: T, startEvent: TouchEvent) {
         const touch = startEvent.targetTouches.item(0);
-        if (this.dragTouchEnabled && startEvent.targetTouches.length === 1 && touch != null) {
+        if (startEvent.targetTouches.length === 1 && touch != null) {
             this.startTouchDrag(current, startEvent, touch);
         }
     }
@@ -325,7 +318,7 @@ export class WidgetListenerInternal {
         this.localTouchDragCallbacks = dragCallbacks;
 
         initialEvent.preventDefault();
-        startTouchDrag(GlobalCallbacks, dragCallbacks, initialTouch);
+        startTouchDrag(GlobalCallbacks, dragCallbacks, initialTouch, current.getElement());
 
         const dragStartEvent = makeTouchDrag(current, 'drag-start', origin, initialEvent, initialTouch);
         this.dispatch('drag-start', current, dragStartEvent);

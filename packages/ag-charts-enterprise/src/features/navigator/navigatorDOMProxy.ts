@@ -68,7 +68,6 @@ export class NavigatorDOMProxy {
             slider.keyboardStep = SliderWidget.STEP_ONE;
             slider.orientation = 'horizontal';
             slider.setPreventsDefault(false);
-            slider.setDragTouchEnabled(true);
             slider.addListener('drag-start', (ev) => this.onDragStart(index, ev, key));
             slider.addListener('drag-move', (ev) => this.onDrag(slider, ev, key));
             slider.addListener('drag-end', () => this.updateSliderRatios());
