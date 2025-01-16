@@ -180,7 +180,6 @@
         }
       }
     },
-
     "lint": {
       "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/eslint*"],
       "outputs": [],
@@ -244,6 +243,7 @@
           "find {projectRoot}/benchmarks -name '*.test.ts' | xargs -L1 -P1 node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand"
         ]
       },
+      "parallelism": false,
       "configurations": {
         "update": {
           "commands": [
@@ -305,5 +305,6 @@
   },
   "disabledNxCloudAccessToken": "ZDJhN2YwMWMtYWZiMS00MzY2LWFiZDgtZTc0ZTg4MTk4ZDE2fHJlYWQ=",
   "defaultProject": "all",
-  "defaultBase": "latest"
+  "defaultBase": "latest",
+  "useLegacyCache": false
 }
