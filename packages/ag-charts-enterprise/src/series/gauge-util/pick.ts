@@ -7,7 +7,7 @@ type Point = _ModuleSupport.Point;
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum<unknown>;
 type SeriesNodePickMatch = _ModuleSupport.SeriesNodePickMatch;
 type SelectionNode = { node: _ModuleSupport.Path; datum: SeriesNodeDatum };
-type Selection = Iterable<SelectionNode> & { nodes(): Iterable<SceneNode> };
+type SelectionLike = Iterable<SelectionNode> & { nodes(): Iterable<SceneNode> };
 type PickFocusInputs = _ModuleSupport.PickFocusInputs;
 type PickFocusOutputs = _ModuleSupport.PickFocusOutputs;
 
@@ -16,19 +16,19 @@ type GaugeSeries = {
         nodeData: SeriesNodeDatum[];
         targetData: SeriesNodeDatum[];
     };
-    datumSelection: Selection;
-    targetSelection: Selection;
+    datumUnion: SelectionLike;
+    targetSelection: SelectionLike;
     pickNodeNearestDistantObject(point: Point, items: Iterable<SceneNode>): SeriesNodePickMatch | undefined;
 };
 
 export function pickGaugeNearestDatum(self: GaugeSeries, point: Point): SeriesNodePickMatch | undefined {
-    const it = iterate(self.datumSelection.nodes(), self.targetSelection.nodes());
+    const it = iterate(self.datumUnion.nodes(), self.targetSelection.nodes());
     return self.pickNodeNearestDistantObject(point, it);
 }
 
 export function pickGaugeFocus(self: GaugeSeries, opts: PickFocusInputs): PickFocusOutputs | undefined {
     const others = [
-        { data: self.contextNodeData?.nodeData, selection: self.datumSelection },
+        { data: self.contextNodeData?.nodeData, selection: self.datumUnion },
         { data: self.contextNodeData?.targetData, selection: self.targetSelection },
     ].filter((v) => v.data && v.data.length > 0);
     const otherIndex = clamp(0, opts.otherIndex + opts.otherIndexDelta, others.length - 1);

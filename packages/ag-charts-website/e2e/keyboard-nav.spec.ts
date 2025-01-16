@@ -1,3 +1,5 @@
+import { Locator } from '@playwright/test';
+
 import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, repeat, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
 
@@ -265,43 +267,133 @@ test.describe('keyboard-nav', () => {
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-bar-highlight.png`);
     });
 
-    test('radial gauge chart with needle', async ({ page }) => {
-        const { url } = toExamplePageUrl('radial-gauge', 'needle', 'vanilla');
+    test.describe('radial gauge chart with needle', () => {
+        let canvas: Locator, hideNeedle: Locator, showNeedle: Locator, hideBar: Locator, showBar: Locator;
+        test.beforeEach(async ({ page }) => {
+            await gotoExample(page, toExamplePageUrl('radial-gauge', 'needle', 'vanilla').url);
+            canvas = page.locator(SELECTORS.canvasCenter).first();
+            hideNeedle = page.getByText('Hide Needle').first();
+            showNeedle = page.getByText('Show Needle').first();
+            hideBar = page.getByText('Hide Bar').first();
+            showBar = page.getByText('Show Bar').first();
+        });
 
-        await gotoExample(page, url);
+        test('init', async ({ page }) => {
+            await canvas.click();
+            await page.keyboard.press('ArrowLeft');
+            await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-hideBar.png`);
+        });
 
-        const canvas = page.locator(SELECTORS.canvasCenter).first();
-        const hideNeedle = page.getByText('Hide Needle').first();
-        const showNeedle = page.getByText('Show Needle').first();
-        const hideBar = page.getByText('Hide Bar').first();
-        const showBar = page.getByText('Show Bar').first();
+        test('hideNeedle hideBar', async ({ page }) => {
+            await hideNeedle.click();
+            await hideBar.click();
+            await canvas.click();
+            await page.keyboard.press('ArrowLeft');
+            await expect(canvas).toHaveScreenshot(`radial-gauge-hideNeedle-hideBar.png`);
+        });
 
-        await canvas.click();
-        await page.keyboard.press('ArrowLeft');
-        await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-hideBar.png`);
+        test('hideNeedle showBar', async ({ page }) => {
+            await hideNeedle.click();
+            await showBar.click();
+            await canvas.click();
+            await page.keyboard.press('ArrowLeft');
+            await expect(canvas).toHaveScreenshot(`radial-gauge-hideNeedle-showBar.png`);
+        });
 
-        await hideNeedle.click();
-        await hideBar.click();
-        await canvas.click();
-        await page.keyboard.press('ArrowLeft');
-        await expect(canvas).toHaveScreenshot(`radial-gauge-hideNeedle-hideBar.png`);
+        test('showNeedle hideBar', async ({ page }) => {
+            await showNeedle.click();
+            await hideBar.click();
+            await canvas.click();
+            await page.keyboard.press('ArrowLeft');
+            await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-hideBar.png`);
+        });
 
-        await hideNeedle.click();
-        await showBar.click();
-        await canvas.click();
-        await page.keyboard.press('ArrowLeft');
-        await expect(canvas).toHaveScreenshot(`radial-gauge-hideNeedle-showBar.png`);
+        test('showNeedle showBar', async ({ page }) => {
+            await showNeedle.click();
+            await showBar.click();
+            await canvas.click();
+            await page.keyboard.press('ArrowLeft');
+            await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-showBar.png`);
+        });
+    });
 
-        await showNeedle.click();
-        await hideBar.click();
-        await canvas.click();
-        await page.keyboard.press('ArrowLeft');
-        await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-hideBar.png`);
+    test.describe('gauge corner radii', () => {
+        test.describe('linear', () => {
+            let enable: Locator, disable: Locator, item: Locator, container: Locator;
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('linear-gauge', 'corner-radius', 'vanilla').url);
+                enable = page.getByText('Enable');
+                disable = page.getByText('Disable');
+                item = page.getByText('Item');
+                container = page.getByText('Container');
+            });
+            test('item', async ({ page }) => {
+                await disable.click();
+                await item.click();
+                await page.mouse.click(400, 300);
+                await page.keyboard.press('ArrowLeft');
+                await expect(page).toHaveScreenshot('linear-gauge-corners-item.png');
+            });
+            test('container', async ({ page }) => {
+                await disable.click();
+                await container.click();
+                await page.mouse.click(400, 300);
+                await page.keyboard.press('ArrowLeft');
+                await expect(page).toHaveScreenshot('linear-gauge-corners-container.png');
+            });
+            test('segmented item', async ({ page }) => {
+                await enable.click();
+                await item.click();
+                await page.mouse.click(400, 300);
+                await page.keyboard.press('ArrowLeft');
+                await expect(page).toHaveScreenshot('linear-gauge-corners-segmented-item.png');
+            });
+            test('segmented container', async ({ page }) => {
+                await enable.click();
+                await container.click();
+                await page.mouse.click(400, 300);
+                await page.keyboard.press('ArrowLeft');
+                await expect(page).toHaveScreenshot('linear-gauge-corners-segmented-container.png');
+            });
+        });
 
-        await showNeedle.click();
-        await showBar.click();
-        await canvas.click();
-        await page.keyboard.press('ArrowLeft');
-        await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-showBar.png`);
+        test.describe('radial', () => {
+            let enable: Locator, disable: Locator, item: Locator, container: Locator;
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('radial-gauge', 'corner-radius', 'vanilla').url);
+                enable = page.getByText('Enable');
+                disable = page.getByText('Disable');
+                item = page.getByText('Item');
+                container = page.getByText('Container');
+            });
+            test('item', async ({ page }) => {
+                await disable.click();
+                await item.click();
+                await page.mouse.click(400, 300);
+                await page.keyboard.press('ArrowLeft');
+                await expect(page).toHaveScreenshot('radial-gauge-corners-item.png');
+            });
+            test('container', async ({ page }) => {
+                await disable.click();
+                await container.click();
+                await page.mouse.click(400, 300);
+                await page.keyboard.press('ArrowLeft');
+                await expect(page).toHaveScreenshot('radial-gauge-corners-container.png');
+            });
+            test('segmented item', async ({ page }) => {
+                await enable.click();
+                await item.click();
+                await page.mouse.click(400, 300);
+                await page.keyboard.press('ArrowLeft');
+                await expect(page).toHaveScreenshot('radial-gauge-corners-segmented-item.png');
+            });
+            test('segmented container', async ({ page }) => {
+                await enable.click();
+                await container.click();
+                await page.mouse.click(400, 300);
+                await page.keyboard.press('ArrowLeft');
+                await expect(page).toHaveScreenshot('radial-gauge-corners-segmented-container.png');
+            });
+        });
     });
 });

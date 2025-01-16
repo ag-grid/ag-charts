@@ -9,6 +9,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
+import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
@@ -48,6 +49,7 @@ const {
     PointerEvents,
     Selection,
     Sector,
+    SectorBox,
     Text,
     ConicGradient,
     Marker,
@@ -170,7 +172,7 @@ export class RadialGaugeSeries
         this.scaleGroup,
         () => this.nodeFactory()
     );
-    public datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum> = Selection.select(
+    private datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory()
     );
@@ -191,6 +193,7 @@ export class RadialGaugeSeries
     private highlightTargetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum> =
         Selection.select(this.highlightTargetGroup, () => this.markerFactory());
 
+    public datumUnion: DatumUnion<_ModuleSupport.Sector, RadialGaugeNodeDatum> = new DatumUnion();
     private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
     public contextNodeData?: RadialGaugeNodeDataContext;
@@ -809,6 +812,21 @@ export class RadialGaugeSeries
             if (animationDisabled || sector.previousDatum == null) {
                 sector.setProperties(resetRadialGaugeSeriesResetSectorFunction(sector, datum));
             }
+        });
+
+        this.datumUnion.update(datumSelection, this.itemGroup, _ModuleSupport.Sector, (node, first, last) => {
+            node.clipSector ??= new SectorBox(NaN, NaN, NaN, NaN);
+            node.centerX = first.centerX;
+            node.centerY = first.centerY;
+            node.outerRadius = node.clipSector.outerRadius = first.outerRadius;
+            node.innerRadius = node.clipSector.innerRadius = first.innerRadius;
+            node.startAngle = node.clipSector.startAngle = first.startAngle;
+            node.startInnerCornerRadius = first.startInnerCornerRadius;
+            node.startOuterCornerRadius = first.startOuterCornerRadius;
+            node.endAngle = last.endAngle;
+            node.clipSector.endAngle = last.clipSector?.endAngle ?? last.endAngle;
+            node.endInnerCornerRadius = last.endInnerCornerRadius;
+            node.endOuterCornerRadius = last.endOuterCornerRadius;
         });
     }
 
