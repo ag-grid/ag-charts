@@ -1,4 +1,4 @@
-import { countLines, isObject, iterate, sortBasedOnArray, toArray } from 'ag-charts-core';
+import { countLines, isArray, isObject, iterate, sortBasedOnArray, toArray } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -496,18 +496,11 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.scale.paddingOuter = this.scale.paddingInner / 2;
     }
 
-    /**
-     * Filters out duplicate arrays of strings from an array.
-     * @param array - The array containing arrays of strings.
-     * @returns A new array with duplicate arrays removed.
-     */
     filterDuplicateArrays(array: string[][]): string[][] {
         const seen = new Set<string>();
         return array.filter((item) => {
-            const key = JSON.stringify(item);
-            if (seen.has(key)) {
-                return false;
-            }
+            const key = isArray(item) ? JSON.stringify(item) : item;
+            if (seen.has(key)) return false;
             seen.add(key);
             return true;
         });
