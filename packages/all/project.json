@@ -55,6 +55,20 @@
         "production": {}
       }
     },
+    "generate": {
+      "dependsOn": ["^build:types", "^build:package"],
+      "executor": "nx:run-commands",
+      "inputs": [],
+      "outputs": [],
+      "cache": false,
+      "options": {
+        "parallel": false,
+        "commands": [
+          "if (test \"${BUILD_BATCH}\" != \"0\") ; then npx nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website --batch ; fi",
+          "if (test \"${BUILD_BATCH}\" == \"0\") ; then npx nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website ; fi"
+        ]
+      }
+    },
     "generate-examples": {
       "dependsOn": ["^build:types", "^build:package"],
       "executor": "nx:run-commands",
@@ -85,7 +99,7 @@
     },
     "dev:setup": {
       "executor": "nx:noop",
-      "dependsOn": ["^build:types", "^build:package", "generate-examples", "generate-thumbnails"],
+      "dependsOn": ["^build:types", "^build:package", "generate"],
       "inputs": [],
       "outputs": [],
       "cache": false

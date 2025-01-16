@@ -45,7 +45,10 @@ export default async function (options: ExecutorOptions, ctx: ExecutorContext) {
     }
 }
 
-export async function generateFiles(options: ExecutorOptions, ctx: ExecutorContext) {
+export async function generateFiles(
+    options: ExecutorOptions,
+    ctx: Pick<ExecutorContext, 'projectName' | 'targetName' | 'configurationName'>
+) {
     const { generatedExamplePath, outputPath } = options;
     const name = `${ctx.projectName}:${ctx.targetName}:${ctx.configurationName ?? ''}`;
     const jsonPath = path.join(generatedExamplePath, 'plain', 'vanilla', 'contents.json');

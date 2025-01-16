@@ -6,7 +6,7 @@ import { type ExecutorOptions, generateFiles } from './executor';
 export type Message = {
     taskName: string;
     options: ExecutorOptions;
-    context: ExecutorContext;
+    context: Pick<ExecutorContext, 'projectName' | 'targetName' | 'configurationName'>;
 };
 
 export default async function processor(msg: Message) {
