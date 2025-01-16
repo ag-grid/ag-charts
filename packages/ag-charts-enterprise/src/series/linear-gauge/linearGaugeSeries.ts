@@ -836,7 +836,7 @@ export class LinearGaugeSeries
             node.y = node.clipBBox.y = first.y;
             if (this.properties.direction === 'horizontal') {
                 node.height = node.clipBBox.height = last.height;
-                node.width = last.x + last.width;
+                node.width = last === first ? last.width : last.x + last.width;
                 node.clipBBox.width = node.width - (last.width - (last.clipBBox?.width ?? last.width));
                 node.topLeftCornerRadius = first.topLeftCornerRadius;
                 node.bottomLeftCornerRadius = first.bottomLeftCornerRadius;
@@ -844,7 +844,7 @@ export class LinearGaugeSeries
                 node.bottomRightCornerRadius = last.bottomRightCornerRadius;
             } else {
                 node.width = node.clipBBox.width = last.width;
-                node.height = last.y + (last.clipBBox?.height ?? 0);
+                node.height = last === first ? last.height : last.x + last.height;
                 node.clipBBox.height = node.height - (last.height - (last.clipBBox?.height ?? last.height));
                 node.topLeftCornerRadius = first.topLeftCornerRadius;
                 node.topRightCornerRadius = first.topRightCornerRadius;
