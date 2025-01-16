@@ -1,8 +1,8 @@
-import { countLines, isObject, iterate, sortBasedOnArray, toArray, unique } from 'ag-charts-core';
+import { countLines, isObject, iterate, sortBasedOnArray, toArray } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
-import { CategoryScale } from '../../scale/categoryScale';
+import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
@@ -95,7 +95,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     // Label scale (labels are positioned between ticks, tick count = label count + 1).
     // We don't call is `labelScale` for consistency with other axes.
-    readonly tickScale = new CategoryScale<string[]>();
+    readonly tickScale = new GroupedCategoryScale<string[]>();
 
     private computedLayout?: ComputedGroupAxisLayout;
     private tickTreeLayout?: TreeLayout;
@@ -104,7 +104,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
     depthOptions = new PropertiesArray(DepthProperties);
 
     constructor(moduleCtx: ModuleContext) {
-        super(moduleCtx);
+        super(moduleCtx, new GroupedCategoryScale<string[]>());
 
         this.includeInvisibleDomains = true;
         this.tickScale.paddingInner = 1;
@@ -394,6 +394,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const { tickScale, gridLine, gridLength } = this;
         const { separatorLayout } = this.computedLayout;
+
         const ticksData: TickDatum[] = tickScale
             .ticks({
                 nice: false,
@@ -446,7 +447,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const { direction } = this;
         const flatDomains = this.boundSeries.filter((s) => s.visible).flatMap((series) => series.getDomain(direction));
 
-        this.dataDomain = { domain: extent(flatDomains) ?? unique(flatDomains), clipped: false };
+        this.dataDomain = { domain: extent(flatDomains) ?? this.filterDuplicateArrays(flatDomains), clipped: false };
         if (this.isReversed()) {
             this.dataDomain.domain.reverse();
         }
@@ -455,6 +456,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
             // Handle integrated charts data when provided as an object
             toArray(isObject(datum) && 'value' in datum ? datum.value : datum)
         );
+
         this.tickTreeLayout = treeLayout(domain);
 
         const orderedDomain: string[][] = [];
@@ -492,5 +494,22 @@ export class GroupedCategoryAxis extends CategoryAxis {
         super.updateScale();
         // Outer padding must equal half inner padding to keep groups center point aligned.
         this.scale.paddingOuter = this.scale.paddingInner / 2;
+    }
+
+    /**
+     * Filters out duplicate arrays of strings from an array.
+     * @param array - The array containing arrays of strings.
+     * @returns A new array with duplicate arrays removed.
+     */
+    filterDuplicateArrays(array: string[][]): string[][] {
+        const seen = new Set<string>();
+        return array.filter((item) => {
+            const key = JSON.stringify(item);
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
     }
 }
