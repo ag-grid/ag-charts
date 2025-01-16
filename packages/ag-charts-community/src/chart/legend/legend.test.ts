@@ -458,4 +458,66 @@ describe('Legend', () => {
             expect(legendItemClick).toBeCalledTimes(1);
         });
     });
+
+    describe('AG-13342', () => {
+        test('legend click parameters', async () => {
+            const legendItemClick = jest.fn();
+            const options = prepareTestOptions({
+                data: [{ x: 'Q1', y: 200 }],
+                series: [{ xKey: 'x', yKey: 'y' }],
+                legend: { enabled: true, listeners: { legendItemClick } },
+            });
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            await clickAction(400, 570)(chart);
+
+            expect(legendItemClick.mock.lastCall[0]).toMatchInlineSnapshot(`
+{
+  "event": MouseEvent {
+    "isTrusted": false,
+    "offsetX": 20,
+    "offsetY": -2,
+    "pageX": 400,
+    "pageY": 570,
+  },
+  "itemId": "y",
+  "preventDefault": [Function],
+  "seriesId": "LineSeries-1",
+  "type": "click",
+}
+`);
+        });
+
+        test('legend double click parameters', async () => {
+            const legendItemDoubleClick = jest.fn();
+            const options = prepareTestOptions({
+                data: [{ x: 'Q1', y: 200 }],
+                series: [{ xKey: 'x', yKey: 'y' }],
+                legend: { enabled: true, listeners: { legendItemDoubleClick } },
+            });
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            await doubleClickAction(400, 570)(chart);
+
+            expect(legendItemDoubleClick.mock.lastCall[0]).toMatchInlineSnapshot(`
+{
+  "event": MouseEvent {
+    "isTrusted": false,
+    "offsetX": 20,
+    "offsetY": -2,
+    "pageX": 400,
+    "pageY": 570,
+  },
+  "itemId": "y",
+  "preventDefault": [Function],
+  "seriesId": "LineSeries-1",
+  "type": "dblclick",
+}
+`);
+        });
+    });
 });
