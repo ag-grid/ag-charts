@@ -111,6 +111,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         subtitle,
         theme,
         title,
+        tooltip,
         width,
     });
 
@@ -238,6 +239,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         subtitle,
         theme,
         title,
+        tooltip,
         width,
     });
     const scaleOpts = pickProps<ScaleStyle>(scale, {
@@ -361,6 +363,7 @@ export function gauge(
         subtitle,
         theme,
         title,
+        tooltip,
         width,
     } = opts;
     return pickProps<AgBaseGaugePresetOptions>(opts, {
@@ -378,6 +381,7 @@ export function gauge(
         subtitle,
         theme,
         title,
+        tooltip,
         width,
     });
 }
