@@ -1,7 +1,9 @@
+import type { RequireOptional } from 'ag-charts-core';
 import {
     type AgBaseGaugePresetOptions,
     type AgCartesianAxisOptions,
     type AgCartesianAxisPosition,
+    type AgChartTooltipOptions,
     type AgGaugeChartOptions,
     type AgGaugeOptions,
     type AgLinearGaugeOptions,
@@ -16,6 +18,21 @@ import {
 
 import { mergeArrayDefaults, mergeDefaults } from '../../util/object';
 import { IGNORED_PROP, pickProps } from './presetUtils';
+
+function pickTooltipProps(tooltip: AgChartTooltipOptions | undefined): AgChartTooltipOptions | undefined {
+    if (tooltip === undefined) return undefined;
+
+    const { enabled, showArrow, range, position, delay, wrapping } = tooltip;
+    const result: RequireOptional<AgChartTooltipOptions> = {
+        enabled,
+        showArrow,
+        range,
+        position,
+        delay,
+        wrapping,
+    };
+    return Object.fromEntries(Object.entries(result).filter(([_, value]) => value !== undefined));
+}
 
 function isRadialGauge(opts: AgGaugeOptions): opts is AgRadialGaugeOptions {
     return opts.type === 'radial-gauge';
@@ -111,7 +128,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         subtitle,
         theme,
         title,
-        tooltip,
+        tooltip: pickTooltipProps(tooltip),
         width,
     });
 
@@ -239,7 +256,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         subtitle,
         theme,
         title,
-        tooltip,
+        tooltip: pickTooltipProps(tooltip),
         width,
     });
     const scaleOpts = pickProps<ScaleStyle>(scale, {
