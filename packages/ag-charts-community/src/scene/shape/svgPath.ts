@@ -1,6 +1,6 @@
 import { Path, ScenePathChangeDetection } from './path';
 
-export class SvgPath extends Path {
+export class SvgPath<D = any> extends Path<D> {
     @ScenePathChangeDetection()
     x: number = 0;
 

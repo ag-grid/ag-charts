@@ -11,7 +11,7 @@ export function ScenePathChangeDetection(opts?: { convertor?: (o: any) => any; c
     return SceneChangeDetection({ type: 'path', convertor, changeCb });
 }
 
-export class Path extends Shape implements DistantObject {
+export class Path<D = any> extends Shape<D> implements DistantObject {
     static readonly className: string = 'Path';
 
     /**

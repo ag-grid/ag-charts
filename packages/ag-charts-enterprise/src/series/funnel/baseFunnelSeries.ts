@@ -25,6 +25,7 @@ const {
     Selection,
     PointerEvents,
     motion,
+    checkCrisp,
 } = _ModuleSupport;
 
 export type Bounds = {
@@ -55,6 +56,7 @@ export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum
     readonly visible: boolean;
 
     // Required for types
+    readonly crisp: boolean;
     readonly opacity?: number;
     readonly clipBBox?: _ModuleSupport.BBox;
 }
@@ -303,6 +305,13 @@ export abstract class BaseFunnelSeries<
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
 
+        const crisp = checkCrisp(
+            xAxis?.scale,
+            xAxis?.visibleRange,
+            this.smallestDataInterval,
+            this.largestDataInterval
+        );
+
         interface ConnectorConfig {
             itemId: string;
             rect: Bounds;
@@ -361,6 +370,7 @@ export abstract class BaseFunnelSeries<
                 height: rect.height,
                 midPoint: nodeMidPoint,
                 strokeWidth,
+                crisp,
                 label: labelData,
                 visible,
             };

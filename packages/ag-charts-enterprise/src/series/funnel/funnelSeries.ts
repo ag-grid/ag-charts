@@ -12,7 +12,6 @@ import { FunnelProperties } from './funnelProperties';
 
 const {
     ChartAxisDirection,
-    checkCrisp,
     resetBarSelectionsFn,
     prepareBarAnimationFunctions,
     midpointStartingBarPosition,
@@ -25,7 +24,7 @@ const {
 
 type ItemStyle = Pick<AgFunnelSeriesStyle, 'fill' | 'stroke'> & Required<Omit<AgFunnelSeriesStyle, 'fill' | 'stroke'>>;
 
-export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
+export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>> {
     static readonly className = 'FunnelSeries';
     static readonly type = 'funnel' as const;
 
@@ -170,14 +169,6 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
     }) {
         const { datumSelection, isHighlight } = opts;
 
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const crisp = checkCrisp(
-            xAxis?.scale,
-            xAxis?.visibleRange,
-            this.smallestDataInterval,
-            this.largestDataInterval
-        );
-
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         const style = this.getItemBaseStyle(isHighlight);
@@ -196,7 +187,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
-            rect.crisp = crisp;
+            rect.crisp = datum.crisp;
         });
     }
 
