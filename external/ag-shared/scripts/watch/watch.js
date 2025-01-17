@@ -115,7 +115,9 @@ function spawnNxWatch(outputCb) {
         exitReject = reject;
     });
 
-    const nxWatch = spawn('nx', [...NX_ARGS, ...'watch --all -- echo ${NX_PROJECT_NAME}'.split(' ')]);
+    const nxWatch = spawn('nx', [...NX_ARGS, ...'watch --all -- echo ${NX_PROJECT_NAME}'.split(' ')], {
+        env: process.env,
+    });
     spawnedChildren.add(nxWatch);
     nxWatch.on('error', (e) => {
         console.error(e);

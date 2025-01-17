@@ -111,7 +111,10 @@
       "outputs": [],
       "options": {
         "parallel": true,
-        "commands": ["node external/ag-shared/scripts/watch/watch.js charts", "nx run ag-charts-website:dev"]
+        "commands": [
+          "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
+          "nx run ag-charts-website:dev"
+        ]
       },
       "configurations": {
         "windows": {
@@ -130,7 +133,10 @@
       "outputs": [],
       "options": {
         "parallel": true,
-        "commands": ["node external/ag-shared/scripts/watch/watch.js charts", "nx run ag-charts-website:dev"]
+        "commands": [
+          "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
+          "nx run ag-charts-website:dev"
+        ]
       },
       "configurations": {
         "windows": {
