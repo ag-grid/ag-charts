@@ -64,8 +64,7 @@
       "options": {
         "parallel": false,
         "commands": [
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then npx nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" == \"0\") ; then npx nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website ; fi"
+          "npx nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website --batch"
         ]
       }
     },
@@ -77,10 +76,7 @@
       "cache": false,
       "options": {
         "parallel": false,
-        "commands": [
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then npx nx run-many --output-style compact -t generate-examples -p ag-charts-website --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" == \"0\") ; then npx nx run-many --output-style compact -t generate-examples -p ag-charts-website ; fi"
-        ]
+        "commands": ["npx nx run-many --output-style compact -t generate-examples -p ag-charts-website --batch"]
       }
     },
     "generate-thumbnails": {
@@ -91,10 +87,7 @@
       "cache": false,
       "options": {
         "parallel": false,
-        "commands": [
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then npx nx run-many --output-style compact -t generate-thumbnails -p ag-charts-website --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" == \"0\") ; then npx nx run-many --output-style compact -t generate-thumbnails -p ag-charts-website ; fi"
-        ]
+        "commands": ["npx nx run-many --output-style compact -t generate-thumbnails -p ag-charts-website --batch"]
       }
     },
     "dev:setup": {
