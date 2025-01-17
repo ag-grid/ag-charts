@@ -191,10 +191,10 @@ function getStartingValues(isVertical: boolean, axes: Record<ChartAxisDirection,
 }
 
 export function resetBarSelectionsFn(
-    _node: BarRect,
+    rect: BarRect,
     { x, y, width, height, clipBBox, opacity = 1 }: AnimatableBarDatum
 ) {
-    return { x, y, width, height, clipBBox, opacity };
+    return { x, y, width, height, clipBBox, opacity, crisp: rect.datum?.crisp ?? false };
 }
 
 export function computeBarFocusBounds(
