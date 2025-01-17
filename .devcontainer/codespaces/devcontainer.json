@@ -9,6 +9,7 @@
         "AG_SKIP_NATIVE_DEP_VERSION_CHECK": "1",
         // https://github.com/nrwl/nx/issues/29137
         "NX_PARALLEL": "1",
+        // https://github.com/lerna/lerna/issues/4054
         "NX_DAEMON": "true",
         "BUILD_BATCH": "0",
         "PUBLIC_HTTPS_SERVER": "false"
