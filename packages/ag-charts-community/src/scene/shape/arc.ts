@@ -13,7 +13,7 @@ enum ArcType {
 /**
  * Elliptical arc node.
  */
-export class Arc extends Path {
+export class Arc<D = any> extends Path<D> {
     static override readonly className = 'Arc';
 
     protected static override defaultStyles = { ...Shape.defaultStyles, lineWidth: 1, fillStyle: null };

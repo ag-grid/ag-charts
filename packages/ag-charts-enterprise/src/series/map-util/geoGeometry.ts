@@ -11,7 +11,7 @@ export enum GeoGeometryRenderMode {
     Lines = 0b10,
 }
 
-export class GeoGeometry extends Path implements _ModuleSupport.DistantObject {
+export class GeoGeometry<D = any> extends Path<D> implements _ModuleSupport.DistantObject {
     @ScenePathChangeDetection()
     projectedGeometry: _ModuleSupport.Geometry | undefined = undefined;
 

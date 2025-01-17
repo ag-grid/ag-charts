@@ -44,7 +44,7 @@ export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
 }
 
 type CartesianSeriesOpts<
-    TNode extends Node,
+    TNode extends Node<TDatum>,
     TProps extends CartesianSeriesProperties<any>,
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum<number>,
@@ -59,7 +59,7 @@ type CartesianSeriesOpts<
     markerSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
     animationResetFns?: {
-        path?: (path: Path) => Partial<Path>;
+        path?: (path: Path<TDatum>) => Partial<Path<TDatum>>;
         datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
         label?: (node: Text, datum: TLabel) => AnimationValue & Partial<Text>;
         marker?: (node: Marker, datum: TDatum) => AnimationValue & Partial<Marker>;

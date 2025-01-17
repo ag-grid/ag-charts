@@ -1,4 +1,4 @@
-import type { FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
+import type { ApplyFn, FromToMotionPropFn } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Scale } from '../../../scale/scale';
@@ -108,10 +108,14 @@ type AnimatableBarDatum = {
     clipBBox?: BBox;
     opacity?: number;
 };
+type RectDatum = {
+    crisp: boolean;
+};
+type BarRect = Rect<RectDatum>;
 export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initPos: InitialPosition<T>) {
     const isRemoved = (datum?: T) => datum == null || isNaN(datum.x) || isNaN(datum.y);
 
-    const fromFn: FromToMotionPropFn<Rect, AnimatableBarDatum, T> = (rect: Rect, datum: T, status: NodeUpdateState) => {
+    const fromFn: FromToMotionPropFn<BarRect, AnimatableBarDatum, T> = (rect, datum, status) => {
         if (status === 'updated' && isRemoved(datum)) {
             status = 'removed';
         } else if (status === 'updated' && isRemoved(rect.previousDatum)) {
@@ -142,7 +146,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
         const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
         return { ...source, phase };
     };
-    const toFn: FromToMotionPropFn<Rect, AnimatableBarDatum, T> = (rect: Rect, datum: T, status: NodeUpdateState) => {
+    const toFn: FromToMotionPropFn<BarRect, AnimatableBarDatum, T> = (rect, datum, status) => {
         if (status === 'removed' && rect.datum == null && initPos.mode === 'fade') {
             // Handle series remove case, after initial load. This is distinct from legend toggle off.
             return { ...resetBarSelectionsFn(rect, datum), opacity: 0 };
@@ -159,8 +163,12 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
             };
         }
     };
+    const applyFn: ApplyFn<BarRect, AnimatableBarDatum> = (rect, datum, status) => {
+        rect.setProperties(datum);
+        rect.crisp = status === 'end' && (rect.datum?.crisp ?? false);
+    };
 
-    return { toFn, fromFn };
+    return { toFn, fromFn, applyFn };
 }
 
 function getStartingValues(isVertical: boolean, axes: Record<ChartAxisDirection, ChartAxis | undefined>) {
@@ -182,7 +190,10 @@ function getStartingValues(isVertical: boolean, axes: Record<ChartAxisDirection,
     return { startingX, startingY };
 }
 
-export function resetBarSelectionsFn(_node: Rect, { x, y, width, height, clipBBox, opacity = 1 }: AnimatableBarDatum) {
+export function resetBarSelectionsFn(
+    _node: BarRect,
+    { x, y, width, height, clipBBox, opacity = 1 }: AnimatableBarDatum
+) {
     return { x, y, width, height, clipBBox, opacity };
 }
 

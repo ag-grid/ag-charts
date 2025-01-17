@@ -1,7 +1,7 @@
 import type { RenderContext } from './node';
 import { Node, SceneChangeDetection } from './node';
 
-export class Image extends Node {
+export class Image<D = any> extends Node<D> {
     constructor(private readonly sourceImage?: HTMLImageElement | ImageBitmap) {
         super();
     }

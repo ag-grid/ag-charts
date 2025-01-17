@@ -3,7 +3,7 @@ import type { NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
-export class Range extends Shape {
+export class Range<D = any> extends Shape<D> {
     static readonly className = 'Range';
 
     protected static override defaultStyles = {

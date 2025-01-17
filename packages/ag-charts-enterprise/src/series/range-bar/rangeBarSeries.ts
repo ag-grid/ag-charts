@@ -94,7 +94,7 @@ class RangeBarSeriesNodeEvent<
 }
 
 export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
-    _ModuleSupport.Rect,
+    _ModuleSupport.Rect<RangeBarNodeDatum>,
     RangeBarProperties,
     RangeBarNodeDatum,
     RangeBarNodeLabelDatum

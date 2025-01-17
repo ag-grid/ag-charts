@@ -50,7 +50,7 @@ export type ChildNodeCounts = {
  * Abstract scene graph node.
  * Each node can have zero or one parent and belong to zero or one scene.
  */
-export abstract class Node {
+export abstract class Node<D = any> {
     private static _nextSerialNumber = 0;
 
     static toSVG(node: Node, width: number, height: number) {
@@ -99,8 +99,8 @@ export abstract class Node {
     transitionOut?: boolean;
     pointerEvents: PointerEvents = PointerEvents.All;
 
-    protected _datum?: any;
-    protected _previousDatum?: any;
+    protected _datum?: D;
+    protected _previousDatum?: D;
 
     protected _debug?: (...args: any[]) => void;
     protected _layerManager?: LayersManager;

@@ -29,6 +29,10 @@ export type FromToMotionPropFn<
     T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
     D,
 > = (node: N, datum: D, state: NodeUpdateState, ctx: FromToMotionPropFnContext<N>) => T & Partial<ExtraOpts<N>>;
+export type ApplyFn<
+    N extends Node,
+    T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
+> = (note: N, props: T, status: 'start' | 'update' | 'end') => void;
 
 export const NODE_UPDATE_STATE_TO_PHASE_MAPPING: Record<NodeUpdateState, AnimationPhase> = {
     added: 'add',
@@ -51,7 +55,7 @@ export interface FromToFns<
 > {
     fromFn: FromToMotionPropFn<N, T, D>;
     toFn: FromToMotionPropFn<N, T, D>;
-    applyFn?: (note: N, props: T) => void;
+    applyFn?: ApplyFn<N, T>;
 }
 
 /**
@@ -144,20 +148,22 @@ export function fromToMotion<
                 ease: easing.easeOut,
                 collapsable,
                 onPlay: () => {
-                    applyFn(node, { ...start, ...toStart, ...from } as unknown as T);
+                    const startProps = { ...start, ...toStart, ...from } as unknown as T;
+                    applyFn(node, startProps, 'start');
                 },
                 onUpdate(props) {
-                    applyFn(node, props);
+                    applyFn(node, props, 'update');
                 },
                 onStop: () => {
-                    applyFn(node, {
+                    const endProps = {
                         ...start,
                         ...toStart,
                         ...from,
                         ...to,
                         ...finish,
                         ...toFinish,
-                    } as unknown as T);
+                    } as unknown as T;
+                    applyFn(node, endProps, 'end');
                 },
             });
 

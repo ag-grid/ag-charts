@@ -8,7 +8,7 @@ import type { CanvasContext } from '../../scene/shape/shape';
 import { Rotatable, Scalable, Translatable } from '../../scene/transformable';
 import { MARKER_SHAPES } from './shapes';
 
-class InternalMarker extends Path {
+class InternalMarker<D = any> extends Path<D> {
     @ScenePathChangeDetection()
     shape: AgMarkerShape = 'square';
 
