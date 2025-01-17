@@ -1110,8 +1110,17 @@ export class Legend extends BaseProperties {
         return oldPages;
     }
     private positionLegendDOM(oldPages: Page[] | undefined) {
-        const { ctx, itemSelection, pagination, pages: newPages, toggleSeries: interactive, group } = this;
+        const {
+            ctx,
+            itemSelection,
+            pagination,
+            pages: newPages,
+            toggleSeries,
+            group,
+            listeners: { legendItemClick, legendItemDoubleClick },
+        } = this;
         const visible = this.visible && this.enabled;
+        const interactive = toggleSeries || legendItemDoubleClick != null || legendItemClick != null;
         this.domProxy.update({
             visible,
             interactive,
