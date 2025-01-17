@@ -513,6 +513,16 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         const [d0, d1] = extents;
 
+        if (range.start != null && typeof range.start !== typeof axis.scale.domain[0]) {
+            Logger.warnOnce(
+                `Could not restore zoom range start [${range.start}], type does not match axis scale domain.`
+            );
+        }
+
+        if (range.end != null && typeof range.end !== typeof axis.scale.domain[1]) {
+            Logger.warnOnce(`Could not restore zoom range end [${range.end}], type does not match axis scale domain.`);
+        }
+
         const r0 = range.start == null ? d0 : axis.scale.convert?.(range.start);
         const r1 = range.end == null ? d1 : axis.scale.convert?.(range.end);
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
