@@ -253,7 +253,7 @@ export class WidgetListenerInternal {
             const mouseTrigger = (event: MouseEvent) => this.triggerMouseDrag(target, event);
             const touchTrigger = (event: TouchEvent) => this.triggerTouchDrag(target, event);
             target.getElement().addEventListener('mousedown', mouseTrigger);
-            target.getElement().addEventListener('touchstart', touchTrigger);
+            target.getElement().addEventListener('touchstart', touchTrigger, { passive: false });
             this.dragTriggerRemover = () => {
                 target.getElement().removeEventListener('mousedown', mouseTrigger);
                 target.getElement().removeEventListener('touchstart', touchTrigger);
@@ -323,6 +323,7 @@ export class WidgetListenerInternal {
         };
         this.localTouchDragCallbacks = dragCallbacks;
 
+        initialEvent.preventDefault();
         startTouchDrag(GlobalCallbacks, dragCallbacks, initialTouch);
 
         const dragStartEvent = makeTouchDrag(current, 'drag-start', origin, initialEvent, initialTouch);
