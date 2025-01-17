@@ -70,8 +70,12 @@ This is fired when the zoom changes. This is triggered when [zooming in or out o
 
 This event contains:
 
--   A `ratioX` and `ratioY` with `start` and `end` properties as a value between `0` and `1` as a proportion of the width or height of the chart.
--   For any [non-category axes](./axes-types/#category), a `rangeX` or `rangeY` with `start` and `end` properties with values that match the [type of the axis](./axes-types/), e.g. a date for an [Ordinal Time Axis](./axes-types/#ordinal-time).
+-   A `ratioX` and `ratioY` with `start` and `end` properties with values between `0` and `1`. These represent a proportion of the width or height of the chart.
+-   For any non-category axes, a `rangeX` or `rangeY` with `start` and `end` properties with values that match the [axis type](./axes-types/), e.g. a date for an [Ordinal Time Axis](./axes-types/#ordinal-time).
+
+In this example:
+
+-   When the zoom level is changed or the chart is panned, the event is output to the console.
 
 ## Series Events
 

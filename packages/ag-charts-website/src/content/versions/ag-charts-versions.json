@@ -1,5 +1,17 @@
 [
     {
+        "version": "11.1.0",
+        "date": "2025",
+        "highlights": [
+            {
+                "text": "AutoScaling",
+                "path": "./zoom"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-11-1"
+    },
+    },
+    {
         "version": "11.0.3",
         "date": "December 18th 2024"
     },
