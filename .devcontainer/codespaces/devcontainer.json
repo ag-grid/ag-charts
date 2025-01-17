@@ -1,7 +1,9 @@
 {
     "image": "mcr.microsoft.com/devcontainers/universal:2",
     "features": {
-        "ghcr.io/devcontainers/features/node:1": {}
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "20"
+        }
     },
     "containerEnv": {
         "AG_SKIP_NATIVE_DEP_VERSION_CHECK": "1",
