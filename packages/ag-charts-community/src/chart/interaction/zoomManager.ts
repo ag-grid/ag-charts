@@ -127,7 +127,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         return this.getMementoRanges() as ZoomMemento;
     }
 
-    public guardMemento(blob: unknown): blob is ZoomMemento | undefined {
+    public guardMemento(blob: unknown, messages: Array<string>): blob is ZoomMemento | undefined {
         if (blob == null) return true;
         if (!isObject(blob)) return false;
 
@@ -137,14 +137,31 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             }
         }
 
+        const primaryX = this.getPrimaryAxis(ChartAxisDirection.X);
+        const primaryY = this.getPrimaryAxis(ChartAxisDirection.Y);
+
+        if (!this.isRangeValid(primaryX, blob.rangeX)) {
+            messages.push(
+                `[start] of [zoom.rangeX] can not be set to [${blob.rangeX.start}]; expecting to be less than [end] [${blob.rangeX.end}]`
+            );
+            return false;
+        }
+
+        if (!this.isRangeValid(primaryY, blob.rangeY)) {
+            messages.push(
+                `[start] of [zoom.rangeY] can not be set to [${blob.rangeY.start}]; expecting to be less than [end] [${blob.rangeY.end}]`
+            );
+            return false;
+        }
+
         return true;
     }
 
-    public restoreMemento(_version: string, _mementoVersion: string, memento: ZoomMemento | undefined) {
+    public restoreMemento(version: string, mementoVersion: string, memento: ZoomMemento | undefined) {
         const { independentAxes } = this;
 
         if (!this.axes || !this.didLayoutAxes) {
-            this.pendingMemento = { version: _version, mementoVersion: _mementoVersion, memento };
+            this.pendingMemento = { version, mementoVersion, memento };
             return;
         }
         this.pendingMemento = undefined;
@@ -554,6 +571,12 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
             y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
         };
+    }
+
+    private isRangeValid(axis?: ChartAxisLike, range?: ZoomMemento['rangeX' | 'rangeY']) {
+        if (!ContinuousScale.is(axis?.scale) && !OrdinalTimeScale.is(axis?.scale)) return true;
+        if (range?.start == null || range.end == null) return true;
+        return range.start <= range.end;
     }
 
     private zoomBounds(
