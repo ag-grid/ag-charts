@@ -41,9 +41,13 @@ import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
 
-type HistogramAnimationData = CartesianAnimationData<Rect, HistogramNodeDatum>;
+type HistogramAnimationData = CartesianAnimationData<Rect<HistogramNodeDatum>, HistogramNodeDatum>;
 
-export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProperties, HistogramNodeDatum> {
+export class HistogramSeries extends CartesianSeries<
+    Rect<HistogramNodeDatum>,
+    HistogramSeriesProperties,
+    HistogramNodeDatum
+> {
     static readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
 
@@ -349,6 +353,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 bottomRightCornerRadius: yAxisReversed,
                 bottomLeftCornerRadius: yAxisReversed,
                 label: selectionDatumLabel,
+                crisp: true,
             });
         });
 
@@ -368,13 +373,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }) {
         const { nodeData, datumSelection } = opts;
 
-        return datumSelection.update(
-            nodeData,
-            (rect) => {
-                rect.crisp = true;
-            },
-            (datum: HistogramNodeDatum) => datum.domain.join('_')
-        );
+        return datumSelection.update(nodeData, undefined, (datum: HistogramNodeDatum) => datum.domain.join('_'));
     }
 
     private getItemBaseStyle(highlighted: boolean) {
@@ -413,6 +412,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
+            rect.crisp = datum.crisp;
             rect.fillShadow = shadow;
             rect.visible = datum.height > 0; // prevent stroke from rendering for zero height columns
         });
