@@ -216,7 +216,7 @@ export abstract class Node<D = any> {
         }
     }
 
-    *traverseUp(includeSelf?: boolean) {
+    *traverseUp(includeSelf?: boolean): Generator<Node, void, unknown> {
         let node: Node | undefined = this;
         if (includeSelf) {
             yield node;
