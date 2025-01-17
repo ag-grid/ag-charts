@@ -40,7 +40,6 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
             ctx.widgets.seriesWidget.addListener('drag-move', (e) => this.onMouseDrag(e)),
             ctx.widgets.seriesWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseLeave()),
-            ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.chartEventManager.addListener('series-focus-change', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.hide()),
             ctx.zoomManager.addListener('zoom-change', () => this.hide()),
@@ -98,11 +97,6 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
     private hide() {
         this.toggleVisibility(false);
-    }
-
-    private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
-        if (event.currentHighlight) return;
-        this.hide();
     }
 
     private onKeyPress() {
