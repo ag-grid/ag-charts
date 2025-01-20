@@ -1,4 +1,3 @@
-import type { BBox } from '../scene/bbox';
 import { Listeners } from '../util/listeners';
 import { ChartUpdateType } from './chartUpdateType';
 import type { ISeries } from './series/seriesTypes';
@@ -7,26 +6,14 @@ export type UpdateCallback = (type: ChartUpdateType, opts?: UpdateOpts) => void;
 
 export interface UpdateCompleteEvent {
     readonly type: 'update-complete';
-    readonly minRect?: BBox;
-    readonly minVisibleRect?: BBox;
-}
-
-export interface PreSceneRenderEvent {
-    readonly type: 'pre-scene-render';
-    readonly minRect?: BBox;
-    readonly minVisibleRect?: BBox;
 }
 
 export interface PreDomUpdateEvent {
     readonly type: 'pre-dom-update';
-    readonly minRect?: never;
-    readonly minVisibleRect?: never;
 }
 
 export interface PreSceneRenderEvent {
     readonly type: 'pre-scene-render';
-    readonly minRect?: BBox;
-    readonly minVisibleRect?: BBox;
 }
 
 export type UpdateOpts = {
@@ -51,19 +38,15 @@ export class UpdateService extends Listeners<UpdateEventTypes, (event: UpdateEve
         this.updateCallback(type, options);
     }
 
-    public dispatchUpdateComplete(rects?: { minRect: BBox; minVisibleRect: BBox }) {
-        this.dispatch('update-complete', {
-            type: 'update-complete',
-            minRect: rects?.minRect,
-            minVisibleRect: rects?.minVisibleRect,
-        });
+    public dispatchUpdateComplete() {
+        this.dispatch('update-complete', { type: 'update-complete' });
     }
 
     public dispatchPreDomUpdate() {
         this.dispatch('pre-dom-update', { type: 'pre-dom-update' });
     }
 
-    public dispatchPreSceneRender(rects?: { minRect: BBox; minVisibleRect: BBox }) {
-        this.dispatch('pre-scene-render', { type: 'pre-scene-render', ...rects });
+    public dispatchPreSceneRender() {
+        this.dispatch('pre-scene-render', { type: 'pre-scene-render' });
     }
 }

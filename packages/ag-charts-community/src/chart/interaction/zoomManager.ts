@@ -425,6 +425,42 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         return this.lastRestoredState;
     }
 
+    public getPrimaryAxisId(direction: ChartAxisDirection) {
+        return this.getPrimaryAxis(direction)?.id;
+    }
+
+    public isVisibleItemsCountAtLeast(zoom: DefinedZoomState, minVisibleItems: number): boolean {
+        const xAxis = this.getPrimaryAxis(ChartAxisDirection.X);
+        const yAxis = this.getPrimaryAxis(ChartAxisDirection.Y);
+
+        const processedSeriesIds = new Set();
+        let visibleItemsCount = 0;
+
+        for (const series of xAxis?.boundSeries ?? []) {
+            processedSeriesIds.add(series.id);
+            const seriesVisibleItems = series.getVisibleItems(
+                [zoom.x.min, zoom.x.max],
+                [zoom.y.min, zoom.y.max],
+                minVisibleItems - (visibleItemsCount ?? 0)
+            );
+            visibleItemsCount += seriesVisibleItems;
+            if (visibleItemsCount >= minVisibleItems) return true;
+        }
+
+        for (const series of yAxis?.boundSeries ?? []) {
+            if (processedSeriesIds.has(series.id)) continue;
+            const seriesVisibleItems = series.getVisibleItems(
+                [zoom.x.min, zoom.x.max],
+                [zoom.y.min, zoom.y.max],
+                minVisibleItems - (visibleItemsCount ?? 0)
+            );
+            visibleItemsCount += seriesVisibleItems;
+            if (visibleItemsCount >= minVisibleItems) return true;
+        }
+
+        return false;
+    }
+
     private getMementoRanges() {
         const zoom = this.getDefinedZoom();
         let autoScaledAxes: AgAutoScaledAxes | undefined;

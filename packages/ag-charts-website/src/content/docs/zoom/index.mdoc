@@ -128,15 +128,15 @@ This allows users to reset the zoom by double-clicking in an empty space in the 
 
 ## Minimum Visible Items
 
-The `minVisibleItemsX` and `minVisibleItemsY` options can be used to limit how far a user can zoom in to the chart, helping to prevent them from getting lost in a blank space of the chart. These options set the minimum number of items visible on each axis, for example the number of bars in a bar series or points in a line series. The default for both values is `2`.
+The `minVisibleItems` option can be used to limit how far a user can zoom in to the chart.
 
-The example below demonstrates setting `minVisibleItemsX` to `10`, preventing the user from zooming beyond showing a minimum of 10 points on the line.
+The example below demonstrates setting `minVisibleItems` to `10`, preventing the user from zooming beyond showing a minimum of 10 points on the line.
 
 {% chartExampleRunner title="Zoom Min Visible Items" name="zoom-min-visible-items" type="generated" /%}
 
 ```ts
 zoom: {
-    minVisibleItemsX: 10,
+    minVisibleItems: 10,
 }
 ```
 

@@ -249,6 +249,13 @@ export class AreaSeries extends CartesianSeries<
         return [x - r, x + r];
     }
 
+    override yCoordinateRange(yValues: any[], pixelSize: number): [number, number] {
+        const { marker } = this.properties;
+        const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
+        const r = marker.enabled ? 0.5 * marker.size * pixelSize : 0;
+        return [y - r, y + r];
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel, axes } = this;
         if (!processedData || !dataModel) return [];
@@ -280,6 +287,14 @@ export class AreaSeries extends CartesianSeries<
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
         const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, ['yValueEnd'], 'xValue', visibleRange, true);
         return [Math.min(y0, 0), Math.max(y1, 0)];
+    }
+
+    override getVisibleItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number],
+        minVisibleItems: number
+    ): number {
+        return this.countVisibleItems('xValue', ['yValueEnd'], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
     override createNodeData() {

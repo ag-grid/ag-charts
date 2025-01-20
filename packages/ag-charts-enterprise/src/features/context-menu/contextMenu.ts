@@ -140,6 +140,15 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.groups.default = this.registry.filterActions(event.type);
 
+        for (const action of this.groups.default) {
+            if (action.id == null || action.toggleEnabledOnShow == null) continue;
+            if (action.toggleEnabledOnShow(event)) {
+                this.registry.enableAction(action.id);
+            } else {
+                this.registry.disableAction(action.id);
+            }
+        }
+
         this.pickedNode = undefined;
         this.pickedLegendItem = undefined;
 

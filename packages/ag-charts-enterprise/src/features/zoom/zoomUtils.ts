@@ -151,12 +151,10 @@ export function multiplyZoom(zoom: DefinedZoomState, nx: number, ny: number) {
  * Constrain a zoom bounding box such that no corner exceeds an edge while maintaining the same width and height.
  */
 export function constrainZoom(zoom: DefinedZoomState): DefinedZoomState {
-    const after = unitZoomState();
-
-    after.x = constrainAxis(zoom.x);
-    after.y = constrainAxis(zoom.y);
-
-    return after;
+    return {
+        x: constrainAxis(zoom.x),
+        y: constrainAxis(zoom.y),
+    };
 }
 
 export function constrainAxis(axis: { min: number; max: number }) {

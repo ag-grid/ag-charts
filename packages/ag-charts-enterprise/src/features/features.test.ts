@@ -59,8 +59,7 @@ describe('Feature Combinations', () => {
                 enabled: true,
                 axes: 'xy',
                 scrollingStep: 0.5,
-                minVisibleItemsX: 1,
-                minVisibleItemsY: 1,
+                minVisibleItems: 1,
             },
         };
 
@@ -138,8 +137,7 @@ describe('Feature Combinations', () => {
                 enabled: true,
                 axes: 'xy',
                 scrollingStep: 0.5,
-                minVisibleItemsX: 1,
-                minVisibleItemsY: 1,
+                minVisibleItems: 1,
             },
         };
 

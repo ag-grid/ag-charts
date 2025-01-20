@@ -40,6 +40,7 @@ export type ContextMenuAction<K extends ContextType> = {
     label: string;
     type: K;
     action: ContextMenuCallback<K>;
+    toggleEnabledOnShow?: (event: ContextMenuEvent) => boolean;
 };
 
 export class ContextMenuRegistry {

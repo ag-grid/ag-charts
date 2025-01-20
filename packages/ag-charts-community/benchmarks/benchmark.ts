@@ -145,7 +145,7 @@ export function benchmark(
 export function setupBenchmark<T extends AgChartOptions>(
     exampleName: string,
     opts?: {
-        createApi: 'create' | '__createSparkline';
+        createApi?: 'create' | '__createSparkline';
         isEnterprise?: boolean;
     }
 ): BenchmarkContext<T> {

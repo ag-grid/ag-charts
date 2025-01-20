@@ -128,15 +128,19 @@ export interface AgZoomOptions {
      */
     keepAspectRatio?: boolean;
     /**
-     * The minimum number of x-axis items to be shown, beyond which zooming is stopped.
+     * The minimum number of items to be shown, beyond which zooming is stopped.
      *
      * Default: `2`
+     */
+    minVisibleItems?: number;
+    /**
+     * The minimum number of x-axis items to be shown, beyond which zooming is stopped.
+     * @deprecated v11.1.0 use `minVisibleItems` instead.
      */
     minVisibleItemsX?: number;
     /**
      * The minimum number of y-axis items to be shown, beyond which zooming is stopped.
-     *
-     * Default: `2`
+     * @deprecated v11.1.0 use `minVisibleItems` instead.
      */
     minVisibleItemsY?: number;
     /**

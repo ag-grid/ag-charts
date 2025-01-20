@@ -215,6 +215,10 @@ export class HistogramSeries extends CartesianSeries<
         return [NaN, NaN];
     }
 
+    override yCoordinateRange(): [number, number] {
+        return [NaN, NaN];
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
 

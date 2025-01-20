@@ -215,6 +215,13 @@ export class LineSeries extends CartesianSeries<
         return [x - r, x + r];
     }
 
+    override yCoordinateRange(yValues: any[], pixelSize: number): [number, number] {
+        const { marker } = this.properties;
+        const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
+        const r = marker.enabled ? 0.5 * marker.size * pixelSize : 0;
+        return [y - r, y + r];
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return [];
@@ -239,6 +246,16 @@ export class LineSeries extends CartesianSeries<
         const stackCount = this.seriesGrouping?.stackCount ?? 1;
         const yKey = stackCount > 1 ? 'yValueEnd' : 'yValueRaw';
         return this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange, true);
+    }
+
+    override getVisibleItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number],
+        minVisibleItems: number
+    ): number {
+        const stackCount = this.seriesGrouping?.stackCount ?? 1;
+        const yKey = stackCount > 1 ? 'yValueEnd' : 'yValueRaw';
+        return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
     protected aggregateData(
