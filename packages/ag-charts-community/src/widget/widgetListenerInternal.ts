@@ -145,7 +145,6 @@ function startTouchDrag(
         }
     };
     const touchend = (endEvent: TouchEvent) => {
-        endEvent.preventDefault();
         const touch = findInitialFinger(endEvent.changedTouches, endEvent.touches);
         if (touch != null) {
             target.removeEventListener('touchstart', touchend);
@@ -317,7 +316,6 @@ export class WidgetListenerInternal {
         };
         this.localTouchDragCallbacks = dragCallbacks;
 
-        initialEvent.preventDefault();
         startTouchDrag(GlobalCallbacks, dragCallbacks, initialTouch, current.getElement());
 
         const dragStartEvent = makeTouchDrag(current, 'drag-start', origin, initialEvent, initialTouch);
