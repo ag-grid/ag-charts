@@ -65,62 +65,62 @@ objective is ensure the $x_i$ values remain constant.
 ## Move
 
 Our only inputs when receive `'touchmove'` event is $R$ (series-rect), which is
-should be unchanged, and $a'_1, a'_2 \in [R_x, R_W]$, the new screen values of
+should be unchanged, and $a\prime_1, a\prime_2 \in [R_x, R_W]$, the new screen values of
 the two fingers on the current axis.
 
-Our desired outputs are $Z'_{min}, Z'_{max} \in [0, 1]$, the new normalised zoom
+Our desired outputs are $Z\prime_{min}, Z\prime_{max} \in [0, 1]$, the new normalised zoom
 values on the current axis.
 
 The interpolation logic is the same during a `'touchmove'` event:
 \begin{equation}
-x'_i = N \cdot \left( \frac{a'_i - R_x}{R_W} (Z'_{max} - Z'_{min}) + Z'_{min} \right) \qquad i \in \{1, 2\}
+x\prime_i = N \cdot \left( \frac{a\prime_i - R_x}{R_W} (Z\prime_{max} - Z\prime_{min}) + Z\prime_{min} \right) \qquad i \in \{1, 2\}
 \end{equation}
 
 We want the fingers to keep touching the same point on the chart. This means
-that we need to find $(Z'_{min}, Z'_{max})$ such that $x_i = x'_i$.
+that we need to find $(Z\prime_{min}, Z\prime_{max})$ such that $x_i = x\prime_i$.
 
 Fortunately, we have two fingers. This gives us two equations with the two
-unknowns $(Z'_{min}, Z'_{max})$ that we are looking for:
+unknowns $(Z\prime_{min}, Z\prime_{max})$ that we are looking for:
 
 \begin{align*}
-x_1 &= N \cdot \left( \frac{a'_1 - R_x}{R_W} (Z'_{max} - Z'_{min}) + Z'_{min} \right) \qquad (1) \\
-x_2 &= N \cdot \left( \frac{a'_2 - R_x}{R_W} (Z'_{max} - Z'_{min}) + Z'_{min} \right) \qquad (2) \\
+x_1 &= N \cdot \left( \frac{a\prime_1 - R_x}{R_W} (Z\prime_{max} - Z\prime_{min}) + Z\prime_{min} \right) \qquad (1) \\
+x_2 &= N \cdot \left( \frac{a\prime_2 - R_x}{R_W} (Z\prime_{max} - Z\prime_{min}) + Z\prime_{min} \right) \qquad (2) \\
 \end{align*}
 
 Which we can rewrite as:
 \begin{align*}
-x_1 &= t_1 (Z'_{max} - Z'_{min}) +  N \cdot Z'_{min} \qquad (1) \\
-x_2 &= t_2 (Z'_{max} - Z'_{min}) +  N \cdot Z'_{min} \qquad (2) \\ \\
-\textrm{where }t_i &=  N \cdot \frac{a'_i - R_x}{R_W}
+x_1 &= t_1 (Z\prime_{max} - Z\prime_{min}) +  N \cdot Z\prime_{min} \qquad (1) \\
+x_2 &= t_2 (Z\prime_{max} - Z\prime_{min}) +  N \cdot Z\prime_{min} \qquad (2) \\ \\
+\textrm{where }t_i &=  N \cdot \frac{a\prime_i - R_x}{R_W}
 \end{align*}
 
-We can use equation $(2)$ to express $Z'_{max}$ in terms of $Z'_{min}$:
+We can use equation $(2)$ to express $Z\prime_{max}$ in terms of $Z\prime_{min}$:
 \begin{align*}
-x_2 &= t_2 (Z'_{max} - Z'_{min}) + N \cdot Z'_{min} \\
-x_2 &= t_2 Z'_{max} - t_2 Z'_{min} +  N \cdot Z'_{min} \\
-x_2 &= t_2 Z'_{max} - (t_2 - N) Z'_{min} \\
-x_2 + (t_2 - N) Z'_{min} &= t_2 Z'_{max} \\
+x_2 &= t_2 (Z\prime_{max} - Z\prime_{min}) + N \cdot Z\prime_{min} \\
+x_2 &= t_2 Z\prime_{max} - t_2 Z\prime_{min} +  N \cdot Z\prime_{min} \\
+x_2 &= t_2 Z\prime_{max} - (t_2 - N) Z\prime_{min} \\
+x_2 + (t_2 - N) Z\prime_{min} &= t_2 Z\prime_{max} \\
 \therefore
-Z'_{max} &= \frac{x_2 + (t_2 - N) Z'_{min}}{t_2} \\
+Z\prime_{max} &= \frac{x_2 + (t_2 - N) Z\prime_{min}}{t_2} \\
 \end{align*}
 
-Now we can substitue $Z'_{max}$ into equation $(1)$:
+Now we can substitue $Z\prime_{max}$ into equation $(1)$:
 \begin{align*}
-x_1                &= t_1 (Z'_{max} - Z'_{min}) + N \cdot Z'_{min} \\
-x_1                &= t_1 Z'_{max} - t_1 Z'_{min} + N \cdot Z'_{min} \\
-x_1 - t_1 Z'_{max} &= -t_1 Z'_{min} + N \cdot Z'_{min} \\
-                   &= (N - t_1) Z'_{min} \\
-x_1 - t_1 \frac {x_2 + (t_2 - N) Z'_{min}} {t_2} &= (N - t_1) Z'_{min} \\
-x_1 - \frac{t_1}{t_2} x_2 - \frac{t_1}{t_2} (t_2 - N) Z'_{min} &=  (N - t_1) Z'_{min} \\
-x_1 - \frac{t_1}{t_2} x_2 &=  (N - t_1) Z'_{min} + \frac{t_1}{t_2} (t_2 -1) Z'_{min} \\
+x_1                &= t_1 (Z\prime_{max} - Z\prime_{min}) + N \cdot Z\prime_{min} \\
+x_1                &= t_1 Z\prime_{max} - t_1 Z\prime_{min} + N \cdot Z\prime_{min} \\
+x_1 - t_1 Z\prime_{max} &= -t_1 Z\prime_{min} + N \cdot Z\prime_{min} \\
+                   &= (N - t_1) Z\prime_{min} \\
+x_1 - t_1 \frac {x_2 + (t_2 - N) Z\prime_{min}} {t_2} &= (N - t_1) Z\prime_{min} \\
+x_1 - \frac{t_1}{t_2} x_2 - \frac{t_1}{t_2} (t_2 - N) Z\prime_{min} &=  (N - t_1) Z\prime_{min} \\
+x_1 - \frac{t_1}{t_2} x_2 &=  (N - t_1) Z\prime_{min} + \frac{t_1}{t_2} (t_2 -1) Z\prime_{min} \\
 \end{align*}
 
 Let $c = \frac{t_1}{t_2}$
 \begin{align*}
-x_1 - c \cdot x_2 &=  (N - t_1) Z'_{min} + c \cdot (t_2 - N) Z'_{min} \\
-x_1 - c \cdot x_2 &=  Z'_{min} ( (N - t_1) + c \cdot (t_2 - N) ) \\
+x_1 - c \cdot x_2 &=  (N - t_1) Z\prime_{min} + c \cdot (t_2 - N) Z\prime_{min} \\
+x_1 - c \cdot x_2 &=  Z\prime_{min} ( (N - t_1) + c \cdot (t_2 - N) ) \\
 \therefore
-Z'_{min} &= \frac{x_1 - c \cdot x_2}{N - t_1 + c \cdot (t_2 - N)} \\
+Z\prime_{min} &= \frac{x_1 - c \cdot x_2}{N - t_1 + c \cdot (t_2 - N)} \\
 \end{align*}
 
 
@@ -137,7 +137,7 @@ X-min and X-max computation:
 R_x &:= R_y \\
 R_W &:= R_H \\
 x_i &:= y_i \\
-a'_i &:= (R_H + R_y) - b'_i
+a\prime_i &:= (R_H + R_y) - b'_i
 \end{align*}
 
 Where $y_i \in{[0, 1]}$ and $b'_i \in [R_y, R_H]$ are the normalised and screen
