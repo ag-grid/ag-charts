@@ -255,6 +255,20 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     public updateZoom(callerId: string, newZoom?: AxisZoomState) {
+        if (newZoom?.x && (newZoom.x.min < 0 || newZoom.x.max > 1)) {
+            Logger.warnOnce(
+                `Attempted to update x-axis zoom to an invalid ratio of [{ min: ${newZoom.x.min}, max: ${newZoom.x.max} }], expecting a ratio of 0 to 1, ignoring.`
+            );
+            newZoom.x = undefined;
+        }
+
+        if (newZoom?.y && (newZoom.y.min < 0 || newZoom.y.max > 1)) {
+            Logger.warnOnce(
+                `Attempted to update y-axis zoom to an invalid ratio of [{ min: ${newZoom.y.min}, max: ${newZoom.y.max} }], expecting a ratio of 0 to 1, ignoring.`
+            );
+            newZoom.y = undefined;
+        }
+
         if (this.axisZoomManagers.size === 0) {
             const stateId = this.state.stateId()!;
             if (stateId === 'initial' || stateId === callerId) {
@@ -566,9 +580,27 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         const [d0, d1] = extents;
 
-        const r0 = range.start == null ? d0 : axis.scale.convert?.(range.start);
-        const r1 = range.end == null ? d1 : axis.scale.convert?.(range.end);
+        let r0 = range.start == null ? d0 : axis.scale.convert?.(range.start);
+        let r1 = range.end == null ? d1 : axis.scale.convert?.(range.end);
+
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
+
+        const [dMin, dMax] = [Math.min(d0, d1), Math.max(d0, d1)];
+
+        if (r0 < dMin || r0 > dMax) {
+            Logger.warnOnce(
+                `Invalid range start [${range.start}], expecting a value between [${axis.scale.invert?.(d0)}] and [${axis.scale.invert?.(d1)}].`
+            );
+        }
+
+        if (r1 < dMin || r1 > dMax) {
+            Logger.warnOnce(
+                `Invalid range end [${range.end}], expecting a value between [${axis.scale.invert?.(d0)}] and [${axis.scale.invert?.(d1)}].`
+            );
+        }
+
+        r0 = Math.min(dMax, Math.max(dMin, r0));
+        r1 = Math.min(dMax, Math.max(dMin, r1));
 
         const diff = d1 - d0;
         const min = Math.abs((r0 - d0) / diff);
@@ -669,7 +701,6 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         xScale.range = xScaleRange;
         yScale.range = yScaleRange;
-        // console.log([min, max]);
 
         if (min >= max) return;
 
