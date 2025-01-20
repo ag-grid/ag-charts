@@ -34,7 +34,18 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                 fontWeight: { ref: 'fontWeight' },
                 fontSize: { ref: 'fontSize' },
                 fontFamily: { ref: 'fontFamily' },
-                color: { ref: 'backgroundColor' },
+                color: {
+                    if: [
+                        {
+                            or: [
+                                { eq: [{ path: './placement' }, 'outside-start'] },
+                                { eq: [{ path: './placement' }, 'outside-end'] },
+                            ],
+                        },
+                        { ref: 'foregroundColor' },
+                        { ref: 'backgroundColor' },
+                    ],
+                },
                 placement: 'inside-center',
             },
             shadow: {
