@@ -280,9 +280,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { domManager, zoomManager },
         } = this;
 
-        if (!enabled || event?.device === 'touch') return;
+        if (!enabled) return;
         if (!this.hoveredAxis) {
-            if (!this.isState(InteractionState.ZoomDraggable) || this.dragState !== DragState.None) return;
+            if (
+                !this.isState(InteractionState.ZoomDraggable) ||
+                this.dragState !== DragState.None ||
+                event?.device !== 'mouse'
+            ) {
+                return;
+            }
         }
 
         this.panner.stopInteractions();
@@ -324,8 +330,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { interactionManager, tooltipManager, updateService, zoomManager },
         } = this;
 
-        if (!enabled || !paddedRect || !seriesRect || event.device === 'touch') return;
-        if (!this.hoveredAxis && !this.isState(InteractionState.ZoomDraggable)) return;
+        if (!enabled || !paddedRect || !seriesRect) return;
+        if (!hoveredAxis) {
+            if (!this.isState(InteractionState.ZoomDraggable) || event.device === 'touch') {
+                return;
+            }
+        }
 
         interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
 
