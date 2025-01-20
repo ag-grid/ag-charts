@@ -396,4 +396,14 @@ test.describe('keyboard-nav', () => {
             });
         });
     });
+
+    test('AG-13891 pagination buttons aria-disabled', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
+
+        await expect(page.getByText('Previous Legend Page')).toHaveAttribute('aria-disabled', 'true');
+        await expect(page.getByText('Next Legend Page')).toHaveAttribute('aria-disabled', 'false');
+        await page.getByText('Next Legend Page').first().click();
+        await expect(page.getByText('Previous Legend Page')).toHaveAttribute('aria-disabled', 'false');
+        await expect(page.getByText('Next Legend Page')).toHaveAttribute('aria-disabled', 'true');
+    });
 });
