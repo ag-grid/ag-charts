@@ -395,7 +395,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     sourceEvent,
                     onChangeLine: (props) => {
                         this.state.transition('lineProps', props);
-                        if (props.bands) this.defaults.setDefaultFibonacciBands(datum.type, props.bands);
+                        if (props.bands != null)
+                            this.defaults.setDefaultFibonacciOptions(datum.type, 'bands', props.bands);
+                        if (props.reverse != null)
+                            this.defaults.setDefaultFibonacciOptions(datum.type, 'reverse', props.reverse);
+                        if (props.showFill != null)
+                            this.defaults.setDefaultFibonacciOptions(datum.type, 'showFill', props.showFill);
                     },
                     onChangeText: (props) => {
                         this.state.transition('lineText', props);

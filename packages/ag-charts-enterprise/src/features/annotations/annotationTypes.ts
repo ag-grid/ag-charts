@@ -58,7 +58,9 @@ type MeasurerAnnotationType =
 
 type EphemeralAnnotationType = AnnotationType.QuickDatePriceRange;
 
-export type FibonacciAnnotationType = AnnotationType.FibonacciRetracement;
+export type FibonacciAnnotationType =
+    | AnnotationType.FibonacciRetracement
+    | AnnotationType.FibonacciRetracementTrendBased;
 
 export type HasColorAnnotationType = AnnotationType;
 export type HasLineStyleAnnotationType = Exclude<
@@ -130,6 +132,8 @@ export type AnnotationContext = {
 };
 
 export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';
+
+export type FibonacciAnnotationToolbarOptionsType = { bands?: FibonacciBands; reverse?: boolean; showFill?: boolean };
 
 export type AnnotationLineStyle = {
     type?: AgAnnotationLineStyleType;
