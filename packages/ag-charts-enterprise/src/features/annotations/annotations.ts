@@ -695,6 +695,42 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.yAxis = this.getAxis(axisLayout, seriesRect, this.yAxis?.button);
             }
         }
+
+        const hasData = this.ctx.chartService.series.some((s) => s.hasData);
+        const hasVisibleSeries = this.ctx.chartService.series.some((s) => s.visible);
+
+        if (!hasData || !hasVisibleSeries) {
+            this.animateAnnotations({ from: 1, to: 0, phase: 'remove' });
+        } else {
+            this.animateAnnotations({ from: 0, to: 1, phase: 'trailing' });
+        }
+    }
+
+    private animateAnnotations({ from, to, phase }: { from: number; to: number; phase: 'trailing' | 'remove' }) {
+        const { annotations } = this;
+        this.ctx.animationManager?.animate({
+            from,
+            to,
+            id: 'chart-annotations',
+            phase,
+            groupId: 'opacity',
+            onUpdate(value) {
+                annotations.each((node) => {
+                    node.opacity = value;
+                    if ('setAxisLabelOpacity' in node) {
+                        node.setAxisLabelOpacity(value);
+                    }
+                });
+            },
+            onStop() {
+                annotations.each((node) => {
+                    node.opacity = to;
+                    if ('setAxisLabelOpacity' in node) {
+                        node.setAxisLabelOpacity(to);
+                    }
+                });
+            },
+        });
     }
 
     private onPreRender() {
@@ -1114,6 +1150,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private update(status = ChartUpdateType.PRE_SCENE_RENDER) {
-        this.ctx.updateService.update(status, { skipAnimations: true });
+        this.ctx.updateService.update(status);
     }
 }

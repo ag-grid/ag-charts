@@ -25,6 +25,7 @@ export interface ISeries<TDatum, TProps, TLabel = TDatum> {
     contentGroup: Group;
     properties: TProps;
     hasEventListener(type: string): boolean;
+    hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
     fireNodeClickEvent(event: Event, datum: SeriesNodeDatum<unknown>): void;

@@ -150,6 +150,11 @@ export class CrossLineScene extends AnnotationScene {
         }
     }
 
+    public setAxisLabelOpacity(opacity: number) {
+        if (!this.axisLabel) return;
+        this.axisLabel.opacity = opacity;
+    }
+
     public toggleHandles(show: boolean) {
         this.middle.visible = show;
         this.middle.toggleHovered(this.activeHandle === 'middle');
