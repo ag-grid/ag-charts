@@ -103,7 +103,7 @@ export function batchExecutor<ExecutorOptions>(
     };
 }
 
-export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
+export function batchWorkerExecutor<ExecutorOptions>(workerModule: string, extraMsgContent?: () => object) {
     return async function* (
         taskGraph: TaskGraph,
         inputs: Record<string, ExecutorOptions>,
@@ -114,7 +114,7 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
 
         let threadCount = os.cpus().length;
         if (process.env.CI == null) {
-            threadCount /= 2;
+            threadCount = Math.round(threadCount / 2);
         }
         const { Tinypool } = await import('tinypool');
         const pool = new Tinypool({
@@ -131,6 +131,7 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
 
         console.info(`Batched execution of ${tasks.length} tasks, using ${pool.threads.length} threads...`);
         const start = performance.now();
+        const contents = extraMsgContent?.() ?? {};
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
             const taskName = tasks[taskIndex];
             const task = taskGraph.tasks[taskName];
@@ -144,6 +145,7 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
                     configurationName: task.target.configuration,
                 },
                 taskName,
+                ...contents,
             };
             results.set(taskName, pool.run(opts));
         }
