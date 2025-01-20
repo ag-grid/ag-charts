@@ -453,6 +453,11 @@ export class SeriesAreaManager extends BaseManager {
         const visibleSeries = focus.sortedSeries.filter((s) => s.visible);
         if (visibleSeries.length === 0) return;
 
+        const oldPick = {
+            datumIndex: focus.datumIndex - datumIndexDelta,
+            otherIndex: focus.seriesIndex - otherIndexDelta,
+        };
+
         // Update focused series:
         focus.seriesIndex = clamp(0, focus.seriesIndex, visibleSeries.length - 1);
         focus.series = visibleSeries[focus.seriesIndex];
@@ -460,7 +465,7 @@ export class SeriesAreaManager extends BaseManager {
         // Update focused datum:
         const { datumIndex, seriesIndex: otherIndex } = focus;
         const pick = focus.series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
-        this.updatePickedFocus(pick, refresh);
+        this.updatePickedFocus(otherIndexDelta, datumIndexDelta, oldPick, pick, refresh);
     }
 
     private handleSoloSeriesFocus(otherIndexDelta: number, datumIndexDelta: number, refresh: boolean) {
@@ -475,10 +480,16 @@ export class SeriesAreaManager extends BaseManager {
         } = this;
         if (series == null) return;
         const pick = series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
-        this.updatePickedFocus(pick, refresh);
+        this.updatePickedFocus(otherIndexDelta, datumIndexDelta, { datumIndex, otherIndex }, pick, refresh);
     }
 
-    private updatePickedFocus(pick: PickFocusOutputs | undefined, refresh: boolean) {
+    private updatePickedFocus(
+        otherIndexDelta: number,
+        datumIndexDelta: number,
+        oldPick: Required<Pick<PickFocusOutputs, 'datumIndex' | 'otherIndex'>>,
+        pick: PickFocusOutputs | undefined,
+        refresh: boolean
+    ) {
         const { focus, hoverRect } = this;
         if (pick === undefined || focus.series === undefined || hoverRect === undefined) return;
 
@@ -523,8 +534,17 @@ export class SeriesAreaManager extends BaseManager {
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
+
             if (!refresh) {
-                this.swapChain.update(this.getDatumAriaText(datum, tooltipContent));
+                // AG-13874 If all deltas are 0, it means that we're tabbing in (always announce). Otherwise, announce
+                // the datum pick only if the indices have changed.
+                const shouldAnnouncePick =
+                    (datumIndexDelta === 0 && otherIndexDelta === 0) ||
+                    oldPick.datumIndex !== pick.datumIndex ||
+                    oldPick.otherIndex !== (pick.otherIndex ?? focus.seriesIndex);
+                if (shouldAnnouncePick) {
+                    this.swapChain.update(this.getDatumAriaText(datum, tooltipContent));
+                }
             }
         }
     }
