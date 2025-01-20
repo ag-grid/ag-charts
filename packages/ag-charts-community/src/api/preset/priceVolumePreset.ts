@@ -132,6 +132,9 @@ export function priceVolume(
         } satisfies AgNavigatorOptions,
     };
 
+    const axesButtonsEnabled =
+        typeof theme === 'string' ? true : theme?.overrides?.common?.annotations?.axesButtons?.enabled ?? true;
+
     const annotationOpts = {
         annotations: {
             enabled: toolbar,
@@ -139,14 +142,14 @@ export function priceVolume(
                 enabled: toolbar,
             },
             snap: true,
+            axesButtons: {
+                enabled: axesButtonsEnabled,
+            },
             toolbar: {
                 enabled: toolbar,
                 buttons: toolbarButtons,
                 // @ts-expect-error undocumented option
                 padding: 0,
-            },
-            __axesButtons: {
-                enabled: toolbar,
             },
             data,
             xKey: dateKey,

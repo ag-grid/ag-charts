@@ -10,6 +10,7 @@ import type { ButtonWidget } from '../../widget/buttonWidget';
 import type { GroupWidget } from '../../widget/groupWidget';
 import type { ListWidget } from '../../widget/listWidget';
 import type { SwitchWidget } from '../../widget/switchWidget';
+import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { Page } from '../gridLayout';
 import type { Pagination } from '../pagination/pagination';
 import type { CategoryLegendDatum } from './legendDatum';
@@ -117,7 +118,7 @@ export class LegendDOMProxy {
         if (params.visible) {
             this.initLegendList(params);
             this.updateItemProxyButtons(params);
-            this.updatePaginationProxyButtons(params);
+            this.updatePaginationProxyButtons(params, true);
         }
         this.updateVisibility(params.visible);
     }
@@ -147,54 +148,61 @@ export class LegendDOMProxy {
         });
     }
 
-    private updatePaginationProxyButtons(params: LegendDOMProxyUpdateParams) {
-        const { ctx, pagination, oldPages, newPages } = params;
+    private updatePaginationProxyButtons(
+        params: LegendDOMProxyUpdateParams | LegendDOMProxyPageChangeParams,
+        init: boolean
+    ) {
+        const { pagination } = params;
         this.paginationGroup.setHidden(!pagination.visible);
 
-        const oldNeedsButtons = (oldPages?.length ?? newPages.length) > 1;
-        const newNeedsButtons = newPages.length > 1;
+        if (init && 'ctx' in params) {
+            const { ctx, oldPages, newPages } = params;
+            const oldNeedsButtons = (oldPages?.length ?? newPages.length) > 1;
+            const newNeedsButtons = newPages.length > 1;
+            if (oldNeedsButtons !== newNeedsButtons) {
+                if (newNeedsButtons) {
+                    this.prevButton = ctx.proxyInteractionService.createProxyElement({
+                        type: 'button',
+                        id: `${this.idPrefix}-prev-page`,
+                        textContent: { id: 'ariaLabelLegendPagePrevious' },
+                        tabIndex: 0,
+                        parent: this.paginationGroup,
+                    });
+                    this.prevButton.addListener('click', (ev) => this.onPageButton(params, ev, 'previous'));
+                    this.prevButton.addListener('mouseenter', () => pagination.onMouseHover('previous'));
+                    this.prevButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
 
-        if (oldNeedsButtons !== newNeedsButtons) {
-            if (newNeedsButtons) {
-                this.prevButton = ctx.proxyInteractionService.createProxyElement({
-                    type: 'button',
-                    id: `${this.idPrefix}-prev-page`,
-                    textContent: { id: 'ariaLabelLegendPagePrevious' },
-                    tabIndex: 0,
-                    parent: this.paginationGroup,
-                });
-                this.prevButton.addListener('click', (ev) => pagination.onClick(ev.sourceEvent, 'previous'));
-                this.prevButton.addListener('mouseenter', () => pagination.onMouseHover('previous'));
-                this.prevButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
-
-                this.nextButton ??= ctx.proxyInteractionService.createProxyElement({
-                    type: 'button',
-                    id: `${this.idPrefix}-next-page`,
-                    textContent: { id: 'ariaLabelLegendPageNext' },
-                    tabIndex: 0,
-                    parent: this.paginationGroup,
-                });
-                this.nextButton.addListener('click', (ev) => pagination.onClick(ev.sourceEvent, 'next'));
-                this.nextButton.addListener('mouseenter', () => pagination.onMouseHover('next'));
-                this.nextButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
-            } else {
-                this.nextButton?.destroy();
-                this.prevButton?.destroy();
-                this.nextButton = undefined;
-                this.prevButton = undefined;
+                    this.nextButton ??= ctx.proxyInteractionService.createProxyElement({
+                        type: 'button',
+                        id: `${this.idPrefix}-next-page`,
+                        textContent: { id: 'ariaLabelLegendPageNext' },
+                        tabIndex: 0,
+                        parent: this.paginationGroup,
+                    });
+                    this.nextButton.addListener('click', (ev) => this.onPageButton(params, ev, 'next'));
+                    this.nextButton.addListener('mouseenter', () => pagination.onMouseHover('next'));
+                    this.nextButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
+                } else {
+                    this.nextButton?.destroy();
+                    this.prevButton?.destroy();
+                    this.nextButton = undefined;
+                    this.prevButton = undefined;
+                }
             }
         }
 
         const { prev, next } = pagination.computeCSSBounds();
-
         this.prevButton?.setBounds(prev);
         this.nextButton?.setBounds(next);
-        this.updatePaginationCursors(params);
-    }
-
-    private updatePaginationCursors({ pagination }: LegendDOMProxyPageChangeParams) {
+        this.prevButton?.setEnabled(pagination.currentPage !== 0);
+        this.nextButton?.setEnabled(pagination.currentPage !== pagination.totalPages - 1);
         this.nextButton?.setCursor(pagination.getCursor('next'));
         this.prevButton?.setCursor(pagination.getCursor('previous'));
+    }
+
+    private onPageButton(params: LegendDOMProxyUpdateParams, ev: MouseWidgetEvent<'click'>, node: 'previous' | 'next') {
+        params.pagination.onClick(ev.sourceEvent, node);
+        this.updatePaginationProxyButtons(params, false);
     }
 
     public onDataUpdate(oldData: CategoryLegendDatum[], newData: CategoryLegendDatum[]) {
@@ -224,7 +232,7 @@ export class LegendDOMProxy {
 
     public onPageChange(params: LegendDOMProxyPageChangeParams) {
         this.updateItemProxyButtons(params);
-        this.updatePaginationCursors(params);
+        this.updatePaginationProxyButtons(params, false);
     }
 
     private getItemAriaText(

@@ -315,6 +315,8 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
             },
         },
     },
+
+    axesButtons: {},
     // Toolbars
     toolbar,
     optionsToolbar,

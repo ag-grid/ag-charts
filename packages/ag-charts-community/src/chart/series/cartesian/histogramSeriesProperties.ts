@@ -41,6 +41,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
         readonly y: number;
     };
     // Required for types
+    readonly crisp: boolean;
     readonly opacity?: number;
 }
 

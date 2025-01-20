@@ -31,7 +31,7 @@ interface DefaultStyles {
 
 const LINEAR_GRADIENT_REGEXP = /^linear-gradient\((-?[\d.]+)deg,(.*?)\)$/i;
 
-export abstract class Shape extends Node {
+export abstract class Shape<D = any> extends Node<D> {
     /**
      * Defaults for style properties. Note that properties that affect the position
      * and shape of the node are not considered style properties, for example:

@@ -8,7 +8,6 @@ import {
     dx,
     dy,
     isZoomEqual,
-    isZoomLess,
     pointToRatio,
     scaleZoomCenter,
     translateZoom,
@@ -24,10 +23,11 @@ export class ZoomContextMenu {
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly getModuleProperties: () => ZoomProperties,
         private readonly getRect: () => _ModuleSupport.BBox | undefined,
-        private readonly updateZoom: (zoom: DefinedZoomState) => void
+        private readonly updateZoom: (zoom: DefinedZoomState) => void,
+        private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
     ) {}
 
-    public registerActions(enabled: boolean | undefined, zoom: DefinedZoomState) {
+    public registerActions(enabled: boolean | undefined) {
         if (!enabled) return;
 
         const { contextMenuRegistry } = this;
@@ -37,37 +37,25 @@ export class ZoomContextMenu {
             type: 'series-area',
             label: 'contextMenuZoomToCursor',
             action: this.onZoomToHere.bind(this),
+            toggleEnabledOnShow: (event) => {
+                const rect = this.getRect();
+                if (!rect) return true;
+                const origin = pointToRatio(rect, event.x, event.y);
+                return this.isZoomValid(this.getNextZoomAtPoint(origin));
+            },
         });
         const destroyPanToCursor = contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_PAN_ACTION_ID,
             type: 'series-area',
             label: 'contextMenuPanToCursor',
             action: this.onPanToHere.bind(this),
+            toggleEnabledOnShow: () => !isZoomEqual(definedZoomState(this.zoomManager.getZoom()), unitZoomState()),
         });
-
-        this.toggleActions(zoom);
 
         return () => {
             destroyZoomToCursor();
             destroyPanToCursor();
         };
-    }
-
-    public toggleActions(zoom: DefinedZoomState) {
-        const { contextMenuRegistry } = this;
-        const { minRatioX, minRatioY } = this.getModuleProperties();
-
-        if (isZoomLess(zoom, minRatioX, minRatioY)) {
-            contextMenuRegistry.disableAction(CONTEXT_ZOOM_ACTION_ID);
-        } else {
-            contextMenuRegistry.enableAction(CONTEXT_ZOOM_ACTION_ID);
-        }
-
-        if (isZoomEqual(zoom, unitZoomState())) {
-            contextMenuRegistry.disableAction(CONTEXT_PAN_ACTION_ID);
-        } else {
-            contextMenuRegistry.enableAction(CONTEXT_PAN_ACTION_ID);
-        }
     }
 
     private computeOrigin(event: Event): { x: number; y: number } | undefined {
@@ -84,25 +72,7 @@ export class ZoomContextMenu {
         const origin = this.computeOrigin(event);
         if (!origin) return;
 
-        const { isScalingX, isScalingY, minRatioX, minRatioY } = this.getModuleProperties();
-
-        const zoom = definedZoomState(this.zoomManager.getZoom());
-
-        const scaledOriginX = origin.x * dx(zoom);
-        const scaledOriginY = origin.y * dy(zoom);
-
-        const size = UNIT.max - UNIT.min;
-        const halfSize = size / 2;
-
-        let newZoom = {
-            x: { min: origin.x - halfSize, max: origin.x + halfSize },
-            y: { min: origin.y - halfSize, max: origin.y + halfSize },
-        };
-
-        newZoom = scaleZoomCenter(newZoom, isScalingX ? minRatioX : size, isScalingY ? minRatioY : size);
-        newZoom = translateZoom(newZoom, zoom.x.min - origin.x + scaledOriginX, zoom.y.min - origin.y + scaledOriginY);
-
-        this.updateZoom(constrainZoom(newZoom));
+        this.updateZoom(this.getNextZoomAtPoint(origin));
     }
 
     private onPanToHere({ event }: AgSeriesAreaContextMenuActionEvent) {
@@ -128,5 +98,31 @@ export class ZoomContextMenu {
         newZoom = translateZoom(newZoom, zoom.x.min - origin.x + scaledOriginX, zoom.y.min - origin.y + scaledOriginY);
 
         this.updateZoom(constrainZoom(newZoom));
+    }
+
+    private getNextZoomAtPoint(origin: _ModuleSupport.Vec2) {
+        const { isScalingX, isScalingY, scrollingStep } = this.getModuleProperties();
+
+        const zoom = definedZoomState(this.zoomManager.getZoom());
+
+        const scaledOriginX = origin.x * dx(zoom);
+        const scaledOriginY = origin.y * dy(zoom);
+
+        const size = UNIT.max - UNIT.min;
+        const halfSize = size / 2;
+
+        let newZoom = {
+            x: { min: origin.x - halfSize, max: origin.x + halfSize },
+            y: { min: origin.y - halfSize, max: origin.y + halfSize },
+        };
+
+        newZoom = scaleZoomCenter(
+            newZoom,
+            isScalingX ? dx(zoom) - scrollingStep : size,
+            isScalingY ? dy(zoom) - scrollingStep : size
+        );
+        newZoom = translateZoom(newZoom, zoom.x.min - origin.x + scaledOriginX, zoom.y.min - origin.y + scaledOriginY);
+
+        return constrainZoom(newZoom);
     }
 }

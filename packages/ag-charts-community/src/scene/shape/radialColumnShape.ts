@@ -13,7 +13,7 @@ function rotatePoint(x: number, y: number, rotation: number) {
     };
 }
 
-export class RadialColumnShape extends Path {
+export class RadialColumnShape<D = any> extends Path<D> {
     static override readonly className = 'RadialColumnShape';
 
     @ScenePathChangeDetection()

@@ -88,12 +88,23 @@ export abstract class AbstractBarSeries<
     }
 
     override xCoordinateRange(xValue: any): [number, number] {
-        const xAxis = this.axes[ChartAxisDirection.X]!;
+        const xAxis = this.axes[this.getCategoryDirection()]!;
         const xScale = xAxis.scale;
         const bandWidth = this.getBandwidth(xAxis) ?? 0;
         const barOffset = ContinuousScale.is(xScale) ? bandWidth * -0.5 : 0;
         const x = xScale.convert(xValue) + barOffset;
         return [x, x + bandWidth];
+    }
+
+    override yCoordinateRange(yValues: any[]): [number, number] {
+        const yAxis = this.axes[this.getBarDirection()]!;
+        const yScale = yAxis.scale;
+        const ys = yValues.map((yValue) => yScale.convert(yValue));
+        if (ys.length === 1) {
+            const y0 = yScale.convert(0);
+            return [Math.min(ys[0], y0), Math.max(ys[0], y0)];
+        }
+        return [Math.min(...ys), Math.max(...ys)];
     }
 
     protected updateGroupScale(xAxis: ChartAxis) {

@@ -18,7 +18,7 @@ export interface TextSizeProperties {
     textAlign?: CanvasTextAlign;
 }
 
-export class Text extends Shape {
+export class Text<D = any> extends Shape<D> {
     static readonly className = 'Text';
 
     static override readonly defaultStyles = {

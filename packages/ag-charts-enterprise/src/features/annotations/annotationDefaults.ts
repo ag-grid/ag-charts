@@ -5,8 +5,8 @@ import {
     type AnnotationOptionsColorPickerType,
     AnnotationType,
     type ChannelTextPosition,
+    type FibonacciAnnotationToolbarOptionsType,
     type FibonacciAnnotationType,
-    type FibonacciBands,
     type HasColorAnnotationType,
     type HasFontSizeAnnotationType,
     type HasLineStyleAnnotationType,
@@ -25,7 +25,7 @@ interface DefaultsMemento {
     lineStyles: DefaultLineStyles;
     lineTextAlignments: DefaultLineTextAlignments;
     lineTextPositions: DefaultLineTextPositions;
-    fibonacciBands: DefaultFibonacciBands;
+    fibonacciOptions: DefaultFibonacciOptions;
 }
 
 type DefaultColors = Map<
@@ -36,7 +36,7 @@ type DefaultFontSizes = Map<HasFontSizeAnnotationType, number | undefined>;
 type DefaultLineStyles = Map<HasLineStyleAnnotationType, AnnotationLineStyle | undefined>;
 type DefaultLineTextAlignments = Map<HasLineTextAnnotationType, LineTextAlignment | undefined>;
 type DefaultLineTextPositions = Map<HasLineTextAnnotationType, LineTextPosition | ChannelTextPosition | undefined>;
-type DefaultFibonacciBands = Map<FibonacciAnnotationType, FibonacciBands | undefined>;
+type DefaultFibonacciOptions = Map<FibonacciAnnotationType, FibonacciAnnotationToolbarOptionsType>;
 
 export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<DefaultsMemento> {
     mementoOriginatorKey = 'annotation-defaults' as const;
@@ -101,7 +101,24 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         [AnnotationType.DatePriceRange, undefined],
     ]);
 
-    private fibonacciBands: DefaultFibonacciBands = new Map([[AnnotationType.FibonacciRetracement, undefined]]);
+    private fibonacciOptions: DefaultFibonacciOptions = new Map([
+        [
+            AnnotationType.FibonacciRetracement,
+            {
+                bands: undefined,
+                reverse: undefined,
+                showFill: undefined,
+            },
+        ],
+        [
+            AnnotationType.FibonacciRetracementTrendBased,
+            {
+                bands: undefined,
+                reverse: undefined,
+                showFill: undefined,
+            },
+        ],
+    ]);
 
     createMemento() {
         return {
@@ -110,7 +127,7 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
             lineStyles: deepClone(this.lineStyles),
             lineTextAlignments: deepClone(this.lineTextAlignments),
             lineTextPositions: deepClone(this.lineTextPositions),
-            fibonacciBands: deepClone(this.fibonacciBands),
+            fibonacciOptions: deepClone(this.fibonacciOptions),
         };
     }
 
@@ -124,7 +141,7 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         this.lineStyles = deepClone(blob.lineStyles);
         this.lineTextAlignments = deepClone(blob.lineTextAlignments);
         this.lineTextPositions = deepClone(blob.lineTextPositions);
-        this.fibonacciBands = deepClone(blob.fibonacciBands);
+        this.fibonacciOptions = deepClone(blob.fibonacciOptions);
     }
 
     setDefaultColor(
@@ -168,8 +185,17 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         this.lineTextPositions.set(type, position);
     }
 
-    setDefaultFibonacciBands(type: FibonacciAnnotationType | HasLineStyleAnnotationType, bands: FibonacciBands) {
-        if (type == AnnotationType.FibonacciRetracement) this.fibonacciBands.set(type, bands);
+    setDefaultFibonacciOptions<K extends keyof FibonacciAnnotationToolbarOptionsType>(
+        type: FibonacciAnnotationType | HasLineStyleAnnotationType,
+        key: K,
+        value: FibonacciAnnotationToolbarOptionsType[K]
+    ) {
+        if (type != AnnotationType.FibonacciRetracement && type != AnnotationType.FibonacciRetracementTrendBased)
+            return;
+
+        const options = this.fibonacciOptions.get(type)!;
+        options[key] = value;
+        this.fibonacciOptions.set(type, options);
     }
 
     applyDefaults(datum: AnnotationProperties) {
@@ -203,9 +229,15 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
             datum.text.alignment = alignment;
         }
 
-        for (const [annotationType, bands] of this.fibonacciBands) {
-            if (datum.type !== annotationType || bands == null) continue;
-            datum.bands = bands;
+        for (const [annotationType, options] of this.fibonacciOptions) {
+            if (datum.type !== annotationType || options == null) continue;
+
+            Object.entries(options).forEach(([option, value]) => {
+                if (value == null) {
+                    return;
+                }
+                datum.set({ [option]: value });
+            });
         }
     }
 }

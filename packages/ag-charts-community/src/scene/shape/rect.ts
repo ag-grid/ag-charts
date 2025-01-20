@@ -233,7 +233,7 @@ export const clippedRoundRect = (
     path.closePath();
 };
 
-export class Rect extends Path implements DistantObject {
+export class Rect<D = any> extends Path<D> implements DistantObject {
     static override readonly className: string = 'Rect';
 
     readonly borderPath = new ExtendedPath2D();

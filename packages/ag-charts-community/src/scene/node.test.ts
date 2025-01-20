@@ -3,13 +3,13 @@ import { describe, expect, it } from '@jest/globals';
 import { BBox } from './bbox';
 import { Node } from './node';
 
-class TestNode extends Node {
+class TestNode<D = any> extends Node<D> {
     protected override computeBBox(): BBox | undefined {
         return BBox.merge(Array.from(this.children(), (c) => c.getBBox()));
     }
 }
 
-class FixedTestNode extends Node {
+class FixedTestNode<D = any> extends Node<D> {
     public constructor(private readonly bbox: BBox) {
         super();
     }

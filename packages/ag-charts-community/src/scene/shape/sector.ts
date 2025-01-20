@@ -56,7 +56,7 @@ class Arc {
     }
 }
 
-export class Sector extends Path {
+export class Sector<D = any> extends Path<D> {
     static override readonly className = 'Sector';
 
     @ScenePathChangeDetection()

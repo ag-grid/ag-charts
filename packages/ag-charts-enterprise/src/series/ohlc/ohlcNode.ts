@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const { Path, ScenePathChangeDetection, BBox } = _ModuleSupport;
 
-export class OhlcBaseNode extends Path implements _ModuleSupport.DistantObject {
+export class OhlcBaseNode<D = any> extends Path<D> implements _ModuleSupport.DistantObject {
     @ScenePathChangeDetection()
     centerX: number = 0;
 

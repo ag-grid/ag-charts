@@ -88,7 +88,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     });
 
     @Validate(OBJECT)
-    public __axesButtons = new AxesButtons();
+    public axesButtons = new AxesButtons();
 
     @Validate(BOOLEAN)
     public snap: boolean = false;
@@ -395,7 +395,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     sourceEvent,
                     onChangeLine: (props) => {
                         this.state.transition('lineProps', props);
-                        if (props.bands) this.defaults.setDefaultFibonacciBands(datum.type, props.bands);
+                        if (props.bands != null)
+                            this.defaults.setDefaultFibonacciOptions(datum.type, 'bands', props.bands);
+                        if (props.reverse != null)
+                            this.defaults.setDefaultFibonacciOptions(datum.type, 'reverse', props.reverse);
+                        if (props.showFill != null)
+                            this.defaults.setDefaultFibonacciOptions(datum.type, 'showFill', props.showFill);
                     },
                     onChangeText: (props) => {
                         this.state.transition('lineText', props);
@@ -710,7 +715,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const lineDirection = axisCtx.direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
 
-        const { __axesButtons: axesButtons, snap } = this;
+        const { axesButtons, snap } = this;
         const buttonEnabled =
             this.enabled && axesButtons.enabled && (axesButtons.axes === 'xy' || axesButtons.axes === direction);
         if (buttonEnabled) {

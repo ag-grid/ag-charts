@@ -73,6 +73,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly bottomRightCornerRadius: boolean;
     readonly bottomLeftCornerRadius: boolean;
     readonly clipBBox: BBox | undefined;
+    readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
 }
 
@@ -105,7 +106,7 @@ export interface BarSeriesDataAggregationFilter {
 }
 
 export class BarSeries extends AbstractBarSeries<
-    Rect,
+    Rect<BarNodeDatum>,
     BarSeriesProperties,
     BarNodeDatum,
     BarNodeDatum,
@@ -289,6 +290,15 @@ export class BarSeries extends AbstractBarSeries<
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 
+    override getVisibleItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number],
+        minVisibleItems: number
+    ): number {
+        const yKey = this.processedData?.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
+        return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
+    }
+
     protected aggregateData(
         _dataModel: DataModel<any, any, any>,
         _processedData: ProcessedData<any>
@@ -326,6 +336,10 @@ export class BarSeries extends AbstractBarSeries<
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xPosition = (index: number): number => xScale.convert(xValues[index]) + groupOffset + barOffset;
+
+        const crisp =
+            this.properties.crisp ??
+            checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval);
 
         const bboxBottom = yScale.convert(0);
         const nodeDatum = ({
@@ -416,6 +430,7 @@ export class BarSeries extends AbstractBarSeries<
                 bottomRightCornerRadius: barAlongX === isUpward,
                 bottomLeftCornerRadius: !isUpward,
                 clipBBox,
+                crisp,
                 label:
                     labelText != null
                         ? {
@@ -674,10 +689,6 @@ export class BarSeries extends AbstractBarSeries<
 
         const { shadow } = this.properties;
 
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const crisp =
-            this.properties.crisp ??
-            checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval);
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         const style = this.getItemBaseStyle(opts.isHighlight);
@@ -706,7 +717,7 @@ export class BarSeries extends AbstractBarSeries<
                 ? (datum.clipBBox?.width ?? datum.width) > 0
                 : (datum.clipBBox?.height ?? datum.height) > 0;
 
-            rect.crisp = crisp;
+            rect.crisp = datum.crisp;
             rect.fillShadow = shadow;
         });
     }

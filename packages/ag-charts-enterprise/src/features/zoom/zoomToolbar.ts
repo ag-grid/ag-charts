@@ -10,7 +10,6 @@ import {
     definedZoomState,
     dx,
     isZoomEqual,
-    isZoomLess,
     scaleZoom,
     scaleZoomAxisWithAnchor,
     translateZoom,
@@ -76,6 +75,8 @@ export class ZoomToolbar extends BaseProperties {
 
     private readonly destroyFns: Array<() => void> = [];
 
+    private previousZoom?: DefinedZoomState;
+
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly getModuleProperties: () => ZoomProperties,
@@ -86,7 +87,8 @@ export class ZoomToolbar extends BaseProperties {
             direction: _ModuleSupport.ChartAxisDirection,
             partialZoom: _ModuleSupport.ZoomState | undefined
         ) => void,
-        private readonly resetZoom: () => void
+        private readonly resetZoom: () => void,
+        private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
     ) {
         super();
 
@@ -175,7 +177,10 @@ export class ZoomToolbar extends BaseProperties {
 
     private toggleButtons() {
         const zoom = definedZoomState(this.ctx.zoomManager.getZoom());
-        const { minRatioX, minRatioY } = this.getModuleProperties();
+
+        // Only change the buttons if zoom has changed to prevent churn
+        if (this.previousZoom && isZoomEqual(this.previousZoom, zoom)) return;
+        this.previousZoom = zoom;
 
         for (const [index, button] of this.buttons.entries()) {
             let enabled = true;
@@ -197,7 +202,9 @@ export class ZoomToolbar extends BaseProperties {
                     enabled = !isZoomEqual(zoom, unitZoomState());
                     break;
                 case 'zoom-in':
-                    enabled = !isZoomLess(zoom, minRatioX, minRatioY);
+                    enabled = this.isZoomValid(
+                        this.getNextZoomStateUnified('zoom-in', zoom, this.getModuleProperties())
+                    );
                     break;
                 case 'reset':
                     enabled = !isZoomEqual(zoom, this.getResetZoom());
@@ -283,7 +290,7 @@ export class ZoomToolbar extends BaseProperties {
     }
 
     private onButtonPressUnified(event: { value: AgZoomButtonValue }, props: ZoomProperties) {
-        const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
+        const { scrollingStep } = props;
 
         const oldZoom = definedZoomState(this.ctx.zoomManager.getZoom());
         let zoom = definedZoomState(oldZoom);
@@ -313,17 +320,25 @@ export class ZoomToolbar extends BaseProperties {
 
             case 'zoom-in':
             case 'zoom-out': {
-                const scale = event.value === 'zoom-in' ? 1 - scrollingStep : 1 + scrollingStep;
-                const useAnchorPointX = anchorPointX === 'pointer' ? DEFAULT_ANCHOR_POINT_X : anchorPointX;
-                const useAnchorPointY = anchorPointY === 'pointer' ? DEFAULT_ANCHOR_POINT_Y : anchorPointY;
-
-                zoom = scaleZoom(zoom, isScalingX ? scale : 1, isScalingY ? scale : 1);
-                zoom.x = scaleZoomAxisWithAnchor(zoom.x, oldZoom.x, useAnchorPointX);
-                zoom.y = scaleZoomAxisWithAnchor(zoom.y, oldZoom.y, useAnchorPointY);
+                zoom = this.getNextZoomStateUnified(event.value, oldZoom, props);
                 break;
             }
         }
 
         this.updateZoom(constrainZoom(zoom));
+    }
+
+    private getNextZoomStateUnified(button: 'zoom-in' | 'zoom-out', oldZoom: DefinedZoomState, props: ZoomProperties) {
+        const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
+
+        const scale = button === 'zoom-in' ? 1 - scrollingStep : 1 + scrollingStep;
+        const useAnchorPointX = anchorPointX === 'pointer' ? DEFAULT_ANCHOR_POINT_X : anchorPointX;
+        const useAnchorPointY = anchorPointY === 'pointer' ? DEFAULT_ANCHOR_POINT_Y : anchorPointY;
+
+        const zoom = scaleZoom(oldZoom, isScalingX ? scale : 1, isScalingY ? scale : 1);
+        zoom.x = scaleZoomAxisWithAnchor(zoom.x, oldZoom.x, useAnchorPointX);
+        zoom.y = scaleZoomAxisWithAnchor(zoom.y, oldZoom.y, useAnchorPointY);
+
+        return zoom;
     }
 }

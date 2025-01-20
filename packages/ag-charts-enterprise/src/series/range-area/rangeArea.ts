@@ -159,6 +159,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return [x, x];
     }
 
+    override yCoordinateRange(yValues: any[]): [number, number] {
+        const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
+        return [y, y];
+    }
+
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];

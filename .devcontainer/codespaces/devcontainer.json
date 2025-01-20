@@ -1,0 +1,17 @@
+{
+    "image": "mcr.microsoft.com/devcontainers/universal:2",
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "20"
+        }
+    },
+    "containerEnv": {
+        "AG_SKIP_NATIVE_DEP_VERSION_CHECK": "1",
+        // https://github.com/nrwl/nx/issues/29137
+        "NX_PARALLEL": "1",
+        // https://github.com/lerna/lerna/issues/4054
+        "NX_DAEMON": "true",
+        "PUBLIC_HTTPS_SERVER": "false"
+    },
+    "postCreateCommand": "echo PATH=\"$PATH:/workspaces/ag-charts/node_modules/.bin/\" >>~/.bashrc"
+}

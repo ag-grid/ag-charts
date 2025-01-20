@@ -102,23 +102,23 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
 
         update(false);
 
-        const beginPaletteInteraction = (e: MouseEvent) => {
+        const beginPaletteInteraction = (e: PointerEvent) => {
             e.preventDefault();
             const currentTarget = e.currentTarget as HTMLDivElement;
             currentTarget.focus();
             const rect = currentTarget.getBoundingClientRect();
 
-            const mouseMove = ({ pageX, pageY }: MouseEvent) => {
+            const pointerMove = ({ pageX, pageY }: PointerEvent) => {
                 isMultiColor = false;
                 s = Math.min(Math.max((pageX - rect.left) / rect.width, 0), 1);
                 v = 1 - Math.min(Math.max((pageY - rect.top) / rect.height, 0), 1);
                 update();
             };
 
-            mouseMove(e);
+            pointerMove(e);
 
-            window.addEventListener('mousemove', mouseMove);
-            window.addEventListener('mouseup', () => window.removeEventListener('mousemove', mouseMove), {
+            window.addEventListener('pointermove', pointerMove);
+            window.addEventListener('pointerup', () => window.removeEventListener('pointermove', pointerMove), {
                 once: true,
             });
         };
@@ -138,7 +138,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             }
             e.preventDefault();
         });
-        paletteInput.addEventListener('mousedown', beginPaletteInteraction);
+        paletteInput.addEventListener('pointerdown', beginPaletteInteraction);
         paletteInput.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') {
                 s = clamp(0, s - 0.01, 1);

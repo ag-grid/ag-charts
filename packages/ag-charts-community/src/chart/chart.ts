@@ -1,4 +1,4 @@
-import { Logger, groupBy, isDefined, isFiniteNumber, isFunction } from 'ag-charts-core';
+import { Logger, groupBy, isFiniteNumber, isFunction } from 'ag-charts-core';
 import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateLegendOptions } from 'ag-charts-types';
 
 import type { AxisOptionModule } from '../module/axisOptionModule';
@@ -597,7 +597,7 @@ export abstract class Chart extends Observable {
                 if (this.checkUpdateShortcut(ChartUpdateType.PRE_SCENE_RENDER)) break;
 
                 // Allow any additional pre-rendering processing to happen.
-                ctx.updateService.dispatchPreSceneRender(this.getMinRects());
+                ctx.updateService.dispatchPreSceneRender();
 
                 updateSplits('↖');
             // fallthrough
@@ -627,7 +627,7 @@ export abstract class Chart extends Observable {
         }
 
         if (!this.destroyed) {
-            ctx.updateService.dispatchUpdateComplete(this.getMinRects());
+            ctx.updateService.dispatchUpdateComplete();
             this.ctx.domManager.setDataBoolean('updatePending', false);
             this.runningUpdateType = ChartUpdateType.NONE;
         }
@@ -1069,33 +1069,6 @@ export abstract class Chart extends Observable {
                 await pause();
             }
         }
-    }
-
-    protected getMinRects() {
-        const { width, height } = this.ctx.scene;
-        const minRects = this.series.map((series) => series.getMinRects(width, height)).filter(isDefined);
-
-        if (minRects.length === 0) return;
-
-        let maxWidth = 0;
-        let maxHeight = 0;
-        let maxVisibleWidth = 0;
-        let maxVisibleHeight = 0;
-
-        for (const { minRect, minVisibleRect } of minRects) {
-            maxWidth = Math.max(maxWidth, minRect.width);
-            maxHeight = Math.max(maxHeight, minRect.height);
-            maxVisibleWidth = Math.max(maxVisibleWidth, minVisibleRect.width);
-            maxVisibleHeight = Math.max(maxVisibleHeight, minVisibleRect.height);
-        }
-
-        const minRect = new BBox(0, 0, maxWidth, maxHeight);
-        let minVisibleRect = minRect.clone();
-        if (maxVisibleWidth > 0 && maxVisibleHeight > 0) {
-            minVisibleRect = new BBox(0, 0, maxVisibleWidth, maxVisibleHeight);
-        }
-
-        return { minRect, minVisibleRect };
     }
 
     private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;

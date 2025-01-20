@@ -49,6 +49,7 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     readonly width: number;
     readonly height: number;
     readonly label: WaterfallNodeLabelDatum;
+    readonly crisp: boolean;
     // Required for types
     readonly clipBBox?: _ModuleSupport.BBox;
     readonly opacity?: number;
@@ -66,7 +67,7 @@ type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
 >;
 
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
-    _ModuleSupport.Rect,
+    _ModuleSupport.Rect<WaterfallNodeDatum>,
     WaterfallSeriesProperties,
     WaterfallNodeDatum,
     WaterfallNodeDatum,
@@ -254,6 +255,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const yPrevValues = dataModel.resolveColumnById<number>(this, 'yPrevious', processedData);
         const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
 
+        const crisp = checkCrisp(
+            categoryAxis?.scale,
+            categoryAxis?.visibleRange,
+            this.smallestDataInterval,
+            this.largestDataInterval
+        );
+
         function getValues(
             isTotal: boolean,
             isSubtotal: boolean,
@@ -395,6 +403,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 width: rect.width,
                 height: rect.height,
                 midPoint: nodeMidPoint,
+                crisp,
                 label: {
                     text: labelText,
                     ...adjustLabelPlacement({
@@ -542,14 +551,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
 
-        const categoryAxis = this.getCategoryAxis();
-        const crisp = checkCrisp(
-            categoryAxis?.scale,
-            categoryAxis?.visibleRange,
-            this.smallestDataInterval,
-            this.largestDataInterval
-        );
-
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         datumSelection.each((rect, datum) => {
@@ -561,7 +562,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
-            rect.crisp = crisp;
+            rect.crisp = datum.crisp;
         });
     }
 

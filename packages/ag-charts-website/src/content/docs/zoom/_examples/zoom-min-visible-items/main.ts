@@ -5,7 +5,7 @@ import { getData } from './data';
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     zoom: {
-        minVisibleItemsX: 10,
+        minVisibleItems: 10,
     },
     tooltip: {
         enabled: false,

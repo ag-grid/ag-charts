@@ -460,6 +460,14 @@ export abstract class Series<
         return this.getSeriesRange(direction, visibleRange);
     }
 
+    getVisibleItems(
+        _xVisibleRange: [number, number],
+        _yVisibleRange: [number, number],
+        _minVisibleItems: number
+    ): number {
+        return Infinity;
+    }
+
     // Get the 'community' domain (excluding any additional data from series-option modules).
     abstract getSeriesDomain(direction: ChartAxisDirection): any[];
 
@@ -798,10 +806,6 @@ export abstract class Series<
                 point.focusSize = Math.max(bb.width + dx, bb.height + dy);
             }
         }
-    }
-
-    getMinRects(_width: number, _height: number): { minRect: BBox; minVisibleRect: BBox } | undefined {
-        return;
     }
 
     protected _nodeDataDependencies?: NodeDataDependencies;

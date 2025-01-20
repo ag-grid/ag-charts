@@ -3,7 +3,7 @@ import { Logger, isDate, isObject } from 'ag-charts-core';
 export interface MementoOriginator<Memento = any> {
     mementoOriginatorKey: string;
     createMemento(): Memento;
-    guardMemento(blob: unknown): blob is Memento | undefined;
+    guardMemento(blob: unknown, messages: Array<string>): blob is Memento | undefined;
     restoreMemento(version: string, mementoVersion: string, blob: Memento | undefined): void;
 }
 
@@ -49,9 +49,11 @@ export class MementoCaretaker {
         for (const originator of originators) {
             const memento = this.decode(originator, (blob as any)[originator.mementoOriginatorKey]);
 
-            if (!originator.guardMemento(memento)) {
+            const messages: Array<string> = [];
+            if (!originator.guardMemento(memento, messages)) {
+                const messagesString = messages.length > 0 ? `\n\n${messages.join('\n\n')}\n\n` : '';
                 Logger.warnOnce(
-                    `Could not restore [${originator.mementoOriginatorKey}] data, value was invalid, ignoring.`,
+                    `Could not restore [${originator.mementoOriginatorKey}] data, value was invalid, ignoring.${messagesString}`,
                     memento
                 );
                 return;

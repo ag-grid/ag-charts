@@ -42,8 +42,7 @@ describe('Zoom', () => {
             enabled: true,
             axes: 'xy',
             scrollingStep: 0.5, // Make sure we zoom enough in a single step so we can detect it
-            minVisibleItemsX: 1,
-            minVisibleItemsY: 1,
+            minVisibleItems: 1,
         },
     };
 
@@ -163,7 +162,7 @@ describe('Zoom', () => {
 
     describe('min visible items', () => {
         it('should not zoom past the minimum visible items', async () => {
-            await prepareChart({ minVisibleItemsX: 3, scrollingStep: 0.1 });
+            await prepareChart({ minVisibleItems: 3, scrollingStep: 0.1 });
             await scrollAction(cx, cy, -1)(chart);
             await scrollAction(cx, cy, -1)(chart);
             await scrollAction(cx, cy, -1)(chart);
@@ -281,7 +280,7 @@ describe('Zoom', () => {
         });
 
         it('should zoom to minimum visible items', async () => {
-            await prepareHorizontalBarChart({ axes: 'x', minVisibleItemsX: 3, scrollingStep: 0.1 });
+            await prepareHorizontalBarChart({ axes: 'x', minVisibleItems: 3, scrollingStep: 0.1 });
             await scrollAction(cx, cy, -1)(chart);
             await scrollAction(cx, cy, -1)(chart);
             await scrollAction(cx, cy, -1)(chart);

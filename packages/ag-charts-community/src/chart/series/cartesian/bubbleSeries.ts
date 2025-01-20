@@ -151,6 +151,17 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         return [x - r, x + r];
     }
 
+    override yCoordinateRange(yValues: any[], pixelSize: number, index: number): [number, number] {
+        const { properties, sizeScale } = this;
+        const { size, sizeKey } = properties;
+        const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
+        const sizeValues =
+            sizeKey != null ? this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!) : undefined;
+        const sizeValue = sizeValues != null ? sizeScale.convert(sizeValues[index]) : size;
+        const r = 0.5 * sizeValue * pixelSize;
+        return [y - r, y + r];
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
@@ -176,6 +187,14 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yValue'], 'xValue', visibleRange, false);
+    }
+
+    override getVisibleItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number],
+        minVisibleItems: number
+    ): number {
+        return this.countVisibleItems('xValue', ['yValue'], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
     override createNodeData() {

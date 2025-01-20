@@ -55,7 +55,7 @@
         "production": {}
       }
     },
-    "generate-examples": {
+    "generate": {
       "dependsOn": ["^build:types", "^build:package"],
       "executor": "nx:run-commands",
       "inputs": [],
@@ -64,9 +64,19 @@
       "options": {
         "parallel": false,
         "commands": [
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then npx nx run-many --output-style compact -t generate-examples -p ag-charts-website --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" == \"0\") ; then npx nx run-many --output-style compact -t generate-examples -p ag-charts-website ; fi"
+          "npx nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website --batch"
         ]
+      }
+    },
+    "generate-examples": {
+      "dependsOn": ["^build:types", "^build:package"],
+      "executor": "nx:run-commands",
+      "inputs": [],
+      "outputs": [],
+      "cache": false,
+      "options": {
+        "parallel": false,
+        "commands": ["npx nx run-many --output-style compact -t generate-examples -p ag-charts-website --batch"]
       }
     },
     "generate-thumbnails": {
@@ -77,15 +87,12 @@
       "cache": false,
       "options": {
         "parallel": false,
-        "commands": [
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then npx nx run-many --output-style compact -t generate-thumbnails -p ag-charts-website --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" == \"0\") ; then npx nx run-many --output-style compact -t generate-thumbnails -p ag-charts-website ; fi"
-        ]
+        "commands": ["npx nx run-many --output-style compact -t generate-thumbnails -p ag-charts-website --batch"]
       }
     },
     "dev:setup": {
       "executor": "nx:noop",
-      "dependsOn": ["^build:types", "^build:package", "generate-examples", "generate-thumbnails"],
+      "dependsOn": ["^build:types", "^build:package", "generate"],
       "inputs": [],
       "outputs": [],
       "cache": false
@@ -97,7 +104,10 @@
       "outputs": [],
       "options": {
         "parallel": true,
-        "commands": ["node external/ag-shared/scripts/watch/watch.js charts", "nx run ag-charts-website:dev"]
+        "commands": [
+          "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
+          "nx run ag-charts-website:dev"
+        ]
       },
       "configurations": {
         "windows": {
@@ -116,7 +126,10 @@
       "outputs": [],
       "options": {
         "parallel": true,
-        "commands": ["node external/ag-shared/scripts/watch/watch.js charts", "nx run ag-charts-website:dev"]
+        "commands": [
+          "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
+          "nx run ag-charts-website:dev"
+        ]
       },
       "configurations": {
         "windows": {
