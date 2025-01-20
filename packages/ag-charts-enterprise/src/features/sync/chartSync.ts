@@ -126,7 +126,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                             const canvasX = nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0;
                             const canvasY = nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0;
                             const tooltipMeta = TooltipManager.makeTooltipMeta(
-                                { type: 'mousemove', canvasX, canvasY },
+                                { type: 'pointermove', canvasX, canvasY },
                                 series,
                                 nodeDatum
                             );

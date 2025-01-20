@@ -93,7 +93,7 @@ export class SeriesAreaManager extends BaseManager {
      *   -   For keyboard users, `mousemove` events update the tooltip/highlight iff `pickNode` finds a match
      *       for the mouse event offsets.
      */
-    private hoverDevice: 'mouse' | 'keyboard' = 'mouse';
+    private hoverDevice: 'pointer' | 'keyboard' = 'pointer';
 
     /**
      * This is the "second last" input event. It can be useful for keydown
@@ -103,7 +103,7 @@ export class SeriesAreaManager extends BaseManager {
      * Use with caution! The focus indicator must ALWAYS be visible for
      * keyboard-only users.
      */
-    private previousInputDevice: 'mouse' | 'keyboard' = 'keyboard';
+    private previousInputDevice: 'pointer' | 'keyboard' = 'keyboard';
 
     private readonly focus = {
         sortedSeries: [] as Series<unknown, SeriesNodeDatum<unknown>, SeriesProperties<object>>[],
@@ -276,7 +276,7 @@ export class SeriesAreaManager extends BaseManager {
     private onWheel(_event: WheelWidgetEvent): void {
         if (!this.isState(InteractionState.Clickable)) return;
         this.focusIndicator?.overrideFocusVisible(false);
-        this.previousInputDevice = 'mouse';
+        this.previousInputDevice = 'pointer';
     }
 
     private onDragMove(event: DragWidgetEvent<'drag-move'>): void {
@@ -294,8 +294,8 @@ export class SeriesAreaManager extends BaseManager {
         if (excludesType(event, 'drag-move')) {
             this.tooltip.lastHover = event;
         }
-        this.hoverDevice = 'mouse';
-        this.previousInputDevice = 'mouse';
+        this.hoverDevice = 'pointer';
+        this.previousInputDevice = 'pointer';
         this.highlight.pendingHoverEvent = event;
         this.hoverScheduler.schedule();
 
@@ -344,13 +344,13 @@ export class SeriesAreaManager extends BaseManager {
 
     private onFocus(): void {
         if (!this.isState(InteractionState.Focusable)) return;
-        this.hoverDevice = this.focusIndicator.isFocusVisible() ? 'keyboard' : 'mouse';
+        this.hoverDevice = this.focusIndicator.isFocusVisible() ? 'keyboard' : 'pointer';
         this.handleFocus(0, 0);
     }
 
     private onBlur() {
         if (!this.isState(InteractionState.Focusable)) return;
-        this.hoverDevice = 'mouse';
+        this.hoverDevice = 'pointer';
         this.clearAll();
         this.focusIndicator.overrideFocusVisible(undefined);
     }
@@ -614,7 +614,7 @@ export class SeriesAreaManager extends BaseManager {
         const found = this.pickNode({ x: currentX, y: currentY }, intent);
         if (found) {
             this.chart.ctx.highlightManager.updateHighlight(this.id, found.datum);
-            this.hoverDevice = 'mouse';
+            this.hoverDevice = 'pointer';
             return;
         }
 
@@ -624,12 +624,12 @@ export class SeriesAreaManager extends BaseManager {
     private handleHoverTooltip(event: TooltipWidgetEvent, redisplay: boolean) {
         if (!this.isState(InteractionState.Clickable)) return;
 
-        const { type, currentX, currentY } = event;
+        const { currentX, currentY } = event;
         const canvasX = currentX + (this.hoverRect?.x ?? 0);
         const canvasY = currentY + (this.hoverRect?.y ?? 0);
         const targetElement = event.sourceEvent.target as HTMLElement;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
-            if (this.hoverDevice == 'mouse') this.clearTooltip();
+            if (this.hoverDevice == 'pointer') this.clearTooltip();
             return;
         }
 
@@ -644,16 +644,20 @@ export class SeriesAreaManager extends BaseManager {
 
         const pick = this.pickNode({ x: event.currentX, y: event.currentY }, 'tooltip');
         if (!pick) {
-            if (this.hoverDevice == 'mouse') this.clearTooltip();
+            if (this.hoverDevice == 'pointer') this.clearTooltip();
             return;
         }
 
-        this.hoverDevice = 'mouse';
+        this.hoverDevice = 'pointer';
         const content = pick.series.getTooltipContent(pick.datum);
         const tooltipEnabled = this.chart.tooltip.enabled && pick.series.tooltipEnabled;
         const shouldUpdateTooltip = tooltipEnabled && content != null;
         if (shouldUpdateTooltip) {
-            const meta = TooltipManager.makeTooltipMeta({ type, canvasX, canvasY }, pick.series, pick.datum);
+            const meta = TooltipManager.makeTooltipMeta(
+                { type: 'pointermove', canvasX, canvasY },
+                pick.series,
+                pick.datum
+            );
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content);
         }
     }
