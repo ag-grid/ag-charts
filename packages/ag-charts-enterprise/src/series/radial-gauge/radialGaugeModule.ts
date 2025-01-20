@@ -24,6 +24,9 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     themeTemplate: {
         minWidth: 200,
         minHeight: 200,
+        tooltip: {
+            enabled: false,
+        },
         series: {
             outerRadiusRatio: 1,
             innerRadiusRatio: 0.8,
@@ -72,9 +75,6 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 minimumFontSize: 12,
                 fontFamily: { ref: 'fontFamily' },
                 color: DEFAULT_MUTED_LABEL_COLOUR,
-            },
-            tooltip: {
-                enabled: false,
             },
         },
         axes: {

@@ -24,6 +24,9 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
     themeTemplate: {
         minWidth: 200,
         minHeight: 200,
+        tooltip: {
+            enabled: false,
+        },
         series: {
             thickness: 50,
             bar: {
@@ -62,9 +65,6 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 color: DEFAULT_INVERTED_LABEL_COLOUR,
             },
             margin: 4,
-            tooltip: {
-                enabled: false,
-            },
         },
         axes: {
             [CARTESIAN_AXIS_TYPE.NUMBER]: {

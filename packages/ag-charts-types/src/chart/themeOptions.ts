@@ -240,6 +240,7 @@ export type AgBaseGaugePresetThemeOptions = Pick<
     | 'padding'
     | 'subtitle'
     | 'title'
+    | 'tooltip'
     | 'width'
 >;
 
