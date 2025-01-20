@@ -4,6 +4,7 @@ import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
 import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
+import type { Point } from '../../scene/point';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
 import { createId } from '../../util/id';
@@ -31,10 +32,9 @@ import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipContent, tooltipContentAriaLabel } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { type PickFocusOutputs, type Series } from './series';
+import { type PickFocusOutputs, type Series, type SeriesNodePickIntent } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { ISeries, SeriesNodeDatum } from './seriesTypes';
-import { pickNode } from './util';
 
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
@@ -50,6 +50,12 @@ export interface SeriesAreaChartDependencies {
 
 type TooltipWidgetEvent = MouseWidgetEvent<'mousemove' | 'click' | 'dblclick'>;
 type HighlightWidgetEvent = MouseWidgetEvent<'mousemove' | 'click' | 'dblclick'> | DragWidgetEvent<'drag-move'>;
+
+type PickedNode = {
+    series: Series<unknown, any, any>;
+    datum: SeriesNodeDatum<unknown>;
+    distance: number;
+};
 
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
@@ -231,7 +237,7 @@ export class SeriesAreaManager extends BaseManager {
                 );
             }
         } else if (this.isState(InteractionState.ContextMenuable)) {
-            const match = pickNode(this.series, { x: event.currentX, y: event.currentY }, 'context-menu');
+            const match = this.pickNode({ x: event.currentX, y: event.currentY }, 'context-menu');
             if (match) {
                 this.chart.ctx.highlightManager.updateHighlight(this.id);
                 pickedNode = match.datum;
@@ -296,7 +302,7 @@ export class SeriesAreaManager extends BaseManager {
 
         if (this.isState(InteractionState.Default)) {
             const { currentX: x, currentY: y } = event;
-            const found = pickNode(this.series, { x, y }, 'event');
+            const found = this.pickNode({ x, y }, 'event');
             if (found?.series.hasEventListener('nodeClick') || found?.series.hasEventListener('nodeDoubleClick')) {
                 this.chart.ctx.domManager.updateCursor(this.id, 'pointer');
             } else {
@@ -408,7 +414,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private checkSeriesNodeClick(event: MouseWidgetEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }) {
-        const result = pickNode(this.series, { x: event.currentX, y: event.currentY }, 'event');
+        const result = this.pickNode({ x: event.currentX, y: event.currentY }, 'event');
         if (result == null) return false;
 
         if (event.type === 'click') {
@@ -588,7 +594,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const { range } = this.chart.highlight;
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
-        const found = pickNode(this.series, { x: currentX, y: currentY }, intent);
+        const found = this.pickNode({ x: currentX, y: currentY }, intent);
         if (found) {
             this.chart.ctx.highlightManager.updateHighlight(this.id, found.datum);
             this.hoverDevice = 'mouse';
@@ -619,7 +625,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        const pick = pickNode(this.series, { x: event.currentX, y: event.currentY }, 'tooltip');
+        const pick = this.pickNode({ x: event.currentX, y: event.currentY }, 'tooltip');
         if (!pick) {
             if (this.hoverDevice == 'mouse') this.clearTooltip();
             return;
@@ -662,6 +668,33 @@ export class SeriesAreaManager extends BaseManager {
         } else {
             this.update(ChartUpdateType.SERIES_UPDATE, { seriesToUpdate });
         }
+    }
+
+    private pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly?: boolean): PickedNode | undefined {
+        // Iterate through series in reverse, as later declared series appears on top of earlier
+        // declared series.
+        const reverseSeries = [...this.series].reverse();
+
+        let result:
+            | { series: Series<unknown, any, any>; datum: SeriesNodeDatum<unknown>; distance: number }
+            | undefined;
+        for (const series of reverseSeries) {
+            if (!series.visible || !series.contentGroup.visible) {
+                continue;
+            }
+            const { match, distance } = series.pickNode(point, intent, exactMatchOnly) ?? {};
+            if (!match || distance == null) {
+                continue;
+            }
+            if (!result || result.distance > distance) {
+                result = { series, distance, datum: match };
+            }
+            if (distance === 0) {
+                break;
+            }
+        }
+
+        return result;
     }
 }
 

@@ -1,49 +1,7 @@
 import { findMaxIndex, findMinIndex } from 'ag-charts-core';
 
-import type { Point } from '../../scene/point';
 import { Transformable } from '../../scene/transformable';
-import { NumberAxis } from '../axis/numberAxis';
-import { TimeAxis } from '../axis/timeAxis';
-import type { ChartAxis } from '../chartAxis';
-import type { Series, SeriesNodePickIntent } from './series';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from './seriesTypes';
-
-type PickedNode = {
-    series: Series<unknown, any, any>;
-    datum: SeriesNodeDatum<unknown>;
-    distance: number;
-};
-
-// x/y are local canvas coordinates in CSS pixels, not actual pixels
-export function pickNode(
-    inputSeries: Series<unknown, any, any>[],
-    point: Point,
-    intent: SeriesNodePickIntent,
-    exactMatchOnly?: boolean
-): PickedNode | undefined {
-    // Iterate through series in reverse, as later declared series appears on top of earlier
-    // declared series.
-    const reverseSeries = [...inputSeries].reverse();
-
-    let result: { series: Series<unknown, any, any>; datum: SeriesNodeDatum<unknown>; distance: number } | undefined;
-    for (const series of reverseSeries) {
-        if (!series.visible || !series.contentGroup.visible) {
-            continue;
-        }
-        const { match, distance } = series.pickNode(point, intent, exactMatchOnly) ?? {};
-        if (!match || distance == null) {
-            continue;
-        }
-        if (!result || result.distance > distance) {
-            result = { series, distance, datum: match };
-        }
-        if (distance === 0) {
-            break;
-        }
-    }
-
-    return result;
-}
 
 function datumBoundaryPoints(datum: any, domain: any[]) {
     if (datum == null || domain.length === 0) {
@@ -91,24 +49,6 @@ export function datumStylerProperties<TDatum extends { xValue: any; yValue: any 
     };
 }
 
-export function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined {
-    let min: number | Date | undefined;
-    let max: number | Date | undefined;
-    if (axis instanceof NumberAxis && (Number.isFinite(axis.min) || Number.isFinite(axis.max))) {
-        min = Number.isFinite(axis.min) ? axis.min : undefined;
-        max = Number.isFinite(axis.max) ? axis.max : undefined;
-    } else if (axis instanceof TimeAxis && (axis.min != null || axis.max != null)) {
-        ({ min, max } = axis);
-    }
-
-    if (min == null && max == null) return;
-
-    min ??= -Infinity;
-    max ??= Infinity;
-
-    return [min, max];
-}
-
 export function visibleRangeIndices(
     length: number,
     [range0, range1]: [number, number],
@@ -125,31 +65,6 @@ export function visibleRangeIndices(
             const x0 = xRange(index)?.[0] ?? NaN;
             return !Number.isFinite(x0) || x0 < range1;
         }) ?? length - 1;
-
-    xMaxIndex = Math.min(xMaxIndex + 1, length);
-
-    return [xMinIndex, xMaxIndex];
-}
-
-export function clippedRangeIndices(
-    length: number,
-    range: [any, any],
-    xValue: (index: number) => any
-): [number, number] {
-    const range0 = range[0].valueOf();
-    const range1 = range[1].valueOf();
-
-    const xMinIndex = findMinIndex(0, length - 1, (index) => {
-        const x = xValue(index)?.valueOf();
-        return !Number.isFinite(x) || x >= range0;
-    });
-
-    let xMaxIndex = findMaxIndex(0, length - 1, (index) => {
-        const x = xValue(index)?.valueOf();
-        return !Number.isFinite(x) || x! <= range1;
-    });
-
-    if (xMinIndex == null || xMaxIndex == null) return [0, 0];
 
     xMaxIndex = Math.min(xMaxIndex + 1, length);
 
