@@ -1,6 +1,5 @@
 import { createElement } from '../../core';
 import type { LocaleManager } from '../../locale/localeManager';
-import type { MouseWidgetEvent } from '../../module-support';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { Node } from '../../scene/node';
 import type { Selection } from '../../scene/selection';
@@ -11,6 +10,7 @@ import type { ButtonWidget } from '../../widget/buttonWidget';
 import type { GroupWidget } from '../../widget/groupWidget';
 import type { ListWidget } from '../../widget/listWidget';
 import type { SwitchWidget } from '../../widget/switchWidget';
+import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { Page } from '../gridLayout';
 import type { Pagination } from '../pagination/pagination';
 import type { CategoryLegendDatum } from './legendDatum';
