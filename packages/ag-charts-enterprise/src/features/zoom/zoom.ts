@@ -208,7 +208,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.domProxy = new ZoomDOMProxy({
             onDragStart: (id, dir) => this.onAxisDragStart(id, dir),
-            onDrag: (ev) => this.onDragMove({ currentX: ev.offsetX, currentY: ev.offsetY }),
+            onDrag: (ev) => this.onDragMove(ev),
             onDragEnd: () => this.onDragEnd(),
             onDoubleClick: (id, direction) => {
                 this.hoveredAxis = { id, direction };
@@ -280,7 +280,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { domManager, zoomManager },
         } = this;
 
-        if (!enabled) return;
+        if (!enabled || event?.device === 'touch') return;
         if (!this.hoveredAxis) {
             if (!this.isState(InteractionState.ZoomDraggable) || this.dragState !== DragState.None) return;
         }
@@ -309,7 +309,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDragMove(event: { currentX: number; currentY: number }) {
+    private onDragMove(event: _Widget.DragWidgetEvent<'drag-move'>) {
         const {
             anchorPointX,
             anchorPointY,
@@ -324,7 +324,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { interactionManager, tooltipManager, updateService, zoomManager },
         } = this;
 
-        if (!enabled || !paddedRect || !seriesRect) return;
+        if (!enabled || !paddedRect || !seriesRect || event.device === 'touch') return;
         if (!this.hoveredAxis && !this.isState(InteractionState.ZoomDraggable)) return;
 
         interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);

@@ -48,8 +48,8 @@ export interface SeriesAreaChartDependencies {
     mode: ChartMode;
 }
 
-type TooltipWidgetEvent = MouseWidgetEvent<'mousemove' | 'click' | 'dblclick'>;
-type HighlightWidgetEvent = MouseWidgetEvent<'mousemove' | 'click' | 'dblclick'> | DragWidgetEvent<'drag-move'>;
+type HoverLikeEvent = Partial<Pick<DragWidgetEvent, 'device'>> &
+    (MouseWidgetEvent<'mousemove' | 'click' | 'dblclick'> | DragWidgetEvent<'drag-move'>);
 
 type PickedNode = {
     series: Series<unknown, any, any>;
@@ -68,15 +68,15 @@ export class SeriesAreaManager extends BaseManager {
 
     private readonly highlight = {
         /** Last received event that still needs to be applied. */
-        pendingHoverEvent: undefined as HighlightWidgetEvent | undefined,
+        pendingHoverEvent: undefined as HoverLikeEvent | undefined,
         /** Last applied event. */
-        appliedHoverEvent: undefined as HighlightWidgetEvent | undefined,
+        appliedHoverEvent: undefined as HoverLikeEvent | undefined,
         /** Last applied event, which has been temporarily stashed during the main chart update cycle. */
-        stashedHoverEvent: undefined as HighlightWidgetEvent | undefined,
+        stashedHoverEvent: undefined as HoverLikeEvent | undefined,
     };
 
     private readonly tooltip = {
-        lastHover: undefined as TooltipWidgetEvent | undefined,
+        lastHover: undefined as HoverLikeEvent | undefined,
     };
 
     /**
@@ -290,8 +290,8 @@ export class SeriesAreaManager extends BaseManager {
         this.onHoverLikeEvent(event);
     }
 
-    private onHoverLikeEvent(event: HighlightWidgetEvent | TooltipWidgetEvent): void {
-        if (excludesType(event, 'drag-move')) {
+    private onHoverLikeEvent(event: HoverLikeEvent): void {
+        if (event.device === 'touch' || excludesType(event, 'drag-move')) {
             this.tooltip.lastHover = event;
         }
         this.hoverDevice = 'pointer';
@@ -621,7 +621,7 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.ctx.highlightManager.updateHighlight(this.id); // FIXME: clearHighlight?
     }
 
-    private handleHoverTooltip(event: TooltipWidgetEvent, redisplay: boolean) {
+    private handleHoverTooltip(event: HoverLikeEvent, redisplay: boolean) {
         if (!this.isState(InteractionState.Clickable)) return;
 
         const { currentX, currentY } = event;
