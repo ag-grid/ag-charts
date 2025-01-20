@@ -11,8 +11,10 @@ export function createTask(parentProject: string, srcRelativeInputPath: string) 
             ],
             inputs: [
                 '{projectRoot}/**',
-                { dependentTasksOutputFiles: '**/*', transitive: true },
-                { env: 'PUBLIC_PACKAGE_VERSION' },
+                '{workspaceRoot}/plugins/ag-charts-generate-chart-thumbnail/dist/**/*',
+                '{workspaceRoot}/packages/ag-charts-core/dist/package/*.cjs.js',
+                '{workspaceRoot}/packages/ag-charts-community/dist/package/*.cjs.js',
+                '{workspaceRoot}/packages/ag-charts-enterprise/dist/package/*.cjs.js',
                 { externalDependencies: ['npm:typescript', 'npm:canvas'] },
             ],
             executor: 'ag-charts-generate-chart-thumbnail:generate',
