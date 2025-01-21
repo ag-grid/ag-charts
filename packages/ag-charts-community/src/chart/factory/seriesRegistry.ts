@@ -71,6 +71,10 @@ class SeriesRegistry {
         return { axes: deepClone(axes) };
     }
 
+    isDerivedDefaultAxes(seriesType: SeriesType) {
+        return typeof this.seriesMap.get(seriesType)?.defaultAxes === 'function';
+    }
+
     setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: object) {
         const currentTemplate = this.themeTemplates.get(seriesType);
         this.themeTemplates.set(seriesType, mergeDefaults(themeTemplate, currentTemplate));

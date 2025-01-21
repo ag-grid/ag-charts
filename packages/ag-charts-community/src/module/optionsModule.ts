@@ -269,19 +269,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.sanityCheck(options);
         this.removeDisabledOptions(options);
-        const defaultAxes = this.getDefaultAxes(options);
 
         const chartType = this.optionsType(options);
         const {
             axes: axesThemes = {},
             annotations = {},
-            series: _,
+            series: seriesTheme,
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType, activeTheme);
 
         const [annotationsOptions, annotationsThemes] = this.splitAnnotationsOptions(annotations);
         this.annotationThemes = deepClone(annotationsThemes);
 
+        const defaultAxes = this.getDefaultAxes(options, seriesTheme);
         let processedOptions = mergeDefaults(
             processedOverrides,
             options,
@@ -341,9 +341,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return activeTheme?.config[seriesType] ?? {};
     }
 
-    private getDefaultAxes(options: T) {
+    private getDefaultAxes(options: T, seriesTheme: object) {
         const optionsType = this.optionsType(options);
-        const firstSeriesOptions = options.series?.find((series) => (series.type ?? 'line') === optionsType) ?? {};
+        let firstSeriesOptions = options.series?.find((series) => (series.type ?? 'line') === optionsType) ?? {};
+        if (seriesRegistry.isDerivedDefaultAxes(optionsType)) {
+            firstSeriesOptions = mergeDefaults(firstSeriesOptions, seriesTheme);
+        }
         return seriesRegistry.cloneDefaultAxes(optionsType, firstSeriesOptions) as T;
     }
 

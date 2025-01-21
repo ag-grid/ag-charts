@@ -63,6 +63,36 @@ describe('FunnelSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    describe('Theme Overrides', () => {
+        it('should apply theme overrides correctly (AG-13910)', async () => {
+            const options: AgChartOptions = { ...FUNNEL_EXAMPLE };
+            options.theme = {
+                overrides: {
+                    funnel: {
+                        series: {
+                            label: {
+                                color: 'yellow',
+                                fontSize: 34,
+                                fontStyle: 'italic',
+                                fontWeight: 'bold',
+                            },
+                            stageLabel: {
+                                color: 'red',
+                                fontSize: 34,
+                                fontStyle: 'italic',
+                                fontWeight: 'bold',
+                            },
+                        },
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
     describe('Series Highlighting', () => {
         it('should render a chart', async () => {
             const options: AgChartOptions = { ...FUNNEL_EXAMPLE };
