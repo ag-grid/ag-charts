@@ -59,15 +59,16 @@ import { TreemapModule } from './series/treemap/main';
 import { WaterfallModule } from './series/waterfall/main';
 import styles from './styles.css';
 
-export function setupEnterpriseModules() {
-    ModuleRegistry.registerMany([
-        FlowProportionChartModule,
-        GaugeChartModule,
-        HierarchyChartModule,
-        StandaloneChartModule,
-        TopologyChartModule,
-    ]);
+// Temporarily set here, in the future users will register modules manually
+ModuleRegistry.registerMany([
+    FlowProportionChartModule,
+    GaugeChartModule,
+    HierarchyChartModule,
+    StandaloneChartModule,
+    TopologyChartModule,
+]);
 
+export function setupEnterpriseModules() {
     _ModuleSupport.moduleRegistry.register(
         AngleCategoryAxisModule,
         AngleNumberAxisModule,
