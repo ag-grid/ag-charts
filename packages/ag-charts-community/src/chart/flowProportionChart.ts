@@ -8,6 +8,7 @@ import type { Series } from './series/series';
 function isFlowProportion(series: Series<unknown, any, any>): series is FlowProportionSeries {
     return series.type === 'sankey' || series.type === 'chord';
 }
+
 export class FlowProportionChart extends Chart {
     static readonly className = 'FlowProportionChart';
     static readonly type = 'flow-proportion' as const;

@@ -246,7 +246,7 @@ export abstract class Chart extends Observable {
         return this.queuedChartOptions.at(-1) ?? this.chartOptions;
     }
 
-    protected constructor(options: ChartOptions, resources?: TransferableResources) {
+    constructor(options: ChartOptions, resources?: TransferableResources) {
         super();
 
         this.chartOptions = options;

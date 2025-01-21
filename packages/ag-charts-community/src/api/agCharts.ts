@@ -1,4 +1,4 @@
-import type { DeepPartial } from 'ag-charts-core';
+import { type DeepPartial, ModuleRegistry } from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -7,27 +7,18 @@ import type {
     AgSparklineOptions,
 } from 'ag-charts-types';
 
-import { CartesianChart } from '../chart/cartesianChart';
+import { CartesianChartModule } from '../chart/cartesianChartModule';
 import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import type { ChartType } from '../chart/factory/chartTypes';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
-import { FlowProportionChart } from '../chart/flowProportionChart';
-import { GaugeChart } from '../chart/gaugeChart';
-import { HierarchyChart } from '../chart/hierarchyChart';
-import {
-    isAgCartesianChartOptions,
-    isAgFlowProportionChartOptions,
-    isAgGaugeChartOptions,
-    isAgHierarchyChartOptions,
-    isAgPolarChartOptions,
-    isAgStandaloneChartOptions,
-    isAgTopologyChartOptions,
-} from '../chart/mapping/types';
-import { PolarChart } from '../chart/polarChart';
-import { StandaloneChart } from '../chart/standaloneChart';
-import { TopologyChart } from '../chart/topologyChart';
+import { FlowProportionChartModule } from '../chart/flowProportionChartModule';
+import { GaugeChartModule } from '../chart/gaugeChartModule';
+import { HierarchyChartModule } from '../chart/hierarchyChartModule';
+import { PolarChartModule } from '../chart/polarChartModule';
+import { StandaloneChartModule } from '../chart/standaloneChartModule';
+import { TopologyChartModule } from '../chart/topologyChartModule';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
@@ -37,33 +28,22 @@ import { Pool } from '../util/pool';
 import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';
 
+// Temporarily set here, in the future users will register modules manually
+ModuleRegistry.registerMany([
+    CartesianChartModule,
+    PolarChartModule,
+    FlowProportionChartModule,
+    GaugeChartModule,
+    HierarchyChartModule,
+    StandaloneChartModule,
+    TopologyChartModule,
+]);
+
 const debug = Debug.create(true, 'opts');
-function debugOptions(msg: string, options?: object) {
-    if (debug.check()) {
-        // Deep clone options so that we can guarantee log messages have the actual options used at the point of logging,
-        // not a later state if they are (incorrectly) mutated.
-        debug(msg, deepClone(options));
-    }
-}
 
 function chartType(options: any): ChartType {
-    if (isAgCartesianChartOptions(options)) {
-        return 'cartesian';
-    } else if (isAgPolarChartOptions(options)) {
-        return 'polar';
-    } else if (isAgHierarchyChartOptions(options)) {
-        return 'hierarchy';
-    } else if (isAgTopologyChartOptions(options)) {
-        return 'topology';
-    } else if (isAgFlowProportionChartOptions(options)) {
-        return 'flow-proportion';
-    } else if (isAgStandaloneChartOptions(options)) {
-        return 'standalone';
-    } else if (isAgGaugeChartOptions(options)) {
-        return 'gauge';
-    }
-
-    throw new Error(`AG Chart - unknown type of chart for options with type: ${options.type}`);
+    const chartDef = ModuleRegistry.detectChartDefinition(options);
+    return chartDef.name as ChartType;
 }
 
 /**
@@ -193,12 +173,12 @@ class AgChartsInternal {
 
         AgChartsInternal.initialiseModules();
 
-        debugOptions('>>> AgCharts.createOrUpdate() user options', userOptions);
+        debug(() => ['>>> AgCharts.createOrUpdate() user options', userOptions]);
 
         let mutableOptions = userOptions;
         if (AgCharts.optionsMutationFn && mutableOptions) {
             mutableOptions = AgCharts.optionsMutationFn(deepClone(mutableOptions), presetType);
-            debugOptions('>>> AgCharts.createOrUpdate() MUTATED user options', mutableOptions);
+            debug(() => ['>>> AgCharts.createOrUpdate() MUTATED user options', mutableOptions]);
         }
 
         const {
@@ -296,7 +276,7 @@ class AgChartsInternal {
             false
         );
 
-        debugOptions('>>> AgCharts.updateUserDelta() user delta', deltaOptions);
+        debug(() => ['>>> AgCharts.updateUserDelta() user delta', deltaOptions]);
         AgChartsInternal.createOrUpdate({
             proxy,
             deltaOptions,
@@ -306,30 +286,8 @@ class AgChartsInternal {
 
     private static createChartInstance(this: void, options: ChartOptions, oldChart?: Chart): Chart {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
-        const ChartConstructor = AgChartsInternal.getChartByOptions(options.processedOptions);
-        return new ChartConstructor(options, transferableResource);
-    }
-
-    private static getChartByOptions(options: AgChartOptions) {
-        if (isAgCartesianChartOptions(options)) {
-            return CartesianChart;
-        } else if (isAgHierarchyChartOptions(options)) {
-            return HierarchyChart;
-        } else if (isAgPolarChartOptions(options)) {
-            return PolarChart;
-        } else if (isAgTopologyChartOptions(options)) {
-            return TopologyChart;
-        } else if (isAgFlowProportionChartOptions(options)) {
-            return FlowProportionChart;
-        } else if (isAgStandaloneChartOptions(options)) {
-            return StandaloneChart;
-        } else if (isAgGaugeChartOptions(options)) {
-            return GaugeChart;
-        }
-
-        throw new Error(
-            `AG Charts - couldn't apply configuration, check options are correctly structured and series types are specified`
-        );
+        const chartDef = ModuleRegistry.detectChartDefinition(options.processedOptions);
+        return chartDef.create(options, transferableResource) as Chart;
     }
 
     private static readonly detachAndClear = (chart: Chart) => chart.detachAndClear();
