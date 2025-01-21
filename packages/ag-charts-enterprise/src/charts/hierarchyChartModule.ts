@@ -1,16 +1,16 @@
+import { _ModuleSupport } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
-import type { ChartOptions } from '../module/optionsModule';
-import type { TransferableResources } from './chart';
 import { HierarchyChart } from './hierarchyChart';
-import { isAgHierarchyChartOptions } from './mapping/types';
+
+const { isAgHierarchyChartOptions } = _ModuleSupport;
 
 export const HierarchyChartModule: ModuleDefinition = {
     type: 'chart',
     name: 'hierarchy',
 
     detect: isAgHierarchyChartOptions,
-    create(options: ChartOptions, resources?: TransferableResources) {
+    create(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
         return new HierarchyChart(options, resources);
     },
 };

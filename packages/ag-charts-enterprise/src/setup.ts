@@ -1,10 +1,16 @@
 import { type AgChartOptions, _ModuleSupport } from 'ag-charts-community';
+import { ModuleRegistry } from 'ag-charts-core';
 
 import { AngleCategoryAxisModule } from './axes/angle-category/main';
 import { AngleNumberAxisModule } from './axes/angle-number/main';
 import { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
 import { RadiusCategoryAxisModule } from './axes/radius-category/main';
 import { RadiusNumberAxisModule } from './axes/radius-number/main';
+import { FlowProportionChartModule } from './charts/flowProportionChartModule';
+import { GaugeChartModule } from './charts/gaugeChartModule';
+import { HierarchyChartModule } from './charts/hierarchyChartModule';
+import { StandaloneChartModule } from './charts/standaloneChartModule';
+import { TopologyChartModule } from './charts/topologyChartModule';
 import { AnimationModule } from './features/animation/main';
 import { AnnotationsModule } from './features/annotations/annotationsModule';
 import { BackgroundModule } from './features/background/main';
@@ -54,6 +60,14 @@ import { WaterfallModule } from './series/waterfall/main';
 import styles from './styles.css';
 
 export function setupEnterpriseModules() {
+    ModuleRegistry.registerMany([
+        FlowProportionChartModule,
+        GaugeChartModule,
+        HierarchyChartModule,
+        StandaloneChartModule,
+        TopologyChartModule,
+    ]);
+
     _ModuleSupport.moduleRegistry.register(
         AngleCategoryAxisModule,
         AngleNumberAxisModule,

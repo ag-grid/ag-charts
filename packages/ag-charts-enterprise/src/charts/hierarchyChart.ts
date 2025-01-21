@@ -1,21 +1,16 @@
-import type { LayoutContext } from '../module/baseModule';
-import type { ChartOptions } from '../module/optionsModule';
-import type { TransferableResources } from './chart';
-import { Chart } from './chart';
+import { _ModuleSupport } from 'ag-charts-community';
+
+const { Chart } = _ModuleSupport;
 
 export class HierarchyChart extends Chart {
     static readonly className = 'HierarchyChart';
     static readonly type = 'hierarchy' as const;
 
-    constructor(options: ChartOptions, resources?: TransferableResources) {
-        super(options, resources);
-    }
-
     override getChartType() {
         return 'hierarchy' as const;
     }
 
-    protected performLayout(ctx: LayoutContext) {
+    protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
         const { layoutBox } = ctx;
 

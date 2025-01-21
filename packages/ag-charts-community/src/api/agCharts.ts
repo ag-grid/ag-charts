@@ -13,12 +13,7 @@ import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import type { ChartType } from '../chart/factory/chartTypes';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
-import { FlowProportionChartModule } from '../chart/flowProportionChartModule';
-import { GaugeChartModule } from '../chart/gaugeChartModule';
-import { HierarchyChartModule } from '../chart/hierarchyChartModule';
 import { PolarChartModule } from '../chart/polarChartModule';
-import { StandaloneChartModule } from '../chart/standaloneChartModule';
-import { TopologyChartModule } from '../chart/topologyChartModule';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
@@ -29,15 +24,7 @@ import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';
 
 // Temporarily set here, in the future users will register modules manually
-ModuleRegistry.registerMany([
-    CartesianChartModule,
-    PolarChartModule,
-    FlowProportionChartModule,
-    GaugeChartModule,
-    HierarchyChartModule,
-    StandaloneChartModule,
-    TopologyChartModule,
-]);
+ModuleRegistry.registerMany([CartesianChartModule, PolarChartModule]);
 
 const debug = Debug.create(true, 'opts');
 

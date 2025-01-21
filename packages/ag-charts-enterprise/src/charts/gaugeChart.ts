@@ -1,23 +1,27 @@
+import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 import type { TextAlign, VerticalAlign } from 'ag-charts-types';
 
-import type { LayoutContext } from '../module/baseModule';
-import { LinearScale } from '../scale/linearScale';
-import type { BBox } from '../scene/bbox';
-import { sectorBox } from '../scene/util/sector';
-import { isBetweenAngles, normalizeAngle360Inclusive } from '../util/angle';
-import { CartesianAxis } from './axis/cartesianAxis';
-import { PolarAxis } from './axis/polarAxis';
-import { Chart } from './chart';
-import { ChartAxisDirection } from './chartAxisDirection';
-import type { GaugeSeries, LinearGaugeSeries, RadialGaugeSeries } from './series/gaugeSeries';
-import type { Series } from './series/series';
+const {
+    CartesianAxis,
+    Chart,
+    ChartAxisDirection,
+    LinearScale,
+    PolarAxis,
+    isBetweenAngles,
+    normalizeAngle360Inclusive,
+    sectorBox,
+} = _ModuleSupport;
 
-function isRadialGaugeSeries(series: Series<unknown, any, any>): series is RadialGaugeSeries {
+function isRadialGaugeSeries(
+    series: _ModuleSupport.Series<unknown, any, any>
+): series is _ModuleSupport.RadialGaugeSeries {
     return series.type === 'radial-gauge';
 }
 
-function isLinearGaugeSeries(series: Series<unknown, any, any>): series is LinearGaugeSeries {
+function isLinearGaugeSeries(
+    series: _ModuleSupport.Series<unknown, any, any>
+): series is _ModuleSupport.LinearGaugeSeries {
     return series.type === 'linear-gauge';
 }
 
@@ -29,7 +33,7 @@ export class GaugeChart extends Chart {
         return 'gauge' as const;
     }
 
-    private updateRadialGauge(seriesRect: BBox, series: RadialGaugeSeries) {
+    private updateRadialGauge(seriesRect: _ModuleSupport.BBox, series: _ModuleSupport.RadialGaugeSeries) {
         const angleAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
         if (!(angleAxis instanceof PolarAxis)) return;
 
@@ -135,7 +139,7 @@ export class GaugeChart extends Chart {
         }
     }
 
-    private updateLinearGauge(seriesRect: BBox, series: LinearGaugeSeries) {
+    private updateLinearGauge(seriesRect: _ModuleSupport.BBox, series: _ModuleSupport.LinearGaugeSeries) {
         const xAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
         const yAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Y);
 
@@ -202,7 +206,7 @@ export class GaugeChart extends Chart {
         }
     }
 
-    protected performLayout(ctx: LayoutContext) {
+    protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot, series, seriesArea } = this;
         const { layoutBox } = ctx;
         const seriesRect = layoutBox.clone();
@@ -241,7 +245,7 @@ export class GaugeChart extends Chart {
         }
 
         for (const series of this.series) {
-            captions.push((series as GaugeSeries).getCaptionText());
+            captions.push((series as _ModuleSupport.GaugeSeries).getCaptionText());
         }
 
         const caption = captions.join('. ');

@@ -31,34 +31,4 @@ module.exports = [
         limit: '200 kB',
         ...defaultConfig,
     },
-    {
-        name: 'FlowProportionChart only',
-        import: '{ FlowProportionChartModule }',
-        limit: '200 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'GaugeChart only',
-        import: '{ GaugeChartModule }',
-        limit: '200 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'HierarchyChart only',
-        import: '{ HierarchyChartModule }',
-        limit: '200 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'StandaloneChart only',
-        import: '{ StandaloneChartModule }',
-        limit: '200 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'TopologyChart only',
-        import: '{ TopologyChartModule }',
-        limit: '200 kB',
-        ...defaultConfig,
-    },
 ];
