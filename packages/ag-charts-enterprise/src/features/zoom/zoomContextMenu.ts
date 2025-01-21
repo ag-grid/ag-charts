@@ -41,7 +41,7 @@ export class ZoomContextMenu {
                 const rect = this.getRect();
                 if (!rect) return true;
                 const origin = pointToRatio(rect, event.x, event.y);
-                return this.isZoomValid(this.getNextZoomAtPoint(origin));
+                return this.iterateFindNextZoomAtPoint(origin) != null;
             },
         });
         const destroyPanToCursor = contextMenuRegistry.registerDefaultAction({
@@ -72,7 +72,10 @@ export class ZoomContextMenu {
         const origin = this.computeOrigin(event);
         if (!origin) return;
 
-        this.updateZoom(this.getNextZoomAtPoint(origin));
+        const zoom = this.iterateFindNextZoomAtPoint(origin);
+        if (zoom == null) return;
+
+        this.updateZoom(zoom);
     }
 
     private onPanToHere({ event }: AgSeriesAreaContextMenuActionEvent) {
@@ -100,8 +103,19 @@ export class ZoomContextMenu {
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private getNextZoomAtPoint(origin: _ModuleSupport.Vec2) {
-        const { isScalingX, isScalingY, scrollingStep } = this.getModuleProperties();
+    private iterateFindNextZoomAtPoint(origin: _ModuleSupport.Vec2) {
+        const { scrollingStep } = this.getModuleProperties();
+
+        for (let i = scrollingStep; i <= 1 - scrollingStep; i += scrollingStep) {
+            const zoom = this.getNextZoomAtPoint(origin, i);
+            if (this.isZoomValid(zoom)) {
+                return zoom;
+            }
+        }
+    }
+
+    private getNextZoomAtPoint(origin: _ModuleSupport.Vec2, step: number) {
+        const { isScalingX, isScalingY } = this.getModuleProperties();
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
@@ -116,11 +130,7 @@ export class ZoomContextMenu {
             y: { min: origin.y - halfSize, max: origin.y + halfSize },
         };
 
-        newZoom = scaleZoomCenter(
-            newZoom,
-            isScalingX ? dx(zoom) - scrollingStep : size,
-            isScalingY ? dy(zoom) - scrollingStep : size
-        );
+        newZoom = scaleZoomCenter(newZoom, isScalingX ? dx(zoom) * step : size, isScalingY ? dy(zoom) * step : size);
         newZoom = translateZoom(newZoom, zoom.x.min - origin.x + scaledOriginX, zoom.y.min - origin.y + scaledOriginY);
 
         return constrainZoom(newZoom);
