@@ -277,12 +277,12 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     ctx.select(this.active, this.active);
 
                     if (this.hoverCoords) {
-                        this.hovered = ctx.hoverAtCoords(this.hoverCoords, this.active);
+                        this.hovered = ctx.hoverAtCoords(this.hoverCoords, this.active, this.hovered);
                     }
                 },
 
                 hover: ({ offset }) => {
-                    this.hovered = ctx.hoverAtCoords(offset, this.active);
+                    this.hovered = ctx.hoverAtCoords(offset, this.active, this.hovered);
                     this.hoverCoords = offset;
                 },
 

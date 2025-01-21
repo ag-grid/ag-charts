@@ -83,7 +83,7 @@ export type AnnotationScene =
 
 export interface AnnotationsStateMachineContext {
     resetToIdle: () => void;
-    hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number) => number | undefined;
+    hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number, hovered?: number) => number | undefined;
     getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => string | undefined;
     select: (index?: number, previous?: number) => void;
     selectLast: () => number;

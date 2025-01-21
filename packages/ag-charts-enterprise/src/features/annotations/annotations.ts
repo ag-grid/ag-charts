@@ -145,7 +145,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.update();
             },
 
-            hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number) => {
+            hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number, previousHovered?: number) => {
                 let hovered;
 
                 this.annotations.each((annotation, _, index) => {
@@ -164,6 +164,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     'annotations',
                     hovered == null ? undefined : this.annotations.at(hovered)?.getCursor()
                 );
+
+                if (hovered !== previousHovered) {
+                    this.update();
+                }
 
                 return hovered;
             },
