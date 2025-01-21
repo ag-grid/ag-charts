@@ -10,7 +10,6 @@ import type {
 import { CartesianChartModule } from '../chart/cartesianChartModule';
 import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
-import type { ChartType } from '../chart/factory/chartTypes';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
 import { PolarChartModule } from '../chart/polarChartModule';
@@ -27,11 +26,6 @@ import { MementoCaretaker } from './state/memento';
 ModuleRegistry.registerMany([CartesianChartModule, PolarChartModule]);
 
 const debug = Debug.create(true, 'opts');
-
-function chartType(options: any): ChartType {
-    const chartDef = ModuleRegistry.detectChartDefinition(options);
-    return chartDef.name as ChartType;
-}
 
 /**
  * Factory for creating and updating instances of AgChartInstance.
@@ -196,7 +190,8 @@ class AgChartsInternal {
         let poolResult;
         if (
             chart == null ||
-            chartType(chartOptions.processedOptions) !== chartType(chart?.chartOptions.processedOptions)
+            ModuleRegistry.detectChartDefinition(chartOptions.processedOptions) !==
+                ModuleRegistry.detectChartDefinition(chart.chartOptions.processedOptions)
         ) {
             poolResult = this.getPool(chartOptions)?.obtain(chartOptions);
             if (poolResult) {

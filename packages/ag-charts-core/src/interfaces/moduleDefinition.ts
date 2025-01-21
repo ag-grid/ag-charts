@@ -18,6 +18,8 @@ export interface ModuleDefinition {
     detect(options: object): boolean;
 }
 
-export interface ChartModuleDefinition extends ModuleDefinition {
-    // create(options: ChartOptions, resources?: TransferableResources): ModuleInstance;
-}
+export interface ChartModuleDefinition extends ModuleDefinition {}
+
+export interface SeriesModuleDefinition extends ModuleDefinition {}
+
+export interface FeatureModuleDefinition extends ModuleDefinition {}
