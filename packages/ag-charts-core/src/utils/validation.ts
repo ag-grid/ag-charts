@@ -1,5 +1,5 @@
 import { joinFormatted, stringifyValue } from './strings';
-import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from './typeGuards';
+import { isArray, isBoolean, isDate, isFiniteNumber, isFunction, isObject, isString, isValidDate } from './typeGuards';
 
 const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
@@ -14,7 +14,7 @@ export type OptionsDefs<T> = { [K in keyof T]-?: Validator | ObjectLikeDef<T[K]>
 
 // Validator interface with optional description and required flag for better error messages.
 interface Validator extends Function {
-    (value: unknown): boolean;
+    (value: unknown, context?: any): boolean;
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
 }
@@ -58,7 +58,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
         const value = options[key as keyof object];
         if (!validatorOrDefs[requiredSymbol] && typeof value === 'undefined') continue;
         if (isFunction(validatorOrDefs)) {
-            if (validatorOrDefs(value)) {
+            if (validatorOrDefs(value, options)) {
                 valid[key as keyof T] = value;
             } else {
                 errors.push({ key, path, value, message: validateMessage(extendPath(key), value, validatorOrDefs) });
@@ -115,7 +115,9 @@ function validateMessage(path: string, value: unknown, validatorOrDefs: Validato
  * @returns A new validator function with the attached description.
  */
 export function attachDescription(validator: Validator, description: string): Validator {
-    return Object.assign((value: unknown) => validator(value), { [descriptionSymbol]: description });
+    return Object.assign((value: unknown, context: any) => validator(value, context), {
+        [descriptionSymbol]: description,
+    });
 }
 
 /**
@@ -147,7 +149,7 @@ export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
             isObject(value) &&
             Object.entries<Validator | ObjectLikeDef<any>>(defs).every(([key, validatorOrDefs]) => {
                 const validator = isFunction(validatorOrDefs) ? validatorOrDefs : optionsDefs(validatorOrDefs);
-                return validator(value[key]);
+                return validator(value[key], value);
             }),
         description
     );
@@ -159,7 +161,7 @@ export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
  */
 export const and = (...validators: Validator[]) =>
     attachDescription(
-        (value: unknown) => validators.every((validator) => validator(value)),
+        (value: unknown, context: any) => validators.every((validator) => validator(value, context)),
         validators
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
@@ -173,7 +175,7 @@ export const and = (...validators: Validator[]) =>
  */
 export const or = (...validators: Validator[]) =>
     attachDescription(
-        (value: unknown) => validators.some((validator) => validator(value)),
+        (value: unknown, context: any) => validators.some((validator) => validator(value, context)),
         validators
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
@@ -187,6 +189,10 @@ export const callback = attachDescription(isFunction, 'a function');
 export const number = attachDescription(isFiniteNumber, 'a number');
 export const object = attachDescription(isObject, 'an object');
 export const string = attachDescription(isString, 'a string');
+export const date = attachDescription(
+    (value) => isDate(value) || ((isFiniteNumber(value) || isString(value)) && isValidDate(new Date(value))),
+    'a date'
+);
 
 // Numeric type validators with specific conditions.
 const numberMin = (min: number, inclusive = true) =>
@@ -204,6 +210,15 @@ const numberRange = (min: number, max: number) =>
 export const positiveNumber = numberMin(0);
 
 export const ratio = numberRange(0, 1);
+
+const isComparable = (value: unknown): value is number | Date => isFiniteNumber(value) || isValidDate(value);
+
+export const lessThan = (otherField: string) =>
+    attachDescription(
+        (value, context: any) =>
+            !isComparable(value) || !isComparable(context[otherField]) || value < context[otherField],
+        `to be less than ${otherField}`
+    );
 
 /**
  * Creates a validator for a union of allowed values.
@@ -245,6 +260,6 @@ export const instanceOf = (instanceType: Function, description?: string) =>
  */
 export const arrayOf = (validator: Validator, description?: string) =>
     attachDescription(
-        (value: unknown) => isArray(value) && value.every(validator),
+        (value: unknown, context: any) => isArray(value) && value.every((v) => validator(v, context)),
         description ?? `${validator[descriptionSymbol]} array`
     );

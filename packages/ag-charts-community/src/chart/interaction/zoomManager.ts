@@ -1,4 +1,20 @@
-import { Logger, type RequireOptional, isFiniteNumber, isObject } from 'ag-charts-core';
+import {
+    Logger,
+    type OptionsDefs,
+    type RequireOptional,
+    and,
+    arrayOf,
+    attachDescription,
+    date,
+    isFiniteNumber,
+    isObject,
+    lessThan,
+    number,
+    or,
+    ratio as ratioValidator,
+    union,
+    validate,
+} from 'ag-charts-core';
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
@@ -74,6 +90,13 @@ class ZoomManagerAutoScaleAxis {
     manuallyAdjusted = false;
 }
 
+const rangeValidator = (axis?: ChartAxisLike) =>
+    attachDescription((value, context) => {
+        if (!ContinuousScale.is(axis?.scale) && !OrdinalTimeScale.is(axis?.scale)) return true;
+        if (value == null || context.end == null) return true;
+        return value <= context.end;
+    }, `to be less than end`);
+
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
@@ -140,17 +163,17 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         const primaryX = this.getPrimaryAxis(ChartAxisDirection.X);
         const primaryY = this.getPrimaryAxis(ChartAxisDirection.Y);
 
-        if (!this.isRangeValid(primaryX, blob.rangeX)) {
-            messages.push(
-                `[start] of [zoom.rangeX] can not be set to [${blob.rangeX.start}]; expecting to be less than [end] [${blob.rangeX.end}]`
-            );
-            return false;
-        }
+        const zoomMementoDefs: OptionsDefs<ZoomMemento> = {
+            rangeX: { start: and(or(number, date), rangeValidator(primaryX)), end: or(number, date) },
+            rangeY: { start: and(or(number, date), rangeValidator(primaryY)), end: or(number, date) },
+            ratioX: { start: and(ratioValidator, lessThan('end')), end: ratioValidator },
+            ratioY: { start: and(ratioValidator, lessThan('end')), end: ratioValidator },
+            autoScaledAxes: arrayOf(union('y')),
+        };
 
-        if (!this.isRangeValid(primaryY, blob.rangeY)) {
-            messages.push(
-                `[start] of [zoom.rangeY] can not be set to [${blob.rangeY.start}]; expecting to be less than [end] [${blob.rangeY.end}]`
-            );
+        const result = validate(blob, zoomMementoDefs);
+        if (result.errors.length > 0) {
+            messages.push(...result.errors.map((e) => e.message));
             return false;
         }
 
@@ -639,12 +662,6 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
             y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
         };
-    }
-
-    private isRangeValid(axis?: ChartAxisLike, range?: ZoomMemento['rangeX' | 'rangeY']) {
-        if (!ContinuousScale.is(axis?.scale) && !OrdinalTimeScale.is(axis?.scale)) return true;
-        if (range?.start == null || range.end == null) return true;
-        return range.start <= range.end;
     }
 
     private zoomBounds(
