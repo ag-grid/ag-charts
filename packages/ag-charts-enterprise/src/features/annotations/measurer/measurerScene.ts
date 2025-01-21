@@ -196,7 +196,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
         const { id } = line;
 
-        const clip = updateLineText(id, line, datum.text, textCoords, this.text, datum.text.label, datum.strokeWidth);
+        const clip = updateLineText(id, line, textCoords, datum.text, this.text, datum.text.label, datum.strokeWidth);
 
         let verticalClipMask;
 

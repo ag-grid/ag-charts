@@ -19,20 +19,19 @@ interface Numbers {
 export function updateLineText(
     id: string,
     line: CollidableLine,
-    textProperties: Partial<LineTextProperties>,
     coords: _ModuleSupport.Vec4,
 
+    textProperties?: Partial<LineTextProperties>,
     textNode?: CollidableText,
     text?: string,
     lineWidth?: number
 ) {
-    const { alignment, position } = textProperties;
-
-    if (!text || !textNode) {
+    if (!text || !textNode || !textProperties) {
         line.setClipMask(id);
         return;
     }
 
+    const { alignment, position } = textProperties;
     const numbers = getNumbers(coords, textProperties.fontSize, lineWidth);
     const { point, textBaseline } = positionAndAlignment(numbers, position, alignment);
     setProperties(textNode, text, textProperties, point, numbers.angle, textBaseline);

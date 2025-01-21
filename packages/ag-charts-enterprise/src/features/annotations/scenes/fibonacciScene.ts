@@ -1,6 +1,6 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type FontOptions, _ModuleSupport } from 'ag-charts-community';
 
-import type { AnnotationContext } from '../annotationTypes';
+import type { AnnotationAxisContext, AnnotationContext } from '../annotationTypes';
 import type { FibonacciProperties } from '../properties/fibonacciProperties';
 import type { FibonacciRangeDatum } from '../utils/fibonacci';
 import { FibonacciNodeTag, createFibonacciRangesData } from '../utils/fibonacci';
@@ -192,11 +192,20 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             strokeWidth,
             rangeStroke,
             isMultiColor,
-            label: { color, fontFamily, fontSize, fontStyle, fontWeight },
+            label: { fontFamily, fontSize, fontStyle, fontWeight, color },
         } = trendLineProperties;
 
+        const labelProperties = {
+            fontFamily,
+            fontSize,
+            fontStyle,
+            fontWeight,
+        };
+
+        const withinBounds = this.checkWithinBounds(xAxis, labelProperties, this.labelsGroupSelection.at(0));
+
         this.labelsGroupSelection.each((textNode, datum, index) => {
-            const fill = color ?? (isMultiColor ? colors[index % colors.length] : rangeStroke);
+            const textColor = color ?? (isMultiColor ? colors[index % colors.length] : rangeStroke);
 
             const line = rangeStrokesGroupSelection.at(index);
 
@@ -205,38 +214,48 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             }
 
             const { text, ...coords } = datum.label;
-            const labelProperties = {
-                label: text,
-                position: 'center' as const,
-                alignment: 'left' as const,
-                color: fill,
-                fontFamily,
-                fontSize,
-                fontStyle,
-                fontWeight,
-            };
 
-            updateLineText(textNode.id, line, labelProperties, coords, textNode);
-
-            textNode.setProperties({
-                text,
-                x: coords.x1,
-                y: coords.y1,
-                textBaseline: 'middle',
-                textAlign: 'end',
-                fill,
-                fontFamily,
-                fontSize,
-                fontStyle,
-                fontWeight,
-            });
-
-            const { x } = textNode.getBBox();
-
-            const xWithinBounds = x >= xAxis.bounds.x && x <= xAxis.bounds.x + xAxis.bounds.width;
-
-            if (!xWithinBounds) updateLineText(textNode.id, line, labelProperties, coords, textNode, text, strokeWidth);
+            if (withinBounds) {
+                textNode.setProperties({
+                    ...labelProperties,
+                    text,
+                    x: coords.x1,
+                    y: coords.y1,
+                    textBaseline: 'middle',
+                    textAlign: 'end',
+                    fill: textColor,
+                });
+                updateLineText(textNode.id, line, coords);
+            } else {
+                const textProperties = {
+                    ...labelProperties,
+                    label: text,
+                    position: 'center' as const,
+                    alignment: 'left' as const,
+                    color: textColor,
+                };
+                updateLineText(textNode.id, line, coords, textProperties, textNode, text, strokeWidth);
+            }
         });
+    }
+
+    private checkWithinBounds(xAxis: AnnotationAxisContext, fontOptions: FontOptions, textNode?: CollidableText) {
+        if (!textNode) {
+            return false;
+        }
+        const { text, ...coords } = textNode.datum.label;
+        textNode.setProperties({
+            ...fontOptions,
+            text,
+            x: coords.x1,
+            y: coords.y1,
+            textBaseline: 'middle',
+            textAlign: 'end',
+        });
+
+        const { x } = textNode.getBBox();
+
+        return x >= xAxis.bounds.x && x <= xAxis.bounds.x + xAxis.bounds.width;
     }
 
     protected updateText(datum: Datum, coords: _ModuleSupport.Vec4) {
@@ -249,7 +268,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         const { text: textProperties, strokeWidth } = datum;
         this.text = this.updateNode(CollidableText, this.text, !!textProperties.label);
 
-        updateLineText(oneLine.id, oneLine, textProperties, coords, this.text, textProperties.label, strokeWidth);
+        updateLineText(oneLine.id, oneLine, coords, textProperties, this.text, textProperties.label, strokeWidth);
     }
 
     updateAnchor(_datum: Datum, coords: _ModuleSupport.Vec4, _context: AnnotationContext, _bbox?: _ModuleSupport.BBox) {
