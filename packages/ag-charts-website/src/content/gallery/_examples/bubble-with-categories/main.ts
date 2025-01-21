@@ -7,7 +7,7 @@ const data = getData();
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Punch Card of Github',
+        text: 'Punch Card of GitHub',
     },
     subtitle: {
         text: 'Time Distribution of Commits',
