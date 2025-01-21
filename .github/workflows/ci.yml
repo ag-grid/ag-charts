@@ -297,8 +297,8 @@ jobs:
               run: |
                   branch=gha/snapshots-${{github.head_ref || github.ref}}
 
-                  git fetch origin ${{github.head_ref}}
-                  git switch ${{github.head_ref}}
+                  git fetch origin ${{github.head_ref || github.ref}}
+                  git switch ${{github.head_ref || github.ref}}
                   git cherry-pick ${{steps.test-no-shard.outputs.updateSha}}
                   git push origin -f HEAD:${branch}
 
