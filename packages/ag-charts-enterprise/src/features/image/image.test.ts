@@ -28,7 +28,7 @@ describe('Image', () => {
             return _ModuleSupport.calculatePlacement(
                 naturalWidth,
                 naturalHeight,
-                { x: 0, y: 0, width: containerWidth, height: containerHeight },
+                { width: containerWidth, height: containerHeight },
                 params
             );
         };

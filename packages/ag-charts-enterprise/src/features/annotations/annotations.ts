@@ -137,7 +137,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         return new AnnotationsStateMachine({
             resetToIdle: () => {
-                ctx.cursorManager.updateCursor('annotations');
+                ctx.domManager.updateCursor('annotations');
                 this.popAnnotationState(InteractionState.Annotations);
                 this.hideOverlays();
                 this.optionsToolbar.hide();
@@ -160,7 +160,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     ctx.tooltipManager.unsuppressTooltip('annotations');
                 }
 
-                this.ctx.cursorManager.updateCursor(
+                this.ctx.domManager.updateCursor(
                     'annotations',
                     hovered == null ? undefined : this.annotations.at(hovered)?.getCursor()
                 );
@@ -340,7 +340,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     },
                 });
 
-                this.ctx.cursorManager.updateCursor('annotations');
+                this.ctx.domManager.updateCursor('annotations');
             },
 
             hideTextInput: () => {

@@ -1,3 +1,5 @@
+import { findMaxIndex, findMinIndex } from 'ag-charts-core';
+
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { BandScale } from '../../../scale/bandScale';
@@ -16,7 +18,10 @@ import { Debug } from '../../../util/debug';
 import { StateMachine } from '../../../util/stateMachine';
 import { BOOLEAN, STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
+import { NumberAxis } from '../../axis/numberAxis';
+import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
+import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { Marker } from '../../marker/marker';
 import {
@@ -33,7 +38,7 @@ import type {
 import { SeriesNodeEvent } from '../series';
 import { SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
-import { axisExtent, clippedRangeIndices, countExpandingSearch, visibleRangeIndices } from '../util';
+import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type { Scaling } from './scaling';
 
 export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
@@ -1120,4 +1125,43 @@ export abstract class CartesianSeries<
 
         return result;
     }
+}
+
+function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined {
+    let min: number | Date | undefined;
+    let max: number | Date | undefined;
+    if (axis instanceof NumberAxis && (Number.isFinite(axis.min) || Number.isFinite(axis.max))) {
+        min = Number.isFinite(axis.min) ? axis.min : undefined;
+        max = Number.isFinite(axis.max) ? axis.max : undefined;
+    } else if (axis instanceof TimeAxis && (axis.min != null || axis.max != null)) {
+        ({ min, max } = axis);
+    }
+
+    if (min == null && max == null) return;
+
+    min ??= -Infinity;
+    max ??= Infinity;
+
+    return [min, max];
+}
+
+function clippedRangeIndices(length: number, range: [any, any], xValue: (index: number) => any): [number, number] {
+    const range0 = range[0].valueOf();
+    const range1 = range[1].valueOf();
+
+    const xMinIndex = findMinIndex(0, length - 1, (index) => {
+        const x = xValue(index)?.valueOf();
+        return !Number.isFinite(x) || x >= range0;
+    });
+
+    let xMaxIndex = findMaxIndex(0, length - 1, (index) => {
+        const x = xValue(index)?.valueOf();
+        return !Number.isFinite(x) || x! <= range1;
+    });
+
+    if (xMinIndex == null || xMaxIndex == null) return [0, 0];
+
+    xMaxIndex = Math.min(xMaxIndex + 1, length);
+
+    return [xMinIndex, xMaxIndex];
 }

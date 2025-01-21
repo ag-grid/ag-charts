@@ -62,7 +62,7 @@ export class Image extends BaseProperties {
     performLayout(containerWidth: number, containerHeight: number): _ModuleSupport.Placement {
         this.containerWidth = containerWidth;
         this.containerHeight = containerHeight;
-        const container = { x: 0, y: 0, width: containerWidth, height: containerHeight };
+        const container = { width: containerWidth, height: containerHeight };
         const placement = calculatePlacement(this.imageElement.width, this.imageElement.height, container, this);
         this.node.setProperties(
             this.complete

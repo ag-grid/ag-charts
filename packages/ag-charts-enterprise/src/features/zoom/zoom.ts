@@ -269,7 +269,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             enablePanning,
             enableSelecting,
             hoveredAxis,
-            ctx: { cursorManager, zoomManager },
+            ctx: { domManager, zoomManager },
         } = this;
 
         if (!enabled) return;
@@ -286,7 +286,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as MouseEvent);
             // Allow panning if either selection is disabled or the panning key is pressed.
             if (enablePanning && (!enableSelecting || panKeyPressed)) {
-                cursorManager.updateCursor(CURSOR_ID, 'grabbing');
+                domManager.updateCursor(CURSOR_ID, 'grabbing');
                 newDragState = DragState.Pan;
                 this.panner.start();
             } else if (enableSelecting && !panKeyPressed) {
@@ -357,7 +357,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             enabled,
             panner,
             selector,
-            ctx: { cursorManager, interactionManager, tooltipManager },
+            ctx: { domManager, interactionManager, tooltipManager },
         } = this;
 
         interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
@@ -385,7 +385,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         this.dragState = DragState.None;
-        cursorManager.updateCursor(CURSOR_ID);
+        domManager.updateCursor(CURSOR_ID);
         tooltipManager.removeTooltip(TOOLTIP_ID);
     }
 

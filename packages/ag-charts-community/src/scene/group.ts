@@ -1,4 +1,3 @@
-import { ascendingStringNumberUndefined } from '../util/compare';
 import { clamp } from '../util/number';
 import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
@@ -31,7 +30,7 @@ export class Group<D = any> extends Node<D> {
     }
 
     private static compareChildren(this: void, a: Node, b: Node) {
-        return compareZIndex(a.zIndex, b.zIndex) || ascendingStringNumberUndefined(a.serialNumber, b.serialNumber);
+        return compareZIndex(a.zIndex, b.zIndex) || a.serialNumber - b.serialNumber;
     }
 
     private clipRect?: BBox;

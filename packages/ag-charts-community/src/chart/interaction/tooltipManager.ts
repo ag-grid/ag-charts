@@ -2,12 +2,8 @@ import type { DOMManager } from '../../dom/domManager';
 import { StateTracker } from '../../util/stateTracker';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { SeriesTooltip } from '../series/seriesTooltip';
-import {
-    type ErrorBoundSeriesNodeDatum,
-    type ISeries,
-    type SeriesNodeDatum,
-    getDatumRefPoint,
-} from '../series/seriesTypes';
+import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
+import { getDatumRefPoint } from '../series/util';
 import type { Tooltip, TooltipContent, TooltipMeta, TooltipPointerEvent } from '../tooltip/tooltip';
 
 interface TooltipState {
