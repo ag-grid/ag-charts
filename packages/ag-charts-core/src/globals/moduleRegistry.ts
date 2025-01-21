@@ -1,4 +1,9 @@
-import { type ChartModuleDefinition, type ModuleDefinition, ModuleType } from '../interfaces/moduleDefinition';
+import {
+    type ChartModuleDefinition,
+    type ModuleDefinition,
+    ModuleType,
+    type SeriesModuleDefinition,
+} from '../interfaces/moduleDefinition';
 
 export class ModuleRegistry {
     private static readonly registeredModules: Map<string, ModuleDefinition> = new Map();
@@ -27,8 +32,16 @@ export class ModuleRegistry {
     }
 
     static detectChartDefinition(options: object): ChartModuleDefinition {
+        return this.detectDefinition(ModuleType.Chart, options) as ChartModuleDefinition;
+    }
+
+    static detectSeriesDefinition(options: object): SeriesModuleDefinition {
+        return this.detectDefinition(ModuleType.Series, options) as SeriesModuleDefinition;
+    }
+
+    private static detectDefinition(moduleType: ModuleType, options: object): ModuleDefinition {
         for (const definition of this.registeredModules.values()) {
-            if (definition.type === ModuleType.Chart && definition.detect(options)) {
+            if (definition.type === moduleType && definition.detect(options)) {
                 return definition;
             }
         }

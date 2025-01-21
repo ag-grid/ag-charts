@@ -1,11 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { ModuleDefinition } from 'ag-charts-core';
+import type { ChartModuleDefinition } from 'ag-charts-core';
 
 import { HierarchyChart } from './hierarchyChart';
 
 const { isAgHierarchyChartOptions } = _ModuleSupport;
 
-export const HierarchyChartModule: ModuleDefinition = {
+export const HierarchyChartModule: ChartModuleDefinition = {
     type: 'chart',
     name: 'hierarchy',
 

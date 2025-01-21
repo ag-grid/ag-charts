@@ -1,11 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { ModuleDefinition } from 'ag-charts-core';
+import type { ChartModuleDefinition } from 'ag-charts-core';
 
 import { GaugeChart } from './gaugeChart';
 
 const { isAgGaugeChartOptions } = _ModuleSupport;
 
-export const GaugeChartModule: ModuleDefinition = {
+export const GaugeChartModule: ChartModuleDefinition = {
     type: 'chart',
     name: 'gauge',
 

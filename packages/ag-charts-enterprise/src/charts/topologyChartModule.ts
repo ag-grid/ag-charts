@@ -1,11 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { ModuleDefinition } from 'ag-charts-core';
+import type { ChartModuleDefinition } from 'ag-charts-core';
 
 import { TopologyChart } from './topologyChart';
 
 const { isAgTopologyChartOptions } = _ModuleSupport;
 
-export const TopologyChartModule: ModuleDefinition = {
+export const TopologyChartModule: ChartModuleDefinition = {
     type: 'chart',
     name: 'topology',
 

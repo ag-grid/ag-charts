@@ -1,11 +1,11 @@
-import { type ModuleDefinition } from 'ag-charts-core';
+import type { ChartModuleDefinition } from 'ag-charts-core';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { CartesianChart } from './cartesianChart';
 import type { TransferableResources } from './chart';
 import { isAgCartesianChartOptions } from './mapping/types';
 
-export const CartesianChartModule: ModuleDefinition = {
+export const CartesianChartModule: ChartModuleDefinition = {
     type: 'chart',
     name: 'cartesian',
 

@@ -40,26 +40,6 @@ export interface FactoryApi {
 export class AgChartInstanceProxy implements AgChartProxy {
     static readonly chartInstances = new WeakMap<Chart, AgChartInstanceProxy>();
 
-    static isInstance(x: any): x is AgChartInstanceProxy {
-        if (x instanceof AgChartInstanceProxy) {
-            // Simple case.
-            return true;
-        }
-
-        if (x.constructor?.name === 'AgChartInstanceProxy' && x.chart != null) {
-            // instanceof can fail if mixing bundles (e.g. grid all-modules vs. standalone).
-            return true;
-        }
-
-        return x.chart != null && this.validateImplementation(x);
-    }
-
-    private static validateImplementation(x: object) {
-        const chartProps: Array<keyof AgChartInstanceProxy> = ['getOptions', 'destroy'];
-        const signatureProps = Object.keys(Object.getPrototypeOf(x) ?? {});
-        return chartProps.every((prop) => signatureProps.includes(prop));
-    }
-
     @ActionOnSet<AgChartInstanceProxy>({
         oldValue(chart) {
             if (!chart.destroyed) {
@@ -232,7 +212,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             }
         });
 
-        // Sync legend pagingation
+        // Sync legend pagination
         const legendPages = [];
         for (const legend of chart.modulesManager.legends()) {
             legendPages.push(legend.legend.pagination?.currentPage ?? 0);
