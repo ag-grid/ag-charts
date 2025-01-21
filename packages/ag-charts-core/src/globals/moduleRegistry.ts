@@ -46,7 +46,7 @@ export class ModuleRegistry {
             }
         }
         throw new Error(
-            'AG Charts - Unknown chart type; Check options are correctly structured and series types are specified'
+            `AG Charts - Unknown ${moduleType} type; Check options are correctly structured and series types are specified`
         );
     }
 }
