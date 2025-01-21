@@ -1,5 +1,4 @@
 import { type AgChartOptions, _ModuleSupport } from 'ag-charts-community';
-import { ModuleRegistry } from 'ag-charts-core';
 
 import { AngleCategoryAxisModule } from './axes/angle-category/main';
 import { AngleNumberAxisModule } from './axes/angle-number/main';
@@ -60,7 +59,7 @@ import { WaterfallModule } from './series/waterfall/main';
 import styles from './styles.css';
 
 // Temporarily set here, in the future users will register modules manually
-ModuleRegistry.registerMany([
+_ModuleSupport.ModuleRegistry.registerMany([
     FlowProportionChartModule,
     GaugeChartModule,
     HierarchyChartModule,

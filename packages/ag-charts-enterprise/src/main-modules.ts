@@ -1,6 +1,7 @@
 // Entry point to implement and test our tree-shaking abilities
+import { _ModuleSupport } from 'ag-charts-community';
 
-export { ModuleRegistry } from 'ag-charts-core';
+export const ModuleRegistry = _ModuleSupport.ModuleRegistry;
 
 export { FlowProportionChartModule } from './charts/flowProportionChartModule';
 export { GaugeChartModule } from './charts/gaugeChartModule';
