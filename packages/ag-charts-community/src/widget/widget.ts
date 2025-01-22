@@ -252,6 +252,11 @@ export abstract class Widget<
         }
     }
 
+    setDragTouchEnabled(dragTouchEnabled: boolean) {
+        this.internalListener ??= new WidgetListenerInternal(this.onDispatch.bind(this));
+        this.internalListener.dragTouchEnabled = dragTouchEnabled;
+    }
+
     private onDispatch<K extends keyof WidgetEventMap_Internal>(type: K, event: WidgetEventMap_Internal[K]) {
         // Handle event bubbling for drag events.
         if (!event.sourceEvent.bubbles) return;

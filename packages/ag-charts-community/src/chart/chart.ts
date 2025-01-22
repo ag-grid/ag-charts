@@ -494,6 +494,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
             newAnimationBatch,
         } = opts ?? {};
 
+        this.ctx.widgets.seriesWidget.setDragTouchEnabled(this.touch.dragAction !== 'none');
+
         if (forceNodeDataRefresh) {
             this.series.forEach((series) => series.markNodeDataDirty());
         }

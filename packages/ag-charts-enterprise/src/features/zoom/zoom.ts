@@ -256,8 +256,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private isTouchHover(event: Pick<_Widget.DragWidgetEvent, 'device'> | undefined): boolean {
-        return event?.device === 'touch' && this.ctx.chartService.touch.dragAction === 'hover';
+    private isIgnoredTouch(event: Pick<_Widget.DragWidgetEvent, 'device'> | undefined): boolean {
+        return event?.device === 'touch' && this.ctx.chartService.touch.dragAction !== 'pan';
     }
 
     private onDoubleClick(event?: _Widget.MouseWidgetEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
@@ -292,7 +292,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             if (
                 !this.isState(InteractionState.ZoomDraggable) ||
                 this.dragState !== DragState.None ||
-                this.isTouchHover(event)
+                this.isIgnoredTouch(event)
             ) {
                 return;
             }
@@ -339,7 +339,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (!enabled || !paddedRect || !seriesRect) return;
         if (!hoveredAxis) {
-            if (!this.isState(InteractionState.ZoomDraggable) || this.isTouchHover(event)) {
+            if (!this.isState(InteractionState.ZoomDraggable) || this.isIgnoredTouch(event)) {
                 return;
             }
         }

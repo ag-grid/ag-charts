@@ -158,11 +158,11 @@ export interface AgKeyboardOptions {
 }
 
 export interface AgTouchOptions {
-    /** Set the input handling behavior for single-finger touch drag events. The `'hover'` action will make these behave like mouse hover events. The `'pan'` action will make these pan the view if the [Zoom](/zoom) module is enabled.
+    /** Set the input handling behavior for single-finger touch drag events. The `'none'` action will ignore these events, typically causing the default page-scrolling behavior. The `'hover'` action will make these behave like mouse hover events. The `'pan'` action will make these pan the view if the [Zoom](/zoom) module is enabled.
      *
-     * Default: `hover`
+     * Default: `'none'`
      */
-    dragAction?: 'pan' | 'hover';
+    dragAction?: 'none' | 'pan' | 'hover';
 }
 
 export interface AgBaseThemeableChartOptions<TDatum = any> {
