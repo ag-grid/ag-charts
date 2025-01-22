@@ -154,12 +154,12 @@ class AgChartsInternal {
 
         AgChartsInternal.initialiseModules();
 
-        debug(() => ['>>> AgCharts.createOrUpdate() user options', userOptions]);
+        debug(() => ['>>> AgCharts.createOrUpdate() user options', deepClone(userOptions)]);
 
         let mutableOptions = userOptions;
         if (AgCharts.optionsMutationFn && mutableOptions) {
             mutableOptions = AgCharts.optionsMutationFn(deepClone(mutableOptions), presetType);
-            debug(() => ['>>> AgCharts.createOrUpdate() MUTATED user options', mutableOptions]);
+            debug(() => ['>>> AgCharts.createOrUpdate() MUTATED user options', deepClone(mutableOptions)]);
         }
 
         const {
@@ -258,7 +258,7 @@ class AgChartsInternal {
             false
         );
 
-        debug(() => ['>>> AgCharts.updateUserDelta() user delta', deltaOptions]);
+        debug(() => ['>>> AgCharts.updateUserDelta() user delta', deepClone(deltaOptions)]);
         AgChartsInternal.createOrUpdate({
             proxy,
             deltaOptions,
