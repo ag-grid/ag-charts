@@ -30,9 +30,9 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             tooltip: { position: { type: 'node' } },
             label: {
                 enabled: false,
-                fontSize: { ref: 'fontSize' },
-                fontFamily: { ref: 'fontFamily' },
-                color: { ref: 'foregroundColor' },
+                fontSize: { $ref: 'fontSize' },
+                fontFamily: { $ref: 'fontFamily' },
+                color: { $ref: 'foregroundColor' },
             },
             errorBar: {
                 cap: {

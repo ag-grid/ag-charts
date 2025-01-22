@@ -140,7 +140,7 @@ describe('AgChart', () => {
         expect(chart.title?.enabled).toBe(theme.config.line.title.enabled);
         expect(chart.title?.text).toBe(theme.config.line.title.text);
 
-        // TODO: theme config values are `{ ref: 'something' }` as this is the unresolved value. This is not a bug
+        // TODO: theme config values are `{ $ref: 'something' }` as this is the unresolved value. This is not a bug
         // with the real output.
         // expect(chart.title?.fontSize).toBe(theme.config.line.title.fontSize);
         // expect(chart.title?.fontFamily).toBe(theme.config.line.title.fontFamily);
@@ -180,7 +180,7 @@ describe('AgChart', () => {
         expect(chart.title?.enabled).toBe(theme.config.line.title.enabled);
         expect(chart.title?.text).toBe(theme.config.line.title.text);
 
-        // TODO: theme config values are `{ ref: 'something' }` as this is the unresolved value. This is not a bug
+        // TODO: theme config values are `{ $ref: 'something' }` as this is the unresolved value. This is not a bug
         // with the real output.
         // expect(chart.title?.fontSize).toBe(theme.config.line.title.fontSize);
         // expect(chart.title?.fontFamily).toBe(theme.config.line.title.fontFamily);

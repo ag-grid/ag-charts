@@ -23,9 +23,9 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
             lineDashOffset: 0,
             label: {
                 enabled: true,
-                fontSize: { ref: 'fontSize' },
-                fontFamily: { ref: 'fontFamily' },
-                color: { ref: 'foregroundColor' },
+                fontSize: { $ref: 'fontSize' },
+                fontFamily: { $ref: 'fontFamily' },
+                color: { $ref: 'foregroundColor' },
             },
         },
     },

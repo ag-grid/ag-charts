@@ -19,11 +19,11 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             group: {
                 label: {
                     enabled: true,
-                    color: { ref: 'foregroundColor' },
+                    color: { $ref: 'foregroundColor' },
                     fontStyle: undefined,
-                    fontWeight: { ref: 'fontWeight' },
-                    fontSize: { ref: 'fontSize' },
-                    fontFamily: { ref: 'fontFamily' },
+                    fontWeight: { $ref: 'fontWeight' },
+                    fontSize: { $ref: 'fontSize' },
+                    fontFamily: { $ref: 'fontFamily' },
                     spacing: 4,
                 },
                 fill: undefined, // Override default fill
@@ -36,24 +36,24 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             tile: {
                 label: {
                     enabled: true,
-                    color: { ref: 'backgroundColor' },
+                    color: { $ref: 'backgroundColor' },
                     fontStyle: undefined,
-                    fontWeight: { ref: 'fontWeight' },
+                    fontWeight: { $ref: 'fontWeight' },
                     fontSize: 18,
                     minimumFontSize: 10,
-                    fontFamily: { ref: 'fontFamily' },
+                    fontFamily: { $ref: 'fontFamily' },
                     wrapping: 'on-space',
                     overflowStrategy: 'ellipsis',
                     spacing: 2,
                 },
                 secondaryLabel: {
                     enabled: true,
-                    color: { ref: 'backgroundColor' },
+                    color: { $ref: 'backgroundColor' },
                     fontStyle: undefined,
                     fontWeight: undefined,
-                    fontSize: { ref: 'fontSize' },
+                    fontSize: { $ref: 'fontSize' },
                     minimumFontSize: 10,
-                    fontFamily: { ref: 'fontFamily' },
+                    fontFamily: { $ref: 'fontFamily' },
                     wrapping: 'never',
                     overflowStrategy: 'ellipsis',
                 },
@@ -67,7 +67,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             highlightStyle: {
                 group: {
                     label: {
-                        color: { ref: 'foregroundColor' },
+                        color: { $ref: 'foregroundColor' },
                     },
                     fill: 'rgba(255,255,255, 0.33)',
                     stroke: `rgba(0, 0, 0, 0.4)`,
@@ -75,10 +75,10 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 },
                 tile: {
                     label: {
-                        color: { ref: 'backgroundColor' },
+                        color: { $ref: 'backgroundColor' },
                     },
                     secondaryLabel: {
-                        color: { ref: 'backgroundColor' },
+                        color: { $ref: 'backgroundColor' },
                     },
                     fill: 'rgba(255,255,255, 0.33)',
                     stroke: `rgba(0, 0, 0, 0.4)`,

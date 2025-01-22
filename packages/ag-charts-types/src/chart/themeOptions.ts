@@ -109,14 +109,14 @@ type ExtendLiteralLeaves<T, V> = {
 
 type ThemeParam = keyof AgChartThemeParams;
 type ThemeParamsOperation =
-    | { ref: ThemeParam }
-    | { path: string }
-    | { if: [ThemeParamsLeaf, ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { or: [ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { and: [ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { eq: [ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { mul: [ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { round: [ThemeParamsLeaf] };
+    | { $ref: ThemeParam }
+    | { $path: string }
+    | { $if: [ThemeParamsLeaf, ThemeParamsLeaf, ThemeParamsLeaf] }
+    | { $or: [ThemeParamsLeaf, ThemeParamsLeaf] }
+    | { $and: [ThemeParamsLeaf, ThemeParamsLeaf] }
+    | { $eq: [ThemeParamsLeaf, ThemeParamsLeaf] }
+    | { $mul: [ThemeParamsLeaf, ThemeParamsLeaf] }
+    | { $round: [ThemeParamsLeaf] };
 type ThemeParamsLeaf = ThemeParamsOperation | boolean | string | number;
 
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, ThemeParamsOperation>;

@@ -38,9 +38,9 @@ export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTe
         spacingRatio: 0.25,
         label: {
             enabled: true,
-            fontSize: { ref: 'fontSize' },
-            fontFamily: { ref: 'fontFamily' },
-            color: { ref: 'backgroundColor' },
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
+            color: { $ref: 'backgroundColor' },
         },
         dropOff: {
             enabled: true,

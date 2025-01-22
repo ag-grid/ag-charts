@@ -19,7 +19,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             label: {
                 fontSize: 14,
                 minimumFontSize: 9,
-                color: { ref: 'backgroundColor' as const },
+                color: { $ref: 'backgroundColor' as const },
                 overflowStrategy: 'ellipsis',
                 wrapping: 'never',
                 spacing: 2,
@@ -27,7 +27,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             secondaryLabel: {
                 fontSize: 8,
                 minimumFontSize: 7,
-                color: { ref: 'backgroundColor' as const },
+                color: { $ref: 'backgroundColor' as const },
                 overflowStrategy: 'ellipsis',
                 wrapping: 'never',
             },
@@ -35,10 +35,10 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             padding: 3,
             highlightStyle: {
                 label: {
-                    color: { ref: 'backgroundColor' as const },
+                    color: { $ref: 'backgroundColor' as const },
                 },
                 secondaryLabel: {
-                    color: { ref: 'backgroundColor' as const },
+                    color: { $ref: 'backgroundColor' as const },
                 },
                 fill: 'rgba(255,255,255, 0.33)',
                 stroke: `rgba(0, 0, 0, 0.4)`,

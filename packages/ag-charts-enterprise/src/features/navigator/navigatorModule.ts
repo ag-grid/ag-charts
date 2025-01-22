@@ -19,20 +19,20 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
             mask: {
                 fill: DEFAULT_INVERTED_BACKGROUND_COLOUR,
                 fillOpacity: 0.1,
-                stroke: { ref: 'borderColor' },
+                stroke: { $ref: 'borderColor' },
                 strokeWidth: 1,
             },
             minHandle: {
-                fill: { ref: 'backgroundColor' },
-                stroke: { ref: 'borderColor' },
+                fill: { $ref: 'backgroundColor' },
+                stroke: { $ref: 'borderColor' },
                 strokeWidth: 1,
                 width: 12,
                 height: 24,
                 cornerRadius: 4,
             },
             maxHandle: {
-                fill: { ref: 'backgroundColor' },
-                stroke: { ref: 'borderColor' },
+                fill: { $ref: 'backgroundColor' },
+                stroke: { $ref: 'borderColor' },
                 strokeWidth: 1,
                 width: 12,
                 height: 24,
@@ -41,9 +41,9 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
             miniChart: {
                 enabled: false,
                 label: {
-                    color: { ref: 'foregroundColor' },
+                    color: { $ref: 'foregroundColor' },
                     fontSize: 10,
-                    fontFamily: { ref: 'fontFamily' },
+                    fontFamily: { $ref: 'fontFamily' },
                     spacing: 5,
                 },
                 padding: {

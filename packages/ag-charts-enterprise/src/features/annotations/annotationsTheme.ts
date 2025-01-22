@@ -9,7 +9,7 @@ import {
 const { ThemeSymbols } = _ModuleSupport;
 
 const stroke = {
-    stroke: { ref: 'foregroundColor' as const },
+    stroke: { $ref: 'foregroundColor' as const },
     strokeOpacity: 1,
     strokeWidth: 2,
 };
@@ -21,16 +21,16 @@ const handle = {
 };
 
 const font = {
-    color: { ref: 'backgroundColor' as const },
+    color: { $ref: 'backgroundColor' as const },
     fontSize: 14,
-    fontFamily: { ref: 'fontFamily' as const },
+    fontFamily: { $ref: 'fontFamily' as const },
 };
 
 const axisLabel = {
     ...font,
     enabled: true,
-    fill: { ref: 'foregroundColor' as const },
-    fontSize: { ref: 'fontSize' as const },
+    fill: { $ref: 'foregroundColor' as const },
+    fontSize: { $ref: 'fontSize' as const },
 };
 
 const text = {
@@ -42,12 +42,12 @@ const lineText = {
     ...font,
     position: 'top' as const,
     alignment: 'center' as const,
-    color: { ref: 'foregroundColor' as const },
+    color: { $ref: 'foregroundColor' as const },
 };
 
 const measurerStatistics = {
     ...font,
-    fontSize: { ref: 'fontSize' as const },
+    fontSize: { $ref: 'fontSize' as const },
     color: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_COLOR,
     fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_FILL,
     stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_STROKE,
@@ -62,7 +62,7 @@ const measurerStatistics = {
 const measurer = {
     ...stroke,
     background: {
-        fill: { ref: 'foregroundColor' as const },
+        fill: { $ref: 'foregroundColor' as const },
         fillOpacity: 0.075,
     },
     handle: { ...handle },
@@ -94,7 +94,7 @@ const toolbar: AgAnnotationsToolbar = {
         },
     ],
     // @ts-expect-error undocumented option
-    padding: { ref: 'padding' },
+    padding: { $ref: 'padding' },
 };
 
 const optionsToolbar: AgAnnotationOptionsToolbar = {
@@ -176,7 +176,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     'disjoint-channel': {
         ...stroke,
         background: {
-            fill: { ref: 'foregroundColor' },
+            fill: { $ref: 'foregroundColor' },
             fillOpacity: 0.075,
         },
         handle: { ...handle },
@@ -189,7 +189,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
             strokeWidth: 1,
         },
         background: {
-            fill: { ref: 'foregroundColor' },
+            fill: { $ref: 'foregroundColor' },
             fillOpacity: 0.075,
         },
         handle: { ...handle },
@@ -200,7 +200,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     'fibonacci-retracement': {
         ...stroke,
         strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
-        rangeStroke: { ref: 'foregroundColor' },
+        rangeStroke: { $ref: 'foregroundColor' },
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
         label: { ...font, color: undefined, fontSize: 10 },
@@ -209,7 +209,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     'fibonacci-retracement-trend-based': {
         ...stroke,
         strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
-        rangeStroke: { ref: 'foregroundColor' },
+        rangeStroke: { $ref: 'foregroundColor' },
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
         label: { ...font, color: undefined, fontSize: 10 },
@@ -219,22 +219,22 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     callout: {
         ...stroke,
         ...text,
-        color: { ref: 'foregroundColor' },
+        color: { $ref: 'foregroundColor' },
         handle: { ...handle },
-        fill: { ref: 'foregroundColor' },
+        fill: { $ref: 'foregroundColor' },
         fillOpacity: 0.075,
     },
     comment: {
         ...text,
         fontWeight: 700,
         handle: { ...handle },
-        fill: { ref: 'foregroundColor' },
+        fill: { $ref: 'foregroundColor' },
     },
     note: {
         ...text,
         color: ThemeSymbols.DEFAULT_TEXTBOX_COLOR,
         fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-        stroke: { ref: 'backgroundColor' },
+        stroke: { $ref: 'backgroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
         handle: { ...handle },
@@ -246,7 +246,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
     text: {
         ...text,
-        color: { ref: 'foregroundColor' },
+        color: { $ref: 'foregroundColor' },
         handle: { ...handle },
     },
 
@@ -258,11 +258,11 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
     'arrow-up': {
         fill: ThemeSymbols.PALETTE_UP_FILL,
-        handle: { ...handle, stroke: { ref: 'foregroundColor' } },
+        handle: { ...handle, stroke: { $ref: 'foregroundColor' } },
     },
     'arrow-down': {
         fill: ThemeSymbols.PALETTE_DOWN_FILL,
-        handle: { ...handle, stroke: { ref: 'foregroundColor' } },
+        handle: { ...handle, stroke: { $ref: 'foregroundColor' } },
     },
 
     // Measurers

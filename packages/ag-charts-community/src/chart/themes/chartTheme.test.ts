@@ -576,7 +576,7 @@ describe('ChartTheme', () => {
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('left');
 
-            // TODO: theme config values are { ref: 'something' } as this is the unresolved value. This is not a bug
+            // TODO: theme config values are { $ref: 'something' } as this is the unresolved value. This is not a bug
             // with the real output and we are likely going to remove position specific axis theming.
             // expect(axis0.line.stroke).toBe(defaultTheme.config.area.axes.number.line.stroke);
             // expect(axis0.label.fontSize).toBe(defaultTheme.config.area.axes.number.label.fontSize);
@@ -629,7 +629,7 @@ describe('ChartTheme', () => {
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('left');
 
-            // TODO: theme config values are `{ ref: 'something' }` as this is the unresolved value. This is not a bug
+            // TODO: theme config values are `{ $ref: 'something' }` as this is the unresolved value. This is not a bug
             // with the real output and we are likely going to remove position specific axis theming.
             // expect(axis0.line.stroke).toBe(defaultTheme.config.area.axes.number.line.stroke);
             // expect(axis0.label.fontSize).toBe(defaultTheme.config.area.axes.number.label.fontSize);
@@ -784,7 +784,7 @@ describe('ChartTheme', () => {
             expect(axis1.label.fontSize).toBe(18);
             expect(axis1.label.fontStyle).toBe(defaultTheme.config.area.axes.category.label.fontStyle);
 
-            // TODO: theme config fontFamily is `{ ref: 'fontFamily' }` as this is the unresolved value. This is not a bug
+            // TODO: theme config fontFamily is `{ $ref: 'fontFamily' }` as this is the unresolved value. This is not a bug
             // with the real output and we are likely going to remove position specific axis theming.
             // expect(axis1.label.fontFamily).toBe(defaultTheme.config.area.axes.category.label.fontFamily);
 

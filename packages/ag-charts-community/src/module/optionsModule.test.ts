@@ -1655,7 +1655,7 @@ describe('ChartOptions', () => {
             expect(series0?.marker?.strokeWidth).toBe(theme.config.line.series.marker.strokeWidth);
             expect(series0?.label?.enabled).toBe(false);
 
-            // TODO: theme config color is `{ ref: 'foregroundColor' }` as this is the unresolved value. This is not a bug
+            // TODO: theme config color is `{ $ref: 'foregroundColor' }` as this is the unresolved value. This is not a bug
             // with the real output.
             // expect(series0?.label?.color).toBe(theme.config.line.series.label.color);
 

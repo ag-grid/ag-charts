@@ -8,9 +8,9 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
     series: {
         label: {
             enabled: false,
-            fontSize: { ref: 'fontSize' },
-            fontFamily: { ref: 'fontFamily' },
-            color: { ref: 'foregroundColor' },
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
+            color: { $ref: 'foregroundColor' },
         },
         marker: {
             enabled: true,

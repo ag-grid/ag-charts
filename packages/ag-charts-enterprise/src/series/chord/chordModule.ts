@@ -21,8 +21,8 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
                 },
             },
             label: {
-                fontFamily: { ref: 'fontFamily' },
-                color: { ref: 'foregroundColor' },
+                fontFamily: { $ref: 'fontFamily' },
+                color: { $ref: 'foregroundColor' },
                 spacing: 5,
                 maxWidth: 100,
             },

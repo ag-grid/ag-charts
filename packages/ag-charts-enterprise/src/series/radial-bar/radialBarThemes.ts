@@ -10,8 +10,8 @@ export const RADIAL_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-bar'>[
         strokeWidth: 0,
         label: {
             enabled: false,
-            fontSize: { ref: 'fontSize' },
-            fontFamily: { ref: 'fontFamily' },
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
             color: DEFAULT_INVERTED_LABEL_COLOUR,
         },
     },

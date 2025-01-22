@@ -38,7 +38,7 @@ const lineText = {
 const font = {
     color: DEFAULT_TEXT_ANNOTATION_COLOR,
     fontSize: 14,
-    fontFamily: { ref: 'fontFamily' as const },
+    fontFamily: { $ref: 'fontFamily' as const },
 };
 
 const text = {
@@ -49,7 +49,7 @@ const text = {
 
 const measurerStatistics = {
     ...font,
-    fontSize: { ref: 'fontSize' as const },
+    fontSize: { $ref: 'fontSize' as const },
     color: DEFAULT_ANNOTATION_STATISTICS_COLOR,
     fill: DEFAULT_ANNOTATION_STATISTICS_FILL,
     stroke: DEFAULT_ANNOTATION_STATISTICS_STROKE,
@@ -135,7 +135,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     callout: {
         ...stroke,
         ...text,
-        color: { ref: 'foregroundColor' },
+        color: { $ref: 'foregroundColor' },
         handle: { ...handle },
         fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
         fillOpacity: 0.2,
@@ -151,7 +151,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...text,
         color: DEFAULT_TEXTBOX_COLOR,
         fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-        stroke: { ref: 'backgroundColor' },
+        stroke: { $ref: 'backgroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
         handle: { ...handle },

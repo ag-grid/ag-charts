@@ -374,30 +374,30 @@ function jsonResolveVisitorValue<T, P>(
 }
 
 enum Operation {
-    Ref = 'ref',
-    Path = 'path',
-    If = 'if',
-    Eq = 'eq',
-    Not = 'not',
-    Or = 'or',
-    And = 'and',
-    Mul = 'mul',
-    Round = 'round',
+    Ref = '$ref',
+    Path = '$path',
+    If = '$if',
+    Eq = '$eq',
+    Not = '$not',
+    Or = '$or',
+    And = '$and',
+    Mul = '$mul',
+    Round = '$round',
 }
 const operationKeys = new Set(Object.values(Operation));
 type OperationFn<T, C> = (value: string | Array<unknown>, params: C, source: T, path: string[]) => any;
 
 const operations: Record<Operation, OperationFn<any, any>> = {
-    ref: (key, params, _source, path) => {
+    $ref: (key, params, _source, path) => {
         if (isString(key) && key in params) return params[key];
         Logger.warnOnce(
-            `\`ref\` json operation failed on [${String(key)}] at [${path.join('.')}], expecting one of [${Object.keys(params).join(', ')}].`
+            `\`$ref\` json operation failed on [${String(key)}] at [${path.join('.')}], expecting one of [${Object.keys(params).join(', ')}].`
         );
     },
-    path: (relativePath, _params, source, currentPath) => {
+    $path: (relativePath, _params, source, currentPath) => {
         if (!isString(relativePath)) {
             Logger.warnOnce(
-                `\`path\` json operation failed on [${String(relativePath)}] at [${currentPath.join('.')}], expecting a string.`
+                `\`$path\` json operation failed on [${String(relativePath)}] at [${currentPath.join('.')}], expecting a string.`
             );
             return;
         }
@@ -420,7 +420,7 @@ const operations: Record<Operation, OperationFn<any, any>> = {
         for (const part of resolvedPath) {
             if (!(part in resolvedValue)) {
                 Logger.warnOnce(
-                    `\`path\` json operation failed on [${String(relativePath)}] at [${currentPath.join('.')}], could not find path in object.`
+                    `\`$path\` json operation failed on [${String(relativePath)}] at [${currentPath.join('.')}], could not find path in object.`
                 );
                 return;
             }
@@ -429,21 +429,21 @@ const operations: Record<Operation, OperationFn<any, any>> = {
 
         return resolvedValue;
     },
-    if: ([condition, thenValue, elseValue]) => (condition ? thenValue : elseValue),
-    eq: ([a, b]) => a === b,
-    not: ([a, b]) => a !== b,
-    or: ([a, b]) => a || b,
-    and: ([a, b]) => a && b,
-    mul: ([a, b], _params, _source, path) => {
+    $if: ([condition, thenValue, elseValue]) => (condition ? thenValue : elseValue),
+    $eq: ([a, b]) => a === b,
+    $not: ([a, b]) => a !== b,
+    $or: ([a, b]) => a || b,
+    $and: ([a, b]) => a && b,
+    $mul: ([a, b], _params, _source, path) => {
         if (typeof a === 'number' && typeof b === 'number') return a * b;
         Logger.warnOnce(
-            `\`mul\` json operation failed on [${String(a)}] and [${String(b)}] at [${path.join('.')}], expecting two numbers.`
+            `\`$mul\` json operation failed on [${String(a)}] and [${String(b)}] at [${path.join('.')}], expecting two numbers.`
         );
     },
-    round: ([a], _params, _source, path) => {
+    $round: ([a], _params, _source, path) => {
         if (typeof a === 'number') return Math.round(a);
         Logger.warnOnce(
-            `\`round\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`
+            `\`$round\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`
         );
     },
 };

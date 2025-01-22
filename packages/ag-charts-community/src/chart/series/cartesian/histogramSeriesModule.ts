@@ -31,9 +31,9 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
             lineDashOffset: 0,
             label: {
                 enabled: false,
-                fontSize: { ref: 'fontSize' },
-                fontFamily: { ref: 'fontFamily' },
-                color: { ref: 'backgroundColor' },
+                fontSize: { $ref: 'fontSize' },
+                fontFamily: { $ref: 'fontFamily' },
+                color: { $ref: 'backgroundColor' },
             },
             shadow: {
                 enabled: false,

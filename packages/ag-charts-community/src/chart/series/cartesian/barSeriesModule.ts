@@ -31,19 +31,19 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             lineDashOffset: 0,
             label: {
                 enabled: false,
-                fontWeight: { ref: 'fontWeight' },
-                fontSize: { ref: 'fontSize' },
-                fontFamily: { ref: 'fontFamily' },
+                fontWeight: { $ref: 'fontWeight' },
+                fontSize: { $ref: 'fontSize' },
+                fontFamily: { $ref: 'fontFamily' },
                 color: {
-                    if: [
+                    $if: [
                         {
-                            or: [
-                                { eq: [{ path: './placement' }, 'outside-start'] },
-                                { eq: [{ path: './placement' }, 'outside-end'] },
+                            $or: [
+                                { $eq: [{ $path: './placement' }, 'outside-start'] },
+                                { $eq: [{ $path: './placement' }, 'outside-end'] },
                             ],
                         },
-                        { ref: 'foregroundColor' },
-                        { ref: 'backgroundColor' },
+                        { $ref: 'foregroundColor' },
+                        { $ref: 'backgroundColor' },
                     ],
                 },
                 placement: 'inside-center',
