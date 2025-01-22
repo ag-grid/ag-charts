@@ -11,6 +11,12 @@ const options: AgCartesianChartOptions = {
         enabled: true,
         enableAxisDragging: false,
     },
+    initialState: {
+        zoom: {
+            ratioX: { start: 0.48, end: 0.52 },
+            ratioY: { start: 0.15, end: 0.60 },
+        },
+    },
     series: [
         {
             type: 'candlestick',
@@ -26,6 +32,8 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function changeAction(newAction: NonNullable<AgTouchOptions['dragAction']>) {
-    options.touch.dragAction = newAction;
+    if (options.touch) {
+        options.touch.dragAction = newAction;
+    }
     chart.update(options);
 }
