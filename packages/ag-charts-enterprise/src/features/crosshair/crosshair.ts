@@ -88,8 +88,8 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
-            ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseMove(event)),
-            ctx.widgets.seriesWidget.addListener('drag-move', (event) => this.onMouseDrag(event)),
+            ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
+            ctx.widgets.seriesWidget.addListener('drag-move', (event) => this.onMouseHoverLike(event)),
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
             ctx.chartEventManager.addListener('series-focus-change', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
@@ -182,6 +182,11 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return this.axisCtx.direction === ChartAxisDirection.X;
     }
 
+    private isHover(event: _Widget.DragWidgetEvent | _Widget.MouseWidgetEvent<'mousemove'>): boolean {
+        const chart = this.ctx.chartService;
+        return event.type === 'mousemove' || (event.device === 'touch' && chart.touch.dragAction === 'hover');
+    }
+
     private formatValue(value: unknown): string {
         const {
             labelFormatter,
@@ -202,19 +207,11 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return String(value ?? '');
     }
 
-    private onMouseDrag(event: _Widget.DragWidgetEvent<'drag-move'>) {
-        if (this.ctx.interactionManager.isState(InteractionState.AnnotationsMoveable)) {
-            this.onMouseHoverLike(event);
-        }
-    }
-    private onMouseMove(event: _Widget.MouseWidgetEvent<'mousemove'>) {
-        if (this.ctx.interactionManager.isState(InteractionState.Clickable)) {
-            this.onMouseHoverLike(event);
-        }
-    }
-
     private onMouseHoverLike(event: _Widget.DragWidgetEvent<'drag-move'> | _Widget.MouseWidgetEvent<'mousemove'>) {
         if (!this.enabled || this.snap) return;
+
+        const requiredState = this.isHover(event) ? InteractionState.Clickable : InteractionState.AnnotationsMoveable;
+        if (!this.ctx.interactionManager.isState(requiredState)) return;
 
         this.updatePositions(this.getData(event));
         this.crosshairGroup.visible = true;
