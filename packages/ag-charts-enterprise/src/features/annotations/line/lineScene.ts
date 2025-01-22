@@ -69,7 +69,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
     private updateText(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {
         this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
-        updateLineText(this.line.id, this.line, datum.text, coords, this.text, datum.text.label, datum.strokeWidth);
+        updateLineText(this.line.id, this.line, coords, datum.text, this.text, datum.text.label, datum.strokeWidth);
     }
 
     private updateCaps(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {
