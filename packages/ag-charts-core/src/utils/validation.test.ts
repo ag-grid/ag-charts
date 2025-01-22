@@ -9,8 +9,10 @@ import {
     boolean,
     callback,
     constant,
+    date,
     instanceOf,
     isValid,
+    lessThan,
     number,
     object,
     optionsDefs,
@@ -41,6 +43,8 @@ describe('Validation utils', () => {
                 [object, [], false],
                 [array, [], true],
                 [array, 'not an array', false],
+                [date, new Date(), true],
+                [date, 'not a date', false],
                 [callback, () => {}, true],
                 [callback, 'not a function', false],
             ])('%p validates %p as %p', (validator, input, expected) => {
@@ -55,8 +59,10 @@ describe('Validation utils', () => {
                 [ratio, 0.5, true],
                 [ratio, -0.1, false],
                 [ratio, 1.1, false],
+                [lessThan('contextKey'), 4.2, true],
+                [lessThan('contextKey'), 420, false],
             ])('%p validates %p as %p', (validator, input, expected) => {
-                expect(validator(input)).toBe(expected);
+                expect(validator(input, { contextKey: 42 })).toBe(expected);
             });
         });
     });
