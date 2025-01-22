@@ -1,17 +1,9 @@
+import { _ModuleSupport } from 'ag-charts-community';
 import type { AgTopologyChartOptions } from 'ag-charts-types';
 
-import type { LayoutContext } from '../module/baseModule';
-import type { ChartOptions } from '../module/optionsModule';
-import { NumberAxis } from './axis/numberAxis';
-import type { TransferableResources } from './chart';
-import { Chart } from './chart';
-import type { Series } from './series/series';
-import type { Position } from './series/topology/geojson';
-import type { LonLatBBox } from './series/topology/lonLatBbox';
-import { MercatorScale } from './series/topology/mercatorScale';
-import type { ITopology } from './series/topologySeries';
+const { Chart, MercatorScale, NumberAxis } = _ModuleSupport;
 
-function isTopologySeries(series: Series<unknown, any, any>): series is ITopology {
+function isTopologySeries(series: _ModuleSupport.Series<unknown, any, any>): series is _ModuleSupport.ITopology {
     return (
         series.type === 'map-shape' ||
         series.type === 'map-line' ||
@@ -25,10 +17,10 @@ export class TopologyChart extends Chart {
     static readonly className = 'TopologyChart';
     static readonly type = 'topology' as const;
 
-    private readonly xAxis: NumberAxis;
-    private readonly yAxis: NumberAxis;
+    private readonly xAxis: _ModuleSupport.NumberAxis;
+    private readonly yAxis: _ModuleSupport.NumberAxis;
 
-    constructor(options: ChartOptions, resources?: TransferableResources) {
+    constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
         super(options, resources);
 
         this.xAxis = new NumberAxis(this.getModuleContext());
@@ -55,7 +47,7 @@ export class TopologyChart extends Chart {
         });
     }
 
-    protected performLayout(ctx: LayoutContext) {
+    protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
         const { layoutBox } = ctx;
 
@@ -65,8 +57,8 @@ export class TopologyChart extends Chart {
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
 
-        const mapSeries = this.series.filter<ITopology>(isTopologySeries);
-        const combinedBbox = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
+        const mapSeries = this.series.filter<_ModuleSupport.ITopology>(isTopologySeries);
+        const combinedBbox = mapSeries.reduce<_ModuleSupport.LonLatBBox | undefined>((combined, series) => {
             if (!series.visible) return combined;
             const bbox = series.topologyBounds;
             if (bbox == null) return combined;
@@ -75,10 +67,10 @@ export class TopologyChart extends Chart {
             return combined;
         }, undefined);
 
-        let scale: MercatorScale | undefined;
+        let scale: _ModuleSupport.MercatorScale | undefined;
         if (combinedBbox != null) {
             const { lon0, lat0, lon1, lat1 } = combinedBbox;
-            const domain: Position[] = [
+            const domain: _ModuleSupport.Position[] = [
                 [lon0, lat0],
                 [lon1, lat1],
             ];

@@ -1,6 +1,7 @@
-import type { DeepPartial } from 'ag-charts-core';
 import {
+    type DeepPartial,
     Logger,
+    ModuleRegistry,
     circularSliceArray,
     groupBy,
     isArray,
@@ -26,7 +27,7 @@ import {
 
 import { PRESETS, PRESET_DATA_PROCESSORS } from '../api/preset/presets';
 import { axisRegistry } from '../chart/factory/axisRegistry';
-import { publicChartTypes } from '../chart/factory/chartTypes';
+import { type ChartType, publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
 import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
@@ -34,13 +35,8 @@ import { getChartTheme } from '../chart/mapping/themes';
 import {
     type SeriesOptionsTypes,
     isAgCartesianChartOptions,
-    isAgFlowProportionChartOptions,
-    isAgGaugeChartOptions,
-    isAgHierarchyChartOptions,
-    isAgPolarChartOptions,
     isAgPolarChartOptionsWithSeriesBasedLegend,
     isAgStandaloneChartOptions,
-    isAgTopologyChartOptions,
     isAxisOptionType,
     isSeriesOptionType,
 } from '../chart/mapping/types';
@@ -270,13 +266,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.sanityCheck(options);
         this.removeDisabledOptions(options);
 
-        const chartType = this.optionsType(options);
+        const seriesType = this.optionsType(options);
         const {
             axes: axesThemes = {},
             annotations = {},
             series: seriesTheme,
             ...themeDefaults
-        } = this.getSeriesThemeConfig(chartType, activeTheme);
+        } = this.getSeriesThemeConfig(seriesType, activeTheme);
 
         const [annotationsOptions, annotationsThemes] = this.splitAnnotationsOptions(annotations);
         this.annotationThemes = deepClone(annotationsThemes);
@@ -595,22 +591,25 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private getDefaultSeriesType(options: T): SeriesType {
-        if (isAgCartesianChartOptions(options)) {
-            return 'line';
-        } else if (isAgPolarChartOptions(options)) {
-            return 'pie';
-        } else if (isAgHierarchyChartOptions(options)) {
-            return 'treemap';
-        } else if (isAgTopologyChartOptions(options)) {
-            return 'map-shape';
-        } else if (isAgFlowProportionChartOptions(options)) {
-            return 'sankey';
-        } else if (isAgStandaloneChartOptions(options)) {
-            return 'pyramid';
-        } else if (isAgGaugeChartOptions(options)) {
-            return 'radial-gauge';
+        const chartDef = ModuleRegistry.detectChartDefinition(options);
+        switch (chartDef.name as ChartType) {
+            case 'cartesian':
+                return 'line';
+            case 'polar':
+                return 'pie';
+            case 'hierarchy':
+                return 'treemap';
+            case 'topology':
+                return 'map-shape';
+            case 'flow-proportion':
+                return 'sankey';
+            case 'standalone':
+                return 'pyramid';
+            case 'gauge':
+                return 'radial-gauge';
+            default:
+                throw new Error('Invalid chart options type detected.');
         }
-        throw new Error('Invalid chart options type detected.');
     }
 
     private getTooltipPositionDefaults(options: T) {

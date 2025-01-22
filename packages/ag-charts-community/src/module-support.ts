@@ -1,6 +1,18 @@
 import * as fromToMotion from './motion/fromToMotion';
 import * as resetMotion from './motion/resetMotion';
 
+export { Chart } from './chart/chart';
+export type { TransferableResources } from './chart/chart';
+export { NumberAxis } from './chart/axis/numberAxis';
+export {
+    isAgFlowProportionChartOptions,
+    isAgGaugeChartOptions,
+    isAgHierarchyChartOptions,
+    isAgStandaloneChartOptions,
+    isAgTopologyChartOptions,
+} from './chart/mapping/types';
+export { ModuleRegistry } from 'ag-charts-core';
+
 export * from './core';
 export * from './util/angle';
 export * from './util/date';

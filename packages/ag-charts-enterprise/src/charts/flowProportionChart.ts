@@ -1,13 +1,14 @@
+import { _ModuleSupport } from 'ag-charts-community';
 import type { AgFlowProportionChartOptions } from 'ag-charts-types';
 
-import type { LayoutContext } from '../module/baseModule';
-import { Chart } from './chart';
-import type { FlowProportionSeries } from './series/flowProportionSeries';
-import type { Series } from './series/series';
+const { Chart } = _ModuleSupport;
 
-function isFlowProportion(series: Series<unknown, any, any>): series is FlowProportionSeries {
+function isFlowProportion(
+    series: _ModuleSupport.Series<unknown, any, any>
+): series is _ModuleSupport.FlowProportionSeries {
     return series.type === 'sankey' || series.type === 'chord';
 }
+
 export class FlowProportionChart extends Chart {
     static readonly className = 'FlowProportionChart';
     static readonly type = 'flow-proportion' as const;
@@ -28,7 +29,7 @@ export class FlowProportionChart extends Chart {
         });
     }
 
-    protected performLayout(ctx: LayoutContext) {
+    protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
         const { layoutBox } = ctx;
 

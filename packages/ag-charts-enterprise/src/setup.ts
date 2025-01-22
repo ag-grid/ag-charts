@@ -5,6 +5,11 @@ import { AngleNumberAxisModule } from './axes/angle-number/main';
 import { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
 import { RadiusCategoryAxisModule } from './axes/radius-category/main';
 import { RadiusNumberAxisModule } from './axes/radius-number/main';
+import { FlowProportionChartModule } from './charts/flowProportionChartModule';
+import { GaugeChartModule } from './charts/gaugeChartModule';
+import { HierarchyChartModule } from './charts/hierarchyChartModule';
+import { StandaloneChartModule } from './charts/standaloneChartModule';
+import { TopologyChartModule } from './charts/topologyChartModule';
 import { AnimationModule } from './features/animation/main';
 import { AnnotationsModule } from './features/annotations/annotationsModule';
 import { BackgroundModule } from './features/background/main';
@@ -52,6 +57,15 @@ import { SunburstModule } from './series/sunburst/main';
 import { TreemapModule } from './series/treemap/main';
 import { WaterfallModule } from './series/waterfall/main';
 import styles from './styles.css';
+
+// Temporarily set here, in the future users will register modules manually
+_ModuleSupport.ModuleRegistry.registerMany([
+    FlowProportionChartModule,
+    GaugeChartModule,
+    HierarchyChartModule,
+    StandaloneChartModule,
+    TopologyChartModule,
+]);
 
 export function setupEnterpriseModules() {
     _ModuleSupport.moduleRegistry.register(

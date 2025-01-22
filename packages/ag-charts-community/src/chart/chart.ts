@@ -1,4 +1,4 @@
-import { Logger, groupBy, isFiniteNumber, isFunction } from 'ag-charts-core';
+import { Logger, type ModuleInstance, groupBy, isFiniteNumber, isFunction } from 'ag-charts-core';
 import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateLegendOptions } from 'ag-charts-types';
 
 import type { AxisOptionModule } from '../module/axisOptionModule';
@@ -40,6 +40,7 @@ import { ChartUpdateType } from './chartUpdateType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { axisRegistry } from './factory/axisRegistry';
+import type { ChartType } from './factory/chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
@@ -90,7 +91,7 @@ class SeriesArea extends BaseProperties {
     padding = new Padding(0);
 }
 
-export abstract class Chart extends Observable {
+export abstract class Chart extends Observable implements ModuleInstance {
     private static readonly chartsInstances = new WeakMap<HTMLElement, Chart>();
 
     static getInstance(element: HTMLElement): Chart | undefined {
@@ -246,7 +247,7 @@ export abstract class Chart extends Observable {
         return this.queuedChartOptions.at(-1) ?? this.chartOptions;
     }
 
-    protected constructor(options: ChartOptions, resources?: TransferableResources) {
+    constructor(options: ChartOptions, resources?: TransferableResources) {
         super();
 
         this.chartOptions = options;
@@ -357,14 +358,7 @@ export abstract class Chart extends Observable {
         return this.ctx;
     }
 
-    abstract getChartType():
-        | 'cartesian'
-        | 'polar'
-        | 'hierarchy'
-        | 'topology'
-        | 'flow-proportion'
-        | 'standalone'
-        | 'gauge';
+    abstract getChartType(): ChartType;
 
     protected getCaptionText(): string {
         return [this.title, this.subtitle, this.footnote]

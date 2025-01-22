@@ -3,6 +3,7 @@ export * from './globals';
 
 // Interfaces
 export * from './interfaces/globalTypes';
+export * from './interfaces/moduleDefinition';
 
 // Classes
 export * from './classes/eventEmitter';
