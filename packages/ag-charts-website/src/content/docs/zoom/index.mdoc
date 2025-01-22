@@ -131,7 +131,21 @@ This allows users to reset the zoom by double-clicking in an empty space in the 
 
 ## Single Finger Touch Dragging
 
-TODO
+By default, Single Finger Touch Drag events are ignored by the chart and bubble up. To change the input handling behavior of these events, use `touch.dragAction`.
+
+{% chartExampleRunner title="Single Finger Touch Dragging" name="single-finger-touch-dragging" type="generated" /%}
+
+```ts
+touch: {
+    dragAction: 'pan',
+}
+```
+
+In this example:
+
+-   `dragAction: 'none'` (default) disables Single Finger input handling, scrolling the pan.
+-   `dragAction: 'pan'` causes the view to pan when dragging.
+-   `dragAction: 'hover'` emulates mouse movements, updating the tooltip & highlight.
 
 ## Minimum Visible Items
 
