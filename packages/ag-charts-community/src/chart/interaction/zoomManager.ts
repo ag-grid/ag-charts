@@ -612,14 +612,16 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         if (r0 < dMin || r0 > dMax) {
             Logger.warnOnce(
-                `Invalid range start [${range.start}], expecting a value between [${axis.scale.invert?.(d0)}] and [${axis.scale.invert?.(d1)}].`
+                `Invalid range start [${range.start}], expecting a value between [${axis.scale.invert?.(d0)}] and [${axis.scale.invert?.(d1)}], ignoring.`
             );
+            return;
         }
 
         if (r1 < dMin || r1 > dMax) {
             Logger.warnOnce(
-                `Invalid range end [${range.end}], expecting a value between [${axis.scale.invert?.(d0)}] and [${axis.scale.invert?.(d1)}].`
+                `Invalid range end [${range.end}], expecting a value between [${axis.scale.invert?.(d0)}] and [${axis.scale.invert?.(d1)}], ignoring.`
             );
+            return;
         }
 
         r0 = Math.min(dMax, Math.max(dMin, r0));
