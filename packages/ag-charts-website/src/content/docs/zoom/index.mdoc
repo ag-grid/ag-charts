@@ -19,9 +19,13 @@ zoom: {
 In the above example you can:
 
 -   Scroll in and out with the mouse wheel or trackpad.
--   Click and drag to pan around the zoomed in chart.
--   Click and drag an axis to zoom in or out on only that axis.
--   Double click anywhere to reset the zoom.
+-   Adjust the zoom-pan using two fingers.
+-   Use {% kbd "+" /%} and {% kbd "-" /%} keys to zoom in or out (when in focus).
+-   Click and drag the mouse to pan around the zoomed in chart.
+-   Touch and drag one finger to view tooltips.
+-   Click (or touch) and drag an axis to zoom in or out on only that axis.
+-   Double click (or double tap) anywhere to reset the zoom.
+-   Double click (or double tap) an axis to reset the zoom on only that axis.
 
 {% note %}
 If `axis[].tick.maxSpacing` is provided, the axis ticks and labels will update with the zoom.
@@ -125,6 +129,10 @@ In the example below, we have two series, each attached to a different y-axis. D
 ## Double-Click to Reset
 
 This allows users to reset the zoom by double-clicking in an empty space in the chart area, and is enabled by default. To disable, use `enableDoubleClickToReset: false`.
+
+## Single Finger Touch Dragging
+
+TODO
 
 ## Minimum Visible Items
 
