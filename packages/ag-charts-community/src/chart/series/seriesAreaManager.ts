@@ -57,6 +57,10 @@ type PickedNode = {
     distance: number;
 };
 
+function isTouchHover({ ctx }: SeriesAreaChartDependencies, event: HoverLikeEvent) {
+    return ctx.chartService.touch.dragAction === 'hover' && event.device === 'touch';
+}
+
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
 
@@ -291,7 +295,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onHoverLikeEvent(event: HoverLikeEvent): void {
-        if (event.device === 'touch' || excludesType(event, 'drag-move')) {
+        if (isTouchHover(this.chart, event) || excludesType(event, 'drag-move')) {
             this.tooltip.lastHover = event;
         }
         this.hoverDevice = 'pointer';
