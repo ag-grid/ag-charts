@@ -8,7 +8,12 @@
       "executor": "nx:noop",
       "inputs": [],
       "outputs": [],
-      "dependsOn": ["dev:setup", "^build"]
+      "dependsOn": ["^build"],
+      "configurations": {
+        "staging": {},
+        "archive": {},
+        "production": {}
+      }
     },
     "lint": {
       "executor": "nx:noop",
@@ -34,6 +39,8 @@
       "outputs": [],
       "dependsOn": ["^pack"],
       "configurations": {
+        "staging": {},
+        "archive": {},
         "production": {}
       }
     },
@@ -43,6 +50,8 @@
       "outputs": [],
       "dependsOn": ["^pack:extract"],
       "configurations": {
+        "staging": {},
+        "archive": {},
         "production": {}
       }
     },
@@ -52,54 +61,50 @@
       "outputs": [],
       "dependsOn": ["^pack:verify"],
       "configurations": {
+        "staging": {},
+        "archive": {},
         "production": {}
       }
     },
     "generate": {
-      "dependsOn": ["^build:types", "^build:package"],
-      "executor": "nx:run-commands",
+      "dependsOn": ["^generate-examples", "^generate-thumbnails"],
+      "executor": "nx:noop",
       "inputs": [],
       "outputs": [],
       "cache": false,
-      "options": {
-        "parallel": false,
-        "commands": [
-          "npx nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website --batch"
-        ]
+      "configurations": {
+        "staging": {},
+        "archive": {},
+        "production": {}
       }
     },
     "generate-examples": {
-      "dependsOn": ["^build:types", "^build:package"],
-      "executor": "nx:run-commands",
+      "dependsOn": ["^generate-examples"],
+      "executor": "nx:noop",
       "inputs": [],
       "outputs": [],
       "cache": false,
-      "options": {
-        "parallel": false,
-        "commands": ["npx nx run-many --output-style compact -t generate-examples -p ag-charts-website --batch"]
+      "configurations": {
+        "staging": {},
+        "archive": {},
+        "production": {}
       }
     },
     "generate-thumbnails": {
-      "dependsOn": ["^build:types", "^build:package"],
-      "executor": "nx:run-commands",
+      "dependsOn": ["^generate-thumbnails"],
+      "executor": "nx:noop",
       "inputs": [],
       "outputs": [],
       "cache": false,
-      "options": {
-        "parallel": false,
-        "commands": ["npx nx run-many --output-style compact -t generate-thumbnails -p ag-charts-website --batch"]
+      "configurations": {
+        "staging": {},
+        "archive": {},
+        "production": {}
       }
-    },
-    "dev:setup": {
-      "executor": "nx:noop",
-      "dependsOn": ["^build:types", "^build:package", "generate"],
-      "inputs": [],
-      "outputs": [],
-      "cache": false
     },
     "dev": {
       "executor": "nx:run-commands",
-      "dependsOn": ["dev:setup"],
+      "dependsOn": ["^build:types", "^build:package", "generate"],
       "inputs": [],
       "outputs": [],
       "options": {
@@ -147,10 +152,25 @@
       "inputs": ["{workspaceRoot}/**"],
       "outputs": []
     },
+    "validate-examples": {
+      "dependsOn": ["^validate-examples"],
+      "cache": false,
+      "inputs": [],
+      "outputs": []
+    },
     "blt": {
       "executor": "nx:noop",
-      "dependsOn": ["build", "lint", "format-check", "test", "^validate-examples"],
+      "dependsOn": [
+        "^build",
+        "generate-examples",
+        "generate-thumbnails",
+        "lint",
+        "format",
+        "test",
+        "validate-examples"
+      ],
       "inputs": [],
+      "outputs": [],
       "cache": false
     },
     "clean": {
