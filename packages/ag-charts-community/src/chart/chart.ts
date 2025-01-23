@@ -481,6 +481,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
             .catch((e) => Logger.errorOnce(e));
     });
     public update(type = ChartUpdateType.FULL, opts?: UpdateOpts) {
+        if (this.destroyed) return;
+
         const {
             forceNodeDataRefresh = false,
             skipAnimations,

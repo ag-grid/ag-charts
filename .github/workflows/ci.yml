@@ -40,8 +40,6 @@ env:
     NX_NO_CLOUD: true
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
-    # Set to --batch to enable batch execution.
-    NX_BATCH_FLAG: '--batch'
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 concurrency:
@@ -95,10 +93,7 @@ jobs:
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
-                  yarn nx run-many -p tag:no-batching -t build --parallel=3
-                  # Batched builds.
-                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all ${NX_BATCH_FLAG}
+                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all
 
             - name: nx run generate-gallery-thumbnail
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
