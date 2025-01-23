@@ -45,6 +45,7 @@
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-enterprise.xml"],
+      "parallelism": false,
       "options": {
         "jestConfig": "{projectRoot}/jest.config.ts",
         "testPathIgnorePatterns": [".*/benchmarks/.*"],
