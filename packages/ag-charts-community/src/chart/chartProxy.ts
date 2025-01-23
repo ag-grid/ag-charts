@@ -147,11 +147,12 @@ export class AgChartInstanceProxy implements AgChartProxy {
     destroy() {
         if (this.releaseChart) {
             this.releaseChart();
-            (this as any).chart = null;
-        } else {
+            this.releaseChart = undefined;
+        } else if (this.chart) {
             this.chart.publicApi = undefined;
             this.chart.destroy();
         }
+        (this as any).chart = null;
     }
 
     private async prepareResizedChart(proxy: AgChartInstanceProxy, opts: DownloadOptions = {}) {
