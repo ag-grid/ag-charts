@@ -6,9 +6,9 @@ export const RANGE_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'range-bar'>['t
         strokeWidth: 0,
         label: {
             enabled: false,
-            fontSize: { ref: 'fontSize' },
-            fontFamily: { ref: 'fontFamily' },
-            color: { ref: 'backgroundColor' },
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
+            color: { $ref: 'backgroundColor' },
             placement: 'inside',
         },
     },

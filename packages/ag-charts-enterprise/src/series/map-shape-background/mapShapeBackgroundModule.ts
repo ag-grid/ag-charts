@@ -17,7 +17,7 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
-            stroke: { ref: 'backgroundColor' },
+            stroke: { $ref: 'backgroundColor' },
             strokeWidth: 1,
         },
     },

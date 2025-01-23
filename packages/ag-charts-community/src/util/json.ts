@@ -1,4 +1,14 @@
-import { Logger, isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from 'ag-charts-core';
+import {
+    Logger,
+    isArray,
+    isDate,
+    isFunction,
+    isHtmlElement,
+    isObject,
+    isPlainObject,
+    isRegExp,
+    isString,
+} from 'ag-charts-core';
 import type { DeepPartial, PlainObject } from 'ag-charts-core';
 
 import { SKIP_JS_BUILTINS } from './object';
@@ -283,3 +293,157 @@ function classify(value: any): Classification | null {
     }
     return 'primitive';
 }
+
+/**
+ * Resolve logical operations within a json object.
+ *
+ * @param source JSON object to walk and onto which to apply the resolved values.
+ * @param params An object of parameters to use with the `ref` operation.
+ *
+ * @returns An object of modified paths.
+ */
+export function jsonResolveOperations<T, P>(source: T, params: P, skip?: Set<string>) {
+    return jsonResolveInner(source, params, source, skip);
+}
+
+function jsonResolveInner<T, P>(
+    json: T,
+    params: P,
+    source: T,
+    skip?: Set<string>,
+    path: string[] = [],
+    modifiedPaths: Record<string, any> = {}
+) {
+    if (isArray(json)) {
+        jsonResolveVisitor(json, params, source, path, modifiedPaths);
+        let index = 0;
+        for (const node of json) {
+            jsonResolveInner(node, params, source, skip, [...path, `${index}`], modifiedPaths);
+            index++;
+        }
+    } else if (isPlainObject(json)) {
+        jsonResolveVisitor(json, params, source, path, modifiedPaths);
+        for (const key of Object.keys(json)) {
+            if (skip?.has(key)) {
+                continue;
+            }
+            const value = json[key as keyof T] as T;
+            jsonResolveInner(value, params, source, skip, [...path, key], modifiedPaths);
+        }
+    }
+
+    return modifiedPaths;
+}
+
+function jsonResolveVisitor<T, P>(node: any, params: P, source: T, path: string[], modifiedPaths: Record<string, any>) {
+    if (isArray(node)) {
+        for (let i = 0; i < node.length; i++) {
+            node[i] = jsonResolveVisitorValue(node[i], params, source, [...path, `${i}`], modifiedPaths);
+        }
+    } else {
+        for (const [name, value] of Object.entries(node)) {
+            node[name] = jsonResolveVisitorValue(value, params, source, [...path, name], modifiedPaths);
+        }
+    }
+}
+
+function jsonResolveVisitorValue<T, P>(
+    value: unknown,
+    params: P,
+    source: T,
+    path: string[],
+    modifiedPaths?: Record<string, any>
+) {
+    if (!isPlainObject(value)) {
+        return value;
+    }
+
+    const [key, ...otherKeys] = Object.keys(value) as Array<Operation>;
+    if (otherKeys.length !== 0 || !operationKeys.has(key)) {
+        return value;
+    }
+
+    let values = value[key];
+    if (isArray(values)) {
+        values = values.map((v: any) => jsonResolveVisitorValue(v, params, source, path));
+    }
+
+    if (modifiedPaths) modifiedPaths[path.join('.')] = value;
+
+    return operations[key](values, params, source, path);
+}
+
+enum Operation {
+    Ref = '$ref',
+    Path = '$path',
+    If = '$if',
+    Eq = '$eq',
+    Not = '$not',
+    Or = '$or',
+    And = '$and',
+    Mul = '$mul',
+    Round = '$round',
+}
+const operationKeys = new Set(Object.values(Operation));
+type OperationFn<T, C> = (value: string | Array<unknown>, params: C, source: T, path: string[]) => any;
+
+const operations: Record<Operation, OperationFn<any, any>> = {
+    $ref: (key, params, _source, path) => {
+        if (isString(key) && key in params) return params[key];
+        Logger.warnOnce(
+            `\`$ref\` json operation failed on [${String(key)}] at [${path.join('.')}], expecting one of [${Object.keys(params).join(', ')}].`
+        );
+    },
+    $path: (relativePath, _params, source, currentPath) => {
+        if (!isString(relativePath)) {
+            Logger.warnOnce(
+                `\`$path\` json operation failed on [${String(relativePath)}] at [${currentPath.join('.')}], expecting a string.`
+            );
+            return;
+        }
+
+        // Apply the relative path to the current path
+        const relativePathParts = relativePath.split('/');
+        const resolvedPath = [...currentPath];
+        for (const part of relativePathParts) {
+            if (part === '..') {
+                resolvedPath.pop();
+                resolvedPath.pop();
+            } else if (part === '.') {
+                resolvedPath.pop();
+            } else {
+                resolvedPath.push(part);
+            }
+        }
+
+        let resolvedValue = source;
+        for (const part of resolvedPath) {
+            if (!(part in resolvedValue)) {
+                Logger.warnOnce(
+                    `\`$path\` json operation failed on [${String(relativePath)}] at [${currentPath.join('.')}], could not find path in object.`
+                );
+                return;
+            }
+            resolvedValue = resolvedValue[part];
+        }
+
+        return resolvedValue;
+    },
+    $if: ([condition, thenValue, elseValue]) => (condition ? thenValue : elseValue),
+    $eq: ([a, b]) => a === b,
+    $not: ([a, b]) => a !== b,
+    $or: ([a, b]) => a || b,
+    $and: ([a, b]) => a && b,
+    $mul: ([a, b], _params, _source, path) => {
+        if (typeof a === 'number' && typeof b === 'number') return a * b;
+        Logger.warnOnce(
+            `\`$mul\` json operation failed on [${String(a)}] and [${String(b)}] at [${path.join('.')}], expecting two numbers.`
+        );
+    },
+    $round: ([a], _params, _source, path) => {
+        if (typeof a === 'number') return Math.round(a);
+        Logger.warnOnce(
+            `\`$round\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`
+        );
+    },
+};

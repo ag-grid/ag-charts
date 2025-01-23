@@ -1613,17 +1613,20 @@ describe('ChartOptions', () => {
 
             expect(preparedOptions.title?.enabled).toBe(false);
             expect(preparedOptions.title?.text).toBe(theme.config.line.title.text);
-            expect(preparedOptions.title?.fontSize).toBe(theme.config.line.title.fontSize);
+
+            // TODO: theme config fontSize is `{ $ref: 'fontSize' }` as this is the unresolved value. This is not a bug
+            // with the real output.
+            // expect(preparedOptions.title?.fontSize).toBe(theme.config.line.title.fontSize);
             expect(preparedOptions.title?.spacing).toBe(theme.config.line.title.spacing);
 
             expect(preparedOptions.subtitle?.enabled).toBe(false);
             expect(preparedOptions.subtitle?.text).toBe(theme.config.line.subtitle.text);
-            expect(preparedOptions.subtitle?.fontSize).toBe(theme.config.line.subtitle.fontSize);
+            // expect(preparedOptions.subtitle?.fontSize).toBe(theme.config.line.subtitle.fontSize);
             expect(preparedOptions.subtitle?.spacing).toBe(theme.config.line.subtitle.spacing);
 
             expect(preparedOptions.footnote?.enabled).toBe(false);
             expect(preparedOptions.footnote?.text).toBe(theme.config.line.footnote.text);
-            expect(preparedOptions.footnote?.fontSize).toBe(theme.config.line.footnote.fontSize);
+            // expect(preparedOptions.footnote?.fontSize).toBe(theme.config.line.footnote.fontSize);
             expect(preparedOptions.footnote?.spacing).toBe(theme.config.line.footnote.spacing);
 
             const numberAxis = preparedOptions.axes?.[0] as AgNumberAxisOptions;
@@ -1652,7 +1655,7 @@ describe('ChartOptions', () => {
             expect(series0?.marker?.strokeWidth).toBe(theme.config.line.series.marker.strokeWidth);
             expect(series0?.label?.enabled).toBe(false);
 
-            // TODO: theme config color is `{ ref: 'foregroundColor' }` as this is the unresolved value. This is not a bug
+            // TODO: theme config color is `{ $ref: 'foregroundColor' }` as this is the unresolved value. This is not a bug
             // with the real output.
             // expect(series0?.label?.color).toBe(theme.config.line.series.label.color);
 

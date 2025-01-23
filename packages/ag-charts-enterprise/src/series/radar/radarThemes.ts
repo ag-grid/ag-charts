@@ -8,9 +8,9 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
     series: {
         label: {
             enabled: false,
-            fontSize: { ref: 'fontSize' },
-            fontFamily: { ref: 'fontFamily' },
-            color: { ref: 'foregroundColor' },
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
+            color: { $ref: 'foregroundColor' },
         },
         marker: {
             enabled: true,
@@ -30,18 +30,17 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
     },
 };
 
-export const RADAR_LINE_SERIES_THEME = _ModuleSupport.mergeDefaults(
-    { series: { strokeWidth: 2 } },
-    BASE_RADAR_SERIES_THEME
-);
+export const RADAR_LINE_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line'>['themeTemplate'] =
+    _ModuleSupport.mergeDefaults({ series: { strokeWidth: 2 } }, BASE_RADAR_SERIES_THEME);
 
-export const RADAR_AREA_SERIES_THEME = _ModuleSupport.mergeDefaults(
-    {
-        series: {
-            fillOpacity: 0.8,
-            strokeWidth: 2,
-            marker: { enabled: false },
+export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>['themeTemplate'] =
+    _ModuleSupport.mergeDefaults(
+        {
+            series: {
+                fillOpacity: 0.8,
+                strokeWidth: 2,
+                marker: { enabled: false },
+            },
         },
-    },
-    BASE_RADAR_SERIES_THEME
-);
+        BASE_RADAR_SERIES_THEME
+    );

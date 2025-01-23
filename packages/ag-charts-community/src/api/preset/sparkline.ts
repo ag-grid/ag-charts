@@ -61,7 +61,7 @@ const tooltipDefaults = {
 };
 
 const barGridLineDefaults: WithThemeParams<AgAxisGridLineOptions> = {
-    style: [{ stroke: { ref: 'gridLineColor' } }],
+    style: [{ stroke: { $ref: 'gridLineColor' } }],
     width: 2,
 };
 

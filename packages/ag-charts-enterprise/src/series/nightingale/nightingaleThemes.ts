@@ -9,9 +9,9 @@ export const NIGHTINGALE_SERIES_THEME: _ModuleSupport.SeriesModule<'nightingale'
         strokeWidth: 1,
         label: {
             enabled: false,
-            fontSize: { ref: 'fontSize' },
-            fontFamily: { ref: 'fontFamily' },
-            color: { ref: 'foregroundColor' },
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
+            color: { $ref: 'foregroundColor' },
         },
     },
     axes: {

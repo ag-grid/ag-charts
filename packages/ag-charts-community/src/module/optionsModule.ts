@@ -4,7 +4,6 @@ import {
     ModuleRegistry,
     circularSliceArray,
     groupBy,
-    isArray,
     isEnumValue,
     isFiniteNumber,
     isObject,
@@ -43,7 +42,7 @@ import {
 import { type ChartTheme } from '../chart/themes/chartTheme';
 import { setDocument, setWindow } from '../core';
 import { Debug } from '../util/debug';
-import { deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
+import { deepClone, jsonDiff, jsonPropertyCompare, jsonResolveOperations, jsonWalk } from '../util/json';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
@@ -83,35 +82,6 @@ enum GroupingType {
 }
 
 const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-background']);
-
-function resolveThemeParametersVisitor(node: any, _: any, params?: AgChartThemeParams) {
-    if (isArray(node)) {
-        for (let i = 0; i < node.length; i++) {
-            node[i] = resolveThemeParameterValue(node[i], params);
-        }
-    } else {
-        for (const [name, value] of Object.entries(node)) {
-            node[name] = resolveThemeParameterValue(value, params);
-        }
-    }
-}
-
-function resolveThemeParameterValue(value: unknown, params?: AgChartThemeParams) {
-    if (!params || !isPlainObject(value)) {
-        return value;
-    }
-
-    if ('ref' in value) {
-        if (value.ref in params) {
-            return params[value.ref as keyof AgChartThemeParams];
-        }
-        throw new Error(`Unknown 'ref' in theme params: [${value.ref}]`);
-    }
-
-    // TODO: calc, conditionals, etc.
-
-    return value;
-}
 
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private static readonly OPTIONS_CLONE_OPTS = new Set(['data', 'container']);
@@ -298,8 +268,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             themeParameters = mergeDefaults(processedOptions.theme.params, themeParameters);
         }
 
-        this.resolveThemeParameters(themeParameters, processedOptions);
-        this.resolveThemeParameters(themeParameters, this.annotationThemes);
+        this.resolveThemeOperations(themeParameters, processedOptions);
+        this.resolveThemeOperations(themeParameters, this.annotationThemes);
 
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
         if (
@@ -458,8 +428,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
     }
 
-    private resolveThemeParameters(params: AgChartThemeParams, options: T) {
-        jsonWalk(options, resolveThemeParametersVisitor, undefined, undefined, params);
+    private resolveThemeOperations(params: AgChartThemeParams, options: T) {
+        const modifiedPaths = jsonResolveOperations(options, params, new Set(['palette', 'params', 'data']));
+        this.debug('resolveTheme()', modifiedPaths);
     }
 
     private getSeriesPalette(

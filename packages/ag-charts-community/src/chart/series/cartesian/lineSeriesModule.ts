@@ -42,9 +42,9 @@ export const LineSeriesModule: SeriesModule<'line'> = {
             },
             label: {
                 enabled: false,
-                fontSize: { ref: 'fontSize' },
-                fontFamily: { ref: 'fontFamily' },
-                color: { ref: 'foregroundColor' },
+                fontSize: { $ref: 'fontSize' },
+                fontFamily: { $ref: 'fontFamily' },
+                color: { $ref: 'foregroundColor' },
             },
             errorBar: {
                 cap: {

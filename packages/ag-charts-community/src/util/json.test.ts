@@ -1,7 +1,8 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
-import { deepClone, jsonApply, jsonDiff, jsonPropertyCompare, jsonWalk } from './json';
+import { deepClone, jsonApply, jsonDiff, jsonPropertyCompare, jsonResolveOperations, jsonWalk } from './json';
 import { mergeDefaults } from './object';
+import { expectWarningMessages, setupMockConsole } from './test/mockConsole';
 
 const FIXED_DATE = new Date('2022-01-27T00:00:00.000+00:00');
 
@@ -508,6 +509,138 @@ describe('json module', () => {
             const source = { a: 1, b: true, c: 'three' };
 
             expect(jsonPropertyCompare(source, undefined as any)).toEqual(false);
+        });
+    });
+
+    describe('#jsonResolveOperations', () => {
+        setupMockConsole();
+
+        it('should resolve `$eq` operation with strict equality', () => {
+            const source = { a: { $eq: [1, 1] }, b: { $eq: [1, '1'] }, c: { $eq: ['hello', 'hello'] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: true, b: false, c: true });
+        });
+
+        it('should resolve `$not` operation with strict equality', () => {
+            const source = { a: { $not: [1, 1] }, b: { $not: [1, '1'] }, c: { $not: ['hello', 'hello'] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: false, b: true, c: false });
+        });
+
+        it('should resolve `$or` operation', () => {
+            const source = { a: { $or: [true, true] }, b: { $or: [true, false] }, c: { $or: [false, false] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: true, b: true, c: false });
+        });
+
+        it('should resolve `$and` operation', () => {
+            const source = { a: { $and: [true, true] }, b: { $and: [true, false] }, c: { $and: [false, false] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: true, b: false, c: false });
+        });
+
+        it('should resolve `$if` operation', () => {
+            const source = { a: { $if: [true, 'yes', 'no'] }, b: { $if: [false, 'yes', 'no'] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: 'yes', b: 'no' });
+        });
+
+        it('should resolve `$mul` operation', () => {
+            const source = { a: { $mul: [2, 4] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: 8 });
+        });
+
+        it('should warn on invalid `$mul` operation', () => {
+            const source = { a: { $mul: [2, 'hello'] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: undefined });
+            expectWarningMessages([
+                'AG Charts - `$mul` json operation failed on [2] and [hello] at [a], expecting two numbers.',
+            ]);
+        });
+
+        it('should resolve `$ref` operation with params', () => {
+            const source = { a: { $ref: 'key' } };
+            jsonResolveOperations(source, { key: 'hello' });
+            expect(source).toEqual({ a: 'hello' });
+        });
+
+        it('should warn on invalid `$ref` operation', () => {
+            const source = { a: { $ref: 'missing' } };
+            jsonResolveOperations(source, { key: 'hello', other: 'world' });
+            expect(source).toEqual({ a: undefined });
+            expectWarningMessages([
+                'AG Charts - `$ref` json operation failed on [missing] at [a], expecting one of [key, other].',
+            ]);
+        });
+
+        it('should resolve `$path` operation', () => {
+            const source = {
+                a: 'parent',
+                b: {
+                    c: 'cousin',
+                },
+                d: {
+                    e: 'sibling',
+                    f: { $path: './e' },
+                    g: { $path: '../a' },
+                    h: { $path: '../b/c' },
+                },
+            };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({
+                a: 'parent',
+                b: { c: 'cousin' },
+                d: { e: 'sibling', f: 'sibling', g: 'parent', h: 'cousin' },
+            });
+        });
+
+        it('should warn on invalid `$path` operations', () => {
+            const source = {
+                a: 'parent',
+                b: {
+                    c: 'cousin',
+                },
+                d: {
+                    e: 'sibling',
+                    f: { $path: '../e' },
+                },
+            };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({
+                a: 'parent',
+                b: { c: 'cousin' },
+                d: { e: 'sibling', f: undefined },
+            });
+            expectWarningMessages([
+                'AG Charts - `$path` json operation failed on [../e] at [d.f], could not find path in object.',
+            ]);
+        });
+
+        it('should resolve nested operations', () => {
+            const source = {
+                a: 'parent',
+                b: {
+                    c: 'cousin',
+                },
+                d: {
+                    e: 'sibling',
+                    f: {
+                        $if: [
+                            { $or: [{ $eq: [{ $path: '../a' }, 'cousin'] }, { $eq: [{ $path: '../a' }, 'parent'] }] },
+                            { $ref: 'key' },
+                            'no',
+                        ],
+                    },
+                },
+            };
+            jsonResolveOperations(source, { key: 'hello' });
+            expect(source).toEqual({
+                a: 'parent',
+                b: { c: 'cousin' },
+                d: { e: 'sibling', f: 'hello' },
+            });
         });
     });
 });

@@ -4,9 +4,9 @@ export const HEATMAP_SERIES_THEME: _ModuleSupport.SeriesModule<'heatmap'>['theme
     series: {
         label: {
             enabled: false,
-            color: { ref: 'foregroundColor' },
-            fontSize: { ref: 'fontSize' },
-            fontFamily: { ref: 'fontFamily' },
+            color: { $ref: 'foregroundColor' },
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
             wrapping: 'on-space',
             overflowStrategy: 'ellipsis',
         },
