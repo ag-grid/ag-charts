@@ -14,6 +14,8 @@ export class ZoomRect extends _ModuleSupport.Rect {
     @Validate(RATIO)
     public override fillOpacity = 0.2;
 
+    override zIndex = _ModuleSupport.ZIndexMap.ZOOM_SELECTION;
+
     public updateValid() {
         this.fill = VALID_COLOR;
     }
