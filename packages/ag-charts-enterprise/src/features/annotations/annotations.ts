@@ -692,6 +692,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const seriesRect = event.series.paddedRect;
         this.seriesRect = seriesRect;
 
+        // clip annotations to series padded rect
+        this.container.setClipRect(seriesRect);
+
         for (const axisLayout of event.axes ?? []) {
             if (axisLayout.direction === _ModuleSupport.ChartAxisDirection.X) {
                 this.xAxis = this.getAxis(axisLayout, seriesRect, this.xAxis?.button);
