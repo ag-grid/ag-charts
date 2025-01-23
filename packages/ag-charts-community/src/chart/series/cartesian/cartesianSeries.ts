@@ -1,4 +1,4 @@
-import { findMaxIndex, findMinIndex } from 'ag-charts-core';
+import { findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
 
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -882,6 +882,9 @@ export abstract class CartesianSeries<
                 pixelSize,
                 index
             );
+            if (!isFiniteNumber(x0) || !isFiniteNumber(x1) || !isFiniteNumber(y0) || !isFiniteNumber(y1)) {
+                return false;
+            }
             if (shouldFlipXY) [x0, x1, y0, y1] = [y0, y1, x0, x1];
             return x0 >= crossMin && x1 <= crossMax && y0 >= axisMin && y1 <= axisMax;
         });
