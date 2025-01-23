@@ -41,7 +41,10 @@ export class ZoomDOMProxy {
         this.axes.forEach((a) => a.div.destroy());
     }
 
-    update(ctx: _ModuleSupport.ModuleContext) {
+    update(enableAxisDragging: boolean, ctx: _ModuleSupport.ModuleContext) {
+        this.axes.forEach((ax) => ax.div.setHidden(!enableAxisDragging));
+        if (!enableAxisDragging) return;
+
         const { X, Y } = _ModuleSupport.ChartAxisDirection;
         const axesCtx = [...ctx.axisManager.getAxisContext(X), ...ctx.axisManager.getAxisContext(Y)];
         const { removed, added } = this.diffAxisIds(axesCtx);
