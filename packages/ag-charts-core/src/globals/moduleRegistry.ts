@@ -32,21 +32,32 @@ export class ModuleRegistry {
     }
 
     static detectChartDefinition(options: object): ChartModuleDefinition {
-        return this.detectDefinition(ModuleType.Chart, options) as ChartModuleDefinition;
-    }
-
-    static detectSeriesDefinition(options: object): SeriesModuleDefinition {
-        return this.detectDefinition(ModuleType.Series, options) as SeriesModuleDefinition;
-    }
-
-    private static detectDefinition(moduleType: ModuleType, options: object): ModuleDefinition {
         for (const definition of this.registeredModules.values()) {
-            if (definition.type === moduleType && definition.detect(options)) {
+            if (this.isChartModule(definition) && definition.detect(options)) {
                 return definition;
             }
         }
         throw new Error(
-            `AG Charts - Unknown ${moduleType} type; Check options are correctly structured and series types are specified`
+            `AG Charts - Unknown chart type; Check options are correctly structured and series types are specified`
         );
+    }
+
+    static detectSeriesDefinition(options: { type: string }): SeriesModuleDefinition<any> {
+        for (const definition of this.registeredModules.values()) {
+            if (this.isSeriesModule(definition) && definition.name === options.type) {
+                return definition;
+            }
+        }
+        throw new Error(
+            `AG Charts - Unknown series type; Check options are correctly structured and series types are specified`
+        );
+    }
+
+    private static isChartModule(definition: ModuleDefinition): definition is ChartModuleDefinition {
+        return definition.type === ModuleType.Chart;
+    }
+
+    private static isSeriesModule(definition: ModuleDefinition): definition is SeriesModuleDefinition<any> {
+        return definition.type === ModuleType.Series;
     }
 }

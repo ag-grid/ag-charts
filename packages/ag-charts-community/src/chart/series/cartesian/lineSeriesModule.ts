@@ -1,7 +1,12 @@
+import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { AgLineSeriesOptions } from 'ag-charts-types';
+
 import type { SeriesModule } from '../../../module/coreModules';
+import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { markerPaletteFactory } from '../../themes/util';
 import { LineSeries } from './lineSeries';
+import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
 
 export const LineSeriesModule: SeriesModule<'line'> = {
     type: 'series',
@@ -58,4 +63,14 @@ export const LineSeriesModule: SeriesModule<'line'> = {
         const { marker } = markerPaletteFactory(params);
         return { stroke: marker.fill, marker };
     },
+};
+
+export const NewLineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
+    type: 'series',
+    name: 'line',
+    chartType: 'cartesian',
+
+    options: lineSeriesOptionsDef,
+
+    create: (ctx: ModuleContext) => new LineSeries(ctx),
 };

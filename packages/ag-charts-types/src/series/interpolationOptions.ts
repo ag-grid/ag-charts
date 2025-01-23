@@ -2,16 +2,16 @@ import type { Ratio } from '../chart/types';
 
 export type AgInterpolationType = AgLineLinearType | AgLineSmoothType | AgLineStepType;
 
-interface AgLineLinearType {
+export interface AgLineLinearType {
     type: 'linear';
 }
 
-interface AgLineSmoothType {
+export interface AgLineSmoothType {
     type: 'smooth';
     tension?: Ratio;
 }
 
-interface AgLineStepType {
+export interface AgLineStepType {
     type: 'step';
     position?: 'start' | 'middle' | 'end';
 }

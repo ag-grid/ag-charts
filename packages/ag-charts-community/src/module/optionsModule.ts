@@ -33,7 +33,7 @@ import {
 
 import { PRESETS, PRESET_DATA_PROCESSORS } from '../api/preset/presets';
 import { axisRegistry } from '../chart/factory/axisRegistry';
-import { type ChartType, publicChartTypes } from '../chart/factory/chartTypes';
+import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
 import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
@@ -145,6 +145,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
 
+        // const chartDef = ModuleRegistry.detectChartDefinition(this.userOptions);
+        // if (chartDef.options) {
+        //     console.log(validate(this.userOptions, chartDef.options));
+        // }
+
         if (stripSymbols) {
             this.removeLeftoverSymbols(this.userOptions);
         }
@@ -245,6 +250,40 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.sanityCheck(options);
         this.removeDisabledOptions(options);
+
+        const validatedSeriesOptions: any[] = [];
+        options.series?.forEach((seriesOptions, index) => {
+            // TODO make sure series type is a required field, remove default type functionality
+            const seriesDef = ModuleRegistry.detectSeriesDefinition(seriesOptions as any);
+
+            if (!seriesDef.options) {
+                validatedSeriesOptions.push(seriesOptions);
+                return;
+            }
+
+            const { valid, errors } = validate(seriesOptions, seriesDef.options, `series[${index}]`);
+
+            if (errors.length) {
+                const { unknown, required, invalid } = groupBy(errors, (error) => {
+                    if (error.unknown) {
+                        return 'unknown';
+                    } else if (error.required) {
+                        return 'required';
+                    }
+                    return 'invalid';
+                });
+                required?.forEach((error) => Logger.error(error));
+                invalid?.forEach((error) => Logger.warn(error));
+                // TODO handle unknown options that are coming from another modules
+                unknown?.forEach((error) => Logger.warn(error));
+
+                if (required?.length) return;
+            }
+
+            validatedSeriesOptions.push(valid as any);
+        });
+        Logger.log('Valid series options', validatedSeriesOptions);
+        options.series = validatedSeriesOptions;
 
         const seriesType = this.optionsType(options);
         const {
@@ -384,7 +423,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         };
 
         const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series) => {
-            series.type ??= this.getDefaultSeriesType(options);
+            series.type ??= 'line'; // TODO remove this behaviour
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type, activeTheme).series ?? {};
             // Don't advance series index for background series
@@ -614,28 +653,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
             return result;
         }, []);
-    }
-
-    private getDefaultSeriesType(options: T): SeriesType {
-        const chartDef = ModuleRegistry.detectChartDefinition(options);
-        switch (chartDef.name as ChartType) {
-            case 'cartesian':
-                return 'line';
-            case 'polar':
-                return 'pie';
-            case 'hierarchy':
-                return 'treemap';
-            case 'topology':
-                return 'map-shape';
-            case 'flow-proportion':
-                return 'sankey';
-            case 'standalone':
-                return 'pyramid';
-            case 'gauge':
-                return 'radial-gauge';
-            default:
-                throw new Error('Invalid chart options type detected.');
-        }
     }
 
     private getTooltipPositionDefaults(options: T) {

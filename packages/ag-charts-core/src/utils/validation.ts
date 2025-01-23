@@ -6,25 +6,33 @@ const requiredSymbol = Symbol('required');
 
 type ObjectLikeDef<T> = T extends object ? (keyof T extends never ? never : OptionsDefs<T>) : never;
 
+type Singular<T> = T extends any[] ? T[number] : T;
+
 // Definitions for options validation with support for nested structures.
-export type OptionsDefs<T> = { [K in keyof T]-?: Validator | ObjectLikeDef<T[K]> } & {
+export type OptionsDefs<T> = { [K in keyof Singular<T>]-?: Validator | ObjectLikeDef<Singular<T>[K]> } & {
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
 };
 
 // Validator interface with optional description and required flag for better error messages.
-interface Validator extends Function {
+export interface Validator extends Function {
     (value: unknown, context?: any): boolean;
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
 }
 
 interface ValidationError {
+    value?: any;
     key?: string;
     path: string;
     message: string;
     unknown?: boolean;
-    value?: any;
+    required?: boolean;
+    toString(): string;
+}
+
+function toString(this: ValidationError) {
+    return this.message;
 }
 
 /**
@@ -34,11 +42,15 @@ interface ValidationError {
  * @param path The current path in the options object, for nested properties.
  * @returns An object containing valid options and validation errors.
  */
-export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = '') {
+export function validate<T>(
+    options: unknown,
+    optionsDefs: OptionsDefs<T>,
+    path = ''
+): { valid: Partial<T> | null; errors: ValidationError[] } {
     if (!isObject(options)) {
         return {
             valid: null,
-            errors: [{ path, value: options, message: validateMessage(path, options, 'an object') }],
+            errors: [{ path, value: options, message: validateMessage(path, options, 'an object'), toString }],
         };
     }
 
@@ -57,12 +69,20 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
         const validatorOrDefs: Validator | ObjectLikeDef<any> = (optionsDefs as any)[key];
         optionsKeys.delete(key);
         const value = options[key as keyof object];
-        if (!validatorOrDefs[requiredSymbol] && typeof value === 'undefined') continue;
+        const required = validatorOrDefs[requiredSymbol];
+        if (!required && typeof value === 'undefined') continue;
         if (isFunction(validatorOrDefs)) {
             if (validatorOrDefs(value, options)) {
                 valid[key as keyof T] = value;
             } else {
-                errors.push({ key, path, value, message: validateMessage(extendPath(key), value, validatorOrDefs) });
+                errors.push({
+                    key,
+                    path,
+                    value,
+                    required,
+                    message: validateMessage(extendPath(key), value, validatorOrDefs),
+                    toString,
+                });
             }
         } else {
             const nestedResult = validate(value, validatorOrDefs, extendPath(key));
@@ -77,6 +97,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
             path,
             unknown: true,
             message: `Unknown option \`${extendPath(key)}\`, ignoring.`,
+            toString,
         });
     }
 
