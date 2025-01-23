@@ -872,7 +872,7 @@ export abstract class CartesianSeries<
         const startIndex = Math.round(
             (xVisibleRange[0] + (xVisibleRange[1] - xVisibleRange[0]) / 2) * crossValues.length
         );
-        const pixelSize = 1;
+        const pixelSize = 0;
         const shouldFlipXY = this.shouldFlipXY();
 
         return countExpandingSearch(0, crossValues.length - 1, startIndex, minVisibleItems, (index) => {
