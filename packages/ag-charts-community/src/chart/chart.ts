@@ -1043,6 +1043,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
             this.performUpdateType !== ChartUpdateType.NONE ||
             this.runningUpdateType !== ChartUpdateType.NONE
         ) {
+            if (this.destroyed) break;
+
             if (this._pendingFactoryUpdatesCount > 0) {
                 // wait until any pending updates are flushed through.
                 await this.updateMutex.waitForClearAcquireQueue();
