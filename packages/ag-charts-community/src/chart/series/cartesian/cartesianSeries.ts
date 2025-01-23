@@ -856,6 +856,7 @@ export abstract class CartesianSeries<
         // position in pixels that the visible range ratio covers.
         const crossAxis = this.axes[ChartAxisDirection.X]!;
         const axis = this.axes[ChartAxisDirection.Y]!;
+        const shouldFlipXY = this.shouldFlipXY();
 
         const crossRange = crossAxis.range;
         const range = axis.range;
@@ -866,14 +867,13 @@ export abstract class CartesianSeries<
 
         const crossMin = convert(crossRange, crossAxis.visibleRange, xVisibleRange[0]);
         const crossMax = convert(crossRange, crossAxis.visibleRange, xVisibleRange[1]);
-        const axisMin = convert(range, axis.visibleRange, yVisibleRange[1]);
-        const axisMax = convert(range, axis.visibleRange, yVisibleRange[0]);
+        const axisMin = convert(range, axis.visibleRange, shouldFlipXY ? yVisibleRange[0] : yVisibleRange[1]);
+        const axisMax = convert(range, axis.visibleRange, shouldFlipXY ? yVisibleRange[1] : yVisibleRange[0]);
 
         const startIndex = Math.round(
             (xVisibleRange[0] + (xVisibleRange[1] - xVisibleRange[0]) / 2) * crossValues.length
         );
         const pixelSize = 0;
-        const shouldFlipXY = this.shouldFlipXY();
 
         return countExpandingSearch(0, crossValues.length - 1, startIndex, minVisibleItems, (index) => {
             let [x0, x1] = this.xCoordinateRange(crossValues[index], pixelSize, index);
