@@ -489,7 +489,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        this.domProxy.update(this.ctx);
+        this.domProxy.update(this.enableAxisDragging, this.ctx);
         const { enabled } = this;
 
         if (!enabled) return;
