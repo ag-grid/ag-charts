@@ -9,15 +9,14 @@
 
 .ag-charts-focus-indicator > div {
     position: absolute;
-    outline: var(--ag-charts-focus-border);
-    outline-width: 2px;
-    box-shadow: var(--ag-charts-focus-border-shadow);
+    outline: var(--ag-charts-focus-outline);
+    box-shadow: var(--ag-charts-focus-box-shadow);
 }
 
 .ag-charts-focus-indicator > svg {
     width: 100%;
     height: 100%;
     fill: none;
-    stroke: var(--ag-charts-focus-border-color);
+    stroke: var(--ag-charts-focus-accent-color);
     stroke-width: 2px;
 }

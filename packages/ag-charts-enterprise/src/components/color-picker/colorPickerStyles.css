@@ -63,11 +63,11 @@
 }
 
 .ag-charts-color-picker__palette:focus-visible::after {
-    outline: var(--ag-charts-focus-border);
+    outline: var(--ag-charts-focus-outline);
     box-shadow:
         var(--box-shadow),
         0 0 0 2px #fff8,
-        var(--ag-charts-focus-border-shadow);
+        var(--ag-charts-focus-box-shadow);
 }
 
 .ag-charts-color-picker__color-row {
@@ -119,8 +119,8 @@
 
 .ag-charts-color-picker__hue-input:focus-visible::-webkit-slider-thumb,
 .ag-charts-color-picker__alpha-input:focus-visible::-webkit-slider-thumb {
-    outline: var(--ag-charts-focus-border);
-    box-shadow: var(--box-shadow), var(--ag-charts-focus-border-shadow);
+    outline: var(--ag-charts-focus-outline);
+    box-shadow: var(--box-shadow), var(--ag-charts-focus-box-shadow);
 }
 
 .ag-charts-color-picker__hue-input::before,
@@ -195,8 +195,8 @@
 }
 
 .ag-charts-color-picker__color-field:has(:focus-visible) {
-    border-color: var(--ag-charts-active-color);
-    box-shadow: var(--ag-charts-focus-border-shadow);
+    border-color: var(--ag-charts-focus-accent-color);
+    box-shadow: var(--ag-charts-focus-box-shadow);
 }
 
 .ag-charts-color-picker__color-label {

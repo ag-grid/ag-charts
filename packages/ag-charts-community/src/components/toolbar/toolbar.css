@@ -33,8 +33,8 @@
 }
 
 .ag-charts-toolbar__button:focus-visible {
-    outline: var(--ag-charts-focus-border);
-    box-shadow: var(--ag-charts-focus-border-shadow);
+    outline: var(--ag-charts-focus-outline);
+    box-shadow: var(--ag-charts-focus-box-shadow);
     z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
 }
 
