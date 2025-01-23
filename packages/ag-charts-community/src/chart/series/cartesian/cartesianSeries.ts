@@ -857,8 +857,8 @@ export abstract class CartesianSeries<
         const crossAxis = this.axes[ChartAxisDirection.X]!;
         const axis = this.axes[ChartAxisDirection.Y]!;
 
-        const crossRange = crossAxis.range.toSorted();
-        const range = axis.range.toSorted();
+        const crossRange = crossAxis.range;
+        const range = axis.range;
 
         const convert = (d: number[], r: number[], v: number) => {
             return d[0] + ((v - r[0]) / (r[1] - r[0])) * (d[1] - d[0]);
@@ -866,8 +866,8 @@ export abstract class CartesianSeries<
 
         const crossMin = convert(crossRange, crossAxis.visibleRange, xVisibleRange[0]);
         const crossMax = convert(crossRange, crossAxis.visibleRange, xVisibleRange[1]);
-        const axisMin = convert(range, axis.visibleRange, yVisibleRange[0]);
-        const axisMax = convert(range, axis.visibleRange, yVisibleRange[1]);
+        const axisMin = convert(range, axis.visibleRange, yVisibleRange[1]);
+        const axisMax = convert(range, axis.visibleRange, yVisibleRange[0]);
 
         const startIndex = Math.round(
             (xVisibleRange[0] + (xVisibleRange[1] - xVisibleRange[0]) / 2) * crossValues.length
