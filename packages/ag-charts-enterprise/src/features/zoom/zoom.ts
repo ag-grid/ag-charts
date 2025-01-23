@@ -633,7 +633,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updateUnifiedZoom(zoom: DefinedZoomState) {
-        if (!this.isZoomValid(zoom)) return false;
+        if (!this.isZoomValid(zoom)) {
+            // Ensure any lingering zoom interation elements (e.g. selection rect) are cleared
+            this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER, { skipAnimations: true });
+            return false;
+        }
+
         this.ctx.zoomManager.updateZoom('zoom', zoom);
         return true;
     }
