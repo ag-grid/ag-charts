@@ -14,7 +14,7 @@ const options: AgCartesianChartOptions = {
     initialState: {
         zoom: {
             ratioX: { start: 0.48, end: 0.52 },
-            ratioY: { start: 0.15, end: 0.60 },
+            ratioY: { start: 0.15, end: 0.6 },
         },
     },
     series: [
