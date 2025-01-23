@@ -11,7 +11,8 @@ type Focus = Path | BBox;
 export class FocusIndicator {
     private readonly element: HTMLElement;
     private readonly svg: SVGSVGElement;
-    private readonly path: SVGPathElement;
+    private readonly outerPath: SVGPathElement;
+    private readonly innerPath: SVGPathElement;
     private readonly div: HTMLDivElement;
 
     @ObserveChanges<FocusIndicator>((target) => target.update())
@@ -26,8 +27,12 @@ export class FocusIndicator {
     constructor(private readonly swapChain: FocusSwapChain) {
         this.div = createElement('div');
         this.svg = createSvgElement('svg');
-        this.path = createSvgElement('path');
-        this.svg.append(this.path);
+        this.outerPath = createSvgElement('path');
+        this.innerPath = createSvgElement('path');
+        this.svg.append(this.outerPath);
+        this.svg.append(this.innerPath);
+        this.outerPath.classList.add('ag-charts-focus-svg-outer-path');
+        this.innerPath.classList.add('ag-charts-focus-svg-inner-path');
 
         this.element = createElement('div', 'ag-charts-focus-indicator');
         this.element.ariaHidden = 'true';
@@ -47,7 +52,9 @@ export class FocusIndicator {
                 y -= rect?.y ?? 0;
                 return { x, y };
             };
-            this.path.setAttribute('d', focus.svgPathData(transform));
+            const d = focus.svgPathData(transform);
+            this.outerPath.setAttribute('d', d);
+            this.innerPath.setAttribute('d', d);
             this.show(this.svg);
         } else {
             let bbox: BBox;

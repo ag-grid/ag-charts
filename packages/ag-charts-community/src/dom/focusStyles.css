@@ -17,6 +17,14 @@
     width: 100%;
     height: 100%;
     fill: none;
+}
+
+.ag-charts-focus-svg-outer-path {
+    stroke: var(--ag-charts-chrome-background-color);
+    stroke-width: 4px;
+}
+
+.ag-charts-focus-svg-inner-path {
     stroke: var(--ag-charts-focus-accent-color);
     stroke-width: 2px;
 }
