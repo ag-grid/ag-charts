@@ -192,7 +192,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         super();
 
         const selectionRect = new ZoomRect();
-        this.selector = new ZoomSelector(selectionRect);
+        this.selector = new ZoomSelector(selectionRect, this.getZoom.bind(this), this.isZoomValid.bind(this));
         this.contextMenu = new ZoomContextMenu(
             ctx.contextMenuRegistry,
             ctx.zoomManager,

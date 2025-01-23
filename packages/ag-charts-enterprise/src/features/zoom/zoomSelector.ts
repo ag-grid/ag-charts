@@ -15,11 +15,13 @@ import {
 
 // "Re-rewind, when the crowd say..."
 export class ZoomSelector {
-    private readonly rect: ZoomRect;
     private coords?: ZoomCoords;
 
-    constructor(rect: ZoomRect) {
-        this.rect = rect;
+    constructor(
+        private readonly rect: ZoomRect,
+        private readonly getZoom: () => DefinedZoomState,
+        private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
+    ) {
         this.rect.visible = false;
     }
 
@@ -123,6 +125,13 @@ export class ZoomSelector {
         rect.y = y;
         rect.width = width;
         rect.height = height;
+
+        const zoom = this.createZoomFromCoords(bbox, this.getZoom());
+        if (this.isZoomValid(zoom)) {
+            rect.updateValid();
+        } else {
+            rect.updateInvalid();
+        }
     }
 
     private createZoomFromCoords(bbox: _ModuleSupport.BBox, currentZoom?: _ModuleSupport.AxisZoomState) {
