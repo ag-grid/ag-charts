@@ -33,7 +33,7 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     radiusMin: positiveNumber,
     radiusMax: positiveNumber,
     rotation: number,
-    outerRadiusOffset: positiveNumber,
+    outerRadiusOffset: number,
     outerRadiusRatio: ratio,
     hideZeroValueSectorsInLegend: boolean,
     sectorSpacing: positiveNumber,

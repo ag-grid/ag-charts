@@ -41,25 +41,21 @@ export function detectChartDefinition(options: object): ChartModuleDefinition {
     );
 }
 
-export function detectSeriesDefinition(options: { type: string }): SeriesModuleDefinition<any> {
-    for (const definition of registeredModules.values()) {
-        if (isSeriesModule(definition) && definition.name === options.type) {
-            return definition;
-        }
+export function getSeriesModule(moduleName: string): SeriesModuleDefinition<any> | undefined {
+    const definition = registeredModules.get(moduleName);
+    if (isSeriesModule(definition)) {
+        return definition;
     }
-    throw new Error(
-        `AG Charts - Unknown series type; Check options are correctly structured and series types are specified`
-    );
 }
 
-function isChartModule(definition: ModuleDefinition): definition is ChartModuleDefinition {
-    return definition.type === ModuleType.Chart;
+function isChartModule(definition?: ModuleDefinition): definition is ChartModuleDefinition {
+    return definition?.type === ModuleType.Chart;
 }
 
-function isSeriesModule(definition: ModuleDefinition): definition is SeriesModuleDefinition<any> {
-    return definition.type === ModuleType.Series;
+function isSeriesModule(definition?: ModuleDefinition): definition is SeriesModuleDefinition<any> {
+    return definition?.type === ModuleType.Series;
 }
 
-// function isFeatureModule(definition: ModuleDefinition): definition is FeatureModuleDefinition {
-//     return definition.type === ModuleType.Feature;
+// function isFeatureModule(definition?: ModuleDefinition): definition is FeatureModuleDefinition {
+//     return definition?.type === ModuleType.Feature;
 // }

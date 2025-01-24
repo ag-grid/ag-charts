@@ -4,6 +4,7 @@ import {
     constant,
     fillOptionsDef,
     fontOptionsDef,
+    number,
     optionsDefs,
     positiveNumber,
     ratio,
@@ -17,7 +18,7 @@ import { pieSeriesOptionsDef } from './pieSeriesOptionsDef';
 export const donutSeriesOptionsDef: OptionsDefs<AgDonutSeriesOptions> = {
     ...pieSeriesOptionsDef,
     type: required(constant('donut')),
-    innerRadiusOffset: positiveNumber,
+    innerRadiusOffset: number,
     innerRadiusRatio: ratio,
     innerCircle: fillOptionsDef,
     innerLabels: arrayOf(

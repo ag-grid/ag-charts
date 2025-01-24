@@ -103,8 +103,8 @@ describe('Validation utils', () => {
 
     describe('Utility Functions', () => {
         test('required marks a validator as required', () => {
-            expect(isValid({ value: '' }, { value: required(string) })).toBe(true);
-            expect(isValid({ value: undefined }, { value: required(string) })).toBe(false);
+            expect(isValid<{ value: string }>({ value: '' }, { value: required(string) })).toBe(true);
+            expect(isValid<{ value: string }>({ value: undefined }, { value: required(string) })).toBe(false);
         });
 
         // should check the description in the logger
@@ -113,7 +113,7 @@ describe('Validation utils', () => {
                 (value: unknown) => string(value) && value !== '',
                 'a non-empty string'
             );
-            expect(validate({ str: '' }, { str: describedValidator }).errors).toMatchSnapshot();
+            expect(validate<{ str: string }>({ str: '' }, { str: describedValidator }).errors).toMatchSnapshot();
         });
     });
 
@@ -159,7 +159,7 @@ describe('Validation utils', () => {
     });
 
     describe('OptionsDefs Validator', () => {
-        const optionDefsValidator = optionsDefs({
+        const optionDefsValidator = optionsDefs<{ key1?: string; key2?: number }>({
             key1: string,
             key2: number,
         });

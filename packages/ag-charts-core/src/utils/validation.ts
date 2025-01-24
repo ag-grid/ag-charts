@@ -92,9 +92,12 @@ export function validate<T>(
     }
 
     for (const key of optionsKeys) {
+        const value = options[key as keyof object];
+        if (typeof value === 'undefined') continue;
         errors.push({
             key,
             path,
+            value,
             unknown: true,
             message: `Unknown option \`${extendPath(key)}\`, ignoring.`,
             toString,
@@ -171,6 +174,7 @@ export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
             isObject(value) &&
             Object.keys(defs).every((key) => {
                 const validatorOrDefs: Validator | ObjectLikeDef<any> = (defs as any)[key];
+                if (!validatorOrDefs[requiredSymbol] && typeof value[key] === 'undefined') return true;
                 const validator = isFunction(validatorOrDefs) ? validatorOrDefs : optionsDefs(validatorOrDefs);
                 return validator(value[key], value);
             }),

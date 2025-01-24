@@ -253,17 +253,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         const validatedSeriesOptions: any[] = [];
         options.series?.forEach((seriesOptions, index) => {
-            // TODO make sure series type is a required field, remove default type functionality
-            const seriesDef = ModuleRegistry.detectSeriesDefinition(seriesOptions as any);
+            const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type ?? 'line');
 
-            if (!seriesDef.options) {
+            if (seriesDef?.options == null) {
                 validatedSeriesOptions.push(seriesOptions);
                 return;
             }
 
             const { valid, errors } = validate(seriesOptions, seriesDef.options, `series[${index}]`);
 
-            errors.forEach(Logger.warn);
+            errors.forEach((error) => Logger.warn(error));
 
             if (!errors.some((e) => e.required)) {
                 validatedSeriesOptions.push(valid);
