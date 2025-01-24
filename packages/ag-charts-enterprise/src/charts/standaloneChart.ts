@@ -13,12 +13,12 @@ export class StandaloneChart extends Chart {
     protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
         const { layoutBox } = ctx;
-        const seriesRect = layoutBox.clone();
 
         layoutBox.shrink(this.seriesArea.padding.toJson());
+        const seriesRect = layoutBox.clone();
 
-        this.seriesRect = layoutBox;
-        this.animationRect = layoutBox;
+        this.seriesRect = seriesRect;
+        this.animationRect = seriesRect;
 
         for (const group of [seriesRoot, annotationRoot]) {
             group.translationX = Math.floor(layoutBox.x);
