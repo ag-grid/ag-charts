@@ -159,7 +159,7 @@ export class SeriesAreaManager extends BaseManager {
     public dataChanged() {
         this.highlight.stashedHoverEvent ??= this.highlight.appliedHoverEvent;
         this.chart.ctx.tooltipManager.removeTooltip(this.id);
-        this.focusIndicator.focus = undefined;
+        this.focusIndicator.clear();
         this.clearHighlight();
     }
 
@@ -210,7 +210,6 @@ export class SeriesAreaManager extends BaseManager {
         this.hoverRect = event.series.paddedRect;
         this.chart.ctx.widgets.seriesWidget.setBounds(event.series.paddedRect);
         this.chart.ctx.widgets.chartWidget.setBounds(event.chart);
-        this.focusIndicator.rect = this.seriesRect;
     }
 
     private onContextMenu(event: MouseWidgetEvent<'contextmenu'>, current: Widget): void {
@@ -445,8 +444,7 @@ export class SeriesAreaManager extends BaseManager {
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
-            this.focusIndicator.focus = overlayFocus.rect;
-            this.focusIndicator.clip = false;
+            this.focusIndicator.update(overlayFocus.rect, this.seriesRect, false);
         }
     }
 
@@ -522,8 +520,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Update the bounds of the focus indicator:
-        this.focusIndicator.clip = pick.clipFocusBox;
-        this.focusIndicator.focus = pick.bounds;
+        this.focusIndicator.update(pick.bounds, this.seriesRect, pick.clipFocusBox);
 
         const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
 
@@ -576,7 +573,7 @@ export class SeriesAreaManager extends BaseManager {
     private clearAll() {
         this.clearHighlight();
         this.clearTooltip();
-        this.focusIndicator.focus = undefined;
+        this.focusIndicator.clear();
     }
 
     private readonly hoverScheduler = debouncedAnimationFrame(() => {

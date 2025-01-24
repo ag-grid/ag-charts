@@ -3,10 +3,7 @@ import { BBox } from '../scene/bbox';
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
 import { setElementBBox } from '../util/dom';
-import { ObserveChanges } from '../util/proxy';
 import type { FocusSwapChain } from './focusSwapChain';
-
-type Focus = Path | BBox;
 
 export class FocusIndicator {
     private readonly element: HTMLElement;
@@ -14,15 +11,6 @@ export class FocusIndicator {
     private readonly outerPath: SVGPathElement;
     private readonly innerPath: SVGPathElement;
     private readonly div: HTMLDivElement;
-
-    @ObserveChanges<FocusIndicator>((target) => target.update())
-    rect: BBox | undefined = undefined;
-
-    @ObserveChanges<FocusIndicator>((target) => target.update())
-    focus: Focus | undefined = undefined;
-
-    @ObserveChanges<FocusIndicator>((target) => target.update())
-    clip: boolean = false;
 
     constructor(private readonly swapChain: FocusSwapChain) {
         this.div = createElement('div');
@@ -40,16 +28,18 @@ export class FocusIndicator {
         this.swapChain.addListener('swap', (parent) => this.onSwap(parent));
     }
 
-    private update() {
-        const { focus, rect, clip } = this;
+    public clear() {
+        // placeholder
+    }
 
-        if (focus === undefined || rect == null) {
-            return;
-        } else if (focus instanceof Path) {
+    public update(focus: BBox | Path, rect: BBox | undefined, clip: boolean) {
+        if (rect == null) return;
+
+        if (focus instanceof Path) {
             const transform = (localX: number, localY: number) => {
                 let { x, y } = Transformable.toCanvasPoint(focus, localX, localY);
-                x -= rect?.x ?? 0;
-                y -= rect?.y ?? 0;
+                x -= rect.x ?? 0;
+                y -= rect.y ?? 0;
                 return { x, y };
             };
             const d = focus.svgPathData(transform);
