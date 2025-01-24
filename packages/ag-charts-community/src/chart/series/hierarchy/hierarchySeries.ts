@@ -374,7 +374,6 @@ export abstract class HierarchySeries<
             datumIndex: this.removeMeIndexForIndexPath(path),
             otherIndex: nextNode.depth,
             bounds,
-            showFocusBox: true,
             clipFocusBox: true,
         };
     }

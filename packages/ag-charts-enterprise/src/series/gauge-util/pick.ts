@@ -43,7 +43,7 @@ export function pickGaugeFocus(self: GaugeSeries, opts: PickFocusInputs): PickFo
     for (const node of selection) {
         if (node.datum === datum) {
             const bounds = node.node;
-            return { bounds, showFocusBox: true, clipFocusBox: true, datum, datumIndex, otherIndex };
+            return { bounds, clipFocusBox: true, datum, datumIndex, otherIndex };
         }
     }
 }

@@ -74,7 +74,6 @@ export type PickFocusOutputs = {
     datum: SeriesNodeDatum<unknown>;
     otherIndex?: number;
     bounds: BBox | Path;
-    showFocusBox: boolean;
     clipFocusBox: boolean;
 };
 

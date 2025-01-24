@@ -24,7 +24,6 @@ export abstract class DataModelSeries<
 > extends Series<number, TDatum, TProps, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
-    protected showFocusBox: boolean = true;
     protected clipFocusBox: boolean = true;
 
     protected getScaleInformation({
@@ -95,12 +94,12 @@ export abstract class DataModelSeries<
             return;
         }
 
-        const { showFocusBox, clipFocusBox } = this;
+        const { clipFocusBox } = this;
         const datum = nodeData[datumIndex];
         const derivedOpts = { ...opts, datumIndex };
         const bounds = this.computeFocusBounds(derivedOpts);
         if (bounds !== undefined) {
-            return { bounds, showFocusBox, clipFocusBox, datum, datumIndex };
+            return { bounds, clipFocusBox, datum, datumIndex };
         }
     }
 
