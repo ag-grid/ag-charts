@@ -209,6 +209,23 @@ test.describe('keyboard-nav', () => {
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-5-highlight.png');
     });
 
+    test('pyramid chart', async ({ page }) => {
+        const { url } = toExamplePageUrl('pyramid-series', 'horizontal-pyramid', 'vanilla');
+
+        await gotoExample(page, url);
+
+        await page.locator(SELECTORS.canvasCenter).first().click();
+
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pyramid-1-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pyramid-2-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pyramid-3-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pyramid-4-highlight.png');
+    });
+
     test('hierarchy chart', async ({ page }) => {
         const { url } = toExamplePageUrl('treemap-series', 'simple-treemap', 'vanilla');
 
