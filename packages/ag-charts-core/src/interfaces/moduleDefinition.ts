@@ -8,8 +8,8 @@ export enum ModuleType {
 
 export interface ModuleInstance {}
 
-export interface ModuleDefinition<TOptions = any> {
-    type: `${ModuleType}` | ModuleType;
+export interface ModuleDefinition<TModule extends ModuleType = ModuleType, TOptions = any> {
+    type: `${TModule}` | TModule;
     enterprise?: boolean;
     name: string;
 
@@ -20,12 +20,14 @@ export interface ModuleDefinition<TOptions = any> {
     create(...args: any[]): ModuleInstance;
 }
 
-export interface ChartModuleDefinition<TOptions = any> extends ModuleDefinition<TOptions> {
+export interface ChartModuleDefinition<TOptions = any> extends ModuleDefinition<ModuleType.Chart, TOptions> {
     detect(options: object): boolean;
 }
 
-export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<TOptions> {
+export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Series, TOptions> {
     chartType: string;
+
+    options: OptionsDefs<TOptions>;
 }
 
-export interface FeatureModuleDefinition<TOptions = any> extends ModuleDefinition<TOptions> {}
+export interface FeatureModuleDefinition<TOptions = any> extends ModuleDefinition<ModuleType.Feature, TOptions> {}

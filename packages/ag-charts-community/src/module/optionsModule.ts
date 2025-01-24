@@ -263,26 +263,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             const { valid, errors } = validate(seriesOptions, seriesDef.options, `series[${index}]`);
 
-            if (errors.length) {
-                const { unknown, required, invalid } = groupBy(errors, (error) => {
-                    if (error.unknown) {
-                        return 'unknown';
-                    } else if (error.required) {
-                        return 'required';
-                    }
-                    return 'invalid';
-                });
-                required?.forEach((error) => Logger.error(error));
-                invalid?.forEach((error) => Logger.warn(error));
-                // TODO handle unknown options that are coming from another modules
-                unknown?.forEach((error) => Logger.warn(error));
+            errors.forEach(Logger.warn);
 
-                if (required?.length) return;
+            if (!errors.some((e) => e.required)) {
+                validatedSeriesOptions.push(valid);
             }
-
-            validatedSeriesOptions.push(valid as any);
         });
-        Logger.log('Valid series options', validatedSeriesOptions);
         options.series = validatedSeriesOptions;
 
         const seriesType = this.optionsType(options);
