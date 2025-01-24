@@ -8,7 +8,6 @@ import type { TooltipPointerEvent } from './tooltip/tooltip';
 type PickProperties = {
     bounds: Path | BBox | undefined;
     datum: Parameters<typeof getDatumRefPoint>[1];
-    showFocusBox: boolean;
     clipFocusBox: boolean;
 };
 

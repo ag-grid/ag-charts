@@ -652,7 +652,6 @@ export abstract class FlowProportionSeries<
             datumIndex: this.contextNodeData?.nodeData.indexOf(nodeDatum.datum) ?? 0,
             otherIndex: 0,
             bounds,
-            showFocusBox: true,
             clipFocusBox: true,
         };
     }

@@ -523,7 +523,7 @@ export class SeriesAreaManager extends BaseManager {
 
         // Update the bounds of the focus indicator:
         this.focusIndicator.clip = pick.clipFocusBox;
-        this.focusIndicator.focus = pick.showFocusBox ? pick.bounds : undefined;
+        this.focusIndicator.focus = pick.bounds;
 
         const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
 
