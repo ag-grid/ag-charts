@@ -1,4 +1,4 @@
-import { findMaxIndex, findMinIndex } from 'ag-charts-core';
+import { findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
 
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -856,9 +856,10 @@ export abstract class CartesianSeries<
         // position in pixels that the visible range ratio covers.
         const crossAxis = this.axes[ChartAxisDirection.X]!;
         const axis = this.axes[ChartAxisDirection.Y]!;
+        const shouldFlipXY = this.shouldFlipXY();
 
-        const crossRange = crossAxis.range.toSorted();
-        const range = axis.range.toSorted();
+        const crossRange = crossAxis.range;
+        const range = axis.range;
 
         const convert = (d: number[], r: number[], v: number) => {
             return d[0] + ((v - r[0]) / (r[1] - r[0])) * (d[1] - d[0]);
@@ -866,14 +867,13 @@ export abstract class CartesianSeries<
 
         const crossMin = convert(crossRange, crossAxis.visibleRange, xVisibleRange[0]);
         const crossMax = convert(crossRange, crossAxis.visibleRange, xVisibleRange[1]);
-        const axisMin = convert(range, axis.visibleRange, yVisibleRange[0]);
-        const axisMax = convert(range, axis.visibleRange, yVisibleRange[1]);
+        const axisMin = convert(range, axis.visibleRange, shouldFlipXY ? yVisibleRange[0] : yVisibleRange[1]);
+        const axisMax = convert(range, axis.visibleRange, shouldFlipXY ? yVisibleRange[1] : yVisibleRange[0]);
 
         const startIndex = Math.round(
             (xVisibleRange[0] + (xVisibleRange[1] - xVisibleRange[0]) / 2) * crossValues.length
         );
-        const pixelSize = 1;
-        const shouldFlipXY = this.shouldFlipXY();
+        const pixelSize = 0;
 
         return countExpandingSearch(0, crossValues.length - 1, startIndex, minVisibleItems, (index) => {
             let [x0, x1] = this.xCoordinateRange(crossValues[index], pixelSize, index);
@@ -882,6 +882,9 @@ export abstract class CartesianSeries<
                 pixelSize,
                 index
             );
+            if (!isFiniteNumber(x0) || !isFiniteNumber(x1) || !isFiniteNumber(y0) || !isFiniteNumber(y1)) {
+                return false;
+            }
             if (shouldFlipXY) [x0, x1, y0, y1] = [y0, y1, x0, x1];
             return x0 >= crossMin && x1 <= crossMax && y0 >= axisMin && y1 <= axisMax;
         });

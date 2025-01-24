@@ -244,6 +244,27 @@ describe('Zoom', () => {
                 await compare();
             });
         });
+
+        describe('invalid', () => {
+            const a = { x: 200, y: 300 };
+            const b = { x: 300, y: 300 };
+            beforeEach(async () => {
+                await prepareChart({ axes: 'x', enableSelecting: true, minVisibleItems: 2 });
+                await mouseDownAction(a.x, a.y)(chart);
+                await delay(500);
+                await mouseMoveAction(a.x, a.y)(chart);
+                await mouseMoveAction(b.x, b.y)(chart);
+            });
+
+            it('should render the invalid selection', async () => {
+                await compare();
+            });
+
+            it('should not zoom on mouseup', async () => {
+                await mouseUpAction(b.x, b.y)(chart);
+                await compare();
+            });
+        });
     });
 
     describe('axis dragging', () => {

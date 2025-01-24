@@ -473,24 +473,21 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         const processedSeriesIds = new Set();
         let visibleItemsCount = 0;
 
+        const xVisibleRange: [number, number] = [zoom.x.min, zoom.x.max];
+        const yVisibleRange: [number, number] = [zoom.y.min, zoom.y.max];
+
         for (const series of xAxis?.boundSeries ?? []) {
             processedSeriesIds.add(series.id);
-            const seriesVisibleItems = series.getVisibleItems(
-                [zoom.x.min, zoom.x.max],
-                [zoom.y.min, zoom.y.max],
-                minVisibleItems - (visibleItemsCount ?? 0)
-            );
+            const remainingItems = minVisibleItems - (visibleItemsCount ?? 0);
+            const seriesVisibleItems = series.getVisibleItems(xVisibleRange, yVisibleRange, remainingItems);
             visibleItemsCount += seriesVisibleItems;
             if (visibleItemsCount >= minVisibleItems) return true;
         }
 
         for (const series of yAxis?.boundSeries ?? []) {
             if (processedSeriesIds.has(series.id)) continue;
-            const seriesVisibleItems = series.getVisibleItems(
-                [zoom.x.min, zoom.x.max],
-                [zoom.y.min, zoom.y.max],
-                minVisibleItems - (visibleItemsCount ?? 0)
-            );
+            const remainingItems = minVisibleItems - (visibleItemsCount ?? 0);
+            const seriesVisibleItems = series.getVisibleItems(xVisibleRange, yVisibleRange, remainingItems);
             visibleItemsCount += seriesVisibleItems;
             if (visibleItemsCount >= minVisibleItems) return true;
         }
