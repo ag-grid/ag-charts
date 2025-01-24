@@ -112,13 +112,14 @@
     --ag-charts-button-radius: var(--ag-border-radius, 4px);
 
     /* Focus Indicator */
-    --ag-charts-focus-border-color: var(--ag-input-focus-border-color, var(--ag-charts-active-color));
-    --ag-charts-focus-border: solid 1px var(--ag-charts-focus-border-color);
+    --ag-charts-focus-accent-color: var(--ag-input-focus-border-color, var(--ag-charts-active-color));
+    --ag-charts-focus-box-shadow: var(--ag-input-focus-box-shadow, 0 0 0 3px var(--ag-charts-focus-accent-color));
+    --ag-charts-focus-outline: var(--ag-input-focus-outline, 1px var(--ag-charts-chrome-background-color) solid);
+    --ag-charts-focus-border: solid 1px var(--ag-charts-focus-accent-color);
     --ag-charts-focus-border-shadow: var(
         --ag-input-focus-box-shadow,
-        0 0 0 3px color-mix(in srgb, transparent, var(--ag-input-focus-border-color, var(--ag-charts-active-color)) 20%)
+        0 0 0 3px color-mix(in srgb, transparent, var(--ag-charts-focus-accent-color) 20%)
     );
-    --ag-charts-focus-box-shadow: var(--box-shadow), 0 0 0 2px #fff8, var(--ag-charts-focus-border-shadow);
 
     /* Icons */
     --ag-charts-icon-font-family: 'agChartsDefault';

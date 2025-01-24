@@ -99,7 +99,8 @@ export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
     const { point } = datum;
     if (datum == null || point == null) return undefined;
 
-    const size = point.focusSize ?? series.getFormattedMarkerStyle(datum).size;
+    // AG-13067 Add 2px padding on all sides:
+    const size = 4 + (point.focusSize ?? series.getFormattedMarkerStyle(datum).size);
     const radius = size / 2;
     const x = datum.point.x - radius;
     const y = datum.point.y - radius;
