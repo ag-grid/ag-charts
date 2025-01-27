@@ -35,7 +35,6 @@ function solveTwoUnknowns(x1: number, x2: number, a1: number, a2: number, Rx: nu
     const t1 = (N * (a1 - Rx)) / Rw;
     const t2 = (N * (a2 - Rx)) / Rw;
     const c = (a1 - Rx) / (a2 - Rx); // === (t1 / t2);
-    console.log({ x1, x2, a1, a2, t1, t2, c, Rx, Rw });
 
     const min = (x1 - c * x2) / (N - t1 + c * (t2 - N));
     const max = (x2 + (t2 - N) * min) / t2;
@@ -96,7 +95,6 @@ export class ZoomTwoFingers {
             const { centerX, centerY } = centerOf(targetTouches[0], targetTouches[1], Ry, Rh);
             this.touchStart.origins[0].normalX = clientToNormal(this.initialZoom.x, centerX, Rx, Rw);
             this.touchStart.origins[0].normalY = clientToNormal(this.initialZoom.y, centerY, Ry, Rh);
-            console.log(`'pan' start`, this.touchStart.origins[0]);
         }
 
         return true;
@@ -131,12 +129,10 @@ export class ZoomTwoFingers {
             const y2 = clientToNormal(this.initialZoom.y, touch.centerY, Ry, Rh);
             const deltaX = (x1 - x2) / N;
             const deltaY = (y1 - y2) / N;
-            const r = {
+            return {
                 x: { min: this.initialZoom.x.min + deltaX, max: this.initialZoom.x.max + deltaX },
                 y: { min: this.initialZoom.y.min + deltaY, max: this.initialZoom.y.max + deltaY },
             };
-            console.log(`'pan'`, r);
-            return r;
         }
     }
 
