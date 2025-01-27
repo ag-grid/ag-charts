@@ -28,8 +28,10 @@ export class WidgetListenerHTML {
                     widgetListener(widgetEvent, target);
                 }
             };
+            const opts: AddEventListenerOptions = {};
+            if (type.startsWith('touch')) opts.passive = false;
             this.initSourceHandler(type, sourceHandler);
-            target.getElement().addEventListener(type, sourceHandler);
+            target.getElement().addEventListener(type, sourceHandler, opts);
         }
         this.widgetListeners ??= {};
         this.widgetListeners[type] ??= [];

@@ -78,6 +78,10 @@ export abstract class Widget<
         return this.elem;
     }
 
+    getBoundingClientRect(): DOMRect {
+        return this.elem.getBoundingClientRect();
+    }
+
     get clientWidth(): number {
         return this.elem.clientWidth;
     }

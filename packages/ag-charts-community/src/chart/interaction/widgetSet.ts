@@ -28,7 +28,6 @@ export class WidgetSet {
         this.containerWidget = new DOMManagerWidget(domManager.getParent('canvas-container'));
         this.containerWidget.addChild(this.chartWidget);
         this.chartWidget.addChild(this.seriesWidget);
-
         this.seriesDragInterpreter = new DragInterpreter(this.seriesWidget);
     }
 
