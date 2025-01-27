@@ -51,6 +51,10 @@ export const commonSeriesOptionsDef: OptionsDefs<AgBaseSeriesOptions<any>> = {
             strokeWidth: positiveNumber,
         },
     },
+    // @ts-expect-error undocumented option
+    highlight: {
+        enabled: boolean,
+    },
 };
 
 export const markerOptionsDef: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {

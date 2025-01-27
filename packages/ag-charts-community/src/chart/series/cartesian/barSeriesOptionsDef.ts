@@ -50,4 +50,8 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+
+    // @ts-expect-error undocumented option
+    fastDataProcessing: boolean,
+    focusPriority: number,
 };
