@@ -25,6 +25,8 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
             padding: 2,
             label: {
                 color: DEFAULT_INVERTED_LABEL_COLOUR,
+                fontFamily: { $ref: 'fontFamily' },
+                fontSize: { $ref: 'fontSize' },
                 fontWeight: 'bold',
                 overflowStrategy: 'hide',
             },

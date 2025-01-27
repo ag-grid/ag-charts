@@ -208,6 +208,7 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Subtitle',
                 spacing: 20,
+                fontWeight: { $ref: 'fontWeight' },
                 fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, FONT_SIZE.MEDIUM / FONT_SIZE.SMALL] }] },
                 fontFamily: { $ref: 'fontFamily' },
                 color: DEFAULT_MUTED_LABEL_COLOUR,

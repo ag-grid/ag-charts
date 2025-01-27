@@ -17,17 +17,21 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     themeTemplate: {
         series: {
             label: {
-                fontSize: 14,
+                fontFamily: { $ref: 'fontFamily' },
+                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 14 / 12] }] },
                 minimumFontSize: 9,
-                color: { $ref: 'backgroundColor' as const },
+                fontWeight: { $ref: 'fontWeight' },
+                color: { $ref: 'backgroundColor' },
                 overflowStrategy: 'ellipsis',
                 wrapping: 'never',
                 spacing: 2,
             },
             secondaryLabel: {
-                fontSize: 8,
+                fontFamily: { $ref: 'fontFamily' },
+                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 8 / 12] }] },
                 minimumFontSize: 7,
-                color: { $ref: 'backgroundColor' as const },
+                fontWeight: { $ref: 'fontWeight' },
+                color: { $ref: 'backgroundColor' },
                 overflowStrategy: 'ellipsis',
                 wrapping: 'never',
             },
@@ -35,10 +39,10 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             padding: 3,
             highlightStyle: {
                 label: {
-                    color: { $ref: 'backgroundColor' as const },
+                    color: { $ref: 'backgroundColor' },
                 },
                 secondaryLabel: {
-                    color: { $ref: 'backgroundColor' as const },
+                    color: { $ref: 'backgroundColor' },
                 },
                 fill: 'rgba(255,255,255, 0.33)',
                 stroke: `rgba(0, 0, 0, 0.4)`,
