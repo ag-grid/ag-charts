@@ -67,8 +67,8 @@ export function getColorStops(
         return [];
     }
 
-    let d0 = Math.min(...domain);
-    let d1 = Math.max(...domain);
+    const d0 = Math.min(...domain);
+    const d1 = Math.max(...domain);
     const isDiscrete = fillMode === 'discrete';
     const offsets = new Float64Array(fills.length);
     let previousDefinedStopIndex = 0;
