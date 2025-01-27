@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
+import { DEFAULT_COLOR_RANGE, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { markerPaletteFactory } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 
@@ -62,6 +62,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     },
     paletteFactory: (params) => {
         const { marker } = markerPaletteFactory(params);
-        return { fill: marker.fill, stroke: marker.stroke, marker };
+        const defaultColorRange = params.themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
+        return { fill: marker.fill, stroke: marker.stroke, marker, defaultColorRange };
     },
 };

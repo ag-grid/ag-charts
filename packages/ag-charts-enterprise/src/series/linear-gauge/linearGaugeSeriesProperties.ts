@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
-    AgGaugeFillMode,
+    AgGradientFillMode,
     AgLinearGaugeItemStylerParams,
     AgLinearGaugeLabelFormatterParams,
     AgLinearGaugeLabelPlacement,
@@ -21,7 +21,6 @@ import type {
 
 import { CORNER_MODE, FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
-import { GaugeStopProperties } from '../gauge-util/stops';
 import { AutoSizedLabel } from '../util/autoSizedLabel';
 
 const {
@@ -202,10 +201,10 @@ class LinearGaugeBarProperties extends BaseProperties {
     thicknessRatio: number = 1;
 
     @Validate(OBJECT_ARRAY)
-    fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
+    fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
 
     @Validate(FILL_MODE)
-    fillMode: AgGaugeFillMode = 'continuous';
+    fillMode: AgGradientFillMode = 'continuous';
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -231,10 +230,10 @@ class LinearGaugeBarProperties extends BaseProperties {
 
 class LinearGaugeScaleProperties extends BaseProperties {
     @Validate(OBJECT_ARRAY)
-    fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
+    fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
 
     @Validate(FILL_MODE)
-    fillMode: AgGaugeFillMode = 'continuous';
+    fillMode: AgGradientFillMode = 'continuous';
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;

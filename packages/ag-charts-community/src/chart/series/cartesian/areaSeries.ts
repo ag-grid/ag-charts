@@ -11,7 +11,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import type { BBox } from '../../../scene/bbox';
+import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import { PointerEvents } from '../../../scene/node';
@@ -19,6 +19,7 @@ import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
+import { isGradientFill } from '../../../scene/util/fill';
 import { extent } from '../../../util/extent';
 import { mergeDefaults } from '../../../util/object';
 import { isContinuous } from '../../../util/value';
@@ -593,7 +594,14 @@ export class AreaSeries extends CartesianSeries<
             opacity,
             visible: visible || animationEnabled,
         });
+
+        const { fill: seriesFill } = this.properties;
+        const gradientFillOptions = isGradientFill(seriesFill)
+            ? this.getGradientFillOptions(seriesFill, this.properties.defaultColorRange)
+            : undefined;
+
         fill.setProperties({
+            gradientFillOptions,
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,

@@ -2,15 +2,19 @@ import type {
     AgAreaSeriesLabelFormatterParams,
     AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesTooltipRendererParams,
+    AgGradientFill,
     AgSeriesAreaOptions,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
 import {
     BOOLEAN,
+    COLOR_GRADIENT,
     COLOR_STRING,
+    COLOR_STRING_ARRAY,
     LINE_DASH,
     OBJECT,
+    OR,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -41,8 +45,11 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     @Validate(POSITIVE_NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @Validate(COLOR_STRING)
-    fill: string = '#c16068';
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    fill: string | AgGradientFill = '#c16068';
 
     @Validate(RATIO)
     fillOpacity = 1;

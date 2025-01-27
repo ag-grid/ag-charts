@@ -1,9 +1,16 @@
-import { type AgGaugeFillMode, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
+import type { AgGradientColorStop, AgGradientFillMode } from 'ag-charts-types';
 
-const { BaseProperties, Validate, COLOR_STRING, NUMBER, ColorScale } = _ModuleSupport;
+import { ColorScale } from '../../scale/colorScale';
+import { BaseProperties } from '../../util/properties';
+import { COLOR_STRING, NUMBER, Validate } from '../../util/validation';
 
-export class GaugeStopProperties extends BaseProperties {
+export interface GradientColorStop {
+    offset: number;
+    color: string;
+}
+
+export class StopProperties extends BaseProperties implements AgGradientColorStop {
     @Validate(NUMBER, { optional: true })
     stop?: number;
 
@@ -11,12 +18,7 @@ export class GaugeStopProperties extends BaseProperties {
     color?: string = 'black';
 }
 
-interface GaugeColorStopDatum {
-    offset: number;
-    color: string;
-}
-
-function stopsAreAscending(fills: GaugeStopProperties[]) {
+function stopsAreAscending(fills: AgGradientColorStop[]) {
     let currentStop: number | undefined;
     for (const { stop } of fills) {
         if (stop == null) {
@@ -31,7 +33,7 @@ function stopsAreAscending(fills: GaugeStopProperties[]) {
     return true;
 }
 
-function discreteColorStops(colorStops: GaugeColorStopDatum[]): GaugeColorStopDatum[] {
+function discreteColorStops(colorStops: GradientColorStop[]): GradientColorStop[] {
     return colorStops.flatMap((colorStop, i) => {
         const { offset } = colorStop;
         const nextColor = colorStops.at(i + 1)?.color;
@@ -39,11 +41,11 @@ function discreteColorStops(colorStops: GaugeColorStopDatum[]): GaugeColorStopDa
     });
 }
 
-function getDefaultColorStops(defaultColorStops: string[], fillMode: AgGaugeFillMode) {
+function getDefaultColorStops(defaultColorStops: string[], fillMode: AgGradientFillMode) {
     const stopOffset = fillMode === 'discrete' ? 1 : 0;
 
     const colorStops = defaultColorStops.map(
-        (color, index, { length }): GaugeColorStopDatum => ({
+        (color, index, { length }): GradientColorStop => ({
             offset: (index + stopOffset) / (length - 1 + stopOffset),
             color,
         })
@@ -53,11 +55,11 @@ function getDefaultColorStops(defaultColorStops: string[], fillMode: AgGaugeFill
 }
 
 export function getColorStops(
-    fills: GaugeStopProperties[],
+    fills: AgGradientColorStop[],
     defaultColorStops: string[],
     domain: number[],
-    fillMode: AgGaugeFillMode
-): GaugeColorStopDatum[] {
+    fillMode: AgGradientFillMode = 'continuous'
+): GradientColorStop[] {
     if (fills.length === 0) {
         return getDefaultColorStops(defaultColorStops, fillMode);
     } else if (!stopsAreAscending(fills)) {
@@ -65,8 +67,8 @@ export function getColorStops(
         return [];
     }
 
-    const d0 = Math.min(...domain);
-    const d1 = Math.max(...domain);
+    let d0 = Math.min(...domain);
+    let d1 = Math.max(...domain);
     const isDiscrete = fillMode === 'discrete';
     const offsets = new Float64Array(fills.length);
     let previousDefinedStopIndex = 0;
@@ -101,13 +103,13 @@ export function getColorStops(
             previousDefinedStopIndex = i;
         }
 
-        offsets[i] = (stop - d0) / (d1 - d0);
+        offsets[i] = Math.max(0, Math.min(1, (stop - d0) / (d1 - d0)));
     }
 
     let lastDefinedColor = fills.find((c) => c.color != null)?.color;
-    let colorScale: _ModuleSupport.ColorScale | undefined;
+    let colorScale: ColorScale | undefined;
 
-    const colorStops = fills.map(({ color }, i): GaugeColorStopDatum => {
+    const colorStops = fills.map(({ color }, i): GradientColorStop => {
         const offset = offsets[i];
 
         if (color != null) {
