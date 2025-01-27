@@ -1,5 +1,9 @@
 [
     {
+        "release version": "11.1.0",
+        "markdown": "/releases/11_1_0.md"
+    },
+    {
         "release version": "11.0.3",
         "markdown": "/releases/11_0_3.md"
     },
