@@ -36,6 +36,7 @@ function makeMouseDrag<K extends DragEvents>(
     const originDeltaY = sourceEvent.pageY - origin.pageY;
     return {
         type,
+        device: 'mouse',
         offsetX: origin.offsetX + originDeltaX,
         offsetY: origin.offsetY + originDeltaY,
         clientX: sourceEvent.clientX,
@@ -112,6 +113,7 @@ function makeTouchDrag<K extends DragEvents>(
     const originDeltaY = touch.pageY - origin.pageY;
     return {
         type,
+        device: 'touch',
         offsetX: origin.offsetX + originDeltaX,
         offsetY: origin.offsetY + originDeltaY,
         clientX: touch.clientX,

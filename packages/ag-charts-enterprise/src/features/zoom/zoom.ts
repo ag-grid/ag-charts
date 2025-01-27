@@ -208,7 +208,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.domProxy = new ZoomDOMProxy({
             onDragStart: (id, dir) => this.onAxisDragStart(id, dir),
-            onDrag: (ev) => this.onDragMove({ currentX: ev.offsetX, currentY: ev.offsetY }),
+            onDrag: (ev) => {
+                const { device, offsetX, offsetY } = ev;
+                this.onDragMove({ device, currentX: offsetX, currentY: offsetY });
+            },
             onDragEnd: () => this.onDragEnd(),
             onDoubleClick: (id, direction) => {
                 this.hoveredAxis = { id, direction };
@@ -282,7 +285,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (!enabled) return;
         if (!this.hoveredAxis) {
-            if (!this.isState(InteractionState.ZoomDraggable) || this.dragState !== DragState.None) return;
+            if (
+                !this.isState(InteractionState.ZoomDraggable) ||
+                this.dragState !== DragState.None ||
+                event?.device !== 'mouse'
+            ) {
+                return;
+            }
         }
 
         this.panner.stopInteractions();
@@ -309,7 +318,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDragMove(event: { currentX: number; currentY: number }) {
+    private onDragMove(event: { device: 'mouse' | 'touch'; currentX: number; currentY: number }) {
         const {
             anchorPointX,
             anchorPointY,
@@ -325,7 +334,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         } = this;
 
         if (!enabled || !paddedRect || !seriesRect) return;
-        if (!this.hoveredAxis && !this.isState(InteractionState.ZoomDraggable)) return;
+        if (!hoveredAxis) {
+            if (!this.isState(InteractionState.ZoomDraggable) || event.device === 'touch') {
+                return;
+            }
+        }
 
         interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
 
