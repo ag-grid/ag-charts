@@ -13,6 +13,7 @@ function clientToNormal({ min, max }: ZoomState, a: number, Rx: number, Rw: numb
     return N * (((a - Rx) / Rw) * (max - min) + min);
 }
 
+// See AG-13737 for explanation.
 function solveTwoUnknowns(x1: number, x2: number, a1: number, a2: number, Rx: number, Rw: number): ZoomState {
     // The math expects x1 <= x2 (and a1 <= a2).
     // If x1 > x2, then the gesture will be reversed (i.e. fingers moving closer would zoom in).
