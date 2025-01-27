@@ -24,7 +24,7 @@ export interface AgBubbleSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum,
     placement?: LabelPlacement;
 }
 
-export type AgBubbleSeriesStyle = AgSeriesMarkerStyle;
+export interface AgBubbleSeriesStyle extends AgSeriesMarkerStyle {}
 
 export type BubbleSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgBubbleSeriesOptionsKeys &

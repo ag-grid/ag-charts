@@ -22,7 +22,7 @@ export interface AgPyramidSeriesItemStylerParams<TDatum>
 
 export interface AgPyramidSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export type AgPyramidSeriesLabelFormatterParams = AgPyramidSeriesOptionsKeys;
+export interface AgPyramidSeriesLabelFormatterParams extends AgPyramidSeriesOptionsKeys {}
 
 export interface AgPyramidSeriesTooltipRendererParams<TDatum = any>
     extends AgPyramidSeriesOptionsKeys,
