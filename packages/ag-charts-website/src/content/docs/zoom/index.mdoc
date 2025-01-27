@@ -140,9 +140,10 @@ zoom: {
 }
 ```
 
-## Automatic Zooming
+## Auto Scaling
 
-Auto Scaling allows the user to zoom the x-axis, and have the y-axis automatically zoom to fit the visible data into the viewport.
+Auto Scaling dynamically adjusts the y axis to fit the visible data whenever the x-axis is zoomed or panned.  
+This is disabled by default. To enable, use `autoScaling: true`.
 
 {% chartExampleRunner title="Auto Scaling" name="auto-scaling" type="generated" /%}
 
@@ -154,7 +155,12 @@ zoom: {
 }
 ```
 
-Auto Scaling can be disabled when the user manually adjusts the y-axis by dragging on the y-axis. It will be re-enabled when the y-axis is reset by double clicking on the y-axis.
+In the above example:
+
+-   Zoom in to the chart by scrolling and then pan left and right.
+-   Observe how the vertical axis domain changes to fit the displayed data range.
+
+Auto Scaling is never applied when the user has manually adjusted the y-axis by dragging it. Auto Scaling will be reapplied when the y-axis is reset, for example by double clicking on it.
 
 ## Navigator
 

@@ -30,7 +30,7 @@ export interface AgInitialStateZoomOptions {
     rangeY?: AgInitialStateZoomRange;
     ratioX?: AgInitialStateZoomRatio;
     ratioY?: AgInitialStateZoomRatio;
-    /** Enable auto scaling for specified axes, if also enabled in `zoom.autoScaling` options. */
+    /** Axes that are zoomed by the auto scaling functionality. */
     autoScaledAxes?: AgAutoScaledAxes;
 }
 
