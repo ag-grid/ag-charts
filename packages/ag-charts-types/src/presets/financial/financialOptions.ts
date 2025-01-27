@@ -1,3 +1,3 @@
 import type { AgPriceVolumePreset } from './priceVolumeOptions';
 
-export type AgFinancialChartPresets = AgPriceVolumePreset;
+export interface AgFinancialChartPresets extends AgPriceVolumePreset {}

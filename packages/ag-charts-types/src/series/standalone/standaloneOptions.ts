@@ -1,7 +1,7 @@
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
 import type { AgPyramidSeriesOptions } from './pyramidOptions';
 
-export type AgStandaloneSeriesOptions = AgPyramidSeriesOptions;
+export interface AgStandaloneSeriesOptions extends AgPyramidSeriesOptions {}
 
 export interface AgBaseStandaloneChartOptions {
     /** Series configurations. */
