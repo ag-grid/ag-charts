@@ -57,7 +57,8 @@ export function createTicks(
     stop: number,
     count: number,
     minCount?: number,
-    maxCount?: number
+    maxCount?: number,
+    visibleRange?: [number, number]
 ): number[] {
     if (count < 2) {
         return [start, stop];
@@ -71,6 +72,12 @@ export function createTicks(
     }
     if (!isCloseToInteger(stop / step, 1e-12)) {
         stop = Math.floor(stop / step) * step;
+    }
+    if (visibleRange != null && visibleRange[0] !== 0 && visibleRange[1] !== 1) {
+        const rangeExtent = stop - start;
+        const adjustedStart = start + rangeExtent * visibleRange[0];
+        const adjustedEnd = stop - rangeExtent * (1 - visibleRange[1]);
+        return range(adjustedStart - (adjustedStart % step), adjustedEnd + (adjustedEnd % step), step);
     }
     return range(start, stop, step);
 }

@@ -30,7 +30,7 @@ export class LinearScale extends ContinuousScale<number> {
         if (!domain || domain.length < 2 || tickCount < 1 || !domain.every(isFinite)) {
             return [];
         }
-        let [d0, d1] = domain;
+        const [d0, d1] = domain;
 
         if (interval) {
             const step = Math.abs(interval);
@@ -39,19 +39,7 @@ export class LinearScale extends ContinuousScale<number> {
             }
         }
 
-        // Filter ticks before creating them to avoid extra iterations, if we are only viewing a slice of the scale.
-        if (visibleRange) {
-            const size = d1 - d0;
-            const visibleSize = visibleRange[1] - visibleRange[0];
-
-            d1 = d0 + visibleRange[1] * size;
-            d0 = d0 + visibleRange[0] * size;
-            tickCount = Math.round(tickCount * visibleSize);
-            minTickCount = Math.round(minTickCount * visibleSize);
-            maxTickCount = Math.round(maxTickCount * visibleSize);
-        }
-
-        return createTicks(d0, d1, tickCount, minTickCount, maxTickCount);
+        return createTicks(d0, d1, tickCount, minTickCount, maxTickCount, visibleRange);
     }
 
     override niceDomain(ticks: ScaleTickParams<number>, domain: number[] = this.domain) {
