@@ -144,6 +144,28 @@ export class ZoomTwoFingers {
         return true;
     }
 
+    // Small touch deltas on an axis, which can defined as one fingers moving ±1 pixel and the other not moving, can
+    // cause the canvas to flicker between two zoompan views.
+    //
+    // For example, consider two fingers moving upwards slowly on the Y-axis with the following events (Y=0 is the top
+    // of the screen):
+    //
+    //   [0]:  { finger1: { clientY: 101 }, finger2: { clientY: 201 } }
+    //   [1]:  { finger1: { clientY: 101 }, finger2: { clientY: 200 } }
+    //   [2]:  { finger1: { clientY: 100 }, finger2: { clientY: 200 } }
+    //
+    // The following transitions cause these changes to the zoompan respectively.
+    //
+    //   [0] => [1] : yMin decreases, yMax increases
+    //   [1] => [2] : yMin increases, yMax decreases
+    //
+    // At highly-zoomed views, this sudden shift in yMin/yMax in the [1] => [2] transition is very noticeable. When many
+    // of these kind of a transitions occur, the chart flickers between pan states instead of smoothly panning. Note
+    // however that, if we didn't receive event [1], our transition would like this:
+    //
+    //   [0] => [2] : yMin increases, yMax increases
+    //
+    // ... which is a smooth panning transition. Therefore to prevent flickering, we skip event [1].
     private twitchTolerantZoomPan(
         x1: number,
         x2: number,
