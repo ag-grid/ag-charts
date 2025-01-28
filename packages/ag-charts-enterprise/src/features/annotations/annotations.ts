@@ -156,7 +156,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
                 if (hovered != null) {
                     ctx.tooltipManager.suppressTooltip('annotations');
-                } else {
+                    _ModuleSupport.InteractionState.Annotations | _ModuleSupport.InteractionState.AnnotationsSelected;
+                } else if (!this.isAnnotationState()) {
                     ctx.tooltipManager.unsuppressTooltip('annotations');
                 }
 
@@ -1154,6 +1155,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     ) {
         this.ctx.interactionManager.popState(state);
         this.ctx.tooltipManager.unsuppressTooltip('annotations');
+    }
+
+    private isAnnotationState() {
+        return (
+            this.ctx.interactionManager.isState(InteractionState.Annotations) ||
+            this.ctx.interactionManager.isState(InteractionState.AnnotationsSelected)
+        );
     }
 
     private update(status = ChartUpdateType.PRE_SCENE_RENDER) {

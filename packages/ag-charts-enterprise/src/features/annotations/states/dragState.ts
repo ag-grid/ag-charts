@@ -67,7 +67,6 @@ export class DragStateMachine<
                     target: StateMachine.parent,
                     action: () => {
                         this.node?.stopDragging();
-                        ctx.stopInteracting();
                         if (this.hasMoved) ctx.recordAction('Move annotation');
                         ctx.update();
                     },
