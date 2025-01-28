@@ -14,8 +14,9 @@
 }
 
 .ag-charts-crosshair-label-content {
-    padding: 4px 8px;
+    padding: 0px 8px;
     border-radius: 2px;
+    line-height: calc(var(--ag-charts-font-size) + 8px);
     background-color: var(--ag-charts-axis-label-background-color);
     color: var(--ag-charts-axis-label-color);
 }
