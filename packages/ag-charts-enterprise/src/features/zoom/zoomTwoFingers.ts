@@ -93,6 +93,10 @@ export class ZoomTwoFingers {
         this.touchStart.type = this.zoomingX || this.zoomingY ? 'zoompan' : 'pan';
 
         if (this.touchStart.type === 'zoompan') {
+            this.previous.a1 = NaN;
+            this.previous.a2 = NaN;
+            this.previous.b1 = NaN;
+            this.previous.b2 = NaN;
             for (const i of [0, 1]) {
                 const a = targetTouches[i].clientX;
                 const b = Ry + Rh - targetTouches[i].clientY;
@@ -170,7 +174,7 @@ export class ZoomTwoFingers {
         let y: ZoomState = initialZoom.y;
 
         if (zoomingX) {
-            const dx = Math.abs(a1 - previous.a1) + Math.abs(a2 - previous.a1);
+            const dx = Math.abs(a1 - previous.a1) + Math.abs(a2 - previous.a2);
             if (dx <= 1) {
                 a1 = previous.a1;
                 a2 = previous.a2;
@@ -182,7 +186,7 @@ export class ZoomTwoFingers {
         }
 
         if (zoomingY) {
-            const dy = Math.abs(b1 - previous.b1) + Math.abs(b2 - previous.b1);
+            const dy = Math.abs(b1 - previous.b1) + Math.abs(b2 - previous.b2);
             if (dy <= 1) {
                 b1 = previous.b1;
                 b2 = previous.b2;
