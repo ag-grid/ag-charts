@@ -12,6 +12,7 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'foregroundColor' },
             placement: 'before',
             spacing: 4,

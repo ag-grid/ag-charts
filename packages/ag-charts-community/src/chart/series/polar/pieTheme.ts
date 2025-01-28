@@ -7,7 +7,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         title: {
             enabled: true,
             fontWeight: { $ref: 'fontWeight' },
-            fontSize: 14,
+            fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 14 / 12] }] },
             fontFamily: { $ref: 'fontFamily' },
             color: DEFAULT_MUTED_LABEL_COLOUR,
             spacing: 5,
@@ -16,6 +16,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'foregroundColor' },
             offset: 3,
             minAngle: 0.001,

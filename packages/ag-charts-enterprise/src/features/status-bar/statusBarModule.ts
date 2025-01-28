@@ -17,21 +17,25 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
                 color: { $ref: 'foregroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
+                fontWeight: { $ref: 'fontWeight' },
             },
             positive: {
                 color: _ModuleSupport.ThemeSymbols.PALETTE_UP_STROKE,
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
+                fontWeight: { $ref: 'fontWeight' },
             },
             negative: {
                 color: _ModuleSupport.ThemeSymbols.PALETTE_DOWN_STROKE,
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
+                fontWeight: { $ref: 'fontWeight' },
             },
             neutral: {
                 color: _ModuleSupport.ThemeSymbols.PALETTE_NEUTRAL_STROKE,
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
+                fontWeight: { $ref: 'fontWeight' },
             },
             background: {
                 fill: { $ref: 'backgroundColor' },

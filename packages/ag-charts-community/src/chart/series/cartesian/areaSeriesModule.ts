@@ -55,6 +55,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
+                fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'foregroundColor' },
             },
         },

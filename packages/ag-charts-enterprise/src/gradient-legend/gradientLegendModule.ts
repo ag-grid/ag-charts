@@ -21,6 +21,7 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
                 color: { $ref: 'foregroundColor' },
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
+                fontWeight: { $ref: 'fontWeight' },
             },
             interval: {
                 minSpacing: 15,
