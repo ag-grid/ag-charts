@@ -1,0 +1,69 @@
+@use 'design-system' as *;
+
+.expandingSection {
+    --content-height: 0;
+    --content-transition-timing: 0.33s;
+
+    display: block;
+    margin-bottom: $spacing-size-5;
+}
+
+.expandingSectionHeader {
+    --icon-size: #{$spacing-size-5};
+    --icon-color: var(--color-link);
+
+    display: block;
+    width: 100%;
+    text-align: left;
+    color: var(--color-link);
+    cursor: pointer;
+
+    &:hover {
+        --icon-color: var(--color-link-hover);
+
+        color: var(--color-link-hover);
+    }
+
+    &:active {
+        background-color: var(--color-button-secondary-bg-hover);
+    }
+
+    &::before {
+        content: 'View';
+        display: inline-block;
+        min-width: 3.5ch;
+
+        details[open] & {
+            content: 'Hide';
+        }
+    }
+}
+
+.expandingSectionHeaderIcon {
+    transition: transform $transition-default-timing;
+
+    &:global(.is-open) {
+        transform: rotate(90deg);
+    }
+}
+
+.expandingSectionContentOuter {
+    overflow: hidden;
+    transition: max-height var(--content-transition-timing) linear;
+
+    details[open] & {
+        max-height: var(--content-height);
+    }
+}
+
+.expandingSectionContentInner {
+    padding: $spacing-size-4 $spacing-size-4 $spacing-size-5;
+    border: 1px solid var(--color-button-secondary-border);
+    border-top: none;
+    border-bottom-right-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
+
+    > *:first-child {
+        margin-top: 0;
+    }
+}
