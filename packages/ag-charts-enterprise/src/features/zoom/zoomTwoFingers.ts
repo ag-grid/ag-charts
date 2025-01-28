@@ -54,6 +54,9 @@ export class ZoomTwoFingers {
     // Check if X-axis or Y-axis overlap. zoompan will be sensitive if the fingers are close to one another on an axis.
     private checkTouchOverlaps(touchA: Touch, touchB: Touch) {
         const isRangeOverlapping = (centerA: number, radiusA: number, centerB: number, radiusB: number): boolean => {
+            // On some platforms (e.g. Android) the radii are always 0.
+            if (radiusA === 0) radiusA = 30;
+            if (radiusB === 0) radiusB = 30;
             const minA = centerA - radiusA;
             const maxA = centerA + radiusA;
             const minB = centerB - radiusB;
