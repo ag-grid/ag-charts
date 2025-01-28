@@ -38,17 +38,6 @@ function solveTwoUnknowns(x1: number, x2: number, a1: number, a2: number, Rx: nu
     return { min, max };
 }
 
-let last = {
-    xMin: -Infinity,
-    xMax: -Infinity,
-    yMin: -Infinity,
-    yMax: -Infinity,
-    a1: -Infinity,
-    a2: -Infinity,
-    b1: -Infinity,
-    b2: -Infinity,
-};
-
 export class ZoomTwoFingers {
     private readonly touchStart: ZoomTwoFingersTouchStart = {
         type: 'zoompan',
@@ -197,40 +186,6 @@ export class ZoomTwoFingers {
             y = solveTwoUnknowns(y1, y2, b1, b2, Ry, Rh);
         }
 
-        const r = { x, y };
-        const current = {
-            xMin: r.x.min,
-            xMax: r.x.max,
-            yMin: r.y.min,
-            yMax: r.y.max,
-            a1,
-            a2,
-            b1,
-            b2,
-        };
-        const dir = (key: keyof (typeof last & typeof current)): string => {
-            if (current[key] > last[key]) {
-                return '🟢⬆️';
-            }
-            if (current[key] < last[key]) {
-                return '🔴⬇️';
-            }
-            return '🔵➡️';
-        };
-        console.table([
-            {
-                xMin: `${dir('xMin')} ${r.x.min}`,
-                xMax: `${dir('xMax')} ${r.x.max}`,
-                yMin: `${dir('yMin')} ${r.y.min}`,
-                yMax: `${dir('yMax')} ${r.y.max}`,
-                a1: `${dir('a1')} ${a1}`,
-                a2: `${dir('a2')} ${a2}`,
-                b1: `${dir('b1')} ${b1}`,
-                b2: `${dir('b2')} ${b2}`,
-            },
-        ]);
-        last = current;
-        return r;
-        // return { x, y };
+        return { x, y };
     }
 }
