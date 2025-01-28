@@ -6,6 +6,11 @@ type Origin = { identifier: number; normalX: number; normalY: number };
 type ZoomState = _ModuleSupport.ZoomState;
 type AxisZoomState = _ModuleSupport.AxisZoomState;
 type DefinedZoomState = _ModuleSupport.DefinedZoomState;
+
+// The 'zoompan' mode (default) solves four knowns to allow two fingers to adjust the zoom and pan simultaneously.
+//
+// The 'pan' mode (when fingers start very near each other) uses the average position of the two fingers to adjust just
+// the panning.
 type ZoomTwoFingersTouchStart =
     | { type: 'zoompan'; readonly origins: [Origin, Origin] }
     | { type: 'pan'; readonly origins: [Origin & { readonly identifier: 0 }] };
