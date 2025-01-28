@@ -47,7 +47,7 @@ export class ZoomTwoFingers {
         ],
     };
     private readonly initialZoom: DefinedZoomState = { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
-    private previous = { a1: NaN, a2: NaN, b1: NaN, b2: NaN };
+    private readonly previous = { a1: NaN, a2: NaN, b1: NaN, b2: NaN };
     private zoomingX: boolean = false;
     private zoomingY: boolean = false;
 
