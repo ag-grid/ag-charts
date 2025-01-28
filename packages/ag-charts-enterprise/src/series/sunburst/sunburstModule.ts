@@ -19,7 +19,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             label: {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 14 / 12] }] },
-                minimumFontSize: 9,
+                minimumFontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 9 / 12] }] },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'backgroundColor' },
                 overflowStrategy: 'ellipsis',
@@ -29,7 +29,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             secondaryLabel: {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 8 / 12] }] },
-                minimumFontSize: 7,
+                minimumFontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 7 / 12] }] },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'backgroundColor' },
                 overflowStrategy: 'ellipsis',

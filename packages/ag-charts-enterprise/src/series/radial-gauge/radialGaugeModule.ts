@@ -72,7 +72,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 enabled: true,
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 18 / 12] }] },
-                minimumFontSize: 12,
+                minimumFontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
                 color: DEFAULT_MUTED_LABEL_COLOUR,
             },
