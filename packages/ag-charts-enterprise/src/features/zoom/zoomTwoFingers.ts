@@ -58,6 +58,7 @@ export class ZoomTwoFingers {
         ],
     };
     private readonly initialZoom: DefinedZoomState = { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
+    private previous = { a1: NaN, a2: NaN, b1: NaN, b2: NaN };
     private zoomingX: boolean = false;
     private zoomingY: boolean = false;
 
@@ -125,43 +126,7 @@ export class ZoomTwoFingers {
             const y2 = origins[1].normalY;
             const b1 = Ry + Rh - touches[0].clientY;
             const b2 = Ry + Rh - touches[1].clientY;
-            const r = {
-                x: this.zoomingX ? solveTwoUnknowns(x1, x2, a1, a2, Rx, Rw) : this.initialZoom.x,
-                y: this.zoomingY ? solveTwoUnknowns(y1, y2, b1, b2, Ry, Rh) : this.initialZoom.y,
-            };
-            const current = {
-                xMin: r.x.min,
-                xMax: r.x.max,
-                yMin: r.y.min,
-                yMax: r.y.max,
-                a1,
-                a2,
-                b1,
-                b2,
-            };
-            const dir = (key: keyof (typeof last & typeof current)) : string => {
-                if (current[key] > last[key]) {
-                    return '🟢⬆️';
-                }
-                if (current[key] < last[key]) {
-                    return '🔴⬇️';
-                }
-                return '🔵➡️';
-            }
-            console.table([
-                {
-                    xMin: `${dir('xMin')} ${r.x.min}`,
-                    xMax: `${dir('xMax')} ${r.x.max}`,
-                    yMin: `${dir('yMin')} ${r.y.min}`,
-                    yMax: `${dir('yMax')} ${r.y.max}`,
-                    a1: `${dir('a1')} ${a1}`,
-                    a2: `${dir('a2')} ${a2}`,
-                    b1: `${dir('b1')} ${b1}`,
-                    b2: `${dir('b2')} ${b2}`,
-                },
-            ]);
-            last = current;
-            return r;
+            return this.twitchTolerantZoomPan(x1, x2, a1, a2, y1, y2, b1, b2, Rx, Ry, Rw, Rh);
         } /* type === 'pan' */ else {
             const touch = centerOf(targetTouches[0], targetTouches[1]);
             const x1 = this.touchStart.origins[0].normalX;
@@ -184,5 +149,84 @@ export class ZoomTwoFingers {
             return !identifiers.includes(origins[0].identifier) || !identifiers.includes(origins[1].identifier);
         }
         return true;
+    }
+
+    private twitchTolerantZoomPan(
+        x1: number,
+        x2: number,
+        a1: number,
+        a2: number,
+        y1: number,
+        y2: number,
+        b1: number,
+        b2: number,
+        Rx: number,
+        Ry: number,
+        Rw: number,
+        Rh: number
+    ) {
+        const { zoomingX, zoomingY, initialZoom, previous } = this;
+        let x: ZoomState = initialZoom.x;
+        let y: ZoomState = initialZoom.y;
+
+        if (zoomingX) {
+            const dx = Math.abs(a1 - previous.a1) + Math.abs(a2 - previous.a1);
+            if (dx <= 1) {
+                a1 = previous.a1;
+                a2 = previous.a2;
+            } else {
+                previous.a1 = a1;
+                previous.a2 = a2;
+            }
+            x = solveTwoUnknowns(x1, x2, a1, a2, Rx, Rw);
+        }
+
+        if (zoomingY) {
+            const dy = Math.abs(b1 - previous.b1) + Math.abs(b2 - previous.b1);
+            if (dy <= 1) {
+                b1 = previous.b1;
+                b2 = previous.b2;
+            } else {
+                previous.b1 = b1;
+                previous.b2 = b2;
+            }
+            y = solveTwoUnknowns(y1, y2, b1, b2, Ry, Rh);
+        }
+
+        const r = { x, y };
+        const current = {
+            xMin: r.x.min,
+            xMax: r.x.max,
+            yMin: r.y.min,
+            yMax: r.y.max,
+            a1,
+            a2,
+            b1,
+            b2,
+        };
+        const dir = (key: keyof (typeof last & typeof current)): string => {
+            if (current[key] > last[key]) {
+                return '🟢⬆️';
+            }
+            if (current[key] < last[key]) {
+                return '🔴⬇️';
+            }
+            return '🔵➡️';
+        };
+        console.table([
+            {
+                xMin: `${dir('xMin')} ${r.x.min}`,
+                xMax: `${dir('xMax')} ${r.x.max}`,
+                yMin: `${dir('yMin')} ${r.y.min}`,
+                yMax: `${dir('yMax')} ${r.y.max}`,
+                a1: `${dir('a1')} ${a1}`,
+                a2: `${dir('a2')} ${a2}`,
+                b1: `${dir('b1')} ${b1}`,
+                b2: `${dir('b2')} ${b2}`,
+            },
+        ]);
+        last = current;
+        return r;
+        // return { x, y };
     }
 }
