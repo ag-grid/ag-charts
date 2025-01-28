@@ -38,6 +38,17 @@ function solveTwoUnknowns(x1: number, x2: number, a1: number, a2: number, Rx: nu
     return { min, max };
 }
 
+let last = {
+    xMin: -Infinity,
+    xMax: -Infinity,
+    yMin: -Infinity,
+    yMax: -Infinity,
+    a1: -Infinity,
+    a2: -Infinity,
+    b1: -Infinity,
+    b2: -Infinity,
+};
+
 export class ZoomTwoFingers {
     private readonly touchStart: ZoomTwoFingersTouchStart = {
         type: 'zoompan',
@@ -114,10 +125,43 @@ export class ZoomTwoFingers {
             const y2 = origins[1].normalY;
             const b1 = Ry + Rh - touches[0].clientY;
             const b2 = Ry + Rh - touches[1].clientY;
-            return {
+            const r = {
                 x: this.zoomingX ? solveTwoUnknowns(x1, x2, a1, a2, Rx, Rw) : this.initialZoom.x,
                 y: this.zoomingY ? solveTwoUnknowns(y1, y2, b1, b2, Ry, Rh) : this.initialZoom.y,
             };
+            const current = {
+                xMin: r.x.min,
+                xMax: r.x.max,
+                yMin: r.y.min,
+                yMax: r.y.max,
+                a1,
+                a2,
+                b1,
+                b2,
+            };
+            const dir = (key: keyof (typeof last & typeof current)) : string => {
+                if (current[key] > last[key]) {
+                    return '🟢⬆️';
+                }
+                if (current[key] < last[key]) {
+                    return '🔴⬇️';
+                }
+                return '🔵➡️';
+            }
+            console.table([
+                {
+                    xMin: `${dir('xMin')} ${r.x.min}`,
+                    xMax: `${dir('xMax')} ${r.x.max}`,
+                    yMin: `${dir('yMin')} ${r.y.min}`,
+                    yMax: `${dir('yMax')} ${r.y.max}`,
+                    a1: `${dir('a1')} ${a1}`,
+                    a2: `${dir('a2')} ${a2}`,
+                    b1: `${dir('b1')} ${b1}`,
+                    b2: `${dir('b2')} ${b2}`,
+                },
+            ]);
+            last = current;
+            return r;
         } /* type === 'pan' */ else {
             const touch = centerOf(targetTouches[0], targetTouches[1]);
             const x1 = this.touchStart.origins[0].normalX;
