@@ -1,11 +1,8 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 
 // clientXY  (unit: px)          :  Touch screen points.
-// cdeltaXY  (unit: px)          :  Touch screen points relative to (0, 0).
 // normalXY  (unit: N/A - ratio) :  Touch normalised points in [0, N] range.
-type CenterOffsets = { cdeltaX: number; cdeltaY: number };
-type SnappedTouch = { clientX: number; clientY: number };
-type Origin = { identifier: number; normalX: number; normalY: number } & CenterOffsets;
+type Origin = { identifier: number; normalX: number; normalY: number };
 type ZoomState = _ModuleSupport.ZoomState;
 type AxisZoomState = _ModuleSupport.AxisZoomState;
 type DefinedZoomState = _ModuleSupport.DefinedZoomState;
@@ -41,38 +38,12 @@ function solveTwoUnknowns(x1: number, x2: number, a1: number, a2: number, Rx: nu
     return { min, max };
 }
 
-function snappedTouchMove(targetTouches: Touch[], origins: [Origin, Origin]): [SnappedTouch, SnappedTouch] {
-    const touches = [0, 1].map((i) => targetTouches.find((t) => t.identifier === origins[i].identifier)!);
-    const { centerX, centerY } = centerOf(touches[0], touches[1]);
-    let result: [SnappedTouch, SnappedTouch] = [
-        { clientX: touches[0].clientX, clientY: touches[0].clientY },
-        { clientX: touches[1].clientX, clientY: touches[1].clientY },
-    ];
-
-    const odx = origins[0].cdeltaX - origins[1].cdeltaX;
-    const ody = origins[0].cdeltaY - origins[1].cdeltaY;
-    const tdx = touches[0].clientX - touches[1].clientX;
-    const tdy = touches[0].clientY - touches[1].clientY;
-    const originsDistanceSquared = odx * odx + ody * ody;
-    const touchesDistanceSquared = tdx * tdx + tdy * tdy;
-    const shouldSnap = Math.abs(originsDistanceSquared - touchesDistanceSquared) < (31*31);
-
-    if (shouldSnap) {
-        result[0].clientX = origins[0].cdeltaX + centerX;
-        result[1].clientX = origins[1].cdeltaX + centerX;
-        result[0].clientY = origins[0].cdeltaY + centerY;
-        result[1].clientY = origins[1].cdeltaY + centerY;
-    }
-
-    return result;
-}
-
 export class ZoomTwoFingers {
     private readonly touchStart: ZoomTwoFingersTouchStart = {
         type: 'zoompan',
         origins: [
-            { identifier: 0, normalX: NaN, normalY: NaN, cdeltaX: NaN, cdeltaY: NaN },
-            { identifier: 0, normalX: NaN, normalY: NaN, cdeltaX: NaN, cdeltaY: NaN },
+            { identifier: 0, normalX: NaN, normalY: NaN },
+            { identifier: 0, normalX: NaN, normalY: NaN },
         ],
     };
     private readonly initialZoom: DefinedZoomState = { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
@@ -98,7 +69,6 @@ export class ZoomTwoFingers {
         event.sourceEvent.preventDefault();
 
         const targetTouches = Array.from(event.sourceEvent.targetTouches);
-        const { centerX, centerY } = centerOf(targetTouches[0], targetTouches[1]);
         const { x: Rx, y: Ry, width: Rw, height: Rh } = target.getBoundingClientRect();
 
         this.checkTouchOverlaps(targetTouches[0], targetTouches[1]);
@@ -117,14 +87,11 @@ export class ZoomTwoFingers {
                 this.touchStart.origins[i].identifier = targetTouches[i].identifier;
                 this.touchStart.origins[i].normalX = clientToNormal(this.initialZoom.x, a, Rx, Rw);
                 this.touchStart.origins[i].normalY = clientToNormal(this.initialZoom.y, b, Ry, Rh);
-                this.touchStart.origins[i].cdeltaX = targetTouches[i].clientX - centerX;
-                this.touchStart.origins[i].cdeltaY = targetTouches[i].clientY - centerY;
             }
         } else {
+            const { centerX, centerY } = centerOf(targetTouches[0], targetTouches[1]);
             this.touchStart.origins[0].normalX = clientToNormal(this.initialZoom.x, centerX, Rx, Rw);
             this.touchStart.origins[0].normalY = clientToNormal(this.initialZoom.y, Ry + Rh - centerY, Ry, Rh);
-            this.touchStart.origins[0].cdeltaX = NaN;
-            this.touchStart.origins[0].cdeltaY = NaN;
         }
 
         return true;
@@ -138,8 +105,7 @@ export class ZoomTwoFingers {
 
         if (this.touchStart.type === 'zoompan') {
             const { origins } = this.touchStart;
-            //const touches = [0, 1].map((i) => targetTouches.find((t) => t.identifier === origins[i].identifier)!);
-            const touches = snappedTouchMove(targetTouches, origins);
+            const touches = [0, 1].map((i) => targetTouches.find((t) => t.identifier === origins[i].identifier)!);
             const x1 = origins[0].normalX;
             const x2 = origins[1].normalX;
             const a1 = touches[0].clientX;
