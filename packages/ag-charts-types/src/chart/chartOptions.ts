@@ -157,6 +157,14 @@ export interface AgKeyboardOptions {
     tabIndex?: number;
 }
 
+export interface AgTouchOptions {
+    /** Set the input handling behavior for single-finger touch drag events. The `'none'` action will ignore these events, typically causing the default page-scrolling behavior. The `'hover'` action will make these behave like mouse hover events. The `'pan'` action will make these pan the view if the [Zoom](/zoom) module is enabled.
+     *
+     * Default: `'none'`
+     */
+    dragAction?: 'none' | 'pan' | 'hover';
+}
+
 export interface AgBaseThemeableChartOptions<TDatum = any> {
     /** The width of the chart in pixels. */
     width?: PixelSize;
@@ -209,6 +217,8 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     ranges?: AgRangesOptions;
     /** Keyboard navigation options. */
     keyboard?: AgKeyboardOptions;
+    /** Touch input options. */
+    touch?: AgTouchOptions;
 
     // Cartesian-specific options - special care required.
     /** Configuration for the Navigator. */

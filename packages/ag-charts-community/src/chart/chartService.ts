@@ -1,4 +1,5 @@
-import type { AgChartInstance } from 'ag-charts-types';
+import type { DeepRequired } from 'ag-charts-core';
+import type { AgChartInstance, AgTouchOptions } from 'ag-charts-types';
 
 import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
@@ -12,4 +13,5 @@ export interface ChartService {
     readonly series: ISeries<any, any>[];
     readonly seriesRoot: Group;
     readonly publicApi?: AgChartInstance;
+    readonly touch: DeepRequired<AgTouchOptions>;
 }

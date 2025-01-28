@@ -60,6 +60,7 @@ import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries } from './series/seriesTypes';
 import { Tooltip } from './tooltip/tooltip';
+import { Touch } from './touch';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
@@ -194,6 +195,9 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     @Validate(OBJECT)
     readonly keyboard = new Keyboard();
+
+    @Validate(OBJECT)
+    readonly touch = new Touch();
 
     @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
     mode: ChartMode = 'standalone';
@@ -489,6 +493,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
             seriesToUpdate = this.series,
             newAnimationBatch,
         } = opts ?? {};
+
+        this.ctx.widgets.seriesWidget.setDragTouchEnabled(this.touch.dragAction !== 'none');
 
         if (forceNodeDataRefresh) {
             this.series.forEach((series) => series.markNodeDataDirty());
