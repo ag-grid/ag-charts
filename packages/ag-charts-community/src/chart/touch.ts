@@ -8,5 +8,5 @@ type OptionsImp = DeepRequired<AgTouchOptions>;
 
 export class Touch extends BaseProperties implements OptionsImp {
     @Validate(UNION(['none', 'drag', 'hover']))
-    dragAction: OptionsImp['dragAction'] = 'none';
+    dragAction: OptionsImp['dragAction'] = 'drag';
 }

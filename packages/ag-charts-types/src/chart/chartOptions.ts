@@ -160,7 +160,7 @@ export interface AgKeyboardOptions {
 export interface AgTouchOptions {
     /** Set the input handling behavior for single-finger touch drag events. The `'none'` action will ignore these events, typically causing the default page-scrolling behavior. The `'hover'` action will make these behave like mouse hover events. The `'drag'` action will make these behave like mouse drag events (moving while holding left-button).
      *
-     * Default: `'none'`
+     * Default: `'drag'`
      */
     dragAction?: 'none' | 'drag' | 'hover';
 }
