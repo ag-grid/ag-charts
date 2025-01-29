@@ -29,6 +29,7 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
             label: {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
+                fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'foregroundColor' },
                 spacing: 10,
             },

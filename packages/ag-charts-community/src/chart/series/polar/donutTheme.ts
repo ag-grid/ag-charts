@@ -6,7 +6,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         title: {
             enabled: true,
             fontWeight: { $ref: 'fontWeight' },
-            fontSize: 14,
+            fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 14 / 12] }] },
             fontFamily: { $ref: 'fontFamily' },
             color: DEFAULT_MUTED_LABEL_COLOUR,
             spacing: 5,
@@ -15,6 +15,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'foregroundColor' },
             offset: 3,
             minAngle: 0.001,
@@ -49,6 +50,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         innerLabels: {
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'foregroundColor' },
             spacing: 2,
         },

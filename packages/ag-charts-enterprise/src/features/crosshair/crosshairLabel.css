@@ -4,9 +4,9 @@
     top: 0px;
     user-select: none;
     pointer-events: none;
-    font:
-        12px Verdana,
-        sans-serif;
+    font-family: var(--ag-charts-font-family);
+    font-size: var(--ag-charts-font-size);
+    font-weight: var(--ag-charts-font-weight);
     overflow: hidden;
     white-space: nowrap;
     z-index: var(--ag-charts-layer-crosshair);
@@ -14,9 +14,9 @@
 }
 
 .ag-charts-crosshair-label-content {
-    padding: 0 8px;
+    padding: 0px 8px;
     border-radius: 2px;
-    line-height: 20px;
+    line-height: calc(var(--ag-charts-font-size) + 8px);
     background-color: var(--ag-charts-axis-label-background-color);
     color: var(--ag-charts-axis-label-color);
 }

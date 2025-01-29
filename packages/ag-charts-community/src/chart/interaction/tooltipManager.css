@@ -8,8 +8,9 @@
 
     width: max-content;
     max-width: 100%;
-    font-family: var(--ag-charts-font-family);
-    font-size: var(--ag-charts-font-size);
+    font-family: var(--ag-charts-chrome-font-family);
+    font-size: var(--ag-charts-chrome-font-size);
+    font-weight: var(--ag-charts-chrome-font-weight);
     color: var(--ag-charts-tooltip-text-color);
     background: var(--ag-charts-tooltip-background-color);
     border: var(--ag-charts-tooltip-border);

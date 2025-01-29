@@ -53,7 +53,9 @@ export class Overlay extends BaseProperties {
                 boxSizing: 'border-box',
                 height: '100%',
                 margin: '8px',
-                font: '12px Verdana, sans-serif',
+                fontFamily: 'var(--ag-charts-font-family)',
+                fontSize: 'var(--ag-charts-font-size)',
+                fontWeight: 'var(--ag-charts-font-weight)',
             });
             content.innerText = this.getText(localeManager);
             this.content = content;

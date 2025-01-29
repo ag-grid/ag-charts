@@ -10,6 +10,7 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'foregroundColor' },
         },
         marker: {

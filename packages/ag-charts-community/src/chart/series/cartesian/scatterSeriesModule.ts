@@ -32,6 +32,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
+                fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'foregroundColor' },
             },
             errorBar: {

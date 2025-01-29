@@ -15,7 +15,7 @@
 
 /* Header */
 .ag-charts-dialog__header {
-    border-bottom: 1px solid var(--ag-charts-border-color);
+    border-bottom: 1px solid var(--ag-charts-chrome-border-color);
     display: flex;
 }
 

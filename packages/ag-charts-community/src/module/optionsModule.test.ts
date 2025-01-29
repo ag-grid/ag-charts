@@ -609,6 +609,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
+      "fontWeight": 400,
     },
     "lineDash": [
       0,
@@ -647,6 +648,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
+      "fontWeight": 400,
     },
     "lineDash": [
       0,
@@ -864,6 +866,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
+      "fontWeight": 400,
     },
     "lineDash": [
       0,
@@ -902,6 +905,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
+      "fontWeight": 400,
     },
     "lineDash": [
       0,
@@ -1119,6 +1123,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
+      "fontWeight": 400,
     },
     "lineDash": [
       0,
@@ -1157,6 +1162,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
+      "fontWeight": 400,
     },
     "lineDash": [
       0,

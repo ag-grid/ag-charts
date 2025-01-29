@@ -42,8 +42,9 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
                 enabled: false,
                 label: {
                     color: { $ref: 'foregroundColor' },
-                    fontSize: 10,
+                    fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 10 / 12] }] },
                     fontFamily: { $ref: 'fontFamily' },
+                    fontWeight: { $ref: 'fontWeight' },
                     spacing: 5,
                 },
                 padding: {

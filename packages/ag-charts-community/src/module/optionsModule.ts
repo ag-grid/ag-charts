@@ -2,6 +2,7 @@ import {
     type DeepPartial,
     Logger,
     ModuleRegistry,
+    type OptionsDefs,
     circularSliceArray,
     groupBy,
     isEnumValue,
@@ -10,7 +11,11 @@ import {
     isPlainObject,
     isString,
     isSymbol,
+    number,
+    or,
+    string,
     unique,
+    validate,
 } from 'ag-charts-core';
 import {
     type AgBaseAxisOptions,
@@ -263,11 +268,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // so we aim to only do this once in the processing flow.
         processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
-        let themeParameters = activeTheme.getPublicParameters();
-        if (isPlainObject(processedOptions.theme) && processedOptions.theme.params) {
-            themeParameters = mergeDefaults(processedOptions.theme.params, themeParameters);
-        }
-
+        const themeParameters = this.getThemeParameters(activeTheme, processedOptions);
         this.resolveThemeOperations(themeParameters, processedOptions);
         this.resolveThemeOperations(themeParameters, this.annotationThemes);
 
@@ -426,6 +427,37 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             );
         });
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
+    }
+
+    private getThemeParameters(theme: ChartTheme, options: T) {
+        const defaultParameters = theme.getPublicParameters();
+
+        if (!isPlainObject(options.theme) || !options.theme.params) {
+            return defaultParameters;
+        }
+
+        const themeParamsOptionsDef: OptionsDefs<AgChartThemeParams> = {
+            axisColor: string,
+            backgroundColor: string,
+            borderColor: string,
+            foregroundColor: string,
+            fontFamily: string,
+            fontSize: number,
+            fontWeight: or(string, number),
+            gridLineColor: string,
+            padding: number,
+        };
+        const { errors } = validate(options.theme.params, themeParamsOptionsDef);
+
+        if (!errors.length) {
+            return mergeDefaults(options.theme.params, defaultParameters);
+        }
+
+        for (const { message } of errors) {
+            Logger.warnOnce(message);
+        }
+
+        return defaultParameters;
     }
 
     private resolveThemeOperations(params: AgChartThemeParams, options: T) {

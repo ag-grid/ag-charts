@@ -33,6 +33,7 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
+                fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'backgroundColor' },
             },
             shadow: {

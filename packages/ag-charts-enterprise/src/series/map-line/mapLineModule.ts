@@ -25,6 +25,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
                 enabled: true,
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
+                fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'foregroundColor' },
             },
         },

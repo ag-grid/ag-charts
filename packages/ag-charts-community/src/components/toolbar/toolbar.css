@@ -14,7 +14,9 @@
     color: var(--ag-charts-toolbar-foreground-color);
     cursor: pointer;
     display: flex;
-    font: var(--ag-charts-toolbar-font-size) var(--ag-charts-font-family);
+    font-family: var(--ag-charts-chrome-font-family);
+    font-size: var(--ag-charts-toolbar-font-size);
+    font-weight: var(--ag-charts-chrome-font-weight);
     justify-content: center;
     min-height: var(--ag-charts-toolbar-size);
     min-width: var(--ag-charts-toolbar-size);
