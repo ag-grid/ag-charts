@@ -1,0 +1,38 @@
+---
+title: 'Touch'
+---
+
+Placeholder description Placeholder description Placeholder description Placeholder description Placeholder description Placeholder description
+
+## Single Finger Touch Dragging
+
+By default, Single Finger Touch Drag events are handled like mouse drag events. To change the input handling behavior of these events, use `touch.dragAction`.
+
+{% chartExampleRunner
+    title="Single Finger Touch Dragging"
+    name="single-finger-touch-dragging"
+    type="generated"
+    options={ "enterprise": true }
+/%}
+
+```ts
+touch: {
+    dragAction: 'none',
+}
+```
+
+In this example:
+
+-   `dragAction: 'none'` (default) disables Single Finger input handling, scrolling the pan.
+-   `dragAction: 'drag'` emulates mouse dragging, updating the view's pan.
+-   `dragAction: 'hover'` emulates mouse movements, updating the tooltip & highlight.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgTouchOptions" label="Touch" %}
+{% apiReference id="AgTouchOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}
