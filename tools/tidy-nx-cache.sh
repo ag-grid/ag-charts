@@ -8,6 +8,7 @@ set -eu
 find .nx/cache -name "ag-charts-website" | grep packages | while read filename ; do
     cacheHash=$(echo "${filename}" | awk -F '/' '{ print $3 }')
     size=$(du -sh .nx/cache/${cacheHash} | awk '{ print $1 }')
-    rm -rf .nx/cache/${cacheHash}{,.commit}
-    echo "Removed cache entry of size ${size} with hash ${cacheHash}"
+    echo "Found cache entry of size ${size} with hash ${cacheHash}"
+    # rm -rf .nx/cache/${cacheHash}{,.commit}
+    # echo "Removed cache entry of size ${size} with hash ${cacheHash}"
 done
