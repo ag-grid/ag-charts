@@ -47,6 +47,7 @@ type ConfigGenerator = ({
     isDev: boolean;
 }) => Promise<FrameworkFiles>;
 
+// noinspection TypeScriptValidateTypes
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
     vanilla: async ({ entryFile, indexHtml, typedBindings, otherScriptFiles, ignoreDarkMode, isDev }) => {
         const internalFramework: InternalFramework = 'vanilla';
@@ -274,7 +275,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         if (!isDev) {
             mainJs = await prettier.format(mainJs, {
-                parser: 'babel',
+                parser: 'typescript',
                 embeddedLanguageFormatting: 'off',
             });
         }
@@ -289,8 +290,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
                 'index.html': indexHtml,
             },
             boilerPlateFiles,
-            // Other files, not including entry file
-            scriptFiles: Object.keys(otherScriptFiles),
             entryFileName,
             mainFileName,
         };
