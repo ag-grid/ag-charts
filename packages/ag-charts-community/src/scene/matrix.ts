@@ -1,10 +1,7 @@
+import { isNumberEqual } from '../util/number';
 import { BBox } from './bbox';
 
 export const IDENTITY_MATRIX_ELEMENTS: readonly number[] = [1, 0, 0, 1, 0, 0];
-
-function closeValue(val: number, ref: number, errorMargin = 1e-8) {
-    return val === ref || Math.abs(ref - val) < errorMargin;
-}
 
 /**
  * As of Jan 8, 2019, Firefox still doesn't implement
@@ -31,8 +28,8 @@ export class Matrix {
         return [...this.elements];
     }
 
-    constructor(elements: number[] = [...IDENTITY_MATRIX_ELEMENTS]) {
-        this.elements = elements;
+    constructor(elements: readonly number[] = IDENTITY_MATRIX_ELEMENTS) {
+        this.elements = [...elements];
     }
 
     setElements(elements: readonly number[]): this {
@@ -63,12 +60,12 @@ export class Matrix {
     get identity(): boolean {
         const e = this.elements;
         return (
-            closeValue(e[0], 1) &&
-            closeValue(e[1], 0) &&
-            closeValue(e[2], 0) &&
-            closeValue(e[3], 1) &&
-            closeValue(e[4], 0) &&
-            closeValue(e[5], 0)
+            isNumberEqual(e[0], 1) &&
+            isNumberEqual(e[1], 0) &&
+            isNumberEqual(e[2], 0) &&
+            isNumberEqual(e[3], 1) &&
+            isNumberEqual(e[4], 0) &&
+            isNumberEqual(e[5], 0)
         );
     }
 

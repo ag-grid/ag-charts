@@ -12,7 +12,7 @@ export interface AxisContext {
     position?: AgCartesianAxisPosition;
     scale: Scale<any, any, any>;
     getCanvasBounds(): BBoxValues | undefined;
-    seriesKeyProperties(): string[];
+    seriesKeyProperties(): Set<string>;
     scaleInvert(position: number): any;
     scaleInvertNearest(position: number): any;
     scaleValueFormatter(specifier?: string): (x: any) => string;

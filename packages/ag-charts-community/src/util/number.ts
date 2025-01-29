@@ -29,7 +29,7 @@ export function inRange(value: number, range: [number, number], epsilon: number 
 }
 
 export function isNumberEqual(a: number, b: number, epsilon: number = 1e-10) {
-    return Math.abs(a - b) < epsilon;
+    return a === b || Math.abs(a - b) < epsilon;
 }
 
 export function isNegative(value: number) {

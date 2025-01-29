@@ -489,6 +489,14 @@ export class CartesianChart extends Chart {
                     seriesRect.width + gridLinePadding * 2,
                     layoutBBox.height + gridLinePadding
                 );
+
+                const lastLabel = axis.label.enabled ? axis.labelNodes.at(-1) : null;
+                if (lastLabel) {
+                    const labelBBox = lastLabel.getBBox();
+                    lastLabel.visible =
+                        seriesRect.x + labelBBox.y + labelBBox.height <=
+                        layoutBBox.x + layoutBBox.width + this.padding.right;
+                }
                 break;
         }
     }
