@@ -11,6 +11,7 @@ export type ExecutorOptions = {
     examplePath: string;
     inputs: string[];
     output: string;
+    writeFiles: boolean;
 };
 
 export default async function (options: ExecutorOptions) {
@@ -51,6 +52,11 @@ export async function generateFiles(options: ExecutorOptions) {
                 continue;
             }
 
+            if (options.writeFiles) {
+                for (const file of Object.keys(result.files)) {
+                    await writeFile(path.join(options.outputPath, internalFramework, file), result.files[file]);
+                }
+            }
             await writeFile(outputPath, JSON.stringify(result));
 
             for (const name in result.generatedFiles) {
@@ -72,3 +78,14 @@ export async function generateFiles(options: ExecutorOptions) {
         throw new Error(`Failed to generate example for FWs: [${[...failures.keys()]}]: `);
     }
 }
+
+// node --inspect-brk ./plugins/ag-grid-generate-example-files/dist/src/executors/generate/executor.js
+// console.log('should generate')
+// generateFiles({
+//     examplePath: 'packages/ag-charts-website/src/content/docs/api-download/_examples/download',
+//     mode: 'dev',
+//     inputs: [],
+//     output: '',
+//     outputPath: 'dist/generated-examples/ag-charts-website/docs/api-download/_examples/download',
+//     writeFiles: true,
+// }).then(() => console.log('done'));

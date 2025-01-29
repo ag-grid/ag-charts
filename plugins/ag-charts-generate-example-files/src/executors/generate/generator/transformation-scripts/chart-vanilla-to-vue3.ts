@@ -1,5 +1,5 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
-import { type ChartAPI, addBindingImports, chartApi, getFunctionName, removeFunctionKeyword } from './parser-utils';
+import { type ChartAPI, addBindingImports, chartApi, convertFunctionToConstPropertyTs } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
 import { convertTemplate, getImport, indentTemplate } from './vue-utils';
 
@@ -18,37 +18,51 @@ const tags: Record<ChartAPI, string> = {
 };
 
 function processFunction(code: string): string {
-    return wrapOptionsUpdateCode(removeFunctionKeyword(code));
+    return wrapOptionsUpdateCode(
+        convertFunctionToConstPropertyTs(code),
+        'const optionsCopy = clone(options.value);',
+        'options.value = optionsCopy;',
+        'optionsCopy'
+    );
 }
 
 function getImports(componentFileNames: string[], bindings): string[] {
     const type = components[chartApi(bindings)];
-    const imports = ["import { createApp } from 'vue';", `import { ${type} } from 'ag-charts-vue3';`];
+    const imports = [
+        "import { createApp, defineComponent, ref } from 'vue';",
+        `import { ${type} } from 'ag-charts-vue3';`,
+        "import type { AgChartOptions } from 'ag-charts-types';",
+    ];
 
     const chartImports = bindings.imports.map((i) => ({
         ...i,
         imports: i.imports.filter((imp) => imp !== 'AgCharts'),
     }));
     const chartImport = getChartImports(chartImports, bindings.usesChartApi);
+
     if (chartImport) {
         imports.push(chartImport);
     }
 
-    const skipModules = ["'ag-charts-community'", "'ag-charts-enterprise'"];
-    addBindingImports(
-        bindings.imports.filter((i) => !skipModules.includes(i.module) && !i.module.startsWith("'./")),
-        imports,
-        false,
-        true
-    );
+    // const skipModules = ["'ag-charts-community'", "'ag-charts-enterprise'"];
+    // addBindingImports(
+    //     bindings.imports.filter((i) => !skipModules.includes(i.module) && !i.module.startsWith("'./")),
+    //     imports,
+    //     false,
+    //     true
+    // );
+
+    if (chartImports.length > 0) {
+        addBindingImports(chartImports, imports, false, true);
+    }
 
     if (componentFileNames) {
         imports.push(...componentFileNames.map(getImport));
     }
 
-    if (bindings.chartSettings.enterprise) {
-        imports.push("import 'ag-charts-enterprise';");
-    }
+    // if (bindings.chartSettings.enterprise) {
+    //     imports.push("import 'ag-charts-enterprise';");
+    // }
 
     if (bindings.externalEventHandlers.length > 0 || bindings.instanceMethods.length > 0) {
         imports.push(`import clone from 'clone';`);
@@ -61,8 +75,16 @@ function getPropertyBindings(bindings: any, id: string, property: any) {
     const propertyAssignments = [];
     const propertyVars = [];
     const propertyAttributes = [];
+    const propertyNames = [];
 
-    propertyVars.push(`${property.name}: ${property.value}`);
+    propertyNames.push(property.name);
+    propertyVars.push(
+        `const ${property.name} = ref${property.name === 'options' ? '<AgChartOptions>' : ''}(${property.value});`
+    );
+    if (bindings.usesChartApi) {
+        propertyNames.push('agCharts');
+        propertyVars.push(`const agCharts = ref(null);`);
+    }
     propertyAttributes.push(`:options="${property.name}"`);
 
     Object.entries(bindings.chartAttributes[id]).forEach(([key, value]) => {
@@ -75,7 +97,7 @@ function getPropertyBindings(bindings: any, id: string, property: any) {
         }
     });
 
-    return { propertyAssignments, propertyVars, propertyAttributes };
+    return { propertyAssignments, propertyVars, propertyAttributes, propertyNames };
 }
 
 function getVueTag(tag: string, bindings: any, attributes: string[]) {
@@ -94,22 +116,18 @@ function getTemplate(tag: string, bindings: any, attributes: string[]): string {
     return convertTemplate(template);
 }
 
-function getAllMethods(bindings: any): [string[], string[], string[]] {
+function getAllMethods(bindings: any): [string[], string[], string[], string[]] {
     const externalEventHandlers = bindings.externalEventHandlers.map((event) => processFunction(event.body));
     const instanceMethods = bindings.instanceMethods.map(processFunction);
+    // bindings.instanceMethods.map(event => console.log(event));
 
     const globalMethods = bindings.globals.map((body) => {
-        const funcName = getFunctionName(body);
-
-        if (funcName) {
-            return `window.${funcName} = ${body}`;
-        }
-
-        // probably a var
         return body;
     });
 
-    return [externalEventHandlers, instanceMethods, globalMethods];
+    const methodNames = bindings.externalEventHandlers.concat(bindings.instanceMethods).map((event) => event.name);
+
+    return [externalEventHandlers, instanceMethods, globalMethods, methodNames];
 }
 
 export async function vanillaToVue3(bindings: any, componentFileNames: string[]): Promise<string> {
@@ -117,16 +135,17 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
     const type = components[chartApi(bindings)];
     const tag = tags[chartApi(bindings)];
     const imports = getImports(componentFileNames, bindings);
-    const [externalEventHandlers, instanceMethods, globalMethods] = getAllMethods(bindings);
+    const [externalEventHandlers, instanceMethods, globalMethods, methodNames] = getAllMethods(bindings);
     const placeholders = Object.keys(bindings.placeholders);
 
     const methods = instanceMethods.concat(externalEventHandlers);
 
     let mainFile: string;
 
+    // placeholders are for when a chart id is set - for example <div id="myChart"></div>
     if (placeholders.length <= 1) {
         const options = properties.find((p) => p.name === 'options');
-        const { propertyAssignments, propertyVars, propertyAttributes } = getPropertyBindings(
+        const { propertyAssignments, propertyVars, propertyAttributes, propertyNames } = getPropertyBindings(
             bindings,
             placeholders[0],
             options
@@ -138,46 +157,24 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
 
             ${globalMethods.join('\n\n')}
 
-            const ChartExample = {
+            const ChartExample = defineComponent({
                 template: \`\n${template}\n  \`,
                 components: {
                     '${tag}': ${type}
                 },
-                data() {
+                setup(props) {
+                    ${propertyVars.join(`;
+                    `)}
+
+                    ${methods.join(`;
+                    `)}
+
                     return {
-                        ${propertyVars.join(`,
+                        ${propertyNames.concat(methodNames).join(`,
                         `)}
                     }
-                },
-                ${
-                    propertyAssignments.length !== 0
-                        ? `
-                created() {
-                    ${propertyAssignments.join(`;
-                    `)}
-                },`
-                        : ''
                 }
-                ${
-                    bindings.init.length !== 0
-                        ? `
-                mounted() {
-                    ${bindings.init.join(`;
-                    `)}
-                },`
-                        : ''
-                }
-                ${
-                    methods.length !== 0
-                        ? `
-                methods: {
-                    ${methods.map((snippet) => `${snippet.trim()},`).join(`
-                    `)}
-                },
-                `
-                        : ''
-                }
-            }
+            })
 
             createApp(ChartExample).mount("#app");
         `;
@@ -202,7 +199,7 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
             const className = toTitleCase(id);
 
             const propertyName = bindings.chartProperties[id];
-            const { propertyVars, propertyAttributes } = getPropertyBindings(
+            const { propertyVars, propertyAttributes, propertyNames } = getPropertyBindings(
                 bindings,
                 id,
                 properties.find((p) => p.name === propertyName)
@@ -216,12 +213,18 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
                 components: {
                     '${tag}': ${type}
                 },
-                data() {
+                setup(props) {
+                    ${propertyVars.join(`,
+                    `)}
+
+                    ${methods.join(`,
+                    `)}
+
                     return {
-                        ${propertyVars.join(`,
+                        ${propertyNames.concat(methodNames).join(`;
                         `)}
                     }
-                },
+                }
             }
             `;
 
@@ -243,11 +246,11 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
     }
 
     if (bindings.usesChartApi) {
-        mainFile = mainFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.$refs.agCharts.chart$3');
-        mainFile = mainFile.replace(/chart.(\w*)\(/g, 'this.$refs.agCharts.chart.$1(');
+        mainFile = mainFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(agCharts.value.chart$3');
+        mainFile = mainFile.replace(/chart.(\w*)\(/g, 'agCharts.value.chart.$1(');
         mainFile = mainFile.replace(
             /this.\$refs.agCharts.chart.(\w*)\(options/g,
-            'this.$refs.agCharts.chart.$1(this.options'
+            'agCharts.value.chart.$1(options.value'
         );
     }
 

@@ -119,13 +119,16 @@ this.chartOptions = {
 {% if isFramework("vue") %}
 
 ```js
-const options = ref({
-    series: [
-        { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }, // Existing 'Bar' Series, using 'iceCreamSales' data-points
-        { type: 'line', xKey: 'month', yKey: 'avgTemp' }, // Additional 'Line' Series, using 'avgTemp' data-points
-    ],
-    // ...
-});
+const options =
+    ref <
+    AgChartOptions >
+    {
+        series: [
+            { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }, // Existing 'Bar' Series, using 'iceCreamSales' data-points
+            { type: 'line', xKey: 'month', yKey: 'avgTemp' }, // Additional 'Line' Series, using 'avgTemp' data-points
+        ],
+        // ...
+    };
 ```
 
 {% /if %}
@@ -186,14 +189,17 @@ this.chartOptions = {
 {% if isFramework("vue") %}
 
 ```js
-const options = ref({
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
-        { type: 'number', position: 'right', keys: ['avgTemp'] },
-    ],
-    // ...
-});
+const options =
+    ref <
+    AgChartOptions >
+    {
+        axes: [
+            { type: 'category', position: 'bottom' },
+            { type: 'number', position: 'left', keys: ['iceCreamSales'] },
+            { type: 'number', position: 'right', keys: ['avgTemp'] },
+        ],
+        // ...
+    };
 ```
 
 {% /if %}
@@ -255,7 +261,7 @@ this.chartOptions = {
 {% if isFramework("vue") %}
 
 ```ts
-const options = ref({
+const options = ref<AgChartOptions>({
     title: { text: 'Ice Cream Sales' },
     subtitle: { text: 'Data from 2022' },
     // ...
@@ -314,12 +320,15 @@ this.chartOptions = {
 {% if isFramework("vue") %}
 
 ```js
-const options = ref({
-    legend: {
-        position: 'right',
-    },
-    // ...
-});
+const options =
+    ref <
+    AgChartOptions >
+    {
+        legend: {
+            position: 'right',
+        },
+        // ...
+    };
 ```
 
 {% /if %}
@@ -379,13 +388,16 @@ this.chartOptions = {
 {% if isFramework("vue") %}
 
 ```js
-const options = ref({
-    series: [
-        { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
+const options =
+    ref <
+    AgChartOptions >
+    {
+        series: [
+            { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
+            // ...
+        ],
         // ...
-    ],
-    // ...
-});
+    };
 ```
 
 {% /if %}

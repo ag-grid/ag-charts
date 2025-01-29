@@ -4,32 +4,43 @@
         typescriptOptions: {
             target: 'es2020',
         },
+        meta: {
+            typescript: {
+                exports: 'ts',
+            },
+            '*.css': { loader: 'css' },
+        },
+        defaultExtension: 'js',
         paths: {
             'npm:': 'https://cdn.jsdelivr.net/npm/',
         },
         map: {
-            // Transpilers
-            css: boilerplatePath + 'css.js',
-            ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
-            typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
+            css: 'npm:systemjs-plugin-css@0.1.37/css.js',
 
             clone: 'npm:clone@2.1.2',
 
-            // vuejs
-            vue: 'npm:vue@3.2.29/dist/vue.esm-browser.js',
-            '@vue/reactivity': 'npm:@vue/reactivity@3.0.0/dist/reactivity.esm-browser.js',
+            ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
+            tslib: 'npm:tslib@2.3.1/tslib.js',
+            typescript: 'npm:typescript@5.4.5/lib/typescript.min.js',
 
-            app: appLocation + 'app',
+            vue: 'npm:vue@3.5.0/dist/vue.esm-browser.js',
+            '@vue/reactivity': 'npm:@vue/reactivity@3.0.0/dist/reactivity.esm-browser.js',
+            // vue class component
+            'vue-class-component': 'npm:vue-class-component@^8.0.0-beta.3/dist/vue-class-component.cjs.js',
+
+            app: appLocation,
             // systemJsMap comes from index.html
             ...systemJsMap,
         },
-
         packages: {
+            'css.js': {
+                defaultExtension: 'js',
+            },
             vue: {
                 defaultExtension: 'js',
             },
             app: {
-                defaultExtension: 'js',
+                defaultExtension: 'ts',
             },
             'ag-charts-vue3': {
                 main: './dist/package/index.cjs.js',

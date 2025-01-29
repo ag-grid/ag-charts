@@ -24,8 +24,17 @@ export const AgCharts = /*#__PURE__*/ defineComponent({
         return h('div');
     },
     watch: {
-        options(options) {
-            this.chart?.update({ ...options, container: this.$el });
+        // "options.series": {
+        //     handler(newValue, oldValue) {
+        //         this.chart?.update({...newValue, container: this.$el});
+        //     },
+        //     deep: true
+        // },
+        options: {
+            handler(newValue, oldValue) {
+                this.chart?.update({ ...newValue, container: this.$el });
+            },
+            deep: true,
         },
     },
     mounted() {
@@ -54,8 +63,11 @@ export const AgFinancialCharts = /*#__PURE__*/ defineComponent({
         return h('div');
     },
     watch: {
-        options(options) {
-            this.chart?.update({ ...options, container: this.$el });
+        options: {
+            handler(newValue, oldValue) {
+                this.chart?.update({ ...newValue, container: this.$el });
+            },
+            deep: 5,
         },
     },
     mounted() {
@@ -84,8 +96,11 @@ export const AgGauge = /*#__PURE__*/ defineComponent({
         return h('div');
     },
     watch: {
-        options(options) {
-            this.chart?.update({ ...options, container: this.$el });
+        options: {
+            handler(newValue, oldValue) {
+                this.chart?.update({ ...newValue, container: this.$el });
+            },
+            deep: 5,
         },
     },
     mounted() {
