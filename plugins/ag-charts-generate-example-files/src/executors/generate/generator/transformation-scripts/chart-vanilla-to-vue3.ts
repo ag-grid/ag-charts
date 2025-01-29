@@ -44,14 +44,6 @@ function getImports(componentFileNames: string[], bindings): string[] {
         imports.push(chartImport);
     }
 
-    // const skipModules = ["'ag-charts-community'", "'ag-charts-enterprise'"];
-    // addBindingImports(
-    //     bindings.imports.filter((i) => !skipModules.includes(i.module) && !i.module.startsWith("'./")),
-    //     imports,
-    //     false,
-    //     true
-    // );
-
     if (chartImports.length > 0) {
         addBindingImports(chartImports, imports, false, true);
     }
@@ -59,10 +51,6 @@ function getImports(componentFileNames: string[], bindings): string[] {
     if (componentFileNames) {
         imports.push(...componentFileNames.map(getImport));
     }
-
-    // if (bindings.chartSettings.enterprise) {
-    //     imports.push("import 'ag-charts-enterprise';");
-    // }
 
     if (bindings.externalEventHandlers.length > 0 || bindings.instanceMethods.length > 0) {
         imports.push(`import clone from 'clone';`);

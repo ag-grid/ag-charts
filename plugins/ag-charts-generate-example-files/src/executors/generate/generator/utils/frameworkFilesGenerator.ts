@@ -263,7 +263,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         };
     },
     vue3: async ({ bindings, indexHtml, otherScriptFiles, isDev, ignoreDarkMode }) => {
-        debugger;
         const internalFramework: InternalFramework = 'vue3';
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
@@ -291,8 +290,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
                 'index.html': indexHtml,
             },
             boilerPlateFiles,
-            // Other files, not including entry file
-            // scriptFiles: Object.keys(otherScriptFiles),
             entryFileName,
             mainFileName,
         };
