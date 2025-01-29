@@ -47,12 +47,12 @@
     "ag-charts-community": "11.0.3-beta.20250126",
     "@types/node": "18.18.11",
     "typescript": "^5.4.5",
-    "vue": "^3.5.0",
+    "vue": "^3.0.0",
     "@babel/types": "7.17.12",
     "rimraf": "3.0.2"
   },
   "peerDependencies": {
-    "vue": "^3.5.0"
+    "vue": "^3.0.0"
   },
   "publishConfig": {
     "access": "public"
