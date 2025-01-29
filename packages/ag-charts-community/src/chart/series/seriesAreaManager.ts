@@ -297,6 +297,9 @@ export class SeriesAreaManager extends BaseManager {
     private onHoverLikeEvent(event: HoverLikeEvent): void {
         if (this.isIgnoredTouch(event)) return;
 
+        if (event.device === 'touch') {
+            event.sourceEvent.preventDefault();
+        }
         if (event.device === 'touch' || excludesType(event, 'drag-move')) {
             this.tooltip.lastHover = event;
         }

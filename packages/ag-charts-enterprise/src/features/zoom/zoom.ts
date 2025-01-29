@@ -209,8 +209,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.domProxy = new ZoomDOMProxy({
             onDragStart: (id, dir) => this.onAxisDragStart(id, dir),
             onDrag: (ev) => {
-                const { device, offsetX, offsetY } = ev;
-                this.onDragMove({ device, currentX: offsetX, currentY: offsetY });
+                this.onDragMove({ ...ev, currentX: ev.offsetX, currentY: ev.offsetY });
             },
             onDragEnd: () => this.onDragEnd(),
             onDoubleClick: (id, direction) => {
@@ -257,7 +256,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isIgnoredTouch(event: Pick<_Widget.DragWidgetEvent, 'device'> | undefined): boolean {
-        return event?.device === 'touch' && this.ctx.chartService.touch.dragAction !== 'drag';
+        const { x, y } = this.getZoom();
+        return (
+            event?.device === 'touch' &&
+            (this.ctx.chartService.touch.dragAction !== 'drag' ||
+                (x.min === 0 && x.max === 1 && y.min === 0 && y.max === 1))
+        );
     }
 
     private onDoubleClick(event?: _Widget.MouseWidgetEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
@@ -322,7 +326,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDragMove(event: { device: 'mouse' | 'touch'; currentX: number; currentY: number }) {
+    private onDragMove(event: _Widget.DragWidgetEvent<'drag-move'>) {
         const {
             anchorPointX,
             anchorPointY,
@@ -345,6 +349,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
+        if (event.device === 'touch') {
+            event.sourceEvent.preventDefault();
+        }
 
         const zoom = this.getZoom();
 
