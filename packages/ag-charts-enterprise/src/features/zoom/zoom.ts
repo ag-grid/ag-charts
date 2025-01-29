@@ -257,7 +257,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isIgnoredTouch(event: Pick<_Widget.DragWidgetEvent, 'device'> | undefined): boolean {
-        return event?.device === 'touch' && this.ctx.chartService.touch.dragAction !== 'pan';
+        return event?.device === 'touch' && this.ctx.chartService.touch.dragAction !== 'drag';
     }
 
     private onDoubleClick(event?: _Widget.MouseWidgetEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
