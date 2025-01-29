@@ -256,12 +256,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isIgnoredTouch(event: Pick<_Widget.DragWidgetEvent, 'device'> | undefined): boolean {
+        if (this.ctx.chartService.touch.dragAction !== 'drag') {
+            return true;
+        }
+        if (event?.device !== 'touch') {
+            return false;
+        }
+        if (this.enableSelecting) {
+            return false;
+        }
+        if (!this.enablePanning) {
+            return true;
+        }
         const { x, y } = this.getZoom();
-        return (
-            event?.device === 'touch' &&
-            (this.ctx.chartService.touch.dragAction !== 'drag' ||
-                (x.min === 0 && x.max === 1 && y.min === 0 && y.max === 1))
-        );
+        return x.min === 0 && x.max === 1 && y.min === 0 && y.max === 1;
     }
 
     private onDoubleClick(event?: _Widget.MouseWidgetEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
