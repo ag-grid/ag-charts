@@ -78,7 +78,7 @@ export class AxisLabelScene extends _ModuleSupport.Group {
         labelBBox.grow(horizontalPadding, 'horizontal');
         labelBBox.grow(verticalPadding, 'vertical');
 
-        const shift = context.direction === ChartAxisDirection.X ? verticalPadding / 2 : horizontalPadding;
+        const shift = context.direction === ChartAxisDirection.X ? Math.round(verticalPadding / 2) : horizontalPadding;
 
         const { xTranslation, yTranslation } = calculateLabelTranslation({
             yDirection: true,
@@ -93,8 +93,8 @@ export class AxisLabelScene extends _ModuleSupport.Group {
         label.x = translationX;
         label.y = translationY;
 
-        rect.x = translationX - labelBBox.width / 2;
-        rect.y = translationY - labelBBox.height / 2;
+        rect.y = translationY - Math.round(labelBBox.height / 2);
+        rect.x = translationX - Math.round(labelBBox.width / 2);
         rect.height = labelBBox.height;
         rect.width = labelBBox.width;
     }
