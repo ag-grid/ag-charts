@@ -144,7 +144,6 @@ function startOneFingerTouch(
     target: HTMLElement
 ) {
     if (that.globalTouchDragCallbacks != null || gIsInLongTap) return;
-    console.log(`touchstart`, `(callback)`, { initialTouch });
 
     let longTapInterrupted = false;
     setTimeout(() => {
@@ -159,6 +158,7 @@ function startOneFingerTouch(
             const longTapMove = (e: Event) => {
                 e.preventDefault();
             };
+            // Unblock new 'drag-start' events:
             const longTapEnd = (e: Event) => {
                 gIsInLongTap = false;
                 e.preventDefault();
@@ -180,9 +180,6 @@ function startOneFingerTouch(
                 clientY,
             });
             target.dispatchEvent(contextMenuEvent);
-            console.log(`longtap`, `(callback)`, { initialTouch });
-        } else {
-            console.log(`longtap`, `(ignored)`, { initialTouch });
         }
     }, LONG_TAP_DURATION);
 
@@ -197,10 +194,7 @@ function startOneFingerTouch(
             longTapInterrupted =
                 longTapInterrupted || deltaClientSquared(initialTouch, touch) < LONG_TAP_INTERRUPT_MIN_TOUCHMOVE;
             if (dragTouchEnabled && touch != null) {
-                console.log(`touchmove`, `(callback)`, { touch });
                 that.globalTouchDragCallbacks?.touchmove(moveEvent, touch);
-            } else {
-                console.log(`touchmove`, `(ignored)`, { touch });
             }
         }
     };
@@ -212,11 +206,8 @@ function startOneFingerTouch(
         target.removeEventListener('touchcancel', touchend);
         const touch = findInitialFinger(endEvent.changedTouches, endEvent.touches);
         if (touch != null) {
-            console.log(`${endEvent.type}`, `(callback)`, { touch });
             that.globalTouchDragCallbacks?.touchend(endEvent, touch);
             that.globalTouchDragCallbacks = undefined;
-        } else {
-            console.log(`${endEvent.type}`, `(ignored)`, { touch });
         }
     };
 
