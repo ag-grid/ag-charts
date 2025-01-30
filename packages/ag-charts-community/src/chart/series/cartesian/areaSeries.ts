@@ -596,12 +596,13 @@ export class AreaSeries extends CartesianSeries<
         });
 
         const { fill: seriesFill } = this.properties;
-        const gradientFillOptions = isGradientFill(seriesFill)
-            ? this.getGradientFillOptions(seriesFill, this.properties.defaultColorRange)
-            : undefined;
+
+        if (isGradientFill(seriesFill)) {
+            const gradientFillOptions = this.getGradientFillOptions(seriesFill, this.properties.defaultColorRange);
+            fill.gradientFillOptions = gradientFillOptions;
+        }
 
         fill.setProperties({
-            gradientFillOptions,
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,

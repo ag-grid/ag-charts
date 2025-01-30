@@ -1,11 +1,5 @@
 import { Logger, type ModuleInstance, groupBy, isFiniteNumber, isFunction } from 'ag-charts-core';
-import type {
-    AgBaseAxisOptions,
-    AgChartInstance,
-    AgChartOptions,
-    AgGradientFill,
-    AgInitialStateLegendOptions,
-} from 'ag-charts-types';
+import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateLegendOptions } from 'ag-charts-types';
 
 import type { AxisOptionModule } from '../module/axisOptionModule';
 import type { LayoutContext } from '../module/baseModule';
@@ -15,9 +9,9 @@ import type { ModuleContext } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
-import type { Gradient } from '../scene/gradient/gradient';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
+import type { FillType } from '../scene/util/fill';
 import { AsyncAwaitQueue, pause } from '../util/async';
 import { Debug } from '../util/debug';
 import { isInputPending } from '../util/dom';
@@ -957,7 +951,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
         if (this.mode !== 'integrated') {
             // Validate each series that shares a legend item label uses the same fill colour
             const seriesMarkerFills: {
-                [key: string]: { [key: string]: string | Gradient | AgGradientFill | undefined };
+                [key: string]: { [key: string]: FillType | undefined };
             } = {};
             const seriesTypeMap = new Map(this.series.map((s) => [s.id, s.type]));
 

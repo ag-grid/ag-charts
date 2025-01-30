@@ -1,13 +1,14 @@
-import type { AgGradientFill, AgMarkerShape } from 'ag-charts-types';
+import type { AgMarkerShape } from 'ag-charts-types';
 
 import type { Gradient } from '../../scene/gradient/gradient';
 import { Group } from '../../scene/group';
 import { Line } from '../../scene/shape/line';
+import type { FillType } from '../../scene/util/fill';
 import { Marker } from '../marker/marker';
 
 export interface LegendMarker {
     shape?: AgMarkerShape;
-    fill?: string | Gradient | AgGradientFill;
+    fill?: FillType;
     fillOpacity: number;
     stroke?: string | Gradient;
     strokeOpacity: number;

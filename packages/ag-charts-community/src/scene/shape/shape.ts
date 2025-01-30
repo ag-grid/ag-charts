@@ -7,7 +7,7 @@ import { Gradient } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
 import { getColorStops } from '../gradient/stops';
 import { Node, SceneChangeDetection } from '../node';
-import { isGradientFill } from '../util/fill';
+import { type FillType, isGradientFill } from '../util/fill';
 import { align } from '../util/pixel';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
@@ -80,9 +80,9 @@ export abstract class Shape<D = any> extends Node<D> {
     strokeOpacity: number = 1;
 
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
-    fill?: string | AgGradientFill | Gradient = Shape.defaultStyles.fill;
+    fill?: FillType = Shape.defaultStyles.fill;
 
-    private getGradient(pattern: string | AgGradientFill | Gradient | undefined) {
+    private getGradient(pattern: FillType | undefined) {
         let linearGradientMatch: RegExpMatchArray | null;
         if (pattern instanceof Gradient) {
             return pattern;
@@ -117,7 +117,7 @@ export abstract class Shape<D = any> extends Node<D> {
         const { domain, defaultColorRange = [] } = this.gradientFillOptions;
         const stops = getColorStops(colorStops, defaultColorRange, domain);
 
-        return new LinearGradient('oklch', stops, isHorizontal ? 90 : 0);
+        return new LinearGradient('oklch', stops, isHorizontal ? 0 : 90);
     }
 
     protected onFillChange() {
@@ -211,24 +211,11 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyFill(ctx: CanvasContext) {
-        const bbox = this.getGradientFillBBox();
+        const bbox = this.gradientFillOptions.bbox ?? this.getBBox();
         ctx.fillStyle =
             this.fillGradient?.createGradient(ctx as any, bbox) ??
             (typeof this.fill === 'string' ? this.fill : undefined) ??
             'black';
-    }
-
-    protected getGradientFillBBox() {
-        const { fill } = this;
-        if (!isGradientFill(fill)) {
-            return this.getBBox();
-        }
-
-        if (fill.bounds === 'axes' || fill.bounds === 'series') {
-            return this.gradientFillOptions.bbox ?? this.getBBox();
-        }
-
-        return this.getBBox() ?? this.gradientFillOptions.bbox;
     }
 
     protected applyStroke(ctx: CanvasContext) {
