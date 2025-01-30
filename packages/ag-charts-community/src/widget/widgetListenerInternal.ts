@@ -133,7 +133,7 @@ function makeTouchDrag<K extends DragEvents>(
 }
 
 const LONG_TAP_DURATION_MS = 500; /* milliseconds */
-const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE = 100; /* px²*/
+const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px²*/
 
 let gIsInLongTap = false;
 function startOneFingerTouch(
@@ -192,7 +192,7 @@ function startOneFingerTouch(
         const touch = findInitialFinger(moveEvent.targetTouches);
         if (touch != null) {
             longTapInterrupted =
-                longTapInterrupted || deltaClientSquared(initialTouch, touch) < LONG_TAP_INTERRUPT_MIN_TOUCHMOVE;
+                longTapInterrupted || deltaClientSquared(initialTouch, touch) < LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX;
             if (dragTouchEnabled && touch != null) {
                 that.globalTouchDragCallbacks?.touchmove(moveEvent, touch);
             }
