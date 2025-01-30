@@ -108,19 +108,24 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             currentTarget.focus();
             const rect = currentTarget.getBoundingClientRect();
 
+            const touchMove = (touchEvent: Event) => {
+                touchEvent.preventDefault();
+            };
             const pointerMove = ({ pageX, pageY }: PointerEvent) => {
                 isMultiColor = false;
                 s = Math.min(Math.max((pageX - rect.left) / rect.width, 0), 1);
                 v = 1 - Math.min(Math.max((pageY - rect.top) / rect.height, 0), 1);
                 update();
             };
-
+            const pointerUp = () => {
+                e.target?.removeEventListener('touchmove', touchMove);
+                window.removeEventListener('pointermove', pointerMove);
+            };
             pointerMove(e);
 
+            e.target?.addEventListener('touchmove', touchMove);
             window.addEventListener('pointermove', pointerMove);
-            window.addEventListener('pointerup', () => window.removeEventListener('pointermove', pointerMove), {
-                once: true,
-            });
+            window.addEventListener('pointerup', pointerUp, { once: true });
         };
 
         colorPicker.addEventListener('mousedown', (e) => {
