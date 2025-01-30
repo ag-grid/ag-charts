@@ -998,6 +998,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onDrag(event: _Widget.DragWidgetEvent<'drag-move'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
 
+        if (event.device === 'touch') event.sourceEvent.preventDefault();
+
         const { state } = this;
 
         const context = this.getAnnotationContext();
