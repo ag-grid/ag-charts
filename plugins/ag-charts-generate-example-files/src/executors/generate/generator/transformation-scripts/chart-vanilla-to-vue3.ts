@@ -202,14 +202,14 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
                     '${tag}': ${type}
                 },
                 setup(props) {
-                    ${propertyVars.join(`,
+                    ${propertyVars.join(`
                     `)}
 
-                    ${methods.join(`,
+                    ${methods.join(`
                     `)}
 
                     return {
-                        ${propertyNames.concat(methodNames).join(`;
+                        ${propertyNames.concat(methodNames).join(`,
                         `)}
                     }
                 }
