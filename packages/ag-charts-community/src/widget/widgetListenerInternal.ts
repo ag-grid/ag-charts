@@ -162,7 +162,15 @@ function startOneFingerTouch(
             target.addEventListener('touchcancel', longTapEnd, { passive: false });
 
             // Fire context menu
-            target.dispatchEvent(new MouseEvent('contextmenu'));
+            const { clientX, clientY } = initialTouch;
+            const contextMenuEvent = new MouseEvent('contextmenu', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX,
+                clientY,
+            });
+            target.dispatchEvent(contextMenuEvent);
             console.log(`longtap`, `(callback)`, { initialTouch });
         } else {
             console.log(`longtap`, `(ignored)`, { initialTouch });
