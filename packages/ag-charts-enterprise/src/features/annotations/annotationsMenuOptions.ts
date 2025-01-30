@@ -1,4 +1,4 @@
-import type { AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
+import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 
 import { AnnotationType } from './annotationTypes';
 
@@ -14,7 +14,13 @@ export enum AnnotationOptions {
     Settings = 'settings',
 }
 
-export const LINE_ANNOTATION_ITEMS: _ModuleSupport.MenuItem<AnnotationType>[] = [
+function channelMenuItemVisible(scale: _ModuleSupport.Scale<any, any>) {
+    return !(scale instanceof _ModuleSupport.LogScale) && !(scale instanceof _ModuleSupport.BandScale);
+}
+
+export const LINE_ANNOTATION_ITEMS: (_ModuleSupport.MenuItem<AnnotationType> & {
+    visible?: (axisScale: _ModuleSupport.Scale<any, any>) => boolean;
+})[] = [
     {
         label: 'toolbarAnnotationsTrendLine',
         icon: 'trend-line-drawing',
@@ -34,11 +40,13 @@ export const LINE_ANNOTATION_ITEMS: _ModuleSupport.MenuItem<AnnotationType>[] = 
         label: 'toolbarAnnotationsParallelChannel',
         icon: 'parallel-channel-drawing',
         value: AnnotationType.ParallelChannel,
+        visible: channelMenuItemVisible,
     },
     {
         label: 'toolbarAnnotationsDisjointChannel',
         icon: 'disjoint-channel-drawing',
         value: AnnotationType.DisjointChannel,
+        visible: channelMenuItemVisible,
     },
 ];
 

@@ -21,6 +21,7 @@ const {
     PropertiesArray,
     ToolbarButtonProperties,
     Validate,
+    ChartAxisDirection,
 } = _ModuleSupport;
 
 interface EventMap {
@@ -150,11 +151,20 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         this.toolbar.layout(event.layoutBox, this.padding);
     }
 
+    public refreshButtonsEnabled(enabled: boolean) {
+        for (const [index, button] of this.buttons.entries()) {
+            if (!button) continue;
+            this.toolbar.toggleButtonEnabledByIndex(index, enabled);
+        }
+    }
+
     private onToolbarButtonPress({
         event,
         button,
         buttonBounds,
     }: _ModuleSupport.ToolbarEventMap<AnnotationsToolbarButtonOptions>['button-pressed']) {
+        const axisScale = this.ctx.axisManager.getAxisContext(ChartAxisDirection.Y)[0].scale;
+
         switch (button.value) {
             case 'clear':
                 this.dispatch('pressed-clear');
@@ -166,7 +176,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
                     buttonBounds,
                     button.value,
                     'toolbarAnnotationsLineAnnotations',
-                    LINE_ANNOTATION_ITEMS
+                    LINE_ANNOTATION_ITEMS.filter((item) => (item.visible ? item.visible(axisScale) : true))
                 );
                 break;
 

@@ -13,6 +13,7 @@ export interface AxisContext {
     scale: Scale<any, any, any>;
     getCanvasBounds(): BBoxValues | undefined;
     seriesKeyProperties(): string[];
+    seriesIds(): string[];
     scaleInvert(position: number): any;
     scaleInvertNearest(position: number): any;
     scaleValueFormatter(specifier?: string): (x: any) => string;

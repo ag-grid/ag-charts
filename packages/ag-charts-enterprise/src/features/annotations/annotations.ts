@@ -703,14 +703,27 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
         }
 
-        const hasData = this.ctx.chartService.series.some((s) => s.hasData);
-        const hasVisibleSeries = this.ctx.chartService.series.some((s) => s.visible);
-
-        if (!hasData || !hasVisibleSeries) {
-            this.animateAnnotations({ from: 1, to: 0, phase: 'remove' });
-        } else {
+        if (this.showAnnotations()) {
             this.animateAnnotations({ from: 0, to: 1, phase: 'trailing' });
+        } else {
+            this.animateAnnotations({ from: 1, to: 0, phase: 'remove' });
         }
+    }
+
+    private showAnnotations() {
+        if (!this.yAxis || !this.xAxis) {
+            return false;
+        }
+
+        const hasData = this.ctx.chartService.series.some((s) => s.hasData);
+
+        const seriesIds = this.yAxis.context.seriesIds();
+        const allBoundSeriesVisible = seriesIds.every((id) => {
+            const s = this.ctx.chartService.series.find((s) => s.id === id);
+            return s?.visible;
+        });
+
+        return hasData && allBoundSeriesVisible;
     }
 
     private animateAnnotations({ from, to, phase }: { from: number; to: number; phase: 'trailing' | 'remove' }) {
@@ -836,12 +849,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         annotationManager.updateData(annotationData.toJson().filter((datum) => !isEphemeralType(datum)) as any);
 
-        this.toolbar.toggleClearButtonEnabled(annotationData.length > 0);
+        const showAnnotations = this.showAnnotations();
+        this.toolbar.refreshButtonsEnabled(showAnnotations);
+        this.toolbar.toggleClearButtonEnabled(annotationData.length > 0 && showAnnotations);
 
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
             .each((node, datum) => {
-                if (!this.validateDatum(datum)) {
+                if (!showAnnotations || !this.validateDatum(datum)) {
                     node.visible = false;
                     return;
                 }
