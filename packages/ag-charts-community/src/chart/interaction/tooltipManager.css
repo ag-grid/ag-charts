@@ -48,6 +48,7 @@
 .ag-charts-tooltip--no-interaction {
     pointer-events: none;
     user-select: none;
+    -webkit-user-select: none;
 }
 
 .ag-charts-tooltip--wrap-always {
