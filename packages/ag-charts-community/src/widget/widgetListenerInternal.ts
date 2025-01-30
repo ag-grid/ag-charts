@@ -140,7 +140,6 @@ function startTouchDrag(
     };
 
     const touchmove = (moveEvent: TouchEvent) => {
-        moveEvent.preventDefault();
         const touch = findInitialFinger(moveEvent.targetTouches);
         if (touch != null) {
             that.globalTouchDragCallbacks?.touchmove(moveEvent, touch);
