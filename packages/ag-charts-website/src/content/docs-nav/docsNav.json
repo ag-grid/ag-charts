@@ -9,14 +9,19 @@
                     "path": "quick-start"
                 },
                 {
+                    "type": "item",
+                    "title": "Quick Reference",
+                    "path": "quick-reference"
+                },
+                {
+                    "type": "item",
+                    "title": "Community vs. Enterprise",
+                    "path": "community-vs-enterprise"
+                },
+                {
                     "type": "group",
-                    "title": "Guides",
+                    "title": "Configuration",
                     "children": [
-                        {
-                            "type": "item",
-                            "title": "Creating a Basic Chart",
-                            "path": "create-a-basic-chart"
-                        },
                         {
                             "type": "item",
                             "title": "Installation",
@@ -24,13 +29,24 @@
                         },
                         {
                             "type": "item",
-                            "title": "Upgrading to Enterprise",
-                            "path": "licensing"
+                            "title": "Enterprise Licence Key",
+                            "path": "license-install"
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "title": "Tutorials",
+                    "children": [
+                        {
+                            "type": "item",
+                            "title": "1. Creating a Basic Chart",
+                            "path": "create-a-basic-chart"
                         },
                         {
                             "type": "item",
-                            "title": "Installing Your Licence Key",
-                            "path": "license-install"
+                            "title": "2. Creating an Enterprise Chart",
+                            "path": "create-an-enterprise-chart"
                         },
                         {
                             "type": "item",
