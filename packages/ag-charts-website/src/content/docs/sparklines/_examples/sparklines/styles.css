@@ -1,0 +1,31 @@
+table {
+    border-collapse: collapse;
+}
+
+thead th {
+    padding: 4px 0 8px;
+    border: none;
+    border-bottom: 2px solid #8881;
+}
+
+tbody th {
+    padding: 0 8px;
+    border: none;
+    font-weight: normal;
+    text-align: left;
+}
+
+tbody th abbr {
+    font-size: 0.8em;
+    font-weight: 600;
+    opacity: 0.5;
+}
+
+td {
+    padding: 0;
+    border: none;
+}
+
+tbody tr:hover {
+    background: #8881;
+}
