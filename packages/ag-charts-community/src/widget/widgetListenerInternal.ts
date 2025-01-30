@@ -101,6 +101,12 @@ function getTouchOffsets(current: Targetable, { pageX, pageY }: Touch): { offset
     return { offsetX: pageX - x, offsetY: pageY - y };
 }
 
+function deltaClientSquared(a: Touch, b: Touch): number {
+    const dx = a.clientX - b.clientX;
+    const dy = a.clientY - b.clientY;
+    return dx * dx + dy * dy;
+}
+
 function makeTouchDrag<K extends DragEvents>(
     current: Targetable,
     type: K,
@@ -125,6 +131,9 @@ function makeTouchDrag<K extends DragEvents>(
         sourceEvent,
     };
 }
+
+const LONG_TAP_DURATION = 500; /* milliseconds */
+const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE = 100; /* px²*/
 
 let gIsInLongTap = false;
 function startOneFingerTouch(
@@ -175,7 +184,7 @@ function startOneFingerTouch(
         } else {
             console.log(`longtap`, `(ignored)`, { initialTouch });
         }
-    }, 500);
+    }, LONG_TAP_DURATION);
 
     const findInitialFinger = (...touchLists: TouchList[]): Touch | undefined => {
         const touches: Touch[] = touchLists.map((touchList) => Array.from(touchList)).flat();
@@ -183,13 +192,16 @@ function startOneFingerTouch(
     };
 
     const touchmove = (moveEvent: TouchEvent) => {
-        longTapInterrupted = true;
         const touch = findInitialFinger(moveEvent.targetTouches);
-        if (dragTouchEnabled && touch != null) {
-            console.log(`touchmove`, `(callback)`, { touch });
-            that.globalTouchDragCallbacks?.touchmove(moveEvent, touch);
-        } else {
-            console.log(`touchmove`, `(ignored)`, { touch });
+        if (touch != null) {
+            longTapInterrupted =
+                longTapInterrupted || deltaClientSquared(initialTouch, touch) < LONG_TAP_INTERRUPT_MIN_TOUCHMOVE;
+            if (dragTouchEnabled && touch != null) {
+                console.log(`touchmove`, `(callback)`, { touch });
+                that.globalTouchDragCallbacks?.touchmove(moveEvent, touch);
+            } else {
+                console.log(`touchmove`, `(ignored)`, { touch });
+            }
         }
     };
     const touchend = (endEvent: TouchEvent) => {
