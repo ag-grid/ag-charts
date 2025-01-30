@@ -18,7 +18,7 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
         scale: {
             padding: 13,
             label: {
-                color: { $ref: 'foregroundColor' },
+                color: { $ref: 'textColor' },
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },

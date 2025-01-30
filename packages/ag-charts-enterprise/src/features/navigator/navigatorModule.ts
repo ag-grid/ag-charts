@@ -41,7 +41,7 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
             miniChart: {
                 enabled: false,
                 label: {
-                    color: { $ref: 'foregroundColor' },
+                    color: { $ref: 'textColor' },
                     fontSize: { $rem: [_ModuleSupport.FONT_SIZE_RATIO.SMALLER] },
                     fontFamily: { $ref: 'fontFamily' },
                     fontWeight: { $ref: 'fontWeight' },

@@ -49,14 +49,14 @@ const lineText: WithThemeParams<AgLineAnnotationTextOptions> = {
     ...font,
     position: 'top',
     alignment: 'center',
-    color: { $ref: 'foregroundColor' },
+    color: { $ref: 'textColor' },
 };
 
 const channelText: WithThemeParams<AgChannelAnnotationTextOptions> = {
     ...font,
     position: 'top',
     alignment: 'center',
-    color: { $ref: 'foregroundColor' },
+    color: { $ref: 'textColor' },
 };
 
 const measurerStatistics: WithThemeParams<AgMeasurerAnnotationStatistics> = {
@@ -245,7 +245,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     callout: {
         ...stroke,
         ...text,
-        color: { $ref: 'foregroundColor' },
+        color: { $ref: 'textColor' },
         handle: { ...handle },
         fill: { $ref: 'foregroundColor' },
         fillOpacity: 0.075,
@@ -272,7 +272,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
     text: {
         ...text,
-        color: { $ref: 'foregroundColor' },
+        color: { $ref: 'textColor' },
         handle: { ...handle },
     },
 

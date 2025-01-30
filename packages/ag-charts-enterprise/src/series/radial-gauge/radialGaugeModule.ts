@@ -5,7 +5,7 @@ import { RadialGaugeSeries } from './radialGaugeSeries';
 
 const {
     FONT_SIZE_RATIO,
-    ThemeSymbols: { DEFAULT_HIERARCHY_FILLS, DEFAULT_MUTED_LABEL_COLOUR, DEFAULT_GAUGE_SERIES_COLOR_RANGE },
+    ThemeSymbols: { DEFAULT_HIERARCHY_FILLS, DEFAULT_GAUGE_SERIES_COLOR_RANGE },
     ThemeConstants: { POLAR_AXIS_TYPE },
 } = _ModuleSupport;
 
@@ -52,7 +52,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                     fontWeight: { $ref: 'fontWeight' },
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
-                    color: { $ref: 'foregroundColor' },
+                    color: { $ref: 'textColor' },
                     spacing: 5,
                 },
             },
@@ -67,7 +67,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 fontSize: 56,
                 minimumFontSize: 18 / 56,
                 fontFamily: { $ref: 'fontFamily' },
-                color: { $ref: 'foregroundColor' },
+                color: { $ref: 'textColor' },
             },
             secondaryLabel: {
                 enabled: true,
@@ -75,7 +75,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
                 minimumFontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
-                color: DEFAULT_MUTED_LABEL_COLOUR,
+                color: { $ref: 'subtleTextColor' },
             },
         },
         axes: {

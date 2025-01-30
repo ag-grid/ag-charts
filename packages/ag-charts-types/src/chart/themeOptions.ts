@@ -97,6 +97,18 @@ export interface AgChartThemeParams {
     gridLineColor?: CssColor;
     /** The outer chart padding. */
     padding?: PixelSize;
+    /**
+     * TODO
+     *
+     * Default: Mix of `foregroundColor` and `backgroundColor`
+     */
+    subtleTextColor?: CssColor;
+    /**
+     * TODO
+     *
+     * Default: `foregroundColor`
+     */
+    textColor?: CssColor;
 }
 
 type ExtendLiteralLeaves<T, V> = {
@@ -117,7 +129,8 @@ type ThemeParamsOperation =
     | { $eq: [ThemeParamsLeaf, ThemeParamsLeaf] }
     | { $mul: [ThemeParamsLeaf<number>, ThemeParamsLeaf<number>] }
     | { $round: [ThemeParamsLeaf<number>] }
-    | { $rem: [ThemeParamsLeaf] | [ThemeParamsLeaf, ThemeParamsLeaf] };
+    | { $rem: [ThemeParamsLeaf] | [ThemeParamsLeaf, ThemeParamsLeaf] }
+    | { $mix: [ThemeParamsLeaf, ThemeParamsLeaf, ThemeParamsLeaf<number>] };
 type ThemeParamsLeaf<T = boolean | string | number> = ThemeParamsOperation | T;
 
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, ThemeParamsOperation>;

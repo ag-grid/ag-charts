@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-core';
 import type { DeepPartial, PlainObject } from 'ag-charts-core';
 
+import { Color } from './color';
 import { SKIP_JS_BUILTINS } from './object';
 import { isProperties } from './properties';
 
@@ -384,6 +385,7 @@ enum Operation {
     Mul = '$mul',
     Round = '$round',
     Rem = '$rem',
+    Mix = '$mix',
 }
 const operationKeys = new Set(Object.values(Operation));
 type OperationFn<T, C> = (value: string | Array<unknown>, params: C, source: T, path: string[]) => any;
@@ -449,5 +451,13 @@ const operations: Record<Operation, OperationFn<any, any>> = {
     },
     $rem: ([a], params) => {
         if (typeof a === 'number') return Math.round(a * params.fontSize);
+    },
+    $mix: ([a, b, c], _params, _source, path) => {
+        if (typeof a === 'string' && typeof b === 'string' && typeof c === 'number') {
+            return Color.mix(Color.fromString(a), Color.fromString(b), c).toString();
+        }
+        Logger.warnOnce(
+            `\`$mix\` json operation failed on [${String(a)}, ${String(b)}, ${String(c)}] at [${path.join('.')}], expecting two colors and a number.`
+        );
     },
 };

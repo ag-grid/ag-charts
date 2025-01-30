@@ -153,7 +153,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     callout: {
         ...stroke,
         ...text,
-        color: { $ref: 'foregroundColor' },
+        color: { $ref: 'textColor' },
         handle: { ...handle },
         fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
         fillOpacity: 0.2,

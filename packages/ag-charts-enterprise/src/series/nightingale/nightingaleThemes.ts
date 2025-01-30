@@ -12,7 +12,7 @@ export const NIGHTINGALE_SERIES_THEME: _ModuleSupport.SeriesModule<'nightingale'
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'foregroundColor' },
+            color: { $ref: 'textColor' },
         },
     },
     axes: {

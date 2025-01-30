@@ -560,6 +560,24 @@ describe('json module', () => {
             ]);
         });
 
+        it('should resolve `$round` operation', () => {
+            const source = { a: { $round: [1.234] }, b: { $round: [1.987] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: 1, b: 2 });
+        });
+
+        it('should resolve `$rem` operation', () => {
+            const source = { a: { $rem: [1.5] } };
+            jsonResolveOperations(source, { fontSize: 12 });
+            expect(source).toEqual({ a: 18 });
+        });
+
+        it('should resolve `$mix` operation', () => {
+            const source = { a: { $mix: ['#ffffff', '#000000', 0.5] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: '#808080' });
+        });
+
         it('should resolve `$ref` operation with params', () => {
             const source = { a: { $ref: 'key' } };
             jsonResolveOperations(source, { key: 'hello' });

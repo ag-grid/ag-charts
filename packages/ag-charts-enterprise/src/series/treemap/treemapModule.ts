@@ -21,7 +21,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             group: {
                 label: {
                     enabled: true,
-                    color: { $ref: 'foregroundColor' },
+                    color: { $ref: 'textColor' },
                     fontStyle: undefined,
                     fontWeight: { $ref: 'fontWeight' },
                     fontSize: { $ref: 'fontSize' },
@@ -69,7 +69,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             highlightStyle: {
                 group: {
                     label: {
-                        color: { $ref: 'foregroundColor' },
+                        color: { $ref: 'textColor' },
                     },
                     fill: 'rgba(255,255,255, 0.33)',
                     stroke: `rgba(0, 0, 0, 0.4)`,

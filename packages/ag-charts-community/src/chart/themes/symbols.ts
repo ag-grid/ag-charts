@@ -1,8 +1,6 @@
 export const IS_DARK_THEME = Symbol('is-dark-theme') as unknown as boolean;
 export const IS_COMMUNITY = Symbol('is-community') as unknown as boolean;
 export const IS_ENTERPRISE = Symbol('is-enterprise') as unknown as boolean;
-export const DEFAULT_INVERTED_LABEL_COLOUR = Symbol('default-inverted-label-colour') as unknown as string;
-export const DEFAULT_MUTED_LABEL_COLOUR = Symbol('default-muted-label-colour') as unknown as string;
 export const DEFAULT_CROSS_LINES_COLOUR = Symbol('default-cross-lines-colour') as unknown as string;
 export const DEFAULT_SEPARATION_LINES_COLOUR = Symbol('default-separation-lines-colour') as unknown as string;
 export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour') as unknown as string; // TODO: remove uses in paletteFactory()

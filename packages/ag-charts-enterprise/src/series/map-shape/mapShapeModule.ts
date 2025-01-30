@@ -3,8 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeSeries } from './mapShapeSeries';
 
-const { DEFAULT_INVERTED_LABEL_COLOUR, DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_BACKGROUND_COLOUR } =
-    _ModuleSupport.ThemeSymbols;
+const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_BACKGROUND_COLOUR } = _ModuleSupport.ThemeSymbols;
 
 export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     type: 'series',
@@ -24,7 +23,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
             lineDashOffset: 0,
             padding: 2,
             label: {
-                color: DEFAULT_INVERTED_LABEL_COLOUR,
+                color: { $ref: 'backgroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: 'bold',

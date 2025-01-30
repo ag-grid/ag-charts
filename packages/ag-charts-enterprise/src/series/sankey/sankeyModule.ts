@@ -30,7 +30,7 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'foregroundColor' },
+                color: { $ref: 'textColor' },
                 spacing: 10,
             },
             node: {
