@@ -2,7 +2,6 @@ import { normalizeAngle360 } from '../../util/angle';
 import { isNumberEqual } from '../../util/number';
 import { BBox } from '../bbox';
 import { Path, ScenePathChangeDetection } from './path';
-import { Shape } from './shape';
 
 enum ArcType {
     Open,
@@ -15,8 +14,6 @@ enum ArcType {
  */
 export class Arc<D = any> extends Path<D> {
     static override readonly className = 'Arc';
-
-    protected static override defaultStyles = { ...Shape.defaultStyles, lineWidth: 1, fillStyle: null };
 
     constructor() {
         super();

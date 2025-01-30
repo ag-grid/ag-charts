@@ -1,12 +1,12 @@
 import { BBox } from '../bbox';
 import type { NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
-import { Shape } from './shape';
+import { type DefaultStyles, Shape } from './shape';
 
 export class Range<D = any> extends Shape<D> {
     static readonly className = 'Range';
 
-    protected static override defaultStyles = {
+    protected static override defaultStyles: DefaultStyles = {
         ...Shape.defaultStyles,
         strokeWidth: 1,
     };
