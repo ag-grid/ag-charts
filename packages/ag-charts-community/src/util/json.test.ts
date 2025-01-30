@@ -593,6 +593,25 @@ describe('json module', () => {
             ]);
         });
 
+        it('should resolve `$ref` operation on second `$ref` operation', () => {
+            const source = { a: { $ref: 'first' } };
+            jsonResolveOperations(source, { first: { $ref: 'second' }, second: 'hello' });
+            expect(source).toEqual({ a: 'hello' });
+        });
+
+        it('should catch circular references', () => {
+            const source = { a: { $ref: 'first' } };
+            jsonResolveOperations(source, {
+                first: { $ref: 'second' },
+                second: { $ref: 'third' },
+                third: { $ref: 'first' },
+            });
+            expect(source).toEqual({ a: undefined });
+            expectWarningMessages([
+                'AG Charts - `$ref` json operation failed on [first] at [a], circular reference detected with [second, third, first].',
+            ]);
+        });
+
         it('should resolve `$path` operation', () => {
             const source = {
                 a: 'parent',
@@ -638,7 +657,7 @@ describe('json module', () => {
 
         it('should resolve nested operations', () => {
             const source = {
-                a: 'parent',
+                a: { $ref: 'indirectRelative' },
                 b: {
                     c: 'cousin',
                 },
@@ -653,7 +672,7 @@ describe('json module', () => {
                     },
                 },
             };
-            jsonResolveOperations(source, { key: 'hello' });
+            jsonResolveOperations(source, { key: 'hello', indirectRelative: { $ref: 'relative' }, relative: 'parent' });
             expect(source).toEqual({
                 a: 'parent',
                 b: { c: 'cousin' },

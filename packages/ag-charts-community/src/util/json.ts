@@ -353,25 +353,13 @@ function jsonResolveVisitorValue<T, P>(
     params: P,
     source: T,
     path: string[],
-    modifiedPaths?: Record<string, any>
+    modifiedPaths: Record<string, any>
 ) {
-    if (!isPlainObject(value)) {
-        return value;
-    }
+    const { operation, values } = getOperation(value);
+    if (!operation) return value;
+    modifiedPaths[path.join('.')] = value;
 
-    const [key, ...otherKeys] = Object.keys(value) as Array<Operation>;
-    if (otherKeys.length !== 0 || !operationKeys.has(key)) {
-        return value;
-    }
-
-    let values = value[key];
-    if (isArray(values)) {
-        values = values.map((v: any) => jsonResolveVisitorValue(v, params, source, path));
-    }
-
-    if (modifiedPaths) modifiedPaths[path.join('.')] = value;
-
-    return operations[key](values, params, source, path);
+    return resolveOperation(operation, values, params, source, path, new Set());
 }
 
 enum Operation {
@@ -388,11 +376,58 @@ enum Operation {
     Mix = '$mix',
 }
 const operationKeys = new Set(Object.values(Operation));
-type OperationFn<T, C> = (value: string | Array<unknown>, params: C, source: T, path: string[]) => any;
+type OperationFn<T, P> = (
+    value: string | Array<unknown>,
+    params: P,
+    source: T,
+    path: string[],
+    referencedParams?: Set<keyof P>
+) => any;
+
+function getOperation(value: unknown) {
+    if (!isPlainObject(value)) return {};
+    const [operation, ...otherKeys] = Object.keys(value) as Array<Operation>;
+    if (otherKeys.length !== 0 || !operationKeys.has(operation)) return {};
+    return { operation, values: value[operation] };
+}
+
+function resolveOperation<T, P>(
+    operation: Operation,
+    value: string | Array<unknown>,
+    params: P,
+    source: T,
+    path: string[],
+    referencedParams?: Set<keyof P>
+): any {
+    if (isArray(value)) {
+        value = value.map((v) => {
+            const { operation: nestedOperation, values } = getOperation(v);
+            if (!nestedOperation) return v;
+            return resolveOperation(nestedOperation, values, params, source, path, referencedParams);
+        });
+    }
+
+    return operations[operation](value, params, source, path, referencedParams);
+}
 
 const operations: Record<Operation, OperationFn<any, any>> = {
-    $ref: (key, params, _source, path) => {
-        if (isString(key) && key in params) return params[key];
+    $ref: (key, params, source, path, referencedParams) => {
+        if (isString(key) && key in params) {
+            const { operation, values } = getOperation(params[key]);
+            if (operation !== Operation.Ref) {
+                return params[key];
+            }
+
+            if (referencedParams?.has(values)) {
+                Logger.warnOnce(
+                    `\`$ref\` json operation failed on [${String(key)}] at [${path.join('.')}], circular reference detected with [${[...referencedParams].join(', ')}].`
+                );
+                return;
+            }
+
+            referencedParams?.add(values);
+            return operations.$ref(values, params, source, path, referencedParams);
+        }
         Logger.warnOnce(
             `\`$ref\` json operation failed on [${String(key)}] at [${path.join('.')}], expecting one of [${Object.keys(params).join(', ')}].`
         );

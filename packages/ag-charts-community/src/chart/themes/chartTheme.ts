@@ -462,7 +462,7 @@ export class ChartTheme {
             fontWeight: 400,
             gridLineColor: '#e0eaf1',
             padding: 20,
-            subtleTextColor: { $mix: [{ $ref: 'foregroundColor' }, { $ref: 'backgroundColor' }, 0.38] },
+            subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'backgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
         };
     }
