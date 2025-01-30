@@ -719,8 +719,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const seriesIds = this.yAxis.context.seriesIds();
         const allBoundSeriesVisible = seriesIds.every((id) => {
-            const s = this.ctx.chartService.series.find((s) => s.id === id);
-            return s?.visible;
+            const series = this.ctx.chartService.series.find((s) => s.id === id);
+            return series?.visible;
         });
 
         return hasData && allBoundSeriesVisible;
