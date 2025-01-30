@@ -87,14 +87,14 @@ const measurer: WithThemeParams<AgMeasurerAnnotationStyles> = {
 const toolbar: AgAnnotationsToolbar = {
     buttons: [
         {
-            icon: 'trend-line-drawing',
-            tooltip: 'toolbarAnnotationsLineAnnotations',
-            value: 'line-menu',
-        },
-        {
             icon: 'text-annotation',
             tooltip: 'toolbarAnnotationsTextAnnotations',
             value: 'text-menu',
+        },
+        {
+            icon: 'trend-line-drawing',
+            tooltip: 'toolbarAnnotationsLineAnnotations',
+            value: 'line-menu',
         },
         {
             icon: 'arrow-drawing',

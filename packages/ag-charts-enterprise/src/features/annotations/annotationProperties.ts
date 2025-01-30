@@ -179,13 +179,13 @@ export function AxisLabel<T extends Constructor>(Parent: T) {
 export function Label<T extends Constructor>(Parent: T) {
     class LabelInternal extends Parent {
         @Validate(POSITIVE_NUMBER, { optional: true })
-        padding?: number;
+        padding?: number = undefined;
 
         @Validate(TEXT_ALIGN, { optional: true })
         textAlign: TextAlign = 'center';
 
         @Validate(FUNCTION, { optional: true })
-        formatter?: Formatter<AxisLabelFormatterParams>; // TODO: making this generic causes issues with mixins sequence
+        formatter?: Formatter<AxisLabelFormatterParams> = undefined; // TODO: making this generic causes issues with mixins sequence
     }
     return LabelInternal;
 }
