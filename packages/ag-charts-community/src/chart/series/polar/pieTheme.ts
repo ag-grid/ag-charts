@@ -1,5 +1,6 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../../module/coreModulesTypes';
+import { FONT_SIZE_RATIO } from '../../themes/constants';
 import { DEFAULT_MUTED_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 
 export const pieTheme: ExtensibleTheme<'pie'> = {
@@ -7,7 +8,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         title: {
             enabled: true,
             fontWeight: { $ref: 'fontWeight' },
-            fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 14 / 12] }] },
+            fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
             fontFamily: { $ref: 'fontFamily' },
             color: DEFAULT_MUTED_LABEL_COLOUR,
             spacing: 5,

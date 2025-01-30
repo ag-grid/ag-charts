@@ -1,4 +1,5 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
+import { FONT_SIZE_RATIO } from '../../themes/constants';
 import { DEFAULT_MUTED_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 
 export const donutTheme: ExtensibleTheme<'donut'> = {
@@ -6,7 +7,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         title: {
             enabled: true,
             fontWeight: { $ref: 'fontWeight' },
-            fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 14 / 12] }] },
+            fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
             fontFamily: { $ref: 'fontFamily' },
             color: DEFAULT_MUTED_LABEL_COLOUR,
             spacing: 5,

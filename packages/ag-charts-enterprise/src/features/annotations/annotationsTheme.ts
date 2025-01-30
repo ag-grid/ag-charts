@@ -13,7 +13,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
-const { ThemeSymbols } = _ModuleSupport;
+const { FONT_SIZE_RATIO, ThemeSymbols } = _ModuleSupport;
 
 const stroke: WithThemeParams<StrokeOptions> = {
     stroke: { $ref: 'foregroundColor' },
@@ -29,7 +29,7 @@ const handle = {
 
 const font: WithThemeParams<FontOptions> = {
     color: { $ref: 'backgroundColor' },
-    fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 14 / 12] }] },
+    fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
     fontFamily: { $ref: 'fontFamily' },
 };
 

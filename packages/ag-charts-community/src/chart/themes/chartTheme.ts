@@ -19,7 +19,7 @@ import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
 import { legendRegistry } from '../factory/legendRegistry';
 import { seriesRegistry } from '../factory/seriesRegistry';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE, POLAR_AXIS_TYPE } from './constants';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_HANDLE_FILL,
@@ -136,7 +136,7 @@ export class ChartTheme {
                 text: 'Axis Title',
                 spacing: 25,
                 fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, FONT_SIZE.MEDIUM / FONT_SIZE.SMALL] }] },
+                fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM] },
                 fontFamily: { $ref: 'fontFamily' },
                 color: { $ref: 'foregroundColor' },
             },
@@ -199,7 +199,7 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Title',
                 fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, FONT_SIZE.LARGE / FONT_SIZE.SMALL] }] },
+                fontSize: { $rem: [FONT_SIZE_RATIO.LARGEST] },
                 fontFamily: { $ref: 'fontFamily' },
                 color: { $ref: 'foregroundColor' },
                 wrapping: 'hyphenate',
@@ -211,7 +211,7 @@ export class ChartTheme {
                 text: 'Subtitle',
                 spacing: 20,
                 fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, FONT_SIZE.MEDIUM / FONT_SIZE.SMALL] }] },
+                fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM] },
                 fontFamily: { $ref: 'fontFamily' },
                 color: DEFAULT_MUTED_LABEL_COLOUR,
                 wrapping: 'hyphenate',
@@ -222,7 +222,7 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Footnote',
                 spacing: 20,
-                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, FONT_SIZE.MEDIUM / FONT_SIZE.SMALL] }] },
+                fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM] },
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
                 color: 'rgb(140, 140, 140)',

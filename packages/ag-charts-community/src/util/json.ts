@@ -383,6 +383,7 @@ enum Operation {
     And = '$and',
     Mul = '$mul',
     Round = '$round',
+    Rem = '$rem',
 }
 const operationKeys = new Set(Object.values(Operation));
 type OperationFn<T, C> = (value: string | Array<unknown>, params: C, source: T, path: string[]) => any;
@@ -445,5 +446,8 @@ const operations: Record<Operation, OperationFn<any, any>> = {
         Logger.warnOnce(
             `\`$round\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`
         );
+    },
+    $rem: ([a], params) => {
+        if (typeof a === 'number') return Math.round(a * params.fontSize);
     },
 };

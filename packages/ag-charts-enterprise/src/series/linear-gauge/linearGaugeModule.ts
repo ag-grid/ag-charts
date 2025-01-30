@@ -59,7 +59,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 placement: 'inside-start',
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 24 / 12] }] },
+                fontSize: { $rem: [2] },
                 minimumFontSize: 12,
                 spacing: 18,
                 color: DEFAULT_INVERTED_LABEL_COLOUR,

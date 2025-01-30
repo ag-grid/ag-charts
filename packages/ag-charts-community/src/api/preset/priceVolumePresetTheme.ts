@@ -6,6 +6,7 @@ import type {
     WithThemeParams,
 } from 'ag-charts-types';
 
+import { FONT_SIZE_RATIO } from '../../chart/themes/constants';
 import {
     DEFAULT_ANNOTATION_HANDLE_FILL,
     DEFAULT_ANNOTATION_STATISTICS_COLOR,
@@ -43,7 +44,7 @@ const lineText = {
 
 const font: WithThemeParams<FontOptions> = {
     color: DEFAULT_TEXT_ANNOTATION_COLOR,
-    fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 14 / 12] }] },
+    fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
     fontFamily: { $ref: 'fontFamily' },
 };
 

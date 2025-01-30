@@ -132,6 +132,7 @@ export * from './dom/domManager';
 export * from './dom/elements';
 export * from './dom/proxyInteractionService';
 export * from './util/id';
+export { FONT_SIZE_RATIO } from './chart/themes/constants';
 export { type DefaultColors } from './chart/themes/defaultColors';
 export { ChartUpdateType } from './chart/chartUpdateType';
 export { type MementoOriginator } from './api/state/memento';

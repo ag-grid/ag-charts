@@ -115,9 +115,10 @@ type ThemeParamsOperation =
     | { $or: [ThemeParamsLeaf, ThemeParamsLeaf] }
     | { $and: [ThemeParamsLeaf, ThemeParamsLeaf] }
     | { $eq: [ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { $mul: [ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { $round: [ThemeParamsLeaf] };
-type ThemeParamsLeaf = ThemeParamsOperation | boolean | string | number;
+    | { $mul: [ThemeParamsLeaf<number>, ThemeParamsLeaf<number>] }
+    | { $round: [ThemeParamsLeaf<number>] }
+    | { $rem: [ThemeParamsLeaf] | [ThemeParamsLeaf, ThemeParamsLeaf] };
+type ThemeParamsLeaf<T = boolean | string | number> = ThemeParamsOperation | T;
 
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, ThemeParamsOperation>;
 
