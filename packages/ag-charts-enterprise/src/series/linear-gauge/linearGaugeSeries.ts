@@ -1,5 +1,5 @@
 import {
-    type AgGaugeFillMode,
+    type AgGradientFillMode,
     type AgLinearGaugeMarkerShape,
     type AgLinearGaugeTargetPlacement,
     type FontStyle,
@@ -12,7 +12,6 @@ import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { type UnknownGaugeNodeDatum, parseUnknownGaugeNodeDatum } from '../gauge-util/properties';
-import { type GaugeStopProperties, getColorStops } from '../gauge-util/stops';
 import { getLineHeight } from '../util/labelFormatter';
 import {
     type LinearGaugeLabelDatum,
@@ -48,6 +47,7 @@ const {
     LinearGradient,
     Marker,
     easing,
+    getColorStops,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -272,7 +272,7 @@ export class LinearGaugeSeries
         return formatLabel(value, mainAxis);
     }
 
-    private createLinearGradient(fills: GaugeStopProperties[], fillMode: AgGaugeFillMode) {
+    private createLinearGradient(fills: _ModuleSupport.StopProperties[], fillMode: AgGradientFillMode) {
         const { properties, originX, originY, horizontal, axes } = this;
         const { thickness, defaultColorRange } = properties;
 

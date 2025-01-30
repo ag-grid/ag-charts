@@ -2575,6 +2575,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
   },
   "series": [
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#FA7921",
       "fillOpacity": 0.6,
       "highlightStyle": {
@@ -2631,6 +2635,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "yName": "Natural gas",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#5BC0EB",
       "fillOpacity": 0.6,
       "highlightStyle": {
@@ -2687,6 +2695,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "yName": "Coal",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#9BC53D",
       "fillOpacity": 0.6,
       "highlightStyle": {
@@ -2743,6 +2755,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "yName": "Primary oil",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#E55934",
       "fillOpacity": 0.6,
       "highlightStyle": {
@@ -2799,6 +2815,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "yName": "Petroleum",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#FDE74C",
       "fillOpacity": 0.6,
       "highlightStyle": {
@@ -6217,6 +6237,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
   },
   "series": [
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#5090dc",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6281,6 +6305,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "yName": "Coal",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#ffa03a",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6345,6 +6373,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "yName": "Petroleum",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#459d55",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6409,6 +6441,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "yName": "Natural gas",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#34bfe1",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6473,6 +6509,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "yName": "Bioenergy & waste",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#e1cc00",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6537,6 +6577,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "yName": "Nuclear",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#9669cb",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6601,6 +6645,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "yName": "Wind, solar & hydro",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#b5b5b5",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -7752,6 +7800,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
   },
   "series": [
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#c16068",
       "fillOpacity": 0.8,
       "interpolation": {
@@ -7802,6 +7854,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "yName": "Tate Modern",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#a2bf8a",
       "fillOpacity": 0.8,
       "interpolation": {
@@ -7852,6 +7908,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "yName": "Tate Britain",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#ebcc87",
       "fillOpacity": 0.8,
       "interpolation": {
@@ -7902,6 +7962,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "yName": "Tate Liverpool",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#80a0c3",
       "fillOpacity": 0.8,
       "interpolation": {
@@ -9228,6 +9292,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
   },
   "series": [
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#5BC0EB",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -9290,6 +9358,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "yName": "Science Museum",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#FDE74C",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -9352,6 +9424,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "yName": "National Media Museum",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#9BC53D",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -9414,6 +9490,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "yName": "National Railway Museum",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#E55934",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -9476,6 +9556,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "yName": "Locomotion",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#FA7921",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -9538,6 +9622,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "yName": "Museum of Science and Industry, Manchester",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#fa3081",
       "fillOpacity": 0.8,
       "highlightStyle": {

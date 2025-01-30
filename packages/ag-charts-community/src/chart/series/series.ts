@@ -1,6 +1,7 @@
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
+    AgGradientFill,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesMarkerStylerParams,
@@ -11,11 +12,12 @@ import type {
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
-import type { BBox } from '../../scene/bbox';
+import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
+import type { GradientOptions } from '../../scene/shape/shape';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
@@ -23,6 +25,7 @@ import { jsonDiff } from '../../util/json';
 import { Listeners } from '../../util/listeners';
 import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
+import { findMinMax } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
@@ -472,6 +475,34 @@ export abstract class Series<
 
     // Needed for auto-scaling zoom
     abstract getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [number, number]): any[];
+
+    protected getGradientFillOptions({ bounds }: AgGradientFill, defaultColorRange: string[]): GradientOptions {
+        const { axes } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        const xRange = xAxis?.range ?? [0, 1];
+        const yRange = yAxis?.range ?? [0, 1];
+
+        const [x1, x2] = findMinMax(xRange);
+        const [y1, y2] = findMinMax(yRange);
+
+        const width = x2 - x1;
+        const height = y2 - y1;
+
+        let domain: [number, number] = [0, 1];
+        if (bounds === 'series') {
+            domain = this.getSeriesDomain(ChartAxisDirection.Y) as [number, number];
+        } else if (bounds === 'axes') {
+            domain = (yAxis?.scale.domain ?? [0, 1]) as [number, number];
+        }
+
+        return {
+            bbox: new BBox(x1, y1, width, height),
+            domain,
+            defaultColorRange,
+        };
+    }
 
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
     abstract processData(dataController: DataController): Promise<void> | void;

@@ -1,12 +1,23 @@
+import type { AgGradientFill } from 'ag-charts-types';
+
 import { clamp } from '../../util/number';
+import type { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
 import { Gradient } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
+import { getColorStops } from '../gradient/stops';
 import { Node, SceneChangeDetection } from '../node';
+import { type FillType, isGradientFill } from '../util/fill';
 import { align } from '../util/pixel';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
+
+export type GradientOptions = {
+    bbox?: BBox;
+    domain: [number, number];
+    defaultColorRange?: string[];
+};
 
 export type CanvasContext = CanvasFillStrokeStyles &
     CanvasCompositing &
@@ -18,7 +29,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasState;
 
 interface DefaultStyles {
-    fill?: string;
+    fill?: string | AgGradientFill;
     stroke?: string;
     strokeWidth: number;
     lineDash?: number[];
@@ -27,6 +38,7 @@ interface DefaultStyles {
     lineJoin?: ShapeLineJoin;
     opacity: number;
     fillShadow?: DropShadow;
+    defaultColorRange: string[];
 }
 
 const LINEAR_GRADIENT_REGEXP = /^linear-gradient\((-?[\d.]+)deg,(.*?)\)$/i;
@@ -50,6 +62,7 @@ export abstract class Shape<D = any> extends Node<D> {
         lineJoin: undefined,
         opacity: 1,
         fillShadow: undefined,
+        defaultColorRange: ['#5090dc', '#ef5452'],
     };
 
     /**
@@ -67,13 +80,14 @@ export abstract class Shape<D = any> extends Node<D> {
     strokeOpacity: number = 1;
 
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
-    fill?: string | Gradient = Shape.defaultStyles.fill;
+    fill?: FillType = Shape.defaultStyles.fill;
 
-    private getGradient(pattern: string | Gradient | undefined) {
+    private getGradient(pattern: FillType | undefined) {
         let linearGradientMatch: RegExpMatchArray | null;
         if (pattern instanceof Gradient) {
             return pattern;
         } else if (
+            typeof pattern === 'string' &&
             pattern?.startsWith('linear-gradient') &&
             (linearGradientMatch = LINEAR_GRADIENT_REGEXP.exec(pattern))
         ) {
@@ -90,9 +104,20 @@ export abstract class Shape<D = any> extends Node<D> {
                 colors.map((color, index) => ({ color, offset: index / (colors.length - 1) })),
                 angle
             );
-        } else {
-            return undefined;
+        } else if (isGradientFill(pattern)) {
+            return this.createLinearGradient(pattern);
         }
+
+        return undefined;
+    }
+
+    private createLinearGradient(fill: AgGradientFill) {
+        const { colorStops = [], direction } = fill;
+        const isHorizontal = direction === 'horizontal';
+        const { domain, defaultColorRange = [] } = this.gradientFillOptions;
+        const stops = getColorStops(colorStops, defaultColorRange, domain);
+
+        return new LinearGradient('oklch', stops, isHorizontal ? 0 : 90);
     }
 
     protected onFillChange() {
@@ -154,6 +179,12 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection({ checkDirtyOnAssignment: true })
     fillShadow: DropShadow | undefined = Shape.defaultStyles.fillShadow;
 
+    @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
+    gradientFillOptions: GradientOptions = {
+        domain: [0, 1],
+        defaultColorRange: Shape.defaultStyles.defaultColorRange,
+    };
+
     protected fillStroke(ctx: CanvasContext, path?: Path2D) {
         this.renderFill(ctx, path);
         this.renderStroke(ctx, path);
@@ -180,8 +211,9 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyFill(ctx: CanvasContext) {
+        const bbox = this.gradientFillOptions.bbox ?? this.getBBox();
         ctx.fillStyle =
-            this.fillGradient?.createGradient(ctx as any, this.getBBox()) ??
+            this.fillGradient?.createGradient(ctx as any, bbox) ??
             (typeof this.fill === 'string' ? this.fill : undefined) ??
             'black';
     }

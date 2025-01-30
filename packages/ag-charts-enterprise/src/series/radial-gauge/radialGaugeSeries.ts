@@ -1,5 +1,5 @@
 import {
-    type AgGaugeFillMode,
+    type AgGradientFillMode,
     type AgRadialGaugeMarkerShape,
     type AgRadialGaugeTargetPlacement,
     type FontStyle,
@@ -14,7 +14,6 @@ import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { type UnknownGaugeNodeDatum, parseUnknownGaugeNodeDatum } from '../gauge-util/properties';
-import { type GaugeStopProperties, getColorStops } from '../gauge-util/stops';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     LabelType,
@@ -53,6 +52,7 @@ const {
     Text,
     ConicGradient,
     Marker,
+    getColorStops,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -265,7 +265,7 @@ export class RadialGaugeSeries
         return formatLabel(value, this.axes[ChartAxisDirection.X]);
     }
 
-    private createConicGradient(fills: GaugeStopProperties[], fillMode: AgGaugeFillMode) {
+    private createConicGradient(fills: _ModuleSupport.StopProperties[], fillMode: AgGradientFillMode) {
         const { centerX, centerY, radius } = this;
         const { domain, range } = this.axes[ChartAxisDirection.X]!.scale;
         const [startAngle, endAngle] = range;
