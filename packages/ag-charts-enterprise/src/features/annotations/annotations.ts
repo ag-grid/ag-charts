@@ -156,7 +156,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
                 if (hovered != null) {
                     ctx.tooltipManager.suppressTooltip('annotations');
-                    _ModuleSupport.InteractionState.Annotations | _ModuleSupport.InteractionState.AnnotationsSelected;
                 } else if (!this.isAnnotationState()) {
                     ctx.tooltipManager.unsuppressTooltip('annotations');
                 }
