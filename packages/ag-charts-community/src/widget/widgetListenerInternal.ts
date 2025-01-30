@@ -132,7 +132,7 @@ function makeTouchDrag<K extends DragEvents>(
     };
 }
 
-const LONG_TAP_DURATION = 500; /* milliseconds */
+const LONG_TAP_DURATION_MS = 500; /* milliseconds */
 const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE = 100; /* px²*/
 
 let gIsInLongTap = false;
@@ -181,7 +181,7 @@ function startOneFingerTouch(
             });
             target.dispatchEvent(contextMenuEvent);
         }
-    }, LONG_TAP_DURATION);
+    }, LONG_TAP_DURATION_MS);
 
     const findInitialFinger = (...touchLists: TouchList[]): Touch | undefined => {
         const touches: Touch[] = touchLists.map((touchList) => Array.from(touchList)).flat();
