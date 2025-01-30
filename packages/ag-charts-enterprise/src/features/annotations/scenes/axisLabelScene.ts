@@ -39,15 +39,9 @@ export class AxisLabelScene extends _ModuleSupport.Group {
     }
 
     private updateLabel({ value, styles, context }: UpdateOpts) {
-        const {
-            fontWeight,
-            fontSize,
-            fontStyle,
-            fontFamily,
-            textAlign,
-            color = 'white',
-            formatter = context.scaleValueFormatter(),
-        } = styles;
+        const { fontWeight, fontSize, fontStyle, fontFamily, textAlign, color = 'white', formatter } = styles;
+        const text = formatter ? formatter({ value }) : context.scaleValueFormatter()(value);
+
         this.label.setProperties({
             fontWeight,
             fontSize,
@@ -55,7 +49,7 @@ export class AxisLabelScene extends _ModuleSupport.Group {
             fontFamily,
             textAlign,
             fill: color,
-            text: formatter(value),
+            text,
         });
     }
 
