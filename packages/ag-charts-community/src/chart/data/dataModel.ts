@@ -132,6 +132,10 @@ export type Scoped = {
     scopes: ScopeId[];
 };
 
+function isScoped<T extends object>(obj: T): obj is T & Scoped {
+    return 'scopes' in obj && Array.isArray(obj.scopes);
+}
+
 type PropertyIdentifiers = {
     id?: string;
     /** Map<Scope, Set<Id>> */
@@ -346,7 +350,7 @@ export class DataModel<
         const valueScopes = new Set<ScopeId>();
         for (const def of opts.props) {
             const scopes = def.type === 'key' ? keyScopes : valueScopes;
-            if ('scopes' in def) {
+            if (isScoped(def)) {
                 def.scopes?.forEach((s) => scopes.add(s));
             }
 
