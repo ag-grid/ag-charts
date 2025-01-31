@@ -4,7 +4,7 @@ export const HEATMAP_SERIES_THEME: _ModuleSupport.SeriesModule<'heatmap'>['theme
     series: {
         label: {
             enabled: false,
-            color: { $ref: 'foregroundColor' },
+            color: { $ref: 'textColor' },
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },

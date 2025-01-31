@@ -24,7 +24,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'foregroundColor' },
+                color: { $ref: 'textColor' },
                 spacing: 5,
                 maxWidth: 100,
             },

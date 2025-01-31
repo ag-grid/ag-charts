@@ -27,6 +27,7 @@ import {
     type AgPresetOverrides,
     type AgTooltipPositionOptions,
     AgTooltipPositionType,
+    type WithThemeParams,
 } from 'ag-charts-types';
 
 import { PRESETS, PRESET_DATA_PROCESSORS } from '../api/preset/presets';
@@ -268,7 +269,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // so we aim to only do this once in the processing flow.
         processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
-        const themeParameters = this.getThemeParameters(activeTheme, processedOptions);
+        const themeParameters = this.getThemeParameters(activeTheme, processedOptions) as AgChartThemeParams;
+        this.resolveThemeOperations(themeParameters, themeParameters);
         this.resolveThemeOperations(themeParameters, processedOptions);
         this.resolveThemeOperations(themeParameters, this.annotationThemes);
 
@@ -446,6 +448,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             fontWeight: or(string, number),
             gridLineColor: string,
             padding: number,
+            subtleTextColor: string,
+            textColor: string,
         };
         const { errors } = validate(options.theme.params, themeParamsOptionsDef);
 
@@ -460,8 +464,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return defaultParameters;
     }
 
-    private resolveThemeOperations(params: AgChartThemeParams, options: T) {
-        const modifiedPaths = jsonResolveOperations(options, params, new Set(['palette', 'params', 'data']));
+    private resolveThemeOperations(params: WithThemeParams<AgChartThemeParams>, options: object) {
+        const modifiedPaths = jsonResolveOperations(options, params, new Set(['palette', 'data']));
         this.debug('resolveTheme()', modifiedPaths);
     }
 

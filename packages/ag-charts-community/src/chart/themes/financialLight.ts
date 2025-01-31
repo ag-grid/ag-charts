@@ -1,3 +1,5 @@
+import type { AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
+
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_CAPTION_ALIGNMENT,
@@ -37,7 +39,7 @@ export class FinancialLight extends ChartTheme {
         };
     }
 
-    override getPublicParameters() {
+    override getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
             ...super.getPublicParameters(),
             gridLineColor: '#f2f3f3',

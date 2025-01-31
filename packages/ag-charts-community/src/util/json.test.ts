@@ -560,6 +560,24 @@ describe('json module', () => {
             ]);
         });
 
+        it('should resolve `$round` operation', () => {
+            const source = { a: { $round: [1.234] }, b: { $round: [1.987] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: 1, b: 2 });
+        });
+
+        it('should resolve `$rem` operation', () => {
+            const source = { a: { $rem: [1.5] } };
+            jsonResolveOperations(source, { fontSize: 12 });
+            expect(source).toEqual({ a: 18 });
+        });
+
+        it('should resolve `$mix` operation', () => {
+            const source = { a: { $mix: ['#ffffff', '#000000', 0.5] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: '#808080' });
+        });
+
         it('should resolve `$ref` operation with params', () => {
             const source = { a: { $ref: 'key' } };
             jsonResolveOperations(source, { key: 'hello' });
@@ -572,6 +590,25 @@ describe('json module', () => {
             expect(source).toEqual({ a: undefined });
             expectWarningMessages([
                 'AG Charts - `$ref` json operation failed on [missing] at [a], expecting one of [key, other].',
+            ]);
+        });
+
+        it('should resolve `$ref` operation on second `$ref` operation', () => {
+            const source = { a: { $ref: 'first' } };
+            jsonResolveOperations(source, { first: { $ref: 'second' }, second: 'hello' });
+            expect(source).toEqual({ a: 'hello' });
+        });
+
+        it('should catch circular references', () => {
+            const source = { a: { $ref: 'first' } };
+            jsonResolveOperations(source, {
+                first: { $ref: 'second' },
+                second: { $ref: 'third' },
+                third: { $ref: 'first' },
+            });
+            expect(source).toEqual({ a: undefined });
+            expectWarningMessages([
+                'AG Charts - `$ref` json operation failed on [first] at [a], circular reference detected with [second, third, first].',
             ]);
         });
 
@@ -620,7 +657,7 @@ describe('json module', () => {
 
         it('should resolve nested operations', () => {
             const source = {
-                a: 'parent',
+                a: { $ref: 'indirectRelative' },
                 b: {
                     c: 'cousin',
                 },
@@ -635,7 +672,7 @@ describe('json module', () => {
                     },
                 },
             };
-            jsonResolveOperations(source, { key: 'hello' });
+            jsonResolveOperations(source, { key: 'hello', indirectRelative: { $ref: 'relative' }, relative: 'parent' });
             expect(source).toEqual({
                 a: 'parent',
                 b: { c: 'cousin' },

@@ -17,7 +17,7 @@ export const PYRAMID_SERIES_THEME: _ModuleSupport.SeriesModule<'pyramid'>['theme
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'foregroundColor' },
+            color: { $ref: 'textColor' },
             spacing: 12,
         },
     },
