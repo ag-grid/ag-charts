@@ -48,9 +48,12 @@ export function expectWarningsCalls() {
 
 export function expectWarningMessages(messages: any) {
     const warnMock = console.warn as jest.Mock;
-    for (let i = 0; i < messages.length; i++) {
-        expect(warnMock).toHaveBeenNthCalledWith(i + 1, messages[i]);
+    try {
+        for (let i = 0; i < messages.length; i++) {
+            expect(warnMock).toHaveBeenNthCalledWith(i + 1, messages[i]);
+        }
+        expect(warnMock).toHaveBeenCalledTimes(messages.length);
+    } finally {
+        warnMock.mockClear();
     }
-    expect(warnMock).toHaveBeenCalledTimes(messages.length);
-    warnMock.mockClear();
 }
