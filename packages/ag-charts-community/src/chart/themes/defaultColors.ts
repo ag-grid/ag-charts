@@ -1,6 +1,6 @@
 export const DEFAULT_FILLS = {
-    BLUE: '#5090dc',
-    ORANGE: '#ffa03a',
+    BLUE: '#ffa03a',
+    ORANGE: '#5090dc',
     GREEN: '#459d55',
     CYAN: '#34bfe1',
     YELLOW: '#e1cc00',
