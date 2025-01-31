@@ -28,7 +28,12 @@ export class ZoomDOMProxy {
         const where = 'afterend';
         const div = ctx.proxyInteractionService.createProxyElement({ type: 'region', domManagerId: axisId, where });
         div.setCursor(cursor);
-        div.addListener('drag-start', () => handlers.onDragStart(axisId, direction));
+        div.addListener('drag-start', (e) => {
+            if (e.device === 'touch') {
+                e.sourceEvent.preventDefault();
+            }
+            handlers.onDragStart(axisId, direction);
+        });
         div.addListener('drag-move', (ev) => handlers.onDrag(ev));
         div.addListener('drag-end', handlers.onDragEnd);
         div.addListener('dblclick', () => handlers.onDoubleClick(axisId, direction));
