@@ -98,13 +98,13 @@ export interface AgChartThemeParams {
     /** The outer chart padding. */
     padding?: PixelSize;
     /**
-     * TODO
+     * Color of text and UI elements that should stand out less than the default.
      *
      * Default: Mix of `foregroundColor` and `backgroundColor`
      */
     subtleTextColor?: CssColor;
     /**
-     * TODO
+     * Default color for all text.
      *
      * Default: `foregroundColor`
      */
