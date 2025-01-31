@@ -269,8 +269,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // so we aim to only do this once in the processing flow.
         processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
-        const themeParameters = this.getThemeParameters(activeTheme, processedOptions);
-        this.resolveThemeOperations(themeParameters, themeParameters as any);
+        const themeParameters = this.getThemeParameters(activeTheme, processedOptions) as AgChartThemeParams;
+        this.resolveThemeOperations(themeParameters, themeParameters);
         this.resolveThemeOperations(themeParameters, processedOptions);
         this.resolveThemeOperations(themeParameters, this.annotationThemes);
 
@@ -295,7 +295,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.debug('AgCharts.createOrUpdate() - processed options', processedOptions);
 
-        return { activeTheme, processedOptions, defaultAxes, themeParameters: themeParameters as AgChartThemeParams };
+        return { activeTheme, processedOptions, defaultAxes, themeParameters };
     }
 
     diffOptions(other?: ChartOptions): Partial<T> {
@@ -464,7 +464,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return defaultParameters;
     }
 
-    private resolveThemeOperations(params: WithThemeParams<AgChartThemeParams>, options: T) {
+    private resolveThemeOperations(params: WithThemeParams<AgChartThemeParams>, options: object) {
         const modifiedPaths = jsonResolveOperations(options, params, new Set(['palette', 'data']));
         this.debug('resolveTheme()', modifiedPaths);
     }
