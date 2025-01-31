@@ -214,7 +214,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
     }
 
     const targetAny = target as any;
-    const targetType = classify(target);
     for (const property of Object.keys(source)) {
         if (SKIP_JS_BUILTINS.has(property)) continue;
 
@@ -229,7 +228,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             const currentValueType = classify(currentValue);
             const newValueType = classify(newValue);
 
-            if (targetType === CLASS_INSTANCE_TYPE && !(property in target)) {
+            if (typeof target === 'object' && !(property in target)) {
                 if (newValue === undefined) continue;
 
                 Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
@@ -249,7 +248,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             }
 
             if (isProperties(currentValue)) {
-                targetAny[property].set(newValue);
+                currentValue.set(newValue);
             } else if (newValueType === 'object') {
                 if (currentValue == null) {
                     targetAny[property] = {};

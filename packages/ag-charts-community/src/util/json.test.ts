@@ -20,6 +20,8 @@ class TestApply {
 }
 
 describe('json module', () => {
+    setupMockConsole();
+
     describe('#jsonDiff', () => {
         describe('for trivial cases', () => {
             it('should return null for no diff', () => {
@@ -451,7 +453,7 @@ describe('json module', () => {
         });
 
         it('should skip specified properties', () => {
-            const target = new TestApply();
+            const target = new TestApply({ recurse: new TestApply() });
             jsonApply(target, json, { skip: ['recurse.str', 'str'] });
             expect(target.str).toEqual(undefined);
             expect(target.recurse?.str).toEqual(undefined);
@@ -459,11 +461,11 @@ describe('json module', () => {
 
         it('should error on unrecognised properties', () => {
             const badJson = { foo: 'bar' };
-            const target = new TestApply();
+            const target = new TestApply({ recurse: new TestApply() });
 
             console.warn = jest.fn();
             jsonApply(target, badJson as any);
-            expect(console.warn).toBeCalledWith('AG Charts - unable to set [foo] in TestApply - property is unknown');
+            expectWarningMessages(['AG Charts - unable to set [foo] in TestApply - property is unknown']);
         });
 
         it('should error on incompatible properties', () => {
@@ -472,9 +474,9 @@ describe('json module', () => {
 
             console.warn = jest.fn();
             jsonApply(target, badJson as any);
-            expect(console.warn).toBeCalledWith(
-                "AG Charts - unable to set [recurse] in TestApply - can't apply type of [primitive], allowed types are: [class-instance]"
-            );
+            expectWarningMessages([
+                "AG Charts - unable to set [recurse] in TestApply - can't apply type of [primitive], allowed types are: [class-instance]",
+            ]);
         });
     });
 
@@ -513,8 +515,6 @@ describe('json module', () => {
     });
 
     describe('#jsonResolveOperations', () => {
-        setupMockConsole();
-
         it('should resolve `$eq` operation with strict equality', () => {
             const source = { a: { $eq: [1, 1] }, b: { $eq: [1, '1'] }, c: { $eq: ['hello', 'hello'] } };
             jsonResolveOperations(source, {});
