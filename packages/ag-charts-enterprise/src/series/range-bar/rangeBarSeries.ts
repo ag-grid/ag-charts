@@ -229,7 +229,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(data && xAxis && yAxis && dataModel && processedData?.rawData)) return;
+        if (!(data && xAxis && yAxis && dataModel && processedData?.dataSources)) return;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -248,7 +248,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         };
         if (!visible) return context;
 
-        const { rawData } = processedData;
+        const rawData = processedData.dataSources.get(this.id) ?? [];
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
@@ -385,9 +385,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 return [x, effectiveBarWidth];
             });
             // @todo(AG-13575) Remove this if block
-            if (processedData.rawData.length < 1e3) {
+            if (processedData.input.count < 1e3) {
                 start = 0;
-                end = processedData.rawData.length;
+                end = processedData.input.count;
             }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
@@ -399,16 +399,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 handleDatum(datumIndex, 0, x, width, yLow, yHigh, defaultCrisp);
             }
         } else {
-            processedData.groups.forEach(({ datumIndices }, groupedDataIndex) => {
-                datumIndices.forEach((datumIndex) => {
-                    const x = xPosition(datumIndex);
-                    const width = effectiveBarWidth;
-                    const yLow = yLowValues[datumIndex];
-                    const yHigh = yHighValues[datumIndex];
+            for (const { datumIndex, groupIndex: groupDataIndex } of dataModel.forEachGroupDatum(this, processedData)) {
+                const x = xPosition(datumIndex);
+                const width = effectiveBarWidth;
+                const yLow = yLowValues[datumIndex];
+                const yHigh = yHighValues[datumIndex];
 
-                    handleDatum(datumIndex, groupedDataIndex, x, width, yLow, yHigh, defaultCrisp);
-                });
-            });
+                handleDatum(datumIndex, groupDataIndex, x, width, yLow, yHigh, defaultCrisp);
+            }
         }
 
         return context;
@@ -582,7 +580,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
         const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];

@@ -215,7 +215,7 @@ export abstract class FlowProportionSeries<
                 };
             };
 
-            linksDataModel.processedData.rawData.forEach((_datum, datumIndex) => {
+            linksDataModel.processedData.dataSources.get(this.id)?.forEach((_datum, datumIndex) => {
                 const fromId = fromIdValues[datumIndex];
                 const toId = toIdValues[datumIndex];
                 if (fromId == null || toId == null) return;
@@ -243,7 +243,7 @@ export abstract class FlowProportionSeries<
                       )
                     : undefined;
 
-            nodesDataModel.processedData.rawData.forEach((datum, datumIndex) => {
+            nodesDataModel.processedData.dataSources.get(this.id)?.forEach((datum, datumIndex) => {
                 const id: string = nodeIdValues[datumIndex];
                 const label: string | undefined = labelValues?.[datumIndex];
 
@@ -301,7 +301,7 @@ export abstract class FlowProportionSeries<
         });
 
         const baseLinks: TLinkDatum[] = [];
-        linksProcessedData.rawData.forEach((datum, datumIndex) => {
+        linksProcessedData.dataSources.get(this.id)?.forEach((datum, datumIndex) => {
             const fromId: string = fromIdValues[datumIndex];
             const toId: string = toIdValues[datumIndex];
             const size: number = sizeValues != null ? sizeValues[datumIndex] : 1;

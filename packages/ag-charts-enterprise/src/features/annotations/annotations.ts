@@ -630,13 +630,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const dateValues = dataModel.resolveKeysById<Date>({ id: 'annotations' }, 'date', processedData);
         const volumeValues = dataModel.resolveColumnById({ id: 'annotations' }, 'volume', processedData);
 
-        return processedData.rawData.reduce((sum, _datum, datumIndex) => {
+        let sum = 0;
+        for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
             const key = dateValues[datumIndex];
             if (isValidDate(key) && key >= from && key <= to) {
-                return sum + volumeValues[datumIndex];
+                sum += volumeValues[datumIndex];
             }
-            return sum;
-        }, 0);
+        }
+        return sum;
     }
 
     private translateNode(

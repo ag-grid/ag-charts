@@ -283,7 +283,8 @@ export abstract class RadialColumnSeriesBase<
         const context = { itemId: radiusKey, nodeData, labelData: nodeData };
         if (!this.visible) return context;
 
-        const { rawData, aggregation } = processedData;
+        const { dataSources, aggregation } = processedData;
+        const rawData = dataSources.get(this.id) ?? [];
         rawData.forEach((datum, datumIndex) => {
             const angleDatum = angleValues[datumIndex];
             if (angleDatum == null) return;
@@ -320,7 +321,7 @@ export abstract class RadialColumnSeriesBase<
             const y = Math.sin(angle) * midRadius;
 
             const labelNodeDatum = this.properties.label.enabled
-                ? getLabelNodeDatum(datum, radiusDatum, x, y)
+                ? getLabelNodeDatum(datum as any, radiusDatum, x, y)
                 : undefined;
 
             const columnWidth = this.getColumnWidth(startAngle, endAngle);
@@ -501,7 +502,7 @@ export abstract class RadialColumnSeriesBase<
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
         const radiusValue = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData)[datumIndex];
 

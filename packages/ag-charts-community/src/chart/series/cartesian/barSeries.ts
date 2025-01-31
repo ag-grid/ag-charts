@@ -315,7 +315,7 @@ export class BarSeries extends AbstractBarSeries<
             return;
         }
 
-        const rawData = processedData.rawDataSources?.get(this.id) ?? processedData.rawData;
+        const rawData = processedData.dataSources?.get(this.id);
         if (rawData == null) return;
 
         const xScale = xAxis.scale;
@@ -543,28 +543,30 @@ export class BarSeries extends AbstractBarSeries<
             const yEndValues = dataModel.resolveColumnById(this, `yValue-end`, processedData);
             const yRangeIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-range`);
 
-            processedData.groups.forEach(({ datumIndices, aggregation }) => {
+            for (const {
+                datumIndex,
+                valueIndex,
+                group: { aggregation },
+            } of dataModel.forEachGroupDatum(this, processedData)) {
                 const yRanges = aggregation[yRangeIndex];
 
-                datumIndices.forEach((datumIndex, valueIndex) => {
-                    const x = xPosition(datumIndex);
+                const x = xPosition(datumIndex);
 
-                    const yRawValue = yRawValues[datumIndex];
-                    const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-                    const yStart = Number(yStartValues[datumIndex]);
-                    const yEnd = Number(yEndValues[datumIndex]);
-                    const yRange = yRanges[isPositive ? 1 : 0];
+                const yRawValue = yRawValues[datumIndex];
+                const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
+                const yStart = Number(yStartValues[datumIndex]);
+                const yEnd = Number(yEndValues[datumIndex]);
+                const yRange = yRanges[isPositive ? 1 : 0];
 
-                    handleDatum(datumIndex, valueIndex, x, width, yStart, yEnd, yRange, 1);
-                });
-            });
+                handleDatum(datumIndex, valueIndex, x, width, yStart, yEnd, yRange, 1);
+            }
         } else if (dataAggregationFilter == null) {
             const width = barWidth;
             let [start, end] = this.visibleRange('xValue', xAxis.range);
             // @todo(AG-13575) Remove this if block
-            if (processedData.rawData.length < 1e3) {
+            if (processedData.input.count < 1e3) {
                 start = 0;
-                end = processedData.rawData.length;
+                end = processedData.input.count;
             }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
@@ -749,7 +751,7 @@ export class BarSeries extends AbstractBarSeries<
         }
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
 

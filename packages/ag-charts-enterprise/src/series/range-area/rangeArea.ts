@@ -214,7 +214,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const yScale = yAxis.scale;
 
         const { xKey, yLowKey, yHighKey, connectMissingData, marker, interpolation } = this.properties;
-        const { rawData } = processedData;
+        const rawData = processedData.dataSources.get(this.id) ?? [];
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
@@ -318,9 +318,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, topIndices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block
-        if (processedData.rawData.length < 1e3) {
+        if (processedData.input.count < 1e3) {
             start = 0;
-            end = processedData.rawData.length;
+            end = processedData.input.count;
         }
         for (let i = start; i < end; i += 1) {
             const topDatumIndex = topIndices?.[i] ?? i;
@@ -608,7 +608,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
         const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];

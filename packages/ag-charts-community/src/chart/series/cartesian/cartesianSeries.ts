@@ -741,7 +741,7 @@ export abstract class CartesianSeries<
     // Workaround - it would be nice if this difference didn't exist
     private keysOrValues(xKey: string) {
         const key = this.dataModel!.resolveProcessedDataIndexById(this, xKey);
-        return this.processedData!.keys[key] ?? this.processedData!.columns[key];
+        return this.processedData?.keys[key]?.get(this.id) ?? this.processedData?.columns[key] ?? [];
     }
 
     protected visibleRange(axisKey: string, visibleRange: [any, any], indices?: number[]) {

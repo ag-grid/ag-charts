@@ -231,8 +231,9 @@ export class MapMarkerSeries
                 : undefined;
         const latValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `latValue`, processedData) : undefined;
         const lonValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
-        this.topologyBounds = processedData.rawData.reduce<_ModuleSupport.LonLatBBox | undefined>(
-            (current, _datum, datumIndex) => {
+        this.topologyBounds = processedData.dataSources
+            .get(this.id)
+            ?.reduce<_ModuleSupport.LonLatBBox | undefined>((current, _datum, datumIndex) => {
                 const feature: _ModuleSupport.Feature | undefined = featureValues?.[datumIndex];
                 const geometry = feature?.geometry;
                 if (geometry != null) {
@@ -244,9 +245,7 @@ export class MapMarkerSeries
                     current = extendBbox(current, lon, lat, lon, lat);
                 }
                 return current;
-            },
-            undefined
-        );
+            }, undefined);
 
         if (sizeKey != null) {
             const sizeIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`);
@@ -276,7 +275,7 @@ export class MapMarkerSeries
         }
 
         const colorIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
-        const dataCount = processedData.rawData.length;
+        const dataCount = processedData.input.count;
         const missCount = getMissCount(this, processedData.defs.values[colorIdx].missing);
         const colorDataMissing = dataCount === 0 || dataCount === missCount;
         return !colorDataMissing;
@@ -368,7 +367,7 @@ export class MapMarkerSeries
         let projectedGeometries: Map<string, _ModuleSupport.Geometry> | undefined;
         if (idValues != null && featureValues != null) {
             projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-            processedData.rawData.forEach((_datum, datumIndex) => {
+            processedData.dataSources.get(this.id)?.forEach((_datum, datumIndex) => {
                 const id: string | undefined = idValues[datumIndex];
                 const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
                 const projectedGeometry =
@@ -382,7 +381,8 @@ export class MapMarkerSeries
         const nodeData: MapMarkerNodeDatum[] = [];
         const labelData: MapMarkerNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
-        processedData.rawData.forEach((datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        rawData.forEach((datum, datumIndex) => {
             const idValue = idValues?.[datumIndex];
             const lonValue = lonValues?.[datumIndex];
             const latValue = latValues?.[datumIndex];
@@ -790,7 +790,7 @@ export class MapMarkerSeries
         if (!dataModel || !processedData) return;
 
         const { datumIndex } = seriesDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const sizeValue =
             sizeKey != null
                 ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex]

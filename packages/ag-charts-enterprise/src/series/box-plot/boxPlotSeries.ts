@@ -165,7 +165,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!visible) return context;
 
-        processedData.rawData.forEach((datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        rawData.forEach((datum, datumIndex) => {
             const xValue = xValues[datumIndex];
             if (xValue == null) return;
 
@@ -319,7 +320,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const minValue = dataModel.resolveColumnById(this, `minValue`, processedData)[datumIndex];
         const q1Value = dataModel.resolveColumnById(this, `q1Value`, processedData)[datumIndex];

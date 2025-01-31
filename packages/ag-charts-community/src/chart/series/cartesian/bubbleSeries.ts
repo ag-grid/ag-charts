@@ -252,7 +252,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
         const font = label.getFont();
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
-        processedData.rawData.forEach((datum, datumIndex) => {
+        processedData.dataSources.get(this.id)?.forEach((datum, datumIndex) => {
             const xDatum = xDataValues[datumIndex];
             const yDatum = yDataValues[datumIndex];
             const sizeValue = sizeDataValues?.[datumIndex];
@@ -461,7 +461,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 

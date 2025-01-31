@@ -383,7 +383,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         let sum = 0;
         const nodes: PieNodeDatum[] = [];
         const phantomNodes: PieNodeDatum[] | undefined = angleFilterRawValues != null ? [] : undefined;
-        processedData.rawData.forEach((datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        rawData.forEach((datum, datumIndex) => {
             const currentValue = useFilterAngles ? angleFilterValues![datumIndex] : angleValues[datumIndex];
             const crossFilterScale =
                 angleFilterRawValues != null && !useFilterAngles
@@ -1279,7 +1280,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         const { datumIndex } = nodeDatum;
 
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const { angleRawValues, legendItemValues, calloutLabelValues, sectorLabelValues } = this.getProcessedDataValues(
             dataModel,
             processedData
@@ -1323,7 +1324,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     private legendItemSymbol(datumIndex: number): LegendSymbolOptions {
-        const datum = this.processedData?.rawData[datumIndex];
+        const datum = this.processedData?.dataSources.get(this.id)?.[datumIndex];
         const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
 
         return {
@@ -1371,8 +1372,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const legendData: CategoryLegendDatum[] = [];
 
         const hideZeros = this.properties.hideZeroValueSectorsInLegend;
-        for (let datumIndex = 0; datumIndex < processedData.rawData.length; datumIndex++) {
-            const datum = processedData.rawData[datumIndex];
+        for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
+            const datum = processedData.dataSources.get(this.id)?.[datumIndex] as any;
             const angleRawValue = angleRawValues[datumIndex];
 
             if (hideZeros && angleRawValue === 0) {

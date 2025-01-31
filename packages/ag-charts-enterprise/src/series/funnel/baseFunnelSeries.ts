@@ -319,7 +319,8 @@ export abstract class BaseFunnelSeries<
             datumIndex: number;
         }
         let previousConnection: ConnectorConfig | undefined;
-        processedData.rawData.forEach((datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        rawData.forEach((datum, datumIndex) => {
             const visible = isVisible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
             const xDatum = xValues[datumIndex];
@@ -531,7 +532,7 @@ export abstract class BaseFunnelSeries<
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
@@ -611,7 +612,7 @@ export abstract class BaseFunnelSeries<
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
 
-        return processedData.rawData
+        return (processedData.dataSources.get(this.id) ?? [])
             .map((_datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {
                 const stageValue = xValues[datumIndex];
                 if (stageValue == null) return;
