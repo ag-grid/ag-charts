@@ -195,7 +195,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const radiusValues = dataModel.resolveColumnById<number>(this, `radiusValue`, processedData);
         const axisInnerRadius = this.getAxisInnerRadius();
 
-        const nodeData = processedData.rawData.map((datum, datumIndex): RadarNodeDatum => {
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const nodeData = rawData.map((datum, datumIndex): RadarNodeDatum => {
             const angleDatum = angleValues[datumIndex];
             const radiusDatum = radiusValues[datumIndex];
 
@@ -418,7 +419,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const angleValue = dataModel.resolveColumnById(this, `angleValue`, processedData)[datumIndex];
         const radiusValue = dataModel.resolveColumnById(this, `radiusValue`, processedData)[datumIndex];
 

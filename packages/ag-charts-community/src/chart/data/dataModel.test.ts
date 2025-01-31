@@ -13,28 +13,43 @@ import {
     range as actualRange,
     sumValues,
 } from './aggregateFunctions';
-import type { AggregatePropertyDefinition, GroupByFn, PropertyId } from './dataModel';
+import type {
+    AggregatePropertyDefinition,
+    DataModelOptions,
+    GroupByFn,
+    GroupedData,
+    PropertyDefinition,
+    PropertyId,
+    Scoped,
+} from './dataModel';
 import { DataModel, getPathComponents } from './dataModel';
 import {
     SMALLEST_KEY_INTERVAL,
     SORT_DOMAIN_GROUPS,
+    accumulateGroup as actualAccumulateGroup,
     normaliseGroupTo as actualNormaliseGroupTo,
     normalisePropertyTo as actualNormalisePropertyTo,
+    rowCountProperty as actualRowCountProperty,
     rangedValueProperty,
 } from './processors';
 
-const rangeKey = (property: string) => ({ scope: 'test', property, type: 'key' as const, valueType: 'range' as const });
-const categoryKey = (property: string) => ({
+const rangeKey = (property: string) => ({
     scopes: ['test'],
+    property,
+    type: 'key' as const,
+    valueType: 'range' as const,
+});
+const categoryKey = (property: string, scopes = ['test']) => ({
+    scopes,
     property,
     type: 'key' as const,
     valueType: 'category' as const,
 });
-const scopedValue = (scope: string[] | string | undefined, property: string, groupId?: string, id?: string) => {
-    let scopes: string[] | undefined = undefined;
+const scopedValue = (scope: string[] | string, property: string, groupId?: string, id?: string) => {
+    let scopes: string[];
     if (Array.isArray(scope)) {
         scopes = scope;
-    } else if (scope) {
+    } else {
         scopes = [scope];
     }
     return {
@@ -54,16 +69,18 @@ const categoryValue = (property: string) => ({
     type: 'value' as const,
     valueType: 'category' as const,
 });
+const accumulatedGroupValues = (properties: string[], groupId: string): (Scoped & PropertyDefinition<any>)[] => [
+    ...properties.map((p) => ({ ...accumulatedGroupValue(p, groupId), scopes: ['test'] })),
+    { ...actualAccumulateGroup(groupId, 'normal', 'current'), scopes: ['test'] },
+];
 const accumulatedGroupValue = (property: string, groupId: string = property, id?: string) => ({
     ...value(property, groupId, id),
-    processor: () => (next: number, total?: number) => next + (total ?? 0),
 });
 const accumulatedPropertyValue = (property: string, groupId: string = property, id?: string) => ({
     ...value(property, groupId, id),
     processor: accumulatedValue(true),
 });
 const sum = (groupId: string): AggregatePropertyDefinition<any, any> => ({
-    scopes: ['test'],
     id: `sum-${groupId}`,
     matchGroupIds: [groupId],
     type: 'aggregate',
@@ -75,6 +92,7 @@ const groupAverage = (groupId: string) => ({
     ...actualGroupAverage(`groupAverage-${groupId}`, groupId),
     scopes: ['test'],
 });
+const rowCountProperty = (prop: string) => ({ ...actualRowCountProperty(prop), scopes: ['test'] });
 const groupCount = () => ({ ...actualGroupCount(`groupCount`), scopes: ['test'] });
 const area = (groupId: string, aggFn: AggregatePropertyDefinition<any, any>) => ({
     ...actualArea(`area-${groupId}`, aggFn),
@@ -89,12 +107,52 @@ const normalisePropertyTo = (prop: PropertyId<any>, normaliseTo: [number, number
     scopes: ['test'],
 });
 
+function basicDataSet<T>(data: T[], scopes = ['test']) {
+    return new Map([...scopes.map((s) => [s, data] as const)]);
+}
+
+function expectedKeys(expected: unknown[]) {
+    return [new Map([['test', expected]])];
+}
+
+function resolveGroupColumn(result: GroupedData<unknown>, groupIdx: number, columnIdx: number) {
+    return result.groups[groupIdx].datumIndices[columnIdx].map((index) => result.columns[columnIdx][index]);
+}
+
+function extractGroupValues(data: GroupedData<unknown>, groupIndex?: number) {
+    let groups = data.groups;
+    if (groupIndex != null) {
+        groups = groups.slice(groupIndex, groupIndex + 1);
+    }
+    const result = groups.map((g) =>
+        g.datumIndices[0].map((_, di) => g.datumIndices.map((d, ci) => data.columns[ci][d[di]]))
+    );
+    if (groupIndex != null) {
+        return result[0];
+    }
+    return result;
+}
+
+function mutilatedBrowserData() {
+    const datumKeys = ['ie', 'chrome', 'firefox', 'safari'] as const;
+    const rawData = DATA_BROWSER_MARKET_SHARE.map((v) => ({ ...v }));
+    rawData.forEach((datum, idx) => {
+        const keyToDelete = datumKeys[idx % 4];
+        delete datum[keyToDelete];
+        if (idx % 3 === 0) {
+            const illegalValueKey = datumKeys[(idx + 1) % 4];
+            datum[illegalValueKey] = 'illegal value' as any;
+        }
+    });
+    return rawData;
+}
+
 describe('DataModel', () => {
     setupMockConsole();
 
     describe('ungrouped processing', () => {
         it('should generated the expected results', () => {
-            const data = examples.SIMPLE_LINE_CHART_EXAMPLE.data ?? [];
+            const data = basicDataSet(examples.SIMPLE_LINE_CHART_EXAMPLE.data ?? []);
             const dataModel = new DataModel<any, any>({
                 props: [rangeKey('date'), value('petrol'), value('diesel')],
             });
@@ -109,17 +167,17 @@ describe('DataModel', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('kp'), value('vp1'), value('vp2'), SMALLEST_KEY_INTERVAL],
                 });
-                const data = [
+                const data = basicDataSet([
                     { kp: 2, vp1: 5, vp2: 7 },
                     { kp: 3, vp1: 1, vp2: 2 },
                     { kp: 4, vp1: 6, vp2: 9 },
-                ];
+                ]);
 
                 it('should extract the configured keys', () => {
                     const result = dataModel.processData(data)!;
 
                     expect(result.type).toEqual('ungrouped');
-                    expect(result.keys).toEqual([[2, 3, 4]]);
+                    expect(result.keys).toEqual(expectedKeys([2, 3, 4]));
                 });
 
                 it('should extract the configured values', () => {
@@ -155,19 +213,18 @@ describe('DataModel', () => {
                     props: [categoryKey('kp'), value('vp1'), value('vp2')],
                     groupByKeys: false,
                 });
-                const data = [
+                const data = basicDataSet([
                     { kp: 'Q1', vp1: 5, vp2: 7 },
                     { kp: 'Q1', vp1: 1, vp2: 2 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
-                ];
+                ]);
 
                 it('should extract the configured keys', () => {
                     const result = dataModel.processData(data)!;
 
                     expect(result.type).toEqual('ungrouped');
-                    expect(result.keys[0]).toHaveLength(4);
-                    expect(result.keys).toEqual([['Q1', 'Q1', 'Q2', 'Q2']]);
+                    expect(result.keys).toEqual(expectedKeys(['Q1', 'Q1', 'Q2', 'Q2']));
                 });
 
                 it('should extract the configured values', () => {
@@ -187,19 +244,21 @@ describe('DataModel', () => {
                     props: [categoryKey('kp'), value('vp1'), value('vp2')],
                     groupByKeys: false,
                 });
-                const data = [
+                const dataSet = [
                     { kp: { toString: () => 'Q1' }, vp1: 5, vp2: 7 },
                     { kp: { toString: () => 'Q1' }, vp1: 1, vp2: 2 },
                     { kp: { toString: () => 'Q2' }, vp1: 6, vp2: 9 },
                     { kp: { toString: () => 'Q2' }, vp1: 6, vp2: 9 },
                 ];
+                const data = basicDataSet(dataSet);
 
                 it('should extract the configured keys', () => {
                     const result = dataModel.processData(data)!;
 
                     expect(result.type).toEqual('ungrouped');
-                    expect(result.keys[0]).toHaveLength(4);
-                    expect(result.keys).toEqual([[data[0].kp, data[1].kp, data[2].kp, data[3].kp]]);
+                    expect(result.keys).toEqual(
+                        expectedKeys([dataSet[0].kp, dataSet[1].kp, dataSet[2].kp, dataSet[3].kp])
+                    );
                 });
 
                 it('should extract the configured values', () => {
@@ -217,7 +276,7 @@ describe('DataModel', () => {
 
     describe('ungrouped processing - accumulated and normalised properties', () => {
         it('should generated the expected results', () => {
-            const data = examples.SIMPLE_PIE_CHART_EXAMPLE.series?.[0].data ?? [];
+            const data = basicDataSet(examples.SIMPLE_PIE_CHART_EXAMPLE.series?.[0].data ?? []);
             const dataModel = new DataModel<any, any>({
                 props: [
                     accumulatedPropertyValue('population'),
@@ -243,17 +302,17 @@ describe('DataModel', () => {
                         normalisePropertyTo('vp1', [0, 100]),
                     ],
                 });
-                const data = [
+                const data = basicDataSet([
                     { kp: 2, vp1: 5, vp2: 7, vp3: 1 },
                     { kp: 3, vp1: 1, vp2: -5, vp3: 2 },
                     { kp: 4, vp1: 6, vp2: 9, vp3: 3 },
-                ];
+                ]);
 
                 it('should extract the configured keys', () => {
                     const result = dataModel.processData(data)!;
 
                     expect(result.type).toEqual('ungrouped');
-                    expect(result.keys).toEqual([[2, 3, 4]]);
+                    expect(result.keys).toEqual(expectedKeys([2, 3, 4]));
                 });
 
                 it('should extract the configured values', () => {
@@ -286,18 +345,18 @@ describe('DataModel', () => {
                     props: [categoryKey('kp'), value('vp1'), value('vp2')],
                     groupByKeys: false,
                 });
-                const data = [
+                const data = basicDataSet([
                     { kp: 'Q1', vp1: 5, vp2: 7 },
                     { kp: 'Q1', vp1: 1, vp2: 2 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
-                ];
+                ]);
 
                 it('should extract the configured keys', () => {
                     const result = dataModel.processData(data)!;
 
                     expect(result.type).toEqual('ungrouped');
-                    expect(result.keys).toEqual([['Q1', 'Q1', 'Q2', 'Q2']]);
+                    expect(result.keys).toEqual(expectedKeys(['Q1', 'Q1', 'Q2', 'Q2']));
                 });
 
                 it('should extract the configured values', () => {
@@ -316,7 +375,7 @@ describe('DataModel', () => {
 
     describe('grouped processing - grouped example', () => {
         it('should generated the expected results', () => {
-            const data = examples.GROUPED_BAR_CHART_EXAMPLE.data ?? [];
+            const data = basicDataSet(examples.GROUPED_BAR_CHART_EXAMPLE.data ?? []);
             const dataModel = new DataModel<any, any, true>({
                 props: [categoryKey('type'), value('total', 'all'), value('regular', 'all'), sum('all')],
                 groupByKeys: true,
@@ -332,12 +391,12 @@ describe('DataModel', () => {
                 props: [categoryKey('kp'), value('vp1'), value('vp2')],
                 groupByKeys: true,
             });
-            const data = [
+            const data = basicDataSet([
                 { kp: 'Q1', vp1: 5, vp2: 7 },
                 { kp: 'Q1', vp1: 1, vp2: 2 },
                 { kp: 'Q2', vp1: 6, vp2: 9 },
                 { kp: 'Q2', vp1: 6, vp2: 9 },
-            ];
+            ]);
 
             it('should extract the configured keys', () => {
                 const result = dataModel.processData(data)!;
@@ -353,12 +412,18 @@ describe('DataModel', () => {
 
                 expect(result.type).toEqual('grouped');
                 expect(result.groups).toHaveLength(2);
-                expect(result.groups[0].datumIndices).toEqual([0, 1]);
-                expect(result.groups[1].datumIndices).toEqual([2, 3]);
-                expect(result.groups[0].datumIndices.map((index) => result.columns[0][index])).toEqual([5, 1]);
-                expect(result.groups[0].datumIndices.map((index) => result.columns[1][index])).toEqual([7, 2]);
-                expect(result.groups[1].datumIndices.map((index) => result.columns[0][index])).toEqual([6, 6]);
-                expect(result.groups[1].datumIndices.map((index) => result.columns[1][index])).toEqual([9, 9]);
+                expect(result.groups[0].datumIndices).toEqual([
+                    [0, 1],
+                    [0, 1],
+                ]);
+                expect(result.groups[1].datumIndices).toEqual([
+                    [2, 3],
+                    [2, 3],
+                ]);
+                expect(resolveGroupColumn(result, 0, 0)).toEqual([5, 1]);
+                expect(resolveGroupColumn(result, 0, 1)).toEqual([7, 2]);
+                expect(resolveGroupColumn(result, 1, 0)).toEqual([6, 6]);
+                expect(resolveGroupColumn(result, 1, 1)).toEqual([9, 9]);
             });
 
             it('should calculate the domains', () => {
@@ -384,12 +449,12 @@ describe('DataModel', () => {
                     props: [categoryKey('kp'), value('vp1', 'all'), value('vp2', 'all'), sum('all')],
                     groupByKeys: true,
                 });
-                const data2 = [
+                const data2 = basicDataSet([
                     { kp: 'Q1', vp1: 5, vp2: 7 },
                     { kp: 'Q1', vp1: 1, vp2: 2 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
-                ];
+                ]);
 
                 const result = dataModel2.processData(data2)!;
 
@@ -406,19 +471,20 @@ describe('DataModel', () => {
                 props: [categoryKey('kp'), value('vp1'), value('vp2')],
                 groupByKeys: true,
             });
-            const data = [
+            const dataSet = [
                 { kp: { id: 1, q: 'Q1' }, vp1: 5, vp2: 7 },
                 { kp: { id: 2, q: 'Q1' }, vp1: 1, vp2: 2 },
                 { kp: { id: 3, q: 'Q2' }, vp1: 6, vp2: 9 },
                 { kp: { id: 4, q: 'Q2' }, vp1: 6, vp2: 9 },
             ];
+            const data = basicDataSet(dataSet);
 
             it('should extract the configured keys', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
                 expect(result.groups).toHaveLength(4);
-                expect(result.groups.map((d) => d.keys[0])).toEqual(data.map((d) => d.kp));
+                expect(result.groups.map((d) => d.keys[0])).toEqual(dataSet.map((d: any) => d.kp));
             });
 
             it('should extract the configured values', () => {
@@ -426,16 +492,21 @@ describe('DataModel', () => {
 
                 expect(result.type).toEqual('grouped');
                 expect(result.groups).toHaveLength(4);
-                expect(result.groups.map((g) => g.datumIndices.map((d) => result.columns.map((c) => c[d])))).toEqual(
-                    data.map((d) => [[d.vp1, d.vp2]])
-                );
+                expect(resolveGroupColumn(result, 0, 0)).toEqual([5]);
+                expect(resolveGroupColumn(result, 0, 1)).toEqual([7]);
+                expect(resolveGroupColumn(result, 1, 0)).toEqual([1]);
+                expect(resolveGroupColumn(result, 1, 1)).toEqual([2]);
+                expect(resolveGroupColumn(result, 2, 0)).toEqual([6]);
+                expect(resolveGroupColumn(result, 2, 1)).toEqual([9]);
+                expect(resolveGroupColumn(result, 3, 0)).toEqual([6]);
+                expect(resolveGroupColumn(result, 3, 1)).toEqual([9]);
             });
 
             it('should calculate the domains', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
-                expect(result.domain.keys[0]).toEqual(data.map((d) => d.kp));
+                expect(result.domain.keys[0]).toEqual(dataSet.map((d: any) => d.kp));
                 expect(result.domain.values).toEqual([
                     [1, 6],
                     [2, 9],
@@ -457,20 +528,22 @@ describe('DataModel', () => {
                 props: [{ ...rangeKey('kp'), validation: (v) => v instanceof Date }, value('vp1'), value('vp2')],
                 groupByKeys: true,
             });
-            const data = [
+            const dataSet = [
                 { kp: new Date('2023-01-01T00:00:00.000Z'), vp1: 5, vp2: 7 },
                 { kp: new Date('2023-01-02T00:00:00.000Z'), vp1: 1, vp2: 2 },
                 { kp: new Date('2023-01-03T00:00:00.000Z'), vp1: 6, vp2: 9 },
                 { kp: new Date('2023-01-04T00:00:00.000Z'), vp1: 6, vp2: 9 },
                 { kp: null, vp1: 6, vp2: 9 },
             ];
+            const data = basicDataSet(dataSet);
 
             it('should extract the configured keys', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
-                expect(result.keys[0]).toHaveLength(5);
-                expect(result.keys[0]).toEqual([
+                expect(result.keys).toHaveLength(1);
+                expect(result.keys[0].get('test')).toHaveLength(5);
+                expect(result.keys[0].get('test')).toEqual([
                     new Date('2023-01-01T00:00:00.000Z'),
                     new Date('2023-01-02T00:00:00.000Z'),
                     new Date('2023-01-03T00:00:00.000Z'),
@@ -480,7 +553,7 @@ describe('DataModel', () => {
                 expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [object] for [undefined / undefined] ignored:",
+    "AG Charts - invalid value of type [object] for [test / undefined] ignored:",
     "[null]",
   ],
 ]
@@ -499,7 +572,7 @@ describe('DataModel', () => {
                 expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [object] for [undefined / undefined] ignored:",
+    "AG Charts - invalid value of type [object] for [test / undefined] ignored:",
     "[null]",
   ],
 ]
@@ -510,7 +583,7 @@ describe('DataModel', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
-                expect(result.domain.keys).toEqual([[data[0].kp, data[3].kp]]);
+                expect(result.domain.keys).toEqual([[dataSet[0].kp, dataSet[3].kp]]);
                 expect(result.domain.values).toEqual([
                     [1, 6],
                     [2, 9],
@@ -518,7 +591,7 @@ describe('DataModel', () => {
                 expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [object] for [undefined / undefined] ignored:",
+    "AG Charts - invalid value of type [object] for [test / undefined] ignored:",
     "[null]",
   ],
 ]
@@ -531,13 +604,13 @@ describe('DataModel', () => {
                 expect(result.groups.filter((g) => g.aggregation.length !== 0)).toHaveLength(0);
                 expect(result.domain.aggValues).toBeUndefined();
                 expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - invalid value of type [object] for [undefined / undefined] ignored:",
-    "[null]",
-  ],
-]
-`);
+                    [
+                      [
+                        "AG Charts - invalid value of type [object] for [test / undefined] ignored:",
+                        "[null]",
+                      ],
+                    ]
+                    `);
             });
 
             it('should only sum per data-item', () => {
@@ -545,12 +618,12 @@ describe('DataModel', () => {
                     props: [categoryKey('kp'), value('vp1', 'all'), value('vp2', 'all'), sum('all')],
                     groupByKeys: true,
                 });
-                const data2 = [
+                const data2 = basicDataSet([
                     { kp: 'Q1', vp1: 5, vp2: 7 },
                     { kp: 'Q1', vp1: 1, vp2: 2 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
-                ];
+                ]);
 
                 const result = dataModel2.processData(data2)!;
 
@@ -563,7 +636,7 @@ describe('DataModel', () => {
 
     describe('grouped processing - stacked example', () => {
         it('should generated the expected results', () => {
-            const data = examples.STACKED_BAR_CHART_EXAMPLE.data ?? [];
+            const data = basicDataSet(examples.STACKED_BAR_CHART_EXAMPLE.data ?? []);
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     categoryKey('type'),
@@ -594,12 +667,12 @@ describe('DataModel', () => {
                 ],
                 groupByKeys: true,
             });
-            const data = [
+            const data = basicDataSet([
                 { kp: 'Q1', vp1: 5, vp2: 7, vp3: 1, vp4: 5 },
                 { kp: 'Q1', vp1: 1, vp2: 2, vp3: 2, vp4: 4 },
                 { kp: 'Q2', vp1: 6, vp2: 9, vp3: 3, vp4: 3 },
                 { kp: 'Q2', vp1: 6, vp2: 9, vp3: 4, vp4: 2 },
-            ];
+            ]);
 
             it('should extract the configured keys', () => {
                 const result = dataModel.processData(data)!;
@@ -615,8 +688,14 @@ describe('DataModel', () => {
 
                 expect(result.type).toEqual('grouped');
                 expect(result.groups).toHaveLength(2);
-                expect(result.groups[0].datumIndices).toEqual([0, 1]);
-                expect(result.groups[1].datumIndices).toEqual([2, 3]);
+                expect(resolveGroupColumn(result, 0, 0)).toEqual([5, 1]);
+                expect(resolveGroupColumn(result, 0, 1)).toEqual([7, 2]);
+                expect(resolveGroupColumn(result, 0, 2)).toEqual([1, 2]);
+                expect(resolveGroupColumn(result, 0, 3)).toEqual([5, 4]);
+                expect(resolveGroupColumn(result, 1, 0)).toEqual([6, 6]);
+                expect(resolveGroupColumn(result, 1, 1)).toEqual([9, 9]);
+                expect(resolveGroupColumn(result, 1, 2)).toEqual([3, 4]);
+                expect(resolveGroupColumn(result, 1, 3)).toEqual([3, 2]);
             });
 
             it('should calculate the domains', () => {
@@ -655,14 +734,14 @@ describe('DataModel', () => {
 
     describe('grouped processing - stacked with accumulation example', () => {
         it('should generated the expected results', () => {
-            const data = examples.STACKED_BAR_CHART_EXAMPLE.data ?? [];
+            const data = basicDataSet(examples.STACKED_BAR_CHART_EXAMPLE.data ?? []);
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     categoryKey('type'),
-                    accumulatedGroupValue('ownerOccupied'),
-                    accumulatedGroupValue('privateRented'),
-                    accumulatedGroupValue('localAuthority'),
-                    accumulatedGroupValue('housingAssociation'),
+                    accumulatedPropertyValue('ownerOccupied'),
+                    accumulatedPropertyValue('privateRented'),
+                    accumulatedPropertyValue('localAuthority'),
+                    accumulatedPropertyValue('housingAssociation'),
                 ],
                 groupByKeys: true,
             });
@@ -676,19 +755,19 @@ describe('DataModel', () => {
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     categoryKey('kp'),
-                    accumulatedGroupValue('vp1'),
-                    accumulatedGroupValue('vp2'),
-                    accumulatedGroupValue('vp3'),
-                    accumulatedGroupValue('vp4'),
+                    accumulatedPropertyValue('vp1'),
+                    accumulatedPropertyValue('vp2'),
+                    accumulatedPropertyValue('vp3'),
+                    accumulatedPropertyValue('vp4'),
                 ],
                 groupByKeys: true,
             });
-            const data = [
+            const data = basicDataSet([
                 { kp: 'Q1', vp1: 5, vp2: 7, vp3: 1, vp4: 5 },
                 { kp: 'Q1', vp1: 1, vp2: 2, vp3: 2, vp4: 4 },
                 { kp: 'Q2', vp1: 6, vp2: 9, vp3: 3, vp4: 3 },
                 { kp: 'Q2', vp1: 6, vp2: 9, vp3: 4, vp4: 2 },
-            ];
+            ]);
 
             it('should extract the configured keys', () => {
                 const result = dataModel.processData(data)!;
@@ -704,8 +783,18 @@ describe('DataModel', () => {
 
                 expect(result.type).toEqual('grouped');
                 expect(result.groups).toHaveLength(2);
-                expect(result.groups[0].datumIndices).toEqual([0, 1]);
-                expect(result.groups[1].datumIndices).toEqual([2, 3]);
+                expect(result.groups[0].datumIndices).toEqual([
+                    [0, 1],
+                    [0, 1],
+                    [0, 1],
+                    [0, 1],
+                ]);
+                expect(result.groups[1].datumIndices).toEqual([
+                    [2, 3],
+                    [2, 3],
+                    [2, 3],
+                    [2, 3],
+                ]);
             });
 
             it('should calculate the domains', () => {
@@ -714,10 +803,10 @@ describe('DataModel', () => {
                 expect(result.type).toEqual('grouped');
                 expect(result.domain.keys).toEqual([['Q1', 'Q2']]);
                 expect(result.domain.values).toEqual([
-                    [1, 6],
-                    [3, 15],
-                    [5, 19],
-                    [9, 21],
+                    [5, 18],
+                    [7, 27],
+                    [1, 10],
+                    [5, 14],
                 ]);
             });
         });
@@ -725,7 +814,7 @@ describe('DataModel', () => {
 
     describe('grouped processing - stacked and normalised example', () => {
         it('should generated the expected results for 100% stacked columns example', () => {
-            const data = examples.ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE.data ?? [];
+            const data = basicDataSet(examples.ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE.data ?? []);
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     categoryKey('type'),
@@ -747,7 +836,7 @@ describe('DataModel', () => {
         });
 
         it('should generated the expected results for 100% stacked area example', () => {
-            const data = examples.ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE.data ?? [];
+            const data = basicDataSet(examples.ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE.data ?? []);
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     categoryKey('month'),
@@ -785,12 +874,12 @@ describe('DataModel', () => {
                 ],
                 groupByKeys: true,
             });
-            const data = [
+            const data = basicDataSet([
                 { kp: 'Q1', vp1: 5, vp2: 7, vp3: 1, vp4: 5 },
                 { kp: 'Q1', vp1: 1, vp2: 2, vp3: 2, vp4: 4 },
                 { kp: 'Q2', vp1: 6, vp2: 9, vp3: 3, vp4: 3 },
                 { kp: 'Q2', vp1: 6, vp2: 9, vp3: 4, vp4: 2 },
-            ];
+            ]);
 
             it('should allow normalisation of values', () => {
                 const result = dataModel.processData(data)!;
@@ -810,7 +899,7 @@ describe('DataModel', () => {
                     [0, expect.closeTo(100)],
                 ]);
 
-                expect(result.groups.map((g) => g.datumIndices.map((d) => result.columns.map((c) => c[d])))).toEqual([
+                expect(extractGroupValues(result)).toEqual([
                     [
                         [41.666666666666664, 58.333333333333336, 16.666666666666668, 83.33333333333333],
                         [33.333333333333336, 66.66666666666667, 33.333333333333336, 66.66666666666667],
@@ -826,14 +915,14 @@ describe('DataModel', () => {
 
     describe('grouped processing - stacked with accumulation and normalised example', () => {
         it('should generated the expected results', () => {
-            const data = examples.STACKED_BAR_CHART_EXAMPLE.data ?? [];
+            const data = basicDataSet(examples.STACKED_BAR_CHART_EXAMPLE.data ?? []);
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     categoryKey('type'),
-                    accumulatedGroupValue('ownerOccupied', 'all'),
-                    accumulatedGroupValue('privateRented', 'all'),
-                    accumulatedGroupValue('localAuthority', 'all'),
-                    accumulatedGroupValue('housingAssociation', 'all'),
+                    ...accumulatedGroupValues(
+                        ['ownerOccupied', 'privateRented', 'localAuthority', 'housingAssociation'],
+                        'all'
+                    ),
                     range('all'),
                     normaliseGroupTo('all', 100, 'range'),
                 ],
@@ -849,21 +938,18 @@ describe('DataModel', () => {
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     categoryKey('kp'),
-                    accumulatedGroupValue('vp1', 'all'),
-                    accumulatedGroupValue('vp2', 'all'),
-                    accumulatedGroupValue('vp3', 'all'),
-                    accumulatedGroupValue('vp4', 'all'),
+                    ...accumulatedGroupValues(['vp1', 'vp2', 'vp3', 'vp4'], 'all'),
                     range('all'),
                     normaliseGroupTo('all', 100, 'range'),
                 ],
                 groupByKeys: true,
             });
-            const data = [
+            const data = basicDataSet([
                 { kp: 'Q1', vp1: 5, vp2: 7, vp3: 1, vp4: 5 },
                 { kp: 'Q1', vp1: 1, vp2: 2, vp3: 2, vp4: 4 },
                 { kp: 'Q2', vp1: 6, vp2: 9, vp3: 3, vp4: 3 },
                 { kp: 'Q2', vp1: 6, vp2: 9, vp3: 4, vp4: 2 },
-            ];
+            ]);
 
             it('should extract the configured keys', () => {
                 const result = dataModel.processData(data)!;
@@ -879,11 +965,11 @@ describe('DataModel', () => {
 
                 expect(result.type).toEqual('grouped');
                 expect(result.groups).toHaveLength(2);
-                expect(result.groups[0].datumIndices.map((d) => result.columns.map((c) => c[d]))).toEqual([
+                expect(extractGroupValues(result, 0)).toEqual([
                     [27.77777777777778, 66.66666666666667, 72.22222222222223, 100],
                     [11.11111111111111, 33.333333333333336, 55.55555555555556, 100],
                 ]);
-                expect(result.groups[1].datumIndices.map((d) => result.columns.map((c) => c[d]))).toEqual([
+                expect(extractGroupValues(result, 1)).toEqual([
                     [28.571428571428573, 71.42857142857143, 85.71428571428571, 100],
                     [28.571428571428573, 71.42857142857143, 90.47619047619048, 100],
                 ]);
@@ -917,9 +1003,9 @@ describe('DataModel', () => {
         };
 
         it('should generated the expected results for simple histogram example with hard-coded buckets', () => {
-            const data = examples.SIMPLE_HISTOGRAM_CHART_EXAMPLE.data?.slice(0, 20) ?? [];
+            const data = basicDataSet(examples.SIMPLE_HISTOGRAM_CHART_EXAMPLE.data?.slice(0, 20) ?? []);
             const dataModel = new DataModel<any, any, true>({
-                props: [categoryKey('engine-size'), groupCount(), SORT_DOMAIN_GROUPS],
+                props: [categoryKey('engine-size'), rowCountProperty('count'), groupCount(), SORT_DOMAIN_GROUPS],
                 groupByFn,
             });
 
@@ -929,7 +1015,7 @@ describe('DataModel', () => {
         });
 
         it('should generated the expected results for simple histogram example with average bucket calculation', () => {
-            const data = examples.XY_HISTOGRAM_WITH_MEAN_EXAMPLE.data?.slice(0, 20) ?? [];
+            const data = basicDataSet(examples.XY_HISTOGRAM_WITH_MEAN_EXAMPLE.data?.slice(0, 20) ?? []);
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     categoryKey('engine-size'),
@@ -946,7 +1032,7 @@ describe('DataModel', () => {
         });
 
         it('should generated the expected results for simple histogram example with area bucket calculation', () => {
-            const data = examples.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE.data?.slice(0, 20) ?? [];
+            const data = basicDataSet(examples.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE.data?.slice(0, 20) ?? []);
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     rangeKey('curb-weight'),
@@ -974,7 +1060,7 @@ describe('DataModel', () => {
 
     describe('missing and invalid data processing', () => {
         it('should generated the expected results', () => {
-            const data = [...DATA_BROWSER_MARKET_SHARE.map((v) => ({ ...v }))];
+            const data = basicDataSet(mutilatedBrowserData());
             const DEFAULTS = {
                 invalidValue: NaN,
                 missingValue: null,
@@ -988,12 +1074,6 @@ describe('DataModel', () => {
                     { ...DEFAULTS, ...value('firefox') },
                     { ...DEFAULTS, ...value('safari') },
                 ],
-            });
-            data.forEach((datum, idx) => {
-                delete (datum as any)[['ie', 'chrome', 'firefox', 'safari'][idx % 4]];
-                if (idx % 3 === 0) {
-                    (datum as any)[['ie', 'chrome', 'firefox', 'safari'][(idx + 1) % 4]] = 'illegal value';
-                }
             });
 
             expect(dataModel.processData(data)).toMatchSnapshot({
@@ -1014,21 +1094,21 @@ describe('DataModel', () => {
                 ],
                 groupByKeys: true,
             });
-            const data = [
+            const data = basicDataSet([
                 { kp: 'Q1', /* vp1: 5,*/ vp2: 7, vp3: 1 },
                 { kp: 'Q1', vp1: 1, vp2: 'illegal value', vp3: 2 },
                 { kp: 'Q2', vp1: 6, vp2: 9 /* vp3: 3 */ },
                 { kp: 'Q2', vp1: 6, vp2: 9, vp3: 4 },
-            ];
+            ]);
 
             it('should substitute missing value when configured', () => {
                 const result = dataModel.processData(data)!;
 
-                expect(result.groups[0].datumIndices.map((d) => result.columns.map((c) => c[d]))).toEqual([
+                expect(extractGroupValues(result, 0)).toEqual([
                     [null, 7, 1],
                     [1, NaN, 2],
                 ]);
-                expect(result.groups[1].datumIndices.map((d) => result.columns.map((c) => c[d]))).toEqual([
+                expect(extractGroupValues(result, 1)).toEqual([
                     [6, 9, null],
                     [6, 9, 4],
                 ]);
@@ -1038,7 +1118,11 @@ describe('DataModel', () => {
 
     describe('missing and invalid data processing - multiple scopes', () => {
         it('should generated the expected results', () => {
-            const data = [...DATA_BROWSER_MARKET_SHARE.map((v) => ({ ...v }))];
+            const data = new Map()
+                .set('test', mutilatedBrowserData())
+                .set('series-a', mutilatedBrowserData())
+                .set('series-b', mutilatedBrowserData())
+                .set('series-c', mutilatedBrowserData());
             const DEFAULTS = {
                 missingValue: null,
                 validation: isFiniteNumber,
@@ -1046,17 +1130,11 @@ describe('DataModel', () => {
             const dataModel = new DataModel<any, any>({
                 props: [
                     categoryKey('year'),
-                    { ...DEFAULTS, ...scopedValue(undefined, 'ie') },
+                    { ...DEFAULTS, ...scopedValue('test', 'ie') },
                     { ...DEFAULTS, ...scopedValue('series-a', 'chrome') },
                     { ...DEFAULTS, ...scopedValue('series-b', 'firefox') },
                     { ...DEFAULTS, ...scopedValue('series-c', 'safari') },
                 ],
-            });
-            data.forEach((datum, idx) => {
-                delete (datum as any)[['ie', 'chrome', 'firefox', 'safari'][idx % 4]];
-                if (idx % 3 === 0) {
-                    (datum as any)[['ie', 'chrome', 'firefox', 'safari'][(idx + 1) % 4]] = 'illegal value';
-                }
             });
 
             expect(dataModel.processData(data)).toMatchSnapshot({
@@ -1065,7 +1143,7 @@ describe('DataModel', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [string] for [undefined / undefined] ignored:",
+    "AG Charts - invalid value of type [string] for [test / undefined] ignored:",
     "[illegal value]",
   ],
   [
@@ -1096,31 +1174,32 @@ describe('DataModel', () => {
             const validated = { validation: (v: unknown) => typeof v === 'number' };
             const dataModel = new DataModel<any, any, true>({
                 props: [
-                    categoryKey('kp'),
-                    { ...scopedValue(undefined, 'vp1', 'group1'), ...validated },
+                    categoryKey('kp', ['test', 'scope-1', 'scope-2']),
+                    { ...scopedValue('test', 'vp1', 'group1'), ...validated },
                     { ...scopedValue('scope-1', 'vp2', 'group1'), ...validated },
                     { ...scopedValue('scope-2', 'vp3', 'group2') },
                     scopedSum(['scope-1'], 'group1'),
                 ],
                 groupByKeys: true,
             });
-            const data = [
+            const rawData = [
                 { kp: 'Q1', vp1: 'illegal value', vp2: 7, vp3: 1 },
                 { kp: 'Q2', vp1: 1, vp2: 'illegal value', vp3: 2 },
                 { kp: 'Q3', vp1: 6, vp2: 9, vp3: 'illegal value' },
                 { kp: 'Q4', vp1: 6, vp2: 9, vp3: 4 },
             ];
+            const data = new Map([...['test', 'scope-1', 'scope-2'].map((s) => [s, rawData] as const)]);
 
             it('should record per result data validation status per scope', () => {
                 const result = dataModel.processData(data)!;
 
-                expect(result.groups[0].validScopes).toEqual(new Set(['scope-2']));
-                expect(result.groups[1].validScopes).toBeUndefined();
-                expect(result.groups[2].validScopes).toBeUndefined();
+                expect(result.groups[0].validScopes).toEqual(new Set(['scope-1', 'scope-2']));
+                expect(result.groups[1].validScopes).toEqual(new Set(['test', 'scope-2']));
+                expect(result.groups[2].validScopes).toEqual(new Set(['test', 'scope-1', 'scope-2']));
                 expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [string] for [undefined / undefined] ignored:",
+    "AG Charts - invalid value of type [string] for [test / undefined] ignored:",
     "[illegal value]",
   ],
   [
@@ -1134,18 +1213,15 @@ describe('DataModel', () => {
             it('should handle scope validations distinctly for values', () => {
                 const result = dataModel.processData(data)!;
 
-                expect(result.groups).toHaveLength(3);
-                expect(result.groups[0].datumIndices.map((d) => result.columns.map((c) => c[d]))).toEqual([
-                    [1, undefined, 2],
-                ]);
-                expect(result.groups[1].datumIndices.map((d) => result.columns.map((c) => c[d]))).toEqual([
-                    [6, 9, 'illegal value'],
-                ]);
-                expect(result.groups[2].datumIndices.map((d) => result.columns.map((c) => c[d]))).toEqual([[6, 9, 4]]);
+                expect(result.groups).toHaveLength(4);
+                expect(extractGroupValues(result, 0)).toEqual([[undefined, 7, 1]]);
+                expect(extractGroupValues(result, 1)).toEqual([[1, undefined, 2]]);
+                expect(extractGroupValues(result, 2)).toEqual([[6, 9, 'illegal value']]);
+                expect(extractGroupValues(result, 3)).toEqual([[6, 9, 4]]);
                 expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [string] for [undefined / undefined] ignored:",
+    "AG Charts - invalid value of type [string] for [test / undefined] ignored:",
     "[illegal value]",
   ],
   [
@@ -1154,6 +1230,23 @@ describe('DataModel', () => {
   ],
 ]
 `);
+            });
+
+            it('should error on missing scope keys', () => {
+                const config: DataModelOptions<any, true> = {
+                    props: [
+                        categoryKey('kp'), // Not scoped, so doesn't match values below.
+                        scopedValue('test', 'vp1', 'group1'),
+                        scopedValue('scope-1', 'vp2', 'group1'),
+                        scopedValue('scope-2', 'vp3', 'group2'),
+                        scopedSum(['scope-1'], 'group1'),
+                    ],
+                    groupByKeys: true,
+                };
+
+                expect(() => new DataModel<any, any, true>(config)).toThrowErrorMatchingInlineSnapshot(
+                    `"AG Charts - scopes missing key for grouping, illegal configuration: scope-1,scope-2"`
+                );
             });
         });
     });
@@ -1164,7 +1257,7 @@ describe('DataModel', () => {
                 props: [categoryKey('year'), value('ie'), value('chrome'), value('firefox'), value('safari')],
             });
 
-            expect(dataModel.processData([])).toMatchSnapshot({
+            expect(dataModel.processData(basicDataSet([]))).toMatchSnapshot({
                 time: expect.any(Number),
             });
         });
@@ -1175,13 +1268,13 @@ describe('DataModel', () => {
             });
 
             it('should not generate data extracts', () => {
-                const result = dataModel.processData([])!;
+                const result = dataModel.processData(basicDataSet([]))!;
 
-                expect(result.keys).toEqual([[]]);
+                expect(result.keys).toEqual([new Map([['test', []]])]);
             });
 
             it('should not generate values for domains', () => {
-                const result = dataModel.processData([])!;
+                const result = dataModel.processData(basicDataSet([]))!;
 
                 expect(result.domain.keys).toEqual([[]]);
                 expect(result.domain.values).toEqual([[], [], [], []]);
@@ -1191,7 +1284,7 @@ describe('DataModel', () => {
 
     describe('repeated property processing', () => {
         it('should generated the expected results', () => {
-            const data = [...(examples.PIE_IN_A_DONUT.series?.[0]?.data?.map((v) => ({ ...v })) ?? [])];
+            const data = basicDataSet([...(examples.PIE_IN_A_DONUT.series?.[0]?.data?.map((v) => ({ ...v })) ?? [])]);
             const dataModel = new DataModel<any, any>({
                 props: [
                     accumulatedPropertyValue('share', 'angleGroup', 'angle'),
@@ -1236,10 +1329,8 @@ describe('DataModel', () => {
                 firefox: d.firefox ? d.firefox * 2 : d.firefox,
             }));
 
-            const processedData = dataModel.processData(data2, [
-                { id: 'test1', data: data1 },
-                { id: 'test2', data: data2 },
-            ]);
+            const allData = basicDataSet(data2).set('test1', data1).set('test2', data2);
+            const processedData = dataModel.processData(allData);
 
             expect(processedData!.columns).toEqual([
                 data1.map((d) => d.ie),

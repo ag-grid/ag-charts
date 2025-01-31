@@ -139,7 +139,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const colorDataIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
-        const dataCount = processedData.rawData.length;
+        const dataCount = processedData.input.count;
         const missCount = getMissCount(this, processedData.defs.values[colorDataIdx].missing);
         const colorDataMissing = dataCount === 0 || dataCount === missCount;
         return !colorDataMissing;
@@ -219,7 +219,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         const sizeFittingHeight = () => ({ width, height, meta: null });
 
-        processedData.rawData.forEach((datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        rawData.forEach((datum, datumIndex) => {
             const xDatum = xValues[datumIndex];
             const yDatum = yValues[datumIndex];
             const x = xScale.convert(xDatum) + xOffset;
@@ -453,7 +454,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
         const colorValue =

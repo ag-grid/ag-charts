@@ -17,7 +17,14 @@ import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFu
 import type { DataController } from '../../data/dataController';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { SORT_DOMAIN_GROUPS, createDatumId, diff, keyProperty, valueProperty } from '../../data/processors';
+import {
+    SORT_DOMAIN_GROUPS,
+    createDatumId,
+    diff,
+    keyProperty,
+    rowCountProperty,
+    valueProperty,
+} from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
@@ -159,6 +166,9 @@ export class HistogramSeries extends CartesianSeries<
             }
             props.push(valueProperty(yKey, yScaleType, { invalidValue: undefined }), aggProp);
         } else {
+            // Special property - data model needs at least one value property to perform grouping.
+            props.push(rowCountProperty('count'));
+
             let aggProp = groupCount('groupAgg');
 
             if (areaPlot) {
@@ -260,12 +270,12 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     override createNodeData() {
-        const { id: seriesId, axes, processedData } = this;
+        const { id: seriesId, axes, processedData, dataModel } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!xAxis || !yAxis) {
+        if (!xAxis || !yAxis || !dataModel) {
             return;
         }
 
@@ -287,13 +297,13 @@ export class HistogramSeries extends CartesianSeries<
             return context;
         }
 
-        const { rawData } = processedData;
-        processedData.groups.forEach(({ keys, datumIndices, aggregation }, groupIndex) => {
+        processedData.groups.forEach((group, groupIndex) => {
+            const { keys, datumIndices, aggregation } = group;
             const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
             const frequency = datumIndices.length;
             const domain = keys;
             const [xDomainMin, xDomainMax] = domain;
-            const datum = datumIndices.map((datumIndex) => rawData[datumIndex]);
+            const datum = [...dataModel.forEachDatum(this, processedData, group)];
 
             const xMinPx = xScale.convert(xDomainMin);
             const xMaxPx = xScale.convert(xDomainMax);
@@ -485,14 +495,15 @@ export class HistogramSeries extends CartesianSeries<
         }
 
         const groupIndex = nodeDatum.datumIndex;
-        const { aggregation, datumIndices, keys } = processedData.groups[groupIndex];
+        const group = processedData.groups[groupIndex];
+        const { aggregation, datumIndices, keys } = group;
         const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
         const frequency = datumIndices.length;
         const domain = keys;
         const [rangeMin, rangeMax] = domain;
         const aggregatedValue = negativeAgg + positiveAgg;
         const datum: AgHistogramBinDatum<any> = {
-            data: datumIndices.map((datumIndex) => processedData.rawData[datumIndex]),
+            data: [...dataModel.forEachDatum(this, processedData, group)],
             aggregatedValue,
             frequency,
             domain: domain as any,

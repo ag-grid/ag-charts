@@ -70,6 +70,18 @@ export function valueProperty<K>(propName: K, scaleType?: ScaleType, opts: Parti
     return result;
 }
 
+export function rowCountProperty<K>(propName: K, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+    const result: DatumPropertyDefinition<K> = {
+        property: propName,
+        type: 'value',
+        valueType: 'range',
+        missingValue: 1,
+        processor: () => () => 1,
+        ...opts,
+    };
+    return result;
+}
+
 export function rangedValueProperty<K>(
     propName: K,
     opts: Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number } = {}
@@ -277,9 +289,8 @@ function normalisePropertyFnBuilder({
 
         pData.domain.values[pIdx] = [normaliseTo[0], normaliseTo[1]];
 
-        const { rawData } = pData;
         const column = pData.columns[pIdx];
-        for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
+        for (let datumIndex = 0; datumIndex < column.length; datumIndex += 1) {
             column[datumIndex] = normalise(column[datumIndex], start, span);
         }
     };
@@ -335,16 +346,22 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
             const {
                 input: { count },
                 domain: { keys: domainKeys, values: domainValues },
-                rawData,
                 keys,
                 columns,
             } = result;
 
             let validation = ANIMATION_VALIDATION_UNIQUE_KEYS | ANIMATION_VALIDATION_ORDERED_KEYS;
 
-            if (rawData.length !== 0) {
+            if (count !== 0) {
                 for (let i = 0; validation !== 0 && i < keysDefs.length; i++) {
-                    validation &= animationValidationProcessKey(count, keysDefs[i], domainKeys[i], keys[i]);
+                    for (const scope of keysDefs[i].scopes) {
+                        validation &= animationValidationProcessKey(
+                            count,
+                            keysDefs[i],
+                            domainKeys[i],
+                            keys[i].get(scope)!
+                        );
+                    }
                 }
 
                 for (let i = 0; validation !== 0 && i < valuesDef.length; i++) {
@@ -442,7 +459,7 @@ export function accumulateGroup(
 function groupStackAccFn() {
     return () => (columns: any[][], valueIndexes: number[], datumIndex: number) => {
         // Datum scope.
-        const acc = new Float64Array(32);
+        const acc = new Float64Array(valueIndexes.length);
         let stackCount = 0;
         for (const valueIdx of valueIndexes) {
             const column = columns[valueIdx];
@@ -550,15 +567,15 @@ export function diff(
             const indices = valueIndices(id, previousData, processedData);
             if (indices == null) return previousValue;
 
-            const length = Math.max(previousData.rawData.length, processedData.rawData.length);
+            const length = Math.max(previousData.input.count, processedData.input.count);
 
             for (let i = 0; i < length; i++) {
-                const hasPreviousDatum = i < previousData.rawData.length;
-                const hasDatum = i < processedData.rawData.length;
+                const hasPreviousDatum = i < previousData.input.count;
+                const hasDatum = i < processedData.input.count;
 
-                const prevKeys = hasPreviousDatum ? datumKeys(previousKeys, i) : undefined;
+                const prevKeys = hasPreviousDatum ? datumKeys(previousKeys, id, i) : undefined;
                 const prevId = prevKeys != null ? createDatumId(prevKeys) : '';
-                const dKeys = hasDatum ? datumKeys(keys, i) : undefined;
+                const dKeys = hasDatum ? datumKeys(keys, id, i) : undefined;
                 const datumId = dKeys != null ? createDatumId(dKeys) : '';
 
                 if (hasDatum && hasPreviousDatum && prevId === datumId) {

@@ -604,8 +604,8 @@ export class ChordSeries extends FlowProportionSeries<
                 : seriesDatum.label;
         const datum =
             datumIndex.type === FlowProportionDatumType.Link
-                ? linksProcessedData?.rawData[datumIndex.index]
-                : nodesProcessedData?.rawData[datumIndex.index];
+                ? linksProcessedData?.dataSources.get(this.id)?.[datumIndex.index]
+                : nodesProcessedData?.dataSources.get(this.id)?.[datumIndex.index];
         const size = seriesDatum.size;
 
         let format: Required<NodeStyle>;

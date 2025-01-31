@@ -192,7 +192,7 @@ export class MapLineSeries extends TopologySeries<
         }
 
         const colorIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
-        const dataCount = processedData.rawData.length;
+        const dataCount = processedData.input.count;
         const missCount = getMissCount(this, processedData.defs.values[colorIdx].missing);
         const colorDataMissing = dataCount === 0 || dataCount === missCount;
         return !colorDataMissing;
@@ -264,7 +264,7 @@ export class MapLineSeries extends TopologySeries<
         const font = label.getFont();
 
         const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-        processedData.rawData.forEach((_datum, datumIndex) => {
+        processedData.dataSources.get(this.id)?.forEach((_datum, datumIndex) => {
             const id: string | undefined = idValues[datumIndex];
             const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
@@ -276,7 +276,8 @@ export class MapLineSeries extends TopologySeries<
         const nodeData: MapLineNodeDatum[] = [];
         const labelData: MapLineNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
-        processedData.rawData.forEach((datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        rawData.forEach((datum, datumIndex) => {
             const idValue = idValues[datumIndex];
             const colorValue = colorValues?.[datumIndex];
             const sizeValue = sizeValues?.[datumIndex];
@@ -619,7 +620,7 @@ export class MapLineSeries extends TopologySeries<
 
         const { datumIndex } = seriesDatum;
 
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
         const sizeValue =

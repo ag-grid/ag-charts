@@ -216,7 +216,7 @@ export abstract class OhlcSeriesBase<
 
         const nodeData: OhlcNodeDatum[] = [];
         const { xKey, highKey, lowKey } = this.properties;
-        const { rawData } = processedData;
+        const rawData = processedData.dataSources.get(this.id) ?? [];
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
         const openValues = dataModel.resolveColumnById(this, 'openValue', processedData);
         const closeValues = dataModel.resolveColumnById(this, 'closeValue', processedData);
@@ -308,9 +308,9 @@ export abstract class OhlcSeriesBase<
                 return [x, x + effectiveBarWidth];
             });
             // @todo(AG-13575) Remove this if block
-            if (processedData.rawData.length < 1e3) {
+            if (processedData.input.count < 1e3) {
                 start = 0;
-                end = processedData.rawData.length;
+                end = processedData.input.count;
             }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
@@ -484,7 +484,7 @@ export abstract class OhlcSeriesBase<
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const openValue = dataModel.resolveColumnById(this, `openValue`, processedData)[datumIndex];
         const highValue = dataModel.resolveColumnById(this, `highValue`, processedData)[datumIndex];
