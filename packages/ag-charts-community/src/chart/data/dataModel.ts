@@ -442,6 +442,14 @@ export class DataModel<
         return column;
     }
 
+    /**
+     * Provides a convenience iterator to iterate over all of the extract datum values in a
+     * specific DataGroup.
+     *
+     * @param scope to which datums should belong
+     * @param group containing the datums
+     * @param processedData containing the group
+     */
     *forEachDatum(scope: ScopeProvider, processedData: GroupedData<any>, group: DataGroup) {
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(scope.id));
 
@@ -450,6 +458,13 @@ export class DataModel<
         }
     }
 
+    /**
+     * Provides a convenience iterator to iterate over all of the extracted datum values in a
+     * GroupedData.
+     *
+     * @param scope to which datums should belong
+     * @param processedData to iterate through
+     */
     *forEachGroupDatum(scope: ScopeProvider, processedData: GroupedData<any>) {
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(scope.id));
         const output: {
@@ -476,6 +491,13 @@ export class DataModel<
         }
     }
 
+    /**
+     * Provides a window-based convenience iterator to iterate over all of the extracted datum
+     * values in a GroupedData, including the previous and next entries relative to each datum.
+     *
+     * @param scope to which datums should belong
+     * @param processedData to iterate through
+     */
     *forEachGroupDatumTuple(scope: ScopeProvider, processedData: GroupedData<any>) {
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(scope.id));
         const output: {
@@ -585,8 +607,7 @@ export class DataModel<
         }
         if (aggregates.length > 0 && processedData.type === 'ungrouped') {
             this.aggregateUngroupedData(processedData);
-        }
-        if (aggregates.length > 0 && processedData.type === 'grouped') {
+        } else if (aggregates.length > 0 && processedData.type === 'grouped') {
             this.aggregateGroupedData(processedData);
         }
         if (propertyProcessors.length > 0) {
@@ -888,7 +909,7 @@ export class DataModel<
 
         const { keys: dataKeys, columns, columnScopes, invalidKeys, invalidData, dataSources } = data;
 
-        const scopes = Object.freeze(new Set(columnScopes.map((s) => [...s.values()]).flat()));
+        const scopes = Object.freeze(new Set(columnScopes.flatMap((s) => [...s.values()])));
         for (let columnIdx = 0; columnIdx < columns.length; columnIdx++) {
             const columnScope = first(columnScopes[columnIdx]);
             const columnSource = dataSources.get(columnScope)!;
