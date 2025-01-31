@@ -107,7 +107,7 @@ export function getMissCount(scopeProvider: ScopeProvider, missMap: MissMap | un
     return missMap?.get(scopeProvider.id) ?? 0;
 }
 
-type GroupingFn<K> = (data: UngroupedDataItem<number, K, any[]>) => K[];
+type GroupingFn<K> = (keys: unknown[]) => K[];
 export type GroupByFn = (extractedData: UngroupedData<any>) => GroupingFn<any>;
 export type DataModelOptions<K, Grouped extends boolean | undefined, IsScoped extends boolean = true> = {
     props: PropertyDefinition<K, IsScoped>[];
@@ -205,7 +205,7 @@ export type ReducerOutputPropertyDefinition<P extends ReducerOutputKeys = Reduce
     type: 'reducer';
     property: P;
     initialValue?: ReducerOutputTypes[P];
-    reducer: () => (acc: ReducerOutputTypes[P], next: UngroupedDataItem<any, any, any>) => ReducerOutputTypes[P];
+    reducer: () => (acc: ReducerOutputTypes[P], keys: unknown[]) => ReducerOutputTypes[P];
 };
 
 export type ProcessorOutputPropertyDefinition<P extends ReducerOutputKeys = ReducerOutputKeys> = PropertyIdentifiers & {
@@ -904,34 +904,42 @@ export class DataModel<
     }
 
     private groupData(data: UngroupedData<D>, groupingFn?: GroupingFn<D>): GroupedData<D> {
-        type Group = { keys: D[K][]; datumIndices: number[][]; validScopes: Set<string> };
+        type Group = { keys: unknown[]; datumIndices: number[][]; validScopes: Set<string> };
         const groups = new Map<string, Group>();
 
-        const { keys: dataKeys, columns, columnScopes, invalidKeys, invalidData, dataSources } = data;
+        const { keys: dataKeys, columns: allColumns, columnScopes, invalidKeys, invalidData } = data;
 
-        const scopes = Object.freeze(new Set(columnScopes.flatMap((s) => [...s.values()])));
-        for (let columnIdx = 0; columnIdx < columns.length; columnIdx++) {
-            const columnScope = first(columnScopes[columnIdx]);
-            const columnSource = dataSources.get(columnScope)!;
-            const rawInvalidData = invalidData?.get(columnScope);
-            const invalidScopeKeys = invalidKeys?.get(columnScope);
-            for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
-                const datum = columnSource[datumIndex] as D;
-                if (invalidScopeKeys?.[datumIndex] === true) continue;
+        const allScopes = Object.freeze(new Set(columnScopes.flatMap((s) => [...s.values()])));
+        const processedColumnIndexes = new Set<number>();
+        for (const scope of allScopes) {
+            // Determine columns we can process in batch.
+            const scopeColumnIndexes = allColumns
+                .map((_, idx) => idx)
+                .filter((idx) => !processedColumnIndexes.has(idx) && columnScopes[idx].has(scope));
+            if (scopeColumnIndexes.length === 0) continue;
+            for (const idx of scopeColumnIndexes) {
+                processedColumnIndexes.add(idx);
+            }
+            const siblingScopes = new Set<ScopeId>();
+            for (const columnIdx of scopeColumnIndexes) {
+                for (const columnScope of columnScopes[columnIdx]) {
+                    siblingScopes.add(columnScope);
+                }
+            }
 
-                const keys = datumKeys(dataKeys, columnScope, datumIndex);
-                if (keys == null || keys.length === 0)
-                    throw new Error('AG Charts - no keys found for scope: ' + columnScope);
+            const scopeKeys = dataKeys.map((k) => k.get(scope)).filter((k): k is unknown[] => k != null);
+            const firstColumn = allColumns[first(scopeColumnIndexes)];
+            const scopeInvalidData = invalidData?.get(scope);
+            const scopeInvalidKeys = invalidKeys?.get(scope);
+            for (let datumIndex = 0; datumIndex < firstColumn.length; datumIndex++) {
+                if (scopeInvalidKeys?.[datumIndex] === true) continue;
 
-                const group =
-                    groupingFn?.({
-                        index: datumIndex,
-                        keys,
-                        values: undefined!,
-                        aggValues: undefined!,
-                        datum,
-                        validScopes: undefined!,
-                    }) ?? keys;
+                const keys = scopeKeys.map((k) => k[datumIndex]);
+                if (keys == null || keys.length === 0) {
+                    throw new Error('AG Charts - no keys found for scope: ' + scope);
+                }
+
+                const group = groupingFn?.(keys) ?? keys;
                 const groupStr = toKeyString(group);
 
                 const outputGroup =
@@ -939,26 +947,80 @@ export class DataModel<
                     ({
                         keys: group,
                         datumIndices: [],
-                        validScopes: scopes,
+                        validScopes: allScopes,
                     } satisfies Group);
                 if (!groups.has(groupStr)) {
                     groups.set(groupStr, outputGroup);
                 }
 
-                if (rawInvalidData?.[datumIndex] === true) {
-                    if (outputGroup.validScopes === scopes) {
+                if (scopeInvalidData?.[datumIndex] === true) {
+                    if (outputGroup.validScopes === allScopes) {
                         // Lazy Set initialization.
-                        outputGroup.validScopes = new Set(scopes.values());
+                        outputGroup.validScopes = new Set(allScopes.values());
                     }
-                    outputGroup.validScopes.delete(columnScope);
+                    for (const invalidScope of siblingScopes) {
+                        outputGroup.validScopes.delete(invalidScope);
+                    }
                 }
 
                 if (outputGroup.validScopes.size === 0) continue;
 
-                outputGroup.datumIndices[columnIdx] ??= [];
-                outputGroup.datumIndices[columnIdx].push(datumIndex);
+                for (const columnIdx of scopeColumnIndexes) {
+                    outputGroup.datumIndices[columnIdx] ??= [];
+                    outputGroup.datumIndices[columnIdx].push(datumIndex);
+                }
             }
         }
+        // for (let columnIdx = 0; columnIdx < columns.length; columnIdx++) {
+        //     const columnScope = first(columnScopes[columnIdx]);
+        //     const columnSource = dataSources.get(columnScope)!;
+        //     const rawInvalidData = invalidData?.get(columnScope);
+        //     const invalidScopeKeys = invalidKeys?.get(columnScope);
+        //     for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
+        //         const datum = columnSource[datumIndex] as D;
+        //         if (invalidScopeKeys?.[datumIndex] === true) continue;
+
+        //         const keys = datumKeys(dataKeys, columnScope, datumIndex);
+        //         if (keys == null || keys.length === 0) {
+        //             throw new Error('AG Charts - no keys found for scope: ' + columnScope);
+        //         }
+
+        //         const group =
+        //             groupingFn?.({
+        //                 index: datumIndex,
+        //                 keys,
+        //                 values: undefined!,
+        //                 aggValues: undefined!,
+        //                 datum,
+        //                 validScopes: undefined!,
+        //             }) ?? keys;
+        //         const groupStr = toKeyString(group);
+
+        //         const outputGroup =
+        //             groups.get(groupStr) ??
+        //             ({
+        //                 keys: group,
+        //                 datumIndices: [],
+        //                 validScopes: allScopes,
+        //             } satisfies Group);
+        //         if (!groups.has(groupStr)) {
+        //             groups.set(groupStr, outputGroup);
+        //         }
+
+        //         if (rawInvalidData?.[datumIndex] === true) {
+        //             if (outputGroup.validScopes === allScopes) {
+        //                 // Lazy Set initialization.
+        //                 outputGroup.validScopes = new Set(allScopes.values());
+        //             }
+        //             outputGroup.validScopes.delete(columnScope);
+        //         }
+
+        //         if (outputGroup.validScopes.size === 0) continue;
+
+        //         outputGroup.datumIndices[columnIdx] ??= [];
+        //         outputGroup.datumIndices[columnIdx].push(datumIndex);
+        //     }
+        // }
 
         const resultGroups = [];
         const resultData = [];
@@ -1106,34 +1168,25 @@ export class DataModel<
 
     private reduceData(processedData: ProcessedData<D>) {
         processedData.reduced ??= {};
-        const { dataSources, columnScopes, keys, columns } = processedData;
+        const { dataSources, keys } = processedData;
 
         for (const def of this.reducers) {
             const reducer = def.reducer();
             let accValue: any = def.initialValue;
             if (processedData.type === 'grouped') {
                 for (const group of processedData.groups) {
-                    accValue = reducer(accValue, {
-                        index: group.datumIndices,
-                        keys: group.keys,
-                        values: group.datumIndices.flatMap((datumIndexes, columnIdx) =>
-                            datumIndexes.map((idx) => columns[columnIdx][idx])
-                        ),
-                        datum: group.datumIndices.flatMap((datumIndexes, columnIdx) =>
-                            datumIndexes.map((idx) => dataSources.get(first(columnScopes[columnIdx]))?.[idx])
-                        ),
-                    });
+                    accValue = reducer(accValue, group.keys);
                 }
             } else {
                 const onlyScope = first(dataSources.keys());
+                const keyColumns = keys.map((k) => k.get(onlyScope)).filter((k) => k != null);
+                const keysParam = new Array(keyColumns.length);
                 const rawData = dataSources.get(onlyScope)!;
                 for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
-                    accValue = reducer(accValue, {
-                        index: [datumIndex],
-                        keys: keys.map((k) => k.get(onlyScope)?.[datumIndex]),
-                        values: [columns[datumIndex]],
-                        datum: [rawData[datumIndex]],
-                    });
+                    for (let keyIdx = 0; keyIdx < keysParam.length; keyIdx++) {
+                        keysParam[keyIdx] = keyColumns[keyIdx]?.[datumIndex];
+                    }
+                    accValue = reducer(accValue, keysParam);
                 }
             }
             processedData.reduced[def.property] = accValue;

@@ -992,10 +992,10 @@ describe('DataModel', () => {
 
     describe('grouped processing - calculated grouping', () => {
         const groupByFn: GroupByFn = () => {
-            return (item) => {
-                if (item.keys[0] < 100) {
+            return (keys) => {
+                if (typeof keys[0] === 'number' && keys[0] < 100) {
                     return ['<100'];
-                } else if (item.keys[0] <= 150) {
+                } else if (typeof keys[0] === 'number' && keys[0] <= 150) {
                     return ['100 - 150'];
                 }
                 return ['>150'];
@@ -1041,10 +1041,10 @@ describe('DataModel', () => {
                     SORT_DOMAIN_GROUPS,
                 ],
                 groupByFn: () => {
-                    return (item) => {
-                        if (item.keys[0] < 2000) {
+                    return (keys) => {
+                        if (typeof keys[0] === 'number' && keys[0] < 2000) {
                             return [0, 2000];
-                        } else if (item.keys[0] <= 3000) {
+                        } else if (typeof keys[0] === 'number' && keys[0] <= 3000) {
                             return [2000, 3000];
                         }
                         return [3000, 4500];

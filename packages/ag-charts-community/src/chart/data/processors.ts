@@ -151,8 +151,8 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
     reducer: () => {
         let prevX = NaN;
         // eslint-disable-next-line sonarjs/default-param-last
-        return (smallestSoFar = Infinity, next) => {
-            const nextX = next.keys[0];
+        return (smallestSoFar = Infinity, keys) => {
+            const nextX = typeof keys[0] === 'number' ? keys[0] : Number(keys[0]);
             const interval = Math.abs(nextX - prevX);
             prevX = nextX;
             if (!isNaN(interval) && interval > 0 && interval < smallestSoFar) {
@@ -170,8 +170,9 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     reducer: () => {
         let prevX = NaN;
         // eslint-disable-next-line sonarjs/default-param-last
-        return (largestSoFar = -Infinity, next) => {
-            const nextX = next.keys[0];
+        return (largestSoFar = -Infinity, keys) => {
+            const nextX = typeof keys[0] === 'number' ? keys[0] : Number(keys[0]);
+
             const interval = Math.abs(nextX - prevX);
             prevX = nextX;
             if (!isNaN(interval) && interval > 0 && interval > largestSoFar) {

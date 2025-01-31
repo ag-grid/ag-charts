@@ -191,8 +191,10 @@ export class HistogramSeries extends CartesianSeries<
             const binCount = bins.length;
             this.calculatedBins = [...bins];
 
-            return (item) => {
-                const xValue = item.keys[0];
+            return (keys) => {
+                const xValue = keys[0];
+                if (typeof xValue !== 'number') return [];
+
                 for (let i = 0; i < binCount; i++) {
                     const nextBin = bins[i];
                     if (xValue >= nextBin[0] && xValue < nextBin[1]) {
