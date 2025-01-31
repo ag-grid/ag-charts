@@ -7,7 +7,7 @@ export type MouseDragCallbacks = {
 };
 
 export class MouseDragger {
-    private window = getWindow();
+    private readonly window = getWindow();
 
     constructor(
         private readonly glob: { globalMouseDragCallbacks?: MouseDragCallbacks },
@@ -41,18 +41,18 @@ export class MouseDragger {
         this.self.mouseDragger = undefined;
     }
 
-    private mousegeneral = (generalEvent: MouseEvent) => {
+    private readonly mousegeneral = (generalEvent: MouseEvent) => {
         generalEvent.stopPropagation();
         generalEvent.stopImmediatePropagation();
     };
 
-    private mousemove = (moveEvent: MouseEvent) => {
+    private readonly mousemove = (moveEvent: MouseEvent) => {
         moveEvent.stopPropagation();
         moveEvent.stopImmediatePropagation();
         this.glob.globalMouseDragCallbacks?.mousemove(moveEvent);
     };
 
-    private mouseup = (upEvent: MouseEvent) => {
+    private readonly mouseup = (upEvent: MouseEvent) => {
         if (upEvent.button === 0) {
             upEvent.stopPropagation();
             upEvent.stopImmediatePropagation();

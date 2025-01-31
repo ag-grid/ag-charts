@@ -56,7 +56,7 @@ export class TouchDragger {
         return Array.from(touches).find((v) => v.identifier === this.initialTouch.identifier);
     }
 
-    private longtap = () => {
+    private readonly longtap = () => {
         const { target, initialTouch } = this;
         if (!this.longTapInterrupted) {
             // Cancel current 'drag-start':
@@ -94,7 +94,7 @@ export class TouchDragger {
         }
     };
 
-    private touchmove = (moveEvent: TouchEvent) => {
+    private readonly touchmove = (moveEvent: TouchEvent) => {
         const { glob, self, initialTouch } = this;
         const touch = this.findInitialFinger(moveEvent.targetTouches);
         if (touch != null) {
@@ -107,7 +107,7 @@ export class TouchDragger {
         }
     };
 
-    private touchend = (endEvent: TouchEvent) => {
+    private readonly touchend = (endEvent: TouchEvent) => {
         this.longTapInterrupted = true;
         const touch = this.findInitialFinger(endEvent.changedTouches, endEvent.touches);
         if (touch != null) {
