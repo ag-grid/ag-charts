@@ -975,56 +975,6 @@ export class DataModel<
                 }
             }
         }
-        // for (let columnIdx = 0; columnIdx < columns.length; columnIdx++) {
-        //     const columnScope = first(columnScopes[columnIdx]);
-        //     const columnSource = dataSources.get(columnScope)!;
-        //     const rawInvalidData = invalidData?.get(columnScope);
-        //     const invalidScopeKeys = invalidKeys?.get(columnScope);
-        //     for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
-        //         const datum = columnSource[datumIndex] as D;
-        //         if (invalidScopeKeys?.[datumIndex] === true) continue;
-
-        //         const keys = datumKeys(dataKeys, columnScope, datumIndex);
-        //         if (keys == null || keys.length === 0) {
-        //             throw new Error('AG Charts - no keys found for scope: ' + columnScope);
-        //         }
-
-        //         const group =
-        //             groupingFn?.({
-        //                 index: datumIndex,
-        //                 keys,
-        //                 values: undefined!,
-        //                 aggValues: undefined!,
-        //                 datum,
-        //                 validScopes: undefined!,
-        //             }) ?? keys;
-        //         const groupStr = toKeyString(group);
-
-        //         const outputGroup =
-        //             groups.get(groupStr) ??
-        //             ({
-        //                 keys: group,
-        //                 datumIndices: [],
-        //                 validScopes: allScopes,
-        //             } satisfies Group);
-        //         if (!groups.has(groupStr)) {
-        //             groups.set(groupStr, outputGroup);
-        //         }
-
-        //         if (rawInvalidData?.[datumIndex] === true) {
-        //             if (outputGroup.validScopes === allScopes) {
-        //                 // Lazy Set initialization.
-        //                 outputGroup.validScopes = new Set(allScopes.values());
-        //             }
-        //             outputGroup.validScopes.delete(columnScope);
-        //         }
-
-        //         if (outputGroup.validScopes.size === 0) continue;
-
-        //         outputGroup.datumIndices[columnIdx] ??= [];
-        //         outputGroup.datumIndices[columnIdx].push(datumIndex);
-        //     }
-        // }
 
         const resultGroups = [];
         const resultData = [];
