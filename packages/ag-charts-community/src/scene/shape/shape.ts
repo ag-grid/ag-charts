@@ -28,7 +28,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasTransform &
     CanvasState;
 
-interface DefaultStyles {
+export interface DefaultStyles {
     fill?: string | AgGradientFill;
     stroke?: string;
     strokeWidth: number;
