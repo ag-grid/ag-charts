@@ -101,6 +101,12 @@ function getTouchOffsets(current: Targetable, { pageX, pageY }: Touch): { offset
     return { offsetX: pageX - x, offsetY: pageY - y };
 }
 
+function deltaClientSquared(a: Touch, b: Touch): number {
+    const dx = a.clientX - b.clientX;
+    const dy = a.clientY - b.clientY;
+    return dx * dx + dy * dy;
+}
+
 function makeTouchDrag<K extends DragEvents>(
     current: Targetable,
     type: K,
@@ -126,13 +132,56 @@ function makeTouchDrag<K extends DragEvents>(
     };
 }
 
-function startTouchDrag(
+const LONG_TAP_DURATION_MS = 500; /* milliseconds */
+const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px²*/
+
+let gIsInLongTap = false;
+function startOneFingerTouch(
+    dragTouchEnabled: boolean,
     that: { globalTouchDragCallbacks?: TouchDragCallbacks },
     myCallbacks: TouchDragCallbacks,
     initialTouch: Touch,
     target: HTMLElement
 ) {
-    if (that.globalTouchDragCallbacks != null) return;
+    if (that.globalTouchDragCallbacks != null || gIsInLongTap) return;
+
+    let longTapInterrupted = false;
+    setTimeout(() => {
+        if (!longTapInterrupted) {
+            // Cancel current 'drag-start':
+            target.dispatchEvent(new TouchEvent('touchcancel', { touches: [initialTouch], bubbles: true }));
+
+            // Block new 'drag-start' events:
+            gIsInLongTap = true;
+
+            // Block 'touchmove' page-scroll until the user lifts the finger:
+            const longTapMove = (e: Event) => {
+                e.preventDefault();
+            };
+            // Unblock new 'drag-start' events:
+            const longTapEnd = (e: Event) => {
+                gIsInLongTap = false;
+                e.preventDefault();
+                target.removeEventListener('touchmove', longTapMove);
+                target.removeEventListener('touchend', longTapEnd);
+                target.removeEventListener('touchcancel', longTapEnd);
+            };
+            target.addEventListener('touchmove', longTapMove, { passive: false });
+            target.addEventListener('touchend', longTapEnd, { passive: false });
+            target.addEventListener('touchcancel', longTapEnd, { passive: false });
+
+            // Fire context menu
+            const { clientX, clientY } = initialTouch;
+            const contextMenuEvent = new MouseEvent('contextmenu', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX,
+                clientY,
+            });
+            target.dispatchEvent(contextMenuEvent);
+        }
+    }, LONG_TAP_DURATION_MS);
 
     const findInitialFinger = (...touchLists: TouchList[]): Touch | undefined => {
         const touches: Touch[] = touchLists.map((touchList) => Array.from(touchList)).flat();
@@ -142,16 +191,21 @@ function startTouchDrag(
     const touchmove = (moveEvent: TouchEvent) => {
         const touch = findInitialFinger(moveEvent.targetTouches);
         if (touch != null) {
-            that.globalTouchDragCallbacks?.touchmove(moveEvent, touch);
+            longTapInterrupted =
+                longTapInterrupted || deltaClientSquared(initialTouch, touch) < LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX;
+            if (dragTouchEnabled && touch != null) {
+                that.globalTouchDragCallbacks?.touchmove(moveEvent, touch);
+            }
         }
     };
     const touchend = (endEvent: TouchEvent) => {
+        longTapInterrupted = true;
+        target.removeEventListener('touchstart', touchend);
+        target.removeEventListener('touchmove', touchmove);
+        target.removeEventListener('touchend', touchend);
+        target.removeEventListener('touchcancel', touchend);
         const touch = findInitialFinger(endEvent.changedTouches, endEvent.touches);
         if (touch != null) {
-            target.removeEventListener('touchstart', touchend);
-            target.removeEventListener('touchmove', touchmove);
-            target.removeEventListener('touchend', touchend);
-            target.removeEventListener('touchcancel', touchend);
             that.globalTouchDragCallbacks?.touchend(endEvent, touch);
             that.globalTouchDragCallbacks = undefined;
         }
@@ -297,12 +351,12 @@ export class WidgetListenerInternal {
 
     private triggerTouchDrag<T extends Targetable>(current: T, startEvent: TouchEvent) {
         const touch = startEvent.targetTouches.item(0);
-        if (this.dragTouchEnabled && startEvent.targetTouches.length === 1 && touch != null) {
-            this.startTouchDrag(current, startEvent, touch);
+        if (startEvent.targetTouches.length === 1 && touch != null) {
+            this.startOneFingerTouch(current, startEvent, touch);
         }
     }
 
-    private startTouchDrag<T extends Targetable>(current: T, initialEvent: TouchEvent, initialTouch: Touch) {
+    private startOneFingerTouch<T extends Targetable>(current: T, initialEvent: TouchEvent, initialTouch: Touch) {
         const origin: DragOrigin = { pageX: NaN, pageY: NaN, ...getTouchOffsets(current, initialTouch) };
         partialAssign(['pageX', 'pageY'], origin, initialTouch);
 
@@ -318,7 +372,7 @@ export class WidgetListenerInternal {
         };
         this.localTouchDragCallbacks = dragCallbacks;
 
-        startTouchDrag(GlobalCallbacks, dragCallbacks, initialTouch, current.getElement());
+        startOneFingerTouch(this.dragTouchEnabled, GlobalCallbacks, dragCallbacks, initialTouch, current.getElement());
 
         const dragStartEvent = makeTouchDrag(current, 'drag-start', origin, initialEvent, initialTouch);
         this.dispatch('drag-start', current, dragStartEvent);

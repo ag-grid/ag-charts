@@ -1,6 +1,7 @@
 .ag-charts-wrapper {
     position: relative;
     user-select: none;
+    -webkit-user-select: none;
 }
 
 .ag-charts-tab-guard {
@@ -27,6 +28,7 @@
 .ag-charts-canvas {
     position: relative;
     user-select: none;
+    -webkit-user-select: none;
 }
 
 .ag-charts-canvas-container > *,
@@ -61,6 +63,7 @@
     pointer-events: none;
     position: absolute;
     user-select: none;
+    -webkit-user-select: none;
 }
 
 .ag-charts-canvas-overlay > * {
