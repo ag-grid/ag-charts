@@ -35,7 +35,7 @@ runs:
               branch=$(git branch --show-current)
               if [[ ${branch} == 'latest' ]] ; then
                 # Latest
-                echo "base=latest-success" >> $GITHUB_OUTPUT
+                echo "base=origin/latest-success" >> $GITHUB_OUTPUT
                 echo "NX_BASE=origin/latest-success" >> $GITHUB_ENV
                 echo "type=latest" >> $GITHUB_OUTPUT
                 git fetch origin --depth 1 latest-success
