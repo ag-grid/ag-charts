@@ -902,7 +902,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private onHover(event: _Widget.MouseWidgetEvent<'mousemove'>) {
+    private onHover(event: _Widget.MouseWidgetEvent<'mousemove'> | _Widget.DragWidgetEvent<'drag-start'>) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -980,8 +980,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
-        if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
+        if (event.device === 'touch') {
+            this.onHover(event);
+        }
 
+        if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
         const { state } = this;
 
         const context = this.getAnnotationContext();
