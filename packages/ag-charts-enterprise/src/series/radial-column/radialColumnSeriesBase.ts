@@ -178,6 +178,8 @@ export abstract class RadialColumnSeriesBase<
                 ),
                 ...extraProps,
             ],
+            groupByKeys: true,
+            groupByData: false,
         });
 
         this.animationState.transition('updateData');
@@ -217,7 +219,7 @@ export abstract class RadialColumnSeriesBase<
     override createNodeData() {
         const { processedData, dataModel, groupScale } = this;
 
-        if (!dataModel || !processedData || processedData.type !== 'ungrouped' || !this.properties.isValid()) {
+        if (!dataModel || !processedData || processedData.type !== 'grouped' || !this.properties.isValid()) {
             return;
         }
 
@@ -283,9 +285,10 @@ export abstract class RadialColumnSeriesBase<
         const context = { itemId: radiusKey, nodeData, labelData: nodeData };
         if (!this.visible) return context;
 
-        const { dataSources, aggregation } = processedData;
+        const { dataSources } = processedData;
         const rawData = dataSources.get(this.id) ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        for (const { datumIndex, group } of dataModel.forEachGroupDatum(this, processedData)) {
+            const datum = rawData[datumIndex];
             const angleDatum = angleValues[datumIndex];
             if (angleDatum == null) return;
 
@@ -293,8 +296,7 @@ export abstract class RadialColumnSeriesBase<
             const isPositive = radiusDatum >= 0 && !Object.is(radiusDatum, -0);
             const innerRadiusDatum = radiusStartValues[datumIndex];
             const outerRadiusDatum = radiusEndValues[datumIndex];
-            const datumAggregation = aggregation![datumIndex];
-            const radiusRange = datumAggregation[radiusRangeIndex][isPositive ? 1 : 0] ?? 0;
+            const radiusRange = group.aggregation[radiusRangeIndex][isPositive ? 1 : 0] ?? 0;
             const negative = isPositive === radiusAxisReversed;
             if (innerRadiusDatum === undefined || outerRadiusDatum === undefined) return;
 
@@ -347,7 +349,7 @@ export abstract class RadialColumnSeriesBase<
                 columnWidth,
                 index: datumIndex,
             });
-        });
+        }
 
         return { itemId: radiusKey, nodeData, labelData: nodeData };
     }
