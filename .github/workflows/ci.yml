@@ -30,7 +30,7 @@ on:
             nx_command:
                 type: 'choice'
                 required: true
-                default: 'run-many'
+                default: 'affected'
                 options:
                     - 'affected'
                     - 'run-many'
@@ -67,7 +67,9 @@ jobs:
                   fetch-depth: 1
 
             - name: Fetch Refs
-              run: git fetch origin --depth 1 latest-success latest
+              run: |
+                  git fetch origin --depth 1 latest
+                  git fetch origin --depth 1 tag latest-success
 
             - name: Setup
               id: setup
@@ -140,7 +142,9 @@ jobs:
                   fetch-depth: 1
 
             - name: Fetch Refs
-              run: git fetch origin --depth 1 latest-success latest
+              run: |
+                  git fetch origin --depth 1 latest
+                  git fetch origin --depth 1 tag latest-success
 
             - name: Setup
               id: setup
@@ -191,7 +195,9 @@ jobs:
                   fetch-depth: 1
 
             - name: Fetch Refs
-              run: git fetch origin --depth 1 latest-success latest
+              run: |
+                  git fetch origin --depth 1 latest
+                  git fetch origin --depth 1 tag latest-success
 
             - name: Setup
               id: setup
@@ -400,7 +406,9 @@ jobs:
                   fetch-depth: 1
 
             - name: Fetch Refs
-              run: git fetch origin --depth 1 latest-success latest
+              run: |
+                  git fetch origin --depth 1 latest
+                  git fetch origin --depth 1 tag latest-success
 
             - name: Setup
               id: setup
@@ -426,7 +434,9 @@ jobs:
                   fetch-depth: 1
 
             - name: Fetch Refs
-              run: git fetch origin --depth 1 latest-success latest
+              run: |
+                  git fetch origin --depth 1 latest
+                  git fetch origin --depth 1 tag latest-success
 
             - uses: actions/download-artifact@v4
               with:
@@ -532,7 +542,9 @@ jobs:
                   fetch-depth: 1
 
             - name: Fetch Refs
-              run: git fetch origin --depth 1 latest-success latest
+              run: |
+                  git fetch origin --depth 1 latest
+                  git fetch origin --depth 1 tag latest-success
 
             - name: SonarQube Scan
               uses: sonarsource/sonarqube-scan-action@master
