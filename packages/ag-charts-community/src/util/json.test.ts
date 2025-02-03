@@ -428,6 +428,10 @@ describe('json module', () => {
     });
 
     describe('#jsonApply', () => {
+        beforeEach(() => {
+            console.warn = jest.fn();
+        });
+
         const json: any = {
             str: 'test-string',
             num: 123,
@@ -461,22 +465,17 @@ describe('json module', () => {
             const badJson = { foo: 'bar' };
             const target = new TestApply();
 
-            console.warn = jest.fn();
             jsonApply(target, badJson as any);
             expect(console.warn).toBeCalledWith('AG Charts - unable to set [foo] in TestApply - property is unknown');
         });
 
-        // Skipped until AG-13971 can be addressed.
-        it.skip('should error on undefined objects', () => {
+        it('should error on undefined objects', () => {
             const target = new TestApply();
 
             jsonApply(target, json);
-            expectWarningMessages([
-                'AG Charts - unable to set [recurse.str] in Object - property is unknown',
-                'AG Charts - unable to set [recurse.num] in Object - property is unknown',
-                'AG Charts - unable to set [recurse.date] in Object - property is unknown',
-                'AG Charts - unable to set [recurse.array] in Object - property is unknown',
-            ]);
+            expect(console.warn).toBeCalledWith(
+                'AG Charts - unable to set [recurse] in TestApply - property is unknown'
+            );
         });
 
         it('should error on incompatible properties', () => {
