@@ -793,6 +793,9 @@ export class RadialGaugeSeries
             sector.centerY = centerY;
             sector.innerRadius = innerRadius;
             sector.outerRadius = outerRadius;
+            sector.pointerEvents = this.properties.bar.enabled
+                ? _ModuleSupport.PointerEvents.All
+                : _ModuleSupport.PointerEvents.None;
 
             sector.fill = fill;
             sector.fillOpacity = fillOpacity;
@@ -827,6 +830,7 @@ export class RadialGaugeSeries
             node.clipSector.endAngle = last.clipSector?.endAngle ?? last.endAngle;
             node.endInnerCornerRadius = last.endInnerCornerRadius;
             node.endOuterCornerRadius = last.endOuterCornerRadius;
+            node.pointerEvents = _ModuleSupport.PointerEvents.None;
         });
     }
 
