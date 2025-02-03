@@ -474,7 +474,7 @@ describe('json module', () => {
 
             jsonApply(target, json);
             expect(console.warn).toBeCalledWith(
-                "AG Charts - unable to set [recurse] in TestApply - can't apply type of [object], allowed types are: [null]"
+                'AG Charts - unable to set [recurse] in TestApply - property is unknown'
             );
         });
 
