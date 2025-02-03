@@ -1,0 +1,49 @@
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+
+import { getData } from './data';
+
+const options: AgCartesianChartOptions = {
+    container: document.getElementById('myChart'),
+    zoom: {
+        enabled: true,
+    },
+    tooltip: {
+        enabled: false,
+    },
+    navigator: {
+        miniChart: {
+            enabled: true,
+        },
+    },
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'number',
+            position: 'bottom',
+            nice: false,
+            interval: {
+                minSpacing: 80,
+                maxSpacing: 120,
+            },
+            label: {
+                autoRotate: false,
+            },
+        },
+    ],
+    data: getData(),
+    animation: {
+        duration: 1500, // ms
+    },
+    series: [
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'spending',
+        },
+    ],
+};
+
+AgCharts.create(options);
