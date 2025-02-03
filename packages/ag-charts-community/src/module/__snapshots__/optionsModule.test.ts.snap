@@ -118,6 +118,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 10,
     "fontStyle": "italic",
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Northern Ireland Statistics and Research Agency",
@@ -193,6 +194,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -232,6 +234,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -271,6 +274,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -305,6 +309,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -375,6 +380,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -418,6 +424,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
       },
@@ -461,6 +468,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
       },
@@ -494,10 +502,11 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Environment, Food & Rural Affairs; Agriculture and Horticulture Development Board",
@@ -514,6 +523,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -654,6 +664,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -688,6 +699,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -763,6 +775,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "rotation": -30,
         "spacing": 11,
       },
@@ -803,6 +816,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
       },
@@ -836,10 +850,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: HM Revenue & Customs",
@@ -856,6 +871,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -918,6 +934,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -962,6 +979,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -1006,6 +1024,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -1050,6 +1069,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -1094,6 +1114,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -1138,6 +1159,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -1182,6 +1204,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -1215,6 +1238,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -1297,6 +1321,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -1336,6 +1361,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
       },
@@ -1369,10 +1395,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Environmental Agency",
@@ -1389,6 +1416,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -1776,6 +1804,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -1832,6 +1861,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -1871,6 +1901,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -1903,10 +1934,11 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: US Geological Survey",
@@ -1938,6 +1970,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "maxSize": 100,
       "shape": "circle",
@@ -1972,6 +2005,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -2016,6 +2050,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "format": "%d/%m",
         "spacing": 11,
       },
@@ -2056,6 +2091,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -2087,10 +2123,11 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
   },
   "container": Any<HTMLElement>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: US Geological Survey",
@@ -2107,6 +2144,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -2164,6 +2202,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -2203,6 +2242,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -2242,6 +2282,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -2281,6 +2322,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -2315,6 +2357,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -2391,6 +2434,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -2430,6 +2474,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -2462,10 +2507,11 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
@@ -2482,6 +2528,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -2528,6 +2575,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
   },
   "series": [
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#FA7921",
       "fillOpacity": 0.6,
       "highlightStyle": {
@@ -2546,6 +2597,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -2583,6 +2635,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "yName": "Natural gas",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#5BC0EB",
       "fillOpacity": 0.6,
       "highlightStyle": {
@@ -2601,6 +2657,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -2638,6 +2695,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "yName": "Coal",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#9BC53D",
       "fillOpacity": 0.6,
       "highlightStyle": {
@@ -2656,6 +2717,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -2693,6 +2755,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "yName": "Primary oil",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#E55934",
       "fillOpacity": 0.6,
       "highlightStyle": {
@@ -2711,6 +2777,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -2748,6 +2815,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "yName": "Petroleum",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#FDE74C",
       "fillOpacity": 0.6,
       "highlightStyle": {
@@ -2766,6 +2837,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -2808,6 +2880,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -2885,6 +2958,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -2924,6 +2998,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -2956,10 +3031,11 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
@@ -3028,6 +3104,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -3084,6 +3161,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -3123,6 +3201,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -3155,10 +3234,11 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
@@ -3233,6 +3313,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -3284,6 +3365,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 5,
       },
       "line": {
@@ -3322,6 +3404,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 5,
       },
       "line": {
@@ -3356,10 +3439,11 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Footnote",
@@ -3390,6 +3474,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "maxSize": 30,
       "shape": "circle",
@@ -3418,6 +3503,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "time distribution of commits",
@@ -3461,6 +3547,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -3503,6 +3590,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -3538,10 +3626,11 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Simple Maps",
@@ -3572,6 +3661,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "labelKey": "city",
       "labelName": "City",
@@ -3602,6 +3692,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -3648,6 +3739,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -3687,6 +3779,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -3719,10 +3812,11 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Ministry of Justice, HM Prison Service, and Her Majesty’s Prison and Probation Service",
@@ -3739,6 +3833,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -3882,6 +3977,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -3951,6 +4047,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -3990,6 +4087,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -4022,10 +4120,11 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
@@ -4042,6 +4141,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -4187,6 +4287,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -4258,6 +4359,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -4297,6 +4399,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
       },
@@ -4330,10 +4433,11 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
@@ -4350,6 +4454,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -4744,6 +4849,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -4808,6 +4914,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
       },
@@ -4848,6 +4955,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -4883,10 +4991,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Environment, Food and Rural Affairs",
@@ -4903,6 +5012,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -4965,6 +5075,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5010,6 +5121,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5055,6 +5167,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5100,6 +5213,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5145,6 +5259,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5190,6 +5305,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5235,6 +5351,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5280,6 +5397,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5325,6 +5443,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5370,6 +5489,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5415,6 +5535,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5460,6 +5581,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5505,6 +5627,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5550,6 +5673,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5595,6 +5719,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5640,6 +5765,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5674,6 +5800,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -5777,6 +5904,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 10,
+        "fontWeight": 400,
         "format": ",.0f",
         "spacing": 11,
       },
@@ -5817,6 +5945,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 10,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -5849,10 +5978,11 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Footnote",
@@ -5886,6 +6016,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -5918,6 +6049,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "log scale",
@@ -5963,6 +6095,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -6002,6 +6135,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "format": "#{.0f}%",
         "spacing": 11,
       },
@@ -6035,10 +6169,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
@@ -6055,6 +6190,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -6101,6 +6237,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
   },
   "series": [
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#5090dc",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6119,6 +6259,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -6164,6 +6305,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "yName": "Coal",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#ffa03a",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6182,6 +6327,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -6227,6 +6373,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "yName": "Petroleum",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#459d55",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6245,6 +6395,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -6290,6 +6441,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "yName": "Natural gas",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#34bfe1",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6308,6 +6463,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -6353,6 +6509,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "yName": "Bioenergy & waste",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#e1cc00",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6371,6 +6531,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -6416,6 +6577,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "yName": "Nuclear",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#9669cb",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6434,6 +6599,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -6479,6 +6645,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "yName": "Wind, solar & hydro",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#b5b5b5",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -6497,6 +6667,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -6547,6 +6718,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -6607,6 +6779,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "rotation": -30,
         "spacing": 11,
       },
@@ -6647,6 +6820,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "format": ".0%",
         "spacing": 11,
       },
@@ -6680,10 +6854,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
@@ -6700,6 +6875,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -6895,6 +7071,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -6968,6 +7145,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -7007,6 +7185,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "format": "#{.0f}%",
         "spacing": 11,
       },
@@ -7040,10 +7219,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Education",
@@ -7060,6 +7240,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -7393,6 +7574,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -7476,6 +7658,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -7515,6 +7698,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
       },
@@ -7548,10 +7732,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
@@ -7568,6 +7753,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -7614,6 +7800,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
   },
   "series": [
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#c16068",
       "fillOpacity": 0.8,
       "interpolation": {
@@ -7626,6 +7816,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -7663,6 +7854,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "yName": "Tate Modern",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#a2bf8a",
       "fillOpacity": 0.8,
       "interpolation": {
@@ -7675,6 +7870,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -7712,6 +7908,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "yName": "Tate Britain",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#ebcc87",
       "fillOpacity": 0.8,
       "interpolation": {
@@ -7724,6 +7924,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -7761,6 +7962,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "yName": "Tate Liverpool",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#80a0c3",
       "fillOpacity": 0.8,
       "interpolation": {
@@ -7773,6 +7978,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -7815,6 +8021,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -7870,6 +8077,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -7909,6 +8117,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
       },
@@ -7942,10 +8151,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
@@ -8015,6 +8225,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -8050,10 +8261,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Home Office",
@@ -8070,6 +8282,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -8122,6 +8335,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "minAngle": 0.001,
         "offset": 3,
       },
@@ -8173,6 +8387,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
           "color": "#464646",
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 16,
+          "fontWeight": 400,
           "spacing": 2,
           "text": "Total",
         },
@@ -8237,6 +8452,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -8289,6 +8505,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -8329,6 +8546,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -8361,10 +8579,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
@@ -8381,6 +8600,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -8443,6 +8663,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -8486,6 +8707,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -8518,6 +8740,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -8566,10 +8789,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
   },
   "container": Any<HTMLElement>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
@@ -8599,6 +8823,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "minAngle": 0,
         "offset": 3,
       },
@@ -8695,6 +8920,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -8739,6 +8965,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -8778,6 +9005,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -8810,10 +9038,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Statistics Online Computational Resource",
@@ -8844,6 +9073,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "shape": "circle",
       "size": 12,
@@ -8866,6 +9096,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -8918,6 +9149,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "format": "%b",
         "spacing": 11,
       },
@@ -8958,6 +9190,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
       },
@@ -8991,10 +9224,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
@@ -9011,6 +9245,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -9057,6 +9292,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
   },
   "series": [
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#5BC0EB",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -9074,6 +9313,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -9118,6 +9358,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "yName": "Science Museum",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#FDE74C",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -9135,6 +9379,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -9179,6 +9424,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "yName": "National Media Museum",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#9BC53D",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -9196,6 +9445,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -9240,6 +9490,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "yName": "National Railway Museum",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#E55934",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -9257,6 +9511,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -9301,6 +9556,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "yName": "Locomotion",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#FA7921",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -9318,6 +9577,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -9362,6 +9622,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "yName": "Museum of Science and Industry, Manchester",
     },
     {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#fa3081",
       "fillOpacity": 0.8,
       "highlightStyle": {
@@ -9379,6 +9643,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "lineDash": [
         0,
@@ -9428,6 +9693,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -9508,6 +9774,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -9547,6 +9814,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "spacing": 11,
       },
       "line": {
@@ -9580,10 +9848,11 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Ministry of Housing, Communities & Local Government",
@@ -9600,6 +9869,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -9839,6 +10109,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
@@ -9898,6 +10169,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "rotation": 30,
         "spacing": 11,
       },
@@ -9938,6 +10210,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
       },
@@ -9971,10 +10244,11 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "rgb(140, 140, 140)",
+    "color": "#8c8c8c",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Transport for London",
@@ -9991,6 +10265,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+        "fontWeight": 400,
       },
       "marker": {
         "padding": 8,
@@ -10277,6 +10552,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "fontWeight": 400,
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Victoria Line (2010)",

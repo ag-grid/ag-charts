@@ -1,10 +1,6 @@
 import { ColorScale } from '../../scale/colorScale';
 import type { BBox } from '../bbox';
-
-export interface GradientColorStop {
-    offset: number;
-    color: string;
-}
+import type { GradientColorStop } from './stops';
 
 export type ColorSpace = 'rgb' | 'oklch';
 

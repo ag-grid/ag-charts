@@ -4,7 +4,7 @@ import defaultColorStops from '../gauge-util/defaultColorStops';
 import { LinearGaugeSeries } from './linearGaugeSeries';
 
 const {
-    ThemeSymbols: { DEFAULT_HIERARCHY_FILLS, DEFAULT_INVERTED_LABEL_COLOUR, DEFAULT_GAUGE_SERIES_COLOR_RANGE },
+    ThemeSymbols: { DEFAULT_HIERARCHY_FILLS, DEFAULT_GAUGE_SERIES_COLOR_RANGE },
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
 } = _ModuleSupport;
 
@@ -50,19 +50,19 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                     fontWeight: { $ref: 'fontWeight' },
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
-                    color: { $ref: 'foregroundColor' },
+                    color: { $ref: 'textColor' },
                     spacing: 5,
                 },
             },
             label: {
                 enabled: false,
                 placement: 'inside-start',
+                fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
-                fontSize: 24,
+                fontSize: { $rem: [2] },
                 minimumFontSize: 12,
                 spacing: 18,
-                fontFamily: { $ref: 'fontFamily' },
-                color: DEFAULT_INVERTED_LABEL_COLOUR,
+                color: { $ref: 'backgroundColor' },
             },
             margin: 4,
         },

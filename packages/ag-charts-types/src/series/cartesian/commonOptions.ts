@@ -24,6 +24,25 @@ export interface FillOptions {
     fillOpacity?: Opacity;
 }
 
+export type AgGradientFillMode = 'continuous' | 'discrete';
+
+export interface AgGradientColorStop {
+    /** Colour of this category. */
+    color?: string;
+    /** Stop value of this category. Defaults the maximum value if unset. */
+    stop?: number;
+}
+
+export interface AgGradientFill {
+    type: 'gradient';
+    /** Direction of the gradient, defaults to vertical. */
+    direction?: 'horizontal' | 'vertical';
+    /** Represents the position and color of stops in the gradient. */
+    colorStops?: AgGradientColorStop[];
+    /** The domain of the color gradient, defaults to item. */
+    bounds?: 'series' | 'item' | 'axes';
+}
+
 /**
  * Represents options for the strokes in a chart.
  */

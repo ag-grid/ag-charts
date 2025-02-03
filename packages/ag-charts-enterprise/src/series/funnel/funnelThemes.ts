@@ -40,6 +40,7 @@ export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTe
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'backgroundColor' },
         },
         dropOff: {

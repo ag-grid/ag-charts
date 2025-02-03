@@ -3,7 +3,6 @@
     if (typeof systemJsPaths !== 'undefined') {
         sjsPaths = systemJsPaths;
     }
-
     System.config({
         transpiler: 'ts',
         typescriptOptions: {
@@ -22,28 +21,30 @@
             ...sjsPaths,
         },
         map: {
-            // Transpilers
-            css: boilerplatePath + 'css.js',
+            css: 'npm:systemjs-plugin-css@0.1.37/css.js',
+
             ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
-            typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
+            tslib: 'npm:tslib@2.3.1/tslib.js',
+            typescript: 'npm:typescript@5.4.5/lib/typescript.min.js',
 
             clone: 'npm:clone@2.1.2',
 
-            // vuejs
-            vue: 'npm:vue@3.2.29/dist/vue.esm-browser.js',
+            vue: 'npm:vue@3.5.0/dist/vue.esm-browser.js',
             '@vue/reactivity': 'npm:@vue/reactivity@3.0.0/dist/reactivity.esm-browser.prod.js',
 
-            app: appLocation + 'app',
+            app: appLocation,
             // systemJsMap comes from index.html
             ...systemJsMap,
         },
-
         packages: {
+            'css.js': {
+                defaultExtension: 'js',
+            },
             vue: {
                 defaultExtension: 'js',
             },
             app: {
-                defaultExtension: 'js',
+                defaultExtension: 'ts',
             },
             'ag-charts-vue3': {
                 main: './dist/package/index.cjs.js',

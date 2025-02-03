@@ -19,3 +19,15 @@ export function* iterate<T extends Iterable<any>[]>(
 export function toIterable<T>(value: T | Iterable<T>): Iterable<T> {
     return value != null && typeof value === 'object' && Symbol.iterator in value ? value : [value];
 }
+
+/**
+ * Returns the first value from an iterable sequence.
+ * @param iterable source of values
+ * @returns The first value, or throws an error is there is no first value.
+ */
+export function first<T>(iterable: Iterable<T>): T | never {
+    for (const value of iterable) {
+        return value;
+    }
+    throw new Error('AG Charts - no first() value found');
+}

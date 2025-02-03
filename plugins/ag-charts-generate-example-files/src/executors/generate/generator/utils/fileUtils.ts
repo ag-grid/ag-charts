@@ -87,13 +87,13 @@ export const getEntryFileName = (internalFramework: InternalFramework) => {
     switch (internalFramework) {
         case 'typescript':
         case 'angular':
+        case 'vue3':
             return 'main.ts';
         case 'reactFunctional':
             return 'index.jsx';
         case 'reactFunctionalTs':
             return 'index.tsx';
         case 'vanilla':
-        case 'vue3':
             return 'main.js';
         default:
             return;

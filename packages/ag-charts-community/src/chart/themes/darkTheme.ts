@@ -1,4 +1,4 @@
-import type { AgChartThemeOptions } from 'ag-charts-types';
+import type { AgChartThemeOptions, AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
 import type { DefaultColors } from './defaultColors';
@@ -18,7 +18,6 @@ import {
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_HIERARCHY_STROKES,
     DEFAULT_INVERTED_BACKGROUND_COLOUR,
-    DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_TEXTBOX_COLOR,
@@ -71,13 +70,14 @@ export class DarkTheme extends ChartTheme {
         };
     }
 
-    override getPublicParameters() {
+    override getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
             ...super.getPublicParameters(),
             backgroundColor: DEFAULT_DARK_BACKGROUND_FILL,
             borderColor: '#4b525d',
             foregroundColor: '#fff',
             gridLineColor: '#545a6e',
+            subtleTextColor: { $mix: [{ $ref: 'foregroundColor' }, { $ref: 'backgroundColor' }, 0.57] },
         };
     }
 
@@ -87,7 +87,6 @@ export class DarkTheme extends ChartTheme {
         params.set(IS_DARK_THEME, true);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
 
-        params.set(DEFAULT_MUTED_LABEL_COLOUR, '#7d91a0');
         params.set(DEFAULT_CROSS_LINES_COLOUR, '#fff');
         params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#7f8389');
 

@@ -110,7 +110,9 @@ export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions 
 // Measurers
 export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Lockable, Visible {
     background?: FillOptions;
+    handle?: AgAnnotationHandleStyles;
     statistics?: AgMeasurerAnnotationStatistics;
+    text?: AgLineAnnotationTextOptions;
 }
 
 export interface AgQuickMeasurerAnnotationStyles extends Visible {

@@ -8,7 +8,7 @@ const itemTheme = {
         fontWeight: { $ref: 'fontWeight' as const },
         fontSize: { $ref: 'fontSize' as const },
         fontFamily: { $ref: 'fontFamily' as const },
-        color: { $ref: 'foregroundColor' as const },
+        color: { $ref: 'textColor' as const },
         formatter: undefined,
         placement: 'outside-end' as const,
     },

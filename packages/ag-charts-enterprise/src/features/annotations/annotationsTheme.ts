@@ -1,15 +1,22 @@
 import {
+    type AgAnnotationAxisLabel,
     type AgAnnotationOptionsToolbar,
     type AgAnnotationsThemeableOptions,
     type AgAnnotationsToolbar,
+    type AgChannelAnnotationTextOptions,
+    type AgLineAnnotationTextOptions,
+    type AgMeasurerAnnotationStatistics,
+    type AgMeasurerAnnotationStyles,
+    type FontOptions,
+    type StrokeOptions,
     type WithThemeParams,
     _ModuleSupport,
 } from 'ag-charts-community';
 
-const { ThemeSymbols } = _ModuleSupport;
+const { FONT_SIZE_RATIO, ThemeSymbols } = _ModuleSupport;
 
-const stroke = {
-    stroke: { $ref: 'foregroundColor' as const },
+const stroke: WithThemeParams<StrokeOptions> = {
+    stroke: { $ref: 'foregroundColor' },
     strokeOpacity: 1,
     strokeWidth: 2,
 };
@@ -20,17 +27,17 @@ const handle = {
     strokeWidth: 2,
 };
 
-const font = {
-    color: { $ref: 'backgroundColor' as const },
-    fontSize: 14,
-    fontFamily: { $ref: 'fontFamily' as const },
+const font: WithThemeParams<FontOptions> = {
+    color: { $ref: 'backgroundColor' },
+    fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
+    fontFamily: { $ref: 'fontFamily' },
 };
 
-const axisLabel = {
+const axisLabel: WithThemeParams<AgAnnotationAxisLabel> = {
     ...font,
     enabled: true,
-    fill: { $ref: 'foregroundColor' as const },
-    fontSize: { $ref: 'fontSize' as const },
+    fill: { $ref: 'foregroundColor' },
+    fontSize: { $ref: 'fontSize' },
 };
 
 const text = {
@@ -38,16 +45,23 @@ const text = {
     textAlign: 'left',
 };
 
-const lineText = {
+const lineText: WithThemeParams<AgLineAnnotationTextOptions> = {
     ...font,
-    position: 'top' as const,
-    alignment: 'center' as const,
-    color: { $ref: 'foregroundColor' as const },
+    position: 'top',
+    alignment: 'center',
+    color: { $ref: 'textColor' },
 };
 
-const measurerStatistics = {
+const channelText: WithThemeParams<AgChannelAnnotationTextOptions> = {
     ...font,
-    fontSize: { $ref: 'fontSize' as const },
+    position: 'top',
+    alignment: 'center',
+    color: { $ref: 'textColor' },
+};
+
+const measurerStatistics: WithThemeParams<AgMeasurerAnnotationStatistics> = {
+    ...font,
+    fontSize: { $ref: 'fontSize' },
     color: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_COLOR,
     fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_FILL,
     stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_STROKE,
@@ -59,10 +73,10 @@ const measurerStatistics = {
     },
 };
 
-const measurer = {
+const measurer: WithThemeParams<AgMeasurerAnnotationStyles> = {
     ...stroke,
     background: {
-        fill: { $ref: 'foregroundColor' as const },
+        fill: { $ref: 'foregroundColor' },
         fillOpacity: 0.075,
     },
     handle: { ...handle },
@@ -73,14 +87,14 @@ const measurer = {
 const toolbar: AgAnnotationsToolbar = {
     buttons: [
         {
-            icon: 'trend-line-drawing',
-            tooltip: 'toolbarAnnotationsLineAnnotations',
-            value: 'line-menu',
-        },
-        {
             icon: 'text-annotation',
             tooltip: 'toolbarAnnotationsTextAnnotations',
             value: 'text-menu',
+        },
+        {
+            icon: 'trend-line-drawing',
+            tooltip: 'toolbarAnnotationsLineAnnotations',
+            value: 'line-menu',
         },
         {
             icon: 'arrow-drawing',
@@ -180,7 +194,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
             fillOpacity: 0.075,
         },
         handle: { ...handle },
-        text: { ...lineText },
+        text: { ...channelText },
     },
     'parallel-channel': {
         ...stroke,
@@ -193,7 +207,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
             fillOpacity: 0.075,
         },
         handle: { ...handle },
-        text: { ...lineText },
+        text: { ...channelText },
     },
 
     // Fibonnaccis
@@ -203,7 +217,13 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         rangeStroke: { $ref: 'foregroundColor' },
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
-        label: { ...font, color: undefined, fontSize: 10 },
+        label: {
+            ...font,
+            color: undefined,
+            fontSize: {
+                $round: [{ $mul: [{ $ref: 'fontSize' }, 10 / 12] }],
+            },
+        },
     },
 
     'fibonacci-retracement-trend-based': {
@@ -212,14 +232,20 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         rangeStroke: { $ref: 'foregroundColor' },
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
-        label: { ...font, color: undefined, fontSize: 10 },
+        label: {
+            ...font,
+            color: undefined,
+            fontSize: {
+                $round: [{ $mul: [{ $ref: 'fontSize' }, 10 / 12] }],
+            },
+        },
     },
 
     // Texts
     callout: {
         ...stroke,
         ...text,
-        color: { $ref: 'foregroundColor' },
+        color: { $ref: 'textColor' },
         handle: { ...handle },
         fill: { $ref: 'foregroundColor' },
         fillOpacity: 0.075,
@@ -246,7 +272,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
     text: {
         ...text,
-        color: { $ref: 'foregroundColor' },
+        color: { $ref: 'textColor' },
         handle: { ...handle },
     },
 

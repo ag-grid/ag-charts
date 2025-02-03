@@ -110,6 +110,14 @@ export class LegendDOMProxy {
             button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev.sourceEvent, markerLabel));
             button.addListener('blur', () => itemListener.onLeave());
             button.addListener('focus', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
+            // Enable touch long-tap context menus:
+            //
+            // We don't actually need to listen for drag events. However, on of the quirks of `Widget` is that it only
+            // adds a 'touchstart' listener if the widget has 'drag-*' listener(s), it's this 'touchstart' listener that
+            // handles both touch dragging and long-taps. Rather than adding 'touchstart' listeners to all HTMLElement
+            // (of which most don't even need one), we just add a dummy 'drag-start' to enable long-taps on legend
+            // buttons.
+            button.addListener('drag-start', () => {});
         });
         this.dirty = false;
     }

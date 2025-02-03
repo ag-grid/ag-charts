@@ -50,4 +50,9 @@ export const FRAMEWORKS: InternalFramework[] = [
     'angular',
     'vue3',
 ];
-export const TYPESCRIPT_INTERNAL_FRAMEWORKS: InternalFramework[] = ['typescript', 'reactFunctionalTs', 'angular'];
+export const TYPESCRIPT_INTERNAL_FRAMEWORKS: InternalFramework[] = [
+    'typescript',
+    'reactFunctionalTs',
+    'angular',
+    'vue3',
+];

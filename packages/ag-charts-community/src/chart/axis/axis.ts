@@ -787,6 +787,7 @@ export abstract class Axis<
                     seriesKeys.forEach((key) => keys.add(key));
                     return keys;
                 }, new Set<string>()),
+            seriesIds: () => this.boundSeries.map((series) => series.id),
             scaleValueFormatter: (specifier?: string) => this.getScaleValueFormatter(specifier),
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),

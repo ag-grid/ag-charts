@@ -1,21 +1,23 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
-import { DEFAULT_MUTED_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
+import { FONT_SIZE_RATIO } from '../../themes/constants';
+import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 
 export const donutTheme: ExtensibleTheme<'donut'> = {
     series: {
         title: {
             enabled: true,
             fontWeight: { $ref: 'fontWeight' },
-            fontSize: 14,
+            fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
             fontFamily: { $ref: 'fontFamily' },
-            color: DEFAULT_MUTED_LABEL_COLOUR,
+            color: { $ref: 'subtleTextColor' },
             spacing: 5,
         },
         calloutLabel: {
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
-            color: { $ref: 'foregroundColor' },
+            fontWeight: { $ref: 'fontWeight' },
+            color: { $ref: 'textColor' },
             offset: 3,
             minAngle: 0.001,
         },
@@ -49,7 +51,8 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         innerLabels: {
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
-            color: { $ref: 'foregroundColor' },
+            fontWeight: { $ref: 'fontWeight' },
+            color: { $ref: 'textColor' },
             spacing: 2,
         },
     },

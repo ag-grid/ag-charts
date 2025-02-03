@@ -5,14 +5,19 @@
     --ag-charts-foreground-color: #181d1f;
     --ag-charts-font-family: Verdana, sans-serif;
     --ag-charts-font-size: 12px;
+    --ag-charts-font-weight: 400;
+    --ag-charts-border-color: #dddddd;
 
     /* Theme Parameters - Not yet implemented */
     --ag-charts-chrome-background-color: var(--ag-background-color, #fff);
     --ag-charts-chrome-foreground-color: var(--ag-foreground-color, #181d1f);
+    --ag-charts-chrome-font-family: Verdana, sans-serif;
+    --ag-charts-chrome-font-size: 12px;
+    --ag-charts-chrome-font-weight: 400;
+    --ag-charts-chrome-border-color: var(--ag-border-color, #dddddd);
 
     /* Colors */
     --ag-charts-active-color: var(--ag-active-color, #2196f3);
-    --ag-charts-border-color: var(--ag-border-color, #dddddd);
     --ag-charts-hover-color: color-mix(
         in srgb,
         var(--ag-charts-chrome-background-color),
@@ -23,7 +28,7 @@
     --ag-charts-size: var(--ag-grid-size, 8px);
 
     /* Borders */
-    --ag-charts-border: var(--ag-charts-border-color) var(--ag-borders, solid 1px);
+    --ag-charts-border: var(--ag-charts-chrome-border-color) var(--ag-borders, solid 1px);
     --ag-charts-border-critical: var(--ag-borders-critical, solid 1px);
 
     /* Shadows */
@@ -45,7 +50,7 @@
     /* Tooltip */
     --ag-charts-tooltip-background-color: #fafafb;
     --ag-charts-tooltip-text-color: var(--ag-charts-chrome-foreground-color);
-    --ag-charts-tooltip-border: 1px solid var(--ag-charts-border-color);
+    --ag-charts-tooltip-border: 1px solid var(--ag-charts-chrome-border-color);
     --ag-charts-content-padding: 8px 12px;
     --ag-charts-content-gap: 8px;
     --ag-charts-content-compact-padding: 3px 6px;
@@ -60,7 +65,7 @@
     --ag-charts-toolbar-shadow: var(--ag-charts-floating-shadow);
     --ag-charts-toolbar-size: 34px;
     --ag-charts-toolbar-size-small: 24px;
-    --ag-charts-toolbar-border: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-border-color);
+    --ag-charts-toolbar-border: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-chrome-border-color);
     --ag-charts-toolbar-hover-color: color-mix(
         in srgb,
         var(--ag-charts-chrome-background-color),
@@ -79,8 +84,8 @@
         var(--ag-charts-toolbar-foreground-color) 6%
     );
     --ag-charts-toolbar-gap: var(--ag-charts-size);
-    --ag-charts-toolbar-font-size: 13px;
-    --ag-charts-toolbar-font-size-small: 12px;
+    --ag-charts-toolbar-font-size: calc(var(--ag-charts-chrome-font-size) * (13 / 12));
+    --ag-charts-toolbar-font-size-small: var(--ag-charts-chrome-font-size);
     --ag-charts-toolbar-button-padding: 6px;
     --ag-charts-toolbar-button-padding-small: 1px;
 
@@ -131,14 +136,14 @@
     --ag-charts-input-background-color: var(--ag-charts-chrome-background-color);
     --ag-charts-input-background-color--hover: var(--ag-charts-hover-color);
     --ag-charts-input-background-color--active: var(--ag-charts-hover-color);
-    --ag-charts-input-border-color: var(--ag-charts-border-color);
+    --ag-charts-input-border-color: var(--ag-charts-chrome-border-color);
     --ag-charts-input-border-color--active: var(--ag-charts-active-color);
     --ag-charts-input-border-radius: var(--ag-border-radius, 4px);
     --ag-charts-input-color--active: var(--ag-charts-active-color);
     --ag-charts-input-focus-outline: var(--ag-charts-focus-border);
     --ag-charts-input-focus-box-shadow: var(--ag-charts-focus-border-shadow);
-    --ag-charts-input-font-family: var(--ag-charts-font-family);
-    --ag-charts-input-font-size: 14px;
+    --ag-charts-input-font-family: var(--ag-charts-chrome-font-family);
+    --ag-charts-input-font-size: calc(var(--ag-charts-chrome-font-size) * (14 / 12));
     --ag-charts-input-padding: 8px;
     --ag-charts-input-padding-large: 10px;
     --ag-charts-input-placeholder-color: #888888;
@@ -157,7 +162,7 @@
     --ag-charts-chrome-background-color: var(--ag-background-color, color-mix(in srgb, #fff, #182230 97%));
 
     /* Colors */
-    --ag-charts-border-color: var(--ag-border-color, rgba(255, 255, 255, 0.16));
+    --ag-charts-chrome-border-color: var(--ag-border-color, rgba(255, 255, 255, 0.16));
     --ag-charts-hover-color: color-mix(
         in srgb,
         var(--ag-charts-chrome-background-color),

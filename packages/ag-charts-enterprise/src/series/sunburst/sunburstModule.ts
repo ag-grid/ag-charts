@@ -2,7 +2,10 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { SunburstSeries } from './sunburstSeries';
 
-const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
+const {
+    FONT_SIZE_RATIO,
+    ThemeSymbols: { DEFAULT_DIVERGING_SERIES_COLOR_RANGE },
+} = _ModuleSupport;
 
 export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     type: 'series',
@@ -17,17 +20,21 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     themeTemplate: {
         series: {
             label: {
-                fontSize: 14,
-                minimumFontSize: 9,
-                color: { $ref: 'backgroundColor' as const },
+                fontFamily: { $ref: 'fontFamily' },
+                fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
+                minimumFontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 9 / 12] }] },
+                fontWeight: { $ref: 'fontWeight' },
+                color: { $ref: 'backgroundColor' },
                 overflowStrategy: 'ellipsis',
                 wrapping: 'never',
                 spacing: 2,
             },
             secondaryLabel: {
-                fontSize: 8,
-                minimumFontSize: 7,
-                color: { $ref: 'backgroundColor' as const },
+                fontFamily: { $ref: 'fontFamily' },
+                fontSize: { $rem: [FONT_SIZE_RATIO.SMALLEST] },
+                minimumFontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 7 / 12] }] },
+                fontWeight: { $ref: 'fontWeight' },
+                color: { $ref: 'backgroundColor' },
                 overflowStrategy: 'ellipsis',
                 wrapping: 'never',
             },
@@ -35,10 +42,10 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             padding: 3,
             highlightStyle: {
                 label: {
-                    color: { $ref: 'backgroundColor' as const },
+                    color: { $ref: 'backgroundColor' },
                 },
                 secondaryLabel: {
-                    color: { $ref: 'backgroundColor' as const },
+                    color: { $ref: 'backgroundColor' },
                 },
                 fill: 'rgba(255,255,255, 0.33)',
                 stroke: `rgba(0, 0, 0, 0.4)`,

@@ -51,7 +51,7 @@ export abstract class DataModelSeries<
         D extends object,
         K extends keyof D & string = keyof D & string,
         G extends boolean | undefined = undefined,
-    >(dataController: DataController, data: D[] | undefined, opts: DataModelOptions<K, boolean | undefined>) {
+    >(dataController: DataController, data: D[] | undefined, opts: DataModelOptions<K, boolean | undefined, false>) {
         // Merge properties of this series with properties of all the attached series-options
         opts.props.push(...(this.getModulePropertyDefinitions() as PropertyDefinition<K>[]));
 

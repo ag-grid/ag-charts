@@ -1,3 +1,5 @@
+import type { AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
+
 import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_CAPTION_ALIGNMENT,
@@ -37,7 +39,7 @@ export class FinancialDark extends DarkTheme {
         };
     }
 
-    override getPublicParameters() {
+    override getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
             ...super.getPublicParameters(),
             gridLineColor: '#343a4e',

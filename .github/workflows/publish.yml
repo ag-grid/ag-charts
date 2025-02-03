@@ -18,8 +18,9 @@ jobs:
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
+
             - name: Fetch Refs
-              run: git fetch origin latest-success latest
+              run: git fetch origin --depth 1 latest-success latest
 
             - name: Setup Node.js
               id: setup_node

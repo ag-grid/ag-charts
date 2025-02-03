@@ -156,7 +156,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
                 if (hovered != null) {
                     ctx.tooltipManager.suppressTooltip('annotations');
-                } else {
+                } else if (!this.isAnnotationState()) {
                     ctx.tooltipManager.unsuppressTooltip('annotations');
                 }
 
@@ -630,13 +630,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const dateValues = dataModel.resolveKeysById<Date>({ id: 'annotations' }, 'date', processedData);
         const volumeValues = dataModel.resolveColumnById({ id: 'annotations' }, 'volume', processedData);
 
-        return processedData.rawData.reduce((sum, _datum, datumIndex) => {
+        let sum = 0;
+        for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
             const key = dateValues[datumIndex];
             if (isValidDate(key) && key >= from && key <= to) {
-                return sum + volumeValues[datumIndex];
+                sum += volumeValues[datumIndex];
             }
-            return sum;
-        }, 0);
+        }
+        return sum;
     }
 
     private translateNode(
@@ -703,14 +704,27 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
         }
 
-        const hasData = this.ctx.chartService.series.some((s) => s.hasData);
-        const hasVisibleSeries = this.ctx.chartService.series.some((s) => s.visible);
-
-        if (!hasData || !hasVisibleSeries) {
-            this.animateAnnotations({ from: 1, to: 0, phase: 'remove' });
-        } else {
+        if (this.showAnnotations()) {
             this.animateAnnotations({ from: 0, to: 1, phase: 'trailing' });
+        } else {
+            this.animateAnnotations({ from: 1, to: 0, phase: 'remove' });
         }
+    }
+
+    private showAnnotations() {
+        if (!this.yAxis || !this.xAxis) {
+            return false;
+        }
+
+        const hasData = this.ctx.chartService.series.some((s) => s.hasData);
+
+        const seriesIds = this.yAxis.context.seriesIds();
+        const allBoundSeriesVisible = seriesIds.every((id) => {
+            const series = this.ctx.chartService.series.find((s) => s.id === id);
+            return series?.visible;
+        });
+
+        return hasData && allBoundSeriesVisible;
     }
 
     private animateAnnotations({ from, to, phase }: { from: number; to: number; phase: 'trailing' | 'remove' }) {
@@ -836,12 +850,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         annotationManager.updateData(annotationData.toJson().filter((datum) => !isEphemeralType(datum)) as any);
 
-        this.toolbar.toggleClearButtonEnabled(annotationData.length > 0);
+        const showAnnotations = this.showAnnotations();
+        this.toolbar.refreshButtonsEnabled(showAnnotations);
+        this.toolbar.toggleClearButtonEnabled(annotationData.length > 0 && showAnnotations);
 
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
             .each((node, datum) => {
-                if (!this.validateDatum(datum)) {
+                if (!showAnnotations || !this.validateDatum(datum)) {
                     node.visible = false;
                     return;
                 }
@@ -982,6 +998,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onDrag(event: _Widget.DragWidgetEvent<'drag-move'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
+
+        if (event.device === 'touch') event.sourceEvent.preventDefault();
 
         const { state } = this;
 
@@ -1154,6 +1172,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     ) {
         this.ctx.interactionManager.popState(state);
         this.ctx.tooltipManager.unsuppressTooltip('annotations');
+    }
+
+    private isAnnotationState() {
+        return (
+            this.ctx.interactionManager.isState(InteractionState.Annotations) ||
+            this.ctx.interactionManager.isState(InteractionState.AnnotationsSelected)
+        );
     }
 
     private update(status = ChartUpdateType.PRE_SCENE_RENDER) {

@@ -51,21 +51,21 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
                     fill: palette.altUp.fill,
                     stroke: palette.altUp.stroke,
                     label: {
-                        color: { $ref: 'foregroundColor' },
+                        color: { $ref: 'textColor' },
                     },
                 },
                 negative: {
                     fill: palette.altDown.fill,
                     stroke: palette.altDown.stroke,
                     label: {
-                        color: { $ref: 'foregroundColor' },
+                        color: { $ref: 'textColor' },
                     },
                 },
                 total: {
                     fill: palette.neutral.fill,
                     stroke: palette.neutral.stroke,
                     label: {
-                        color: { $ref: 'foregroundColor' },
+                        color: { $ref: 'textColor' },
                     },
                 },
             },

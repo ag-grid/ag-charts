@@ -186,7 +186,11 @@
       "cache": false,
       "command": "node ./tools/benchmark/collate-reports.js"
     },
-    "benchmark-rebuild": {
+    "benchmark:report": {
+      "cache": false,
+      "command": "node ./tools/benchmark/compare-versions.js"
+    },
+    "benchmark:rebuild": {
       "dependsOn": ["ag-charts-website-benchmarks_summary_main.ts:generate-example"],
       "cache": false,
       "command": "./tools/benchmark/rebuild-version-benchmark.sh"

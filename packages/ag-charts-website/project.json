@@ -19,7 +19,7 @@
           "env": "PUBLIC_PACKAGE_VERSION"
         }
       ],
-      "cache": true,
+      "cache": false,
       "command": "astro build",
       "options": {
         "cwd": "packages/ag-charts-website",

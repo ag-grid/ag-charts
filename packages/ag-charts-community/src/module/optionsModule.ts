@@ -2,6 +2,7 @@ import {
     type DeepPartial,
     Logger,
     ModuleRegistry,
+    type OptionsDefs,
     circularSliceArray,
     groupBy,
     isEnumValue,
@@ -10,7 +11,11 @@ import {
     isPlainObject,
     isString,
     isSymbol,
+    number,
+    or,
+    string,
     unique,
+    validate,
 } from 'ag-charts-core';
 import {
     type AgBaseAxisOptions,
@@ -22,6 +27,7 @@ import {
     type AgPresetOverrides,
     type AgTooltipPositionOptions,
     AgTooltipPositionType,
+    type WithThemeParams,
 } from 'ag-charts-types';
 
 import { PRESETS, PRESET_DATA_PROCESSORS } from '../api/preset/presets';
@@ -263,11 +269,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // so we aim to only do this once in the processing flow.
         processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
-        let themeParameters = activeTheme.getPublicParameters();
-        if (isPlainObject(processedOptions.theme) && processedOptions.theme.params) {
-            themeParameters = mergeDefaults(processedOptions.theme.params, themeParameters);
-        }
-
+        const themeParameters = this.getThemeParameters(activeTheme, processedOptions) as AgChartThemeParams;
+        this.resolveThemeOperations(themeParameters, themeParameters);
         this.resolveThemeOperations(themeParameters, processedOptions);
         this.resolveThemeOperations(themeParameters, this.annotationThemes);
 
@@ -428,8 +431,41 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
     }
 
-    private resolveThemeOperations(params: AgChartThemeParams, options: T) {
-        const modifiedPaths = jsonResolveOperations(options, params, new Set(['palette', 'params', 'data']));
+    private getThemeParameters(theme: ChartTheme, options: T) {
+        const defaultParameters = theme.getPublicParameters();
+
+        if (!isPlainObject(options.theme) || !options.theme.params) {
+            return defaultParameters;
+        }
+
+        const themeParamsOptionsDef: OptionsDefs<AgChartThemeParams> = {
+            axisColor: string,
+            backgroundColor: string,
+            borderColor: string,
+            foregroundColor: string,
+            fontFamily: string,
+            fontSize: number,
+            fontWeight: or(string, number),
+            gridLineColor: string,
+            padding: number,
+            subtleTextColor: string,
+            textColor: string,
+        };
+        const { errors } = validate(options.theme.params, themeParamsOptionsDef);
+
+        if (!errors.length) {
+            return mergeDefaults(options.theme.params, defaultParameters);
+        }
+
+        for (const { message } of errors) {
+            Logger.warnOnce(message);
+        }
+
+        return defaultParameters;
+    }
+
+    private resolveThemeOperations(params: WithThemeParams<AgChartThemeParams>, options: object) {
+        const modifiedPaths = jsonResolveOperations(options, params, new Set(['palette', 'data']));
         this.debug('resolveTheme()', modifiedPaths);
     }
 

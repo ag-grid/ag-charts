@@ -299,7 +299,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         let trailingSubtotal = 0;
         const { xKey, yKey, xName, yName } = this.properties;
 
-        processedData.rawData.forEach((datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        rawData.forEach((datum, datumIndex) => {
             const datumType = totalTypeValues[datumIndex];
 
             const isSubtotal = this.isSubtotal(datumType);
@@ -601,7 +602,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData)[datumIndex];
         const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);

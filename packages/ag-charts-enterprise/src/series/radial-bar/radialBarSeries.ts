@@ -271,7 +271,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const context = { itemId: radiusKey, nodeData, labelData: nodeData };
         if (!this.visible) return context;
 
-        const { rawData, aggregation } = processedData;
+        const { dataSources, aggregation } = processedData;
+        const rawData = dataSources.get(this.id) ?? [];
         rawData.forEach((datum, datumIndex) => {
             const radiusDatum = radiusValues[datumIndex];
             if (radiusDatum == null) return;
@@ -303,7 +304,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const x = Math.cos(midAngle) * midRadius;
             const y = Math.sin(midAngle) * midRadius;
             const labelNodeDatum = this.properties.label.enabled
-                ? getLabelNodeDatum(datum, angleDatum, x, y)
+                ? getLabelNodeDatum(datum as any, angleDatum, x, y)
                 : undefined;
 
             const clipSector = new SectorBox(startAngle, endAngle, innerRadius, outerRadius);
@@ -498,7 +499,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const radiusValue = dataModel.resolveKeysById(this, `radiusValue`, processedData)[datumIndex];
         const angleValue = dataModel.resolveColumnById(this, `angleValue-raw`, processedData)[datumIndex];
 

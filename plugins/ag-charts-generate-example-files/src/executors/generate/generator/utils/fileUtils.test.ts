@@ -10,7 +10,7 @@ describe('getEntryFileName', () => {
         ${'reactFunctional'}   | ${'index.jsx'}
         ${'reactFunctionalTs'} | ${'index.tsx'}
         ${'angular'}           | ${'main.ts'}
-        ${'vue3'}              | ${'main.js'}
+        ${'vue3'}              | ${'main.ts'}
     `('$internalFramework is $expected', ({ internalFramework, expected }) => {
         expect(getEntryFileName(internalFramework)).toEqual(expected);
     });
@@ -26,7 +26,7 @@ describe('getMainFileName', () => {
         ${'reactFunctional'}   | ${'index.jsx'}
         ${'reactFunctionalTs'} | ${'index.tsx'}
         ${'angular'}           | ${'app.component.ts'}
-        ${'vue3'}              | ${'main.js'}
+        ${'vue3'}              | ${'main.ts'}
     `('$internalFramework is $expected', ({ internalFramework, expected }) => {
         expect(getMainFileName(internalFramework)).toEqual(expected);
     });
@@ -58,7 +58,7 @@ describe('getTransformTsFileExt', () => {
         ${'reactFunctional'}   | ${'.js'}
         ${'reactFunctionalTs'} | ${'.tsx'}
         ${'angular'}           | ${undefined}
-        ${'vue3'}              | ${'.js'}
+        ${'vue3'}              | ${undefined}
     `('$internalFramework is $expected', ({ internalFramework, expected }) => {
         expect(getTransformTsFileExt(internalFramework)).toEqual(expected);
     });

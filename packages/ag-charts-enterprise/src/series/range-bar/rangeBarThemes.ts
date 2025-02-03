@@ -8,6 +8,7 @@ export const RANGE_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'range-bar'>['t
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'backgroundColor' },
             placement: 'inside',
         },

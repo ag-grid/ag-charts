@@ -2953,6 +2953,38 @@ export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = 
     ],
 };
 
+export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCartesianChartOptions = {
+    title: {
+        text: "Apple's Revenue by Product Category",
+    },
+    subtitle: {
+        text: 'In Billion U.S. Dollars',
+    },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'product',
+            yKey: 'value',
+            yName: 'iPad',
+            data: [
+                { product: 'Air', value: 140 },
+                { product: 'Pro', value: 90 },
+            ],
+        },
+        {
+            type: 'bar',
+            xKey: 'product',
+            yKey: 'value',
+            yName: 'MacBook',
+            data: [
+                { product: 'Air', value: 20 },
+                { product: 'Pro 15"', value: 20 },
+                { product: 'Pro 16"', value: 50 },
+            ],
+        },
+    ],
+};
+
 export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = {
     title: {
         text: "Apple's revenue by product category",

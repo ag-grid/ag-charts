@@ -161,6 +161,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Touch",
+                            "path": "touch"
+                        },
+                        {
+                            "type": "item",
                             "title": "Animation",
                             "path": "animation",
                             "isEnterprise": true

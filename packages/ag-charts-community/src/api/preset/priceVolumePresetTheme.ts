@@ -1,5 +1,12 @@
-import type { AgAnnotationsThemeableOptions, WithThemeParams } from 'ag-charts-types';
+import type {
+    AgAnnotationsThemeableOptions,
+    AgMeasurerAnnotationStatistics,
+    AgMeasurerAnnotationStyles,
+    FontOptions,
+    WithThemeParams,
+} from 'ag-charts-types';
 
+import { FONT_SIZE_RATIO } from '../../chart/themes/constants';
 import {
     DEFAULT_ANNOTATION_HANDLE_FILL,
     DEFAULT_ANNOTATION_STATISTICS_COLOR,
@@ -35,21 +42,20 @@ const lineText = {
     color: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
 };
 
-const font = {
+const font: WithThemeParams<FontOptions> = {
     color: DEFAULT_TEXT_ANNOTATION_COLOR,
-    fontSize: 14,
-    fontFamily: { $ref: 'fontFamily' as const },
+    fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
+    fontFamily: { $ref: 'fontFamily' },
 };
 
 const text = {
     ...font,
-    color: DEFAULT_TEXT_ANNOTATION_COLOR,
     textAlign: 'left',
 };
 
-const measurerStatistics = {
+const measurerStatistics: WithThemeParams<AgMeasurerAnnotationStatistics> = {
     ...font,
-    fontSize: { $ref: 'fontSize' as const },
+    fontSize: { $ref: 'fontSize' },
     color: DEFAULT_ANNOTATION_STATISTICS_COLOR,
     fill: DEFAULT_ANNOTATION_STATISTICS_FILL,
     stroke: DEFAULT_ANNOTATION_STATISTICS_STROKE,
@@ -61,7 +67,7 @@ const measurerStatistics = {
     },
 };
 
-const measurer = {
+const measurer: WithThemeParams<AgMeasurerAnnotationStyles> = {
     ...stroke,
     background: {
         fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
@@ -119,7 +125,13 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         rangeStroke: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
-        label: { ...font, color: undefined, fontSize: 10 },
+        label: {
+            ...font,
+            color: undefined,
+            fontSize: {
+                $round: [{ $mul: [{ $ref: 'fontSize' }, 10 / 12] }],
+            },
+        },
     },
 
     'fibonacci-retracement-trend-based': {
@@ -128,14 +140,20 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         rangeStroke: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
-        label: { ...font, color: undefined, fontSize: 10 },
+        label: {
+            ...font,
+            color: undefined,
+            fontSize: {
+                $round: [{ $mul: [{ $ref: 'fontSize' }, 10 / 12] }],
+            },
+        },
     },
 
     // Texts
     callout: {
         ...stroke,
         ...text,
-        color: { $ref: 'foregroundColor' },
+        color: { $ref: 'textColor' },
         handle: { ...handle },
         fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
         fillOpacity: 0.2,
