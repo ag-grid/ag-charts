@@ -30,7 +30,7 @@ on:
             nx_command:
                 type: 'choice'
                 required: true
-                default: 'affected'
+                default: 'run-many'
                 options:
                     - 'affected'
                     - 'run-many'
