@@ -18,12 +18,12 @@ export class LogAxis extends NumberAxis {
         const { min, max } = this;
         const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
 
-        if (extent[0] < 0 && extent[1] > 0) {
+        if ((extent[0] < 0 && extent[1] > 0) || (d[0] < 0 && d[1] > 0)) {
             Logger.warn(
                 `The log axis domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.`
             );
             return { domain: [], clipped };
-        } else if (extent[0] === 0 || extent[1] === 0) {
+        } else if (extent[0] === 0 || extent[1] === 0 || d[0] === 0 || d[1] === 0) {
             Logger.warn(
                 `The log axis domain contains a value of 0, the chart data cannot be rendered. See log axis documentation for more information.`
             );
