@@ -79,24 +79,73 @@ export interface AgChartThemePalette {
 }
 
 export interface AgChartThemeParams {
-    /** The color of axis lines and ticks. */
+    /**
+     * The 'brand color' for the chart, used wherever a non-neutral color is required. Selections, focus outlines and
+     * checkboxes use the accent color by default.
+     */
+    accentColor?: CssColor;
+    /** Default color for axis lines and ticks. */
     axisColor?: CssColor;
-    /** The outer chart background color. */
+    /**
+     * Background color of the chart. Most text, borders and backgrounds are defined as a blend between the background
+     * and foreground colors.
+     */
     backgroundColor?: CssColor;
-    /** The border color of buttons and other UI elements. */
+    /** Default color for borders. */
     borderColor?: CssColor;
-    /** The font color and other related colors. */
+    /**
+     * Background color of chrome elements, e.g. menus and dialogs.
+     *
+     * Default: Mix of `foregroundColor` and `backgroundColor`
+     */
+    chromeBackgroundColor?: CssColor;
+    /**
+     * Font family used for text in chrome elements, e.g. menus and dialogs.
+     *
+     * Default: `fontFamily`
+     */
+    chromeFontFamily?: FontFamily;
+    /**
+     * Font size used for text in chrome elements, e.g. menus and dialogs.
+     *
+     * Default: `fontSize`
+     */
+    chromeFontSize?: FontSize;
+    /**
+     * Font weight used for text in chrome elements, e.g. menus and dialogs.
+     *
+     * Default: `fontWeight`
+     */
+    chromeFontWeight?: FontWeight;
+    /**
+     * Default color for text in chrome elements, e.g. menus and dialogs.
+     *
+     * Default: `textColor`
+     */
+    chromeTextColor?: CssColor;
+    /**
+     * Color of text in chrome elements that should stand out less than the default.
+     *
+     * Default: `subtleTextColor`
+     */
+    chromeSubtleTextColor?: CssColor;
+    /**
+     * Default color for neutral UI elements. Most text, borders and backgrounds are defined as a blend between the
+     * background and foreground colors.
+     */
     foregroundColor?: CssColor;
-    /** The font family. */
+    /** Font family used for all text. */
     fontFamily?: FontFamily;
-    /** The font size for all text except titles and footer. */
+    /** Default font size used for all text. Titles and some other text are scaled to this font size. */
     fontSize?: FontSize;
-    /** The font weight. */
+    /** Default font weight used for all text. */
     fontWeight?: FontWeight;
-    /** The color of the grid lines. */
+    /** Default color for grid lines. */
     gridLineColor?: CssColor;
     /** The outer chart padding. */
     padding?: PixelSize;
+    /** Amount of spacing around and inside UI elements. All padding and margins in the chart are defined as a multiple of this value. */
+    spacing?: number;
     /**
      * Color of text and UI elements that should stand out less than the default.
      *

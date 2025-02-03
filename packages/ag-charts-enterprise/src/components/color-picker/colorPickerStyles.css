@@ -39,7 +39,7 @@
     background:
         linear-gradient(to bottom, #0000, #000),
         linear-gradient(to right, #fff, #fff0) hsl(var(--h), 100%, 50%);
-    border-radius: 6px;
+    border-radius: calc(var(--ag-charts-border-radius) * 1.5);
     box-shadow: inset 0 0 0 1px #0003;
 }
 
@@ -57,7 +57,7 @@
      */
     width: var(--thumb-size);
     height: var(--thumb-size);
-    border-radius: 99px;
+    border-radius: calc(var(--ag-charts-border-radius) * 99);
     box-shadow: var(--box-shadow);
     --box-shadow: inset 0 0 0 3px white, inset 0 0 1px 3px #0006, 0 0 5px #00000038;
 }
@@ -98,7 +98,7 @@
     /* Copied from .ag-charts-color-picker__palette::after */
     width: var(--thumb-size);
     height: var(--thumb-size);
-    border-radius: 99px;
+    border-radius: calc(var(--ag-charts-border-radius) * 99);
     box-shadow: var(--box-shadow);
     --box-shadow: inset 0 0 0 3px white, inset 0 0 1px 3px #0006, 0 0 5px #00000038;
     /* Safari needs this element to have its own stacking context */
@@ -132,7 +132,7 @@
     left: var(--inset);
     right: var(--inset);
     height: var(--track-height);
-    border-radius: 99px;
+    border-radius: calc(var(--ag-charts-border-radius) * 99);
     box-shadow: inset 0 0 0 1px #0003;
 }
 
@@ -140,7 +140,7 @@
     width: 36px;
     margin-left: var(--inset);
     height: var(--track-height);
-    border-radius: 99px;
+    border-radius: calc(var(--ag-charts-border-radius) * 99);
     border: 0;
     background: var(--multi-color);
     box-shadow: inset 0 0 0 1px #0003;
@@ -190,12 +190,12 @@
     display: flex;
     border: var(--ag-charts-border);
     background: var(--ag-charts-background-color);
-    border-radius: 4px;
+    border-radius: var(--ag-charts-border-radius);
     overflow: hidden;
 }
 
 .ag-charts-color-picker__color-field:has(:focus-visible) {
-    border-color: var(--ag-charts-active-color);
+    border-color: var(--ag-charts-accent-color);
     box-shadow: var(--ag-charts-focus-border-shadow);
 }
 
@@ -208,7 +208,7 @@
     background:
         linear-gradient(to right, var(--color-a), var(--color-a)),
         var(--checker) top left / 4px 4px;
-    border-radius: 2px;
+    border-radius: calc(var(--ag-charts-border-radius) / 2);
     box-shadow: inset 0 0 0 1px #0003;
 }
 

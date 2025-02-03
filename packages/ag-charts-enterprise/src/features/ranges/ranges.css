@@ -1,3 +1,3 @@
 .ag-charts-range-buttons .ag-charts-toolbar__button {
-    padding: var(--ag-charts-toolbar-button-padding) calc(var(--ag-charts-toolbar-button-padding) * 1.5);
+    padding: var(--toolbar-button-padding) calc(var(--toolbar-button-padding) * 1.5);
 }

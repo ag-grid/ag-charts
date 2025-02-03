@@ -21,8 +21,8 @@
     pointer-events: auto;
 
     display: flex;
-    align-items: var(--ag-charts-align);
-    justify-content: var(--ag-charts-justify);
+    align-items: center;
+    justify-content: center;
 }
 
 .ag-charts-canvas-container,

@@ -15,10 +15,10 @@
 
 .ag-charts-crosshair-label-content {
     padding: 0px 8px;
-    border-radius: 2px;
+    border-radius: calc(var(--ag-charts-border-radius) / 2);
     line-height: calc(var(--ag-charts-font-size) + 8px);
-    background-color: var(--ag-charts-axis-label-background-color);
-    color: var(--ag-charts-axis-label-color);
+    background-color: var(--ag-charts-foreground-color);
+    color: var(--ag-charts-background-color);
 }
 
 .ag-charts-crosshair-label--hidden {

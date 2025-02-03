@@ -1,20 +1,15 @@
 .ag-charts-context-menu {
-    background: rgb(248, 248, 248);
-    border: 1px solid #babfc7;
-    border-radius: 5px;
-    box-shadow: 0 1px 4px 1px rgba(186, 191, 199, 0.4);
-    color: rgb(24, 29, 31);
+    background: var(--ag-charts-chrome-background-color);
+    border: var(--ag-charts-border);
+    border-radius: var(--ag-charts-border-radius);
+    box-shadow: var(--ag-charts-shadow);
+    color: var(--ag-charts-chrome-text-color);
     font-family: var(--ag-charts-chrome-font-family);
     font-size: calc(var(--ag-charts-chrome-font-size) * (13 / 12));
     font-weight: var(--ag-charts-chrome-font-weight);
     transition: transform 0.1s ease;
     white-space: nowrap;
     z-index: var(--ag-charts-layer-ui-overlay);
-}
-
-.ag-charts-context-menu.ag-charts-dark-context-menu {
-    color: white;
-    background: #15181c;
 }
 
 .ag-charts-context-menu__cover {

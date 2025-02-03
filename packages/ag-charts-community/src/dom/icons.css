@@ -8,8 +8,8 @@ To create an icon uri:
 
 .ag-charts-icon {
     display: block;
-    width: var(--ag-charts-icon-size);
-    height: var(--ag-charts-icon-size);
+    width: 20px;
+    height: 20px;
     speak: none;
     speak: never;
     mask: var(--icon) center / contain no-repeat;
