@@ -490,15 +490,24 @@ export class CartesianChart extends Chart {
                     layoutBBox.height + gridLinePadding
                 );
 
-                const lastLabel = axis.label.enabled ? axis.labelNodes.at(-1) : null;
-                if (lastLabel) {
-                    const labelBBox = lastLabel.getBBox();
-                    const isLabelClipped =
-                        seriesRect.x + labelBBox.y + labelBBox.height <=
+                // Detect last label clipping, only on continuous axis when label.avoidCollisions is enabled.
+                const { label, labelNodes, scale } = axis;
+                if (ContinuousScale.is(scale) && label.enabled && label.avoidCollisions && labelNodes.length > 1) {
+                    const lastLabel = labelNodes.at(-1)!;
+                    const lastLabelBBox = lastLabel.getBBox();
+                    const lastLabelInBounds =
+                        seriesRect.x + lastLabelBBox.y + lastLabelBBox.height <=
                         layoutBBox.x + layoutBBox.width + this.padding.right;
-                    lastLabel.visible = isLabelClipped;
+                    lastLabel.visible = lastLabelInBounds;
+
                     // When hiding the last label due to clipping we also hide the first label for the sack of balance.
-                    axis.labelNodes[0].visible = isLabelClipped;
+                    // First label is hidden only if also out of bounds and visible range doesn't reach the domain end.
+                    if (lastLabelInBounds || axis.visibleRange[1] < 1) {
+                        labelNodes[0].visible = true;
+                    } else {
+                        const firstLabelBBox = labelNodes[0].getBBox();
+                        labelNodes[0].visible = firstLabelBBox.y >= 0;
+                    }
                 }
                 break;
         }
