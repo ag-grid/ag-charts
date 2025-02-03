@@ -51,7 +51,7 @@ Add Vue Charts and Vue Graphs to your application in 60 seconds.
 
 {% /if %}
 
-Add AG Charts to your application in these steps:
+Add AG Charts to your application in 60 seconds:
 
 {% if isNotJavascriptFramework() %}
 
@@ -214,9 +214,6 @@ const options = {
 **2. Import the React Chart**
 
 ```js
-import React, { useState } from 'react';
-import ReactDOM from 'react-dom/client';
-
 // React Chart Component
 import { AgCharts } from 'ag-charts-react';
 ```
@@ -246,19 +243,13 @@ const ChartExample = () => {
 
 **4. React Chart Component**
 
-Replace your `index.js` file (or root component) with the following code:
+Return the `AgCharts` component with the `chartOptions` as a prop:
 
 ```jsx
-// React Chart Component
-  return (
-    // AgCharts component with options passed as prop
-    <AgCharts options={chartOptions} />
-  );
-}
-
-// Render component inside root element
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<ChartExample />);
+return (
+  // AgCharts component with options passed as prop
+  <AgCharts options={chartOptions} />
+);
 ```
 
 {% /if %}
@@ -270,8 +261,6 @@ root.render(<ChartExample />);
 **2. Import the Angular Chart**
 
 ```js
-import { Component } from '@angular/core';
-
 // Angular Chart Component
 import { AgCharts } from 'ag-charts-angular';
 // Chart Options Type Interface
@@ -339,9 +328,6 @@ template:
 </template>
 
 <script>
-    import { ref } from 'vue';
-    import type { AgChartOptions } from 'ag-charts-types';
-
     // Vue Chart Component
     import { AgCharts } from 'ag-charts-vue3';
 
