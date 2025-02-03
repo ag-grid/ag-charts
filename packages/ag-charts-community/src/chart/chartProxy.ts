@@ -168,6 +168,10 @@ export class AgChartInstanceProxy implements AgChartProxy {
             width,
             height,
         };
+        if (opts.width != null && opts.height != null) {
+            // @ts-expect-error undocumented option
+            processedOverrides.overrideDevicePixelRatio = 1;
+        }
         const userOptions = chart.getOptions();
 
         if (isEnterprise) {
@@ -193,9 +197,6 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         const specialOverrides = { ...chart.chartOptions.specialOverrides };
         const optionsMetadata = { ...chart.chartOptions.optionMetadata };
-        if (opts.width != null && opts.height != null) {
-            specialOverrides.overrideDevicePixelRatio = 1;
-        }
 
         const cloneProxy = this.factoryApi.create(userOptions, processedOverrides, specialOverrides, optionsMetadata);
         await cloneProxy.setState(state);

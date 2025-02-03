@@ -162,13 +162,7 @@ class AgChartsInternal {
             debug(() => ['>>> AgCharts.createOrUpdate() MUTATED user options', deepClone(mutableOptions)]);
         }
 
-        const {
-            overrideDevicePixelRatio,
-            document,
-            window: userWindow,
-            styleContainer,
-            ...options
-        } = mutableOptions ?? {};
+        const { document, window: userWindow, styleContainer, ...options } = mutableOptions ?? {};
         const baseOptions = (deltaOptions ? proxy?.chart.getChartOptions() : options) ?? options;
         const chartOptions = new ChartOptions(
             baseOptions,
@@ -177,7 +171,6 @@ class AgChartsInternal {
                 ...specialOverrides,
                 document,
                 window: userWindow,
-                overrideDevicePixelRatio,
                 styleContainer,
             },
             optionsMetadata,

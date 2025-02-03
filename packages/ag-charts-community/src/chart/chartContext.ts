@@ -77,7 +77,6 @@ export class ChartContext implements ModuleContext {
             fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
             updateCallback: UpdateCallback;
             updateMutex: Mutex;
-            pixelRatio?: number;
         }
     ) {
         const {
@@ -88,7 +87,6 @@ export class ChartContext implements ModuleContext {
             fireEvent,
             updateCallback,
             updateMutex,
-            pixelRatio,
             styleContainer,
             chartType,
         } = vars;
@@ -105,7 +103,7 @@ export class ChartContext implements ModuleContext {
             scene?.canvas.element
         ) as HTMLCanvasElement;
 
-        this.scene = scene ?? new Scene({ pixelRatio, canvasElement });
+        this.scene = scene ?? new Scene({ canvasElement });
         this.scene.setRoot(root);
 
         this.axisManager = new AxisManager(root);

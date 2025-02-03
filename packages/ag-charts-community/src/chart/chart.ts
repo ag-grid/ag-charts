@@ -167,12 +167,19 @@ export abstract class Chart extends Observable implements ModuleInstance {
     })
     minHeight?: number;
 
+    @ActionOnSet<Chart>({
+        newValue(value) {
+            this.resize('overrideDevicePixelRatio option', { inOverrideDevicePixelRatio: value });
+        },
+    })
+    overrideDevicePixelRatio?: number;
+
     /** NOTE: This is exposed for use by Integrated charts only. */
     get canvasElement() {
         return this.ctx.scene.canvas.element;
     }
 
-    private _lastAutoSize?: [number, number];
+    private _lastAutoSize?: [number, number, number];
     private _firstAutoSize = true;
     private readonly _autoSizeNotify = new AsyncAwaitQueue();
 
@@ -282,7 +289,6 @@ export abstract class Chart extends Observable implements ModuleInstance {
             container,
             styleContainer,
             syncManager: new SyncManager(this),
-            pixelRatio: options.specialOverrides.overrideDevicePixelRatio,
             fireEvent: (event) => this.fireEvent(event),
             updateCallback: (type, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
@@ -836,29 +842,36 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
     }
 
-    private parentResize(size: { width: number; height: number } | undefined) {
+    private parentResize(size: { width: number; height: number; pixelRatio: number } | undefined) {
         if (size == null || (this.width != null && this.height != null)) return;
 
         let { width, height } = size;
+        const { pixelRatio } = size;
 
         width = Math.floor(width);
         height = Math.floor(height);
 
         if (width === 0 && height === 0) return;
 
-        const [autoWidth = 0, authHeight = 0] = this._lastAutoSize ?? [];
-        if (autoWidth === width && authHeight === height) return;
+        const [autoWidth = 0, autoHeight = 0, autoPixelRatio = 1] = this._lastAutoSize ?? [];
+        if (autoWidth === width && autoHeight === height && autoPixelRatio === pixelRatio) return;
 
-        this._lastAutoSize = [width, height];
+        this._lastAutoSize = [width, height, pixelRatio];
         this.resize('SizeMonitor', {});
     }
 
     private resize(
         source: string,
-        opts: { inWidth?: number; inHeight?: number; inMinWidth?: number; inMinHeight?: number }
+        opts: {
+            inWidth?: number;
+            inHeight?: number;
+            inMinWidth?: number;
+            inMinHeight?: number;
+            inOverrideDevicePixelRatio?: number;
+        }
     ) {
         const { scene, animationManager } = this.ctx;
-        const { inWidth, inHeight, inMinWidth, inMinHeight } = opts;
+        const { inWidth, inHeight, inMinWidth, inMinHeight, inOverrideDevicePixelRatio } = opts;
 
         this.ctx.domManager.setSizeOptions(
             inMinWidth ?? this.minWidth,
@@ -869,10 +882,11 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
         const width = inWidth ?? this.width ?? this._lastAutoSize?.[0];
         const height = inHeight ?? this.height ?? this._lastAutoSize?.[1];
-        this.debug(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
+        const pixelRatio = inOverrideDevicePixelRatio ?? this._lastAutoSize?.[2] ?? 1;
+        this.debug(`Chart.resize() from ${source}`, { width, height, pixelRatio, stack: new Error().stack });
         if (width == null || height == null || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
-        if (scene.resize(width, height)) {
+        if (scene.resize(width, height, pixelRatio)) {
             animationManager.reset();
 
             let skipAnimations = true;
