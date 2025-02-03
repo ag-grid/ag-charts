@@ -203,7 +203,6 @@ export class LineSeries extends CartesianSeries<
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, data, {
             props,
             groupByKeys: stacked,
-            groupByData: false,
         });
 
         this.dataAggregationFilters = this.aggregateData(dataModel, processedData as any as UngroupedData<any>);
