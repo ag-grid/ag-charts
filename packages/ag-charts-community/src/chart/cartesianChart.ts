@@ -238,7 +238,7 @@ export class CartesianChart extends Chart {
             primaryTickCounts[direction] ??= primaryTickCount;
             clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
-            axisWidths.set(axis.id, Math.ceil(axis.thickness ?? (isVertical ? bbox?.width ?? 0 : bbox?.height ?? 0)));
+            axisWidths.set(axis.id, Math.ceil(axis.thickness ?? (isVertical ? bbox?.width : bbox?.height) ?? 0));
         }
 
         const axisGroups = Object.entries(groupBy(this.axes, (axis) => axis.position ?? 'left')) as [
@@ -493,9 +493,12 @@ export class CartesianChart extends Chart {
                 const lastLabel = axis.label.enabled ? axis.labelNodes.at(-1) : null;
                 if (lastLabel) {
                     const labelBBox = lastLabel.getBBox();
-                    lastLabel.visible =
+                    const isLabelClipped =
                         seriesRect.x + labelBBox.y + labelBBox.height <=
                         layoutBBox.x + layoutBBox.width + this.padding.right;
+                    lastLabel.visible = isLabelClipped;
+                    // When hiding the last label due to clipping we also hide the first label for the sack of balance.
+                    axis.labelNodes[0].visible = isLabelClipped;
                 }
                 break;
         }

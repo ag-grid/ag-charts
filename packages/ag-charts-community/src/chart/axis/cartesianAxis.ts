@@ -171,9 +171,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         fractionDigits: number;
         bbox: BBox;
     } {
-        const { parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
-
         const sideFlag = this.label.getSideFlag();
+        const { parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
 
         const tickGenerationResult = this.tickGenerator.generateTicks({
@@ -186,26 +185,16 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             labelX,
             sideFlag,
         });
-        const { tickData, primaryTickCount = initialPrimaryTickCount } = tickGenerationResult;
 
-        const ticks = tickData?.ticks ?? [];
-        const labels = tickData.ticks?.map((d) => this.getTickLabelProps(d, tickGenerationResult)) ?? [];
+        const { tickData, primaryTickCount = initialPrimaryTickCount } = tickGenerationResult;
+        const { ticks, tickDomain, rawTicks, fractionDigits, niceDomain = domain } = tickData;
+
+        const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult));
+        const bbox = this.tickBBox(ticks, labels);
 
         this.generatedTicks = { ticks, labels };
 
-        const niceDomain = tickData?.niceDomain ?? domain;
-        const fractionDigits = tickData?.fractionDigits ?? 0;
-
-        const bbox = this.tickBBox(ticks, labels);
-
-        return {
-            niceDomain,
-            primaryTickCount,
-            tickDomain: tickData?.tickDomain ?? niceDomain,
-            ticks: tickData?.rawTicks ?? [],
-            fractionDigits,
-            bbox,
-        };
+        return { ticks: rawTicks, tickDomain, niceDomain, primaryTickCount, fractionDigits, bbox };
     }
 
     override update() {
@@ -258,19 +247,17 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         boxes.push(lineBox);
 
         if (this.tick.enabled) {
-            ticks.forEach((datum) => {
+            for (const datum of ticks) {
                 const { x1, x2, y } = this.getTickLineCoordinates(datum);
                 const tickLineBox = new BBox(x1, y, x2 - x1, 0);
                 boxes.push(tickLineBox);
-            });
+            }
         }
 
         const { tempText } = this;
         if (this.label.enabled) {
-            labels.forEach((datum) => {
-                if (!datum.visible) {
-                    return;
-                }
+            for (const datum of labels) {
+                if (!datum.visible) continue;
 
                 tempText.setProperties({
                     ...datum,
@@ -281,7 +268,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                 if (box) {
                     boxes.push(box);
                 }
-            });
+            }
         }
 
         if (this.title?.enabled) {
@@ -298,12 +285,11 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
-        const { label } = this;
         const { combinedRotation, textBaseline, textAlign } = tickGenerationResult;
-        const range = this.scale.range;
+        const { range } = this.scale;
         const text = datum.tickLabel;
-        const sideFlag = label.getSideFlag();
-        const labelX = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
+        const sideFlag = this.label.getSideFlag();
+        const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
         const visible = text !== '' && text != null;
 
         return {
@@ -350,7 +336,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         if (title.enabled && !noVisibleTicks && spacing == null) {
             const tickBBox = Group.computeChildrenBBox([tickLineGroup, tickLabelGroup, lineNode]);
-            spacing = tickBBox.width + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
+            spacing = tickBBox.width + (tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
         }
         spacing ??= 0;
 

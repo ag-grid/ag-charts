@@ -116,25 +116,15 @@ export abstract class RadiusAxis<
             labelX,
             sideFlag,
         });
-        const { tickData, primaryTickCount = initialPrimaryTickCount } = tickGenerationResult;
 
-        const ticks = tickData?.ticks ?? [];
-        const labels =
-            tickGenerationResult?.tickData.ticks?.map((d) => this.getTickLabelProps(d, tickGenerationResult)) ?? [];
+        const { tickData, primaryTickCount = initialPrimaryTickCount } = tickGenerationResult;
+        const { ticks, rawTicks, tickDomain, fractionDigits, niceDomain = domain } = tickData;
+
+        const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult));
 
         this.generatedTicks = { ticks, labels };
 
-        const niceDomain = tickData?.niceDomain ?? domain;
-        const fractionDigits = tickData?.fractionDigits ?? 0;
-
-        return {
-            niceDomain,
-            primaryTickCount,
-            tickDomain: tickData?.tickDomain ?? niceDomain,
-            ticks: tickData?.rawTicks ?? [],
-            fractionDigits,
-            bbox: undefined,
-        };
+        return { ticks: rawTicks, tickDomain, niceDomain, primaryTickCount, fractionDigits, bbox: undefined };
     }
 
     protected abstract prepareGridPathTickData(tickData: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[];
