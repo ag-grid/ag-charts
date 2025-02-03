@@ -57,7 +57,6 @@ import type { SeriesType } from './optionsModuleTypes';
 export interface ChartSpecialOverrides {
     document: Document;
     window: Window;
-    overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
     styleContainer?: HTMLElement;
 }
