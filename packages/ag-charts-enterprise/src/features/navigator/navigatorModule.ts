@@ -2,8 +2,6 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { Navigator } from './navigator';
 
-const { DEFAULT_INVERTED_BACKGROUND_COLOUR } = _ModuleSupport.ThemeSymbols;
-
 export const NavigatorModule: _ModuleSupport.RootModule = {
     type: 'root',
     optionsKey: 'navigator',
@@ -17,7 +15,7 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
             height: 18,
             cornerRadius: 4,
             mask: {
-                fill: DEFAULT_INVERTED_BACKGROUND_COLOUR,
+                fill: { $ref: 'foregroundColor' },
                 fillOpacity: 0.1,
                 stroke: { $ref: 'borderColor' },
                 strokeWidth: 1,
