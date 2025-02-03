@@ -192,7 +192,7 @@ function startOneFingerTouch(
         const touch = findInitialFinger(moveEvent.targetTouches);
         if (touch != null) {
             longTapInterrupted =
-                longTapInterrupted || deltaClientSquared(initialTouch, touch) < LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX;
+                longTapInterrupted || deltaClientSquared(initialTouch, touch) > LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX;
             if (dragTouchEnabled && touch != null) {
                 that.globalTouchDragCallbacks?.touchmove(moveEvent, touch);
             }
