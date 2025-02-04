@@ -394,7 +394,7 @@ export class DataModel<
             }
         }
 
-        if (!!this.opts.groupByKeys || this.opts.groupByFn != null || this.opts.groupByData) {
+        if (!!this.opts.groupByKeys || this.opts.groupByFn != null) {
             const ungroupedScopes = new Set(valueScopes.values());
             keyScopes.forEach((s) => ungroupedScopes.delete(s));
 
