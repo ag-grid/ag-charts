@@ -565,27 +565,25 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         let format: AgPieSeriesStyle | undefined;
         if (itemStyler) {
-            format = this.cachedDatumCallback(
-                createDatumId(this.getDatumIdFromData(datum), highlighted ? 'highlight' : 'hide'),
-                () =>
-                    itemStyler({
-                        datum,
-                        angleKey,
-                        radiusKey,
-                        calloutLabelKey,
-                        sectorLabelKey,
-                        legendItemKey,
-                        fill: fill!,
-                        strokeOpacity,
-                        stroke,
-                        strokeWidth,
-                        fillOpacity,
-                        lineDash,
-                        lineDashOffset,
-                        cornerRadius,
-                        highlighted,
-                        seriesId: this.id,
-                    })
+            format = this.cachedDatumCallback(this.getDatumId(datum) + (highlighted ? '-highlight' : '-hide'), () =>
+                itemStyler({
+                    datum,
+                    angleKey,
+                    radiusKey,
+                    calloutLabelKey,
+                    sectorLabelKey,
+                    legendItemKey,
+                    fill: fill!,
+                    strokeOpacity,
+                    stroke,
+                    strokeWidth,
+                    fillOpacity,
+                    lineDash,
+                    lineDashOffset,
+                    cornerRadius,
+                    highlighted,
+                    seriesId: this.id,
+                })
             );
         }
 
@@ -711,10 +709,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     private updateSelections() {
-        this.updateGroupSelection();
-    }
-
-    private updateGroupSelection() {
         const {
             itemSelection,
             highlightSelection,
@@ -1528,26 +1522,21 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.previousRadiusScale.range = this.radiusScale.range;
     }
 
-    getDatumIdFromData(datum: any) {
+    getDatumId(datum: PieNodeDatum) {
         const { calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
 
         if (!this.processedData?.reduced?.animationValidation?.uniqueKeys) {
-            return;
+            return `${datum.datumIndex}`;
         }
 
         if (legendItemKey) {
-            return datum[legendItemKey];
+            return createDatumId(datum.datum[legendItemKey]);
         } else if (calloutLabelKey) {
-            return datum[calloutLabelKey];
+            return createDatumId(datum.datum[calloutLabelKey]);
         } else if (sectorLabelKey) {
-            return datum[sectorLabelKey];
+            return createDatumId(datum.datum[sectorLabelKey]);
         }
-    }
 
-    getDatumId(datum: PieNodeDatum) {
-        const { datumIndex } = datum;
-
-        const datumId = this.getDatumIdFromData(datum.datum);
-        return datumId != null ? String(datumId) : `${datumIndex}`;
+        return `${datum.datumIndex}`;
     }
 }
