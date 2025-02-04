@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { inputGlob, parseFile } from 'ag-shared/plugin-utils';
+import { MemberNode } from 'src/doc-interfaces/types';
 import * as ts from 'typescript';
 
 type NodeType = any;
@@ -126,9 +127,10 @@ export class TypeMapper {
                 if (Array.isArray(n.members)) {
                     node.members.push(...n.members);
                 } else {
-                    console.warn('Node heritage without members found', h, n);
+                    // Uncomment if you need to debug missing inheritance members.
+                    // console.warn('Node heritage without members found', h, n);
                 }
-            } else if (h.type === 'Omit' || h.type === 'Pick') {
+            } else if (h.type === 'Omit' || h.type === 'Pick' || h.type === 'Required') {
                 const n = this.resolveTypeRef(h);
                 node.members.push(...n.members);
             } else if (h.type === 'Readonly') {
@@ -138,6 +140,7 @@ export class TypeMapper {
                 node.members.push(...h.members);
             } else {
                 console.warn(`Unhandled type "${h.type}" on ${node.name}`, h);
+                throw Error(`Unhandled type "${h.type}" on ${node.name}`);
             }
         }
 
@@ -158,6 +161,9 @@ export class TypeMapper {
     protected resolveTypeRef(node) {
         if (node.type === 'NonNullable') {
             return this.resolveType(node.typeArguments[0]);
+        } else if (node.type === 'Required') {
+            const n = this.resolveType(node.typeArguments[0]);
+            return { ...n, members: n.members.map((member: MemberNode) => ({ ...member, optional: false })) };
         } else if (node.type === 'Omit' || node.type === 'Pick') {
             const resolveTypeKeyType = (typeKey) => {
                 if (typeof typeKey === 'string' && !typeKey.match(/^'.*'$/)) {
