@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgBoxPlotSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { BoxPlotSeries } from './boxPlotSeries';
+import { boxPlotSeriesOptionsDef } from './boxPlotSeriesOptionsDef';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 
 const {
@@ -53,4 +55,15 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
             backgroundFill,
         };
     },
+};
+
+export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions> = {
+    type: 'series',
+    name: 'box-plot',
+    chartType: 'cartesian',
+    enterprise: true,
+
+    options: boxPlotSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new BoxPlotSeries(ctx),
 };

@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgRangeAreaSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { RangeAreaSeries } from './rangeArea';
+import { rangeAreaSeriesOptionsDef } from './rangeAreaSeriesOptionsDef';
 import { RANGE_AREA_SERIES_THEME } from './rangeAreaThemes';
 
 const {
@@ -31,4 +33,15 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
             marker,
         };
     },
+};
+
+export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOptions> = {
+    type: 'series',
+    name: 'range-area',
+    chartType: 'cartesian',
+    enterprise: true,
+
+    options: rangeAreaSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new RangeAreaSeries(ctx),
 };

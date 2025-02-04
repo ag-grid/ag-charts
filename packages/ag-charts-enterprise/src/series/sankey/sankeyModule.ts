@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgSankeySeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { SankeySeries } from './sankeySeries';
+import { sankeySeriesOptionsDef } from './sankeySeriesOptionsDef';
 
 export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     type: 'series',
@@ -51,4 +53,15 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     paletteFactory({ takeColors, colorsCount }) {
         return takeColors(colorsCount);
     },
+};
+
+export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> = {
+    type: 'series',
+    name: 'sankey',
+    chartType: 'flow-proportion',
+    enterprise: true,
+
+    options: sankeySeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new SankeySeries(ctx),
 };

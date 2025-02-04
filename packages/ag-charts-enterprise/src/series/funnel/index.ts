@@ -1,0 +1,1 @@
+export { FunnelSeriesModule } from './funnelModule';

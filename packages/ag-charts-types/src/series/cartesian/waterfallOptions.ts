@@ -105,7 +105,7 @@ export interface WaterfallSeriesTotalMeta {
     /** The index after which the total item will be displayed. */
     index: number;
     /** The label to display at the axis position where the total value is positioned. */
-    axisLabel: any;
+    axisLabel: string;
 }
 
 export interface AgWaterfallSeriesItemOptions<TDatum> extends AgWaterfallSeriesStyle {

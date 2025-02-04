@@ -1,7 +1,9 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgMapShapeSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeSeries } from './mapShapeSeries';
+import { mapShapeSeriesOptionsDef } from './mapShapeSeriesOptionsDef';
 
 const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_BACKGROUND_COLOUR } = _ModuleSupport.ThemeSymbols;
 
@@ -42,4 +44,15 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
             colorRange: userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]],
         };
     },
+};
+
+export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOptions> = {
+    type: 'series',
+    name: 'map-shape',
+    chartType: 'topology',
+    enterprise: true,
+
+    options: mapShapeSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new MapShapeSeries(ctx),
 };

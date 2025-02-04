@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { SunburstSeries } from './sunburstSeries';
+import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
 
 const {
     FONT_SIZE_RATIO,
@@ -61,4 +63,15 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
         const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
         return { fills, strokes, colorRange: defaultColorRange };
     },
+};
+
+export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOptions> = {
+    type: 'series',
+    name: 'sunburst',
+    chartType: 'hierarchy',
+    enterprise: true,
+
+    options: sunburstSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new SunburstSeries(ctx),
 };
