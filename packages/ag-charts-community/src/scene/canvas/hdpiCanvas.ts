@@ -29,15 +29,9 @@ export class HdpiCanvas {
     pixelRatio: number;
 
     constructor(options: CanvasOptions) {
-        const { width, height, pixelRatio, canvasElement, willReadFrequently = false } = options;
+        const { width, height, canvasElement, willReadFrequently = false } = options;
 
-        if (pixelRatio == null) {
-            const devicePixelRatio = getWindow('devicePixelRatio');
-            const browserZoom = getWindow('outerWidth') / getWindow('innerWidth');
-            this.pixelRatio = Number.isFinite(browserZoom) ? browserZoom * devicePixelRatio : devicePixelRatio;
-        } else {
-            this.pixelRatio = pixelRatio;
-        }
+        this.pixelRatio = options.pixelRatio ?? getWindow('devicePixelRatio') ?? 1;
 
         // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
         this.element = canvasElement ?? createElement('canvas');
@@ -52,7 +46,7 @@ export class HdpiCanvas {
         this.context = this.element.getContext('2d', { willReadFrequently })!;
 
         this.onEnabledChange(); // Force `display: block` style
-        this.resize(width ?? 0, height ?? 0, pixelRatio ?? 1);
+        this.resize(width ?? 0, height ?? 0, this.pixelRatio);
 
         debugContext(this.context);
     }
@@ -78,6 +72,7 @@ export class HdpiCanvas {
 
         this.width = width;
         this.height = height;
+        this.pixelRatio = pixelRatio;
     }
 
     clear() {
