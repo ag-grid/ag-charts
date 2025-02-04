@@ -83,12 +83,13 @@ export class TouchDragger {
 
             // Fire context menu
             const { clientX, clientY } = initialTouch;
-            const contextMenuEvent = new MouseEvent('contextmenu', {
+            const contextMenuEvent = new PointerEvent('contextmenu', {
                 bubbles: true,
                 cancelable: true,
                 view: getWindow(),
                 clientX,
                 clientY,
+                pointerType: 'touch',
             });
             target.dispatchEvent(contextMenuEvent);
         }
