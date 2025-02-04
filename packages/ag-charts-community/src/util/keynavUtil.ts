@@ -1,5 +1,3 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-
 import { getAttribute, setAttribute } from './attributeUtil';
 
 function addRemovableEventListener<K extends keyof WindowEventMap>(
