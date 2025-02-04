@@ -458,6 +458,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesDragInterpreter.addListener('mousemove', this.onHover.bind(this)),
             seriesDragInterpreter.addListener('click', this.onClick.bind(this)),
             seriesDragInterpreter.addListener('dblclick', this.onDoubleClick.bind(this)),
+            seriesDragInterpreter.addListener('drag-start', this.dragStartTouchHandler.bind(this)),
+            seriesDragInterpreter.addListener('drag-move', this.dragMoveTouchHandler.bind(this)),
             seriesDragInterpreter.addListener('drag-start', this.onDragStart.bind(this)),
             seriesDragInterpreter.addListener('drag-move', this.onDrag.bind(this)),
             seriesDragInterpreter.addListener('drag-end', this.onDragEnd.bind(this)),
@@ -993,13 +995,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.state.transition('resize', { textInputValue, bbox });
     }
 
-    private onDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
+    private dragStartTouchHandler(event: _Widget.DragWidgetEvent<'drag-start'>) {
         if (event.device === 'touch') {
             this.onHover(event);
         }
+    }
 
+    private dragMoveTouchHandler(event: _Widget.DragWidgetEvent<'drag-move'>) {
+        const prevent =
+            event.device === 'touch' &&
+            this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable) &&
+            this.state.getActive() !== undefined;
+        if (prevent) {
+            // TODO the preventDefault() should be handled by the state machine rather than replying on getActive().
+            event.sourceEvent.preventDefault();
+        }
+    }
+
+    private onDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
-        const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
@@ -1010,15 +1024,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
-        state.transition('dragStart', { context, offset, point, textInputValue, bbox });
+        this.state.transition('dragStart', { context, offset, point, textInputValue, bbox });
     }
 
     private onDrag(event: _Widget.DragWidgetEvent<'drag-move'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
-
-        if (event.device === 'touch') event.sourceEvent.preventDefault();
-
-        const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
@@ -1029,7 +1039,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
-        state.transition('drag', { context, offset, point, shiftKey, textInputValue, bbox });
+        this.state.transition('drag', { context, offset, point, shiftKey, textInputValue, bbox });
     }
 
     private onDragEnd() {
