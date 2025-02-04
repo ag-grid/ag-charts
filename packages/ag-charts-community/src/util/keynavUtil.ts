@@ -4,24 +4,27 @@ function addRemovableEventListener<K extends keyof WindowEventMap>(
     destroyFns: (() => void)[],
     elem: Window,
     type: K,
-    listener: (this: Window, ev: WindowEventMap[K]) => any
+    listener: (this: Window, ev: WindowEventMap[K]) => any,
+    options?: true | AddEventListenerOptions
 ): () => void;
 
 function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
     destroyFns: (() => void)[],
     elem: HTMLElement,
     type: K,
-    listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any
+    listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
+    options?: true | AddEventListenerOptions
 ): () => void;
 
 function addRemovableEventListener<K extends keyof (HTMLElementEventMap | WindowEventMap)>(
     destroyFns: (() => void)[],
     elem: HTMLElement | Window,
     type: K,
-    listener: (this: unknown, ev: unknown) => unknown
+    listener: (this: unknown, ev: unknown) => unknown,
+    options?: true | AddEventListenerOptions
 ): () => void {
     elem.addEventListener(type, listener);
-    const remover = () => elem.removeEventListener(type, listener);
+    const remover = () => elem.removeEventListener(type, listener, options);
     destroyFns.push(remover);
     return remover;
 }
@@ -180,11 +183,21 @@ export function initMenuKeyNav(opts: {
     sourceEvent: Event;
     menu: HTMLElement;
     buttons: HTMLElement[];
+    // AG-13363 Force disable `:focus-visible` selector (e.g. when opened by a touch device)
+    overrideFocusVisible?: false;
     // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
     autoCloseOnBlur?: boolean;
     closeCallback: () => void;
 }): MenuCloser {
-    const { sourceEvent, orientation, menu, buttons, closeCallback, autoCloseOnBlur = false } = opts;
+    const {
+        sourceEvent,
+        orientation,
+        menu,
+        buttons,
+        closeCallback,
+        overrideFocusVisible,
+        autoCloseOnBlur = false,
+    } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
 
     const lastFocus = getLastFocus(sourceEvent);
@@ -222,6 +235,14 @@ export function initMenuKeyNav(opts: {
     }
 
     buttons[0]?.focus({ preventScroll: true });
+
+    if (overrideFocusVisible !== undefined) {
+        buttons.forEach((b) => b.setAttribute('data-focus-visible-override', overrideFocusVisible.toString()));
+        const keydownTrueOverrider = () => {
+            buttons.forEach((b) => b.setAttribute('data-focus-visible-override', 'true'));
+        };
+        addRemovableEventListener(destroyFns, menu, 'keydown', keydownTrueOverrider, { once: true });
+    }
     return menuCloser;
 }
 

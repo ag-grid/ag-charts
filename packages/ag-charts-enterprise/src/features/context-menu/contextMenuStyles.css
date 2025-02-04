@@ -62,10 +62,16 @@
     background: rgb(33, 150, 243, 0.1);
 }
 
+.ag-charts-context-menu__item[data-focus-visible-override='true']:focus,
 .ag-charts-context-menu__item:focus-visible {
     outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
     z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
+}
+.ag-charts-context-menu__item[data-focus-visible-override='false'] {
+    outline: inherit;
+    box-shadow: inherit;
+    z-index: inherit;
 }
 
 .ag-charts-context-menu__item[aria-disabled='true'] {

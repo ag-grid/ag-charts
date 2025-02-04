@@ -192,7 +192,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.show(event.sourceEvent);
     }
 
-    private show(sourceEvent: Event) {
+    private show(sourceEvent: _ModuleSupport.MouseEventWithPointerType) {
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
@@ -209,12 +209,14 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.element.style.display = 'block';
 
+        const overrideFocusVisible = sourceEvent.pointerType === 'touch' ? false : undefined;
         const buttons = getChildrenOfType(newMenuElement, HTMLButtonElement);
         this.menuCloser = initMenuKeyNav({
             menu: newMenuElement,
             buttons,
             orientation: 'vertical',
             sourceEvent,
+            overrideFocusVisible,
             autoCloseOnBlur: true,
             closeCallback: () => this.doClose(),
         });
