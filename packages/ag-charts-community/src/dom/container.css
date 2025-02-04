@@ -13,8 +13,16 @@
 }
 
 .ag-charts-canvas-center {
+    /* Width/height overridden by styles (may not be needed) */
     width: 100%;
     height: 100%;
+    /**
+    When an explicit width and/or height is set, we center the chart if it isn't the same size as the container
+    However, if it's smaller than the container, the chart would still be centred and clipped
+    By ensuring the canvas is at least the size of the container, we will avoid centering in that case
+    */
+    min-width: 100%;
+    min-height: 100%;
 
     position: absolute;
     touch-action: auto;

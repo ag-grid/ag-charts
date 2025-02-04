@@ -55,6 +55,10 @@ type ScaleStyle = Pick<
     | 'lineDashOffset'
 >;
 
+interface UndocumentedProperties {
+    overrideDevicePixelRatio?: number;
+}
+
 function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     const {
         animation,
@@ -67,6 +71,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         locale,
         minHeight,
         minWidth,
+        overrideDevicePixelRatio,
         padding,
         subtitle,
         theme,
@@ -95,7 +100,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         secondaryLabel,
         spacing,
         ...rest
-    } = opts;
+    } = opts as AgRadialGaugeOptions & UndocumentedProperties;
 
     const {
         fills: scaleFills,
@@ -113,7 +118,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         label: scaleLabel = {},
     } = scale;
 
-    const chartOpts = pickProps<AgBaseGaugePresetOptions>(opts, {
+    const chartOpts = pickProps<AgBaseGaugePresetOptions & UndocumentedProperties>(opts, {
         animation,
         background,
         container,
@@ -124,6 +129,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         locale,
         minHeight,
         minWidth,
+        overrideDevicePixelRatio,
         padding,
         subtitle,
         theme,
@@ -202,6 +208,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         locale,
         minHeight,
         minWidth,
+        overrideDevicePixelRatio,
         padding,
         subtitle,
         theme,
@@ -223,7 +230,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         cornerMode,
         label,
         ...rest
-    } = opts;
+    } = opts as AgLinearGaugeOptions & UndocumentedProperties;
 
     const {
         fills: scaleFills,
@@ -241,7 +248,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         label: scaleLabel = {},
     } = scale;
 
-    const chartOpts = pickProps<AgBaseGaugePresetOptions>(opts, {
+    const chartOpts = pickProps<AgBaseGaugePresetOptions & UndocumentedProperties>(opts, {
         animation,
         background,
         container,
@@ -252,6 +259,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         locale,
         minHeight,
         minWidth,
+        overrideDevicePixelRatio,
         padding,
         subtitle,
         theme,

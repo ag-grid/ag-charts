@@ -97,9 +97,10 @@ export class Scene {
         return this.canvas.toDataURL(fileFormat);
     }
 
-    resize(width: number, height: number, pixelRatio: number): boolean {
+    resize(width: number, height: number, pixelRatio: number | undefined): boolean {
         width = Math.round(width);
         height = Math.round(height);
+        pixelRatio ??= this.pixelRatio;
         if (
             width > 0 &&
             height > 0 &&
