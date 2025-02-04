@@ -65,30 +65,41 @@ export abstract class AgCharts {
         userOptions: O,
         optionsMetadata?: ChartInternalOptionMetadata
     ): AgChartInstance<O> {
-        this.licenseCheck(userOptions);
-        const chart = AgChartsInternal.createOrUpdate({
-            userOptions,
-            licenseManager: this.licenseManager,
-            optionsMetadata,
-        });
+        return debug.group('AgCharts.create()', () => {
+            this.licenseCheck(userOptions);
+            const chart = AgChartsInternal.createOrUpdate({
+                userOptions,
+                licenseManager: this.licenseManager,
+                optionsMetadata,
+            });
 
-        if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
-            enterpriseModule.injectWatermark?.(chart.chart.ctx.domManager, this.licenseManager.getWatermarkMessage());
-        }
-        return chart as unknown as AgChartInstance<O>;
+            if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
+                enterpriseModule.injectWatermark?.(
+                    chart.chart.ctx.domManager,
+                    this.licenseManager.getWatermarkMessage()
+                );
+            }
+            return chart as unknown as AgChartInstance<O>;
+        });
     }
 
     public static createFinancialChart(options: AgFinancialChartOptions): AgChartInstance<AgFinancialChartOptions> {
-        return this.create(options as any, { presetType: 'price-volume' }) as any;
+        return debug.group('AgCharts.createFinancialChart()', () => {
+            return this.create(options as any, { presetType: 'price-volume' }) as any;
+        });
     }
 
     public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
-        return this.create(options as AgChartOptions, { presetType: 'gauge' }) as any;
+        return debug.group('AgCharts.createGauge()', () => {
+            return this.create(options as AgChartOptions, { presetType: 'gauge' }) as any;
+        });
     }
 
     public static __createSparkline(options: AgSparklineOptions): AgChartInstance<AgSparklineOptions> {
-        const { pool, ...normalOptions } = options as any;
-        return this.create(normalOptions as AgChartOptions, { presetType: 'sparkline', pool: pool ?? true }) as any;
+        return debug.group('AgCharts.__createSparkline()', () => {
+            const { pool, ...normalOptions } = options as any;
+            return this.create(normalOptions as AgChartOptions, { presetType: 'sparkline', pool: pool ?? true }) as any;
+        });
     }
 }
 
@@ -216,12 +227,14 @@ class AgChartsInternal {
         chart.queuedUserOptions.push(chartOptions.userOptions);
         chart.queuedChartOptions.push(chartOptions);
         chart.requestFactoryUpdate((chartRef) => {
-            chartRef.applyOptions(chartOptions);
-            // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
-            // so we need to remove all queue items up to the last successfully applied item.
-            const queueIdx = chartRef.queuedUserOptions.indexOf(chartOptions.userOptions) + 1;
-            chartRef.queuedUserOptions.splice(0, queueIdx);
-            chartRef.queuedChartOptions.splice(0, queueIdx);
+            debug.group('>>>> Chart.applyOptions()', () => {
+                chartRef.applyOptions(chartOptions);
+                // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
+                // so we need to remove all queue items up to the last successfully applied item.
+                const queueIdx = chartRef.queuedUserOptions.indexOf(chartOptions.userOptions) + 1;
+                chartRef.queuedUserOptions.splice(0, queueIdx);
+                chartRef.queuedChartOptions.splice(0, queueIdx);
+            });
         });
 
         return proxy;

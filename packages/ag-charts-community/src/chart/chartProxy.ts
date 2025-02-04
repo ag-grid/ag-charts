@@ -11,10 +11,13 @@ import type { MementoCaretaker, MementoOriginator } from '../api/state/memento';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { moduleRegistry } from '../module/module';
 import type { ChartInternalOptionMetadata, ChartSpecialOverrides } from '../module/optionsModule';
+import { Debug } from '../util/debug';
 import { deepClone } from '../util/json';
 import { ActionOnSet } from '../util/proxy';
 import type { Chart } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
+
+const debug = Debug.create(true, 'opts');
 
 export interface AgChartProxy extends AgChartInstance {
     chart: Chart;
@@ -65,13 +68,17 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     async update(options: AgChartOptions) {
-        this.factoryApi.update(options, this);
-        await this.chart.waitForUpdate();
+        return debug.group('AgChartInstance.update()', async () => {
+            this.factoryApi.update(options, this);
+            await this.chart.waitForUpdate();
+        });
     }
 
     async updateDelta(deltaOptions: DeepPartial<AgChartOptions>) {
-        this.factoryApi.updateUserDelta(this, deltaOptions);
-        await this.chart.waitForUpdate();
+        return debug.group('AgChartInstance.updateDelta()', async () => {
+            this.factoryApi.updateUserDelta(this, deltaOptions);
+            await this.chart.waitForUpdate();
+        });
     }
 
     getOptions() {
