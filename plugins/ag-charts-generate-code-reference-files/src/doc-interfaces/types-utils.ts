@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import { inputGlob, parseFile } from 'ag-shared/plugin-utils';
-import { MemberNode } from 'src/doc-interfaces/types';
 import * as ts from 'typescript';
 
 type NodeType = any;
@@ -163,7 +162,7 @@ export class TypeMapper {
             return this.resolveType(node.typeArguments[0]);
         } else if (node.type === 'Required') {
             const n = this.resolveType(node.typeArguments[0]);
-            return { ...n, members: n.members.map((member: MemberNode) => ({ ...member, optional: false })) };
+            return { ...n, members: n.members.map((member) => ({ ...member, optional: false })) };
         } else if (node.type === 'Omit' || node.type === 'Pick') {
             const resolveTypeKeyType = (typeKey) => {
                 if (typeof typeKey === 'string' && !typeKey.match(/^'.*'$/)) {
