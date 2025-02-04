@@ -120,6 +120,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
 
+    private restoreAnnotations = true;
+
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
         this.state = this.setupStateMachine();
@@ -686,6 +688,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.clear();
         this.annotationData.set(event.annotations);
+
+        this.restoreAnnotations = true;
         this.update();
     }
 
@@ -719,12 +723,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const hasData = this.ctx.chartService.series.some((s) => s.hasData);
 
         const seriesIds = this.yAxis.context.seriesIds();
-        const allBoundSeriesVisible = seriesIds.every((id) => {
+        const anyBoundSeriesVisible = seriesIds.some((id) => {
             const series = this.ctx.chartService.series.find((s) => s.id === id);
             return series?.visible;
         });
 
-        return hasData && allBoundSeriesVisible;
+        return hasData && anyBoundSeriesVisible;
     }
 
     private animateAnnotations({ from, to, phase }: { from: number; to: number; phase: 'trailing' | 'remove' }) {
@@ -854,28 +858,38 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.toolbar.refreshButtonsEnabled(showAnnotations);
         this.toolbar.toggleClearButtonEnabled(annotationData.length > 0 && showAnnotations);
 
+        const shouldWarn = this.restoreAnnotations;
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
             .each((node, datum) => {
-                if (!showAnnotations || !this.validateDatum(datum)) {
+                if (!showAnnotations || !this.validateDatum(datum, shouldWarn)) {
                     node.visible = false;
+                    if ('setAxisLabelVisible' in node) {
+                        node.setAxisLabelVisible(false);
+                    }
                     return;
                 }
 
+                if ('setAxisLabelVisible' in node) {
+                    node.setAxisLabelVisible(true);
+                }
                 this.injectDatumDependencies(datum);
                 updateAnnotation(node, datum, context);
             });
 
         this.postUpdateFns.forEach((fn) => fn());
         this.postUpdateFns = [];
+
+        this.restoreAnnotations = false;
     }
 
     private postUpdateFns: Array<() => void> = [];
 
     // Validation of the options beyond the scope of the @Validate decorator
-    private validateDatum(datum: AnnotationProperties) {
+    private validateDatum(datum: AnnotationProperties, shouldWarn: boolean) {
         const context = this.getAnnotationContext();
-        return context ? datum.isValidWithContext(context, `Annotation [${datum.type}] `) : true;
+        const warningPrefix = shouldWarn ? `Annotation [${datum.type}] ` : undefined;
+        return context ? datum.isValidWithContext(context, warningPrefix) : true;
     }
 
     private getAnnotationContext(): AnnotationContext | undefined {
