@@ -438,6 +438,10 @@ export class DataModel<
         return keys.get(scope.id) as T[];
     }
 
+    hasColumnById(scope: ScopeProvider, searchId: string) {
+        return this.scopeCache.get(scope.id)?.get(searchId) != null;
+    }
+
     resolveColumnById<T = any>(
         scope: ScopeProvider,
         searchId: string,
