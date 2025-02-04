@@ -3040,6 +3040,11 @@ export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCar
     ],
 };
 
+export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCartesianChartOptions = {
+    ...GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
+    series: GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES.series?.map((s) => ({ ...s, stacked: true })),
+};
+
 export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = {
     title: {
         text: "Apple's revenue by product category",
