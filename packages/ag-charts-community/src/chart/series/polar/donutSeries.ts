@@ -577,27 +577,25 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         let format: AgDonutSeriesStyle | undefined;
         if (itemStyler) {
-            format = this.cachedDatumCallback(
-                createDatumId(this.getDatumIdFromData(datum), highlighted ? 'highlight' : 'hide'),
-                () =>
-                    itemStyler({
-                        datum,
-                        angleKey,
-                        radiusKey,
-                        calloutLabelKey,
-                        sectorLabelKey,
-                        legendItemKey,
-                        fill: fill!,
-                        fillOpacity,
-                        stroke,
-                        strokeWidth,
-                        strokeOpacity,
-                        lineDash,
-                        lineDashOffset,
-                        cornerRadius,
-                        highlighted,
-                        seriesId: this.id,
-                    })
+            format = this.cachedDatumCallback(this.getDatumId(datum) + (highlighted ? '-highlight' : '-hide'), () =>
+                itemStyler({
+                    datum,
+                    angleKey,
+                    radiusKey,
+                    calloutLabelKey,
+                    sectorLabelKey,
+                    legendItemKey,
+                    fill: fill!,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                    lineDash,
+                    lineDashOffset,
+                    cornerRadius,
+                    highlighted,
+                    seriesId: this.id,
+                })
             );
         }
 
@@ -1623,25 +1621,21 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.previousRadiusScale.range = this.radiusScale.range;
     }
 
-    getDatumIdFromData(datum: any) {
+    getDatumId(datum: DonutNodeDatum) {
         const { calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
 
         if (!this.processedData?.reduced?.animationValidation?.uniqueKeys) {
-            return;
+            return `${datum.datumIndex}`;
         }
 
         if (legendItemKey) {
-            return datum[legendItemKey];
+            return createDatumId(datum.datum[legendItemKey]);
         } else if (calloutLabelKey) {
-            return datum[calloutLabelKey];
+            return createDatumId(datum.datum[calloutLabelKey]);
         } else if (sectorLabelKey) {
-            return datum[sectorLabelKey];
+            return createDatumId(datum.datum[sectorLabelKey]);
         }
-    }
 
-    getDatumId(datum: DonutNodeDatum) {
-        const { datumIndex } = datum;
-        const datumId = this.getDatumIdFromData(datum.datum);
-        return String(datumId ?? datumIndex);
+        return `${datum.datumIndex}`;
     }
 }
