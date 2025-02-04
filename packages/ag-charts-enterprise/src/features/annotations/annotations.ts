@@ -1002,12 +1002,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private dragMoveTouchHandler(event: _Widget.DragWidgetEvent<'drag-move'>) {
-        const prevent =
-            event.device === 'touch' &&
-            this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable) &&
-            this.state.getActive() !== undefined;
-        if (prevent) {
-            // TODO the preventDefault() should be handled by the state machine rather than replying on getActive().
+        if (event.device === 'touch' && this.ctx.interactionManager.isState(InteractionState.AnnotationsSelected)) {
             event.sourceEvent.preventDefault();
         }
     }
