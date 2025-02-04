@@ -55,6 +55,7 @@ export class FlowProportionSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
 > extends _ModuleSupport.SeriesNodeEvent<_ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>, TEvent> {
     readonly size?: number;
+    readonly label?: string;
     constructor(
         type: TEvent,
         nativeEvent: Event,
@@ -73,6 +74,7 @@ export class FlowProportionSeriesNodeEvent<
             (d) => d.datumIndex.type === datumIndex.type && d.datumIndex.index === datumIndex.index
         );
         this.size = nodeDatum?.size;
+        this.label = nodeDatum?.type === FlowProportionDatumType.Node ? nodeDatum?.label : undefined;
     }
 }
 
