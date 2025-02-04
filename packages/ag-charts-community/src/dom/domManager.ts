@@ -93,6 +93,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly sizeMonitor = new SizeMonitor();
     private readonly cursorState = new StateTracker('default');
 
+    get pixelRatio() {
+        return this.sizeMonitor.pixelRatio;
+    }
+
     constructor(container?: HTMLElement, styleContainer?: HTMLElement) {
         super();
 

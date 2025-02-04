@@ -19,6 +19,10 @@ export class SizeMonitor {
     private documentReady = false;
     private queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
 
+    get pixelRatio() {
+        return this.pixelRatioObserver?.pixelRatio ?? 1;
+    }
+
     constructor() {
         if (typeof ResizeObserver !== 'undefined') {
             this.resizeObserver = new ResizeObserver((entries) => {
