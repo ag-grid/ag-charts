@@ -882,11 +882,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
         const width = inWidth ?? this.width ?? this._lastAutoSize?.[0];
         const height = inHeight ?? this.height ?? this._lastAutoSize?.[1];
-        const pixelRatio =
-            inOverrideDevicePixelRatio ??
-            this.overrideDevicePixelRatio ??
-            this._lastAutoSize?.[2] ??
-            this.ctx.domManager.pixelRatio;
+        const pixelRatio = inOverrideDevicePixelRatio ?? this.overrideDevicePixelRatio ?? this._lastAutoSize?.[2];
         this.debug(`Chart.resize() from ${source}`, { width, height, pixelRatio, stack: new Error().stack });
         if (width == null || height == null || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
