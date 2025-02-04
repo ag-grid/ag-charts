@@ -802,7 +802,7 @@ export class DataModel<
                     continue;
                 }
 
-                const keys = new Array<unknown>();
+                const keys: unknown[] = [];
                 keyDefKeys.set(scope, keys);
                 scopeDataProcessed.set(data, scope);
 
@@ -875,12 +875,8 @@ export class DataModel<
             const columnScopes = new Set(def.scopes);
             const columnScope = first(def.scopes);
             const columnSource = sources.get(columnScope) as unknown[];
-            const column = new Array(columnSource.length);
-
-            for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
+            const column = columnSource.map((valueDatum, datumIndex) => {
                 const invalidKey = invalidKeys.get(columnScope)?.[datumIndex];
-
-                const valueDatum = columnSource[datumIndex];
 
                 let value = processValue(def, valueDatum, datumIndex, def.scopes);
 
@@ -896,8 +892,8 @@ export class DataModel<
                     value = invalidValue;
                 }
 
-                column[datumIndex] ??= value;
-            }
+                return value;
+            });
 
             columns.push(column);
             allColumnScopes.push(columnScopes);
@@ -1134,7 +1130,7 @@ export class DataModel<
             } else {
                 const onlyScope = first(dataSources.keys());
                 const keyColumns = keys.map((k) => k.get(onlyScope)).filter((k) => k != null);
-                const keysParam = new Array(keyColumns.length);
+                const keysParam = keyColumns.map((): unknown => undefined!);
                 const rawData = dataSources.get(onlyScope)!;
                 for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
                     for (let keyIdx = 0; keyIdx < keysParam.length; keyIdx++) {
