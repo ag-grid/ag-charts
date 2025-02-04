@@ -231,6 +231,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.widgets.seriesWidget.addListener('touchmove', (event, current) => this.onTouchMove(event, current)),
             ctx.widgets.seriesWidget.addListener('touchend', (event) => this.onTouchEnd(event)),
             ctx.widgets.seriesWidget.addListener('touchcancel', (event) => this.onTouchEnd(event)),
+            ctx.updateService.addListener('process-data', (event) => this.onProcessData(event)),
             ctx.layoutManager.addListener('layout:complete', (event) => this.onLayoutComplete(event)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event)),
             ctx.zoomManager.addListener('zoom-pan-start', (event) => this.onZoomPanStart(event)),
@@ -551,6 +552,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
+    private onProcessData(event: _ModuleSupport.ProcessDataEvent) {
+        this.shouldFlipXY = event.series.shouldFlipXY;
+    }
+
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         this.domProxy.update(this.enableAxisDragging, this.ctx);
         const { enabled } = this;
@@ -558,12 +563,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!enabled) return;
 
         const {
-            series: { rect, paddedRect, shouldFlipXY },
+            series: { rect, paddedRect },
         } = event;
 
         this.seriesRect = rect;
         this.paddedRect = paddedRect;
-        this.shouldFlipXY = shouldFlipXY;
     }
 
     private onZoomChange(event: _ModuleSupport.ZoomChangeEvent) {
