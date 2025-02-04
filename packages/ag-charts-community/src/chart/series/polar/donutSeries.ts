@@ -395,7 +395,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const nodes: DonutNodeDatum[] = [];
         const phantomNodes: DonutNodeDatum[] | undefined = angleFilterRawValues != null ? [] : undefined;
         const rawData = processedData.dataSources.get(this.id) ?? [];
+        const invalidData = processedData.invalidData?.get(this.id);
         rawData.forEach((datum, datumIndex) => {
+            if (invalidData?.[datumIndex] === true) return;
             const currentValue = useFilterAngles ? angleFilterValues![datumIndex] : angleValues[datumIndex];
             const crossFilterScale =
                 angleFilterRawValues != null && !useFilterAngles
@@ -1461,11 +1463,13 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const legendData: CategoryLegendDatum[] = [];
 
         const hideZeros = this.properties.hideZeroValueSectorsInLegend;
+        const rawData = processedData.dataSources.get(this.id);
+        const invalidData = processedData.invalidData?.get(this.id);
         for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
-            const datum = processedData.dataSources.get(this.id)?.[datumIndex] as any;
+            const datum = rawData?.[datumIndex] as any;
             const angleRawValue = angleRawValues[datumIndex];
 
-            if (hideZeros && angleRawValue === 0) {
+            if (invalidData?.[datumIndex] === true || (hideZeros && angleRawValue === 0)) {
                 continue;
             }
 
