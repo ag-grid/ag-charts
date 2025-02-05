@@ -7,10 +7,9 @@
 }
 
 .ag-charts-annotations__stroke-width-button::before {
-    --stroke-width-color: var(--ag-charts-toolbar-foreground-color);
-    background: var(--stroke-width-color);
+    background: var(--ag-charts-foreground-color);
     content: '';
-    margin-right: var(--ag-charts-toolbar-button-padding);
+    margin-right: var(--toolbar-button-padding);
     height: min(var(--stroke-width), 20px);
     width: 12px;
 }

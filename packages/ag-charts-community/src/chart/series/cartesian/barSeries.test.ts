@@ -123,6 +123,10 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
             options: examples.GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
             assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('bar', 2) }),
         },
+        STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: {
+            options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('bar', 2) }),
+        },
     }),
 };
 

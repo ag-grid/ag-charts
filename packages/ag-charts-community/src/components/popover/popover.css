@@ -1,12 +1,12 @@
 .ag-charts-popover {
     position: absolute;
-    border: var(--ag-charts-popover-border);
-    border-radius: var(--ag-charts-popover-border-radius);
-    background: var(--ag-charts-popover-background-color);
-    color: var(--ag-charts-popover-foreground-color);
+    border: var(--ag-charts-border);
+    border-radius: var(--ag-charts-border-radius);
+    background: var(--ag-charts-chrome-background-color);
+    color: var(--ag-charts-chrome-text-color);
     font-family: var(--ag-charts-chrome-font-family);
     font-size: var(--ag-charts-chrome-font-size);
     font-weight: var(--ag-charts-chrome-font-weight);
-    box-shadow: var(--ag-charts-popover-shadow);
+    box-shadow: var(--ag-charts-shadow);
     z-index: var(--ag-charts-layer-ui-overlay);
 }

@@ -428,6 +428,10 @@ describe('json module', () => {
     });
 
     describe('#jsonApply', () => {
+        beforeEach(() => {
+            console.warn = jest.fn();
+        });
+
         const json: any = {
             str: 'test-string',
             num: 123,
@@ -461,16 +465,23 @@ describe('json module', () => {
             const badJson = { foo: 'bar' };
             const target = new TestApply();
 
-            console.warn = jest.fn();
             jsonApply(target, badJson as any);
             expect(console.warn).toBeCalledWith('AG Charts - unable to set [foo] in TestApply - property is unknown');
+        });
+
+        it('should error on undefined objects', () => {
+            const target = new TestApply();
+
+            jsonApply(target, json);
+            expect(console.warn).toBeCalledWith(
+                'AG Charts - unable to set [recurse] in TestApply - property is unknown'
+            );
         });
 
         it('should error on incompatible properties', () => {
             const badJson = { recurse: 'foo' };
             const target = new TestApply({ recurse: new TestApply() });
 
-            console.warn = jest.fn();
             jsonApply(target, badJson as any);
             expect(console.warn).toBeCalledWith(
                 "AG Charts - unable to set [recurse] in TestApply - can't apply type of [primitive], allowed types are: [class-instance]"

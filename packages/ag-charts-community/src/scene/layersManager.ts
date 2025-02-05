@@ -21,9 +21,9 @@ export class LayersManager {
         return this.layersMap.size;
     }
 
-    resize(width: number, height: number) {
-        this.canvas.resize(width, height);
-        this.layersMap.forEach(({ canvas }) => canvas.resize(width, height));
+    resize(width: number, height: number, pixelRatio: number) {
+        this.canvas.resize(width, height, pixelRatio);
+        this.layersMap.forEach(({ canvas }) => canvas.resize(width, height, pixelRatio));
     }
 
     addLayer(opts: { name?: string }) {

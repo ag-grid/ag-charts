@@ -98,8 +98,8 @@ const area = (groupId: string, aggFn: AggregatePropertyDefinition<any, any>) => 
     ...actualArea(`area-${groupId}`, aggFn),
     scopes: ['test'],
 });
-const normaliseGroupTo = (groupId: string, normaliseTo: number, mode?: 'sum' | 'range') => ({
-    ...actualNormaliseGroupTo([groupId], normaliseTo, mode),
+const normaliseGroupTo = (groupId: string, normaliseTo: number) => ({
+    ...actualNormaliseGroupTo([groupId], normaliseTo),
     scopes: ['test'],
 });
 const normalisePropertyTo = (prop: PropertyId<any>, normaliseTo: [number, number]) => ({
@@ -856,7 +856,7 @@ describe('DataModel', () => {
             expect(result).toMatchSnapshot({
                 time: expect.any(Number),
             });
-            expect(result.domain.aggValues).toEqual([[0, expect.closeTo(100)]]);
+            expect(result.domain.aggValues).toEqual([[0, expect.closeTo(249.15)]]);
         });
 
         describe('property tests', () => {
@@ -884,31 +884,75 @@ describe('DataModel', () => {
             it('should allow normalisation of values', () => {
                 const result = dataModel.processData(data)!;
 
-                expect(result.groups.map((g) => g.aggregation)).toEqual([
-                    [
-                        [0, 100],
-                        [0, 100],
-                    ],
-                    [
-                        [0, 100],
-                        [0, 100],
-                    ],
-                ]);
-                expect(result.domain.aggValues).toEqual([
-                    [0, expect.closeTo(100)],
-                    [0, expect.closeTo(100)],
-                ]);
+                expect(result.groups.map((g) => g.aggregation)).toMatchInlineSnapshot(`
+[
+  [
+    [
+      0,
+      171.42857142857144,
+    ],
+    [
+      0,
+      120,
+    ],
+  ],
+  [
+    [
+      0,
+      166.66666666666669,
+    ],
+    [
+      0,
+      150,
+    ],
+  ],
+]
+`);
+                expect(result.domain.aggValues).toMatchInlineSnapshot(`
+[
+  [
+    0,
+    171.42857142857144,
+  ],
+  [
+    0,
+    150,
+  ],
+]
+`);
 
-                expect(extractGroupValues(result)).toEqual([
-                    [
-                        [41.666666666666664, 58.333333333333336, 16.666666666666668, 83.33333333333333],
-                        [33.333333333333336, 66.66666666666667, 33.333333333333336, 66.66666666666667],
-                    ],
-                    [
-                        [40, 60, 50, 50],
-                        [40, 60, 66.66666666666667, 33.333333333333336],
-                    ],
-                ]);
+                expect(extractGroupValues(result)).toMatchInlineSnapshot(`
+[
+  [
+    [
+      71.42857142857143,
+      100,
+      20,
+      100,
+    ],
+    [
+      14.285714285714286,
+      28.571428571428573,
+      40,
+      80,
+    ],
+  ],
+  [
+    [
+      66.66666666666667,
+      100,
+      75,
+      75,
+    ],
+    [
+      66.66666666666667,
+      100,
+      100,
+      50,
+    ],
+  ],
+]
+`);
             });
         });
     });
@@ -924,7 +968,7 @@ describe('DataModel', () => {
                         'all'
                     ),
                     range('all'),
-                    normaliseGroupTo('all', 100, 'range'),
+                    normaliseGroupTo('all', 100),
                 ],
                 groupByKeys: true,
             });
@@ -940,7 +984,7 @@ describe('DataModel', () => {
                     categoryKey('kp'),
                     ...accumulatedGroupValues(['vp1', 'vp2', 'vp3', 'vp4'], 'all'),
                     range('all'),
-                    normaliseGroupTo('all', 100, 'range'),
+                    normaliseGroupTo('all', 100),
                 ],
                 groupByKeys: true,
             });
@@ -965,14 +1009,38 @@ describe('DataModel', () => {
 
                 expect(result.type).toEqual('grouped');
                 expect(result.groups).toHaveLength(2);
-                expect(extractGroupValues(result, 0)).toEqual([
-                    [27.77777777777778, 66.66666666666667, 72.22222222222223, 100],
-                    [11.11111111111111, 33.333333333333336, 55.55555555555556, 100],
-                ]);
-                expect(extractGroupValues(result, 1)).toEqual([
-                    [28.571428571428573, 71.42857142857143, 85.71428571428571, 100],
-                    [28.571428571428573, 71.42857142857143, 90.47619047619048, 100],
-                ]);
+                expect(extractGroupValues(result, 0)).toMatchInlineSnapshot(`
+[
+  [
+    18.51851851851852,
+    48.148148148148145,
+    59.25925925925926,
+    85.18518518518519,
+  ],
+  [
+    22.22222222222222,
+    55.55555555555556,
+    66.66666666666667,
+    100,
+  ],
+]
+`);
+                expect(extractGroupValues(result, 1)).toMatchInlineSnapshot(`
+[
+  [
+    14.285714285714286,
+    50,
+    78.57142857142857,
+    95.23809523809524,
+  ],
+  [
+    28.571428571428573,
+    71.42857142857143,
+    88.0952380952381,
+    100,
+  ],
+]
+`);
             });
 
             it('should calculate the domains', () => {
@@ -980,12 +1048,26 @@ describe('DataModel', () => {
 
                 expect(result.type).toEqual('grouped');
                 expect(result.domain.keys).toEqual([['Q1', 'Q2']]);
-                expect(result.domain.values).toEqual([
-                    [11.11111111111111, 28.571428571428573],
-                    [33.333333333333336, 71.42857142857143],
-                    [55.55555555555556, 90.47619047619048],
-                    [100, 100],
-                ]);
+                expect(result.domain.values).toMatchInlineSnapshot(`
+[
+  [
+    14.285714285714286,
+    28.571428571428573,
+  ],
+  [
+    48.148148148148145,
+    71.42857142857143,
+  ],
+  [
+    59.25925925925926,
+    88.0952380952381,
+  ],
+  [
+    85.18518518518519,
+    100,
+  ],
+]
+`);
             });
         });
     });

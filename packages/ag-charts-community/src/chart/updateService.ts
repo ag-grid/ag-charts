@@ -1,4 +1,5 @@
-import { Listeners } from '../util/listeners';
+import { EventEmitter, type EventListener } from 'ag-charts-core';
+
 import { ChartUpdateType } from './chartUpdateType';
 import type { ISeries } from './series/seriesTypes';
 
@@ -16,6 +17,11 @@ export interface PreSceneRenderEvent {
     readonly type: 'pre-scene-render';
 }
 
+export interface ProcessDataEvent {
+    readonly type: 'process-data';
+    readonly series: { shouldFlipXY?: boolean };
+}
+
 export type UpdateOpts = {
     forceNodeDataRefresh?: boolean;
     skipAnimations?: boolean;
@@ -25,13 +31,28 @@ export type UpdateOpts = {
     skipSync?: boolean;
 };
 
-type UpdateEventTypes = 'update-complete' | 'pre-dom-update' | 'pre-scene-render';
+interface EventMap {
+    'update-complete': UpdateCompleteEvent;
+    'pre-dom-update': PreDomUpdateEvent;
+    'pre-scene-render': PreSceneRenderEvent;
+    'process-data': ProcessDataEvent;
+}
 
-type UpdateEvents = UpdateCompleteEvent | PreDomUpdateEvent | PreSceneRenderEvent;
+export class UpdateService {
+    private readonly events = new EventEmitter<EventMap>();
 
-export class UpdateService extends Listeners<UpdateEventTypes, (event: UpdateEvents) => void> {
-    constructor(private readonly updateCallback: UpdateCallback) {
-        super();
+    constructor(private readonly updateCallback: UpdateCallback) {}
+
+    public addListener<K extends keyof EventMap>(eventName: K, listener: EventListener<EventMap[K]>) {
+        return this.events.on(eventName, listener);
+    }
+
+    public removeListener<K extends keyof EventMap>(eventName: K, listener: EventListener<EventMap[K]>) {
+        return this.events.on(eventName, listener);
+    }
+
+    public destroy() {
+        this.events.clear();
     }
 
     public update(type = ChartUpdateType.FULL, options?: UpdateOpts) {
@@ -39,14 +60,18 @@ export class UpdateService extends Listeners<UpdateEventTypes, (event: UpdateEve
     }
 
     public dispatchUpdateComplete() {
-        this.dispatch('update-complete', { type: 'update-complete' });
+        this.events.emit('update-complete', { type: 'update-complete' });
     }
 
     public dispatchPreDomUpdate() {
-        this.dispatch('pre-dom-update', { type: 'pre-dom-update' });
+        this.events.emit('pre-dom-update', { type: 'pre-dom-update' });
     }
 
     public dispatchPreSceneRender() {
-        this.dispatch('pre-scene-render', { type: 'pre-scene-render' });
+        this.events.emit('pre-scene-render', { type: 'pre-scene-render' });
+    }
+
+    public dispatchProcessData({ series }: { series: { shouldFlipXY?: boolean } }) {
+        this.events.emit('process-data', { type: 'process-data', series });
     }
 }

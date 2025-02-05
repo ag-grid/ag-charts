@@ -44,7 +44,6 @@ import {
     DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_HIERARCHY_STROKES,
-    DEFAULT_INVERTED_BACKGROUND_COLOUR,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_SHADOW_COLOUR,
@@ -454,20 +453,30 @@ export class ChartTheme {
 
     getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
+            accentColor: '#2196f3',
             axisColor: '#c3c3c3',
             backgroundColor: DEFAULT_BACKGROUND_FILL,
-            borderColor: '#ddd',
+            borderColor: { $mix: [{ $ref: 'foregroundColor' }, { $ref: 'backgroundColor' }, 0.818] },
             foregroundColor: '#464646',
             fontFamily: 'Verdana, sans-serif',
             fontSize: FONT_SIZE.SMALL,
             fontWeight: 400,
             gridLineColor: '#e0eaf1',
             padding: 20,
+            spacing: 4,
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'backgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
+
+            chromeBackgroundColor: { $mix: [{ $ref: 'foregroundColor' }, { $ref: 'backgroundColor' }, 0.975] },
+            chromeFontFamily: { $ref: 'fontFamily' },
+            chromeFontSize: { $ref: 'fontSize' },
+            chromeFontWeight: { $ref: 'fontWeight' },
+            chromeTextColor: '#181d1f',
+            chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
         };
     }
 
+    // Private parameters that are not exposed in the themes API.
     getTemplateParameters() {
         const { isEnterprise } = enterpriseModule;
 
@@ -478,7 +487,6 @@ export class ChartTheme {
         params.set(DEFAULT_CROSS_LINES_COLOUR, '#464646');
         params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#d9d9d9');
         params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL); // TODO: remove uses in paletteFactory()
-        params.set(DEFAULT_INVERTED_BACKGROUND_COLOUR, 'black');
         params.set(DEFAULT_SHADOW_COLOUR, '#00000080');
         params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
             DEFAULT_FILLS.ORANGE,

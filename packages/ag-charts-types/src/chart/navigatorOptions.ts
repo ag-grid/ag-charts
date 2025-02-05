@@ -139,7 +139,6 @@ export type AgMiniChartSeriesOptions =
     | AgOhlcMiniChartSeriesOptions;
 
 type IgnoredMiniChartSeries = 'funnel' | 'cone-funnel';
-type VerifyAgMiniChartSeriesOptions = Record<NonNullable<AgCartesianSeriesOptions['type']>, string>;
 
 // Verification checks for completeness/correctness.
 const __MINI_CHART_SERIES_OPTIONS = undefined as any as Record<
@@ -147,7 +146,10 @@ const __MINI_CHART_SERIES_OPTIONS = undefined as any as Record<
     string
 >;
 // @ts-expect-error TS6133 - this is used to validate completeness by the compiler, but is deliberately unused.
-let __VERIFY_MINI_CHART_SERIES_OPTIONS: VerifyAgMiniChartSeriesOptions = undefined as any;
+let __VERIFY_MINI_CHART_SERIES_OPTIONS: Record<
+    NonNullable<AgCartesianSeriesOptions['type']>,
+    string
+> = undefined as any;
 __VERIFY_MINI_CHART_SERIES_OPTIONS = __MINI_CHART_SERIES_OPTIONS;
 
 export interface AgNavigatorMiniChartOptions {

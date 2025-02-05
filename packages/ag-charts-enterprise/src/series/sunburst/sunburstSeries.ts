@@ -9,6 +9,7 @@ const {
     normalizeAngle360,
     createDatumId,
     Sector,
+    Group,
     ScalableGroup,
     Selection,
     TransformableText,
@@ -87,13 +88,19 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     override properties = new SunburstSeriesProperties();
 
-    readonly datumSelection = Selection.select<_ModuleSupport.ScalableGroup, SunburstNode>(
-        this.contentGroup,
-        ScalableGroup
+    private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
+    private readonly sectorGroup = this.scalingGroup.appendChild(new Group());
+    private readonly sectorLabelGroup = this.scalingGroup.appendChild(new Group());
+    private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group());
+
+    readonly datumSelection = Selection.select<_ModuleSupport.Sector, SunburstNode>(this.sectorGroup, Sector);
+    private readonly labelSelection = Selection.select<_ModuleSupport.Group, SunburstNode>(
+        this.sectorLabelGroup,
+        Group
     );
-    private readonly highlightSelection = Selection.select<_ModuleSupport.ScalableGroup, SunburstNode>(
-        this.highlightGroup,
-        ScalableGroup
+    private readonly highlightSelection = Selection.select<_ModuleSupport.Sector, SunburstNode>(
+        this.highlightSectorGroup,
+        Sector
     );
 
     override processData() {
@@ -103,6 +110,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     updateSelections() {
+        const highlightedNode: SunburstNode | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
+        this.highlightSelection.update(highlightedNode != null ? [highlightedNode] : [], undefined, (node) =>
+            this.getDatumId(node)
+        );
+
         if (!this.nodeDataRefresh) return;
         this.nodeDataRefresh = false;
 
@@ -114,16 +126,15 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const descendants = Array.from(this.rootNode!);
 
-        const updateGroup = (group: _ModuleSupport.Group) => {
+        const updateLabelGroup = (group: _ModuleSupport.Group) => {
             group.append([
-                new Sector(),
                 new TransformableText({ tag: TextNodeTag.Primary }),
                 new TransformableText({ tag: TextNodeTag.Secondary }),
             ]);
         };
 
-        this.datumSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
-        this.highlightSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
+        this.datumSelection.update(descendants, undefined, (node) => this.getDatumId(node));
+        this.labelSelection.update(descendants, updateLabelGroup, (node) => this.getDatumId(node));
     }
 
     private getItemBaseStyle(highlighted: boolean): ItemStyle {
@@ -207,19 +218,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
-        this.highlightGroup.translationX = width / 2;
-        this.highlightGroup.translationY = height / 2;
 
         const baseInset = sectorSpacing * 0.5;
         const radius = Math.min(width, height) / 2;
         const radiusScale = radius / (maxDepth + 1);
         const angleOffset = -Math.PI / 2;
-
-        const highlightedNode: _ModuleSupport.HierarchyNode | undefined =
-            this.ctx.highlightManager?.getActiveHighlight() as any;
-
-        const labelTextNode = new TransformableText();
-        labelTextNode.setFont(this.properties.label);
 
         this.rootNode?.walk((node) => {
             const { startAngle, endAngle } = node;
@@ -447,16 +450,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         };
 
         const baseFormat = this.getItemBaseStyle(false);
-        this.datumSelection.selectByClass(Sector).forEach((sector) => {
-            updateSector(sector.datum, sector, baseFormat, false);
+        this.datumSelection.each((sector, datum) => {
+            updateSector(datum, sector, baseFormat, false);
         });
         const highlightFormat = this.getItemBaseStyle(true);
-        this.highlightSelection.selectByClass(Sector).forEach((sector) => {
-            const node: _ModuleSupport.HierarchyNode = sector.datum;
-            sector.visible = highlightedNode === node;
-            if (sector.visible) {
-                updateSector(sector.datum, sector, highlightFormat, true);
-            }
+        this.highlightSelection.each((rect, datum) => {
+            updateSector(datum, rect, highlightFormat, true);
         });
 
         const updateText = (
@@ -526,17 +525,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             }
             text.visible = true;
         };
-
-        this.datumSelection.selectByClass(TransformableText).forEach((text) => {
-            updateText(text.datum, text, text.tag, false);
-        });
-        this.highlightSelection.selectByClass(TransformableText).forEach((text) => {
-            const node: _ModuleSupport.HierarchyNode = text.datum;
-            const isHighlighted = highlightedNode === node;
-            text.visible = isHighlighted;
-            if (text.visible) {
-                updateText(text.datum, text, text.tag, isHighlighted);
-            }
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight() as any;
+        this.labelSelection.selectByClass(TransformableText).forEach((text) => {
+            updateText(text.datum, text, text.tag, text.datum === highlightedDatum);
         });
     }
 
@@ -608,31 +599,19 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         return this.pickNodeNearestDistantObject(point, this.datumSelection.selectByClass(Sector));
     }
 
-    protected override animateEmptyUpdateReady({
-        datumSelections,
-    }: _ModuleSupport.HierarchyAnimationData<_ModuleSupport.ScalableGroup, SunburstNode>) {
+    protected override animateEmptyUpdateReady() {
         fromToMotion<
             _ModuleSupport.ScalableGroup,
             Pick<_ModuleSupport.ScalableGroup, 'scalingX' | 'scalingY'>,
             SunburstNode
-        >(this.id, 'nodes', this.ctx.animationManager, datumSelections, {
+        >(this.id, 'nodes', this.ctx.animationManager, [this.scalingGroup] as any, {
             toFn() {
                 return { scalingX: 1, scalingY: 1 };
             },
-            fromFn(group, datum, status) {
-                if (status === 'unknown' && datum != null && group.previousDatum == null) {
-                    return { scalingX: 0, scalingY: 0 };
-                } else {
-                    return { scalingX: 1, scalingY: 1 };
-                }
+            fromFn() {
+                return { scalingX: 0, scalingY: 0 };
             },
         });
-    }
-
-    protected getAnimationData() {
-        return {
-            datumSelections: [this.datumSelection],
-        };
     }
 
     protected override computeFocusBounds(node: _ModuleSupport.ScalableGroup): _ModuleSupport.Path | undefined {

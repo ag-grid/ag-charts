@@ -95,17 +95,24 @@ export class Group<D = any> extends Node<D> {
         if (sharedOffscreenCanvas == null || sharedOffscreenCanvas.pixelRatio !== pixelRatio) {
             sharedOffscreenCanvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
         } else {
-            sharedOffscreenCanvas.resize(width, height);
+            sharedOffscreenCanvas.resize(width, height, pixelRatio);
         }
 
         return sharedOffscreenCanvas;
     }
 
+    private _lastWidth = NaN;
+    private _lastHeight = NaN;
+    private _lastDevicePixelRatio = NaN;
     private isDirty(renderCtx: RenderContext) {
-        const { resized } = renderCtx;
+        const { width, height, devicePixelRatio } = renderCtx;
         const { dirty, dirtyZIndex, layer } = this;
-        const layerResized = layer != null && resized;
-        if (dirty || dirtyZIndex || layerResized) return true;
+        const layerResized = layer != null && (this._lastWidth !== width || this._lastHeight !== height);
+        const pixelRatioChanged = this._lastDevicePixelRatio !== devicePixelRatio;
+        this._lastWidth = width;
+        this._lastHeight = height;
+        this._lastDevicePixelRatio = devicePixelRatio;
+        if (dirty || dirtyZIndex || layerResized || pixelRatioChanged) return true;
 
         for (const child of this.children()) {
             if (child.dirty) return true;

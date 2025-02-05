@@ -21,7 +21,7 @@ export function validateDatumLine(
 export function validateDatumValue(
     context: AnnotationContext,
     datum: { value?: Point['x' | 'y']; direction?: Direction },
-    warningPrefix: string
+    warningPrefix?: string
 ) {
     const axis = datum.direction === 'horizontal' ? context.yAxis : context.xAxis;
     const valid = validateDatumPointDirection(datum.value, axis);

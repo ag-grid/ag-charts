@@ -2,6 +2,7 @@ import { type AgAxisLabelFormatterParams, type AgFunnelSeriesOptions, _ModuleSup
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
+    ThemeSymbols: { DEFAULT_SHADOW_COLOUR },
 } = _ModuleSupport;
 
 export function funnelSeriesAxes(series: Pick<AgFunnelSeriesOptions, 'direction' | 'stageLabel'>) {
@@ -47,6 +48,13 @@ export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTe
             enabled: true,
             fillOpacity: 0.2,
             strokeWidth: 0,
+        },
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
         },
     },
     axes: {

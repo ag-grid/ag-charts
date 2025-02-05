@@ -21,7 +21,7 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
     @Validate(OBJECT, { optional: true })
     text = new LineTextProperties();
 
-    override isValidWithContext(context: AnnotationContext, warningPrefix: string) {
+    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
         return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
     }
 
@@ -55,7 +55,7 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
     @Validate(OBJECT, { optional: true })
     text = new LineTextProperties();
 
-    override isValidWithContext(context: AnnotationContext, warningPrefix: string) {
+    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
         return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
     }
 

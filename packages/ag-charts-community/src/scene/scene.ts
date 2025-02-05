@@ -24,7 +24,7 @@ export class Scene {
     readonly layersManager: LayersManager;
 
     private root: Node | null = null;
-    private pendingSize: [number, number] | null = null;
+    private pendingSize: [number, number, number] | null = null;
     private isDirty: boolean = false;
 
     constructor(canvasOptions: CanvasOptions) {
@@ -38,6 +38,10 @@ export class Scene {
 
     get height(): number {
         return this.pendingSize?.[1] ?? this.canvas.height;
+    }
+
+    get pixelRatio(): number {
+        return this.pendingSize?.[2] ?? this.canvas.pixelRatio;
     }
 
     /** @deprecated v10.2.0 Only used by AG Grid Sparklines */
@@ -93,11 +97,16 @@ export class Scene {
         return this.canvas.toDataURL(fileFormat);
     }
 
-    resize(width: number, height: number): boolean {
+    resize(width: number, height: number, pixelRatio: number | undefined): boolean {
         width = Math.round(width);
         height = Math.round(height);
-        if (width > 0 && height > 0 && (width !== this.width || height !== this.height)) {
-            this.pendingSize = [width, height];
+        pixelRatio ??= this.pixelRatio;
+        if (
+            width > 0 &&
+            height > 0 &&
+            (width !== this.width || height !== this.height || pixelRatio !== this.pixelRatio)
+        ) {
+            this.pendingSize = [width, height, pixelRatio];
             this.isDirty = true;
             return true;
         }
@@ -110,7 +119,15 @@ export class Scene {
         seriesRect?: BBox;
     }) {
         const { debugSplitTimes = { start: performance.now() }, extraDebugStats, seriesRect } = opts ?? {};
-        const { canvas, canvas: { context: ctx } = {}, root, pendingSize } = this;
+        const {
+            canvas,
+            canvas: { context: ctx } = {},
+            root,
+            pendingSize,
+            width,
+            height,
+            pixelRatio: devicePixelRatio,
+        } = this;
 
         if (!ctx) {
             // Scene.destroy() has dereferenced the HdpiCanvas instance, just abort silently.
@@ -141,8 +158,9 @@ export class Scene {
 
         const renderCtx: RenderContext = {
             ctx,
-            devicePixelRatio: this.canvas.pixelRatio ?? 1,
-            resized: Boolean(pendingSize),
+            width,
+            height,
+            devicePixelRatio,
             debugNodes: {},
         };
 

@@ -1,8 +1,10 @@
 import { getDocument, getWindow } from '../core';
+import { PixelRatioObserver } from './pixelRatioObserver';
 
 export type Size = {
     width: number;
     height: number;
+    pixelRatio: number;
 };
 type OnSizeChange = (size: Size, element: HTMLElement) => void;
 type Entry = {
@@ -12,25 +14,32 @@ type Entry = {
 
 export class SizeMonitor {
     private readonly elements = new Map<HTMLElement, Entry>();
-    private resizeObserver: any;
+    private resizeObserver: ResizeObserver | undefined;
+    private pixelRatioObserver: PixelRatioObserver | undefined;
     private documentReady = false;
     private queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
 
     constructor() {
-        if (typeof ResizeObserver === 'undefined') return;
+        if (typeof ResizeObserver !== 'undefined') {
+            this.resizeObserver = new ResizeObserver((entries) => {
+                for (const {
+                    target,
+                    contentRect: { width, height },
+                } of entries) {
+                    const entry = this.elements.get(target as HTMLElement);
+                    this.checkSize(entry, target as HTMLElement, width, height);
+                }
+            });
+        }
 
-        this.resizeObserver = new ResizeObserver((entries) => {
-            for (const {
-                target,
-                contentRect: { width, height },
-            } of entries) {
-                const entry = this.elements.get(target as HTMLElement);
-                this.checkSize(entry, target as HTMLElement, width, height);
-            }
+        this.pixelRatioObserver = new PixelRatioObserver(() => {
+            this.checkPixelRatio();
         });
 
         this.documentReady = getDocument('readyState') === 'complete';
-        if (!this.documentReady) {
+        if (this.documentReady) {
+            this.observeWindow();
+        } else {
             // Add load listener, so we can check if the main document is ready and all styles are loaded,
             // and if it is then attach any queued requests for resize monitoring.
             //
@@ -45,19 +54,38 @@ export class SizeMonitor {
         this.documentReady = true;
         this.queuedObserveRequests.forEach(([el, cb]) => this.observe(el, cb));
         this.queuedObserveRequests = [];
+        this.observeWindow();
     };
 
     private destroy() {
         getWindow()?.removeEventListener('load', this.onLoad);
         this.resizeObserver?.disconnect();
-        this.resizeObserver = null;
+        this.resizeObserver = undefined;
+        this.pixelRatioObserver?.disconnect();
+        this.pixelRatioObserver = undefined;
+    }
+
+    private observeWindow() {
+        this.pixelRatioObserver?.observe();
+    }
+
+    private checkPixelRatio() {
+        const pixelRatio = this.pixelRatioObserver?.pixelRatio ?? 1;
+        for (const [element, entry] of this.elements) {
+            if (entry.size != null && entry.size.pixelRatio !== pixelRatio) {
+                const { width, height } = entry.size;
+                entry.size = { width, height, pixelRatio };
+                entry.cb(entry.size, element);
+            }
+        }
     }
 
     private checkSize(entry: Entry | undefined, element: HTMLElement, width: number, height: number) {
         if (!entry) return;
 
         if (width !== entry.size?.width || height !== entry.size?.height) {
-            entry.size = { width, height };
+            const pixelRatio = entry.size?.pixelRatio ?? this.pixelRatioObserver?.pixelRatio ?? 1;
+            entry.size = { width, height, pixelRatio };
             entry.cb(entry.size, element);
         }
     }

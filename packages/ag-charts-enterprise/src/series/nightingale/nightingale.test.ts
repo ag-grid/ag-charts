@@ -75,6 +75,17 @@ describe('NightingaleSeries', () => {
         await compare();
     });
 
+    it(`should render stacked nightingale chart with data per series as expected`, async () => {
+        const { data, series, ...exampleOptions } = EXAMPLE_OPTIONS;
+        const options: AgChartOptions = {
+            ...exampleOptions,
+            series: series?.map((s) => ({ ...s, data: [...(data ?? [])] })),
+        };
+        prepareEnterpriseTestOptions(options as any);
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render stacked nightingale chart as expected with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,

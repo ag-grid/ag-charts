@@ -16,7 +16,12 @@
                 "path": "./themes/#theme-parameters"
             }
         ],
-        "notesPath": "./upgrade-to-ag-charts-11-1"
+        "notesPath": "./upgrade-to-ag-charts-11-1",
+        "noDocs": true
+    },
+    {
+        "version": "11.0.4",
+        "date": "January 15th 2025"
     },
     {
         "version": "11.0.3",
@@ -202,6 +207,10 @@
         "notesPath": "./upgrade-to-ag-charts-9-3"
     },
     {
+        "version": "9.3.0",
+        "date": "April 30th 2024"
+    },
+    {
         "version": "9.2.0",
         "date": "March 20th 2024",
         "highlights": [
@@ -227,6 +236,11 @@
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-9-2"
+    },
+    {
+        "version": "9.1.1",
+        "date": "February 22nd 2024",
+        "noDocs": true
     },
     {
         "version": "9.1.0",
@@ -285,6 +299,7 @@
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-9",
-        "noArchive": true
+        "noArchive": true,
+        "noDocs": true
     }
 ]
