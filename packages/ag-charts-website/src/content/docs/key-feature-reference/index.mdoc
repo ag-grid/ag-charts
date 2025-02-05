@@ -11,11 +11,11 @@ The following sections assume a level of familiarity with common Charts concepts
 
 ## Configuring Axes
 
-The horizontal (X) and vertical (Y) lines in cartesian charts are referred to as chart axes, and they serve to illustrate the relationships between data points on the graph.
+The horizontal (X) and vertical (Y) lines in cartesian charts are referred to as chart axes, and they serve to illustrate the relationships between data points on the graph. We also support polar charts, which use polar axes.
 
 ### Axis Types
 
-Every chart has four axis: `top`, `bottom`, `left`, `right`, which can display either [Categorical](./axes-types/#category), [Numerical](./axes-types/#number), [Time](/axes-types/#time), and [Logarithmic](/axes-types/#log) data.
+Every chart has four axis: `top`, `bottom`, `left`, `right`, which can display either [Categorical](./axes-types/#category), [Numerical](./axes-types/#number), [Time](/axes-types/#time), or [Logarithmic](/axes-types/#log) data.
 
 Use `axes.position` to control the position of the axis, and `axes.type` to define the type:
 
@@ -32,7 +32,9 @@ _Note: All axes must be specified in order for these changes to take effect._
 
 ### Secondary Axes
 
-Charts can have more than one axes, allowing for multiple data series to be displayed on the same chart. An extra axis configuration is needed to associate a secondary axis with the appropriate series, where the keys axis property links the series to the axis:
+Charts can have more than one axes, allowing for multiple series to be displayed on the same chart.
+
+Use `axis.keys` to link the series to the axis:
 
 ```js
 axes: [
@@ -72,7 +74,9 @@ axes: [
 
 ### Axis Labels
 
-[Axis labels](./axes-labels/) can be formatted, rotated and configured to automatically avoid collisions. Use `axes.label` to control the appearance of the axis labels:
+[Axis labels](./axes-labels/) can be formatted, rotated and configured to automatically avoid collisions.
+
+Use `axes.label` to control the appearance of the axis labels:
 
 ```js
 axes: [
@@ -91,20 +95,23 @@ axes: [
 
 ### Example
 
-This example demonstrates custom primary and secondary axes:
+This example demonstrates different Axis Types, Secondary Axes, Custom Intervals, and Labels:
 
 {% chartExampleRunner title="Configuring Axes Example" name="configuring-axes-example" type="generated" /%}
 
 ## Enhancing Data
 
-Charts can be enhanced with data elements, such as [legends](./legend/), [cross lines](./cross-lines/), and [stylers](./stylers/) to provide additional information to users.
+Charts can be enhanced with data elements, such as [Legends](./legend/), [Cross Lines](./cross-lines/), and [Stylers](./stylers/) to provide additional information to users.
 
 ### Enabling & Configuring Legend
 
-[Legends](./legend/) are enabled by default on the chart. Use the `legend` property to configure the legend position and size:
+[Legends](./legend/) are enabled by default on charts with more than one series.
+
+Use the `legend` property to configure the legend position and size:
 
 ```js
 legend: {
+    enabled: true, // defaults to true for charts with multiple series
     position: 'bottom', // 'top', 'right', 'left',
     maxWidth: 200,
     maxHeight: 300,
@@ -115,7 +122,7 @@ legend: {
 
 [Cross Lines](./cross-lines/) are lines or shaded areas in a chart that denote additional information or thresholds.
 
-Use the `crossLines` property in the axis options to add a Cross Line at a specific data value on an axis:
+Use the `crossLines` property in the axis options to add a Cross Line or Range at a specific data value on an axis:
 
 ```js
 axes: [
@@ -132,7 +139,9 @@ axes: [
 
 ### Customizing Series & Markers
 
-[Markers](./markers/) can be customized to change their [shape, size, and style](/markers/). Use the `series.marker` property to customize markers:
+[Markers](./markers/) can be customized to change their [shape, size, and style](/markers/).
+
+Use the `series.marker` property to customize markers:
 
 ```js
 series: [
@@ -172,7 +181,7 @@ This example demonstrates custom Legends, Cross Lines, and Series / Markers:
 
 ## Customizing Charts
 
-Charts can be customized with [themes](./themes/), [layouts](./layout/), [backgrounds](./background/), and [overlays](./overlays/).
+Charts can be customized with [Themes](./themes/), [Layouts](./layout/), and [Backgrounds](./background/).
 
 ### Layout
 
@@ -189,7 +198,7 @@ Use the `width` and/or `height` options if a fixed size is required:
 
 ### Background
 
-Use `background.fill` to set the [background](./background/) of the chart to any CSS Color:
+Use `background.fill` to set the [Background](./background/) of the chart to any CSS Color:
 
 ```js
 background: {
@@ -199,7 +208,9 @@ background: {
 
 ### Themes
 
-AG Charts comes with 5 [themes](./themes/), each available in light or dark mode. Use the `theme` property to set the theme:
+AG Charts comes with 5 [Themes](./themes/), each available in light or dark mode.
+
+Use the `theme` property to set the theme:
 
 ```js
 {
@@ -207,7 +218,9 @@ AG Charts comes with 5 [themes](./themes/), each available in light or dark mode
 }
 ```
 
-Themes can also be customised with the `palettes`, `overrides`, and `params` Theming API properties:
+Themes can also be customised with the [Theming API](/charts/themes-api/).
+
+Use `params` to set styles across the whole chart, `overrides` to merge over the defaults within the base theme, and `palette` to define the colour palette:
 
 ```js
 const customTheme: AgChartTheme = {
@@ -239,13 +252,13 @@ const customTheme: AgChartTheme = {
 
 ### Example
 
-This example demonstrates a chart with a fixed-sized, custom background colour, and customisation of the default theme:
+This example demonstrates a fixed-size chart with a custom theme and background color:
 
 {% chartExampleRunner title="Customizing Charts Example" name="customizing-charts-example" type="generated" /%}
 
 ## Handling User Interactions
 
-Charts can be made interactive by enabling [tooltips](./tooltips/), [highlighting](./highlighting/) series, and responding to [events](./events/).
+Charts can be made interactive by enabling [Tooltips](./tooltips/), [Highlighting Series & Items](./highlighting/), and responding to [Events](./events/).
 
 ### Customizing Tooltips
 
@@ -288,7 +301,7 @@ You can also return HTML to create a [Custom Tooltip](./tooltips/#using-custom-t
 
 Items and Series can be [highlighted](./series-highlighting/) when hovered over. Item highlighting (e.g. markers) is enabled by default.
 
-Item and Series highlighting styles can be [customized](./series-highlighting/#customisation) with the `highlightStyles` property:
+Use `highlightStyles` to [customize](./series-highlighting/#customisation) highlighted items and series:
 
 ```js
 theme: {
@@ -316,9 +329,9 @@ theme: {
 
 ### Handling Events
 
-Callbacks are provided for various [Series](./events/#reference-AgSeriesListeners), [Legend](./events/#reference-AgChartLegendListeners) and [Chart](./events/#reference-AgBaseChartListeners) events.
+Callbacks are provided for [Series](./events/#reference-AgSeriesListeners), [Legend](./events/#reference-AgChartLegendListeners) and [Chart](./events/#reference-AgBaseChartListeners) events.
 
-Listen for [Events](./react/events/) with the `listeners` property:
+Use `listeners` to respond to [Events](./events/) on the chart:
 
 ```js
 {
@@ -363,7 +376,9 @@ Listen for [Events](./react/events/) with the `listeners` property:
 
 ### Saving and Restoring State
 
-The [State](./state/) of the chart can be saved and restored using the `getState()` and `saveState()` APIs:
+The [State](./state/) of the chart can be saved and restored.
+
+Use the `getState()` and `saveState()` APIs to retrieve and save the current state of the chart:
 
 ```js
 function saveState() {
@@ -377,7 +392,7 @@ function restoreState() {
 }
 ```
 
-To set the [initial state](./api-state/#initial-state) of the chart, use the `initialState` property:
+You can alo use the `initialState` property to set the [initial state](./api-state/#initial-state) of the chart:
 
 ```js
 initialState: {
@@ -405,6 +420,10 @@ AG Charts comes in two forms:
 
 -   **AG Charts Community**: Free for everyone, including production use - no licence required.
 -   **AG Charts Enterprise**: Requires a licence to use in production. Free to test locally, or request a [trial](#trial-ag-charts-enterprise-for-free) to test in production.
+
+Import the `ag-charts-enterprise` package to access Enterprise features.
+
+Learn more on the [Community vs. Enterprise](./community-vs-enterprise/) page.
 
 _All Enterprise features are marked with an {% enterpriseIcon /%} in our docs_
 
