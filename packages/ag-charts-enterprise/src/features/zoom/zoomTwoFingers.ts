@@ -119,7 +119,7 @@ export class ZoomTwoFingers {
         const y2 = origins[1].normalY;
         const b1 = Ry + Rh - touches[0].clientY;
         const b2 = Ry + Rh - touches[1].clientY;
-        return this.twitchTolerantZoomPan(x1, x2, a1, a2, y1, y2, b1, b2, Rx, Ry, Rw, Rh);
+        return this.twitchTolerantZoomPan4(x1, x2, a1, a2, y1, y2, b1, b2, Rx, Ry, Rw, Rh);
     }
 
     end(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>): boolean {
@@ -152,7 +152,7 @@ export class ZoomTwoFingers {
     //   [0] => [2] : yMin increases, yMax increases
     //
     // ... which is a smooth panning transition. Therefore to prevent flickering, we skip event [1].
-    private twitchTolerantZoomPan(
+    private twitchTolerantZoomPan4(
         x1: number,
         x2: number,
         a1: number,
@@ -166,34 +166,40 @@ export class ZoomTwoFingers {
         Rw: number,
         Rh: number
     ) {
-        const { initialZoom, previous } = this;
-        let x: ZoomState = initialZoom.x;
-        let y: ZoomState = initialZoom.y;
-
-        if (this.xMode === 'zoompan') {
-            const dx = Math.abs(a1 - previous.a1) + Math.abs(a2 - previous.a2);
-            if (dx <= 1) {
-                a1 = previous.a1;
-                a2 = previous.a2;
-            } else {
-                previous.a1 = a1;
-                previous.a2 = a2;
-            }
-            x = solveTwoUnknowns(x1, x2, a1, a2, Rx, Rw);
-        }
-
-        if (this.yMode === 'zoompan') {
-            const dy = Math.abs(b1 - previous.b1) + Math.abs(b2 - previous.b2);
-            if (dy <= 1) {
-                b1 = previous.b1;
-                b2 = previous.b2;
-            } else {
-                previous.b1 = b1;
-                previous.b2 = b2;
-            }
-            y = solveTwoUnknowns(y1, y2, b1, b2, Ry, Rh);
-        }
-
+        const { xMode, yMode, initialZoom, previous } = this;
+        const x = twitchTolerantZoomPan2(x1, x2, a1, a2, previous, 'a1', 'a2', Rx, Rw, xMode, initialZoom.x);
+        const y = twitchTolerantZoomPan2(y1, y2, b1, b2, previous, 'b1', 'b2', Ry, Rh, yMode, initialZoom.y);
         return { x, y };
     }
+}
+// The "two-unknowns" variant of twitchTolerantZoomPan4
+function twitchTolerantZoomPan2(
+    x1: number,
+    x2: number,
+    a1: number,
+    a2: number,
+    previous: ZoomTwoFingers['previous'],
+    previousKey1: keyof typeof previous,
+    previousKey2: keyof typeof previous,
+    Rx: number,
+    Rw: number,
+    mode: TwoFingersMode,
+    initialZoomState: ZoomState
+): ZoomState {
+    const a1prev = previous[previousKey1];
+    const a2prev = previous[previousKey2];
+
+    if (mode === 'zoompan') {
+        const dx = Math.abs(a1 - a1prev) + Math.abs(a2 - a2prev);
+        if (dx <= 1) {
+            a1 = a1prev;
+            a2 = a2prev;
+        } else {
+            previous[previousKey1] = a1;
+            previous[previousKey2] = a2;
+        }
+        return solveTwoUnknowns(x1, x2, a1, a2, Rx, Rw);
+    }
+
+    return initialZoomState;
 }
