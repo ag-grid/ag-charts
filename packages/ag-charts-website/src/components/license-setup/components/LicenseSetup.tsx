@@ -76,6 +76,15 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
 
     return (
         <>
+            <Note>
+                You can test AG Charts Enterprise locally without a licence. To test in production, access support and
+                remove the watermark & console warnings,{' '}
+                <a href="../community-vs-enterprise/#request-an-enterprise-bundle-trial-licence">
+                    request a trial licence
+                </a>
+                .
+            </Note>
+
             <form>
                 <h2 id="validate-your-license">
                     Validate Your Licence
