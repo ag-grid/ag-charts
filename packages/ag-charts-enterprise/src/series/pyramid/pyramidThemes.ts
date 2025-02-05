@@ -1,5 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
+const {
+    ThemeSymbols: { DEFAULT_SHADOW_COLOUR },
+} = _ModuleSupport;
+
 export const PYRAMID_SERIES_THEME: _ModuleSupport.SeriesModule<'pyramid'>['themeTemplate'] = {
     series: {
         direction: 'vertical',
@@ -17,8 +21,15 @@ export const PYRAMID_SERIES_THEME: _ModuleSupport.SeriesModule<'pyramid'>['theme
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'foregroundColor' },
+            color: { $ref: 'textColor' },
             spacing: 12,
+        },
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
         },
     },
 };

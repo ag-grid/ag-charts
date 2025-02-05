@@ -1,4 +1,7 @@
 .ag-charts-toolbar {
+    --toolbar-gap: calc(var(--ag-charts-spacing) * 2);
+    --toolbar-size: 34px;
+    --toolbar-button-padding: 6px;
     align-items: center;
     display: flex;
     flex-wrap: nowrap;
@@ -9,18 +12,18 @@
 
 .ag-charts-toolbar__button {
     align-items: center;
-    background: var(--ag-charts-toolbar-background-color);
-    border: var(--ag-charts-toolbar-border);
-    color: var(--ag-charts-toolbar-foreground-color);
+    background: var(--ag-charts-chrome-background-color);
+    border: var(--ag-charts-border);
+    color: var(--ag-charts-chrome-text-color);
     cursor: pointer;
     display: flex;
     font-family: var(--ag-charts-chrome-font-family);
-    font-size: var(--ag-charts-toolbar-font-size);
+    font-size: var(--ag-charts-chrome-font-size-medium);
     font-weight: var(--ag-charts-chrome-font-weight);
     justify-content: center;
-    min-height: var(--ag-charts-toolbar-size);
-    min-width: var(--ag-charts-toolbar-size);
-    padding: var(--ag-charts-toolbar-button-padding);
+    min-height: var(--toolbar-size);
+    min-width: var(--toolbar-size);
+    padding: var(--toolbar-button-padding);
     position: relative;
     transition:
         background-color 0.25s ease-in-out,
@@ -30,7 +33,7 @@
 }
 
 .ag-charts-toolbar__button:hover {
-    background: var(--ag-charts-toolbar-hover-color);
+    background: var(--ag-charts-chrome-focus-color);
     z-index: 1;
 }
 
@@ -41,15 +44,15 @@
 }
 
 .ag-charts-toolbar__button--active {
-    background: var(--ag-charts-toolbar-active-background-color);
-    border-color: var(--ag-charts-toolbar-active-color);
-    color: var(--ag-charts-toolbar-active-color);
+    background: var(--ag-charts-chrome-focus-color);
+    border-color: var(--ag-charts-accent-color);
+    color: var(--ag-charts-accent-color);
     z-index: 2;
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
-    background: var(--ag-charts-toolbar-disabled-background-color);
-    color: var(--ag-charts-toolbar-disabled-foreground-color);
+    background: var(--ag-charts-input-disabled-background-color);
+    color: var(--ag-charts-input-disabled-text-color);
     cursor: default;
 }
 
@@ -63,14 +66,14 @@
     }
 
     .ag-charts-toolbar__button--first {
-        border-bottom-left-radius: var(--ag-charts-button-radius);
-        border-top-left-radius: var(--ag-charts-button-radius);
+        border-bottom-left-radius: var(--ag-charts-border-radius);
+        border-top-left-radius: var(--ag-charts-border-radius);
         margin: 0;
     }
 
     .ag-charts-toolbar__button--last {
-        border-bottom-right-radius: var(--ag-charts-button-radius);
-        border-top-right-radius: var(--ag-charts-button-radius);
+        border-bottom-right-radius: var(--ag-charts-border-radius);
+        border-top-right-radius: var(--ag-charts-border-radius);
     }
 }
 
@@ -83,21 +86,21 @@
     }
 
     .ag-charts-toolbar__button--first {
-        border-top-left-radius: var(--ag-charts-button-radius);
-        border-top-right-radius: var(--ag-charts-button-radius);
+        border-top-left-radius: var(--ag-charts-border-radius);
+        border-top-right-radius: var(--ag-charts-border-radius);
         margin: 0;
     }
 
     .ag-charts-toolbar__button--last {
-        border-bottom-left-radius: var(--ag-charts-button-radius);
-        border-bottom-right-radius: var(--ag-charts-button-radius);
+        border-bottom-left-radius: var(--ag-charts-border-radius);
+        border-bottom-right-radius: var(--ag-charts-border-radius);
     }
 }
 
 /* Icon */
 
 .ag-charts-toolbar__icon + .ag-charts-toolbar__label {
-    margin-left: var(--ag-charts-toolbar-gap);
+    margin-left: var(--toolbar-gap);
 }
 
 .ag-charts-toolbar__icon,
@@ -119,10 +122,10 @@
 
 .ag-charts-floating-toolbar__drag-handle {
     align-items: center;
-    background: var(--ag-charts-toolbar-background-color);
-    border: var(--ag-charts-toolbar-border);
-    border-bottom-left-radius: var(--ag-charts-button-radius);
-    border-top-left-radius: var(--ag-charts-button-radius);
+    background: var(--ag-charts-chrome-background-color);
+    border: var(--ag-charts-border);
+    border-bottom-left-radius: var(--ag-charts-border-radius);
+    border-top-left-radius: var(--ag-charts-border-radius);
     cursor: grab;
     display: flex;
     justify-content: center;

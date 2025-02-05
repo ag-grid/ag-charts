@@ -123,9 +123,10 @@ export class LineSeries extends CartesianSeries<
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
+        const stacked = stackCount > 1;
 
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
-        if (connectMissingData && stackCount > 1) {
+        if (connectMissingData && stacked) {
             common.invalidValue = 0;
 
             if (!visible) {
@@ -133,13 +134,13 @@ export class LineSeries extends CartesianSeries<
             }
         }
 
-        const props: DataModelOptions<any, false>['props'] = [];
+        const props: DataModelOptions<any, false, false>['props'] = [];
 
         // If two or more datum share an x-value, i.e. lined up vertically, they will have the same datum id.
         // They must be identified this way when animated to ensure they can be tracked when their y-value
         // is updated. If this is a static chart, we can instead not bother with identifying datum and
         // automatically garbage collect the marker selection.
-        if (!isContinuousX) {
+        if (!isContinuousX || stacked) {
             props.push(keyProperty(xKey, xScaleType, { id: 'xKey' }));
         }
 
@@ -156,7 +157,7 @@ export class LineSeries extends CartesianSeries<
             props.push(valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' }));
         }
 
-        if (stackCount > 1) {
+        if (stacked) {
             const ids = [
                 `line-stack-${groupIndex}-yValues`,
                 `line-stack-${groupIndex}-yValues-trailing`,
@@ -188,7 +189,7 @@ export class LineSeries extends CartesianSeries<
             );
 
             if (isDefined(normalizedTo)) {
-                props.push(normaliseGroupTo([ids[0], ids[1], ids[2]], normalizedTo, 'range'));
+                props.push(normaliseGroupTo([ids[0], ids[1], ids[2]], normalizedTo));
             }
         }
 
@@ -201,6 +202,8 @@ export class LineSeries extends CartesianSeries<
 
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, data, {
             props,
+            groupByKeys: stacked,
+            groupByData: !stacked,
         });
 
         this.dataAggregationFilters = this.aggregateData(dataModel, processedData as any as UngroupedData<any>);
@@ -291,7 +294,7 @@ export class LineSeries extends CartesianSeries<
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const size = marker.enabled ? marker.size : 0;
 
-        const { rawData } = processedData;
+        const rawData = processedData.dataSources.get(this.id) ?? [];
         const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
         const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
         const yEndValues = stacked ? dataModel.resolveColumnById<number>(this, `yValueEnd`, processedData) : undefined;
@@ -390,9 +393,9 @@ export class LineSeries extends CartesianSeries<
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, indices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block
-        if (processedData.rawData.length < 1e3) {
+        if (processedData.input.count < 1e3) {
             start = 0;
-            end = processedData.rawData.length;
+            end = processedData.input.count;
         }
         if (indices == null) {
             spanPoints = [];
@@ -590,7 +593,7 @@ export class LineSeries extends CartesianSeries<
         }
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 

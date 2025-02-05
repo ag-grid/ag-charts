@@ -9,7 +9,7 @@ EXTRA_DOCKER_ARGS=
 if [ "${CI:-}" != "" ] ; then
     export PUBLIC_SITE_URL=http://172.17.0.1:4601
 else
-    EXTRA_DOCKER_ARGS="-p 8080:8080"
+    EXTRA_DOCKER_ARGS="-p 8080:8080 -p 9323:9323"
 fi
 
 if [ "$1" == "--host" ] ; then

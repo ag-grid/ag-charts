@@ -181,7 +181,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         const font = label.getFont();
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
-        processedData.rawData.forEach((datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        rawData.forEach((datum, datumIndex) => {
             const xDatum = xDataValues[datumIndex];
             const yDatum = yDataValues[datumIndex];
             const x = xScale.convert(xDatum) + xOffset;
@@ -365,7 +366,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         }
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 

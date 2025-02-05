@@ -2,8 +2,10 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { TreemapSeries } from './treemapSeries';
 
-const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_HIERARCHY_FILLS, DEFAULT_HIERARCHY_STROKES } =
-    _ModuleSupport.ThemeSymbols;
+const {
+    FONT_SIZE_RATIO,
+    ThemeSymbols: { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_HIERARCHY_FILLS, DEFAULT_HIERARCHY_STROKES },
+} = _ModuleSupport;
 
 export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     type: 'series',
@@ -19,7 +21,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             group: {
                 label: {
                     enabled: true,
-                    color: { $ref: 'foregroundColor' },
+                    color: { $ref: 'textColor' },
                     fontStyle: undefined,
                     fontWeight: { $ref: 'fontWeight' },
                     fontSize: { $ref: 'fontSize' },
@@ -39,8 +41,8 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                     color: { $ref: 'backgroundColor' },
                     fontStyle: undefined,
                     fontWeight: { $ref: 'fontWeight' },
-                    fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 18 / 12] }] },
-                    minimumFontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 10 / 12] }] },
+                    fontSize: { $rem: [1.5] },
+                    minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER] },
                     fontFamily: { $ref: 'fontFamily' },
                     wrapping: 'on-space',
                     overflowStrategy: 'ellipsis',
@@ -52,7 +54,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: { $ref: 'fontSize' },
-                    minimumFontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 10 / 12] }] },
+                    minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER] },
                     fontFamily: { $ref: 'fontFamily' },
                     wrapping: 'never',
                     overflowStrategy: 'ellipsis',
@@ -67,7 +69,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             highlightStyle: {
                 group: {
                     label: {
-                        color: { $ref: 'foregroundColor' },
+                        color: { $ref: 'textColor' },
                     },
                     fill: 'rgba(255,255,255, 0.33)',
                     stroke: `rgba(0, 0, 0, 0.4)`,

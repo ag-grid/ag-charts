@@ -2734,6 +2734,61 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS: AgCartesianCh
     ],
 };
 
+export const LINE_STACKED_DATA_PER_SERIES: AgCartesianChartOptions = {
+    series: [
+        {
+            data: [
+                {
+                    time: 1,
+                    sensor: 25,
+                },
+                {
+                    time: 2,
+                    sensor: 24,
+                },
+                {
+                    time: 3,
+                    sensor: 24,
+                },
+                {
+                    time: 4,
+                    sensor: 23,
+                },
+            ],
+            type: 'line',
+            stacked: true,
+            xKey: 'time',
+            yKey: 'sensor',
+            yName: 'Lounge',
+        },
+        {
+            data: [
+                {
+                    time: 1,
+                    sensor: 21,
+                },
+                {
+                    time: 2,
+                    sensor: 22,
+                },
+                {
+                    time: 3,
+                    sensor: 22,
+                },
+                {
+                    time: 4,
+                    sensor: 22,
+                },
+            ],
+            type: 'line',
+            stacked: true,
+            xKey: 'time',
+            yKey: 'sensor',
+            yName: 'Office',
+        },
+    ],
+};
+
 export const COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     title: {
         text: 'Mean Sea Level (mm)',
@@ -2951,6 +3006,43 @@ export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = 
             position: 'left',
         },
     ],
+};
+
+export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCartesianChartOptions = {
+    title: {
+        text: "Apple's Revenue by Product Category",
+    },
+    subtitle: {
+        text: 'In Billion U.S. Dollars',
+    },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'product',
+            yKey: 'value',
+            yName: 'iPad',
+            data: [
+                { product: 'Air', value: 140 },
+                { product: 'Pro', value: 90 },
+            ],
+        },
+        {
+            type: 'bar',
+            xKey: 'product',
+            yKey: 'value',
+            yName: 'MacBook',
+            data: [
+                { product: 'Air', value: 20 },
+                { product: 'Pro 15"', value: 20 },
+                { product: 'Pro 16"', value: 50 },
+            ],
+        },
+    ],
+};
+
+export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCartesianChartOptions = {
+    ...GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
+    series: GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES.series?.map((s) => ({ ...s, stacked: true })),
 };
 
 export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = {

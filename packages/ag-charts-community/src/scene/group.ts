@@ -95,7 +95,7 @@ export class Group<D = any> extends Node<D> {
         if (sharedOffscreenCanvas == null || sharedOffscreenCanvas.pixelRatio !== pixelRatio) {
             sharedOffscreenCanvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
         } else {
-            sharedOffscreenCanvas.resize(width, height);
+            sharedOffscreenCanvas.resize(width, height, pixelRatio);
         }
 
         return sharedOffscreenCanvas;

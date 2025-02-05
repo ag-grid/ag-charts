@@ -16,7 +16,7 @@ export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>[
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'foregroundColor' },
+            color: { $ref: 'textColor' },
         },
         interpolation: {
             type: 'linear',

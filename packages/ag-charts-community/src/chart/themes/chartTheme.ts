@@ -9,6 +9,7 @@ import type {
     AgPaletteColors,
     AgPresetOverrides,
     AgThemeOverrides,
+    WithThemeParams,
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
@@ -19,7 +20,7 @@ import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
 import { legendRegistry } from '../factory/legendRegistry';
 import { seriesRegistry } from '../factory/seriesRegistry';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE, POLAR_AXIS_TYPE } from './constants';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_HANDLE_FILL,
@@ -43,9 +44,6 @@ import {
     DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_HIERARCHY_STROKES,
-    DEFAULT_INVERTED_BACKGROUND_COLOUR,
-    DEFAULT_INVERTED_LABEL_COLOUR,
-    DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_SHADOW_COLOUR,
@@ -137,16 +135,16 @@ export class ChartTheme {
                 text: 'Axis Title',
                 spacing: 25,
                 fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, FONT_SIZE.MEDIUM / FONT_SIZE.SMALL] }] },
+                fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM] },
                 fontFamily: { $ref: 'fontFamily' },
-                color: { $ref: 'foregroundColor' },
+                color: { $ref: 'textColor' },
             },
             label: {
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
                 spacing: 11,
-                color: { $ref: 'foregroundColor' },
+                color: { $ref: 'textColor' },
                 avoidCollisions: true,
             },
             line: {
@@ -175,7 +173,7 @@ export class ChartTheme {
                     fontFamily: { $ref: 'fontFamily' },
                     fontWeight: { $ref: 'fontWeight' },
                     padding: 5,
-                    color: { $ref: 'foregroundColor' },
+                    color: { $ref: 'textColor' },
                 },
             },
             crosshair: {
@@ -200,9 +198,9 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Title',
                 fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, FONT_SIZE.LARGE / FONT_SIZE.SMALL] }] },
+                fontSize: { $rem: [FONT_SIZE_RATIO.LARGEST] },
                 fontFamily: { $ref: 'fontFamily' },
-                color: { $ref: 'foregroundColor' },
+                color: { $ref: 'textColor' },
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
@@ -212,9 +210,9 @@ export class ChartTheme {
                 text: 'Subtitle',
                 spacing: 20,
                 fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, FONT_SIZE.MEDIUM / FONT_SIZE.SMALL] }] },
+                fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM] },
                 fontFamily: { $ref: 'fontFamily' },
-                color: DEFAULT_MUTED_LABEL_COLOUR,
+                color: { $ref: 'subtleTextColor' },
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
@@ -223,10 +221,10 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Footnote',
                 spacing: 20,
-                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, FONT_SIZE.MEDIUM / FONT_SIZE.SMALL] }] },
+                fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM] },
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
-                color: 'rgb(140, 140, 140)',
+                color: { $ref: 'subtleTextColor' },
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
@@ -242,7 +240,7 @@ export class ChartTheme {
                     marker: { size: 15, padding: 8 },
                     showSeriesStroke: true,
                     label: {
-                        color: { $ref: 'foregroundColor' },
+                        color: { $ref: 'textColor' },
                         fontSize: { $ref: 'fontSize' },
                         fontFamily: { $ref: 'fontFamily' },
                         fontWeight: { $ref: 'fontWeight' },
@@ -252,9 +250,9 @@ export class ChartTheme {
                 pagination: {
                     marker: { size: 12 },
                     activeStyle: { fill: { $ref: 'foregroundColor' } },
-                    inactiveStyle: { fill: DEFAULT_MUTED_LABEL_COLOUR },
+                    inactiveStyle: { fill: { $ref: 'subtleTextColor' } },
                     highlightStyle: { fill: { $ref: 'foregroundColor' } },
-                    label: { color: { $ref: 'foregroundColor' } },
+                    label: { color: { $ref: 'textColor' } },
                 },
             },
             tooltip: {
@@ -453,24 +451,32 @@ export class ChartTheme {
         };
     }
 
-    getPublicParameters(): Required<AgChartThemeParams> {
+    getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
+            accentColor: '#2196f3',
             axisColor: '#c3c3c3',
             backgroundColor: DEFAULT_BACKGROUND_FILL,
-            borderColor: '#ddd',
+            borderColor: { $mix: [{ $ref: 'foregroundColor' }, { $ref: 'backgroundColor' }, 0.818] },
             foregroundColor: '#464646',
             fontFamily: 'Verdana, sans-serif',
             fontSize: FONT_SIZE.SMALL,
             fontWeight: 400,
             gridLineColor: '#e0eaf1',
             padding: 20,
+            spacing: 4,
+            subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'backgroundColor' }, 0.38] },
+            textColor: { $ref: 'foregroundColor' },
 
-            // TODO: Should these directly use `backgroundColor` or should they be their own params with a ref to it?
-            // insideSeriesLabelColor: { $ref: 'backgroundColor' },
-            // annotationHandleFillColor: { $ref: 'backgroundColor' },
+            chromeBackgroundColor: { $mix: [{ $ref: 'foregroundColor' }, { $ref: 'backgroundColor' }, 0.975] },
+            chromeFontFamily: { $ref: 'fontFamily' },
+            chromeFontSize: { $ref: 'fontSize' },
+            chromeFontWeight: { $ref: 'fontWeight' },
+            chromeTextColor: '#181d1f',
+            chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
         };
     }
 
+    // Private parameters that are not exposed in the themes API.
     getTemplateParameters() {
         const { isEnterprise } = enterpriseModule;
 
@@ -478,12 +484,9 @@ export class ChartTheme {
         params.set(IS_DARK_THEME, false);
         params.set(IS_ENTERPRISE, isEnterprise);
         params.set(IS_COMMUNITY, !isEnterprise);
-        params.set(DEFAULT_INVERTED_LABEL_COLOUR, '#fff');
-        params.set(DEFAULT_MUTED_LABEL_COLOUR, '#8c8c8c');
         params.set(DEFAULT_CROSS_LINES_COLOUR, '#464646');
         params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#d9d9d9');
         params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL); // TODO: remove uses in paletteFactory()
-        params.set(DEFAULT_INVERTED_BACKGROUND_COLOUR, 'black');
         params.set(DEFAULT_SHADOW_COLOUR, '#00000080');
         params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
             DEFAULT_FILLS.ORANGE,

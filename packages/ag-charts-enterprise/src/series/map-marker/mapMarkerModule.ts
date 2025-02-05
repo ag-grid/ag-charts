@@ -21,7 +21,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
             maxSize: 30,
             fillOpacity: 0.5,
             label: {
-                color: { $ref: 'foregroundColor' },
+                color: { $ref: 'textColor' },
             },
         },
     },

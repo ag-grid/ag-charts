@@ -1,7 +1,7 @@
 .ag-charts-zoom-buttons {
     align-items: center;
     display: flex;
-    height: calc(var(--ag-charts-toolbar-size) + 10px);
+    height: 44px;
     justify-content: center;
     overflow: hidden;
     padding-bottom: 10px;
@@ -9,12 +9,12 @@
     width: 100%;
 
     .ag-charts-toolbar {
-        --ag-charts-toolbar-size: var(--ag-charts-toolbar-size-small);
-        --ag-charts-toolbar-font-size: var(--ag-charts-toolbar-font-size-small);
-        --ag-charts-toolbar-button-padding: var(--ag-charts-toolbar-button-padding-small);
+        --toolbar-size: 24px;
+        --toolbar-button-padding: 1px;
 
         display: flex;
-        height: var(--ag-charts-toolbar-size);
+        font-size: var(--ag-charts-chrome-font-size);
+        height: var(--toolbar-size);
         justify-content: center;
         opacity: 1;
         pointer-events: auto;
@@ -24,33 +24,33 @@
 
         /* TODO: move these out once toolbar.css is cleaned up */
         .ag-charts-toolbar__button--first {
-            border-bottom-left-radius: var(--ag-charts-button-radius);
-            border-top-left-radius: var(--ag-charts-button-radius);
+            border-bottom-left-radius: var(--ag-charts-border-radius);
+            border-top-left-radius: var(--ag-charts-border-radius);
         }
 
         .ag-charts-toolbar__button--last {
-            border-bottom-right-radius: var(--ag-charts-button-radius);
-            border-top-right-radius: var(--ag-charts-button-radius);
+            border-bottom-right-radius: var(--ag-charts-border-radius);
+            border-top-right-radius: var(--ag-charts-border-radius);
         }
 
         .ag-charts-toolbar__label {
-            padding-left: calc(var(--ag-charts-toolbar-gap) / 2);
-            padding-right: calc(var(--ag-charts-toolbar-gap) / 2);
+            padding-left: var(--ag-charts-spacing);
+            padding-right: var(--ag-charts-spacing);
         }
 
         .ag-charts-toolbar__icon + .ag-charts-toolbar__label {
             padding-left: 0;
         }
-    }
 
-    .ag-charts-toolbar__button--gap {
-        margin-left: var(--ag-charts-toolbar-gap);
-    }
+        .ag-charts-toolbar__button--gap {
+            margin-left: var(--toolbar-gap);
+        }
 
-    .ag-charts-zoom-buttons__toolbar--hidden {
-        opacity: 0;
-        transition:
-            opacity 0.4s ease-in-out,
-            transform 0.4s ease-in-out;
+        .ag-charts-zoom-buttons__toolbar--hidden {
+            opacity: 0;
+            transition:
+                opacity 0.4s ease-in-out,
+                transform 0.4s ease-in-out;
+        }
     }
 }

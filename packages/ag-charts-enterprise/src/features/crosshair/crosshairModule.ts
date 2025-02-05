@@ -12,7 +12,7 @@ export const CrosshairModule: _ModuleSupport.AxisOptionModule = {
     themeTemplate: {
         crosshair: {
             snap: true,
-            stroke: _ModuleSupport.ThemeSymbols.DEFAULT_MUTED_LABEL_COLOUR,
+            stroke: { $ref: 'subtleTextColor' },
             strokeWidth: 1,
             strokeOpacity: 1,
             lineDash: [5, 6],

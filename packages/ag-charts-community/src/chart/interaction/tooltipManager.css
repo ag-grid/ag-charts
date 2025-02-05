@@ -11,15 +11,15 @@
     font-family: var(--ag-charts-chrome-font-family);
     font-size: var(--ag-charts-chrome-font-size);
     font-weight: var(--ag-charts-chrome-font-weight);
-    color: var(--ag-charts-tooltip-text-color);
-    background: var(--ag-charts-tooltip-background-color);
-    border: var(--ag-charts-tooltip-border);
-    border-radius: var(--ag-charts-tooltip-border-radius);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    color: var(--ag-charts-chrome-text-color);
+    background: var(--ag-charts-chrome-background-color);
+    border: var(--ag-charts-border);
+    border-radius: var(--ag-charts-border-radius);
+    box-shadow: var(--ag-charts-shadow);
 }
 
-.ag-charts-tooltip--compact {
-    --ag-charts-content-padding: var(--ag-charts-content-compact-padding);
+.ag-charts-tooltip--compact .ag-charts-tooltip-content {
+    padding: 3px 6px;
 }
 
 .ag-charts-tooltip--arrow::before {
@@ -48,6 +48,7 @@
 .ag-charts-tooltip--no-interaction {
     pointer-events: none;
     user-select: none;
+    -webkit-user-select: none;
 }
 
 .ag-charts-tooltip--wrap-always {
@@ -84,8 +85,8 @@
 .ag-charts-tooltip-content {
     display: grid;
     grid: auto-flow minmax(1em, auto) / 1fr;
-    padding: var(--ag-charts-content-padding);
-    gap: var(--ag-charts-content-gap);
+    padding: 8px 12px;
+    gap: 8px;
 }
 
 .ag-charts-tooltip-content:has(.ag-charts-tooltip-symbol) {

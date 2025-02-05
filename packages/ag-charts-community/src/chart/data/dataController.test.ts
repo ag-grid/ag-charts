@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { DataController } from './dataController';
-import type { DataModelOptions } from './dataModel';
+import type { DataModelOptions, DatumPropertyDefinition } from './dataModel';
 
 describe('DataController', () => {
     let controller: DataController;
@@ -13,7 +13,7 @@ describe('DataController', () => {
     });
 
     it('should merge compatible requests with identical definitions', async () => {
-        const def: DataModelOptions<any, any> = {
+        const def = {
             props: [
                 {
                     id: 'keyProp1-key',
@@ -127,21 +127,18 @@ describe('DataController', () => {
         const promise1 = controller.request('test1', data, {
             props: [
                 {
-                    scopes: ['test1'],
                     id: 'keyProp1-key',
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
                 },
                 {
-                    scopes: ['test1'],
                     id: 'valueProp1-key',
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
                 },
                 {
-                    scopes: ['test1'],
                     id: 'valueProp2-key',
                     property: 'valueProp2',
                     type: 'value',
@@ -153,21 +150,18 @@ describe('DataController', () => {
         const promise2 = controller.request('test2', data, {
             props: [
                 {
-                    scopes: ['test2'],
                     id: 'keyProp1-key',
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
                 },
                 {
-                    scopes: ['test2'],
                     id: 'valueProp1-key',
                     property: 'valueProp2',
                     type: 'value',
                     valueType: 'range',
                 },
                 {
-                    scopes: ['test2'],
                     id: 'valueProp2-key',
                     property: 'valueProp1',
                     type: 'value',
@@ -231,14 +225,12 @@ describe('DataController', () => {
         const promise1 = controller.request('test1', data, {
             props: [
                 {
-                    scopes: ['test1'],
                     id: 'keyProp1-key',
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
                 },
                 {
-                    scopes: ['test1'],
                     id: 'valueProp1-key',
                     property: 'valueProp1',
                     type: 'value',
@@ -250,7 +242,7 @@ describe('DataController', () => {
         controller.execute();
         const results = await Promise.all([promise1]);
 
-        expect(results[0].processedData.keys).toEqual([[2020, 2021, 2022]]);
+        expect(results[0].processedData.keys).toEqual([new Map([['test1', [2020, 2021, 2022]]])]);
         expect(results[0].processedData.columns).toEqual([[100, 200, 300]]);
     });
 
@@ -267,17 +259,15 @@ describe('DataController', () => {
                 { keyProp1: '2022', valueProp1: 60 },
             ];
 
-            const def: DataModelOptions<'keyProp1' | 'valueProp1', any> = {
+            const def: DataModelOptions<'keyProp1' | 'valueProp1', any, false> = {
                 props: [
                     {
-                        scopes: ['test1', 'test2'],
                         id: 'keyProp1-key',
                         property: 'keyProp1',
                         type: 'key',
                         valueType: 'category',
                     },
                     {
-                        scopes: ['test1', 'test2'],
                         id: 'valueProp1-key',
                         property: 'valueProp1',
                         type: 'value',
@@ -312,14 +302,12 @@ describe('DataController', () => {
             const promise1 = controller.request('test1', data1, {
                 props: [
                     {
-                        scopes: ['test1'],
                         id: 'keyProp1-key',
                         property: 'keyProp1',
                         type: 'key',
                         valueType: 'category',
                     },
                     {
-                        scopes: ['test1'],
                         id: 'valueProp1-key',
                         property: 'valueProp1',
                         type: 'value',
@@ -331,14 +319,12 @@ describe('DataController', () => {
             const promise2 = controller.request('test2', data2, {
                 props: [
                     {
-                        scopes: ['test2'],
                         id: 'keyProp1-key',
                         property: 'keyProp1',
                         type: 'key',
                         valueType: 'category',
                     },
                     {
-                        scopes: ['test2'],
                         id: 'valueProp1-key',
                         property: 'valueProp1',
                         type: 'value',
@@ -361,20 +347,18 @@ describe('DataController', () => {
             const promise1 = controller.request('test1', data1, {
                 props: [
                     {
-                        scopes: ['test1'],
                         id: 'valueProp1-key1',
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'category',
                     },
                     {
-                        scopes: ['test1'],
                         id: 'valueProp1-key2',
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'category',
                         includeProperty: false,
-                        processor: () => (value) => `key2 ${value}`,
+                        processor: () => (value: any) => `key2 ${value}`,
                     },
                 ],
             });
@@ -382,20 +366,18 @@ describe('DataController', () => {
             const promise2 = controller.request('test2', data2, {
                 props: [
                     {
-                        scopes: ['test2'],
                         id: 'valueProp1-key1',
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'category',
                     },
                     {
-                        scopes: ['test2'],
                         id: 'valueProp1-key2',
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'category',
                         includeProperty: false,
-                        processor: () => (value) => `key2 ${value}`,
+                        processor: () => (value: any) => `key2 ${value}`,
                     },
                 ],
             });
@@ -419,25 +401,23 @@ describe('DataController', () => {
                 { keyProp1: '2022', valueProp1: 60 },
             ];
 
-            const def: DataModelOptions<'keyProp1' | 'valueProp1', any> = {
+            const def = {
                 groupByKeys: true,
                 props: [
                     {
-                        scopes: ['test1'],
-                        property: 'keyProp1',
                         type: 'key',
+                        property: 'keyProp1' as const,
                         valueType: 'category',
                     },
                     {
-                        scopes: ['test1'],
-                        property: 'valueProp1',
+                        property: 'valueProp1' as const,
                         type: 'value',
                         valueType: 'range',
                         groupId: 'valueProp1',
                         id: undefined,
                         processor: () => (next: number, total?: number) => next + (total ?? 0),
                     },
-                ],
+                ] satisfies DatumPropertyDefinition<any>[],
             };
 
             const promise1 = controller.request('test1', data1, def);

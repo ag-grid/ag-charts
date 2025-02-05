@@ -294,6 +294,10 @@ const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineToo
     };
 });
 
+interface UndocumentedProperties {
+    overrideDevicePixelRatio?: number;
+}
+
 export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     const {
         background,
@@ -303,6 +307,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         locale,
         minHeight,
         minWidth,
+        overrideDevicePixelRatio,
         padding,
         width,
         theme: baseTheme,
@@ -314,9 +319,9 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         tooltip,
         context,
         ...optsRest
-    } = opts as any as AgBaseSparklinePresetOptions;
+    } = opts as any as AgBaseSparklinePresetOptions & UndocumentedProperties;
 
-    const chartOpts: AgCartesianChartOptions = pickProps<AgBaseSparklinePresetOptions>(opts, {
+    const chartOpts: AgCartesianChartOptions = pickProps<AgBaseSparklinePresetOptions & UndocumentedProperties>(opts, {
         background,
         container,
         height,
@@ -324,6 +329,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         locale,
         minHeight,
         minWidth,
+        overrideDevicePixelRatio,
         padding,
         width,
         tooltip: IGNORED_PROP,

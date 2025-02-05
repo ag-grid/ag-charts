@@ -2,7 +2,11 @@ import { Logger, toArray } from 'ag-charts-core';
 
 import { getWindow } from '../core';
 
-export type DebugLogger = ((...logContent: any[]) => void) & { check(): boolean };
+export type DebugLoggerMethods = {
+    check(): boolean;
+    group<T>(name: string, cb: () => T): T;
+};
+export type DebugLogger = ((...logContent: any[]) => void) & DebugLoggerMethods;
 
 const LONG_TIME_PERIOD_THRESHOLD = 2000;
 
@@ -27,7 +31,15 @@ export const Debug = {
                 Logger.log(...logContent);
             }
         };
-        return Object.assign(resultFn, { check: () => Debug.check(...debugSelectors) });
+        return Object.assign(resultFn, {
+            check: () => Debug.check(...debugSelectors),
+            group: (name, cb) => {
+                if (Debug.check(...debugSelectors)) {
+                    return Logger.logGroup(name, cb);
+                }
+                return cb();
+            },
+        } satisfies DebugLoggerMethods);
     },
 
     check(...debugSelectors: Array<boolean | string>) {

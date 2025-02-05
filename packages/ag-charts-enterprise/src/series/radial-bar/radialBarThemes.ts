@@ -1,7 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 const {
-    ThemeSymbols: { DEFAULT_INVERTED_LABEL_COLOUR },
     ThemeConstants: { POLAR_AXIS_TYPE },
 } = _ModuleSupport;
 
@@ -13,7 +12,7 @@ export const RADIAL_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-bar'>[
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: DEFAULT_INVERTED_LABEL_COLOUR,
+            color: { $ref: 'backgroundColor' },
         },
     },
     axes: {

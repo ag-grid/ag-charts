@@ -167,6 +167,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, FunnelNodeDatum>;
         isHighlight: boolean;
     }) {
+        const { shadow } = this.properties;
         const { datumSelection, isHighlight } = opts;
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
@@ -188,6 +189,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
             rect.crisp = datum.crisp;
+            rect.fillShadow = shadow;
         });
     }
 

@@ -1,5 +1,5 @@
 (function (global) {
-    var ANGULAR_VERSION = '^17';
+    var ANGULAR_VERSION = '^19';
 
     System.config({
         // DEMO ONLY! REAL CODE SHOULD NOT TRANSPILE IN THE BROWSER
@@ -27,6 +27,8 @@
             '@angular/core': 'npm:@angular/core@' + ANGULAR_VERSION + '/fesm2022/core.mjs',
             '@angular/core/primitives/signals':
                 'npm:@angular/core@' + ANGULAR_VERSION + '/fesm2022/primitives/signals.mjs',
+            '@angular/core/primitives/event-dispatch':
+                'npm:@angular/core@' + ANGULAR_VERSION + '/fesm2022/primitives/event-dispatch.mjs',
             '@angular/common': 'npm:@angular/common@' + ANGULAR_VERSION + '/fesm2022/common.mjs',
             '@angular/common/http': 'npm:@angular/common@' + ANGULAR_VERSION + '/fesm2022/http.mjs',
 

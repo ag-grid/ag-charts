@@ -51,6 +51,33 @@ type TDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > = TLinkDatum | TNodeDatum;
 
+export class FlowProportionSeriesNodeEvent<
+    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
+> extends _ModuleSupport.SeriesNodeEvent<_ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>, TEvent> {
+    readonly size?: number;
+    readonly label?: string;
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>,
+        series: _ModuleSupport.ISeries<_ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>, unknown> & {
+            contextNodeData?: _ModuleSupport.SeriesNodeDataContext<
+                FlowProportionNodeDatumIndex,
+                TDatum<FlowProportionNodeDatum<any, any>, FlowProportionLinkDatum<any, any>>,
+                unknown
+            >;
+        }
+    ) {
+        super(type, nativeEvent, datum, series);
+        const { datumIndex } = datum;
+        const nodeDatum = series.contextNodeData?.nodeData.find(
+            (d) => d.datumIndex.type === datumIndex.type && d.datumIndex.index === datumIndex.index
+        );
+        this.size = nodeDatum?.size;
+        this.label = nodeDatum?.type === FlowProportionDatumType.Node ? nodeDatum?.label : undefined;
+    }
+}
+
 export abstract class FlowProportionSeries<
         TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
         TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
@@ -68,6 +95,8 @@ export abstract class FlowProportionSeries<
     >
     implements _ModuleSupport.FlowProportionSeries
 {
+    protected override readonly NodeEvent = FlowProportionSeriesNodeEvent;
+
     abstract override properties: TProps;
 
     @Validate(ARRAY, { optional: true, property: 'nodes' })
@@ -215,7 +244,7 @@ export abstract class FlowProportionSeries<
                 };
             };
 
-            linksDataModel.processedData.rawData.forEach((_datum, datumIndex) => {
+            linksDataModel.processedData.dataSources.get(this.id)?.forEach((_datum, datumIndex) => {
                 const fromId = fromIdValues[datumIndex];
                 const toId = toIdValues[datumIndex];
                 if (fromId == null || toId == null) return;
@@ -243,7 +272,7 @@ export abstract class FlowProportionSeries<
                       )
                     : undefined;
 
-            nodesDataModel.processedData.rawData.forEach((datum, datumIndex) => {
+            nodesDataModel.processedData.dataSources.get(this.id)?.forEach((datum, datumIndex) => {
                 const id: string = nodeIdValues[datumIndex];
                 const label: string | undefined = labelValues?.[datumIndex];
 
@@ -301,7 +330,7 @@ export abstract class FlowProportionSeries<
         });
 
         const baseLinks: TLinkDatum[] = [];
-        linksProcessedData.rawData.forEach((datum, datumIndex) => {
+        linksProcessedData.dataSources.get(this.id)?.forEach((datum, datumIndex) => {
             const fromId: string = fromIdValues[datumIndex];
             const toId: string = toIdValues[datumIndex];
             const size: number = sizeValues != null ? sizeValues[datumIndex] : 1;

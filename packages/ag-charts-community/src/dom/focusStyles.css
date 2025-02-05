@@ -3,14 +3,15 @@
     display: block;
     pointer-events: none;
     user-select: none;
+    -webkit-user-select: none;
     width: 100%;
     height: 100%;
 }
 
 .ag-charts-focus-indicator > div {
     position: absolute;
-    outline: var(--ag-charts-focus-outline);
-    box-shadow: var(--ag-charts-focus-box-shadow);
+    outline: solid 1px var(--ag-charts-chrome-background-color);
+    box-shadow: var(--ag-charts-focus-shadow);
 }
 
 .ag-charts-focus-indicator > svg {
@@ -25,6 +26,6 @@
 }
 
 .ag-charts-focus-svg-inner-path {
-    stroke: var(--ag-charts-focus-accent-color);
+    stroke: var(--ag-charts-accent-color);
     stroke-width: 2px;
 }

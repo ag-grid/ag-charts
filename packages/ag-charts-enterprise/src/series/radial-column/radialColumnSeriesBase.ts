@@ -126,7 +126,7 @@ export abstract class RadialColumnSeriesBase<
         const extraProps = [];
 
         if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo), 'range'));
+            extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
         }
 
         if (animationEnabled && this.processedData) {
@@ -178,6 +178,8 @@ export abstract class RadialColumnSeriesBase<
                 ),
                 ...extraProps,
             ],
+            groupByKeys: true,
+            groupByData: false,
         });
 
         this.animationState.transition('updateData');
@@ -217,7 +219,7 @@ export abstract class RadialColumnSeriesBase<
     override createNodeData() {
         const { processedData, dataModel, groupScale } = this;
 
-        if (!dataModel || !processedData || processedData.type !== 'ungrouped' || !this.properties.isValid()) {
+        if (!dataModel || !processedData || processedData.type !== 'grouped' || !this.properties.isValid()) {
             return;
         }
 
@@ -283,8 +285,10 @@ export abstract class RadialColumnSeriesBase<
         const context = { itemId: radiusKey, nodeData, labelData: nodeData };
         if (!this.visible) return context;
 
-        const { rawData, aggregation } = processedData;
-        rawData.forEach((datum, datumIndex) => {
+        const { dataSources } = processedData;
+        const rawData = dataSources.get(this.id) ?? [];
+        for (const { datumIndex, group } of dataModel.forEachGroupDatum(this, processedData)) {
+            const datum = rawData[datumIndex];
             const angleDatum = angleValues[datumIndex];
             if (angleDatum == null) return;
 
@@ -292,8 +296,7 @@ export abstract class RadialColumnSeriesBase<
             const isPositive = radiusDatum >= 0 && !Object.is(radiusDatum, -0);
             const innerRadiusDatum = radiusStartValues[datumIndex];
             const outerRadiusDatum = radiusEndValues[datumIndex];
-            const datumAggregation = aggregation![datumIndex];
-            const radiusRange = datumAggregation[radiusRangeIndex][isPositive ? 1 : 0] ?? 0;
+            const radiusRange = group.aggregation[radiusRangeIndex][isPositive ? 1 : 0] ?? 0;
             const negative = isPositive === radiusAxisReversed;
             if (innerRadiusDatum === undefined || outerRadiusDatum === undefined) return;
 
@@ -320,7 +323,7 @@ export abstract class RadialColumnSeriesBase<
             const y = Math.sin(angle) * midRadius;
 
             const labelNodeDatum = this.properties.label.enabled
-                ? getLabelNodeDatum(datum, radiusDatum, x, y)
+                ? getLabelNodeDatum(datum as any, radiusDatum, x, y)
                 : undefined;
 
             const columnWidth = this.getColumnWidth(startAngle, endAngle);
@@ -346,7 +349,7 @@ export abstract class RadialColumnSeriesBase<
                 columnWidth,
                 index: datumIndex,
             });
-        });
+        }
 
         return { itemId: radiusKey, nodeData, labelData: nodeData };
     }
@@ -501,7 +504,7 @@ export abstract class RadialColumnSeriesBase<
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
         const radiusValue = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData)[datumIndex];
 

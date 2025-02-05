@@ -55,6 +55,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     PyramidNodeLabelDatum,
     PyramidNodeDataContext
 > {
+    static readonly className = 'PyramidSeries';
+    static readonly type = 'pyramid' as const;
+
     override properties = new PyramidProperties();
 
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
@@ -173,7 +176,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         let maxLabelHeight = 0;
         let yTotal = 0;
 
-        processedData.rawData.forEach((datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        rawData.forEach((datum, datumIndex) => {
             const xValue = xValues[datumIndex];
             const yValue = yValues[datumIndex];
             const enabled = visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
@@ -206,7 +210,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const seriesRectWidth = this._nodeDataDependencies?.seriesRectWidth ?? 0;
         const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
-        const totalSpacing = spacing * (processedData.rawData.length - 1);
+        const totalSpacing = spacing * (processedData.input.count - 1);
 
         let bounds: _ModuleSupport.BBox;
         if (horizontal) {
@@ -262,7 +266,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const nodeData: PyramidNodeDatum[] = [];
         const labelData: PyramidNodeLabelDatum[] = [];
         let yStart = 0;
-        processedData.rawData.forEach((datum, datumIndex) => {
+        rawData.forEach((datum, datumIndex) => {
             const xValue = xValues[datumIndex];
             const yValue = yValues[datumIndex];
 
@@ -558,14 +562,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         if (!dataModel || !processedData) return;
 
         const { datumIndex } = nodeDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, 'xValue', processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
         if (xValue == null) return;
 
         const value = this.getLabelText(this.properties.stageLabel, {
-            datum: processedData.rawData[datumIndex],
+            datum: processedData.dataSources.get(this.id)?.[datumIndex],
             value: yValue,
             stageKey,
             valueKey,
@@ -646,7 +650,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
         const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
 
-        processedData.rawData.forEach((_datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        rawData.forEach((_datum, datumIndex) => {
             const stageValue = stageValues[datumIndex];
 
             legendData.push({

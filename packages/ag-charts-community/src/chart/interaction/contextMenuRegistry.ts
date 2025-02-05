@@ -11,13 +11,15 @@ type ContextTypeMap = {
     node: { pickedSeries: ISeries<any, any> | undefined; pickedNode: SeriesNodeDatum<unknown> | undefined };
 };
 
+export type MouseEventWithPointerType = MouseEvent & Partial<Pick<PointerEvent, 'pointerType'>>;
+
 export type ContextType = keyof ContextTypeMap;
 export type ContextMenuEvent<K extends ContextType = ContextType> = {
     readonly type: K;
     readonly x: number;
     readonly y: number;
     readonly context: Readonly<ContextTypeMap[K]>;
-    readonly sourceEvent: Event;
+    readonly sourceEvent: MouseEventWithPointerType;
 };
 
 // Extract the TEvent types from the AgContextMenuOptions contract:

@@ -120,6 +120,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
 
+    private restoreAnnotations = true;
+
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
         this.state = this.setupStateMachine();
@@ -456,6 +458,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesDragInterpreter.addListener('mousemove', this.onHover.bind(this)),
             seriesDragInterpreter.addListener('click', this.onClick.bind(this)),
             seriesDragInterpreter.addListener('dblclick', this.onDoubleClick.bind(this)),
+            seriesDragInterpreter.addListener('drag-start', this.dragStartTouchPreHandler.bind(this)),
+            seriesDragInterpreter.addListener('drag-move', this.dragMoveTouchPreHandler.bind(this)),
             seriesDragInterpreter.addListener('drag-start', this.onDragStart.bind(this)),
             seriesDragInterpreter.addListener('drag-move', this.onDrag.bind(this)),
             seriesDragInterpreter.addListener('drag-end', this.onDragEnd.bind(this)),
@@ -630,13 +634,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const dateValues = dataModel.resolveKeysById<Date>({ id: 'annotations' }, 'date', processedData);
         const volumeValues = dataModel.resolveColumnById({ id: 'annotations' }, 'volume', processedData);
 
-        return processedData.rawData.reduce((sum, _datum, datumIndex) => {
+        let sum = 0;
+        for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
             const key = dateValues[datumIndex];
             if (isValidDate(key) && key >= from && key <= to) {
-                return sum + volumeValues[datumIndex];
+                sum += volumeValues[datumIndex];
             }
-            return sum;
-        }, 0);
+        }
+        return sum;
     }
 
     private translateNode(
@@ -685,6 +690,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.clear();
         this.annotationData.set(event.annotations);
+
+        this.restoreAnnotations = true;
         this.update();
     }
 
@@ -718,12 +725,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const hasData = this.ctx.chartService.series.some((s) => s.hasData);
 
         const seriesIds = this.yAxis.context.seriesIds();
-        const allBoundSeriesVisible = seriesIds.every((id) => {
+        const anyBoundSeriesVisible = seriesIds.some((id) => {
             const series = this.ctx.chartService.series.find((s) => s.id === id);
             return series?.visible;
         });
 
-        return hasData && allBoundSeriesVisible;
+        return hasData && anyBoundSeriesVisible;
     }
 
     private animateAnnotations({ from, to, phase }: { from: number; to: number; phase: 'trailing' | 'remove' }) {
@@ -853,28 +860,38 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.toolbar.refreshButtonsEnabled(showAnnotations);
         this.toolbar.toggleClearButtonEnabled(annotationData.length > 0 && showAnnotations);
 
+        const shouldWarn = this.restoreAnnotations;
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
             .each((node, datum) => {
-                if (!showAnnotations || !this.validateDatum(datum)) {
+                if (!showAnnotations || !this.validateDatum(datum, shouldWarn)) {
                     node.visible = false;
+                    if ('setAxisLabelVisible' in node) {
+                        node.setAxisLabelVisible(false);
+                    }
                     return;
                 }
 
+                if ('setAxisLabelVisible' in node) {
+                    node.setAxisLabelVisible(true);
+                }
                 this.injectDatumDependencies(datum);
                 updateAnnotation(node, datum, context);
             });
 
         this.postUpdateFns.forEach((fn) => fn());
         this.postUpdateFns = [];
+
+        this.restoreAnnotations = false;
     }
 
     private postUpdateFns: Array<() => void> = [];
 
     // Validation of the options beyond the scope of the @Validate decorator
-    private validateDatum(datum: AnnotationProperties) {
+    private validateDatum(datum: AnnotationProperties, shouldWarn: boolean) {
         const context = this.getAnnotationContext();
-        return context ? datum.isValidWithContext(context, `Annotation [${datum.type}] `) : true;
+        const warningPrefix = shouldWarn ? `Annotation [${datum.type}] ` : undefined;
+        return context ? datum.isValidWithContext(context, warningPrefix) : true;
     }
 
     private getAnnotationContext(): AnnotationContext | undefined {
@@ -901,7 +918,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private onHover(event: _Widget.MouseWidgetEvent<'mousemove'>) {
+    private onHover(event: _Widget.MouseWidgetEvent<'mousemove'> | _Widget.DragWidgetEvent<'drag-start'>) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -978,10 +995,20 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.state.transition('resize', { textInputValue, bbox });
     }
 
+    private dragStartTouchPreHandler(event: _Widget.DragWidgetEvent<'drag-start'>) {
+        if (event.device === 'touch') {
+            this.onHover(event);
+        }
+    }
+
+    private dragMoveTouchPreHandler(event: _Widget.DragWidgetEvent<'drag-move'>) {
+        if (event.device === 'touch' && this.ctx.interactionManager.isState(InteractionState.AnnotationsSelected)) {
+            event.sourceEvent.preventDefault();
+        }
+    }
+
     private onDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
-
-        const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
@@ -992,15 +1019,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
-        state.transition('dragStart', { context, offset, point, textInputValue, bbox });
+        this.state.transition('dragStart', { context, offset, point, textInputValue, bbox });
     }
 
     private onDrag(event: _Widget.DragWidgetEvent<'drag-move'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
-
-        if (event.device === 'touch') event.sourceEvent.preventDefault();
-
-        const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
@@ -1011,7 +1034,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
-        state.transition('drag', { context, offset, point, shiftKey, textInputValue, bbox });
+        this.state.transition('drag', { context, offset, point, shiftKey, textInputValue, bbox });
     }
 
     private onDragEnd() {

@@ -17,7 +17,7 @@ interface RequestedProcessing<
     G extends boolean | undefined = undefined,
 > {
     id: string;
-    opts: DataModelOptions<K, any>;
+    opts: DataModelOptions<K, any, false>;
     data: D[];
     resolve: (result: Result<D, K, G>) => void;
     reject: (reason?: any) => void;
@@ -29,7 +29,7 @@ interface MergedRequests<
     G extends boolean | undefined = undefined,
 > {
     ids: string[];
-    opts: DataModelOptions<K, any>;
+    opts: DataModelOptions<K, any, true>;
     data: D[];
     resolves: ((result: Result<D, K, G>) => void)[];
     rejects: ((reason?: any) => void)[];
@@ -57,7 +57,7 @@ export class DataController {
         D extends object,
         K extends keyof D & string = keyof D & string,
         G extends boolean | undefined = undefined,
-    >(id: string, data: D[], opts: DataModelOptions<K, any>) {
+    >(id: string, data: D[], opts: DataModelOptions<K, any, false>) {
         if (this.status !== 'setup') {
             throw new Error(`AG Charts - data request after data setup phase.`);
         }
@@ -94,7 +94,8 @@ export class DataController {
             if (reusableCache == null) {
                 try {
                     dataModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
-                    processedData = dataModel.processData(data, valid);
+                    const sources = new Map(valid.map((v) => [v.id, v.data]));
+                    processedData = dataModel.processData(sources);
                 } catch (error) {
                     rejects.forEach((cb) => cb(error));
                     continue;
@@ -130,7 +131,12 @@ export class DataController {
         const valid: RequestedProcessing<any, any, any>[] = [];
 
         for (const [index, request] of requested.entries()) {
-            if (index > 0 && request.data.length !== requested[0].data.length && request.opts.groupByData === false) {
+            if (
+                index > 0 &&
+                request.data.length !== requested[0].data.length &&
+                request.opts.groupByData === false &&
+                request.opts.groupByKeys === false
+            ) {
                 request.reject(
                     new Error('all series[].data arrays must be of the same length and have matching keys.')
                 );
@@ -196,6 +202,7 @@ export class DataController {
         this: void,
         requests: RequestedProcessing<any, any, any>[]
     ): MergedRequests<any, any, any> {
+        const crossScopeMergableTypes = new Set(['key', 'group-value-processor']);
         return requests.reduce(
             (result, { id, data, resolve, reject, opts: { props, ...opts } }) => {
                 result.ids.push(id);
@@ -205,11 +212,14 @@ export class DataController {
                 result.opts ??= { ...opts, props: [] };
 
                 for (const prop of props) {
-                    const clone = { ...prop, scopes: [id] };
+                    const clone = { ...prop, scopes: [id], data };
                     DataController.createIdsMap(id, clone);
 
                     const match = result.opts.props.find(
-                        (existing: any) => existing.type === clone.type && DataController.deepEqual(existing, clone)
+                        (existing: any) =>
+                            existing.type === clone.type &&
+                            (crossScopeMergableTypes.has(existing.type) || existing.data === clone.data) &&
+                            DataController.deepEqual(existing, clone)
                     );
 
                     if (!match) {
@@ -244,7 +254,7 @@ export class DataController {
         }
     }
 
-    private static createIdsMap(scope: string, prop: PropertyDefinition<any>) {
+    private static createIdsMap(scope: string, prop: { id?: string; idsMap?: Map<string, Set<string>> }) {
         if (prop.id == null) return;
         prop.idsMap ??= new Map();
         if (prop.idsMap.has(scope)) {
@@ -255,7 +265,7 @@ export class DataController {
     }
 
     // optimized version of deep equality for `mergeRequests` which can potentially loop over 1M times
-    static readonly skipKeys = new Set<string>(['id', 'idsMap', 'type', 'scopes']);
+    static readonly skipKeys = new Set<string>(['id', 'idsMap', 'type', 'scopes', 'data']);
     static deepEqual<T>(a: T, b: T): boolean {
         if (a === b) {
             return true;

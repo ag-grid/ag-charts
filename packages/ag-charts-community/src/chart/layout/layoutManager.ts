@@ -25,7 +25,7 @@ export interface AxisLayout {
 export type LayoutCompleteEvent = {
     readonly type: 'layout:complete';
     readonly chart: Readonly<{ width: number; height: number }>;
-    readonly series: Readonly<{ rect: BBox; paddedRect: BBox; visible: boolean; shouldFlipXY?: boolean }>;
+    readonly series: Readonly<{ rect: BBox; paddedRect: BBox; visible: boolean }>;
     readonly clipSeries: boolean;
     readonly axes?: Readonly<AxisLayout>[];
 };
@@ -33,7 +33,7 @@ export type LayoutCompleteEvent = {
 export interface LayoutState {
     axes?: AxisLayout[];
     clipSeries?: boolean;
-    series: { rect: BBox; paddedRect: BBox; visible: boolean; shouldFlipXY?: boolean };
+    series: { rect: BBox; paddedRect: BBox; visible: boolean };
 }
 
 interface EventMap {

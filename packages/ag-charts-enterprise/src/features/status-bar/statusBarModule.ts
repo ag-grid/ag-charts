@@ -14,7 +14,7 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
             enabled: false,
             layoutStyle: _ModuleSupport.ThemeSymbols.DEFAULT_CAPTION_LAYOUT_STYLE,
             title: {
-                color: { $ref: 'foregroundColor' },
+                color: { $ref: 'textColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: { $ref: 'fontWeight' },

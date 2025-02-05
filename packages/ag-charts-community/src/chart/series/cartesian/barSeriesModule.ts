@@ -42,7 +42,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                                 { $eq: [{ $path: './placement' }, 'outside-end'] },
                             ],
                         },
-                        { $ref: 'foregroundColor' },
+                        { $ref: 'textColor' },
                         { $ref: 'backgroundColor' },
                     ],
                 },

@@ -3,12 +3,29 @@
 exports[`DataModel empty data set processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [],
     [],
     [],
     [],
   ],
+  "dataSources": Map {
+    "test" => [],
+  },
   "defs": {
     "allScopesHaveSameDefs": true,
     "keys": [
@@ -92,15 +109,17 @@ exports[`DataModel empty data set processing should generated the expected resul
   "input": {
     "count": 0,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [
-    [],
+    Map {
+      "test" => [],
+    },
   ],
   "partialValidDataCount": 0,
-  "rawData": [],
-  "rawDataSources": undefined,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
@@ -110,6 +129,11 @@ exports[`DataModel empty data set processing should generated the expected resul
 exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with area bucket calculation 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [
       2548,
@@ -134,14 +158,80 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       1874,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "curb-weight": 2548,
+      },
+      {
+        "curb-weight": 2548,
+      },
+      {
+        "curb-weight": 2823,
+      },
+      {
+        "curb-weight": 2337,
+      },
+      {
+        "curb-weight": 2824,
+      },
+      {
+        "curb-weight": 2507,
+      },
+      {
+        "curb-weight": 2844,
+      },
+      {
+        "curb-weight": 2954,
+      },
+      {
+        "curb-weight": 3086,
+      },
+      {
+        "curb-weight": 3053,
+      },
+      {
+        "curb-weight": 2395,
+      },
+      {
+        "curb-weight": 2395,
+      },
+      {
+        "curb-weight": 2710,
+      },
+      {
+        "curb-weight": 2765,
+      },
+      {
+        "curb-weight": 3055,
+      },
+      {
+        "curb-weight": 3230,
+      },
+      {
+        "curb-weight": 3380,
+      },
+      {
+        "curb-weight": 3505,
+      },
+      {
+        "curb-weight": 1488,
+      },
+      {
+        "curb-weight": 1874,
+      },
+    ],
+  },
   "defs": {
-    "allScopesHaveSameDefs": false,
+    "allScopesHaveSameDefs": true,
     "keys": [
       {
         "index": 0,
         "missing": Map {},
         "property": "curb-weight",
-        "scope": "test",
+        "scopes": [
+          "test",
+        ],
         "type": "key",
         "valueType": "range",
       },
@@ -205,24 +295,28 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         ],
       ],
       "datumIndices": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        10,
-        11,
-        12,
-        13,
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+        ],
       ],
       "keys": [
         2000,
         3000,
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -232,18 +326,22 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         ],
       ],
       "datumIndices": [
-        8,
-        9,
-        14,
-        15,
-        16,
-        17,
+        [
+          8,
+          9,
+          14,
+          15,
+          16,
+          17,
+        ],
       ],
       "keys": [
         3000,
         4500,
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -253,110 +351,52 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         ],
       ],
       "datumIndices": [
-        18,
-        19,
+        [
+          18,
+          19,
+        ],
       ],
       "keys": [
         0,
         2000,
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
   ],
   "input": {
     "count": 20,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [
-    [
-      2548,
-      2548,
-      2823,
-      2337,
-      2824,
-      2507,
-      2844,
-      2954,
-      3086,
-      3053,
-      2395,
-      2395,
-      2710,
-      2765,
-      3055,
-      3230,
-      3380,
-      3505,
-      1488,
-      1874,
-    ],
+    Map {
+      "test" => [
+        2548,
+        2548,
+        2823,
+        2337,
+        2824,
+        2507,
+        2844,
+        2954,
+        3086,
+        3053,
+        2395,
+        2395,
+        2710,
+        2765,
+        3055,
+        3230,
+        3380,
+        3505,
+        1488,
+        1874,
+      ],
+    },
   ],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "curb-weight": 2548,
-    },
-    {
-      "curb-weight": 2548,
-    },
-    {
-      "curb-weight": 2823,
-    },
-    {
-      "curb-weight": 2337,
-    },
-    {
-      "curb-weight": 2824,
-    },
-    {
-      "curb-weight": 2507,
-    },
-    {
-      "curb-weight": 2844,
-    },
-    {
-      "curb-weight": 2954,
-    },
-    {
-      "curb-weight": 3086,
-    },
-    {
-      "curb-weight": 3053,
-    },
-    {
-      "curb-weight": 2395,
-    },
-    {
-      "curb-weight": 2395,
-    },
-    {
-      "curb-weight": 2710,
-    },
-    {
-      "curb-weight": 2765,
-    },
-    {
-      "curb-weight": 3055,
-    },
-    {
-      "curb-weight": 3230,
-    },
-    {
-      "curb-weight": 3380,
-    },
-    {
-      "curb-weight": 3505,
-    },
-    {
-      "curb-weight": 1488,
-    },
-    {
-      "curb-weight": 1874,
-    },
-  ],
-  "rawDataSources": undefined,
   "reduced": {
     "sortedGroupDomain": [
       [
@@ -373,6 +413,9 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     ],
   },
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -382,6 +425,11 @@ exports[`DataModel grouped processing - calculated grouping should generated the
 exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with average bucket calculation 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [
       27,
@@ -406,6 +454,90 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       43,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "engine-size": 130,
+        "highway-mpg": 27,
+      },
+      {
+        "engine-size": 130,
+        "highway-mpg": 27,
+      },
+      {
+        "engine-size": 152,
+        "highway-mpg": 26,
+      },
+      {
+        "engine-size": 109,
+        "highway-mpg": 30,
+      },
+      {
+        "engine-size": 136,
+        "highway-mpg": 22,
+      },
+      {
+        "engine-size": 136,
+        "highway-mpg": 25,
+      },
+      {
+        "engine-size": 136,
+        "highway-mpg": 25,
+      },
+      {
+        "engine-size": 136,
+        "highway-mpg": 25,
+      },
+      {
+        "engine-size": 131,
+        "highway-mpg": 20,
+      },
+      {
+        "engine-size": 131,
+        "highway-mpg": 22,
+      },
+      {
+        "engine-size": 108,
+        "highway-mpg": 29,
+      },
+      {
+        "engine-size": 108,
+        "highway-mpg": 29,
+      },
+      {
+        "engine-size": 164,
+        "highway-mpg": 28,
+      },
+      {
+        "engine-size": 164,
+        "highway-mpg": 28,
+      },
+      {
+        "engine-size": 164,
+        "highway-mpg": 25,
+      },
+      {
+        "engine-size": 209,
+        "highway-mpg": 22,
+      },
+      {
+        "engine-size": 209,
+        "highway-mpg": 22,
+      },
+      {
+        "engine-size": 209,
+        "highway-mpg": 20,
+      },
+      {
+        "engine-size": 61,
+        "highway-mpg": 53,
+      },
+      {
+        "engine-size": 90,
+        "highway-mpg": 43,
+      },
+    ],
+  },
   "defs": {
     "allScopesHaveSameDefs": true,
     "keys": [
@@ -484,22 +616,26 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         ],
       ],
       "datumIndices": [
-        0,
-        1,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
+        [
+          0,
+          1,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+        ],
       ],
       "keys": [
         "100 - 150",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -509,18 +645,22 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         ],
       ],
       "datumIndices": [
-        2,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
+        [
+          2,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+        ],
       ],
       "keys": [
         ">150",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -530,129 +670,51 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         ],
       ],
       "datumIndices": [
-        18,
-        19,
+        [
+          18,
+          19,
+        ],
       ],
       "keys": [
         "<100",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
   ],
   "input": {
     "count": 20,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [
-    [
-      130,
-      130,
-      152,
-      109,
-      136,
-      136,
-      136,
-      136,
-      131,
-      131,
-      108,
-      108,
-      164,
-      164,
-      164,
-      209,
-      209,
-      209,
-      61,
-      90,
-    ],
+    Map {
+      "test" => [
+        130,
+        130,
+        152,
+        109,
+        136,
+        136,
+        136,
+        136,
+        131,
+        131,
+        108,
+        108,
+        164,
+        164,
+        164,
+        209,
+        209,
+        209,
+        61,
+        90,
+      ],
+    },
   ],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "engine-size": 130,
-      "highway-mpg": 27,
-    },
-    {
-      "engine-size": 130,
-      "highway-mpg": 27,
-    },
-    {
-      "engine-size": 152,
-      "highway-mpg": 26,
-    },
-    {
-      "engine-size": 109,
-      "highway-mpg": 30,
-    },
-    {
-      "engine-size": 136,
-      "highway-mpg": 22,
-    },
-    {
-      "engine-size": 136,
-      "highway-mpg": 25,
-    },
-    {
-      "engine-size": 136,
-      "highway-mpg": 25,
-    },
-    {
-      "engine-size": 136,
-      "highway-mpg": 25,
-    },
-    {
-      "engine-size": 131,
-      "highway-mpg": 20,
-    },
-    {
-      "engine-size": 131,
-      "highway-mpg": 22,
-    },
-    {
-      "engine-size": 108,
-      "highway-mpg": 29,
-    },
-    {
-      "engine-size": 108,
-      "highway-mpg": 29,
-    },
-    {
-      "engine-size": 164,
-      "highway-mpg": 28,
-    },
-    {
-      "engine-size": 164,
-      "highway-mpg": 28,
-    },
-    {
-      "engine-size": 164,
-      "highway-mpg": 25,
-    },
-    {
-      "engine-size": 209,
-      "highway-mpg": 22,
-    },
-    {
-      "engine-size": 209,
-      "highway-mpg": 22,
-    },
-    {
-      "engine-size": 209,
-      "highway-mpg": 20,
-    },
-    {
-      "engine-size": 61,
-      "highway-mpg": 53,
-    },
-    {
-      "engine-size": 90,
-      "highway-mpg": 43,
-    },
-  ],
-  "rawDataSources": undefined,
   "reduced": {
     "sortedGroupDomain": [
       [
@@ -666,6 +728,9 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     ],
   },
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -675,7 +740,99 @@ exports[`DataModel grouped processing - calculated grouping should generated the
 exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with hard-coded buckets 1`] = `
 {
   "aggregation": undefined,
-  "columns": [],
+  "columnScopes": [
+    Set {
+      "test",
+    },
+  ],
+  "columns": [
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+    ],
+  ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "engine-size": 130,
+      },
+      {
+        "engine-size": 130,
+      },
+      {
+        "engine-size": 152,
+      },
+      {
+        "engine-size": 109,
+      },
+      {
+        "engine-size": 136,
+      },
+      {
+        "engine-size": 136,
+      },
+      {
+        "engine-size": 136,
+      },
+      {
+        "engine-size": 136,
+      },
+      {
+        "engine-size": 131,
+      },
+      {
+        "engine-size": 131,
+      },
+      {
+        "engine-size": 108,
+      },
+      {
+        "engine-size": 108,
+      },
+      {
+        "engine-size": 164,
+      },
+      {
+        "engine-size": 164,
+      },
+      {
+        "engine-size": 164,
+      },
+      {
+        "engine-size": 209,
+      },
+      {
+        "engine-size": 209,
+      },
+      {
+        "engine-size": 209,
+      },
+      {
+        "engine-size": 61,
+      },
+      {
+        "engine-size": 90,
+      },
+    ],
+  },
   "defs": {
     "allScopesHaveSameDefs": true,
     "keys": [
@@ -690,7 +847,20 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         "valueType": "category",
       },
     ],
-    "values": [],
+    "values": [
+      {
+        "index": 0,
+        "missing": Map {},
+        "missingValue": 1,
+        "processor": [Function],
+        "property": "count",
+        "scopes": [
+          "test",
+        ],
+        "type": "value",
+        "valueType": "range",
+      },
+    ],
   },
   "domain": {
     "aggValues": [
@@ -724,7 +894,12 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         90,
       ],
     ],
-    "values": [],
+    "values": [
+      [
+        1,
+        1,
+      ],
+    ],
   },
   "groups": [
     {
@@ -735,22 +910,26 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         ],
       ],
       "datumIndices": [
-        0,
-        1,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
+        [
+          0,
+          1,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+        ],
       ],
       "keys": [
         "100 - 150",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -760,18 +939,22 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         ],
       ],
       "datumIndices": [
-        2,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
+        [
+          2,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+        ],
       ],
       "keys": [
         ">150",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -781,109 +964,51 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         ],
       ],
       "datumIndices": [
-        18,
-        19,
+        [
+          18,
+          19,
+        ],
       ],
       "keys": [
         "<100",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
   ],
   "input": {
     "count": 20,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [
-    [
-      130,
-      130,
-      152,
-      109,
-      136,
-      136,
-      136,
-      136,
-      131,
-      131,
-      108,
-      108,
-      164,
-      164,
-      164,
-      209,
-      209,
-      209,
-      61,
-      90,
-    ],
+    Map {
+      "test" => [
+        130,
+        130,
+        152,
+        109,
+        136,
+        136,
+        136,
+        136,
+        131,
+        131,
+        108,
+        108,
+        164,
+        164,
+        164,
+        209,
+        209,
+        209,
+        61,
+        90,
+      ],
+    },
   ],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "engine-size": 130,
-    },
-    {
-      "engine-size": 130,
-    },
-    {
-      "engine-size": 152,
-    },
-    {
-      "engine-size": 109,
-    },
-    {
-      "engine-size": 136,
-    },
-    {
-      "engine-size": 136,
-    },
-    {
-      "engine-size": 136,
-    },
-    {
-      "engine-size": 136,
-    },
-    {
-      "engine-size": 131,
-    },
-    {
-      "engine-size": 131,
-    },
-    {
-      "engine-size": 108,
-    },
-    {
-      "engine-size": 108,
-    },
-    {
-      "engine-size": 164,
-    },
-    {
-      "engine-size": 164,
-    },
-    {
-      "engine-size": 164,
-    },
-    {
-      "engine-size": 209,
-    },
-    {
-      "engine-size": 209,
-    },
-    {
-      "engine-size": 209,
-    },
-    {
-      "engine-size": 61,
-    },
-    {
-      "engine-size": 90,
-    },
-  ],
-  "rawDataSources": undefined,
   "reduced": {
     "sortedGroupDomain": [
       [
@@ -897,6 +1022,9 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     ],
   },
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -906,6 +1034,14 @@ exports[`DataModel grouped processing - calculated grouping should generated the
 exports[`DataModel grouped processing - grouped example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [
       2.9,
@@ -926,6 +1062,45 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       1.5,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "regular": 3.2,
+        "total": 2.9,
+        "type": "Whole economy",
+      },
+      {
+        "regular": 4.2,
+        "total": 3.7,
+        "type": "Finance and business services",
+      },
+      {
+        "regular": 3.4,
+        "total": 3.3,
+        "type": "Public sector",
+      },
+      {
+        "regular": 3.6,
+        "total": 3.2,
+        "type": "Construction",
+      },
+      {
+        "regular": 3.2,
+        "total": 2.7,
+        "type": "Private sector",
+      },
+      {
+        "regular": 2.9,
+        "total": 2.7,
+        "type": "Manufacturing",
+      },
+      {
+        "regular": 1.5,
+        "total": 1.1,
+        "type": "Wholesaling, retailing, hotels and restaurants",
+      },
+    ],
+  },
   "defs": {
     "allScopesHaveSameDefs": true,
     "keys": [
@@ -1030,12 +1205,19 @@ exports[`DataModel grouped processing - grouped example should generated the exp
         ],
       ],
       "datumIndices": [
-        0,
+        [
+          0,
+        ],
+        [
+          0,
+        ],
       ],
       "keys": [
         "Whole economy",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -1045,12 +1227,19 @@ exports[`DataModel grouped processing - grouped example should generated the exp
         ],
       ],
       "datumIndices": [
-        1,
+        [
+          1,
+        ],
+        [
+          1,
+        ],
       ],
       "keys": [
         "Finance and business services",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -1060,12 +1249,19 @@ exports[`DataModel grouped processing - grouped example should generated the exp
         ],
       ],
       "datumIndices": [
-        2,
+        [
+          2,
+        ],
+        [
+          2,
+        ],
       ],
       "keys": [
         "Public sector",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -1075,12 +1271,19 @@ exports[`DataModel grouped processing - grouped example should generated the exp
         ],
       ],
       "datumIndices": [
-        3,
+        [
+          3,
+        ],
+        [
+          3,
+        ],
       ],
       "keys": [
         "Construction",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -1090,12 +1293,19 @@ exports[`DataModel grouped processing - grouped example should generated the exp
         ],
       ],
       "datumIndices": [
-        4,
+        [
+          4,
+        ],
+        [
+          4,
+        ],
       ],
       "keys": [
         "Private sector",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -1105,12 +1315,19 @@ exports[`DataModel grouped processing - grouped example should generated the exp
         ],
       ],
       "datumIndices": [
-        5,
+        [
+          5,
+        ],
+        [
+          5,
+        ],
       ],
       "keys": [
         "Manufacturing",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -1120,70 +1337,43 @@ exports[`DataModel grouped processing - grouped example should generated the exp
         ],
       ],
       "datumIndices": [
-        6,
+        [
+          6,
+        ],
+        [
+          6,
+        ],
       ],
       "keys": [
         "Wholesaling, retailing, hotels and restaurants",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
   ],
   "input": {
     "count": 7,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [
-    [
-      "Whole economy",
-      "Finance and business services",
-      "Public sector",
-      "Construction",
-      "Private sector",
-      "Manufacturing",
-      "Wholesaling, retailing, hotels and restaurants",
-    ],
+    Map {
+      "test" => [
+        "Whole economy",
+        "Finance and business services",
+        "Public sector",
+        "Construction",
+        "Private sector",
+        "Manufacturing",
+        "Wholesaling, retailing, hotels and restaurants",
+      ],
+    },
   ],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "regular": 3.2,
-      "total": 2.9,
-      "type": "Whole economy",
-    },
-    {
-      "regular": 4.2,
-      "total": 3.7,
-      "type": "Finance and business services",
-    },
-    {
-      "regular": 3.4,
-      "total": 3.3,
-      "type": "Public sector",
-    },
-    {
-      "regular": 3.6,
-      "total": 3.2,
-      "type": "Construction",
-    },
-    {
-      "regular": 3.2,
-      "total": 2.7,
-      "type": "Private sector",
-    },
-    {
-      "regular": 2.9,
-      "total": 2.7,
-      "type": "Manufacturing",
-    },
-    {
-      "regular": 1.5,
-      "total": 1.1,
-      "type": "Wholesaling, retailing, hotels and restaurants",
-    },
-  ],
-  "rawDataSources": undefined,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -1193,92 +1383,236 @@ exports[`DataModel grouped processing - grouped example should generated the exp
 exports[`DataModel grouped processing - stacked and normalised example should generated the expected results for 100% stacked area example 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [
-      29.946524064171125,
-      31.46067415730337,
-      30.167597765363126,
-      38.56209150326798,
-      42.10526315789474,
-      46.03174603174603,
-      44.44444444444444,
-      46.456692913385815,
-      44.27480916030535,
-      37.41496598639456,
-      35.54216867469879,
-      33.33333333333333,
+      59.57446808510638,
+      63.63636363636363,
+      60,
+      93.65079365079366,
+      100,
+      100,
+      100,
+      100,
+      100,
+      93.22033898305084,
+      80.82191780821918,
+      70.73170731707317,
     ],
     [
-      50.26737967914438,
-      49.438202247191015,
-      50.27932960893854,
-      41.1764705882353,
-      33.83458646616542,
-      30.158730158730158,
-      30.952380952380953,
-      29.13385826771653,
-      31.297709923664122,
-      40.13605442176871,
-      43.97590361445783,
-      47.126436781609186,
+      100,
+      100,
+      100,
+      100,
+      80.35714285714286,
+      65.51724137931035,
+      69.64285714285715,
+      62.711864406779654,
+      70.68965517241378,
+      100,
+      100,
+      100,
     ],
     [
-      8.556149732620321,
-      8.988764044943819,
-      8.938547486033519,
-      8.49673202614379,
-      9.774436090225565,
-      10.317460317460318,
-      10.317460317460318,
-      10.236220472440943,
-      9.923664122137406,
-      10.884353741496598,
-      9.638554216867469,
-      9.195402298850574,
+      17.02127659574468,
+      18.18181818181818,
+      17.77777777777778,
+      20.634920634920636,
+      23.214285714285715,
+      22.413793103448278,
+      23.214285714285715,
+      22.033898305084744,
+      22.413793103448278,
+      27.11864406779661,
+      21.91780821917808,
+      19.512195121951223,
     ],
     [
-      6.4171122994652405,
-      6.741573033707865,
-      6.703910614525139,
-      7.843137254901961,
-      9.022556390977444,
-      9.523809523809524,
-      9.523809523809524,
-      10.236220472440943,
-      9.160305343511451,
-      6.802721088435375,
-      6.024096385542168,
-      6.32183908045977,
+      12.76595744680851,
+      13.636363636363635,
+      13.333333333333334,
+      19.047619047619047,
+      21.42857142857143,
+      20.689655172413794,
+      21.42857142857143,
+      22.033898305084744,
+      20.689655172413794,
+      16.94915254237288,
+      13.698630136986301,
+      13.414634146341466,
     ],
     [
-      3.7433155080213907,
-      2.8089887640449436,
-      3.3519553072625694,
-      3.2679738562091507,
-      3.759398496240602,
-      3.174603174603175,
-      3.174603174603175,
-      3.1496062992125977,
-      4.580152671755726,
-      4.081632653061225,
-      4.216867469879518,
-      3.4482758620689653,
+      7.446808510638298,
+      5.681818181818182,
+      6.666666666666667,
+      7.936507936507937,
+      8.928571428571429,
+      6.8965517241379315,
+      7.142857142857143,
+      6.779661016949152,
+      10.344827586206897,
+      10.169491525423728,
+      9.589041095890412,
+      7.317073170731708,
     ],
     [
-      1.0695187165775402,
-      0.5617977528089887,
-      0.5586592178770949,
-      0.6535947712418301,
-      1.5037593984962407,
-      0.7936507936507937,
+      2.127659574468085,
+      1.1363636363636362,
+      1.1111111111111112,
       1.5873015873015874,
-      0.7874015748031494,
-      0.7633587786259544,
-      0.6802721088435374,
-      0.6024096385542168,
-      0.5747126436781609,
+      3.5714285714285716,
+      1.7241379310344829,
+      3.5714285714285716,
+      1.694915254237288,
+      1.7241379310344829,
+      1.694915254237288,
+      1.36986301369863,
+      1.2195121951219514,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "bioenergyWaste": 1.6,
+        "coal": 0.8,
+        "imported": 0.2,
+        "month": "Jan",
+        "naturalGas": 9.4,
+        "nuclear": 1.2,
+        "petroleum": 5.6,
+        "windSolarHydro": 0.7,
+      },
+      {
+        "bioenergyWaste": 1.6,
+        "coal": 1.1,
+        "imported": 0.1,
+        "month": "Feb",
+        "naturalGas": 8.8,
+        "nuclear": 1.2,
+        "petroleum": 5.6,
+        "windSolarHydro": 0.5,
+      },
+      {
+        "bioenergyWaste": 1.6,
+        "coal": 1.4,
+        "imported": 0.1,
+        "month": "Mar",
+        "naturalGas": 9,
+        "nuclear": 1.2,
+        "petroleum": 5.4,
+        "windSolarHydro": 0.6,
+      },
+      {
+        "bioenergyWaste": 1.3,
+        "coal": 0.6,
+        "imported": 0.1,
+        "month": "Apr",
+        "naturalGas": 6.3,
+        "nuclear": 1.2,
+        "petroleum": 5.9,
+        "windSolarHydro": 0.5,
+      },
+      {
+        "bioenergyWaste": 1.3,
+        "coal": 0.5,
+        "imported": 0.2,
+        "month": "May",
+        "naturalGas": 4.5,
+        "nuclear": 1.2,
+        "petroleum": 5.6,
+        "windSolarHydro": 0.5,
+      },
+      {
+        "bioenergyWaste": 1.3,
+        "coal": 0.5,
+        "imported": 0.1,
+        "month": "Jun",
+        "naturalGas": 3.8,
+        "nuclear": 1.2,
+        "petroleum": 5.8,
+        "windSolarHydro": 0.4,
+      },
+      {
+        "bioenergyWaste": 1.3,
+        "coal": 0.4,
+        "imported": 0.2,
+        "month": "Jul",
+        "naturalGas": 3.9,
+        "nuclear": 1.2,
+        "petroleum": 5.6,
+        "windSolarHydro": 0.4,
+      },
+      {
+        "bioenergyWaste": 1.3,
+        "coal": 0.4,
+        "imported": 0.1,
+        "month": "Aug",
+        "naturalGas": 3.7,
+        "nuclear": 1.3,
+        "petroleum": 5.9,
+        "windSolarHydro": 0.4,
+      },
+      {
+        "bioenergyWaste": 1.3,
+        "coal": 0.7,
+        "imported": 0.1,
+        "month": "Sep",
+        "naturalGas": 4.1,
+        "nuclear": 1.2,
+        "petroleum": 5.8,
+        "windSolarHydro": 0.6,
+      },
+      {
+        "bioenergyWaste": 1.6,
+        "coal": 0.6,
+        "imported": 0.1,
+        "month": "Oct",
+        "naturalGas": 5.9,
+        "nuclear": 1,
+        "petroleum": 5.5,
+        "windSolarHydro": 0.6,
+      },
+      {
+        "bioenergyWaste": 1.6,
+        "coal": 0.9,
+        "imported": 0.1,
+        "month": "Nov",
+        "naturalGas": 7.3,
+        "nuclear": 1,
+        "petroleum": 5.9,
+        "windSolarHydro": 0.7,
+      },
+      {
+        "bioenergyWaste": 1.6,
+        "coal": 0.7,
+        "imported": 0.1,
+        "month": "Dec",
+        "naturalGas": 8.2,
+        "nuclear": 1.1,
+        "petroleum": 5.8,
+        "windSolarHydro": 0.6,
+      },
+    ],
+  },
   "defs": {
     "allScopesHaveSameDefs": true,
     "keys": [
@@ -1378,7 +1712,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "aggValues": [
       [
         0,
-        100.00000000000001,
+        249.15254237288133,
       ],
     ],
     "groups": [
@@ -1437,28 +1771,28 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     ],
     "values": [
       [
-        29.946524064171125,
-        46.456692913385815,
+        59.57446808510638,
+        100,
       ],
       [
-        29.13385826771653,
-        50.27932960893854,
+        62.711864406779654,
+        100,
       ],
       [
-        8.49673202614379,
-        10.884353741496598,
+        17.02127659574468,
+        27.11864406779661,
       ],
       [
-        6.024096385542168,
-        10.236220472440943,
+        12.76595744680851,
+        22.033898305084744,
       ],
       [
-        2.8089887640449436,
-        4.580152671755726,
+        5.681818181818182,
+        10.344827586206897,
       ],
       [
-        0.5586592178770949,
-        1.5873015873015874,
+        1.1111111111111112,
+        3.5714285714285716,
       ],
     ],
   },
@@ -1467,329 +1801,438 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100.00000000000001,
+          198.93617021276594,
         ],
       ],
       "datumIndices": [
-        0,
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
       ],
       "keys": [
         "Jan",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          100,
+          202.27272727272725,
         ],
       ],
       "datumIndices": [
-        1,
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
       ],
       "keys": [
         "Feb",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          99.99999999999999,
+          198.88888888888889,
         ],
       ],
       "datumIndices": [
-        2,
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
       ],
       "keys": [
         "Mar",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          100,
+          242.85714285714286,
         ],
       ],
       "datumIndices": [
-        3,
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
       ],
       "keys": [
         "Apr",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          100.00000000000001,
+          237.5,
         ],
       ],
       "datumIndices": [
-        4,
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
       ],
       "keys": [
         "May",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          100,
+          217.24137931034485,
         ],
       ],
       "datumIndices": [
-        5,
+        [
+          5,
+        ],
+        [
+          5,
+        ],
+        [
+          5,
+        ],
+        [
+          5,
+        ],
+        [
+          5,
+        ],
+        [
+          5,
+        ],
       ],
       "keys": [
         "Jun",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          99.99999999999999,
+          225.00000000000006,
         ],
       ],
       "datumIndices": [
-        6,
+        [
+          6,
+        ],
+        [
+          6,
+        ],
+        [
+          6,
+        ],
+        [
+          6,
+        ],
+        [
+          6,
+        ],
+        [
+          6,
+        ],
       ],
       "keys": [
         "Jul",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          99.99999999999999,
+          215.25423728813556,
         ],
       ],
       "datumIndices": [
-        7,
+        [
+          7,
+        ],
+        [
+          7,
+        ],
+        [
+          7,
+        ],
+        [
+          7,
+        ],
+        [
+          7,
+        ],
+        [
+          7,
+        ],
       ],
       "keys": [
         "Aug",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          100.00000000000001,
+          225.86206896551724,
         ],
       ],
       "datumIndices": [
-        8,
+        [
+          8,
+        ],
+        [
+          8,
+        ],
+        [
+          8,
+        ],
+        [
+          8,
+        ],
+        [
+          8,
+        ],
+        [
+          8,
+        ],
       ],
       "keys": [
         "Sep",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          100.00000000000001,
+          249.15254237288133,
         ],
       ],
       "datumIndices": [
-        9,
+        [
+          9,
+        ],
+        [
+          9,
+        ],
+        [
+          9,
+        ],
+        [
+          9,
+        ],
+        [
+          9,
+        ],
+        [
+          9,
+        ],
       ],
       "keys": [
         "Oct",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          99.99999999999999,
+          227.39726027397262,
         ],
       ],
       "datumIndices": [
-        10,
+        [
+          10,
+        ],
+        [
+          10,
+        ],
+        [
+          10,
+        ],
+        [
+          10,
+        ],
+        [
+          10,
+        ],
+        [
+          10,
+        ],
       ],
       "keys": [
         "Nov",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          99.99999999999997,
+          212.1951219512195,
         ],
       ],
       "datumIndices": [
-        11,
+        [
+          11,
+        ],
+        [
+          11,
+        ],
+        [
+          11,
+        ],
+        [
+          11,
+        ],
+        [
+          11,
+        ],
+        [
+          11,
+        ],
       ],
       "keys": [
         "Dec",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
   ],
   "input": {
     "count": 12,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [
-    [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ],
+    Map {
+      "test" => [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ],
+    },
   ],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "bioenergyWaste": 1.6,
-      "coal": 0.8,
-      "imported": 0.2,
-      "month": "Jan",
-      "naturalGas": 9.4,
-      "nuclear": 1.2,
-      "petroleum": 5.6,
-      "windSolarHydro": 0.7,
-    },
-    {
-      "bioenergyWaste": 1.6,
-      "coal": 1.1,
-      "imported": 0.1,
-      "month": "Feb",
-      "naturalGas": 8.8,
-      "nuclear": 1.2,
-      "petroleum": 5.6,
-      "windSolarHydro": 0.5,
-    },
-    {
-      "bioenergyWaste": 1.6,
-      "coal": 1.4,
-      "imported": 0.1,
-      "month": "Mar",
-      "naturalGas": 9,
-      "nuclear": 1.2,
-      "petroleum": 5.4,
-      "windSolarHydro": 0.6,
-    },
-    {
-      "bioenergyWaste": 1.3,
-      "coal": 0.6,
-      "imported": 0.1,
-      "month": "Apr",
-      "naturalGas": 6.3,
-      "nuclear": 1.2,
-      "petroleum": 5.9,
-      "windSolarHydro": 0.5,
-    },
-    {
-      "bioenergyWaste": 1.3,
-      "coal": 0.5,
-      "imported": 0.2,
-      "month": "May",
-      "naturalGas": 4.5,
-      "nuclear": 1.2,
-      "petroleum": 5.6,
-      "windSolarHydro": 0.5,
-    },
-    {
-      "bioenergyWaste": 1.3,
-      "coal": 0.5,
-      "imported": 0.1,
-      "month": "Jun",
-      "naturalGas": 3.8,
-      "nuclear": 1.2,
-      "petroleum": 5.8,
-      "windSolarHydro": 0.4,
-    },
-    {
-      "bioenergyWaste": 1.3,
-      "coal": 0.4,
-      "imported": 0.2,
-      "month": "Jul",
-      "naturalGas": 3.9,
-      "nuclear": 1.2,
-      "petroleum": 5.6,
-      "windSolarHydro": 0.4,
-    },
-    {
-      "bioenergyWaste": 1.3,
-      "coal": 0.4,
-      "imported": 0.1,
-      "month": "Aug",
-      "naturalGas": 3.7,
-      "nuclear": 1.3,
-      "petroleum": 5.9,
-      "windSolarHydro": 0.4,
-    },
-    {
-      "bioenergyWaste": 1.3,
-      "coal": 0.7,
-      "imported": 0.1,
-      "month": "Sep",
-      "naturalGas": 4.1,
-      "nuclear": 1.2,
-      "petroleum": 5.8,
-      "windSolarHydro": 0.6,
-    },
-    {
-      "bioenergyWaste": 1.6,
-      "coal": 0.6,
-      "imported": 0.1,
-      "month": "Oct",
-      "naturalGas": 5.9,
-      "nuclear": 1,
-      "petroleum": 5.5,
-      "windSolarHydro": 0.6,
-    },
-    {
-      "bioenergyWaste": 1.6,
-      "coal": 0.9,
-      "imported": 0.1,
-      "month": "Nov",
-      "naturalGas": 7.3,
-      "nuclear": 1,
-      "petroleum": 5.9,
-      "windSolarHydro": 0.7,
-    },
-    {
-      "bioenergyWaste": 1.6,
-      "coal": 0.7,
-      "imported": 0.1,
-      "month": "Dec",
-      "naturalGas": 8.2,
-      "nuclear": 1.1,
-      "petroleum": 5.8,
-      "windSolarHydro": 0.6,
-    },
-  ],
-  "rawDataSources": undefined,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -1799,50 +2242,119 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
 exports[`DataModel grouped processing - stacked and normalised example should generated the expected results for 100% stacked columns example 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [
-      59.712524678576585,
-      74.28693389376268,
-      74.49944393701765,
-      74.84837848647854,
-      78.45841011628646,
+      100,
+      100,
+      100,
+      100,
+      100,
     ],
     [
-      9.755862666730872,
-      6.388321614734185,
-      5.587263359806844,
-      6.0615954746181915,
-      9.201245472453454,
+      16.338050885044957,
+      8.599522526895628,
+      7.49973833969869,
+      8.098499389286337,
+      11.727545152668664,
     ],
     [
-      17.616892184716136,
-      11.273090029365255,
-      11.53308567100458,
-      10.062934151776604,
-      3.844443032344157,
+      29.502842627313417,
+      15.17506435988708,
+      15.480767454794336,
+      13.444425056709125,
+      4.899975702599821,
     ],
     [
-      9.00948620407377,
-      5.531346949908065,
-      6.056912595216422,
-      6.9758140218269675,
-      7.015314227616446,
+      15.088101286238459,
+      7.445921725371535,
+      8.13014470327722,
+      9.319926714360495,
+      8.941443265570584,
     ],
     [
-      0.6837771464342467,
-      0.4882951522320629,
-      0.4072087289504093,
-      0.3297716902431658,
-      0.02541780517252335,
+      1.1451151163259545,
+      0.6573096056573974,
+      0.5465929776531842,
+      0.4405862851160356,
+      0.03239653357090791,
     ],
     [
-      3.221457119468387,
-      2.03201235999776,
-      1.9160857080040963,
-      1.7215061750565264,
-      1.455169346126962,
+      5.394943752268054,
+      2.7353563453079506,
+      2.571946321671835,
+      2.2999912755191065,
+      1.854701546934478,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "asian": 7317,
+        "black": 3742,
+        "chinese": 284,
+        "mixed": 4052,
+        "other": 1338,
+        "type": "Nursery",
+        "white": 24801,
+      },
+      {
+        "asian": 527391,
+        "black": 258774,
+        "chinese": 22844,
+        "mixed": 298866,
+        "other": 95064,
+        "type": "Primary",
+        "white": 3475379,
+      },
+      {
+        "asian": 377168,
+        "black": 198080,
+        "chinese": 13317,
+        "mixed": 182721,
+        "other": 62662,
+        "type": "Secondary",
+        "white": 2436365,
+      },
+      {
+        "asian": 12328,
+        "black": 8546,
+        "chinese": 404,
+        "mixed": 7426,
+        "other": 2109,
+        "type": "Special",
+        "white": 91696,
+      },
+      {
+        "asian": 605,
+        "black": 1104,
+        "chinese": 4,
+        "mixed": 1448,
+        "other": 229,
+        "type": "Referral units",
+        "white": 12347,
+      },
+    ],
+  },
   "defs": {
     "allScopesHaveSameDefs": true,
     "keys": [
@@ -1942,7 +2454,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "aggValues": [
       [
         0,
-        100.00000000000001,
+        167.46905366719088,
       ],
     ],
     "groups": [
@@ -1973,28 +2485,28 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     ],
     "values": [
       [
-        59.712524678576585,
-        78.45841011628646,
+        100,
+        100,
       ],
       [
-        5.587263359806844,
-        9.755862666730872,
+        7.49973833969869,
+        16.338050885044957,
       ],
       [
-        3.844443032344157,
-        17.616892184716136,
+        4.899975702599821,
+        29.502842627313417,
       ],
       [
-        5.531346949908065,
-        9.00948620407377,
+        7.445921725371535,
+        15.088101286238459,
       ],
       [
-        0.02541780517252335,
-        0.6837771464342467,
+        0.03239653357090791,
+        1.1451151163259545,
       ],
       [
-        1.455169346126962,
-        3.221457119468387,
+        1.854701546934478,
+        5.394943752268054,
       ],
     ],
   },
@@ -2003,142 +2515,193 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          167.46905366719088,
         ],
       ],
       "datumIndices": [
-        0,
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
       ],
       "keys": [
         "Nursery",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          100.00000000000001,
+          134.6131745631196,
         ],
       ],
       "datumIndices": [
-        1,
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
       ],
       "keys": [
         "Primary",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          99.99999999999999,
+          134.22918979709527,
         ],
       ],
       "datumIndices": [
-        2,
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
       ],
       "keys": [
         "Secondary",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          99.99999999999999,
+          133.6034287209911,
         ],
       ],
       "datumIndices": [
-        3,
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
       ],
       "keys": [
         "Special",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
         [
           0,
-          100,
+          127.45606220134445,
         ],
       ],
       "datumIndices": [
-        4,
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
       ],
       "keys": [
         "Referral units",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
   ],
   "input": {
     "count": 5,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [
-    [
-      "Nursery",
-      "Primary",
-      "Secondary",
-      "Special",
-      "Referral units",
-    ],
+    Map {
+      "test" => [
+        "Nursery",
+        "Primary",
+        "Secondary",
+        "Special",
+        "Referral units",
+      ],
+    },
   ],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "asian": 7317,
-      "black": 3742,
-      "chinese": 284,
-      "mixed": 4052,
-      "other": 1338,
-      "type": "Nursery",
-      "white": 24801,
-    },
-    {
-      "asian": 527391,
-      "black": 258774,
-      "chinese": 22844,
-      "mixed": 298866,
-      "other": 95064,
-      "type": "Primary",
-      "white": 3475379,
-    },
-    {
-      "asian": 377168,
-      "black": 198080,
-      "chinese": 13317,
-      "mixed": 182721,
-      "other": 62662,
-      "type": "Secondary",
-      "white": 2436365,
-    },
-    {
-      "asian": 12328,
-      "black": 8546,
-      "chinese": 404,
-      "mixed": 7426,
-      "other": 2109,
-      "type": "Special",
-      "white": 91696,
-    },
-    {
-      "asian": 605,
-      "black": 1104,
-      "chinese": 4,
-      "mixed": 1448,
-      "other": 229,
-      "type": "Referral units",
-      "white": 12347,
-    },
-  ],
-  "rawDataSources": undefined,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -2148,6 +2711,20 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
 exports[`DataModel grouped processing - stacked example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [
       4567,
@@ -2190,6 +2767,66 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       68,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "housingAssociation": 388,
+        "localAuthority": 274,
+        "ownerOccupied": 4567,
+        "privateRented": 773,
+        "type": "Semi-detached house",
+      },
+      {
+        "housingAssociation": 422,
+        "localAuthority": 231,
+        "ownerOccupied": 2842,
+        "privateRented": 938,
+        "type": "Medium/large terraced house",
+      },
+      {
+        "housingAssociation": 19,
+        "localAuthority": 4,
+        "ownerOccupied": 3655,
+        "privateRented": 294,
+        "type": "Detached house",
+      },
+      {
+        "housingAssociation": 919,
+        "localAuthority": 621,
+        "ownerOccupied": 905,
+        "privateRented": 1139,
+        "type": "Purpose-built flat low rise",
+      },
+      {
+        "housingAssociation": 295,
+        "localAuthority": 168,
+        "ownerOccupied": 1013,
+        "privateRented": 822,
+        "type": "Small terraced house",
+      },
+      {
+        "housingAssociation": 228,
+        "localAuthority": 180,
+        "ownerOccupied": 1486,
+        "privateRented": 214,
+        "type": "Bungalow",
+      },
+      {
+        "housingAssociation": 100,
+        "localAuthority": 37,
+        "ownerOccupied": 252,
+        "privateRented": 539,
+        "type": "Converted flat",
+      },
+      {
+        "housingAssociation": 68,
+        "localAuthority": 109,
+        "ownerOccupied": 97,
+        "privateRented": 134,
+        "type": "Purpose-built flat high rise",
+      },
+    ],
+  },
   "defs": {
     "allScopesHaveSameDefs": true,
     "keys": [
@@ -2332,12 +2969,25 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         ],
       ],
       "datumIndices": [
-        0,
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
       ],
       "keys": [
         "Semi-detached house",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2347,12 +2997,25 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         ],
       ],
       "datumIndices": [
-        1,
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
       ],
       "keys": [
         "Medium/large terraced house",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2362,12 +3025,25 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         ],
       ],
       "datumIndices": [
-        2,
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
       ],
       "keys": [
         "Detached house",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2377,12 +3053,25 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         ],
       ],
       "datumIndices": [
-        3,
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
       ],
       "keys": [
         "Purpose-built flat low rise",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2392,12 +3081,25 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         ],
       ],
       "datumIndices": [
-        4,
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
       ],
       "keys": [
         "Small terraced house",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2407,12 +3109,25 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         ],
       ],
       "datumIndices": [
-        5,
+        [
+          5,
+        ],
+        [
+          5,
+        ],
+        [
+          5,
+        ],
+        [
+          5,
+        ],
       ],
       "keys": [
         "Bungalow",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2422,12 +3137,25 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         ],
       ],
       "datumIndices": [
-        6,
+        [
+          6,
+        ],
+        [
+          6,
+        ],
+        [
+          6,
+        ],
+        [
+          6,
+        ],
       ],
       "keys": [
         "Converted flat",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2437,92 +3165,50 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         ],
       ],
       "datumIndices": [
-        7,
+        [
+          7,
+        ],
+        [
+          7,
+        ],
+        [
+          7,
+        ],
+        [
+          7,
+        ],
       ],
       "keys": [
         "Purpose-built flat high rise",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
   ],
   "input": {
     "count": 8,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [
-    [
-      "Semi-detached house",
-      "Medium/large terraced house",
-      "Detached house",
-      "Purpose-built flat low rise",
-      "Small terraced house",
-      "Bungalow",
-      "Converted flat",
-      "Purpose-built flat high rise",
-    ],
+    Map {
+      "test" => [
+        "Semi-detached house",
+        "Medium/large terraced house",
+        "Detached house",
+        "Purpose-built flat low rise",
+        "Small terraced house",
+        "Bungalow",
+        "Converted flat",
+        "Purpose-built flat high rise",
+      ],
+    },
   ],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "housingAssociation": 388,
-      "localAuthority": 274,
-      "ownerOccupied": 4567,
-      "privateRented": 773,
-      "type": "Semi-detached house",
-    },
-    {
-      "housingAssociation": 422,
-      "localAuthority": 231,
-      "ownerOccupied": 2842,
-      "privateRented": 938,
-      "type": "Medium/large terraced house",
-    },
-    {
-      "housingAssociation": 19,
-      "localAuthority": 4,
-      "ownerOccupied": 3655,
-      "privateRented": 294,
-      "type": "Detached house",
-    },
-    {
-      "housingAssociation": 919,
-      "localAuthority": 621,
-      "ownerOccupied": 905,
-      "privateRented": 1139,
-      "type": "Purpose-built flat low rise",
-    },
-    {
-      "housingAssociation": 295,
-      "localAuthority": 168,
-      "ownerOccupied": 1013,
-      "privateRented": 822,
-      "type": "Small terraced house",
-    },
-    {
-      "housingAssociation": 228,
-      "localAuthority": 180,
-      "ownerOccupied": 1486,
-      "privateRented": 214,
-      "type": "Bungalow",
-    },
-    {
-      "housingAssociation": 100,
-      "localAuthority": 37,
-      "ownerOccupied": 252,
-      "privateRented": 539,
-      "type": "Converted flat",
-    },
-    {
-      "housingAssociation": 68,
-      "localAuthority": 109,
-      "ownerOccupied": 97,
-      "privateRented": 134,
-      "type": "Purpose-built flat high rise",
-    },
-  ],
-  "rawDataSources": undefined,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -2532,6 +3218,20 @@ exports[`DataModel grouped processing - stacked example should generated the exp
 exports[`DataModel grouped processing - stacked with accumulation and normalised example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [
       76.09130289903365,
@@ -2574,6 +3274,66 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       100,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "housingAssociation": 388,
+        "localAuthority": 274,
+        "ownerOccupied": 4567,
+        "privateRented": 773,
+        "type": "Semi-detached house",
+      },
+      {
+        "housingAssociation": 422,
+        "localAuthority": 231,
+        "ownerOccupied": 2842,
+        "privateRented": 938,
+        "type": "Medium/large terraced house",
+      },
+      {
+        "housingAssociation": 19,
+        "localAuthority": 4,
+        "ownerOccupied": 3655,
+        "privateRented": 294,
+        "type": "Detached house",
+      },
+      {
+        "housingAssociation": 919,
+        "localAuthority": 621,
+        "ownerOccupied": 905,
+        "privateRented": 1139,
+        "type": "Purpose-built flat low rise",
+      },
+      {
+        "housingAssociation": 295,
+        "localAuthority": 168,
+        "ownerOccupied": 1013,
+        "privateRented": 822,
+        "type": "Small terraced house",
+      },
+      {
+        "housingAssociation": 228,
+        "localAuthority": 180,
+        "ownerOccupied": 1486,
+        "privateRented": 214,
+        "type": "Bungalow",
+      },
+      {
+        "housingAssociation": 100,
+        "localAuthority": 37,
+        "ownerOccupied": 252,
+        "privateRented": 539,
+        "type": "Converted flat",
+      },
+      {
+        "housingAssociation": 68,
+        "localAuthority": 109,
+        "ownerOccupied": 97,
+        "privateRented": 134,
+        "type": "Purpose-built flat high rise",
+      },
+    ],
+  },
   "defs": {
     "allScopesHaveSameDefs": true,
     "keys": [
@@ -2594,7 +3354,6 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         "id": undefined,
         "index": 0,
         "missing": Map {},
-        "processor": [Function],
         "property": "ownerOccupied",
         "scopes": [
           "test",
@@ -2608,7 +3367,6 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         "id": undefined,
         "index": 1,
         "missing": Map {},
-        "processor": [Function],
         "property": "privateRented",
         "scopes": [
           "test",
@@ -2622,7 +3380,6 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         "id": undefined,
         "index": 2,
         "missing": Map {},
-        "processor": [Function],
         "property": "localAuthority",
         "scopes": [
           "test",
@@ -2636,7 +3393,6 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         "id": undefined,
         "index": 3,
         "missing": Map {},
-        "processor": [Function],
         "property": "housingAssociation",
         "scopes": [
           "test",
@@ -2720,12 +3476,25 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         ],
       ],
       "datumIndices": [
-        0,
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
       ],
       "keys": [
         "Semi-detached house",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2735,12 +3504,25 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         ],
       ],
       "datumIndices": [
-        1,
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
       ],
       "keys": [
         "Medium/large terraced house",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2750,12 +3532,25 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         ],
       ],
       "datumIndices": [
-        2,
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
       ],
       "keys": [
         "Detached house",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2765,12 +3560,25 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         ],
       ],
       "datumIndices": [
-        3,
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
       ],
       "keys": [
         "Purpose-built flat low rise",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2780,12 +3588,25 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         ],
       ],
       "datumIndices": [
-        4,
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
       ],
       "keys": [
         "Small terraced house",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2795,12 +3616,25 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         ],
       ],
       "datumIndices": [
-        5,
+        [
+          5,
+        ],
+        [
+          5,
+        ],
+        [
+          5,
+        ],
+        [
+          5,
+        ],
       ],
       "keys": [
         "Bungalow",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2810,12 +3644,25 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         ],
       ],
       "datumIndices": [
-        6,
+        [
+          6,
+        ],
+        [
+          6,
+        ],
+        [
+          6,
+        ],
+        [
+          6,
+        ],
       ],
       "keys": [
         "Converted flat",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [
@@ -2825,92 +3672,50 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         ],
       ],
       "datumIndices": [
-        7,
+        [
+          7,
+        ],
+        [
+          7,
+        ],
+        [
+          7,
+        ],
+        [
+          7,
+        ],
       ],
       "keys": [
         "Purpose-built flat high rise",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
   ],
   "input": {
     "count": 8,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [
-    [
-      "Semi-detached house",
-      "Medium/large terraced house",
-      "Detached house",
-      "Purpose-built flat low rise",
-      "Small terraced house",
-      "Bungalow",
-      "Converted flat",
-      "Purpose-built flat high rise",
-    ],
+    Map {
+      "test" => [
+        "Semi-detached house",
+        "Medium/large terraced house",
+        "Detached house",
+        "Purpose-built flat low rise",
+        "Small terraced house",
+        "Bungalow",
+        "Converted flat",
+        "Purpose-built flat high rise",
+      ],
+    },
   ],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "housingAssociation": 388,
-      "localAuthority": 274,
-      "ownerOccupied": 4567,
-      "privateRented": 773,
-      "type": "Semi-detached house",
-    },
-    {
-      "housingAssociation": 422,
-      "localAuthority": 231,
-      "ownerOccupied": 2842,
-      "privateRented": 938,
-      "type": "Medium/large terraced house",
-    },
-    {
-      "housingAssociation": 19,
-      "localAuthority": 4,
-      "ownerOccupied": 3655,
-      "privateRented": 294,
-      "type": "Detached house",
-    },
-    {
-      "housingAssociation": 919,
-      "localAuthority": 621,
-      "ownerOccupied": 905,
-      "privateRented": 1139,
-      "type": "Purpose-built flat low rise",
-    },
-    {
-      "housingAssociation": 295,
-      "localAuthority": 168,
-      "ownerOccupied": 1013,
-      "privateRented": 822,
-      "type": "Small terraced house",
-    },
-    {
-      "housingAssociation": 228,
-      "localAuthority": 180,
-      "ownerOccupied": 1486,
-      "privateRented": 214,
-      "type": "Bungalow",
-    },
-    {
-      "housingAssociation": 100,
-      "localAuthority": 37,
-      "ownerOccupied": 252,
-      "privateRented": 539,
-      "type": "Converted flat",
-    },
-    {
-      "housingAssociation": 68,
-      "localAuthority": 109,
-      "ownerOccupied": 97,
-      "privateRented": 134,
-      "type": "Purpose-built flat high rise",
-    },
-  ],
-  "rawDataSources": undefined,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -2920,48 +3725,122 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
 exports[`DataModel grouped processing - stacked with accumulation example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [
       4567,
-      2842,
-      3655,
-      905,
-      1013,
-      1486,
-      252,
-      97,
+      7409,
+      11064,
+      11969,
+      12982,
+      14468,
+      14720,
+      14817,
     ],
     [
-      5340,
-      3780,
-      3949,
-      2044,
-      1835,
-      1700,
-      791,
-      231,
+      773,
+      1711,
+      2005,
+      3144,
+      3966,
+      4180,
+      4719,
+      4853,
     ],
     [
-      5614,
-      4011,
-      3953,
-      2665,
-      2003,
-      1880,
-      828,
-      340,
+      274,
+      505,
+      509,
+      1130,
+      1298,
+      1478,
+      1515,
+      1624,
     ],
     [
-      6002,
-      4433,
-      3972,
-      3584,
-      2298,
-      2108,
-      928,
-      408,
+      388,
+      810,
+      829,
+      1748,
+      2043,
+      2271,
+      2371,
+      2439,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "housingAssociation": 388,
+        "localAuthority": 274,
+        "ownerOccupied": 4567,
+        "privateRented": 773,
+        "type": "Semi-detached house",
+      },
+      {
+        "housingAssociation": 422,
+        "localAuthority": 231,
+        "ownerOccupied": 2842,
+        "privateRented": 938,
+        "type": "Medium/large terraced house",
+      },
+      {
+        "housingAssociation": 19,
+        "localAuthority": 4,
+        "ownerOccupied": 3655,
+        "privateRented": 294,
+        "type": "Detached house",
+      },
+      {
+        "housingAssociation": 919,
+        "localAuthority": 621,
+        "ownerOccupied": 905,
+        "privateRented": 1139,
+        "type": "Purpose-built flat low rise",
+      },
+      {
+        "housingAssociation": 295,
+        "localAuthority": 168,
+        "ownerOccupied": 1013,
+        "privateRented": 822,
+        "type": "Small terraced house",
+      },
+      {
+        "housingAssociation": 228,
+        "localAuthority": 180,
+        "ownerOccupied": 1486,
+        "privateRented": 214,
+        "type": "Bungalow",
+      },
+      {
+        "housingAssociation": 100,
+        "localAuthority": 37,
+        "ownerOccupied": 252,
+        "privateRented": 539,
+        "type": "Converted flat",
+      },
+      {
+        "housingAssociation": 68,
+        "localAuthority": 109,
+        "ownerOccupied": 97,
+        "privateRented": 134,
+        "type": "Purpose-built flat high rise",
+      },
+    ],
+  },
   "defs": {
     "allScopesHaveSameDefs": true,
     "keys": [
@@ -3076,20 +3955,20 @@ exports[`DataModel grouped processing - stacked with accumulation example should
     ],
     "values": [
       [
-        97,
         4567,
+        14817,
       ],
       [
-        231,
-        5340,
+        773,
+        4853,
       ],
       [
-        340,
-        5614,
+        274,
+        1624,
       ],
       [
-        408,
-        6002,
+        388,
+        2439,
       ],
     ],
   },
@@ -3097,162 +3976,211 @@ exports[`DataModel grouped processing - stacked with accumulation example should
     {
       "aggregation": [],
       "datumIndices": [
-        0,
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
+        [
+          0,
+        ],
       ],
       "keys": [
         "Semi-detached house",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [],
       "datumIndices": [
-        1,
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
+        [
+          1,
+        ],
       ],
       "keys": [
         "Medium/large terraced house",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [],
       "datumIndices": [
-        2,
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
+        [
+          2,
+        ],
       ],
       "keys": [
         "Detached house",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [],
       "datumIndices": [
-        3,
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
+        [
+          3,
+        ],
       ],
       "keys": [
         "Purpose-built flat low rise",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [],
       "datumIndices": [
-        4,
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
+        [
+          4,
+        ],
       ],
       "keys": [
         "Small terraced house",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [],
       "datumIndices": [
-        5,
+        [
+          5,
+        ],
+        [
+          5,
+        ],
+        [
+          5,
+        ],
+        [
+          5,
+        ],
       ],
       "keys": [
         "Bungalow",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [],
       "datumIndices": [
-        6,
+        [
+          6,
+        ],
+        [
+          6,
+        ],
+        [
+          6,
+        ],
+        [
+          6,
+        ],
       ],
       "keys": [
         "Converted flat",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
     {
       "aggregation": [],
       "datumIndices": [
-        7,
+        [
+          7,
+        ],
+        [
+          7,
+        ],
+        [
+          7,
+        ],
+        [
+          7,
+        ],
       ],
       "keys": [
         "Purpose-built flat high rise",
       ],
-      "validScopes": undefined,
+      "validScopes": Set {
+        "test",
+      },
     },
   ],
   "input": {
     "count": 8,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [
-    [
-      "Semi-detached house",
-      "Medium/large terraced house",
-      "Detached house",
-      "Purpose-built flat low rise",
-      "Small terraced house",
-      "Bungalow",
-      "Converted flat",
-      "Purpose-built flat high rise",
-    ],
+    Map {
+      "test" => [
+        "Semi-detached house",
+        "Medium/large terraced house",
+        "Detached house",
+        "Purpose-built flat low rise",
+        "Small terraced house",
+        "Bungalow",
+        "Converted flat",
+        "Purpose-built flat high rise",
+      ],
+    },
   ],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "housingAssociation": 388,
-      "localAuthority": 274,
-      "ownerOccupied": 4567,
-      "privateRented": 773,
-      "type": "Semi-detached house",
-    },
-    {
-      "housingAssociation": 422,
-      "localAuthority": 231,
-      "ownerOccupied": 2842,
-      "privateRented": 938,
-      "type": "Medium/large terraced house",
-    },
-    {
-      "housingAssociation": 19,
-      "localAuthority": 4,
-      "ownerOccupied": 3655,
-      "privateRented": 294,
-      "type": "Detached house",
-    },
-    {
-      "housingAssociation": 919,
-      "localAuthority": 621,
-      "ownerOccupied": 905,
-      "privateRented": 1139,
-      "type": "Purpose-built flat low rise",
-    },
-    {
-      "housingAssociation": 295,
-      "localAuthority": 168,
-      "ownerOccupied": 1013,
-      "privateRented": 822,
-      "type": "Small terraced house",
-    },
-    {
-      "housingAssociation": 228,
-      "localAuthority": 180,
-      "ownerOccupied": 1486,
-      "privateRented": 214,
-      "type": "Bungalow",
-    },
-    {
-      "housingAssociation": 100,
-      "localAuthority": 37,
-      "ownerOccupied": 252,
-      "privateRented": 539,
-      "type": "Converted flat",
-    },
-    {
-      "housingAssociation": 68,
-      "localAuthority": 109,
-      "ownerOccupied": 97,
-      "privateRented": 134,
-      "type": "Purpose-built flat high rise",
-    },
-  ],
-  "rawDataSources": undefined,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -3262,6 +4190,20 @@ exports[`DataModel grouped processing - stacked with accumulation example should
 exports[`DataModel missing and invalid data processing - multiple scopes should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "series-a",
+    },
+    Set {
+      "series-b",
+    },
+    Set {
+      "series-c",
+    },
+  ],
   "columns": [
     [
       null,
@@ -3316,6 +4258,280 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       15.23,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "chrome": "illegal value",
+        "firefox": 26.85,
+        "safari": 2.79,
+        "year": "2009",
+      },
+      {
+        "firefox": 31.15,
+        "ie": 54.39,
+        "safari": 4.22,
+        "year": "2010",
+      },
+      {
+        "chrome": 15.01,
+        "ie": 44.03,
+        "safari": 5.94,
+        "year": "2011",
+      },
+      {
+        "chrome": 25.99,
+        "firefox": 22.69,
+        "ie": "illegal value",
+        "year": "2012",
+      },
+      {
+        "chrome": 31.71,
+        "firefox": undefined,
+        "safari": undefined,
+        "year": "2013",
+      },
+      {
+        "firefox": 14.77,
+        "ie": 17.75,
+        "safari": 12.63,
+        "year": "2014",
+      },
+      {
+        "chrome": 42.27,
+        "ie": -13.3,
+        "safari": "illegal value",
+        "year": "2015",
+      },
+      {
+        "chrome": 47.79,
+        "firefox": 8.97,
+        "ie": -8.94,
+        "year": "2016",
+      },
+      {
+        "chrome": 51.76,
+        "firefox": 6.75,
+        "safari": 14.54,
+        "year": "2017",
+      },
+      {
+        "firefox": "illegal value",
+        "ie": 3.2,
+        "safari": 14.44,
+        "year": "2018",
+      },
+      {
+        "chrome": 61.72,
+        "ie": 2.7,
+        "safari": 15.23,
+        "year": "2019",
+      },
+    ],
+    "series-a" => [
+      {
+        "chrome": "illegal value",
+        "firefox": 26.85,
+        "safari": 2.79,
+        "year": "2009",
+      },
+      {
+        "firefox": 31.15,
+        "ie": 54.39,
+        "safari": 4.22,
+        "year": "2010",
+      },
+      {
+        "chrome": 15.01,
+        "ie": 44.03,
+        "safari": 5.94,
+        "year": "2011",
+      },
+      {
+        "chrome": 25.99,
+        "firefox": 22.69,
+        "ie": "illegal value",
+        "year": "2012",
+      },
+      {
+        "chrome": 31.71,
+        "firefox": undefined,
+        "safari": undefined,
+        "year": "2013",
+      },
+      {
+        "firefox": 14.77,
+        "ie": 17.75,
+        "safari": 12.63,
+        "year": "2014",
+      },
+      {
+        "chrome": 42.27,
+        "ie": -13.3,
+        "safari": "illegal value",
+        "year": "2015",
+      },
+      {
+        "chrome": 47.79,
+        "firefox": 8.97,
+        "ie": -8.94,
+        "year": "2016",
+      },
+      {
+        "chrome": 51.76,
+        "firefox": 6.75,
+        "safari": 14.54,
+        "year": "2017",
+      },
+      {
+        "firefox": "illegal value",
+        "ie": 3.2,
+        "safari": 14.44,
+        "year": "2018",
+      },
+      {
+        "chrome": 61.72,
+        "ie": 2.7,
+        "safari": 15.23,
+        "year": "2019",
+      },
+    ],
+    "series-b" => [
+      {
+        "chrome": "illegal value",
+        "firefox": 26.85,
+        "safari": 2.79,
+        "year": "2009",
+      },
+      {
+        "firefox": 31.15,
+        "ie": 54.39,
+        "safari": 4.22,
+        "year": "2010",
+      },
+      {
+        "chrome": 15.01,
+        "ie": 44.03,
+        "safari": 5.94,
+        "year": "2011",
+      },
+      {
+        "chrome": 25.99,
+        "firefox": 22.69,
+        "ie": "illegal value",
+        "year": "2012",
+      },
+      {
+        "chrome": 31.71,
+        "firefox": undefined,
+        "safari": undefined,
+        "year": "2013",
+      },
+      {
+        "firefox": 14.77,
+        "ie": 17.75,
+        "safari": 12.63,
+        "year": "2014",
+      },
+      {
+        "chrome": 42.27,
+        "ie": -13.3,
+        "safari": "illegal value",
+        "year": "2015",
+      },
+      {
+        "chrome": 47.79,
+        "firefox": 8.97,
+        "ie": -8.94,
+        "year": "2016",
+      },
+      {
+        "chrome": 51.76,
+        "firefox": 6.75,
+        "safari": 14.54,
+        "year": "2017",
+      },
+      {
+        "firefox": "illegal value",
+        "ie": 3.2,
+        "safari": 14.44,
+        "year": "2018",
+      },
+      {
+        "chrome": 61.72,
+        "ie": 2.7,
+        "safari": 15.23,
+        "year": "2019",
+      },
+    ],
+    "series-c" => [
+      {
+        "chrome": "illegal value",
+        "firefox": 26.85,
+        "safari": 2.79,
+        "year": "2009",
+      },
+      {
+        "firefox": 31.15,
+        "ie": 54.39,
+        "safari": 4.22,
+        "year": "2010",
+      },
+      {
+        "chrome": 15.01,
+        "ie": 44.03,
+        "safari": 5.94,
+        "year": "2011",
+      },
+      {
+        "chrome": 25.99,
+        "firefox": 22.69,
+        "ie": "illegal value",
+        "year": "2012",
+      },
+      {
+        "chrome": 31.71,
+        "firefox": undefined,
+        "safari": undefined,
+        "year": "2013",
+      },
+      {
+        "firefox": 14.77,
+        "ie": 17.75,
+        "safari": 12.63,
+        "year": "2014",
+      },
+      {
+        "chrome": 42.27,
+        "ie": -13.3,
+        "safari": "illegal value",
+        "year": "2015",
+      },
+      {
+        "chrome": 47.79,
+        "firefox": 8.97,
+        "ie": -8.94,
+        "year": "2016",
+      },
+      {
+        "chrome": 51.76,
+        "firefox": 6.75,
+        "safari": 14.54,
+        "year": "2017",
+      },
+      {
+        "firefox": "illegal value",
+        "ie": 3.2,
+        "safari": 14.44,
+        "year": "2018",
+      },
+      {
+        "chrome": 61.72,
+        "ie": 2.7,
+        "safari": 15.23,
+        "year": "2019",
+      },
+    ],
+  },
   "defs": {
     "allScopesHaveSameDefs": false,
     "keys": [
@@ -3338,7 +4554,9 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "missing": Map {},
         "missingValue": null,
         "property": "ie",
-        "scopes": undefined,
+        "scopes": [
+          "test",
+        ],
         "type": "value",
         "useScopedValues": false,
         "validation": [Function],
@@ -3429,25 +4647,25 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
   "input": {
     "count": 11,
   },
-  "invalidData": [
-    true,
-    false,
-    false,
-    true,
-    true,
-    false,
-    true,
-    false,
-    false,
-    true,
-    false,
-  ],
-  "invalidDataScopes": Map {
+  "invalidData": Map {
+    "test" => [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ],
     "series-a" => [
       true,
       false,
       false,
-      true,
+      false,
       false,
       false,
       false,
@@ -3460,7 +4678,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       false,
       false,
       false,
-      true,
+      false,
       true,
       false,
       false,
@@ -3473,7 +4691,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       false,
       false,
       false,
-      true,
+      false,
       true,
       false,
       true,
@@ -3483,92 +4701,31 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       false,
     ],
   },
-  "invalidKeys": undefined,
+  "invalidKeys": Map {},
   "keys": [
-    [
-      "2009",
-      "2010",
-      "2011",
-      "2012",
-      "2013",
-      "2014",
-      "2015",
-      "2016",
-      "2017",
-      "2018",
-      "2019",
-    ],
+    Map {
+      "test" => [
+        "2009",
+        "2010",
+        "2011",
+        "2012",
+        "2013",
+        "2014",
+        "2015",
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+      ],
+    },
   ],
   "partialValidDataCount": 6,
-  "rawData": [
-    {
-      "chrome": "illegal value",
-      "firefox": 26.85,
-      "safari": 2.79,
-      "year": "2009",
-    },
-    {
-      "firefox": 31.15,
-      "ie": 54.39,
-      "safari": 4.22,
-      "year": "2010",
-    },
-    {
-      "chrome": 15.01,
-      "ie": 44.03,
-      "safari": 5.94,
-      "year": "2011",
-    },
-    {
-      "chrome": 25.99,
-      "firefox": 22.69,
-      "ie": "illegal value",
-      "year": "2012",
-    },
-    {
-      "chrome": 31.71,
-      "firefox": undefined,
-      "safari": undefined,
-      "year": "2013",
-    },
-    {
-      "firefox": 14.77,
-      "ie": 17.75,
-      "safari": 12.63,
-      "year": "2014",
-    },
-    {
-      "chrome": 42.27,
-      "ie": -13.3,
-      "safari": "illegal value",
-      "year": "2015",
-    },
-    {
-      "chrome": 47.79,
-      "firefox": 8.97,
-      "ie": -8.94,
-      "year": "2016",
-    },
-    {
-      "chrome": 51.76,
-      "firefox": 6.75,
-      "safari": 14.54,
-      "year": "2017",
-    },
-    {
-      "firefox": "illegal value",
-      "ie": 3.2,
-      "safari": 14.44,
-      "year": "2018",
-    },
-    {
-      "chrome": 61.72,
-      "ie": 2.7,
-      "safari": 15.23,
-      "year": "2019",
-    },
-  ],
-  "rawDataSources": undefined,
+  "scopes": Set {
+    "test",
+    "series-a",
+    "series-b",
+    "series-c",
+  },
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
@@ -3578,6 +4735,20 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
 exports[`DataModel missing and invalid data processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [
       null,
@@ -3632,6 +4803,76 @@ exports[`DataModel missing and invalid data processing should generated the expe
       15.23,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "chrome": "illegal value",
+        "firefox": 26.85,
+        "safari": 2.79,
+        "year": "2009",
+      },
+      {
+        "firefox": 31.15,
+        "ie": 54.39,
+        "safari": 4.22,
+        "year": "2010",
+      },
+      {
+        "chrome": 15.01,
+        "ie": 44.03,
+        "safari": 5.94,
+        "year": "2011",
+      },
+      {
+        "chrome": 25.99,
+        "firefox": 22.69,
+        "ie": "illegal value",
+        "year": "2012",
+      },
+      {
+        "chrome": 31.71,
+        "firefox": undefined,
+        "safari": undefined,
+        "year": "2013",
+      },
+      {
+        "firefox": 14.77,
+        "ie": 17.75,
+        "safari": 12.63,
+        "year": "2014",
+      },
+      {
+        "chrome": 42.27,
+        "ie": -13.3,
+        "safari": "illegal value",
+        "year": "2015",
+      },
+      {
+        "chrome": 47.79,
+        "firefox": 8.97,
+        "ie": -8.94,
+        "year": "2016",
+      },
+      {
+        "chrome": 51.76,
+        "firefox": 6.75,
+        "safari": 14.54,
+        "year": "2017",
+      },
+      {
+        "firefox": "illegal value",
+        "ie": 3.2,
+        "safari": 14.44,
+        "year": "2018",
+      },
+      {
+        "chrome": 61.72,
+        "ie": 2.7,
+        "safari": 15.23,
+        "year": "2019",
+      },
+    ],
+  },
   "defs": {
     "allScopesHaveSameDefs": true,
     "keys": [
@@ -3751,94 +4992,29 @@ exports[`DataModel missing and invalid data processing should generated the expe
   "input": {
     "count": 11,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [
-    [
-      "2009",
-      "2010",
-      "2011",
-      "2012",
-      "2013",
-      "2014",
-      "2015",
-      "2016",
-      "2017",
-      "2018",
-      "2019",
-    ],
+    Map {
+      "test" => [
+        "2009",
+        "2010",
+        "2011",
+        "2012",
+        "2013",
+        "2014",
+        "2015",
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+      ],
+    },
   ],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "chrome": "illegal value",
-      "firefox": 26.85,
-      "safari": 2.79,
-      "year": "2009",
-    },
-    {
-      "firefox": 31.15,
-      "ie": 54.39,
-      "safari": 4.22,
-      "year": "2010",
-    },
-    {
-      "chrome": 15.01,
-      "ie": 44.03,
-      "safari": 5.94,
-      "year": "2011",
-    },
-    {
-      "chrome": 25.99,
-      "firefox": 22.69,
-      "ie": "illegal value",
-      "year": "2012",
-    },
-    {
-      "chrome": 31.71,
-      "firefox": undefined,
-      "safari": undefined,
-      "year": "2013",
-    },
-    {
-      "firefox": 14.77,
-      "ie": 17.75,
-      "safari": 12.63,
-      "year": "2014",
-    },
-    {
-      "chrome": 42.27,
-      "ie": -13.3,
-      "safari": "illegal value",
-      "year": "2015",
-    },
-    {
-      "chrome": 47.79,
-      "firefox": 8.97,
-      "ie": -8.94,
-      "year": "2016",
-    },
-    {
-      "chrome": 51.76,
-      "firefox": 6.75,
-      "safari": 14.54,
-      "year": "2017",
-    },
-    {
-      "firefox": "illegal value",
-      "ie": 3.2,
-      "safari": 14.44,
-      "year": "2018",
-    },
-    {
-      "chrome": 61.72,
-      "ie": 2.7,
-      "safari": 15.23,
-      "year": "2019",
-    },
-  ],
-  "rawDataSources": undefined,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
@@ -3848,6 +5024,14 @@ exports[`DataModel missing and invalid data processing should generated the expe
 exports[`DataModel repeated property processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [
       0,
@@ -3864,6 +5048,35 @@ exports[`DataModel repeated property processing should generated the expected re
       0.0843,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "browser": "Chrome",
+        "share": 0.6869,
+        "year": 2020,
+      },
+      {
+        "browser": "Edge",
+        "share": 0.0463,
+        "year": 2020,
+      },
+      {
+        "browser": "Safari",
+        "share": 0.087,
+        "year": 2020,
+      },
+      {
+        "browser": "Firefox",
+        "share": 0.0955,
+        "year": 2020,
+      },
+      {
+        "browser": "Other",
+        "share": 0.0843,
+        "year": 2020,
+      },
+    ],
+  },
   "defs": {
     "allScopesHaveSameDefs": true,
     "keys": [],
@@ -3913,39 +5126,13 @@ exports[`DataModel repeated property processing should generated the expected re
   "input": {
     "count": 5,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "browser": "Chrome",
-      "share": 0.6869,
-      "year": 2020,
-    },
-    {
-      "browser": "Edge",
-      "share": 0.0463,
-      "year": 2020,
-    },
-    {
-      "browser": "Safari",
-      "share": 0.087,
-      "year": 2020,
-    },
-    {
-      "browser": "Firefox",
-      "share": 0.0955,
-      "year": 2020,
-    },
-    {
-      "browser": "Other",
-      "share": 0.0843,
-      "year": 2020,
-    },
-  ],
-  "rawDataSources": undefined,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
@@ -3955,6 +5142,17 @@ exports[`DataModel repeated property processing should generated the expected re
 exports[`DataModel ungrouped processing - accumulated and normalised properties should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [
       0,
@@ -3987,6 +5185,42 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
       3.367428462267346,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "population": 4159000,
+        "religion": "Christian",
+      },
+      {
+        "population": 97000,
+        "religion": "Buddhist",
+      },
+      {
+        "population": 456000,
+        "religion": "Hindu",
+      },
+      {
+        "population": 168000,
+        "religion": "Jewish",
+      },
+      {
+        "population": 1215000,
+        "religion": "Muslim",
+      },
+      {
+        "population": 123000,
+        "religion": "Sikh",
+      },
+      {
+        "population": 174000,
+        "religion": "Other",
+      },
+      {
+        "population": 2274000,
+        "religion": "None",
+      },
+    ],
+  },
   "defs": {
     "allScopesHaveSameDefs": true,
     "keys": [],
@@ -4056,46 +5290,13 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
   "input": {
     "count": 8,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "population": 4159000,
-      "religion": "Christian",
-    },
-    {
-      "population": 97000,
-      "religion": "Buddhist",
-    },
-    {
-      "population": 456000,
-      "religion": "Hindu",
-    },
-    {
-      "population": 168000,
-      "religion": "Jewish",
-    },
-    {
-      "population": 1215000,
-      "religion": "Muslim",
-    },
-    {
-      "population": 123000,
-      "religion": "Sikh",
-    },
-    {
-      "population": 174000,
-      "religion": "Other",
-    },
-    {
-      "population": 2274000,
-      "religion": "None",
-    },
-  ],
-  "rawDataSources": undefined,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
@@ -4105,6 +5306,14 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
 exports[`DataModel ungrouped processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+  ],
   "columns": [
     [
       120.27,
@@ -4215,14 +5424,280 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
       130.54,
     ],
   ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "date": 2019-01-07T00:00:00.000Z,
+        "diesel": 130.33,
+        "petrol": 120.27,
+      },
+      {
+        "date": 2019-01-14T00:00:00.000Z,
+        "diesel": 129.47,
+        "petrol": 119.53,
+      },
+      {
+        "date": 2019-01-21T00:00:00.000Z,
+        "diesel": 128.92,
+        "petrol": 119.12,
+      },
+      {
+        "date": 2019-01-28T00:00:00.000Z,
+        "diesel": 129.1,
+        "petrol": 119.29,
+      },
+      {
+        "date": 2019-02-04T00:00:00.000Z,
+        "diesel": 129.13,
+        "petrol": 119.13,
+      },
+      {
+        "date": 2019-02-11T00:00:00.000Z,
+        "diesel": 129.17,
+        "petrol": 118.97,
+      },
+      {
+        "date": 2019-02-18T00:00:00.000Z,
+        "diesel": 129.23,
+        "petrol": 119.05,
+      },
+      {
+        "date": 2019-02-25T00:00:00.000Z,
+        "diesel": 129.66,
+        "petrol": 119.22,
+      },
+      {
+        "date": 2019-03-04T00:00:00.000Z,
+        "diesel": 130.25,
+        "petrol": 119.72,
+      },
+      {
+        "date": 2019-03-11T00:00:00.000Z,
+        "diesel": 130.59,
+        "petrol": 120.1,
+      },
+      {
+        "date": 2019-03-18T00:00:00.000Z,
+        "diesel": 130.85,
+        "petrol": 120.48,
+      },
+      {
+        "date": 2019-03-25T00:00:00.000Z,
+        "diesel": 131.15,
+        "petrol": 120.83,
+      },
+      {
+        "date": 2019-03-31T23:00:00.000Z,
+        "diesel": 131.48,
+        "petrol": 121.7,
+      },
+      {
+        "date": 2019-04-07T23:00:00.000Z,
+        "diesel": 132.08,
+        "petrol": 122.75,
+      },
+      {
+        "date": 2019-04-14T23:00:00.000Z,
+        "diesel": 132.96,
+        "petrol": 124.06,
+      },
+      {
+        "date": 2019-04-21T23:00:00.000Z,
+        "diesel": 133.99,
+        "petrol": 125.43,
+      },
+      {
+        "date": 2019-04-28T23:00:00.000Z,
+        "diesel": 134.6,
+        "petrol": 126.36,
+      },
+      {
+        "date": 2019-05-05T23:00:00.000Z,
+        "diesel": 135.41,
+        "petrol": 127.5,
+      },
+      {
+        "date": 2019-05-12T23:00:00.000Z,
+        "diesel": 135.36,
+        "petrol": 127.97,
+      },
+      {
+        "date": 2019-05-19T23:00:00.000Z,
+        "diesel": 135.82,
+        "petrol": 128.51,
+      },
+      {
+        "date": 2019-05-26T23:00:00.000Z,
+        "diesel": 136.45,
+        "petrol": 129.14,
+      },
+      {
+        "date": 2019-06-02T23:00:00.000Z,
+        "diesel": 136.39,
+        "petrol": 129.41,
+      },
+      {
+        "date": 2019-06-09T23:00:00.000Z,
+        "diesel": 135.4,
+        "petrol": 128.89,
+      },
+      {
+        "date": 2019-06-16T23:00:00.000Z,
+        "diesel": 133.76,
+        "petrol": 127.66,
+      },
+      {
+        "date": 2019-06-23T23:00:00.000Z,
+        "diesel": 131.81,
+        "petrol": 126.66,
+      },
+      {
+        "date": 2019-06-30T23:00:00.000Z,
+        "diesel": 131.55,
+        "petrol": 126.49,
+      },
+      {
+        "date": 2019-07-07T23:00:00.000Z,
+        "diesel": 131.68,
+        "petrol": 126.86,
+      },
+      {
+        "date": 2019-07-14T23:00:00.000Z,
+        "diesel": 131.86,
+        "petrol": 127.13,
+      },
+      {
+        "date": 2019-07-21T23:00:00.000Z,
+        "diesel": 132.21,
+        "petrol": 127.81,
+      },
+      {
+        "date": 2019-07-28T23:00:00.000Z,
+        "diesel": 132.6,
+        "petrol": 128.03,
+      },
+      {
+        "date": 2019-08-04T23:00:00.000Z,
+        "diesel": 132.61,
+        "petrol": 128.37,
+      },
+      {
+        "date": 2019-08-11T23:00:00.000Z,
+        "diesel": 132.59,
+        "petrol": 128.36,
+      },
+      {
+        "date": 2019-08-18T23:00:00.000Z,
+        "diesel": 132.6,
+        "petrol": 128.17,
+      },
+      {
+        "date": 2019-08-25T23:00:00.000Z,
+        "diesel": 132.51,
+        "petrol": 128.22,
+      },
+      {
+        "date": 2019-09-01T23:00:00.000Z,
+        "diesel": 132.29,
+        "petrol": 127.86,
+      },
+      {
+        "date": 2019-09-08T23:00:00.000Z,
+        "diesel": 131.89,
+        "petrol": 127.79,
+      },
+      {
+        "date": 2019-09-15T23:00:00.000Z,
+        "diesel": 131.35,
+        "petrol": 126.92,
+      },
+      {
+        "date": 2019-09-22T23:00:00.000Z,
+        "diesel": 131.52,
+        "petrol": 126.78,
+      },
+      {
+        "date": 2019-09-29T23:00:00.000Z,
+        "diesel": 131.83,
+        "petrol": 126.92,
+      },
+      {
+        "date": 2019-10-06T23:00:00.000Z,
+        "diesel": 131.82,
+        "petrol": 126.87,
+      },
+      {
+        "date": 2019-10-13T23:00:00.000Z,
+        "diesel": 131.89,
+        "petrol": 126.91,
+      },
+      {
+        "date": 2019-10-20T23:00:00.000Z,
+        "diesel": 131.28,
+        "petrol": 126.4,
+      },
+      {
+        "date": 2019-10-28T00:00:00.000Z,
+        "diesel": 130.6,
+        "petrol": 125.77,
+      },
+      {
+        "date": 2019-11-04T00:00:00.000Z,
+        "diesel": 130.38,
+        "petrol": 125.56,
+      },
+      {
+        "date": 2019-11-11T00:00:00.000Z,
+        "diesel": 130.42,
+        "petrol": 125.59,
+      },
+      {
+        "date": 2019-11-18T00:00:00.000Z,
+        "diesel": 130.35,
+        "petrol": 125.58,
+      },
+      {
+        "date": 2019-11-25T00:00:00.000Z,
+        "diesel": 130.08,
+        "petrol": 125.32,
+      },
+      {
+        "date": 2019-12-02T00:00:00.000Z,
+        "diesel": 129.79,
+        "petrol": 124.81,
+      },
+      {
+        "date": 2019-12-09T00:00:00.000Z,
+        "diesel": 129.79,
+        "petrol": 124.75,
+      },
+      {
+        "date": 2019-12-16T00:00:00.000Z,
+        "diesel": 129.56,
+        "petrol": 124.33,
+      },
+      {
+        "date": 2019-12-23T00:00:00.000Z,
+        "diesel": 129.81,
+        "petrol": 124.16,
+      },
+      {
+        "date": 2019-12-30T00:00:00.000Z,
+        "diesel": 130.54,
+        "petrol": 124.96,
+      },
+    ],
+  },
   "defs": {
-    "allScopesHaveSameDefs": false,
+    "allScopesHaveSameDefs": true,
     "keys": [
       {
         "index": 0,
         "missing": Map {},
         "property": "date",
-        "scope": "test",
+        "scopes": [
+          "test",
+        ],
         "type": "key",
         "valueType": "range",
       },
@@ -4277,329 +5752,70 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
   "input": {
     "count": 52,
   },
-  "invalidData": undefined,
-  "invalidDataScopes": undefined,
-  "invalidKeys": undefined,
+  "invalidData": Map {},
+  "invalidKeys": Map {},
   "keys": [
-    [
-      2019-01-07T00:00:00.000Z,
-      2019-01-14T00:00:00.000Z,
-      2019-01-21T00:00:00.000Z,
-      2019-01-28T00:00:00.000Z,
-      2019-02-04T00:00:00.000Z,
-      2019-02-11T00:00:00.000Z,
-      2019-02-18T00:00:00.000Z,
-      2019-02-25T00:00:00.000Z,
-      2019-03-04T00:00:00.000Z,
-      2019-03-11T00:00:00.000Z,
-      2019-03-18T00:00:00.000Z,
-      2019-03-25T00:00:00.000Z,
-      2019-03-31T23:00:00.000Z,
-      2019-04-07T23:00:00.000Z,
-      2019-04-14T23:00:00.000Z,
-      2019-04-21T23:00:00.000Z,
-      2019-04-28T23:00:00.000Z,
-      2019-05-05T23:00:00.000Z,
-      2019-05-12T23:00:00.000Z,
-      2019-05-19T23:00:00.000Z,
-      2019-05-26T23:00:00.000Z,
-      2019-06-02T23:00:00.000Z,
-      2019-06-09T23:00:00.000Z,
-      2019-06-16T23:00:00.000Z,
-      2019-06-23T23:00:00.000Z,
-      2019-06-30T23:00:00.000Z,
-      2019-07-07T23:00:00.000Z,
-      2019-07-14T23:00:00.000Z,
-      2019-07-21T23:00:00.000Z,
-      2019-07-28T23:00:00.000Z,
-      2019-08-04T23:00:00.000Z,
-      2019-08-11T23:00:00.000Z,
-      2019-08-18T23:00:00.000Z,
-      2019-08-25T23:00:00.000Z,
-      2019-09-01T23:00:00.000Z,
-      2019-09-08T23:00:00.000Z,
-      2019-09-15T23:00:00.000Z,
-      2019-09-22T23:00:00.000Z,
-      2019-09-29T23:00:00.000Z,
-      2019-10-06T23:00:00.000Z,
-      2019-10-13T23:00:00.000Z,
-      2019-10-20T23:00:00.000Z,
-      2019-10-28T00:00:00.000Z,
-      2019-11-04T00:00:00.000Z,
-      2019-11-11T00:00:00.000Z,
-      2019-11-18T00:00:00.000Z,
-      2019-11-25T00:00:00.000Z,
-      2019-12-02T00:00:00.000Z,
-      2019-12-09T00:00:00.000Z,
-      2019-12-16T00:00:00.000Z,
-      2019-12-23T00:00:00.000Z,
-      2019-12-30T00:00:00.000Z,
-    ],
+    Map {
+      "test" => [
+        2019-01-07T00:00:00.000Z,
+        2019-01-14T00:00:00.000Z,
+        2019-01-21T00:00:00.000Z,
+        2019-01-28T00:00:00.000Z,
+        2019-02-04T00:00:00.000Z,
+        2019-02-11T00:00:00.000Z,
+        2019-02-18T00:00:00.000Z,
+        2019-02-25T00:00:00.000Z,
+        2019-03-04T00:00:00.000Z,
+        2019-03-11T00:00:00.000Z,
+        2019-03-18T00:00:00.000Z,
+        2019-03-25T00:00:00.000Z,
+        2019-03-31T23:00:00.000Z,
+        2019-04-07T23:00:00.000Z,
+        2019-04-14T23:00:00.000Z,
+        2019-04-21T23:00:00.000Z,
+        2019-04-28T23:00:00.000Z,
+        2019-05-05T23:00:00.000Z,
+        2019-05-12T23:00:00.000Z,
+        2019-05-19T23:00:00.000Z,
+        2019-05-26T23:00:00.000Z,
+        2019-06-02T23:00:00.000Z,
+        2019-06-09T23:00:00.000Z,
+        2019-06-16T23:00:00.000Z,
+        2019-06-23T23:00:00.000Z,
+        2019-06-30T23:00:00.000Z,
+        2019-07-07T23:00:00.000Z,
+        2019-07-14T23:00:00.000Z,
+        2019-07-21T23:00:00.000Z,
+        2019-07-28T23:00:00.000Z,
+        2019-08-04T23:00:00.000Z,
+        2019-08-11T23:00:00.000Z,
+        2019-08-18T23:00:00.000Z,
+        2019-08-25T23:00:00.000Z,
+        2019-09-01T23:00:00.000Z,
+        2019-09-08T23:00:00.000Z,
+        2019-09-15T23:00:00.000Z,
+        2019-09-22T23:00:00.000Z,
+        2019-09-29T23:00:00.000Z,
+        2019-10-06T23:00:00.000Z,
+        2019-10-13T23:00:00.000Z,
+        2019-10-20T23:00:00.000Z,
+        2019-10-28T00:00:00.000Z,
+        2019-11-04T00:00:00.000Z,
+        2019-11-11T00:00:00.000Z,
+        2019-11-18T00:00:00.000Z,
+        2019-11-25T00:00:00.000Z,
+        2019-12-02T00:00:00.000Z,
+        2019-12-09T00:00:00.000Z,
+        2019-12-16T00:00:00.000Z,
+        2019-12-23T00:00:00.000Z,
+        2019-12-30T00:00:00.000Z,
+      ],
+    },
   ],
   "partialValidDataCount": 0,
-  "rawData": [
-    {
-      "date": 2019-01-07T00:00:00.000Z,
-      "diesel": 130.33,
-      "petrol": 120.27,
-    },
-    {
-      "date": 2019-01-14T00:00:00.000Z,
-      "diesel": 129.47,
-      "petrol": 119.53,
-    },
-    {
-      "date": 2019-01-21T00:00:00.000Z,
-      "diesel": 128.92,
-      "petrol": 119.12,
-    },
-    {
-      "date": 2019-01-28T00:00:00.000Z,
-      "diesel": 129.1,
-      "petrol": 119.29,
-    },
-    {
-      "date": 2019-02-04T00:00:00.000Z,
-      "diesel": 129.13,
-      "petrol": 119.13,
-    },
-    {
-      "date": 2019-02-11T00:00:00.000Z,
-      "diesel": 129.17,
-      "petrol": 118.97,
-    },
-    {
-      "date": 2019-02-18T00:00:00.000Z,
-      "diesel": 129.23,
-      "petrol": 119.05,
-    },
-    {
-      "date": 2019-02-25T00:00:00.000Z,
-      "diesel": 129.66,
-      "petrol": 119.22,
-    },
-    {
-      "date": 2019-03-04T00:00:00.000Z,
-      "diesel": 130.25,
-      "petrol": 119.72,
-    },
-    {
-      "date": 2019-03-11T00:00:00.000Z,
-      "diesel": 130.59,
-      "petrol": 120.1,
-    },
-    {
-      "date": 2019-03-18T00:00:00.000Z,
-      "diesel": 130.85,
-      "petrol": 120.48,
-    },
-    {
-      "date": 2019-03-25T00:00:00.000Z,
-      "diesel": 131.15,
-      "petrol": 120.83,
-    },
-    {
-      "date": 2019-03-31T23:00:00.000Z,
-      "diesel": 131.48,
-      "petrol": 121.7,
-    },
-    {
-      "date": 2019-04-07T23:00:00.000Z,
-      "diesel": 132.08,
-      "petrol": 122.75,
-    },
-    {
-      "date": 2019-04-14T23:00:00.000Z,
-      "diesel": 132.96,
-      "petrol": 124.06,
-    },
-    {
-      "date": 2019-04-21T23:00:00.000Z,
-      "diesel": 133.99,
-      "petrol": 125.43,
-    },
-    {
-      "date": 2019-04-28T23:00:00.000Z,
-      "diesel": 134.6,
-      "petrol": 126.36,
-    },
-    {
-      "date": 2019-05-05T23:00:00.000Z,
-      "diesel": 135.41,
-      "petrol": 127.5,
-    },
-    {
-      "date": 2019-05-12T23:00:00.000Z,
-      "diesel": 135.36,
-      "petrol": 127.97,
-    },
-    {
-      "date": 2019-05-19T23:00:00.000Z,
-      "diesel": 135.82,
-      "petrol": 128.51,
-    },
-    {
-      "date": 2019-05-26T23:00:00.000Z,
-      "diesel": 136.45,
-      "petrol": 129.14,
-    },
-    {
-      "date": 2019-06-02T23:00:00.000Z,
-      "diesel": 136.39,
-      "petrol": 129.41,
-    },
-    {
-      "date": 2019-06-09T23:00:00.000Z,
-      "diesel": 135.4,
-      "petrol": 128.89,
-    },
-    {
-      "date": 2019-06-16T23:00:00.000Z,
-      "diesel": 133.76,
-      "petrol": 127.66,
-    },
-    {
-      "date": 2019-06-23T23:00:00.000Z,
-      "diesel": 131.81,
-      "petrol": 126.66,
-    },
-    {
-      "date": 2019-06-30T23:00:00.000Z,
-      "diesel": 131.55,
-      "petrol": 126.49,
-    },
-    {
-      "date": 2019-07-07T23:00:00.000Z,
-      "diesel": 131.68,
-      "petrol": 126.86,
-    },
-    {
-      "date": 2019-07-14T23:00:00.000Z,
-      "diesel": 131.86,
-      "petrol": 127.13,
-    },
-    {
-      "date": 2019-07-21T23:00:00.000Z,
-      "diesel": 132.21,
-      "petrol": 127.81,
-    },
-    {
-      "date": 2019-07-28T23:00:00.000Z,
-      "diesel": 132.6,
-      "petrol": 128.03,
-    },
-    {
-      "date": 2019-08-04T23:00:00.000Z,
-      "diesel": 132.61,
-      "petrol": 128.37,
-    },
-    {
-      "date": 2019-08-11T23:00:00.000Z,
-      "diesel": 132.59,
-      "petrol": 128.36,
-    },
-    {
-      "date": 2019-08-18T23:00:00.000Z,
-      "diesel": 132.6,
-      "petrol": 128.17,
-    },
-    {
-      "date": 2019-08-25T23:00:00.000Z,
-      "diesel": 132.51,
-      "petrol": 128.22,
-    },
-    {
-      "date": 2019-09-01T23:00:00.000Z,
-      "diesel": 132.29,
-      "petrol": 127.86,
-    },
-    {
-      "date": 2019-09-08T23:00:00.000Z,
-      "diesel": 131.89,
-      "petrol": 127.79,
-    },
-    {
-      "date": 2019-09-15T23:00:00.000Z,
-      "diesel": 131.35,
-      "petrol": 126.92,
-    },
-    {
-      "date": 2019-09-22T23:00:00.000Z,
-      "diesel": 131.52,
-      "petrol": 126.78,
-    },
-    {
-      "date": 2019-09-29T23:00:00.000Z,
-      "diesel": 131.83,
-      "petrol": 126.92,
-    },
-    {
-      "date": 2019-10-06T23:00:00.000Z,
-      "diesel": 131.82,
-      "petrol": 126.87,
-    },
-    {
-      "date": 2019-10-13T23:00:00.000Z,
-      "diesel": 131.89,
-      "petrol": 126.91,
-    },
-    {
-      "date": 2019-10-20T23:00:00.000Z,
-      "diesel": 131.28,
-      "petrol": 126.4,
-    },
-    {
-      "date": 2019-10-28T00:00:00.000Z,
-      "diesel": 130.6,
-      "petrol": 125.77,
-    },
-    {
-      "date": 2019-11-04T00:00:00.000Z,
-      "diesel": 130.38,
-      "petrol": 125.56,
-    },
-    {
-      "date": 2019-11-11T00:00:00.000Z,
-      "diesel": 130.42,
-      "petrol": 125.59,
-    },
-    {
-      "date": 2019-11-18T00:00:00.000Z,
-      "diesel": 130.35,
-      "petrol": 125.58,
-    },
-    {
-      "date": 2019-11-25T00:00:00.000Z,
-      "diesel": 130.08,
-      "petrol": 125.32,
-    },
-    {
-      "date": 2019-12-02T00:00:00.000Z,
-      "diesel": 129.79,
-      "petrol": 124.81,
-    },
-    {
-      "date": 2019-12-09T00:00:00.000Z,
-      "diesel": 129.79,
-      "petrol": 124.75,
-    },
-    {
-      "date": 2019-12-16T00:00:00.000Z,
-      "diesel": 129.56,
-      "petrol": 124.33,
-    },
-    {
-      "date": 2019-12-23T00:00:00.000Z,
-      "diesel": 129.81,
-      "petrol": 124.16,
-    },
-    {
-      "date": 2019-12-30T00:00:00.000Z,
-      "diesel": 130.54,
-      "petrol": 124.96,
-    },
-  ],
-  "rawDataSources": undefined,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},

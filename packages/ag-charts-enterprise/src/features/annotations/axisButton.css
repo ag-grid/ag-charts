@@ -3,15 +3,15 @@
 }
 
 .ag-charts-annotations__axis-button {
-    background-color: var(--ag-charts-axis-label-background-color);
-    border-radius: 2px;
+    background-color: var(--ag-charts-foreground-color);
+    border-radius: calc(var(--ag-charts-border-radius) / 2);
     border: none;
     box-sizing: border-box;
-    color: var(--ag-charts-axis-label-color);
+    color: var(--ag-charts-background-color);
     cursor: pointer;
-    font:
-        16px Verdana,
-        sans-serif;
+    font-family: var(--ag-charts-chrome-font-family);
+    font-size: var(--ag-charts-chrome-font-size);
+    font-weight: var(--ag-charts-chrome-font-weight);
     left: 0px;
     line-height: 16px;
     overflow: hidden;
@@ -25,5 +25,5 @@
 
 .ag-charts-annotations__axis-button:hover {
     opacity: 0.8;
-    color: var(--ag-charts-axis-label-color);
+    color: var(--ag-charts-background-color);
 }

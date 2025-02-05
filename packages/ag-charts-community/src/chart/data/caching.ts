@@ -36,19 +36,30 @@ function idsMapEqual(a: Map<string, Set<string>> | undefined, b: Map<string, Set
     return true;
 }
 
-function propsEqual(a: PropertyDefinition<any>[], b: PropertyDefinition<any>[]) {
+type OptionalProps = {
+    data?: unknown[];
+    scopes?: string[];
+};
+
+function propsEqual(
+    a: (PropertyDefinition<any, true> & OptionalProps)[],
+    b: (PropertyDefinition<any, true> & OptionalProps)[]
+) {
     if (a.length !== b.length) return false;
 
     for (let i = 0; i < a.length; i += 1) {
-        const { idsMap: idsMapA, ...propA } = a[i];
-        const { idsMap: idsMapB, ...propB } = b[i];
+        const { type: typeA, idsMap: idsMapA, scopes: scopesA, data: dataA, ...propA } = a[i];
+        const { type: typeB, idsMap: idsMapB, scopes: scopesB, data: dataB, ...propB } = b[i];
+        if (typeA !== typeB) return false;
+        if (scopesA && scopesB && !arraysEqual(scopesA, scopesB)) return false;
+        if (dataA && dataB && dataA !== dataB) return false;
         if (!objectsEqual(propA, propB) || !idsMapEqual(idsMapA, idsMapB)) return false;
     }
 
     return true;
 }
 
-function optsEqual(a: DataModelOptions<any, any>, b: DataModelOptions<any, any>) {
+function optsEqual(a: DataModelOptions<any, any, true>, b: DataModelOptions<any, any, true>) {
     const { props: propsA, ...restA } = a;
     const { props: propsB, ...restB } = b;
     return objectsEqual(restA, restB) && propsEqual(propsA, propsB);

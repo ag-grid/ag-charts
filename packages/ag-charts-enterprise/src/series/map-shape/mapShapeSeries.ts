@@ -204,7 +204,7 @@ export class MapShapeSeries
         }
 
         const colorIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
-        const dataCount = processedData.rawData.length;
+        const dataCount = processedData.input.count;
         const missCount = getMissCount(this, processedData.defs.values[colorIdx].missing);
         const colorDataMissing = dataCount === 0 || dataCount === missCount;
         return !colorDataMissing;
@@ -331,7 +331,8 @@ export class MapShapeSeries
         const nodeData: MapShapeNodeDatum[] = [];
         const labelData: MapShapeNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
-        processedData.rawData.forEach((datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        rawData.forEach((datum, datumIndex) => {
             const idValue = idValues[datumIndex];
             const colorValue: number | undefined = colorValues?.[datumIndex];
             const labelValue: string | undefined = labelValues?.[datumIndex];
@@ -650,7 +651,7 @@ export class MapShapeSeries
         if (!dataModel || !processedData) return;
 
         const { datumIndex } = seriesDatum;
-        const datum = processedData.rawData[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const idValue = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
         const colorValue =
             colorKey != null

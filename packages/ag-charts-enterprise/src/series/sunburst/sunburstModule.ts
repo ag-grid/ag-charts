@@ -2,7 +2,10 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { SunburstSeries } from './sunburstSeries';
 
-const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
+const {
+    FONT_SIZE_RATIO,
+    ThemeSymbols: { DEFAULT_DIVERGING_SERIES_COLOR_RANGE },
+} = _ModuleSupport;
 
 export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     type: 'series',
@@ -18,7 +21,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
         series: {
             label: {
                 fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 14 / 12] }] },
+                fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
                 minimumFontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 9 / 12] }] },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'backgroundColor' },
@@ -28,7 +31,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             },
             secondaryLabel: {
                 fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 8 / 12] }] },
+                fontSize: { $rem: [FONT_SIZE_RATIO.SMALLEST] },
                 minimumFontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 7 / 12] }] },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'backgroundColor' },

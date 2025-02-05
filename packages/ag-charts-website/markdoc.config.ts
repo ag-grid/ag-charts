@@ -1,9 +1,13 @@
 import { isFramework } from '@ag-website-shared/markdoc/functions/isFramework';
 import { isNotJavascriptFramework } from '@ag-website-shared/markdoc/functions/isNotJavascriptFramework';
+import { getMigrationVersionPatch, migrationVersion } from '@ag-website-shared/markdoc/functions/migrationVersion';
 import { heading } from '@ag-website-shared/markdoc/nodes/heading';
 import { br } from '@ag-website-shared/markdoc/tags/br';
 import { embedSnippet } from '@ag-website-shared/markdoc/tags/embedSnippet';
 import { enterpriseIcon } from '@ag-website-shared/markdoc/tags/enterpriseIcon';
+import { expandingSection } from '@ag-website-shared/markdoc/tags/expandingSection';
+import { getChangelogSection } from '@ag-website-shared/markdoc/tags/getChangelogSection';
+import { getDocumentationArchiveSection } from '@ag-website-shared/markdoc/tags/getDocumentationArchiveSection';
 import { idea } from '@ag-website-shared/markdoc/tags/idea';
 import { image } from '@ag-website-shared/markdoc/tags/image';
 import { imageCaption } from '@ag-website-shared/markdoc/tags/imageCaption';
@@ -17,6 +21,7 @@ import { warning } from '@ag-website-shared/markdoc/tags/warning';
 import { component, defineMarkdocConfig } from '@astrojs/markdoc/config';
 
 import prism from './plugins/prism';
+import versionsData from './src/content/versions/ag-charts-versions.json';
 import { link } from './src/utils/markdoc/tags/link';
 
 export default defineMarkdocConfig({
@@ -28,6 +33,8 @@ export default defineMarkdocConfig({
     functions: {
         isFramework,
         isNotJavascriptFramework,
+        migrationVersion,
+        migrationVersionPatch: getMigrationVersionPatch(versionsData),
     },
     tags: {
         kbd,
@@ -40,6 +47,9 @@ export default defineMarkdocConfig({
         note,
         warning,
         idea,
+        expandingSection,
+        documentationArchiveSection: getDocumentationArchiveSection('charts'),
+        changelogSection: getChangelogSection('charts'),
         enterpriseIcon,
         embedSnippet,
         video,

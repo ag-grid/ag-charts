@@ -13,7 +13,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
-const { ThemeSymbols } = _ModuleSupport;
+const { FONT_SIZE_RATIO, ThemeSymbols } = _ModuleSupport;
 
 const stroke: WithThemeParams<StrokeOptions> = {
     stroke: { $ref: 'foregroundColor' },
@@ -29,7 +29,7 @@ const handle = {
 
 const font: WithThemeParams<FontOptions> = {
     color: { $ref: 'backgroundColor' },
-    fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 14 / 12] }] },
+    fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
     fontFamily: { $ref: 'fontFamily' },
 };
 
@@ -49,14 +49,14 @@ const lineText: WithThemeParams<AgLineAnnotationTextOptions> = {
     ...font,
     position: 'top',
     alignment: 'center',
-    color: { $ref: 'foregroundColor' },
+    color: { $ref: 'textColor' },
 };
 
 const channelText: WithThemeParams<AgChannelAnnotationTextOptions> = {
     ...font,
     position: 'top',
     alignment: 'center',
-    color: { $ref: 'foregroundColor' },
+    color: { $ref: 'textColor' },
 };
 
 const measurerStatistics: WithThemeParams<AgMeasurerAnnotationStatistics> = {
@@ -245,7 +245,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     callout: {
         ...stroke,
         ...text,
-        color: { $ref: 'foregroundColor' },
+        color: { $ref: 'textColor' },
         handle: { ...handle },
         fill: { $ref: 'foregroundColor' },
         fillOpacity: 0.075,
@@ -272,7 +272,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
     text: {
         ...text,
-        color: { $ref: 'foregroundColor' },
+        color: { $ref: 'textColor' },
         handle: { ...handle },
     },
 

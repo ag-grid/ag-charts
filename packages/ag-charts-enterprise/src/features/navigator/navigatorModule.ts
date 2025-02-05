@@ -2,8 +2,6 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { Navigator } from './navigator';
 
-const { DEFAULT_INVERTED_BACKGROUND_COLOUR } = _ModuleSupport.ThemeSymbols;
-
 export const NavigatorModule: _ModuleSupport.RootModule = {
     type: 'root',
     optionsKey: 'navigator',
@@ -17,7 +15,7 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
             height: 18,
             cornerRadius: 4,
             mask: {
-                fill: DEFAULT_INVERTED_BACKGROUND_COLOUR,
+                fill: { $ref: 'foregroundColor' },
                 fillOpacity: 0.1,
                 stroke: { $ref: 'borderColor' },
                 strokeWidth: 1,
@@ -41,8 +39,8 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
             miniChart: {
                 enabled: false,
                 label: {
-                    color: { $ref: 'foregroundColor' },
-                    fontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 10 / 12] }] },
+                    color: { $ref: 'textColor' },
+                    fontSize: { $rem: [_ModuleSupport.FONT_SIZE_RATIO.SMALLER] },
                     fontFamily: { $ref: 'fontFamily' },
                     fontWeight: { $ref: 'fontWeight' },
                     spacing: 5,

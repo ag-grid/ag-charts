@@ -109,6 +109,24 @@ describe('RadialColumnSeries', () => {
         await compare();
     });
 
+    it(`should render stacked radial column with per-series data as expected`, async () => {
+        const { data, series, ...exampleOptions } = EXAMPLE_OPTIONS;
+        const options: AgChartOptions = {
+            ...exampleOptions,
+            series: series?.map((s) => {
+                return {
+                    ...s,
+                    stacked: true,
+                    data: [...(data ?? [])],
+                };
+            }),
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render stacked radial column as expected with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,

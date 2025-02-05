@@ -824,6 +824,9 @@ export class LinearGaugeSeries
             rect.topRightCornerRadius = topRightCornerRadius;
             rect.bottomRightCornerRadius = bottomRightCornerRadius;
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius;
+            rect.pointerEvents = this.properties.bar.enabled
+                ? _ModuleSupport.PointerEvents.All
+                : _ModuleSupport.PointerEvents.None;
 
             if (animationDisabled || rect.previousDatum == null) {
                 rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
@@ -831,9 +834,12 @@ export class LinearGaugeSeries
         });
 
         this.datumUnion.update(datumSelection, this.itemGroup, _ModuleSupport.Rect, (node, first, last) => {
+            node.pointerEvents = _ModuleSupport.PointerEvents.None;
             node.clipBBox ??= new BBox(NaN, NaN, NaN, NaN);
-            node.x = node.clipBBox.x = first.x;
-            node.y = node.clipBBox.y = first.y;
+            node.x = first.x;
+            node.y = first.y;
+            node.clipBBox.x = first.clipBBox?.x ?? first.x;
+            node.clipBBox.y = first.clipBBox?.y ?? first.y;
             if (this.properties.direction === 'horizontal') {
                 node.height = node.clipBBox.height = last.height;
                 node.width = last === first ? last.width : last.x + last.width;
