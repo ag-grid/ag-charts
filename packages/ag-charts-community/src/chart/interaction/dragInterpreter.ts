@@ -60,7 +60,11 @@ export class DragInterpreter {
     }
 
     private onTouchEnd(event: TouchWidgetEvent<'touchend'>) {
-        // Suppress MouseEvent emulation on touch devices:
+        // Suppress the browser's MouseEvent emulation on touch devices. Emulation not standardised, iOS Webkit
+        // dispatches hover events if the <div> element is blurred, or click events if the <div> element is focused. On
+        // the other hand, Chromium Blink and Firefox Gecko always enumlate a mouse click the on <div>.
+        //
+        // We'll emulate mouse click and hover events in this class to ensure consistent and predictable behaviour.
         event.sourceEvent.preventDefault();
     }
 
