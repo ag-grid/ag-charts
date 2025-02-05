@@ -136,12 +136,12 @@ describe('RadialBarSeries', () => {
     });
 
     it(`should render stacked radial bar with per-series data as expected`, async () => {
-        const { data, ...exampleOptions } = EXAMPLE_OPTIONS;
+        const { data, series, ...exampleOptions } = EXAMPLE_OPTIONS;
         const options: AgChartOptions = {
             ...exampleOptions,
-            series: EXAMPLE_OPTIONS.series?.map((series) => {
+            series: series?.map((s) => {
                 return {
-                    ...series,
+                    ...s,
                     stacked: true,
                     data: [...(data ?? [])],
                 };
