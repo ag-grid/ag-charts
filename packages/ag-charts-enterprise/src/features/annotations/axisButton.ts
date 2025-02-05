@@ -80,7 +80,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private onClick(e: _ModuleSupport.DragInterpreterClickEvent) {
-        if (this.ctx.interactionManager.isState(InteractionState.Clickable)) this.show(e);
+        if (this.ctx.interactionManager.isState(InteractionState.Clickable) && e.device === 'touch') this.show(e);
     }
 
     private show(event: { currentX: number; currentY: number; sourceEvent: MouseEvent | TouchEvent }) {

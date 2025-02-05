@@ -96,7 +96,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
             ctx.widgets.seriesWidget.addListener('drag-move', (event) => this.onMouseHoverLike(event)),
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
-            ctx.widgets.seriesDragInterpreter.addListener('click', (event) => this.onMouseHoverLike(event)),
+            ctx.widgets.seriesDragInterpreter.addListener('click', (event) => this.onClick(event)),
             ctx.chartEventManager.addListener('series-focus-change', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
             ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
@@ -214,6 +214,12 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             return formatNumber(value, fractionDigits);
         }
         return String(value ?? '');
+    }
+
+    private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
+        if (event.device === 'touch') {
+            this.onMouseHoverLike(event);
+        }
     }
 
     private onMouseHoverLike(event: HoverLikeEvent) {
