@@ -23,6 +23,7 @@ import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { ChartType } from '../factory/chartTypes';
+import type { DragInterpreterClickEvent } from '../interaction/dragInterpreter';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -35,7 +36,6 @@ import type { UpdateOpts } from '../updateService';
 import { type PickFocusOutputs, type Series, type SeriesNodePickIntent } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { ISeries, SeriesNodeDatum } from './seriesTypes';
-import type { DragInterpreterClickEvent } from '../interaction/dragInterpreter';
 
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
