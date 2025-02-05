@@ -37,16 +37,7 @@ export function isObjectLike(value: unknown): value is PlainObject | unknown[] {
 }
 
 export function isPlainObject(value: unknown): value is PlainObject {
-    if (typeof value === 'object' && value !== null) {
-        return (
-            // Compare prototypes within matching JS realms:
-            Object.getPrototypeOf(value) === Object.prototype ||
-            // Compare prototypes with differing JS realms
-            // (e.g. isPlainObject called in <iframe> but value instantiated outside the iframe).
-            Object.getPrototypeOf(value).constructor.toString() === Object.getPrototypeOf({}).constructor.toString()
-        );
-    }
-    return false;
+    return typeof value === 'object' && value !== null && Object.getPrototypeOf(value) === Object.prototype;
 }
 
 export function isString(value: unknown): value is string {
