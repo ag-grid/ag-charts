@@ -199,11 +199,7 @@ export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupD
         }),
 };
 
-function countDataGroupLength(dataGroup: DataGroup, valueIndexes: number[]) {
-    return Math.max(...valueIndexes.map((i) => dataGroup.datumIndices[i].length));
-}
-
-function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 'sum' | 'range' }) {
+function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
     const normalise = (val: null | number, extent: number) => {
         if (extent === 0) return null;
         const result = ((val ?? 0) * normaliseTo) / extent;
@@ -214,11 +210,9 @@ function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 
     };
 
     return () => () => (columns: any[][], valueIndexes: number[], dataGroup: DataGroup) => {
-        const datumIndicesLength = countDataGroupLength(dataGroup, valueIndexes);
-        for (let datumIndicesIdx = 0; datumIndicesIdx < datumIndicesLength; datumIndicesIdx++) {
-            const extent = normaliseFindExtent(mode, columns, valueIndexes, dataGroup, datumIndicesIdx);
-            for (const valueIdx of valueIndexes) {
-                const datumIndex = dataGroup.datumIndices[valueIdx][datumIndicesIdx];
+        const extent = normaliseFindExtent(columns, valueIndexes, dataGroup);
+        for (const valueIdx of valueIndexes) {
+            for (const datumIndex of dataGroup.datumIndices[valueIdx]) {
                 const column = columns[valueIdx];
                 const value: null | number | number[] | (null | number)[] = column[datumIndex];
                 if (value == null) {
@@ -233,28 +227,21 @@ function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 
     };
 }
 
-function normaliseFindExtent(
-    mode: 'sum' | 'range',
-    columns: any[][],
-    valueIndexes: number[],
-    dataGroup: DataGroup,
-    datumIndicesIndex: number
-) {
+function normaliseFindExtent(columns: any[][], valueIndexes: number[], dataGroup: DataGroup) {
     const valuesExtent = [0, 0];
     for (const valueIdx of valueIndexes) {
         const column = columns[valueIdx];
-        const datumIndex = dataGroup.datumIndices[valueIdx][datumIndicesIndex];
-        const value: null | number | (null | number)[] = column[datumIndex];
-        if (value == null) continue;
-        // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
-        const valueExtent = typeof value === 'number' ? value : Math.max(...value.map((v) => v ?? 0));
-        const valIdx = valueExtent < 0 ? 0 : 1;
-        if (mode === 'sum') {
-            valuesExtent[valIdx] += valueExtent;
-        } else if (valIdx === 0) {
-            valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], valueExtent);
-        } else {
-            valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], valueExtent);
+        for (const datumIndex of dataGroup.datumIndices[valueIdx]) {
+            const value: null | number | (null | number)[] = column[datumIndex];
+            if (value == null) continue;
+            // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
+            const valueExtent = typeof value === 'number' ? value : Math.max(...value.map((v) => v ?? 0));
+            const valIdx = valueExtent < 0 ? 0 : 1;
+            if (valIdx === 0) {
+                valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], valueExtent);
+            } else {
+                valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], valueExtent);
+            }
         }
     }
     return Math.max(Math.abs(valuesExtent[0]), valuesExtent[1]);
@@ -262,13 +249,12 @@ function normaliseFindExtent(
 
 export function normaliseGroupTo(
     matchGroupIds: string[],
-    normaliseTo: number,
-    mode: 'sum' | 'range' = 'sum'
+    normaliseTo: number
 ): GroupValueProcessorDefinition<any, any> {
     return {
         type: 'group-value-processor',
         matchGroupIds,
-        adjust: memo({ normaliseTo, mode }, normaliseFnBuilder),
+        adjust: memo({ normaliseTo, mode: 'range' }, normaliseFnBuilder),
     };
 }
 

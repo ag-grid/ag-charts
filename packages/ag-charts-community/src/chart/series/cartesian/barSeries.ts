@@ -229,7 +229,7 @@ export class BarSeries extends AbstractBarSeries<
         }
 
         if (isFiniteNumber(normalizedTo)) {
-            props.push(normaliseGroupTo([stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo), 'range'));
+            props.push(normaliseGroupTo([stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo)));
         }
         if (animationEnabled && this.processedData) {
             props.push(diff(this.id, this.processedData));
