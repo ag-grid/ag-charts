@@ -28,6 +28,7 @@ import {
 const {
     BOOLEAN,
     NUMBER,
+    POSITIVE_NUMBER,
     RATIO,
     UNION,
     OBJECT,
@@ -131,7 +132,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(BOOLEAN)
     public keepAspectRatio = false;
 
-    @Validate(NUMBER.restrict({ min: 1 }))
+    @Validate(POSITIVE_NUMBER)
     public minVisibleItems = 2;
 
     @Deprecated('Use [minVisibleItems] instead.')
@@ -648,6 +649,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             minVisibleItemsY,
             ctx: { zoomManager },
         } = this;
+
+        if (minVisibleItems === 0) return true;
 
         const zoom = this.getZoom();
 
