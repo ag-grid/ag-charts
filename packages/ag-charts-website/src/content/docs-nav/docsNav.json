@@ -128,6 +128,12 @@
                         },
                         {
                             "type": "item",
+                            "title": "Annotations",
+                            "path": "annotations",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
                             "title": "Error Bars",
                             "path": "error-bars",
                             "isEnterprise": true
