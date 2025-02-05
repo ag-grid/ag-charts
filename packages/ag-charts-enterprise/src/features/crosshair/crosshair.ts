@@ -22,6 +22,11 @@ const {
     ChartAxisDirection,
 } = _ModuleSupport;
 
+type HoverLikeEvent =
+    | _Widget.DragWidgetEvent
+    | _Widget.MouseWidgetEvent<'mousemove'>
+    | _ModuleSupport.DragInterpreterClickEvent;
+
 export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     readonly id = createId(this);
 
@@ -91,6 +96,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
             ctx.widgets.seriesWidget.addListener('drag-move', (event) => this.onMouseHoverLike(event)),
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
+            ctx.widgets.seriesDragInterpreter.addListener('click', (event) => this.onMouseHoverLike(event)),
             ctx.chartEventManager.addListener('series-focus-change', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
             ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
@@ -182,9 +188,12 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return this.axisCtx.direction === ChartAxisDirection.X;
     }
 
-    private isHover(event: _Widget.DragWidgetEvent | _Widget.MouseWidgetEvent<'mousemove'>): boolean {
-        const chart = this.ctx.chartService;
-        return event.type === 'mousemove' || (event.device === 'touch' && chart.touch.dragAction === 'hover');
+    private isHover(event: HoverLikeEvent): boolean {
+        return (
+            event.type === 'mousemove' ||
+            event.type === 'click' ||
+            (event.device === 'touch' && this.ctx.chartService.touch.dragAction === 'hover')
+        );
     }
 
     private formatValue(value: unknown): string {
@@ -207,7 +216,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return String(value ?? '');
     }
 
-    private onMouseHoverLike(event: _Widget.DragWidgetEvent<'drag-move'> | _Widget.MouseWidgetEvent<'mousemove'>) {
+    private onMouseHoverLike(event: HoverLikeEvent) {
         if (!this.enabled || this.snap) return;
 
         const requiredState = this.isHover(event) ? InteractionState.Clickable : InteractionState.AnnotationsMoveable;

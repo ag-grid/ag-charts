@@ -40,6 +40,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
             ctx.widgets.seriesWidget.addListener('drag-move', (e) => this.onMouseDrag(e)),
             ctx.widgets.seriesWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseLeave()),
+            ctx.widgets.seriesDragInterpreter.addListener('click', (e) => this.onClick(e)),
             ctx.chartEventManager.addListener('series-focus-change', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.hide()),
             ctx.zoomManager.addListener('zoom-change', () => this.hide()),
@@ -78,7 +79,11 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         if (this.ctx.interactionManager.isState(InteractionState.Clickable)) this.hide();
     }
 
-    private show(event: _Widget.MouseWidgetEvent | _Widget.DragWidgetEvent) {
+    private onClick(e: _ModuleSupport.DragInterpreterClickEvent) {
+        if (this.ctx.interactionManager.isState(InteractionState.Clickable)) this.show(e);
+    }
+
+    private show(event: { currentX: number; currentY: number; sourceEvent: MouseEvent | TouchEvent }) {
         const { sourceEvent, currentX: x, currentY: y } = event;
         if (!(this.enabled && this.ctx.widgets.seriesWidget.getElement().contains(sourceEvent.target as Node | null))) {
             this.hide();

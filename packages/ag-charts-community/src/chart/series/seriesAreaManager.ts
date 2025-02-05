@@ -23,6 +23,7 @@ import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { ChartType } from '../factory/chartTypes';
+import type { DragInterpreterClickEvent } from '../interaction/dragInterpreter';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -35,7 +36,6 @@ import type { UpdateOpts } from '../updateService';
 import { type PickFocusOutputs, type Series, type SeriesNodePickIntent } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { ISeries, SeriesNodeDatum } from './seriesTypes';
-import type { DragInterpreterClickEvent } from '../interaction/dragInterpreter';
 
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
@@ -159,7 +159,15 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private isIgnoredTouch(event: HoverLikeEvent) {
-        return event.device === 'touch' && this.chart.ctx.chartService.touch.dragAction !== 'hover';
+        if (event.device !== 'touch' || event.type === 'click') return false;
+        if (this.chart.ctx.chartService.touch.dragAction === 'hover') return false;
+
+        if (this.chart.ctx.chartService.touch.dragAction === 'drag') {
+            if (this.isState(InteractionState.AnnotationsMoveable)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public dataChanged() {
@@ -299,9 +307,6 @@ export class SeriesAreaManager extends BaseManager {
     private onHoverLikeEvent(event: HoverLikeEvent): void {
         if (this.isIgnoredTouch(event)) return;
 
-        if (event.device === 'touch') {
-            event.sourceEvent.preventDefault();
-        }
         if (event.device === 'touch' || excludesType(event, 'drag-move')) {
             this.tooltip.lastHover = event;
         }
@@ -322,7 +327,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onClick(event: ClickLikeEvent, current: Widget) {
-        if (!this.isState(InteractionState.Default)) return;
+        if (!this.isState(InteractionState.Clickable)) return;
 
         // Check whether the `event.sourceEvent` targets on the series-area, or the back of the chart. The logic is
         // different for `seriesWidget` and `containerWidget` because on the `seriesWidget` the target is one of the
@@ -339,6 +344,9 @@ export class SeriesAreaManager extends BaseManager {
 
         this.focusIndicator.overrideFocusVisible(false);
         this.onHoverLikeEvent(event);
+
+        // Do not run chartOptions click handlers if an annotation is selected.
+        if (!this.isState(InteractionState.Default)) return;
 
         if (current == this.chart.ctx.widgets.seriesWidget && this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
