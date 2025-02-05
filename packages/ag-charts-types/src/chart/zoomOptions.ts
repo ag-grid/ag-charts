@@ -134,7 +134,7 @@ export interface AgZoomOptions {
      */
     keepAspectRatio?: boolean;
     /**
-     * The minimum number of items to be shown, beyond which zooming is stopped.
+     * The minimum number of items to be shown, beyond which zooming is stopped. Set to `0` to allow unlimited zooming.
      *
      * Default: `2`
      */
