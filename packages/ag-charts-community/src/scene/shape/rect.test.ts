@@ -194,9 +194,10 @@ describe('Rect', () => {
                     rect.preRender();
                     rect.render({
                         ctx,
-                        resized: false,
-                        debugNodes: {},
+                        width: canvasCtx.nodeCanvas.width,
+                        height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
+                        debugNodes: {},
                     });
                     ctx.restore();
 

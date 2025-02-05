@@ -189,7 +189,13 @@ describe('Sector', () => {
                     // Render.
                     ctx.save();
                     sector.preRender();
-                    sector.render({ ctx, devicePixelRatio: 1, resized: false, debugNodes: {} });
+                    sector.render({
+                        ctx,
+                        width: canvasCtx.nodeCanvas.width,
+                        height: canvasCtx.nodeCanvas.height,
+                        devicePixelRatio: 1,
+                        debugNodes: {},
+                    });
                     ctx.restore();
 
                     // Prepare for next case.
@@ -332,7 +338,13 @@ describe('Sector', () => {
                     // Render.
                     ctx.save();
                     sector.preRender();
-                    sector.render({ ctx, devicePixelRatio: 1, resized: false, debugNodes: {} });
+                    sector.render({
+                        ctx,
+                        width: canvasCtx.nodeCanvas.width,
+                        height: canvasCtx.nodeCanvas.height,
+                        devicePixelRatio: 1,
+                        debugNodes: {},
+                    });
                     ctx.restore();
 
                     // Prepare for next case.

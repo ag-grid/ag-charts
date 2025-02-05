@@ -233,7 +233,13 @@ describe('Text', () => {
                     textNode._setLayerManager(mockLayerManager);
 
                     ctx.save();
-                    textNode.render({ ctx, resized: false, devicePixelRatio: 1, debugNodes: {} });
+                    textNode.render({
+                        ctx,
+                        width: canvasCtx.nodeCanvas.width,
+                        height: canvasCtx.nodeCanvas.height,
+                        devicePixelRatio: 1,
+                        debugNodes: {},
+                    });
                     ctx.restore();
 
                     const { x, y, width, height } = textNode.getBBox();
@@ -285,7 +291,13 @@ describe('Text', () => {
                     textNode._setLayerManager(mockLayerManager);
 
                     ctx.save();
-                    textNode.render({ ctx, resized: false, devicePixelRatio: 1, debugNodes: {} });
+                    textNode.render({
+                        ctx,
+                        width: canvasCtx.nodeCanvas.width,
+                        height: canvasCtx.nodeCanvas.height,
+                        devicePixelRatio: 1,
+                        debugNodes: {},
+                    });
                     ctx.restore();
 
                     const { x, y } = textNode.getBBox();
