@@ -35,6 +35,7 @@ import type { UpdateOpts } from '../updateService';
 import { type PickFocusOutputs, type Series, type SeriesNodePickIntent } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { ISeries, SeriesNodeDatum } from './seriesTypes';
+import type { DragInterpreterClickEvent } from '../interaction/dragInterpreter';
 
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
@@ -48,8 +49,9 @@ export interface SeriesAreaChartDependencies {
     mode: ChartMode;
 }
 
+type ClickLikeEvent = DragInterpreterClickEvent | MouseWidgetEvent<'click'> | MouseWidgetEvent<'dblclick'>;
 type HoverLikeEvent = Partial<Pick<DragWidgetEvent, 'device'>> &
-    (MouseWidgetEvent<'mousemove' | 'click' | 'dblclick'> | DragWidgetEvent<'drag-move'>);
+    (ClickLikeEvent | MouseWidgetEvent<'mousemove'> | DragWidgetEvent<'drag-move'>);
 
 type PickedNode = {
     series: Series<unknown, any, any>;
@@ -319,7 +321,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private onClick(event: MouseWidgetEvent<'click' | 'dblclick'>, current: Widget) {
+    private onClick(event: ClickLikeEvent, current: Widget) {
         if (!this.isState(InteractionState.Default)) return;
 
         // Check whether the `event.sourceEvent` targets on the series-area, or the back of the chart. The logic is
@@ -421,7 +423,7 @@ export class SeriesAreaManager extends BaseManager {
         sourceEvent.preventDefault();
     }
 
-    private checkSeriesNodeClick(event: MouseWidgetEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }) {
+    private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }) {
         const result = this.pickNode({ x: event.currentX, y: event.currentY }, 'event');
         if (result == null) return false;
 

@@ -932,7 +932,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('hover', { offset, point, shiftKey, context });
     }
 
-    private onClick(event: _Widget.MouseWidgetEvent<'click'>) {
+    private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
         const { state } = this;
 
         const context = this.getAnnotationContext();

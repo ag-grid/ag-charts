@@ -1,5 +1,3 @@
-type Device = 'mouse' | 'touch';
-
 type FocusWidgetEventType = 'blur' | 'focus';
 type KeyboardWidgetEventType = 'keyup' | 'keydown';
 type MouseWidgetEventType = 'contextmenu' | 'click' | 'dblclick' | 'mouseenter' | 'mousemove' | 'mouseleave';
@@ -50,19 +48,33 @@ export type TouchWidgetEvent<T extends TouchWidgetEventType = TouchWidgetEventTy
 
 // `originDelta` is the offset relative to position of the HTML element when the drag initiated.
 // This is helpful for elements that move during drag actions, like navigator sliders.
-export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType, D extends Device = Device> = {
-    readonly type: T;
-    readonly device: D;
-    readonly offsetX: number;
-    readonly offsetY: number;
-    readonly clientX: number;
-    readonly clientY: number;
-    readonly currentX: number;
-    readonly currentY: number;
-    readonly originDeltaX: number;
-    readonly originDeltaY: number;
-    readonly sourceEvent: { mouse: MouseEvent; touch: TouchEvent }[D];
-};
+export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType> =
+    | {
+          readonly type: T;
+          readonly device: 'mouse';
+          readonly offsetX: number;
+          readonly offsetY: number;
+          readonly clientX: number;
+          readonly clientY: number;
+          readonly currentX: number;
+          readonly currentY: number;
+          readonly originDeltaX: number;
+          readonly originDeltaY: number;
+          readonly sourceEvent: MouseEvent;
+      }
+    | {
+          readonly type: T;
+          readonly device: 'touch';
+          readonly offsetX: number;
+          readonly offsetY: number;
+          readonly clientX: number;
+          readonly clientY: number;
+          readonly currentX: number;
+          readonly currentY: number;
+          readonly originDeltaX: number;
+          readonly originDeltaY: number;
+          readonly sourceEvent: TouchEvent;
+      };
 
 export type WidgetEventMap = {
     'drag-start': DragWidgetEvent<'drag-start'>;
