@@ -6,6 +6,8 @@ exports[`Validation utils Utility Functions attachDescription adds a description
     "key": "str",
     "message": "Option \`str\` cannot be set to \`""\`; expecting a non-empty string, ignoring.",
     "path": "",
+    "required": undefined,
+    "toString": [Function],
     "value": "",
   },
 ]
@@ -17,18 +19,24 @@ exports[`Validation utils Validate Method validate returns expected validated ob
     "key": "name",
     "message": "Option \`name\` cannot be set to \`undefined\`, ignoring.",
     "path": "",
+    "required": true,
+    "toString": [Function],
     "value": undefined,
   },
   {
     "key": "age",
     "message": "Option \`age\` cannot be set to \`-5\`; expecting a number greater than or equal to 0, ignoring.",
     "path": "",
+    "required": undefined,
+    "toString": [Function],
     "value": -5,
   },
   {
     "key": "hobbies",
     "message": "Option \`hobbies\` cannot be set to \`["reading",123]\`; expecting a string array, ignoring.",
     "path": "",
+    "required": undefined,
+    "toString": [Function],
     "value": [
       "reading",
       123,
@@ -38,7 +46,9 @@ exports[`Validation utils Validate Method validate returns expected validated ob
     "key": "extraField",
     "message": "Unknown option \`extraField\`, ignoring.",
     "path": "",
+    "toString": [Function],
     "unknown": true,
+    "value": "should be ignored",
   },
 ]
 `;

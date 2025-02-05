@@ -5,6 +5,7 @@ import {
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
+    number,
     positiveNumber,
     required,
     string,
@@ -45,4 +46,8 @@ export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = 
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+
+    // @ts-expect-error undocumented option
+    pickOutsideVisibleMinorAxis: boolean,
+    focusPriority: number,
 };

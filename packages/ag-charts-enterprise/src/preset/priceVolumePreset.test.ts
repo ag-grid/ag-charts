@@ -17,6 +17,13 @@ import { getStockData } from './test/stockData';
 const EXAMPLES: Record<string, AgFinancialChartOptions> = {
     minimal: { data: getStockData() },
     // 'with-navigator': { data: getStockData(), navigator: true },
+    candlestick: { chartType: 'candlestick', data: getStockData().slice(0, 40) },
+    'hollow-candlestick': { chartType: 'hollow-candlestick', data: getStockData().slice(0, 40) },
+    ohlc: { chartType: 'ohlc', data: getStockData().slice(0, 40) },
+    // line: { chartType: 'line', data: getStockData().slice(0, 40) },
+    // 'step-line': { chartType: 'step-line', data: getStockData().slice(0, 40) },
+    // hlc: { chartType: 'hlc', data: getStockData().slice(0, 40) },
+    'high-low': { chartType: 'high-low', data: getStockData().slice(0, 40) },
 };
 
 setupEnterpriseModules();
@@ -87,7 +94,7 @@ describe('priceVolumePreset', () => {
         );
 
         it.each(Object.entries(EXAMPLES))(
-            'for %s it should export image as expected (AG-12985)',
+            'for %s it should export image data url as expected (AG-12985)',
             async (_exampleName, example) => {
                 const options: AgFinancialChartOptions = { ...example };
                 prepareFinancialTestOptions(options);

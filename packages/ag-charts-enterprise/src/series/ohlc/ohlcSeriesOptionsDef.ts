@@ -5,6 +5,7 @@ import {
     callback,
     constant,
     lineDashOptionsDef,
+    number,
     required,
     string,
     strokeOptionsDef,
@@ -38,4 +39,8 @@ export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
     },
     tooltip: tooltipOptionsDef,
     ...commonSeriesOptionsDef,
+
+    // @ts-expect-error undocumented option
+    pickOutsideVisibleMinorAxis: boolean,
+    focusPriority: number,
 };

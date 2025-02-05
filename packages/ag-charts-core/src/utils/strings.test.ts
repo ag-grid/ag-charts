@@ -49,6 +49,18 @@ describe('Strings Utilities', () => {
             expect(stringifyValue(-Infinity)).toBe('-Infinity');
         });
 
+        it('handle stringification of symbols', () => {
+            const result = stringifyValue(Symbol('test-symbol'));
+            expect(result).toBe('symbol');
+        });
+
+        it('handle stringification of functions', () => {
+            const result1 = stringifyValue(function named() {});
+            const result2 = stringifyValue(() => false);
+            expect(result1).toBe('function');
+            expect(result2).toBe('function');
+        });
+
         it('truncates long strings exceeding the maxLength', () => {
             const result = stringifyValue('abcdefghijklmnopqrstuvwxyz', 10);
             expect(result).toBe('"abcdefghi... (+18 characters)');

@@ -10,6 +10,7 @@ import {
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
+    number,
     positiveNumber,
     required,
     string,
@@ -50,4 +51,8 @@ export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions
     showInMiniChart: boolean,
     tooltip: tooltipOptionsDef,
     ...commonSeriesOptionsDef,
+
+    // @ts-expect-error undocumented option
+    pickOutsideVisibleMinorAxis: boolean,
+    focusPriority: number,
 };

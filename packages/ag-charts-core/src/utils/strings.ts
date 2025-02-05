@@ -33,28 +33,22 @@ export function joinFormatted(
  * @param maxLength The maximum length of the resulting string. Defaults to Infinity.
  * @returns A string representation of the value, potentially truncated if it exceeds the maximum length.
  */
-export function stringifyValue(value: any, maxLength = Infinity): string {
-    switch (typeof value) {
-        case 'undefined':
-            return 'undefined';
-
-        case 'number':
-            if (isNaN(value)) {
-                return 'NaN';
-            } else if (value === Infinity) {
-                return 'Infinity';
-            } else if (value === -Infinity) {
-                return '-Infinity';
-            }
-        // fallthrough
-
-        default:
-            value = JSON.stringify(value);
-            if (value.length > maxLength) {
-                return `${value.slice(0, maxLength)}... (+${value.length - maxLength} characters)`;
-            }
-            return value;
+export function stringifyValue(value: unknown, maxLength = Infinity): string {
+    if (typeof value === 'number') {
+        if (isNaN(value)) {
+            return 'NaN';
+        } else if (value === Infinity) {
+            return 'Infinity';
+        } else if (value === -Infinity) {
+            return '-Infinity';
+        }
     }
+    // If values is not serializable output value type instead.
+    const strValue = JSON.stringify(value) ?? typeof value;
+    if (strValue.length > maxLength) {
+        return `${strValue.slice(0, maxLength)}... (+${strValue.length - maxLength} characters)`;
+    }
+    return strValue;
 }
 
 /**
