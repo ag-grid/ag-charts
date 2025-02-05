@@ -161,7 +161,11 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private isIgnoredTouch(event: HoverLikeEvent) {
-        return event.device === 'touch' && this.chart.ctx.chartService.touch.dragAction !== 'hover';
+        return (
+            event.device === 'touch' &&
+            event.type !== 'mousemove' &&
+            this.chart.ctx.chartService.touch.dragAction !== 'hover'
+        );
     }
 
     public dataChanged() {
