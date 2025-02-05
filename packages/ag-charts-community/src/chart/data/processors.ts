@@ -254,7 +254,7 @@ export function normaliseGroupTo(
     return {
         type: 'group-value-processor',
         matchGroupIds,
-        adjust: memo({ normaliseTo, mode: 'range' }, normaliseFnBuilder),
+        adjust: memo({ normaliseTo }, normaliseFnBuilder),
     };
 }
 
