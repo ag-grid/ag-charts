@@ -541,8 +541,8 @@ export class BarSeries extends AbstractBarSeries<
             const width = barWidth;
 
             const stacked = dataModel.hasColumnById(this, `yValue-start`);
-            const yStartValues = stacked ? dataModel.resolveColumnById(this, `yValue-start`, processedData) : [];
-            const yEndValues = stacked ? dataModel.resolveColumnById(this, `yValue-end`, processedData) : [];
+            const yStartValues = stacked ? dataModel.resolveColumnById(this, `yValue-start`, processedData) : undefined;
+            const yEndValues = stacked ? dataModel.resolveColumnById(this, `yValue-end`, processedData) : undefined;
             const yRangeIndex = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValue-range`) : -1;
 
             for (const {
@@ -554,8 +554,8 @@ export class BarSeries extends AbstractBarSeries<
 
                 const yRawValue = yRawValues[datumIndex];
                 const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-                const yStart = stacked ? Number(yStartValues[datumIndex]) : 0;
-                const yEnd = stacked ? Number(yEndValues[datumIndex]) : yRawValue;
+                const yStart = stacked ? Number(yStartValues?.[datumIndex]) : 0;
+                const yEnd = stacked ? Number(yEndValues?.[datumIndex]) : yRawValue;
                 let yRange = yEnd;
                 if (stacked) {
                     yRange = aggregation[yRangeIndex][isPositive ? 1 : 0];
