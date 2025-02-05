@@ -116,6 +116,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(BOOLEAN)
     public enableSelecting = false;
 
+    @Validate(BOOLEAN)
+    public enableTwoFingerZoom = true;
+
     @Validate(UNION(['alt', 'ctrl', 'meta', 'shift'], 'a pan key'))
     public panKey: 'alt' | 'ctrl' | 'meta' | 'shift' = 'alt';
 
@@ -532,20 +535,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onTouchStart(event: _Widget.TouchWidgetEvent<'touchstart'>, current: _Widget.Widget) {
-        if (this.dragState !== DragState.None) return;
+        if (!this.enableTwoFingerZoom || this.dragState !== DragState.None) return;
         if (this.twoFingers.start(event, current, this.getZoom())) {
             this.dragState = DragState.TwoFingers;
         }
     }
 
     private onTouchMove(event: _Widget.TouchWidgetEvent<'touchmove'>, current: _Widget.Widget) {
-        if (this.dragState !== DragState.TwoFingers) return;
+        if (!this.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
         const newZoom = this.twoFingers.update(event, current);
         this.updateZoom(constrainZoom(newZoom));
     }
 
     private onTouchEnd(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>) {
-        if (this.dragState !== DragState.TwoFingers) return;
+        if (!this.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
         event.sourceEvent.preventDefault();
         if (this.twoFingers.end(event)) {
             this.dragState = DragState.None;
