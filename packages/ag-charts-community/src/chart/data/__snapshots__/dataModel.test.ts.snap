@@ -117,6 +117,9 @@ exports[`DataModel empty data set processing should generated the expected resul
     },
   ],
   "partialValidDataCount": 0,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
@@ -409,6 +412,9 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         4500,
       ],
     ],
+  },
+  "scopes": Set {
+    "test",
   },
   "time": Any<Number>,
   "type": "grouped",
@@ -722,6 +728,9 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     ],
   },
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -1012,6 +1021,9 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         "<100",
       ],
     ],
+  },
+  "scopes": Set {
+    "test",
   },
   "time": Any<Number>,
   "type": "grouped",
@@ -1359,6 +1371,9 @@ exports[`DataModel grouped processing - grouped example should generated the exp
     },
   ],
   "partialValidDataCount": 0,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -2215,6 +2230,9 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     },
   ],
   "partialValidDataCount": 0,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -2681,6 +2699,9 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     },
   ],
   "partialValidDataCount": 0,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -3185,6 +3206,9 @@ exports[`DataModel grouped processing - stacked example should generated the exp
     },
   ],
   "partialValidDataCount": 0,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -3689,6 +3713,9 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     },
   ],
   "partialValidDataCount": 0,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -4151,6 +4178,9 @@ exports[`DataModel grouped processing - stacked with accumulation example should
     },
   ],
   "partialValidDataCount": 0,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
@@ -4690,6 +4720,12 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
     },
   ],
   "partialValidDataCount": 6,
+  "scopes": Set {
+    "test",
+    "series-a",
+    "series-b",
+    "series-c",
+  },
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
@@ -4976,6 +5012,9 @@ exports[`DataModel missing and invalid data processing should generated the expe
     },
   ],
   "partialValidDataCount": 0,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
@@ -5091,6 +5130,9 @@ exports[`DataModel repeated property processing should generated the expected re
   "invalidKeys": Map {},
   "keys": [],
   "partialValidDataCount": 0,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
@@ -5252,6 +5294,9 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
   "invalidKeys": Map {},
   "keys": [],
   "partialValidDataCount": 0,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
@@ -5768,6 +5813,9 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
     },
   ],
   "partialValidDataCount": 0,
+  "scopes": Set {
+    "test",
+  },
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
