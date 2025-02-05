@@ -14,10 +14,6 @@ type ZoomTwoFingersTouchStart = { readonly origins: [Origin, Origin] };
 
 const N = 1_000_000;
 
-function centerOf(touchA: Touch, touchB: Touch) {
-    return { centerX: (touchA.clientX + touchB.clientX) / 2, centerY: touchA.clientY + touchB.clientY / 2 };
-}
-
 // Interpolate `a` from [Rx, Rw] to [min, max]
 function clientToNormal({ min, max }: ZoomState, a: number, Rx: number, Rw: number): number {
     if (Rw === 0) return 0; // don't divide by 0.
@@ -85,20 +81,23 @@ export class ZoomTwoFingers {
 
         this.touchStart.origins.forEach((t) => (t.identifier = 0));
 
-        const { centerX, centerY } = centerOf(targetTouches[0], targetTouches[1]);
         this.previous.a1 = NaN;
         this.previous.a2 = NaN;
         this.previous.b1 = NaN;
         this.previous.b2 = NaN;
         for (const i of [0, 1]) {
-            const clientX = this.xMode === 'zoompan' ? targetTouches[i].clientX : centerX;
-            const clientY = this.yMode === 'zoompan' ? targetTouches[i].clientY : centerY;
-            const a = clientX;
-            const b = Ry + Rh - clientY;
+            const a = targetTouches[i].clientX;
+            const b = Ry + Rh - targetTouches[i].clientY;
             this.touchStart.origins[i].identifier = targetTouches[i].identifier;
             this.touchStart.origins[i].normalX = clientToNormal(this.initialZoom.x, a, Rx, Rw);
             this.touchStart.origins[i].normalY = clientToNormal(this.initialZoom.y, b, Ry, Rh);
         }
+
+        // We deliberately average out the normals instead clientXY values. This is so that we don't need to worry about
+        // flipping coords on the Y axis (and not flipping them on the X axis):
+        const [t0, t1] = this.touchStart.origins;
+        if (this.xMode === 'pan') t0.normalX = t1.normalX = (t0.normalX + t1.normalX) / 2;
+        if (this.yMode === 'pan') t0.normalY = t1.normalY = (t0.normalY + t1.normalY) / 2;
 
         return true;
     }
@@ -184,12 +183,11 @@ function twitchTolerantZoomPan2(
     Rx: number,
     Rw: number,
     mode: TwoFingersMode,
-    initialZoomState: ZoomState
+    initialZoom: ZoomState
 ): ZoomState {
-    const a1prev = previous[previousKey1];
-    const a2prev = previous[previousKey2];
-
     if (mode === 'zoompan') {
+        const a1prev = previous[previousKey1];
+        const a2prev = previous[previousKey2];
         const dx = Math.abs(a1 - a1prev) + Math.abs(a2 - a2prev);
         if (dx <= 1) {
             a1 = a1prev;
@@ -199,7 +197,11 @@ function twitchTolerantZoomPan2(
             previous[previousKey2] = a2;
         }
         return solveTwoUnknowns(x1, x2, a1, a2, Rx, Rw);
+    } else {
+        const xn1 = clientToNormal(initialZoom, a1, Rx, Rw);
+        const xn2 = clientToNormal(initialZoom, a2, Rx, Rw);
+        const xavg = (xn1 + xn2) / 2;
+        const dzoom = (x1 - xavg) / N;
+        return { min: initialZoom.min + dzoom, max: initialZoom.max + dzoom };
     }
-
-    return initialZoomState;
 }
