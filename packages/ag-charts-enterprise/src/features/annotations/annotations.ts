@@ -458,6 +458,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesDragInterpreter.addListener('mousemove', this.onHover.bind(this)),
             seriesDragInterpreter.addListener('click', this.onClick.bind(this)),
             seriesDragInterpreter.addListener('dblclick', this.onDoubleClick.bind(this)),
+            seriesDragInterpreter.addListener('drag-start', this.dragStartTouchPreHandler.bind(this)),
             seriesDragInterpreter.addListener('drag-move', this.dragMoveTouchPreHandler.bind(this)),
             seriesDragInterpreter.addListener('drag-start', this.onDragStart.bind(this)),
             seriesDragInterpreter.addListener('drag-move', this.onDrag.bind(this)),
@@ -917,7 +918,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private onHover(event: _ModuleSupport.DragInterpreterHoverEvent) {
+    private onHover(event: _Widget.MouseWidgetEvent<'mousemove'> | _Widget.DragWidgetEvent<'drag-start'>) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -992,6 +993,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const bbox = this.textInput.getBBox();
 
         this.state.transition('resize', { textInputValue, bbox });
+    }
+
+    private dragStartTouchPreHandler(event: _Widget.DragWidgetEvent<'drag-start'>) {
+        if (event.device === 'touch') {
+            this.onHover(event);
+        }
     }
 
     private dragMoveTouchPreHandler(event: _Widget.DragWidgetEvent<'drag-move'>) {

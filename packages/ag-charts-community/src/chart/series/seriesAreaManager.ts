@@ -23,7 +23,6 @@ import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { ChartType } from '../factory/chartTypes';
-import type { DragInterpreterClickEvent, DragInterpreterHoverEvent } from '../interaction/dragInterpreter';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -36,6 +35,7 @@ import type { UpdateOpts } from '../updateService';
 import { type PickFocusOutputs, type Series, type SeriesNodePickIntent } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { ISeries, SeriesNodeDatum } from './seriesTypes';
+import type { DragInterpreterClickEvent } from '../interaction/dragInterpreter';
 
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
@@ -50,10 +50,8 @@ export interface SeriesAreaChartDependencies {
 }
 
 type ClickLikeEvent = DragInterpreterClickEvent | MouseWidgetEvent<'click'> | MouseWidgetEvent<'dblclick'>;
-type HoverLikeEvent =
-    | DragInterpreterHoverEvent
-    | DragWidgetEvent<'drag-move'>
-    | (Partial<Pick<DragWidgetEvent, 'device'>> & ClickLikeEvent);
+type HoverLikeEvent = Partial<Pick<DragWidgetEvent, 'device'>> &
+    (ClickLikeEvent | MouseWidgetEvent<'mousemove'> | DragWidgetEvent<'drag-move'>);
 
 type PickedNode = {
     series: Series<unknown, any, any>;
@@ -134,11 +132,11 @@ export class SeriesAreaManager extends BaseManager {
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
             seriesWidget.addListener('focus', () => this.swapChain.focus()),
+            seriesWidget.addListener('mousemove', (event) => this.onHover(event)),
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
+            seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
             seriesWidget.addListener('keydown', (event) => this.onKeyDown(event)),
             seriesWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
-            seriesDragInterpreter.addListener('mousemove', (event) => this.onHover(event)),
-            seriesDragInterpreter.addListener('mouseleave', (event) => this.onLeave(event)),
             seriesDragInterpreter.addListener('drag-move', (event) => this.onDragMove(event)),
             seriesDragInterpreter.addListener('click', (event) => this.onClick(event, seriesWidget)),
             seriesDragInterpreter.addListener('dblclick', (event) => this.onClick(event, seriesWidget)),
@@ -161,11 +159,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private isIgnoredTouch(event: HoverLikeEvent) {
-        return (
-            event.device === 'touch' &&
-            event.type !== 'mousemove' &&
-            this.chart.ctx.chartService.touch.dragAction !== 'hover'
-        );
+        return event.device === 'touch' && this.chart.ctx.chartService.touch.dragAction !== 'hover';
     }
 
     public dataChanged() {
@@ -297,7 +291,7 @@ export class SeriesAreaManager extends BaseManager {
         this.onHoverLikeEvent(event);
     }
 
-    private onHover(event: DragInterpreterHoverEvent): void {
+    private onHover(event: MouseWidgetEvent<'mousemove'>): void {
         if (!this.isState(InteractionState.Clickable)) return;
         this.onHoverLikeEvent(event);
     }

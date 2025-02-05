@@ -88,9 +88,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
-            ctx.widgets.seriesDragInterpreter.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
-            ctx.widgets.seriesDragInterpreter.addListener('drag-move', (event) => this.onMouseHoverLike(event)),
-            ctx.widgets.seriesDragInterpreter.addListener('mouseleave', () => this.onMouseOut()),
+            ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
+            ctx.widgets.seriesWidget.addListener('drag-move', (event) => this.onMouseHoverLike(event)),
+            ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
             ctx.chartEventManager.addListener('series-focus-change', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
             ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
@@ -182,7 +182,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return this.axisCtx.direction === ChartAxisDirection.X;
     }
 
-    private isHover(event: Parameters<Crosshair['onMouseHoverLike']>[0]): boolean {
+    private isHover(event: _Widget.DragWidgetEvent | _Widget.MouseWidgetEvent<'mousemove'>): boolean {
         const chart = this.ctx.chartService;
         return event.type === 'mousemove' || (event.device === 'touch' && chart.touch.dragAction === 'hover');
     }
@@ -207,7 +207,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return String(value ?? '');
     }
 
-    private onMouseHoverLike(event: _Widget.DragWidgetEvent<'drag-move'> | _ModuleSupport.DragInterpreterHoverEvent) {
+    private onMouseHoverLike(event: _Widget.DragWidgetEvent<'drag-move'> | _Widget.MouseWidgetEvent<'mousemove'>) {
         if (!this.enabled || this.snap) return;
 
         const requiredState = this.isHover(event) ? InteractionState.Clickable : InteractionState.AnnotationsMoveable;

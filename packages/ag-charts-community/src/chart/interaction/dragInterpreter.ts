@@ -12,41 +12,8 @@ type MouseClick = { device: 'mouse' } & MouseWidgetEvent<'click'>;
 type TouchClick = { device: 'touch'; sourceEvent: TouchEvent } & Omit<MouseWidgetEvent<'click'>, 'sourceEvent'>;
 export type DragInterpreterClickEvent = MouseClick | TouchClick;
 
-/**
- * A `DragInterpreterHoverEvent` is either a native 'mouseevent' MouseEvent, or a sythetic event fired right before a
- * touch `'drag-start'` or a sythetic touch-click.
- */
-type MouseHover = { device: 'mouse' } & MouseWidgetEvent<'mousemove'>;
-type TouchHover = { device: 'touch'; sourceEvent: TouchEvent } & Omit<MouseWidgetEvent<'mousemove'>, 'sourceEvent'>;
-export type DragInterpreterHoverEvent = MouseHover | TouchHover;
-
-type Type = 'mousemove' | 'mouseleave' | 'click' | 'dblclick' | 'drag-start' | 'drag-move' | 'drag-end';
-type EventMap = Omit<WidgetEventMap, 'click' | 'mousemove'> & {
-    click: DragInterpreterClickEvent;
-    mousemove: DragInterpreterHoverEvent;
-};
-
-function makeSyntheticHover(event: DragWidgetEvent & { device: 'touch' }): TouchHover;
-function makeSyntheticHover(event: DragWidgetEvent & { device: 'mouse' }): undefined;
-function makeSyntheticHover(event: DragWidgetEvent): TouchHover | undefined;
-function makeSyntheticHover(event: DragWidgetEvent) {
-    if (event.device === 'touch') {
-        const { device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent } = event;
-        const result: TouchHover = {
-            type: 'mousemove',
-            device,
-            offsetX,
-            offsetY,
-            clientX,
-            clientY,
-            currentX,
-            currentY,
-            sourceEvent,
-        };
-        return result;
-    }
-    return undefined;
-}
+type Type = 'mousemove' | 'click' | 'dblclick' | 'drag-start' | 'drag-move' | 'drag-end';
+type EventMap = Omit<WidgetEventMap, 'click'> & { click: DragInterpreterClickEvent };
 
 /**
  * In the interest of robustness (and simplicity), the Widget class always dispatches these events after mousedown &
@@ -89,21 +56,16 @@ export class DragInterpreter {
     }
 
     private dispatch(event: EventMap[Type]) {
-        console.log(event.type, event.sourceEvent.defaultPrevented, event);
         this.listeners.dispatch(event.type, event);
     }
 
     private onTouchEnd(event: TouchWidgetEvent<'touchend'>) {
-        // Suppress the browser's MouseEvent emulation on touch devices. Emulation not standardised, iOS Webkit
-        // dispatches hover events if the <div> element is blurred, or click events if the <div> element is focused. On
-        // the other hand, Chromium Blink and Firefox Gecko always enumlate a mouse click the on <div>.
-        //
-        // We'll emulate mouse click and hover events in this class to ensure consistent and predictable behaviour.
+        // Suppress MouseEvent emulation on touch devices:
         event.sourceEvent.preventDefault();
     }
 
     private onMouseMove(event: MouseWidgetEvent<'mousemove'>) {
-        this.dispatch({ device: 'mouse', ...event });
+        this.dispatch(event);
     }
 
     private onDblClick(event: MouseWidgetEvent<'dblclick'>) {
@@ -120,7 +82,10 @@ export class DragInterpreter {
             const distanceSquared = dx * dx + dy * dy;
             const thresholdSquared = DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX;
             if (distanceSquared >= thresholdSquared) {
-                this.dispatchDeferredDragStart(this.dragStartEvent);
+                this.dispatch(this.dragStartEvent);
+                this.dispatch({ ...this.dragStartEvent, type: 'drag-move' });
+                this.dragStartEvent = undefined;
+                this.isDragging = true;
             }
         }
 
@@ -144,22 +109,8 @@ export class DragInterpreter {
             } else {
                 const sourceEvent: TouchEvent = event.sourceEvent;
                 sytheticClick = { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
-
-                const sytheticHover = makeSyntheticHover(event);
-                this.dispatch(sytheticHover);
             }
             this.dispatch(sytheticClick);
         }
-    }
-
-    private dispatchDeferredDragStart(dragStart: DragWidgetEvent<'drag-start'>) {
-        const sytheticHover = makeSyntheticHover(dragStart);
-        if (sytheticHover != null) {
-            this.dispatch(sytheticHover);
-        }
-        this.dispatch(dragStart);
-        this.dispatch({ ...dragStart, type: 'drag-move' });
-        this.dragStartEvent = undefined;
-        this.isDragging = true;
     }
 }
