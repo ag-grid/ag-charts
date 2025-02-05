@@ -46,10 +46,6 @@ class ExampleHierarchySeries extends HierarchySeries<Group, ExampleHierarchySeri
     override computeFocusBounds(_node: never): never {
         throw new Error('Method not implemented.');
     }
-
-    protected getAnimationData(): never {
-        throw new Error('Method not implemented.');
-    }
 }
 
 describe('HierarchySeries', () => {
