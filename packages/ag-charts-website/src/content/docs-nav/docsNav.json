@@ -40,13 +40,8 @@
                     "children": [
                         {
                             "type": "item",
-                            "title": "1. Creating a Basic Chart",
+                            "title": "Creating a Basic Chart",
                             "path": "create-a-basic-chart"
-                        },
-                        {
-                            "type": "item",
-                            "title": "2. Creating an Enterprise Chart",
-                            "path": "create-an-enterprise-chart"
                         },
                         {
                             "type": "item",
