@@ -135,6 +135,24 @@ describe('RadialBarSeries', () => {
         await compare();
     });
 
+    it(`should render stacked radial bar with per-series data as expected`, async () => {
+        const { data, series, ...exampleOptions } = EXAMPLE_OPTIONS;
+        const options: AgChartOptions = {
+            ...exampleOptions,
+            series: series?.map((s) => {
+                return {
+                    ...s,
+                    stacked: true,
+                    data: [...(data ?? [])],
+                };
+            }),
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render normalized radial bar as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,

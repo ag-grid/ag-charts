@@ -1,12 +1,18 @@
 import { Framework } from '@ag-grid-types';
-import Markdoc, { type ConfigType, type Node } from '@markdoc/markdoc';
+import Markdoc, { type ConfigType, type Node, type RenderableTreeNode } from '@markdoc/markdoc';
 import { MarkdownHeading } from 'astro';
 import Slugger from 'github-slugger';
 
 import markdocConfig from '../../../markdoc.config';
 
+interface HeadingData {
+    id: string;
+    text: string;
+}
+
 const TABS_TAG_NAME = 'tabs';
 const TAB_ITEM_TAG_NAME = 'tabItem';
+const HEADING_ATTR_NAME = '__heading';
 
 function isTabsTag({ tag, type }: Node) {
     return type === 'tag' && tag === TABS_TAG_NAME;
@@ -27,6 +33,30 @@ function isHeadingTag(node: Node) {
         node.attributes.__collectHeading === true &&
         typeof node.attributes.level === 'number'
     );
+}
+
+function hasHeadingAttribute(node: Node) {
+    return node.attributes[HEADING_ATTR_NAME];
+}
+
+function createHeadingRenderableNode({
+    level,
+    id,
+    text,
+}: {
+    level: number;
+    id: string;
+    text: string;
+}): RenderableTreeNode {
+    return {
+        $$mdtype: 'Tag',
+        attributes: {
+            id,
+            __collectHeading: true,
+            level,
+        },
+        children: [text],
+    };
 }
 
 /**
@@ -96,11 +126,13 @@ export function getHeadings({
     markdocContent,
     framework,
     getTabItemSlug,
+    skipHeading,
 }: {
     title: string;
     markdocContent: string;
     framework: Framework;
     getTabItemSlug: (id: string) => string;
+    skipHeading?: (node: HeadingData) => boolean;
 }): MarkdownHeading[] {
     const ast = Markdoc.parse(markdocContent);
     const headingSlugger = new Slugger();
@@ -119,15 +151,31 @@ export function getHeadings({
         return [];
     }
 
-    const renderTreeHeadings = renderTree['children']?.filter(isHeadingTag).map((node) => {
-        const { id: slug, level: depth } = node.attributes;
-        const [text] = node.children;
-        return {
-            depth,
-            slug,
-            text,
-        };
-    });
+    const renderTreeHeadings = renderTree.children
+        ?.filter((node) => {
+            if (hasHeadingAttribute(node) && skipHeading?.(node.attributes[HEADING_ATTR_NAME])) {
+                return false;
+            }
+
+            return true;
+        })
+        ?.map((node) => {
+            if (hasHeadingAttribute(node)) {
+                return createHeadingRenderableNode(node.attributes[HEADING_ATTR_NAME]);
+            }
+
+            return node;
+        })
+        .filter(isHeadingTag)
+        ?.map((node) => {
+            const { id: slug, level: depth } = node.attributes;
+            const [text] = node.children;
+            return {
+                depth,
+                slug,
+                text,
+            };
+        });
 
     const topHeading = { slug: 'top', depth: 1, text: title };
 

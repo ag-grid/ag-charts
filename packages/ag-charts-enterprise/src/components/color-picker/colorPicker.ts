@@ -102,15 +102,14 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
 
         update(false);
 
+        const preventDefault = (event: Event) => event.preventDefault();
+        const stopPropagation = (event: Event) => event.stopPropagation();
         const beginPaletteInteraction = (e: PointerEvent) => {
             e.preventDefault();
             const currentTarget = e.currentTarget as HTMLDivElement;
             currentTarget.focus();
             const rect = currentTarget.getBoundingClientRect();
 
-            const touchMove = (touchEvent: Event) => {
-                touchEvent.preventDefault();
-            };
             const pointerMove = ({ pageX, pageY }: PointerEvent) => {
                 isMultiColor = false;
                 s = Math.min(Math.max((pageX - rect.left) / rect.width, 0), 1);
@@ -118,19 +117,17 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
                 update();
             };
             const pointerUp = () => {
-                e.target?.removeEventListener('touchmove', touchMove);
                 window.removeEventListener('pointermove', pointerMove);
             };
             pointerMove(e);
 
-            e.target?.addEventListener('touchmove', touchMove);
             window.addEventListener('pointermove', pointerMove);
             window.addEventListener('pointerup', pointerUp, { once: true });
         };
 
-        colorPicker.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-        });
+        colorPicker.addEventListener('mousedown', stopPropagation);
+        colorPicker.addEventListener('touchstart', stopPropagation);
+        colorPicker.addEventListener('touchmove', stopPropagation);
         colorPicker.addEventListener('keydown', (e) => {
             e.stopPropagation();
             switch (e.key) {
@@ -144,6 +141,8 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             e.preventDefault();
         });
         paletteInput.addEventListener('pointerdown', beginPaletteInteraction);
+        paletteInput.addEventListener('touchstart', preventDefault, { passive: false });
+        paletteInput.addEventListener('touchmove', preventDefault, { passive: false });
         paletteInput.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') {
                 s = clamp(0, s - 0.01, 1);

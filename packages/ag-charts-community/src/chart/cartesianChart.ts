@@ -86,6 +86,8 @@ export class CartesianChart extends Chart {
                 (axis as any).setDomains(syncedDomain);
             }
         }
+
+        this.ctx.updateService.dispatchProcessData({ series: { shouldFlipXY: this.shouldFlipXY() } });
     }
 
     protected performLayout(ctx: LayoutContext) {
@@ -145,7 +147,6 @@ export class CartesianChart extends Chart {
                 visible,
                 rect: seriesRect,
                 paddedRect: seriesPaddedRect,
-                shouldFlipXY: this.shouldFlipXY(),
             },
             clipSeries,
         });

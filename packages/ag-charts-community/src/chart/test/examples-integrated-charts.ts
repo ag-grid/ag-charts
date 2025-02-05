@@ -856,6 +856,34 @@ const PIE_DUPLICATE_VALUES: AgPolarChartOptions = {
     ],
 };
 
+const PIE_OBJECT_VALUES: AgPolarChartOptions = {
+    ...COMMON_POLAR,
+    data: [
+        { asset: { id: 0, name: 'Stocks', value: { x: '15%' } }, amount: 60000 },
+        { asset: { id: 1, name: 'Bonds', value: { x: '20%' } }, amount: 40000 },
+        { asset: { id: 2, name: 'Cash', value: { x: '10%' } }, amount: 7000 },
+        { asset: { id: 3, name: 'Real Estate', value: { x: '25%' } }, amount: 5000 },
+        { asset: { id: 4, name: 'Commodities', value: { x: '5%' } }, amount: 3000 },
+    ],
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'amount',
+            calloutLabelKey: 'asset.name',
+            legendItemKey: 'asset',
+        },
+    ],
+    legend: {
+        item: {
+            label: {
+                formatter: ({ datum: { asset = {} } }) => {
+                    return `${asset.name} - ${asset?.value?.x}`;
+                },
+            },
+        },
+    },
+};
+
 const DONUT_BASIC: AgPolarChartOptions = {
     ...COMMON_POLAR,
     series: [
@@ -1785,6 +1813,7 @@ export const EXAMPLES: Record<string, TestCase> = {
     BAR_DUPLICATE_VALUES: { options: BAR_DUPLICATE_VALUES },
     PIE_BASIC: { options: PIE_BASIC },
     PIE_DUPLICATE_VALUES: { options: PIE_DUPLICATE_VALUES },
+    PIE_OBJECT_VALUES: { options: PIE_OBJECT_VALUES },
     DONUT_BASIC: { options: DONUT_BASIC },
     LINE_BASIC: { options: LINE_BASIC },
     SCATTER_BASIC: { options: SCATTER_BASIC },

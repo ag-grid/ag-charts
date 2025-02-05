@@ -1,6 +1,7 @@
 ---
-title: 'Upgrade to AG Charts 11'
-description: "See what's new in AG Charts v11. View a full list of breaking changes, behaviour changes and depreciations. Read the release post for feature highlights."
+title: 'Upgrade to AG Charts 11.0'
+description: "See what's new in AG Charts v11.0. View a full list of breaking changes, behaviour changes and depreciations. Read the release post for feature highlights."
+migrationVersion: '11.0.0'
 ---
 
 ## What's New
@@ -9,7 +10,13 @@ See the [release post](https://blog.ag-grid.com/whats-new-in-ag-charts-11/) for 
 
 Users of integrated charting on AG Grid, should refer to this migration guide when upgrading to AG Grid 33.
 
+{% documentationArchiveSection version=migrationVersionPatch() /%}
+
 ## Breaking Changes
+
+The full list of breaking changes across all features for version {% migrationVersion() %}.
+
+{% expandingSection headerText="Breaking Changes" %}
 
 This release includes the following breaking changes:
 
@@ -99,7 +106,13 @@ The minimum version of Angular you can use with AG Charts is now Angular 17.
     -   `ag-chart-no-data-overlay` - removed, use `ag-charts-no-data-overlay` instead.
     -   `ag-chart-no-visible-series` - removed, use `ag-charts-o-visible-series` instead.
 
+{% /expandingSection %}
+
 ## Behaviour Changes
+
+The full list of behaviour changes across all features for version {% migrationVersion() %}.
+
+{% expandingSection headerText="Breaking Changes" %}
 
 This release includes the following behaviour changes:
 
@@ -117,6 +130,16 @@ This release includes the following behaviour changes:
 -   The default Zoom selection area when `axes: 'xy'` now ignores aspect ratio. Use `zoom.keepAspectRatio` to change this.
 -   Scrolling events on a chart with zoom enabled, will now be passed to the parent if zoom is at minimum or maximum levels.
 
-## Changes List
+{% /expandingSection %}
 
-If you would like to see the full list of changes in this release, please see the [Changelog](/changelog/?fixVersion=11.0.0).
+## Removal of Deprecated APIs
+
+There are no deprecated APIs removed in AG Charts version {% migrationVersion() %}
+
+## Deprecations
+
+There are no deprecations in AG Charts version {% migrationVersion() %}
+
+<!-- Changelog for the `migrationVersion` property -->
+
+{% changelogSection version=$migrationVersion /%}

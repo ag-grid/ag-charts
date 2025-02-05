@@ -161,7 +161,8 @@ export class BarSeries extends AbstractBarSeries<
         const { seriesGrouping: { groupIndex = this.id } = {}, data } = this;
         const groupCount = this.seriesGrouping?.groupCount ?? 0;
         const stackCount = this.seriesGrouping?.stackCount ?? 0;
-        const grouped = !fastDataProcessing || normalizedTo != null || groupCount > 1 || stackCount > 1;
+        const stacked = stackCount > 1;
+        const grouped = !fastDataProcessing || normalizedTo != null || groupCount > 1 || stacked;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
@@ -189,7 +190,7 @@ export class BarSeries extends AbstractBarSeries<
             );
         }
 
-        if (grouped) {
+        if (stacked) {
             props.push(
                 ...groupAccumulativeValueProperty(
                     yKey,
@@ -228,7 +229,7 @@ export class BarSeries extends AbstractBarSeries<
         }
 
         if (isFiniteNumber(normalizedTo)) {
-            props.push(normaliseGroupTo([stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo), 'range'));
+            props.push(normaliseGroupTo([stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo)));
         }
         if (animationEnabled && this.processedData) {
             props.push(diff(this.id, this.processedData));
@@ -265,7 +266,7 @@ export class BarSeries extends AbstractBarSeries<
             return this.padBandExtent(keys);
         }
 
-        const yKey = processedData.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
+        const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
         let yExtent = this.domainForClippedRange(ChartAxisDirection.Y, [yKey], 'xValue', true);
         const yFilterExtent = this.crossFilteringEnabled()
             ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData)
@@ -285,7 +286,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const yKey = this.processedData?.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
+        const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
         const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange, true);
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
@@ -295,7 +296,7 @@ export class BarSeries extends AbstractBarSeries<
         yVisibleRange: [number, number],
         minVisibleItems: number
     ): number {
-        const yKey = this.processedData?.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
+        const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
         return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
@@ -539,24 +540,26 @@ export class BarSeries extends AbstractBarSeries<
         if (processedData.type === 'grouped') {
             const width = barWidth;
 
-            const yStartValues = dataModel.resolveColumnById(this, `yValue-start`, processedData);
-            const yEndValues = dataModel.resolveColumnById(this, `yValue-end`, processedData);
-            const yRangeIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-range`);
+            const stacked = dataModel.hasColumnById(this, `yValue-start`);
+            const yStartValues = stacked ? dataModel.resolveColumnById(this, `yValue-start`, processedData) : undefined;
+            const yEndValues = stacked ? dataModel.resolveColumnById(this, `yValue-end`, processedData) : undefined;
+            const yRangeIndex = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValue-range`) : -1;
 
             for (const {
                 datumIndex,
                 valueIndex,
                 group: { aggregation },
             } of dataModel.forEachGroupDatum(this, processedData)) {
-                const yRanges = aggregation[yRangeIndex];
-
                 const x = xPosition(datumIndex);
 
                 const yRawValue = yRawValues[datumIndex];
                 const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-                const yStart = Number(yStartValues[datumIndex]);
-                const yEnd = Number(yEndValues[datumIndex]);
-                const yRange = yRanges[isPositive ? 1 : 0];
+                const yStart = stacked ? Number(yStartValues?.[datumIndex]) : 0;
+                const yEnd = stacked ? Number(yEndValues?.[datumIndex]) : yRawValue;
+                let yRange = yEnd;
+                if (stacked) {
+                    yRange = aggregation[yRangeIndex][isPositive ? 1 : 0];
+                }
 
                 handleDatum(datumIndex, valueIndex, x, width, yStart, yEnd, yRange, 1);
             }

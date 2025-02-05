@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isNumber } from 'ag-charts-core';
+import { isDate, isNumber } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -378,16 +378,14 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     }
 
     private getDateRangeValue(datum: MeasurerTypeProperties) {
-        if (
-            datum.start.x == null ||
-            datum.end.x == null ||
-            !(datum.start.x instanceof Date) ||
-            !(datum.end.x instanceof Date)
-        ) {
+        const { value: start } = getGroupingValue(datum.start.x);
+        const { value: end } = getGroupingValue(datum.end.x);
+
+        if (!isDate(start) || !isDate(end)) {
             throw new Error('Can not create a date range measurement of non-date x-axis.');
         }
 
-        return datum.end.x.getTime() - datum.start.x.getTime();
+        return end.getTime() - start.getTime();
     }
 
     private getPriceRangePercentage(datum: MeasurerTypeProperties) {

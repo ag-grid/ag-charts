@@ -3,6 +3,8 @@
 }
 
 .ag-charts-text-input__textarea {
+    --placeholder-text-color: var(--ag-charts-input-placeholder-text-color);
+
     display: block;
     height: 100%;
     width: 100%;
@@ -18,7 +20,7 @@
 
 .ag-charts-text-input__textarea[placeholder]:empty:before {
     content: attr(placeholder);
-    color: var(--ag-charts-input-placeholder-color);
+    color: var(--placeholder-text-color);
     font-weight: 400;
 }
 

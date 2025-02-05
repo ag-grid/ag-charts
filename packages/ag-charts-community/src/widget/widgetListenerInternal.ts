@@ -1,6 +1,7 @@
-import { getWindow } from '../core';
 import { BBoxValues } from '../util/bboxinterface';
 import { partialAssign } from '../util/object';
+import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mouseDragger';
+import { type TouchDragCallbacks, type TouchDragger, startOneFingerTouch } from './touchDragger';
 import { type DragWidgetEvent, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
 
 type EventMap = WidgetEventMap_Internal;
@@ -10,17 +11,6 @@ type Targetable = { getElement(): HTMLElement };
 
 type DragEvents = 'drag-start' | 'drag-move' | 'drag-end';
 type DragOrigin = { pageX: number; pageY: number; offsetX: number; offsetY: number };
-
-type MouseDragCallbacks = {
-    mousedown: (event: MouseEvent) => void;
-    mousemove: (event: MouseEvent) => void;
-    mouseup: (event: MouseEvent) => void;
-};
-
-type TouchDragCallbacks = {
-    touchmove: (event: TouchEvent, touch: Touch) => void;
-    touchend: (event: TouchEvent, touch: Touch) => void;
-};
 
 function makeMouseDrag<K extends DragEvents>(
     current: Targetable,
@@ -49,62 +39,9 @@ function makeMouseDrag<K extends DragEvents>(
     };
 }
 
-function startMouseDrag(
-    that: { globalMouseDragCallbacks?: MouseDragCallbacks },
-    myCallbacks: MouseDragCallbacks,
-    downEvent: MouseEvent
-) {
-    if (that.globalMouseDragCallbacks != null) return;
-
-    const window = getWindow();
-
-    const mousegeneral = (generalEvent: MouseEvent) => {
-        generalEvent.stopPropagation();
-        generalEvent.stopImmediatePropagation();
-    };
-
-    const mousemove = (moveEvent: MouseEvent) => {
-        moveEvent.stopPropagation();
-        moveEvent.stopImmediatePropagation();
-        that.globalMouseDragCallbacks?.mousemove(moveEvent);
-    };
-
-    const mouseup = (upEvent: MouseEvent) => {
-        if (upEvent.button === 0) {
-            upEvent.stopPropagation();
-            upEvent.stopImmediatePropagation();
-            window.removeEventListener('mousedown', mousegeneral, { capture: true });
-            window.removeEventListener('mouseenter', mousegeneral, { capture: true });
-            window.removeEventListener('mouseleave', mousegeneral, { capture: true });
-            window.removeEventListener('mouseout', mousegeneral, { capture: true });
-            window.removeEventListener('mouseover', mousegeneral, { capture: true });
-            window.removeEventListener('mousemove', mousemove, { capture: true });
-            window.removeEventListener('mouseup', mouseup, { capture: true });
-            that.globalMouseDragCallbacks?.mouseup(upEvent);
-            that.globalMouseDragCallbacks = undefined;
-        }
-    };
-
-    window.addEventListener('mousedown', mousegeneral, { capture: true });
-    window.addEventListener('mouseenter', mousegeneral, { capture: true });
-    window.addEventListener('mouseleave', mousegeneral, { capture: true });
-    window.addEventListener('mouseout', mousegeneral, { capture: true });
-    window.addEventListener('mouseover', mousegeneral, { capture: true });
-    window.addEventListener('mousemove', mousemove, { capture: true });
-    window.addEventListener('mouseup', mouseup, { capture: true });
-    that.globalMouseDragCallbacks = myCallbacks;
-    that.globalMouseDragCallbacks.mousedown(downEvent);
-}
-
 function getTouchOffsets(current: Targetable, { pageX, pageY }: Touch): { offsetX: number; offsetY: number } {
     const { x, y } = current.getElement().getBoundingClientRect();
     return { offsetX: pageX - x, offsetY: pageY - y };
-}
-
-function deltaClientSquared(a: Touch, b: Touch): number {
-    const dx = a.clientX - b.clientX;
-    const dy = a.clientY - b.clientY;
-    return dx * dx + dy * dy;
 }
 
 function makeTouchDrag<K extends DragEvents>(
@@ -132,94 +69,6 @@ function makeTouchDrag<K extends DragEvents>(
     };
 }
 
-const LONG_TAP_DURATION_MS = 500; /* milliseconds */
-const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px²*/
-
-let gIsInLongTap = false;
-function startOneFingerTouch(
-    dragTouchEnabled: boolean,
-    that: { globalTouchDragCallbacks?: TouchDragCallbacks },
-    myCallbacks: TouchDragCallbacks,
-    initialTouch: Touch,
-    target: HTMLElement
-) {
-    if (that.globalTouchDragCallbacks != null || gIsInLongTap) return;
-
-    let longTapInterrupted = false;
-    setTimeout(() => {
-        if (!longTapInterrupted) {
-            // Cancel current 'drag-start':
-            target.dispatchEvent(new TouchEvent('touchcancel', { touches: [initialTouch], bubbles: true }));
-
-            // Block new 'drag-start' events:
-            gIsInLongTap = true;
-
-            // Block 'touchmove' page-scroll until the user lifts the finger:
-            const longTapMove = (e: Event) => {
-                e.preventDefault();
-            };
-            // Unblock new 'drag-start' events:
-            const longTapEnd = (e: Event) => {
-                gIsInLongTap = false;
-                e.preventDefault();
-                target.removeEventListener('touchmove', longTapMove);
-                target.removeEventListener('touchend', longTapEnd);
-                target.removeEventListener('touchcancel', longTapEnd);
-            };
-            target.addEventListener('touchmove', longTapMove, { passive: false });
-            target.addEventListener('touchend', longTapEnd, { passive: false });
-            target.addEventListener('touchcancel', longTapEnd, { passive: false });
-
-            // Fire context menu
-            const { clientX, clientY } = initialTouch;
-            const contextMenuEvent = new MouseEvent('contextmenu', {
-                bubbles: true,
-                cancelable: true,
-                view: window,
-                clientX,
-                clientY,
-            });
-            target.dispatchEvent(contextMenuEvent);
-        }
-    }, LONG_TAP_DURATION_MS);
-
-    const findInitialFinger = (...touchLists: TouchList[]): Touch | undefined => {
-        const touches: Touch[] = touchLists.map((touchList) => Array.from(touchList)).flat();
-        return Array.from(touches).find((v) => v.identifier === initialTouch.identifier);
-    };
-
-    const touchmove = (moveEvent: TouchEvent) => {
-        const touch = findInitialFinger(moveEvent.targetTouches);
-        if (touch != null) {
-            longTapInterrupted =
-                longTapInterrupted || deltaClientSquared(initialTouch, touch) < LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX;
-            if (dragTouchEnabled && touch != null) {
-                that.globalTouchDragCallbacks?.touchmove(moveEvent, touch);
-            }
-        }
-    };
-    const touchend = (endEvent: TouchEvent) => {
-        longTapInterrupted = true;
-        target.removeEventListener('touchstart', touchend);
-        target.removeEventListener('touchmove', touchmove);
-        target.removeEventListener('touchend', touchend);
-        target.removeEventListener('touchcancel', touchend);
-        const touch = findInitialFinger(endEvent.changedTouches, endEvent.touches);
-        if (touch != null) {
-            that.globalTouchDragCallbacks?.touchend(endEvent, touch);
-            that.globalTouchDragCallbacks = undefined;
-        }
-    };
-
-    // "drag-move" happens when there is exactly 1 finger on the screen, so callback touchend whenever a finger is
-    // removed or added.
-    target.addEventListener('touchmove', touchmove, { passive: false });
-    target.addEventListener('touchstart', touchend, { passive: false });
-    target.addEventListener('touchend', touchend, { passive: false });
-    target.addEventListener('touchcancel', touchend, { passive: false });
-    that.globalTouchDragCallbacks = myCallbacks;
-}
-
 const GlobalCallbacks: {
     // The 'mousedown' event get fired on the target DOM element and all its ancestors that have 'mousedown' event
     // listeners. However, we only want 1 DOM element to handle the dragging operation because doing so involves adding
@@ -237,8 +86,8 @@ export class WidgetListenerInternal {
     private dragStartListeners?: EventHandler<Targetable>[];
     private dragMoveListeners?: EventHandler<Targetable>[];
     private dragEndListeners?: EventHandler<Targetable>[];
-    private localMouseDragCallbacks?: MouseDragCallbacks;
-    private localTouchDragCallbacks?: TouchDragCallbacks;
+    public mouseDragger?: MouseDragger;
+    public touchDragger?: TouchDragger;
 
     constructor(private readonly dispatchCallback: (type: EventType, event: EventMap[EventType]) => void) {}
 
@@ -248,12 +97,8 @@ export class WidgetListenerInternal {
         this.dragStartListeners = undefined;
         this.dragMoveListeners = undefined;
         this.dragEndListeners = undefined;
-        if (GlobalCallbacks.globalMouseDragCallbacks === this.localMouseDragCallbacks) {
-            GlobalCallbacks.globalMouseDragCallbacks = undefined;
-        }
-        if (GlobalCallbacks.globalTouchDragCallbacks === this.localTouchDragCallbacks) {
-            GlobalCallbacks.globalTouchDragCallbacks = undefined;
-        }
+        this.mouseDragger?.destroy();
+        this.touchDragger?.destroy();
     }
 
     add<T extends Targetable, K extends EventType>(type: K, target: T, handler: EventHandler<T, K>): void;
@@ -322,7 +167,6 @@ export class WidgetListenerInternal {
 
         const dragCallbacks: MouseDragCallbacks = {
             mousedown: (downEvent: MouseEvent) => {
-                this.localMouseDragCallbacks = dragCallbacks;
                 const dragStartEvent = makeMouseDrag(current, 'drag-start', origin, downEvent);
                 this.dispatch('drag-start', current, dragStartEvent);
             },
@@ -337,7 +181,7 @@ export class WidgetListenerInternal {
             },
         };
 
-        startMouseDrag(GlobalCallbacks, dragCallbacks, initialDownEvent);
+        this.mouseDragger = startMouseDrag(GlobalCallbacks, this, dragCallbacks, initialDownEvent);
     }
 
     private endDrag(target: Targetable, { sourceEvent, clientX, clientY }: DragWidgetEvent<'drag-end'>) {
@@ -370,9 +214,9 @@ export class WidgetListenerInternal {
                 this.dispatch('drag-end', current, dragMoveEvent);
             },
         };
-        this.localTouchDragCallbacks = dragCallbacks;
 
-        startOneFingerTouch(this.dragTouchEnabled, GlobalCallbacks, dragCallbacks, initialTouch, current.getElement());
+        const target = current.getElement();
+        this.touchDragger = startOneFingerTouch(GlobalCallbacks, this, dragCallbacks, initialTouch, target);
 
         const dragStartEvent = makeTouchDrag(current, 'drag-start', origin, initialEvent, initialTouch);
         this.dispatch('drag-start', current, dragStartEvent);

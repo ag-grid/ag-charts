@@ -2,33 +2,35 @@
 .ag-charts-input {
     --input-layer-active: 1;
     --input-layer-focus: 2;
+    --input-padding: calc(var(--ag-charts-spacing) * 2);
+    --input-padding-large: calc(var(--ag-charts-spacing) * 2.5);
 
     color: inherit;
-    font-family: var(--ag-charts-input-font-family);
-    font-size: var(--ag-charts-input-font-size);
-    transition-duration: var(--ag-charts-input-transition-duration);
+    font-family: var(--ag-charts-chrome-font-family);
+    font-size: var(--ag-charts-chrome-font-size-large);
+    transition-duration: 0.25s;
     transition-property: none;
-    transition-timing-function: var(--ag-charts-input-transition-timing-function);
+    transition-timing-function: ease-out;
 }
 
 .ag-charts-input:focus-visible {
-    outline: var(--ag-charts-input-focus-outline);
-    box-shadow: var(--ag-charts-input-focus-box-shadow);
+    outline: var(--ag-charts-focus-border);
+    box-shadow: var(--ag-charts-focus-border-shadow);
     z-index: var(--input-layer-focus);
 }
 
 /* Button */
 .ag-charts-button {
-    background: var(--ag-charts-input-background-color);
-    border: 1px solid var(--ag-charts-input-border-color);
-    border-radius: var(--ag-charts-input-border-radius);
+    background: var(--ag-charts-button-background-color);
+    border: 1px solid var(--ag-charts-border-color);
+    border-radius: var(--ag-charts-button-border-radius);
     cursor: pointer;
-    padding: var(--ag-charts-input-padding);
+    padding: var(--input-padding);
     transition-property: background, border-color;
 }
 
 .ag-charts-button:hover {
-    background: var(--ag-charts-input-background-color--hover);
+    background: var(--ag-charts-chrome-focus-color);
 }
 
 .ag-charts-button:has(.ag-charts-icon) {
@@ -37,13 +39,14 @@
 
 /* Checkbox */
 .ag-charts-checkbox {
+    --checkbox-transition-duration: 0.1s;
     appearance: none;
-    background: var(--ag-charts-input-checkbox-background-color);
-    border-radius: 9px;
+    background: var(--ag-charts-checkbox-background-color);
+    border-radius: calc(var(--ag-charts-border-radius) * 9);
     cursor: pointer;
     height: 18px;
     margin: 0;
-    transition-duration: var(--ag-charts-input-transition-duration--fast);
+    transition-duration: var(--checkbox-transition-duration);
     transition-property: margin;
     width: 29px;
 }
@@ -51,18 +54,18 @@
 .ag-charts-checkbox::before {
     display: block;
     background: var(--ag-charts-input-background-color);
-    border-radius: 7px;
+    border-radius: calc(var(--ag-charts-border-radius) * 7);
     content: ' ';
     height: 14px;
     margin: 2px;
-    transition-duration: var(--ag-charts-input-transition-duration--fast);
+    transition-duration: var(--checkbox-transition-duration);
     transition-property: margin;
     transition-timing-function: var(--ag-charts-input-transition-easing);
     width: 14px;
 }
 
 .ag-charts-checkbox:checked {
-    background: var(--ag-charts-input-checkbox-background-color--checked);
+    background: var(--ag-charts-checkbox-checked-background-color);
 }
 
 .ag-charts-checkbox:checked::before {
@@ -80,18 +83,17 @@
 
 /* Textarea */
 .ag-charts-textarea {
-    --line-height: 1.38;
+    --textarea-line-height: 1.38;
 
     background: var(--ag-charts-input-background-color);
-    border: 1px solid var(--ag-charts-input-border-color);
+    border: 1px solid var(--ag-charts-border-color);
     border-radius: var(--ag-charts-input-border-radius);
-    line-height: var(--line-height);
-    font-family: var(--ag-charts-input-font-family);
-    font-size: var(--ag-charts-input-font-size);
-    padding: var(--ag-charts-input-padding-large) var(--ag-charts-input-padding);
+    line-height: var(--textarea-line-height);
+    font-family: var(--ag-charts-chrome-font-family);
+    font-size: var(--ag-charts-chrome-font-size-large);
+    padding: var(--input-padding-large) var(--input-padding);
 }
 
-.ag-charts-textarea[placeholder]:empty::before {
-    color: var(--ag-charts-input-placeholder);
-    content: attr(placeholder);
+.ag-charts-textarea::placeholder {
+    color: var(--ag-charts-input-placeholder-text-color);
 }

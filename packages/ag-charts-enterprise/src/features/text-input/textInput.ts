@@ -69,7 +69,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         );
 
         if (opts.styles?.placeholderColor) {
-            textArea.style.setProperty('--ag-charts-input-placeholder-color', opts.styles?.placeholderColor);
+            textArea.style.setProperty('--placeholder-text-color', opts.styles?.placeholderColor);
         }
 
         textArea.innerText = opts.text ?? '';

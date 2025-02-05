@@ -1,202 +1,156 @@
 .ag-charts-theme-default,
 .ag-charts-theme-default-dark {
-    /* Theme Parameters */
+    /******************************************************************************************************************
+     * Theme Parameters.
+     * Variables defined by the `theme.params`.
+     * The values below are overridden, changing them here will have no effect.
+     *****************************************************************************************************************/
+    --ag-charts-accent-color: #2196f3;
     --ag-charts-background-color: #fff;
-    --ag-charts-foreground-color: #181d1f;
+    --ag-charts-border-color: #dddddd;
+    --ag-charts-foreground-color: #464646;
     --ag-charts-font-family: Verdana, sans-serif;
     --ag-charts-font-size: 12px;
     --ag-charts-font-weight: 400;
-    --ag-charts-border-color: #dddddd;
+    --ag-charts-padding: 20px;
+    --ag-charts-spacing: 4px;
+    --ag-charts-shadow-color: #00000080;
+    --ag-charts-subtle-text-color: #8c8c8c;
+    --ag-charts-text-color: #464646;
 
-    /* Theme Parameters - Not yet implemented */
-    --ag-charts-chrome-background-color: var(--ag-background-color, #fff);
-    --ag-charts-chrome-foreground-color: var(--ag-foreground-color, #181d1f);
+    --ag-charts-chrome-background-color: #fafafa;
     --ag-charts-chrome-font-family: Verdana, sans-serif;
     --ag-charts-chrome-font-size: 12px;
     --ag-charts-chrome-font-weight: 400;
-    --ag-charts-chrome-border-color: var(--ag-border-color, #dddddd);
+    --ag-charts-chrome-subtle-text-color: #8c8c8c;
+    --ag-charts-chrome-text-color: #181d1f;
 
-    /* Colors */
-    --ag-charts-active-color: var(--ag-active-color, #2196f3);
-    --ag-charts-hover-color: color-mix(
+    /******************************************************************************************************************
+     * Future Theme Parameters.
+     * Variables to be added to the `theme.params`.
+     *****************************************************************************************************************/
+    --ag-charts-border-radius: 4px;
+    --ag-charts-shadow: 0 2px 8px 0 color-mix(in srgb, black 8%, transparent);
+    --ag-charts-focus-shadow: 0 0 0 3px var(--ag-charts-accent-color);
+    --ag-charts-chrome-focus-color: color-mix(
         in srgb,
-        var(--ag-charts-chrome-background-color),
-        var(--ag-charts-active-color) 12%
+        var(--ag-charts-background-color),
+        var(--ag-charts-accent-color) 12%
     );
 
-    /* Sizing */
-    --ag-charts-size: var(--ag-grid-size, 8px);
+    /* Inputs */
+    --ag-charts-input-background-color: var(--ag-charts-background-color);
+    --ag-charts-input-border-color: var(--ag-charts-border-color);
+    --ag-charts-input-border-radius: var(--ag-charts-border-radius);
+    --ag-charts-input-text-color: var(--ag-charts-text-color);
+
+    --ag-charts-input-focus-border-color: var(--ag-charts-accent-color);
+    --ag-charts-input-focus-text-color: var(--ag-charts-accent-color);
+
+    --ag-charts-input-disabled-background-color: color-mix(
+        in srgb,
+        var(--ag-charts-chrome-background-color),
+        var(--ag-charts-foreground-color) 6%
+    );
+    --ag-charts-input-disabled-border-color: var(--ag-charts-border-color);
+    --ag-charts-input-disabled-text-color: color-mix(
+        in srgb,
+        var(--ag-charts-chrome-background-color),
+        var(--ag-charts-input-text-color) 50%
+    );
+
+    --ag-charts-input-placeholder-text-color: color-mix(
+        in srgb,
+        var(--ag-charts-input-background-color),
+        var(--ag-charts-input-text-color) 60%
+    );
+
+    /* Buttons */
+    --ag-charts-button-background-color: var(--ag-charts-background-color);
+    --ag-charts-button-border-color: var(--ag-charts-border-color);
+    --ag-charts-button-border-radius: var(--ag-charts-border-radius);
+    --ag-charts-button-text-color: var(--ag-charts-text-color);
+
+    --ag-charts-button-focus-background-color: color-mix(
+        in srgb,
+        var(--ag-charts-button-background-color),
+        var(--ag-charts-accent-color) 12%
+    );
+    --ag-charts-button-focus-border-color: var(--ag-charts-accent-color);
+    --ag-charts-button-focus-text-color: var(--ag-charts-accent-color);
+
+    --ag-charts-button-disabled-background-color: color-mix(
+        in srgb,
+        var(--ag-charts-chrome-background-color),
+        var(--ag-charts-foreground-color) 6%
+    );
+    --ag-charts-button-disabled-border-color: var(--ag-charts-border-color);
+    --ag-charts-button-disabled-text-color: color-mix(
+        in srgb,
+        var(--ag-charts-chrome-background-color),
+        var(--ag-charts-input-text-color) 50%
+    );
+
+    /* Checkboxes */
+    --ag-charts-checkbox-background-color: color-mix(
+        in srgb,
+        var(--ag-charts-background-color),
+        var(--ag-charts-input-text-color) 35%
+    );
+    --ag-charts-checkbox-checked-background-color: var(--ag-charts-accent-color);
+
+    /******************************************************************************************************************
+     * Derived Theme Variables.
+     * Values derived from the theme parameters and used in more than one module.
+     *****************************************************************************************************************/
+    /* Font Sizes */
+    --ag-charts-chrome-font-size-small: var(--ag-charts-chrome-font-size); /* TODO: Remove? */
+    --ag-charts-chrome-font-size-medium: calc(var(--ag-charts-chrome-font-size) * (13 / 12));
+    --ag-charts-chrome-font-size-large: calc(var(--ag-charts-chrome-font-size) * (14 / 12));
 
     /* Borders */
-    --ag-charts-border: var(--ag-charts-chrome-border-color) var(--ag-borders, solid 1px);
-    --ag-charts-border-critical: var(--ag-borders-critical, solid 1px);
+    --ag-charts-border: solid 1px var(--ag-charts-border-color);
 
-    /* Shadows */
-    --ag-charts-floating-shadow: 0 2px 8px 0 color-mix(in srgb, black 8%, transparent);
+    /* Focus Indicator */
+    --ag-charts-focus-border: solid 1px var(--ag-charts-accent-color);
+    --ag-charts-focus-border-shadow: 0 0 0 3px color-mix(in srgb, transparent, var(--ag-charts-accent-color) 20%);
 
+    /******************************************************************************************************************
+     * Global Variables.
+     * Values that are not related to the theme parameters but are used by more than one module.
+     *****************************************************************************************************************/
     /* Layout */
+    --ag-charts-layer-menu: 6;
     --ag-charts-layer-ui-overlay: 5;
     --ag-charts-layer-tooltip: 4;
     --ag-charts-layer-toolbar: 3;
     --ag-charts-layer-crosshair: 2;
     --ag-charts-layer-annotations: 1;
-    --ag-charts-align: center;
-    --ag-charts-justify: center;
-
-    /* Axis Labels */
-    --ag-charts-axis-label-background-color: #474747;
-    --ag-charts-axis-label-color: #ffffff;
-
-    /* Tooltip */
-    --ag-charts-tooltip-background-color: #fafafb;
-    --ag-charts-tooltip-text-color: var(--ag-charts-chrome-foreground-color);
-    --ag-charts-tooltip-border: 1px solid var(--ag-charts-chrome-border-color);
-    --ag-charts-content-padding: 8px 12px;
-    --ag-charts-content-gap: 8px;
-    --ag-charts-content-compact-padding: 3px 6px;
-    --ag-charts-tooltip-border-radius: 4px;
-
-    /* Toolbar */
-    --ag-charts-toolbar-foreground-color: var(--ag-header-foreground-color, var(--ag-charts-chrome-foreground-color));
-    --ag-charts-toolbar-background-color: var(
-        --ag-header-background-color,
-        color-mix(in srgb, var(--ag-charts-chrome-background-color), var(--ag-charts-chrome-foreground-color) 2%)
-    );
-    --ag-charts-toolbar-shadow: var(--ag-charts-floating-shadow);
-    --ag-charts-toolbar-size: 34px;
-    --ag-charts-toolbar-size-small: 24px;
-    --ag-charts-toolbar-border: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-chrome-border-color);
-    --ag-charts-toolbar-hover-color: color-mix(
-        in srgb,
-        var(--ag-charts-chrome-background-color),
-        var(--ag-charts-active-color) 12%
-    );
-    --ag-charts-toolbar-focus-color: var(--ag-charts-active-color);
-    --ag-charts-toolbar-active-background-color: var(--ag-charts-toolbar-hover-color);
-    --ag-charts-toolbar-active-color: var(--ag-charts-active-color);
-    --ag-charts-toolbar-disabled-foreground-color: var(
-        --ag-disabled-foreground-color,
-        color-mix(in srgb, transparent, var(--ag-charts-toolbar-foreground-color) 50%)
-    );
-    --ag-charts-toolbar-disabled-background-color: color-mix(
-        in srgb,
-        var(--ag-charts-toolbar-background-color),
-        var(--ag-charts-toolbar-foreground-color) 6%
-    );
-    --ag-charts-toolbar-gap: var(--ag-charts-size);
-    --ag-charts-toolbar-font-size: calc(var(--ag-charts-chrome-font-size) * (13 / 12));
-    --ag-charts-toolbar-font-size-small: var(--ag-charts-chrome-font-size);
-    --ag-charts-toolbar-button-padding: 6px;
-    --ag-charts-toolbar-button-padding-small: 1px;
-
-    /* Popover */
-    --ag-charts-popover-background-color: var(--ag-charts-toolbar-background-color);
-    --ag-charts-popover-foreground-color: var(--ag-charts-toolbar-foreground-color);
-    --ag-charts-popover-border: var(--ag-charts-toolbar-border);
-    --ag-charts-popover-border-radius: var(--ag-border-radius, 4px);
-    --ag-charts-popover-active-color: var(--ag-charts-toolbar-active-color);
-    --ag-charts-popover-hover-color: var(--ag-charts-toolbar-hover-color);
-    --ag-charts-popover-active-background-color: var(--ag-charts-toolbar-active-background-color);
-    --ag-charts-popover-font-size: 14px;
-    --ag-charts-popover-font-size-small: var(--ag-charts-toolbar-font-size-small);
-    --ag-charts-popover-shadow: var(--ag-charts-floating-shadow);
-
-    /* Dialog */
-    --ag-charts-dialog-input-group-label-color: color-mix(
-        in srgb,
-        transparent,
-        var(--ag-charts-chrome-foreground-color) 55%
-    );
-    --ag-charts-dialog-tab-color--inactive: color-mix(
-        in srgb,
-        transparent,
-        var(--ag-charts-chrome-foreground-color) 55%
-    );
-
-    /* Buttons */
-    --ag-charts-button-radius: var(--ag-border-radius, 4px);
-
-    /* Focus Indicator */
-    --ag-charts-focus-accent-color: var(--ag-input-focus-border-color, var(--ag-charts-active-color));
-    --ag-charts-focus-box-shadow: var(--ag-input-focus-box-shadow, 0 0 0 3px var(--ag-charts-focus-accent-color));
-    --ag-charts-focus-outline: var(--ag-input-focus-outline, 1px var(--ag-charts-chrome-background-color) solid);
-    --ag-charts-focus-border: solid 1px var(--ag-charts-focus-accent-color);
-    --ag-charts-focus-border-shadow: var(
-        --ag-input-focus-box-shadow,
-        0 0 0 3px color-mix(in srgb, transparent, var(--ag-charts-focus-accent-color) 20%)
-    );
-
-    /* Icons */
-    --ag-charts-icon-font-family: 'agChartsDefault';
-    --ag-charts-icon-font-weight: normal;
-    --ag-charts-icon-font-color: color-mix(in srgb, transparent, var(--ag-charts-chrome-foreground-color), 90%);
-    --ag-charts-icon-size: 20px;
-
-    /* Inputs - Shared */
-    --ag-charts-input-background-color: var(--ag-charts-chrome-background-color);
-    --ag-charts-input-background-color--hover: var(--ag-charts-hover-color);
-    --ag-charts-input-background-color--active: var(--ag-charts-hover-color);
-    --ag-charts-input-border-color: var(--ag-charts-chrome-border-color);
-    --ag-charts-input-border-color--active: var(--ag-charts-active-color);
-    --ag-charts-input-border-radius: var(--ag-border-radius, 4px);
-    --ag-charts-input-color--active: var(--ag-charts-active-color);
-    --ag-charts-input-focus-outline: var(--ag-charts-focus-border);
-    --ag-charts-input-focus-box-shadow: var(--ag-charts-focus-border-shadow);
-    --ag-charts-input-font-family: var(--ag-charts-chrome-font-family);
-    --ag-charts-input-font-size: calc(var(--ag-charts-chrome-font-size) * (14 / 12));
-    --ag-charts-input-padding: 8px;
-    --ag-charts-input-padding-large: 10px;
-    --ag-charts-input-placeholder-color: #888888;
-    --ag-charts-input-spacing: 8px;
-    --ag-charts-input-transition-duration: 0.25s;
-    --ag-charts-input-transition-duration--fast: 0.1s;
-    --ag-charts-input-transition-timing-function: ease-out;
-
-    /* Inputs - Checkbox */
-    --ag-charts-input-checkbox-background-color: #babbbc;
-    --ag-charts-input-checkbox-background-color--checked: var(--ag-charts-active-color);
 }
 
 .ag-charts-theme-default-dark {
-    --ag-charts-chrome-foreground-color: var(--ag-foreground-color, #fff);
-    --ag-charts-chrome-background-color: var(--ag-background-color, color-mix(in srgb, #fff, #182230 97%));
-
-    /* Colors */
-    --ag-charts-chrome-border-color: var(--ag-border-color, rgba(255, 255, 255, 0.16));
-    --ag-charts-hover-color: color-mix(
+    /******************************************************************************************************************
+     * Future Theme Parameters.
+     * Variables to be added to the `theme.params`.
+     *****************************************************************************************************************/
+    --ag-charts-shadow: 0 2px 12px 0 color-mix(in srgb, black 33.3%, transparent);
+    --ag-charts-chrome-focus-color: color-mix(
         in srgb,
-        var(--ag-charts-chrome-background-color),
-        var(--ag-charts-active-color) 18%
+        var(--ag-charts-background-color),
+        var(--ag-charts-accent-color) 22%
     );
+}
 
-    /* Shadows */
-    --ag-charts-floating-shadow: 0 2px 12px 0 color-mix(in srgb, black 33.3%, transparent);
+.ag-chart-canvas-wrapper .ag-charts-theme-default {
+    /******************************************************************************************************************
+     * Integrated Charts Overrides.
+     *****************************************************************************************************************/
+    --ag-charts-border-radius: var(--ag-border-radius, 4px);
+    --ag-charts-border: var(--ag-borders-critical, solid 1px) var(--ag-charts-border-color);
 
-    /* Axis Labels */
-    --ag-charts-axis-label-background-color: #9caebb;
-    --ag-charts-axis-label-color: #000000;
-
-    /* Tooltip */
-    --ag-charts-tooltip-background-color: #28313e;
-    --ag-charts-tooltip-border: 1px solid #474e59;
-
-    /* Toolbar */
-    --ag-charts-toolbar-background-color: var(--ag-header-background-color, color-mix(in srgb, #fff, #182230 93%));
-    --ag-charts-toolbar-hover-color: color-mix(
-        in srgb,
-        var(--ag-charts-chrome-background-color),
-        var(--ag-charts-active-color) 18%
-    );
-
-    /* Dialog */
-    --ag-charts-dialog-input-group-label-text-color: #ffffff;
-
-    /* Focus Indicator */
+    --ag-charts-focus-shadow: var(--ag-focus-shadow, 0 0 0 3px var(--ag-charts-accent-color));
     --ag-charts-focus-border-shadow: var(
-        --ag-input-focus-box-shadow,
-        0 0 0 3px color-mix(in srgb, transparent, var(--ag-input-focus-border-color, var(--ag-charts-active-color)) 20%)
+        --ag-focus-shadow,
+        0 0 0 3px color-mix(in srgb, transparent, var(--ag-charts-accent-color) 20%)
     );
-
-    /* Inputs */
-    --ag-charts-input-placeholder-color: #aaaaaa;
 }

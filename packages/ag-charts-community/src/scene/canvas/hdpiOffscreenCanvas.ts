@@ -39,7 +39,7 @@ export class HdpiOffscreenCanvas {
 
         this.context = this.canvas.getContext('2d', { willReadFrequently })!;
 
-        this.resize(width ?? 0, height ?? 0);
+        this.resize(width ?? 0, height ?? 0, pixelRatio ?? 1);
 
         debugContext(this.context);
     }
@@ -52,10 +52,10 @@ export class HdpiOffscreenCanvas {
         return this.canvas.transferToImageBitmap();
     }
 
-    resize(width: number, height: number) {
+    resize(width: number, height: number, pixelRatio: number) {
         if (!(width > 0 && height > 0)) return;
 
-        const { canvas, context, pixelRatio } = this;
+        const { canvas, context } = this;
         if (width !== this.width || height !== this.height) {
             const [canvasWidth, canvasHeight] = canvasDimensions(width, height, pixelRatio);
             canvas.width = canvasWidth;

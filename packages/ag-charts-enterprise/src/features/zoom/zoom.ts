@@ -28,6 +28,7 @@ import {
 const {
     BOOLEAN,
     NUMBER,
+    POSITIVE_NUMBER,
     RATIO,
     UNION,
     OBJECT,
@@ -116,6 +117,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(BOOLEAN)
     public enableSelecting = false;
 
+    @Validate(BOOLEAN)
+    public enableTwoFingerZoom = true;
+
     @Validate(UNION(['alt', 'ctrl', 'meta', 'shift'], 'a pan key'))
     public panKey: 'alt' | 'ctrl' | 'meta' | 'shift' = 'alt';
 
@@ -128,7 +132,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(BOOLEAN)
     public keepAspectRatio = false;
 
-    @Validate(NUMBER.restrict({ min: 1 }))
+    @Validate(POSITIVE_NUMBER)
     public minVisibleItems = 2;
 
     @Deprecated('Use [minVisibleItems] instead.')
@@ -231,6 +235,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.widgets.seriesWidget.addListener('touchmove', (event, current) => this.onTouchMove(event, current)),
             ctx.widgets.seriesWidget.addListener('touchend', (event) => this.onTouchEnd(event)),
             ctx.widgets.seriesWidget.addListener('touchcancel', (event) => this.onTouchEnd(event)),
+            ctx.updateService.addListener('process-data', (event) => this.onProcessData(event)),
             ctx.layoutManager.addListener('layout:complete', (event) => this.onLayoutComplete(event)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event)),
             ctx.zoomManager.addListener('zoom-pan-start', (event) => this.onZoomPanStart(event)),
@@ -531,24 +536,28 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onTouchStart(event: _Widget.TouchWidgetEvent<'touchstart'>, current: _Widget.Widget) {
-        if (this.dragState !== DragState.None) return;
+        if (!this.enableTwoFingerZoom || this.dragState !== DragState.None) return;
         if (this.twoFingers.start(event, current, this.getZoom())) {
             this.dragState = DragState.TwoFingers;
         }
     }
 
     private onTouchMove(event: _Widget.TouchWidgetEvent<'touchmove'>, current: _Widget.Widget) {
-        if (this.dragState !== DragState.TwoFingers) return;
+        if (!this.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
         const newZoom = this.twoFingers.update(event, current);
         this.updateZoom(constrainZoom(newZoom));
     }
 
     private onTouchEnd(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>) {
-        if (this.dragState !== DragState.TwoFingers) return;
+        if (!this.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
         event.sourceEvent.preventDefault();
         if (this.twoFingers.end(event)) {
             this.dragState = DragState.None;
         }
+    }
+
+    private onProcessData(event: _ModuleSupport.ProcessDataEvent) {
+        this.shouldFlipXY = event.series.shouldFlipXY;
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -558,12 +567,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!enabled) return;
 
         const {
-            series: { rect, paddedRect, shouldFlipXY },
+            series: { rect, paddedRect },
         } = event;
 
         this.seriesRect = rect;
         this.paddedRect = paddedRect;
-        this.shouldFlipXY = shouldFlipXY;
     }
 
     private onZoomChange(event: _ModuleSupport.ZoomChangeEvent) {
@@ -641,6 +649,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             minVisibleItemsY,
             ctx: { zoomManager },
         } = this;
+
+        if (minVisibleItems === 0) return true;
 
         const zoom = this.getZoom();
 

@@ -48,8 +48,6 @@ export const PUBLISHED_UMD_URLS = {
     'ag-charts-locale': `${NPM_CDN}/ag-charts-locale@${agChartsVersion}/dist/umd/ag-charts-locale.js`,
 };
 
-export const DOCS_TAB_ITEM_ID_PREFIX = 'reference-';
-
 /**
  * Site base URL
  *

@@ -109,6 +109,10 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
             ],
             skipWarningsReversed: false,
         }),
+        LINE_STACKED_DATA_PER_SERIES: {
+            options: examples.LINE_STACKED_DATA_PER_SERIES,
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line', 'line'] }),
+        },
     }),
 };
 

@@ -1,8 +1,8 @@
 .ag-charts-shared-toolbar {
-    gap: var(--ag-charts-toolbar-gap);
+    gap: var(--toolbar-gap);
 
     .ag-charts-toolbar__button {
-        border-radius: var(--ag-charts-button-radius);
+        border-radius: var(--ag-charts-border-radius);
         margin: 0;
     }
 }

@@ -406,6 +406,7 @@ jobs:
                   fetch-depth: 1
 
             - name: Fetch Refs
+              if: matrix.framework != 'none'
               run: |
                   git fetch origin --depth 1 latest
                   git fetch origin --depth 1 tag latest-success

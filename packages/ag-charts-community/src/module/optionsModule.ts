@@ -57,7 +57,6 @@ import type { SeriesType } from './optionsModuleTypes';
 export interface ChartSpecialOverrides {
     document: Document;
     window: Window;
-    overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
     styleContainer?: HTMLElement;
 }
@@ -439,6 +438,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         const themeParamsOptionsDef: OptionsDefs<AgChartThemeParams> = {
+            accentColor: string,
             axisColor: string,
             backgroundColor: string,
             borderColor: string,
@@ -448,8 +448,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             fontWeight: or(string, number),
             gridLineColor: string,
             padding: number,
+            spacing: number,
             subtleTextColor: string,
             textColor: string,
+
+            chromeBackgroundColor: string,
+            chromeFontFamily: string,
+            chromeFontSize: number,
+            chromeFontWeight: or(string, number),
+            chromeSubtleTextColor: string,
+            chromeTextColor: string,
         };
         const { errors } = validate(options.theme.params, themeParamsOptionsDef);
 

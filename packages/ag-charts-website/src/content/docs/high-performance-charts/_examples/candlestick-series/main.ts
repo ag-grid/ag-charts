@@ -13,6 +13,7 @@ const options: AgCartesianChartOptions = {
         autoScaling: {
             enabled: true,
         },
+        minVisibleItems: 0,
     },
     navigator: {
         enabled: true,

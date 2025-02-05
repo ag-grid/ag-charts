@@ -87,7 +87,7 @@ function buildCheckDirtyChain(setterFn: Function, opts: SceneChangeDetectionOpti
         return function (this: any, value: any) {
             const change = setterFn.call(this, value);
 
-            if (change !== NO_CHANGE && value?._dirty === true) {
+            if (value?._dirty === true) {
                 this.markDirty();
             }
 

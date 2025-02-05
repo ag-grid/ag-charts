@@ -41,3 +41,12 @@ export function errorOnce(message: Stringifiable, ...logContent: any[]) {
 export function reset() {
     doOnceCache.clear();
 }
+
+export function logGroup<T>(name: string, cb: () => T): T {
+    console.groupCollapsed(name);
+    try {
+        return cb();
+    } finally {
+        console.groupEnd();
+    }
+}

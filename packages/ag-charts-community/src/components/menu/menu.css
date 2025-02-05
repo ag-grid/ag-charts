@@ -1,10 +1,10 @@
 .ag-charts-menu {
     --item-padding: 6px 12px;
-    --icon-color: var(--ag-charts-popover-foreground-color);
+    --icon-color: var(--ag-charts-chrome-text-color);
     display: grid;
     grid: auto-flow auto / 1fr;
     column-gap: 12px;
-    font-size: var(--ag-charts-popover-font-size-small);
+    font-size: var(--ag-charts-chrome-font-size);
 }
 
 .ag-charts-menu:has(.ag-charts-menu__icon, .ag-charts-menu__row--stroke-width-visible) {
@@ -46,19 +46,19 @@
 }
 
 .ag-charts-menu__row:focus {
-    background: var(--ag-charts-popover-hover-color);
+    background: var(--ag-charts-chrome-focus-color);
 }
 
 .ag-charts-menu__row:focus-visible {
     outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
-    z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
+    z-index: var(--ag-charts-layer-menu);
 }
 
 .ag-charts-menu__row--active {
-    --icon-color: var(--ag-charts-popover-active-color);
-    background: var(--ag-charts-popover-active-background-color);
-    color: var(--ag-charts-popover-active-color);
+    --icon-color: var(--ag-charts-accent-color);
+    background: var(--ag-charts-chrome-focus-color);
+    color: var(--ag-charts-accent-color);
 }
 
 .ag-charts-menu__label {

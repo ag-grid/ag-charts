@@ -122,13 +122,19 @@ export interface AgZoomOptions {
      */
     enableSelecting?: boolean;
     /**
+     * Set to `true` to enable zoom-panning with two touch points.
+     *
+     * Default: `true`
+     */
+    enableTwoFingerZoom?: boolean;
+    /**
      * Set to `true` to keep the selection area matching the chart's aspect ratio.
      *
      * Default: `false`
      */
     keepAspectRatio?: boolean;
     /**
-     * The minimum number of items to be shown, beyond which zooming is stopped.
+     * The minimum number of items to be shown, beyond which zooming is stopped. Set to `0` to allow unlimited zooming.
      *
      * Default: `2`
      */

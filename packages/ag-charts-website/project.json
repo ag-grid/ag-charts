@@ -169,6 +169,17 @@
           "command": "node update-algolia.js -i ag-charts"
         }
       }
+    },
+    "update-versions-data": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx {projectRoot}/scripts/versions-data/updateVersionsData.ts"
+      },
+      "configurations": {
+        "verbose": {
+          "args": ["--verbose"]
+        }
+      }
     }
   },
   "implicitDependencies": [
