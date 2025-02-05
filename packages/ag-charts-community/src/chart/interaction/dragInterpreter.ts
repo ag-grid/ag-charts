@@ -20,7 +20,7 @@ type MouseHover = { device: 'mouse' } & MouseWidgetEvent<'mousemove'>;
 type TouchHover = { device: 'touch'; sourceEvent: TouchEvent } & Omit<MouseWidgetEvent<'mousemove'>, 'sourceEvent'>;
 export type DragInterpreterHoverEvent = MouseHover | TouchHover;
 
-type Type = 'mousemove' | 'click' | 'dblclick' | 'drag-start' | 'drag-move' | 'drag-end';
+type Type = 'mousemove' | 'mouseleave' | 'click' | 'dblclick' | 'drag-start' | 'drag-move' | 'drag-end';
 type EventMap = Omit<WidgetEventMap, 'click' | 'mousemove'> & {
     click: DragInterpreterClickEvent;
     mousemove: DragInterpreterHoverEvent;
@@ -89,7 +89,7 @@ export class DragInterpreter {
     }
 
     private dispatch(event: EventMap[Type]) {
-        console.log(event.type, event);
+        console.log(event.type, event.sourceEvent.defaultPrevented, event);
         this.listeners.dispatch(event.type, event);
     }
 
