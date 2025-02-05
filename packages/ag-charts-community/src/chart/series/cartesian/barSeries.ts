@@ -286,7 +286,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const yKey = this.processedData?.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
+        const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
         const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange, true);
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
@@ -296,7 +296,7 @@ export class BarSeries extends AbstractBarSeries<
         yVisibleRange: [number, number],
         minVisibleItems: number
     ): number {
-        const yKey = this.processedData?.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
+        const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
         return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
