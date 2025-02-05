@@ -93,7 +93,13 @@ describe('Range', () => {
 
                     // Render.
                     ctx.save();
-                    range.render({ ctx, devicePixelRatio: 1, resized: false, debugNodes: {} });
+                    range.render({
+                        ctx,
+                        width: canvasCtx.nodeCanvas.width,
+                        height: canvasCtx.nodeCanvas.height,
+                        devicePixelRatio: 1,
+                        debugNodes: {},
+                    });
                     ctx.restore();
 
                     // Prepare for next case.
