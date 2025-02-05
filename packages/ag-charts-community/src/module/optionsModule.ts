@@ -251,6 +251,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.sanityCheck(options);
         this.removeDisabledOptions(options);
 
+        if (presetType != null) {
+            activeTheme.templateTheme(options, false);
+        }
+
         const validatedSeriesOptions: any[] = [];
         options.series?.forEach((seriesOptions, index) => {
             const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type ?? 'line');

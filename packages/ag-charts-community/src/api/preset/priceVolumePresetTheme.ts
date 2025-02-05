@@ -250,4 +250,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
             },
         },
     },
+    axesButtons: {
+        enabled: true,
+    },
 };
