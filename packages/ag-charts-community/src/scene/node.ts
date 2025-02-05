@@ -16,8 +16,9 @@ export enum PointerEvents {
 
 export type RenderContext = {
     ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+    width: number;
+    height: number;
     devicePixelRatio: number;
-    resized: boolean;
     clipBBox?: BBox;
     stats?: {
         opsPerformed: number;

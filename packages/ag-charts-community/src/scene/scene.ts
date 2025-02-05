@@ -126,6 +126,10 @@ export class Scene {
             return;
         }
 
+        const width = this.pendingSize?.[0] ?? this.width;
+        const height = this.pendingSize?.[1] ?? this.height;
+        const devicePixelRatio = this.pendingSize?.[2] ?? this.height;
+
         const renderStartTime = performance.now();
         if (pendingSize) {
             this.layersManager.resize(...pendingSize);
@@ -150,8 +154,9 @@ export class Scene {
 
         const renderCtx: RenderContext = {
             ctx,
-            devicePixelRatio: this.pixelRatio,
-            resized: Boolean(pendingSize),
+            width,
+            height,
+            devicePixelRatio,
             debugNodes: {},
         };
 
