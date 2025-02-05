@@ -89,17 +89,17 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     override properties = new SunburstSeriesProperties();
 
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
+    private readonly sectorGroup = this.scalingGroup.appendChild(new Group());
+    private readonly sectorLabelGroup = this.scalingGroup.appendChild(new Group());
+    private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group());
 
-    readonly datumSelection = Selection.select<_ModuleSupport.Sector, SunburstNode>(
-        this.scalingGroup.appendChild(new Group()),
-        Sector
-    );
+    readonly datumSelection = Selection.select<_ModuleSupport.Sector, SunburstNode>(this.sectorGroup, Sector);
     private readonly labelSelection = Selection.select<_ModuleSupport.Group, SunburstNode>(
-        this.scalingGroup.appendChild(new Group()),
+        this.sectorLabelGroup,
         Group
     );
     private readonly highlightSelection = Selection.select<_ModuleSupport.Sector, SunburstNode>(
-        this.scalingGroup.appendChild(new Group()),
+        this.highlightSectorGroup,
         Sector
     );
 
