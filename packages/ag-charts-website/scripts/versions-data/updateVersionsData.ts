@@ -176,12 +176,10 @@ async function updateVersionsData({ isVerbose }: { isVerbose: boolean }) {
         if (isVerbose) {
             logFinalReport({ versionsDataFile, allVersions, noDocsUpdated });
         }
-    } else {
-        if (isVerbose) {
-            console.log('No changes needed');
-        }
+    } else if (isVerbose) {
+        console.log('No changes needed');
     }
 }
 
 const isVerbose = process.argv.includes('--verbose');
-updateVersionsData({ isVerbose });
+await updateVersionsData({ isVerbose });
