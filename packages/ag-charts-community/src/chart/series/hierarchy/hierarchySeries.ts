@@ -1,8 +1,6 @@
 import { Logger, arraysEqual } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../../module/moduleContext';
-import type { AnimationValue } from '../../../motion/animation';
-import { resetMotion } from '../../../motion/resetMotion';
 import { ColorScale } from '../../../scale/colorScale';
 import { BBox } from '../../../scene/bbox';
 import type { Group } from '../../../scene/group';
@@ -37,9 +35,7 @@ type HierarchyAnimationEvent<TNode extends Node, TDatum> = {
 
 export interface HierarchyNodeDatum extends SeriesNodeDatum<number[]> {}
 
-export interface HierarchyAnimationData<TNode extends Node, TNodeClass> {
-    datumSelections: Selection<TNode, TNodeClass>[];
-}
+export interface HierarchyAnimationData<_TNode extends Node, _TNodeClass> {}
 
 export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatum = Record<string, any>>
     implements HierarchyNodeDatum, Pick<HighlightNodeDatum, 'colorValue'>
@@ -106,10 +102,6 @@ export abstract class HierarchySeries<
     protected colorScale = new ColorScale();
 
     protected animationState: StateMachine<HierarchyAnimationState, HierarchyAnimationEvent<TNode, TNodeClass>>;
-
-    protected animationResetFns?: {
-        datum?: (node: TNode, datum: TNodeClass) => AnimationValue & Partial<TNode>;
-    };
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -242,15 +234,9 @@ export abstract class HierarchySeries<
         this.animationState.transition('update', animationData);
     }
 
-    protected resetAllAnimation(data: HierarchyAnimationData<TNode, TNodeClass>) {
-        const datum = this.animationResetFns?.datum;
-
+    protected resetAllAnimation(_data: HierarchyAnimationData<TNode, TNodeClass>) {
         // Stop any running animations by prefix convention.
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
-
-        if (datum != null) {
-            resetMotion(data.datumSelections, datum);
-        }
     }
 
     protected animateEmptyUpdateReady(data: HierarchyAnimationData<TNode, TNodeClass>) {
@@ -263,11 +249,8 @@ export abstract class HierarchySeries<
         this.resetAllAnimation(data);
     }
 
-    protected animateReadyHighlight(data: Selection<TNode, TNodeClass>) {
-        const datum = this.animationResetFns?.datum;
-        if (datum != null) {
-            resetMotion([data], datum);
-        }
+    protected animateReadyHighlight(_data: Selection<TNode, TNodeClass>) {
+        // No-op
     }
 
     protected animateReadyResize(data: HierarchyAnimationData<TNode, TNodeClass>) {
@@ -279,7 +262,9 @@ export abstract class HierarchySeries<
         this.resetAllAnimation(data);
     }
 
-    protected abstract getAnimationData(): HierarchyAnimationData<TNode, TNodeClass>;
+    protected getAnimationData(): HierarchyAnimationData<TNode, TNodeClass> {
+        return {};
+    }
 
     protected isProcessedDataAnimatable() {
         return true;

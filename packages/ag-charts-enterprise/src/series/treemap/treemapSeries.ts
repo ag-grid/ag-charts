@@ -757,8 +757,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
             text.zIndex = 1;
         };
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight() as any;
         this.labelSelection.selectByClass(Text).forEach((text) => {
-            updateLabelFn(text.datum, text, text.tag, false);
+            updateLabelFn(text.datum, text, text.tag, text.datum === highlightedDatum);
         });
     }
 
@@ -844,12 +845,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
                 ...format,
             }
         );
-    }
-
-    protected getAnimationData() {
-        return {
-            datumSelections: [],
-        };
     }
 
     protected computeFocusBounds(node: _ModuleSupport.Group): _ModuleSupport.BBox | undefined {
