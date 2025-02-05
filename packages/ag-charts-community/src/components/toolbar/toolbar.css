@@ -33,7 +33,7 @@
 }
 
 .ag-charts-toolbar__button:hover {
-    background: var(--ag-charts-chrome-focus-color);
+    background: var(--ag-charts-focus-color);
     z-index: 1;
 }
 
@@ -44,15 +44,15 @@
 }
 
 .ag-charts-toolbar__button--active {
-    background: var(--ag-charts-chrome-focus-color);
+    background: var(--ag-charts-focus-color);
     border-color: var(--ag-charts-accent-color);
     color: var(--ag-charts-accent-color);
     z-index: 2;
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
-    background: var(--ag-charts-input-disabled-background-color);
-    color: var(--ag-charts-input-disabled-text-color);
+    background: var(--ag-charts-button-disabled-background-color);
+    color: var(--ag-charts-button-disabled-text-color);
     cursor: default;
 }
 

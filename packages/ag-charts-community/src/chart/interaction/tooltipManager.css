@@ -1,4 +1,6 @@
 .ag-charts-tooltip {
+    --tooltip-arrow-size: 8px;
+
     /* Popover attribute resets */
     position: fixed;
     inset: unset;
@@ -23,8 +25,6 @@
 }
 
 .ag-charts-tooltip--arrow::before {
-    --tooltip-arrow-size: 8px;
-
     content: '';
 
     position: absolute;
@@ -38,11 +38,34 @@
     height: var(--tooltip-arrow-size);
 
     border: inherit;
-    background: inherit;
     border-top: none;
     border-left: none;
 
-    clip-path: polygon(0 100%, 100% 0, 100% 100%);
+    clip-path: polygon(0% 100%, 100% 0%, 100% 100%);
+}
+
+/* Fixes low DPI screens showing the top border between the triangle and the main tooltip body. It overlays a second
+ * triangle on top that is just the background colour without a border and adjusts its clip-path to overlay. */
+.ag-charts-tooltip--arrow::after {
+    --tooltip-inner-size: calc(var(--tooltip-arrow-size) - 2px);
+
+    content: '';
+
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin: 0 auto;
+    transform: translateX(-50%) translateY(calc(var(--tooltip-inner-size) * -0.5)) rotate(45deg);
+
+    display: block;
+    width: var(--tooltip-inner-size);
+    height: var(--tooltip-inner-size);
+
+    border: inherit;
+    border-color: transparent;
+    background: inherit;
+
+    clip-path: polygon(-10% 100%, 100% -10%, 100% 100%);
 }
 
 .ag-charts-tooltip--no-interaction {

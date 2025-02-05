@@ -94,41 +94,53 @@ export interface AgChartThemeParams {
     /** Default color for borders. */
     borderColor?: CssColor;
     /**
-     * Background color of chrome elements, e.g. menus and dialogs.
+     * Background color of menus, dialogs, toolbars and buttons.
      *
      * Default: Mix of `foregroundColor` and `backgroundColor`
      */
     chromeBackgroundColor?: CssColor;
     /**
-     * Font family used for text in chrome elements, e.g. menus and dialogs.
+     * Font family used for text in menus, dialogs, toolbars, buttons and text inputs.
      *
      * Default: `fontFamily`
      */
     chromeFontFamily?: FontFamily;
     /**
-     * Font size used for text in chrome elements, e.g. menus and dialogs.
+     * Font size used for text in menus, dialogs, toolbars, buttons and text inputs.
      *
      * Default: `fontSize`
      */
     chromeFontSize?: FontSize;
     /**
-     * Font weight used for text in chrome elements, e.g. menus and dialogs.
+     * Font weight used for text in menus, dialogs, toolbars, buttons and text inputs.
      *
      * Default: `fontWeight`
      */
     chromeFontWeight?: FontWeight;
     /**
-     * Default color for text in chrome elements, e.g. menus and dialogs.
+     * Default color for text in menus, dialogs, toolbars, buttons and text inputs.
      *
      * Default: `textColor`
      */
     chromeTextColor?: CssColor;
     /**
-     * Color of text in chrome elements that should stand out less than the default.
+     * Color of text that should stand out less than the default in menus, dialogs, toolbars and buttons.
      *
      * Default: `subtleTextColor`
      */
     chromeSubtleTextColor?: CssColor;
+    /**
+     * Background color of crosshair labels.
+     *
+     * Default: `foregroundColor`
+     */
+    crosshairBackgroundColor?: CssColor;
+    /**
+     * Color for text in crosshair labels.
+     *
+     * Default: `backgroundColor`
+     */
+    crosshairTextColor?: CssColor;
     /**
      * Default color for neutral UI elements. Most text, borders and backgrounds are defined as a blend between the
      * background and foreground colors.
@@ -142,12 +154,22 @@ export interface AgChartThemeParams {
     fontWeight?: FontWeight;
     /** Default color for grid lines. */
     gridLineColor?: CssColor;
+    /**
+     * Background color for text inputs.
+     *
+     * Default: 'backgroundColor'
+     */
+    inputBackgroundColor?: CssColor;
+    /**
+     * Color of text within text inputs.
+     *
+     * Default: `textColor`
+     */
+    inputTextColor?: CssColor;
     /** The outer chart padding. */
     padding?: PixelSize;
-    /** Amount of spacing around and inside UI elements. All padding and margins in the chart are defined as a multiple of this value. */
-    spacing?: number;
     /**
-     * Color of text and UI elements that should stand out less than the default.
+     * Color of text that should stand out less than the default.
      *
      * Default: Mix of `foregroundColor` and `backgroundColor`
      */
@@ -179,7 +201,9 @@ type ThemeParamsOperation =
     | { $mul: [ThemeParamsLeaf<number>, ThemeParamsLeaf<number>] }
     | { $round: [ThemeParamsLeaf<number>] }
     | { $rem: [ThemeParamsLeaf] | [ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { $mix: [ThemeParamsLeaf, ThemeParamsLeaf, ThemeParamsLeaf<number>] };
+    | { $mix: [ThemeParamsLeaf, ThemeParamsLeaf, ThemeParamsLeaf<number>] }
+    | { $foregroundBackgroundMix: [ThemeParamsLeaf<number>] }
+    | { $foregroundBackgroundAccentMix: [ThemeParamsLeaf<number>, ThemeParamsLeaf<number>] };
 type ThemeParamsLeaf<T = boolean | string | number> = ThemeParamsOperation | T;
 
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, ThemeParamsOperation>;

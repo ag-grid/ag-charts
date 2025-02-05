@@ -42,7 +42,7 @@ export class FinancialLight extends ChartTheme {
     override getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
             ...super.getPublicParameters(),
-            gridLineColor: '#f2f3f3',
+            gridLineColor: { $foregroundBackgroundAccentMix: [0.94, 0.01] },
             padding: 0,
         };
     }

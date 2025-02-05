@@ -42,7 +42,7 @@ export class FinancialDark extends DarkTheme {
     override getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
             ...super.getPublicParameters(),
-            gridLineColor: '#343a4e',
+            gridLineColor: { $foregroundBackgroundAccentMix: [0.88, 0.01] },
             padding: 0,
         };
     }

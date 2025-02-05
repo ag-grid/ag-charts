@@ -9,7 +9,6 @@ import {
     DEFAULT_ANNOTATION_STATISTICS_FILL,
     DEFAULT_ANNOTATION_STATISTICS_STROKE,
     DEFAULT_BACKGROUND_COLOUR,
-    DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
@@ -72,13 +71,17 @@ export class DarkTheme extends ChartTheme {
     override getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
             ...super.getPublicParameters(),
+            axisColor: { $foregroundBackgroundMix: [0.263] },
             backgroundColor: DEFAULT_DARK_BACKGROUND_FILL,
-            borderColor: '#4b525d',
-            chromeBackgroundColor: { $mix: [{ $ref: 'foregroundColor' }, { $ref: 'backgroundColor' }, 0.93] },
+            borderColor: { $foregroundBackgroundMix: [0.784] },
+            chromeBackgroundColor: { $foregroundBackgroundMix: [0.93] },
             foregroundColor: '#fff',
-            gridLineColor: '#545a6e',
-            subtleTextColor: { $mix: [{ $ref: 'foregroundColor' }, { $ref: 'backgroundColor' }, 0.57] },
+            gridLineColor: { $foregroundBackgroundAccentMix: [0.743, 0.01] },
+            subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'backgroundColor' }, 0.57] },
+
             chromeTextColor: { $ref: 'textColor' },
+
+            crosshairBackgroundColor: { $foregroundBackgroundAccentMix: [0.35, 0.1] },
         };
     }
 
@@ -88,7 +91,6 @@ export class DarkTheme extends ChartTheme {
         params.set(IS_DARK_THEME, true);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
 
-        params.set(DEFAULT_CROSS_LINES_COLOUR, '#fff');
         params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#7f8389');
 
         params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [

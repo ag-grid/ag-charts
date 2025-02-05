@@ -3,6 +3,7 @@ import {
     Logger,
     ModuleRegistry,
     type OptionsDefs,
+    attachDescription,
     circularSliceArray,
     groupBy,
     isEnumValue,
@@ -47,6 +48,7 @@ import {
 } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
 import { setDocument, setWindow } from '../core';
+import { Color } from '../util/color';
 import { Debug } from '../util/debug';
 import { deepClone, jsonDiff, jsonPropertyCompare, jsonResolveOperations, jsonWalk } from '../util/json';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
@@ -437,27 +439,37 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return defaultParameters;
         }
 
+        const color = attachDescription(
+            (value: unknown) => isString(value) && Color.validColorString(value),
+            `a color`
+        );
+
         const themeParamsOptionsDef: OptionsDefs<AgChartThemeParams> = {
-            accentColor: string,
-            axisColor: string,
-            backgroundColor: string,
-            borderColor: string,
-            foregroundColor: string,
+            accentColor: color,
+            axisColor: color,
+            backgroundColor: color,
+            borderColor: color,
+            foregroundColor: color,
             fontFamily: string,
             fontSize: number,
             fontWeight: or(string, number),
-            gridLineColor: string,
+            gridLineColor: color,
             padding: number,
-            spacing: number,
-            subtleTextColor: string,
-            textColor: string,
+            subtleTextColor: color,
+            textColor: color,
 
-            chromeBackgroundColor: string,
+            chromeBackgroundColor: color,
             chromeFontFamily: string,
             chromeFontSize: number,
             chromeFontWeight: or(string, number),
-            chromeSubtleTextColor: string,
-            chromeTextColor: string,
+            chromeSubtleTextColor: color,
+            chromeTextColor: color,
+
+            inputBackgroundColor: color,
+            inputTextColor: color,
+
+            crosshairBackgroundColor: color,
+            crosshairTextColor: color,
         };
         const { errors } = validate(options.theme.params, themeParamsOptionsDef);
 
