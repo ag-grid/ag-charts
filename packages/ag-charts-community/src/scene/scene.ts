@@ -119,16 +119,20 @@ export class Scene {
         seriesRect?: BBox;
     }) {
         const { debugSplitTimes = { start: performance.now() }, extraDebugStats, seriesRect } = opts ?? {};
-        const { canvas, canvas: { context: ctx } = {}, root, pendingSize } = this;
+        const {
+            canvas,
+            canvas: { context: ctx } = {},
+            root,
+            pendingSize,
+            width,
+            height,
+            pixelRatio: devicePixelRatio,
+        } = this;
 
         if (!ctx) {
             // Scene.destroy() has dereferenced the HdpiCanvas instance, just abort silently.
             return;
         }
-
-        const width = this.pendingSize?.[0] ?? this.width;
-        const height = this.pendingSize?.[1] ?? this.height;
-        const devicePixelRatio = this.pendingSize?.[2] ?? this.height;
 
         const renderStartTime = performance.now();
         if (pendingSize) {
