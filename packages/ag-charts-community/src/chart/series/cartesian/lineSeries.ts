@@ -123,9 +123,10 @@ export class LineSeries extends CartesianSeries<
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
+        const stacked = stackCount > 1;
 
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
-        if (connectMissingData && stackCount > 1) {
+        if (connectMissingData && stacked) {
             common.invalidValue = 0;
 
             if (!visible) {
@@ -139,7 +140,7 @@ export class LineSeries extends CartesianSeries<
         // They must be identified this way when animated to ensure they can be tracked when their y-value
         // is updated. If this is a static chart, we can instead not bother with identifying datum and
         // automatically garbage collect the marker selection.
-        if (!isContinuousX) {
+        if (!isContinuousX || stacked) {
             props.push(keyProperty(xKey, xScaleType, { id: 'xKey' }));
         }
 
@@ -156,7 +157,7 @@ export class LineSeries extends CartesianSeries<
             props.push(valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' }));
         }
 
-        if (stackCount > 1) {
+        if (stacked) {
             const ids = [
                 `line-stack-${groupIndex}-yValues`,
                 `line-stack-${groupIndex}-yValues-trailing`,
@@ -188,7 +189,7 @@ export class LineSeries extends CartesianSeries<
             );
 
             if (isDefined(normalizedTo)) {
-                props.push(normaliseGroupTo([ids[0], ids[1], ids[2]], normalizedTo, 'range'));
+                props.push(normaliseGroupTo([ids[0], ids[1], ids[2]], normalizedTo));
             }
         }
 
@@ -201,6 +202,8 @@ export class LineSeries extends CartesianSeries<
 
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, data, {
             props,
+            groupByKeys: stacked,
+            groupByData: !stacked,
         });
 
         this.dataAggregationFilters = this.aggregateData(dataModel, processedData as any as UngroupedData<any>);

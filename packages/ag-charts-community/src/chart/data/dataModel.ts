@@ -14,7 +14,7 @@ export interface DataGroup {
     keys: any[];
     datumIndices: number[][];
     aggregation: any[][];
-    validScopes: Set<ScopeId> | undefined;
+    validScopes: Set<ScopeId>;
 }
 
 export interface UngroupedDataItem<I, D, V> {
@@ -32,6 +32,7 @@ type ScopeId = string;
 
 interface CommonMetadata<D> {
     input: { count: number };
+    scopes: Set<ScopeId>;
     dataSources: Map<ScopeId, unknown[]>;
     invalidKeys: Map<ScopeId, boolean[]> | undefined;
     invalidData: Map<ScopeId, boolean[]> | undefined;
@@ -183,7 +184,11 @@ export type AggregatePropertyDefinition<D, K extends keyof D & string, R = [numb
         finalFunction?: (result: R2) => [number, number];
     };
 
-type GroupValueAdjustFn<D, K extends keyof D & string> = (columns: D[K][][], indexes: number[], index: number) => void;
+type GroupValueAdjustFn<D, K extends keyof D & string> = (
+    columns: D[K][][],
+    indexes: number[],
+    dataGroup: DataGroup
+) => void;
 
 export type GroupValueProcessorDefinition<D, K extends keyof D & string> = PropertyIdentifiers &
     PropertySelectors & {
@@ -394,7 +399,7 @@ export class DataModel<
             }
         }
 
-        if (!!this.opts.groupByKeys || this.opts.groupByFn != null || this.opts.groupByData) {
+        if (!!this.opts.groupByKeys || this.opts.groupByFn != null) {
             const ungroupedScopes = new Set(valueScopes.values());
             keyScopes.forEach((s) => ungroupedScopes.delete(s));
 
@@ -431,6 +436,10 @@ export class DataModel<
             throw new Error(`AG Charts - didn't find keys for [${searchId}, ${scope.id}]`);
         }
         return keys.get(scope.id) as T[];
+    }
+
+    hasColumnById(scope: ScopeProvider, searchId: string) {
+        return this.scopeCache.get(scope.id)?.get(searchId) != null;
     }
 
     resolveColumnById<T = any>(
@@ -606,7 +615,7 @@ export class DataModel<
         } else if (groupByFn) {
             processedData = this.groupData(processedData, groupByFn(processedData));
         }
-        if (groupProcessors.length > 0) {
+        if (groupProcessors.length > 0 && processedData.type === 'grouped') {
             this.postProcessGroups(processedData);
         }
         if (aggregates.length > 0 && processedData.type === 'ungrouped') {
@@ -744,6 +753,7 @@ export class DataModel<
         return {
             type: 'ungrouped',
             input: { count: maxDataLength },
+            scopes: new Set(sources.keys()),
             dataSources: sources,
             aggregation: undefined,
             keys: [...allKeyMappings.values()],
@@ -909,7 +919,7 @@ export class DataModel<
 
         const { keys: dataKeys, columns: allColumns, columnScopes, invalidKeys, invalidData } = data;
 
-        const allScopes = Object.freeze(new Set(columnScopes.flatMap((s) => [...s.values()])));
+        const allScopes = data.scopes;
         const processedColumnIndexes = new Set<number>();
         for (const scope of allScopes) {
             // Determine columns we can process in batch.
@@ -1070,24 +1080,17 @@ export class DataModel<
         }
     }
 
-    private postProcessGroups(processedData: ProcessedData<any>) {
+    private postProcessGroups(processedData: GroupedData<any>) {
         const { groupProcessors } = this;
 
-        const { columnScopes, columns, invalidData } = processedData;
+        const { columnScopes, columns, invalidData, scopes } = processedData;
         for (const processor of groupProcessors) {
             const valueIndexes = this.valueGroupIdxLookup(processor);
             const adjustFn = processor.adjust()();
 
-            const activeColumnSources = valueIndexes.map((idx) => columns[idx]);
-            const activeColumnScopes = valueIndexes.map((idx) => columnScopes[idx]);
-            const activeInvalidDatas = activeColumnScopes
-                .map((s) => invalidData?.get(first(s)))
-                .filter((v): v is boolean[] => v != null);
-            const maxDatumIndex = Math.max(...activeColumnSources.map((s) => s.length));
-
-            for (let datumIndex = 0; datumIndex < maxDatumIndex; datumIndex += 1) {
-                if (activeInvalidDatas.some((d) => d[datumIndex] === true)) continue;
-                adjustFn(columns, valueIndexes, datumIndex);
+            for (const dataGroup of processedData.groups) {
+                if (dataGroup.validScopes !== scopes) continue;
+                adjustFn(columns, valueIndexes, dataGroup);
             }
 
             for (const valueIndex of valueIndexes) {

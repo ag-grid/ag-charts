@@ -6,6 +6,7 @@ import { clamp, isNegative } from '../../util/number';
 import { isContinuous, transformIntegratedCategoryValue } from '../../util/value';
 import { accumulatedValue, range, trailingAccumulatedValue } from './aggregateFunctions';
 import {
+    type DataGroup,
     type DatumPropertyDefinition,
     type GroupValueProcessorDefinition,
     type ProcessedData,
@@ -198,7 +199,7 @@ export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupD
         }),
 };
 
-function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 'sum' | 'range' }) {
+function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
     const normalise = (val: null | number, extent: number) => {
         if (extent === 0) return null;
         const result = ((val ?? 0) * normaliseTo) / extent;
@@ -208,52 +209,52 @@ function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 
         return Math.max(-normaliseTo, result);
     };
 
-    return () => () => (columns: any[][], valueIndexes: number[], datumIndex: number) => {
-        const extent = normaliseFindExtent(mode, columns, valueIndexes, datumIndex);
+    return () => () => (columns: any[][], valueIndexes: number[], dataGroup: DataGroup) => {
+        const extent = normaliseFindExtent(columns, valueIndexes, dataGroup);
         for (const valueIdx of valueIndexes) {
-            const column = columns[valueIdx];
-            const value: null | number | number[] | (null | number)[] = column[datumIndex];
-            if (value == null) {
-                column[datumIndex] = undefined;
-                continue;
+            for (const datumIndex of dataGroup.datumIndices[valueIdx]) {
+                const column = columns[valueIdx];
+                const value: null | number | number[] | (null | number)[] = column[datumIndex];
+                if (value == null) {
+                    column[datumIndex] = undefined;
+                    continue;
+                }
+                column[datumIndex] =
+                    // eslint-disable-next-line sonarjs/no-nested-functions
+                    typeof value === 'number' ? normalise(value, extent) : value.map((v) => normalise(v, extent));
             }
-            column[datumIndex] =
-                // eslint-disable-next-line sonarjs/no-nested-functions
-                typeof value === 'number' ? normalise(value, extent) : value.map((v) => normalise(v, extent));
         }
     };
 }
 
-function normaliseFindExtent(mode: 'sum' | 'range', columns: any[][], valueIndexes: number[], datumIndex: number) {
+function normaliseFindExtent(columns: any[][], valueIndexes: number[], dataGroup: DataGroup) {
     const valuesExtent = [0, 0];
     for (const valueIdx of valueIndexes) {
         const column = columns[valueIdx];
-        const value: null | number | (null | number)[] = column[datumIndex];
-        if (value == null) continue;
-        // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
-        const valueExtent = typeof value === 'number' ? value : Math.max(...value.map((v) => v ?? 0));
-        const valIdx = valueExtent < 0 ? 0 : 1;
-        if (mode === 'sum') {
-            valuesExtent[valIdx] += valueExtent;
-        } else if (valIdx === 0) {
-            valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], valueExtent);
-        } else {
-            valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], valueExtent);
+        for (const datumIndex of dataGroup.datumIndices[valueIdx]) {
+            const value: null | number | (null | number)[] = column[datumIndex];
+            if (value == null) continue;
+            // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
+            const valueExtent = typeof value === 'number' ? value : Math.max(...value.map((v) => v ?? 0));
+            const valIdx = valueExtent < 0 ? 0 : 1;
+            if (valIdx === 0) {
+                valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], valueExtent);
+            } else {
+                valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], valueExtent);
+            }
         }
     }
-
     return Math.max(Math.abs(valuesExtent[0]), valuesExtent[1]);
 }
 
 export function normaliseGroupTo(
     matchGroupIds: string[],
-    normaliseTo: number,
-    mode: 'sum' | 'range' = 'sum'
+    normaliseTo: number
 ): GroupValueProcessorDefinition<any, any> {
     return {
         type: 'group-value-processor',
         matchGroupIds,
-        adjust: memo({ normaliseTo, mode }, normaliseFnBuilder),
+        adjust: memo({ normaliseTo }, normaliseFnBuilder),
     };
 }
 
@@ -383,18 +384,20 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
 }
 
 function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailing'; separateNegative?: boolean }) {
-    return () => () => (columns: any[][], valueIndexes: number[], datumIndex: number) => {
+    return () => () => (columns: any[][], valueIndexes: number[], dataGroup: DataGroup) => {
         // Datum scope.
         const acc = [0, 0];
         for (const valueIdx of valueIndexes) {
-            const column = columns[valueIdx];
-            const currentVal = column[datumIndex];
-            const accIndex = isNegative(currentVal) && separateNegative ? 0 : 1;
-            if (!isFiniteNumber(currentVal)) continue;
+            for (const datumIndex of dataGroup.datumIndices[valueIdx] ?? []) {
+                const column = columns[valueIdx];
+                const currentVal = column[datumIndex];
+                const accIndex = isNegative(currentVal) && separateNegative ? 0 : 1;
+                if (!isFiniteNumber(currentVal)) continue;
 
-            if (mode === 'normal') acc[accIndex] += currentVal;
-            column[datumIndex] = acc[accIndex];
-            if (mode === 'trailing') acc[accIndex] += currentVal;
+                if (mode === 'normal') acc[accIndex] += currentVal;
+                column[datumIndex] = acc[accIndex];
+                if (mode === 'trailing') acc[accIndex] += currentVal;
+            }
         }
     };
 }
@@ -406,27 +409,29 @@ function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum
         let firstRow = true;
         return () => {
             // Group scope.
-            return (columns: any[][], valueIndexes: number[], datumIndex: number) => {
+            return (columns: any[][], valueIndexes: number[], dataGroup: DataGroup) => {
                 // Datum scope.
                 let acc = 0;
                 for (const valueIdx of valueIndexes) {
                     const column = columns[valueIdx];
-                    const currentVal = column[datumIndex];
-                    const lastValue = firstRow && sum === 'current' ? 0 : lastValues[valueIdx];
-                    lastValues[valueIdx] = currentVal;
+                    for (const datumIndex of dataGroup.datumIndices[valueIdx] ?? []) {
+                        const currentVal = column[datumIndex];
+                        const lastValue = firstRow && sum === 'current' ? 0 : lastValues[valueIdx];
+                        lastValues[valueIdx] = currentVal;
 
-                    const sumValue = sum === 'current' ? currentVal : lastValue;
-                    if (!isFiniteNumber(currentVal) || !isFiniteNumber(lastValue)) {
+                        const sumValue = sum === 'current' ? currentVal : lastValue;
+                        if (!isFiniteNumber(currentVal) || !isFiniteNumber(lastValue)) {
+                            column[datumIndex] = acc;
+                            continue;
+                        }
+
+                        if (mode === 'normal') {
+                            acc += sumValue;
+                        }
                         column[datumIndex] = acc;
-                        continue;
-                    }
-
-                    if (mode === 'normal') {
-                        acc += sumValue;
-                    }
-                    column[datumIndex] = acc;
-                    if (mode === 'trailing') {
-                        acc += sumValue;
+                        if (mode === 'trailing') {
+                            acc += sumValue;
+                        }
                     }
                 }
 
@@ -458,16 +463,18 @@ export function accumulateGroup(
 }
 
 function groupStackAccFn() {
-    return () => (columns: any[][], valueIndexes: number[], datumIndex: number) => {
+    return () => (columns: any[][], valueIndexes: number[], dataGroup: DataGroup) => {
         // Datum scope.
         const acc = new Float64Array(valueIndexes.length);
         let stackCount = 0;
         for (const valueIdx of valueIndexes) {
             const column = columns[valueIdx];
-            const currentValue = column[datumIndex];
-            acc[stackCount] = Number.isFinite(currentValue) ? currentValue : NaN;
-            stackCount += 1;
-            column[datumIndex] = acc.subarray(0, stackCount);
+            for (const datumIndex of dataGroup.datumIndices[valueIdx] ?? []) {
+                const currentValue = column[datumIndex];
+                acc[stackCount] = Number.isFinite(currentValue) ? currentValue : NaN;
+                stackCount += 1;
+                column[datumIndex] = acc.subarray(0, stackCount);
+            }
         }
     };
 }

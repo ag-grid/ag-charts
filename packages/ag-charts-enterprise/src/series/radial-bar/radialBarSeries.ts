@@ -119,7 +119,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const extraProps = [];
 
         if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo), 'range'));
+            extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
         }
 
         if (animationEnabled) {
@@ -171,6 +171,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 ),
                 ...extraProps,
             ],
+            groupByKeys: true,
+            groupByData: false,
         });
 
         this.animationState.transition('updateData');
@@ -206,7 +208,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     override createNodeData() {
         const { processedData, dataModel } = this;
 
-        if (!dataModel || !processedData || processedData.type !== 'ungrouped' || !this.properties.isValid()) {
+        if (!dataModel || !processedData || processedData.type !== 'grouped' || !this.properties.isValid()) {
             return;
         }
 
@@ -271,9 +273,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const context = { itemId: radiusKey, nodeData, labelData: nodeData };
         if (!this.visible) return context;
 
-        const { dataSources, aggregation } = processedData;
+        const { dataSources } = processedData;
         const rawData = dataSources.get(this.id) ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        for (const { datumIndex, group } of dataModel.forEachGroupDatum(this, processedData)) {
+            const datum = rawData[datumIndex];
             const radiusDatum = radiusValues[datumIndex];
             if (radiusDatum == null) return;
 
@@ -281,8 +284,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const angleStartDatum = angleStartValues[datumIndex];
             const angleEndDatum = angleEndValues[datumIndex];
             const isPositive = angleDatum >= 0 && !Object.is(angleDatum, -0);
-            const datumAggregation = aggregation![datumIndex];
-            const angleRange = datumAggregation[angleRangeIndex][isPositive ? 1 : 0];
+            const angleRange = group.aggregation[angleRangeIndex][isPositive ? 1 : 0];
             const reversed = isPositive === angleAxisReversed;
 
             let startAngle = angleScale.convert(angleStartDatum, true);
@@ -326,7 +328,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 reversed,
                 index: datumIndex,
             });
-        });
+        }
 
         return context;
     }
