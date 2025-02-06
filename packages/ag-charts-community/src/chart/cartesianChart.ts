@@ -248,7 +248,7 @@ export class CartesianChart extends Chart {
         ][];
 
         // Step 2) calculate axis offsets and total depth for each position.
-        const { width, height, canvas } = this.ctx.scene;
+        const { width, height, pixelRatio } = this.ctx.scene;
         const newAxisAreaWidths: AreaWidthMap = new Map();
         const axisOffsets = new Map<string, number>();
 
@@ -256,7 +256,7 @@ export class CartesianChart extends Chart {
             const isVertical = position === 'left' || position === 'right';
 
             // Adjust offset for pixel ratio to prevent alignment issues with series rendering.
-            let currentOffset = isVertical ? height % canvas.pixelRatio : width % canvas.pixelRatio;
+            let currentOffset = isVertical ? height % pixelRatio : width % pixelRatio;
             let totalAxisWidth = 0;
 
             for (const axis of axes) {
