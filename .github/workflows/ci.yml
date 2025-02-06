@@ -206,7 +206,7 @@ jobs:
                   cache_mode: ro
 
             - name: build
-              run: yarn nx run-many -t build -p tag:package --parallel=3
+              run: yarn nx run-many -t build -p tag:package -p tag:fw --parallel=3
             - name: build examples
               run: yarn nx run-many -t generate --parallel=3
 
