@@ -43,6 +43,16 @@ export default defineConfig({
         /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
         trace: 'on-first-retry',
     },
+    expect: {
+        toMatchSnapshot: {
+            maxDiffPixels: 0,
+            threshold: 0.01,
+        },
+        toHaveScreenshot: {
+            maxDiffPixels: 0,
+            threshold: 0.01,
+        },
+    },
 
     /* Configure projects for major browsers */
     projects: [
