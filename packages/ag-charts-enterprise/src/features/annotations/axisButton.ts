@@ -164,6 +164,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     private updateButtonElement() {
         const { button } = this;
         button.addListener('click', () => this.onButtonClick(this.coords));
+        button.addListener('touchend', () => this.onButtonClick(this.coords));
         button.addListener('drag-start', () => {}); // ignore drag events on this button.
         button.setInnerHTML(
             `<span class="${getIconClassNames('zoom-in')} ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`
