@@ -49,7 +49,7 @@ In this configuration:
 -   `calloutLabelKey` defines the variable used for the callout labels. This is also used in the [Legend](./legend/) if no `legendItemKey` is provided, and in the [Tooltips](./tooltips/).
 -   `sectorLabelKey` defines the variable used for the sector labels.
 
-Both sector and callout labels implement collision avoidance by default. This means that sector labels are not displayed where the sector is too small to fit the label text. Similarly, callout labels are positioned to fit if possible, otherwise they too are hidden.
+By default, callout labels won't be displayed for sectors with a value of `0`. Set `calloutLabel.minAngle = 0` to show these.
 
 It is possible to customise the text displayed in these labels by using the `calloutLabel.formatter` and `sectorLabel.formatter`.
 These functions receive a single object as a parameter containing the options and datum associated with a pie sector, and should return a string.
