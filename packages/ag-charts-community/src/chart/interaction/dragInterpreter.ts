@@ -106,15 +106,29 @@ export class DragInterpreter {
             const { device, offsetX, offsetY, clientX, clientY, currentX, currentY } = event;
             const type = 'click';
 
-            let sytheticClick: DragInterpreterClickEvent;
+            let sytheticClick: DragInterpreterClickEvent | undefined;
             if (device === 'mouse') {
                 const sourceEvent: MouseEvent = event.sourceEvent;
                 sytheticClick = { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
             } else {
                 const sourceEvent: TouchEvent = event.sourceEvent;
-                sytheticClick = { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
+                if (sourceEvent.type === 'touchend') {
+                    // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
+                    sytheticClick = {
+                        type,
+                        device,
+                        offsetX,
+                        offsetY,
+                        clientX,
+                        clientY,
+                        currentX,
+                        currentY,
+                        sourceEvent,
+                    };
+                }
             }
-            this.dispatch(sytheticClick);
+
+            if (sytheticClick) this.dispatch(sytheticClick);
         }
     }
 }
