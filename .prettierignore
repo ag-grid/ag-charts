@@ -15,3 +15,6 @@
 
 /.nx/cache
 /.nx/workspace-data
+
+# Comment in astro file
+external/ag-website-shared/src/components/documentation-archive/DocumentationArchiveSection.astro
