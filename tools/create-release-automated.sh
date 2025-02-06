@@ -15,6 +15,7 @@ node ./tools/update-release-info.js
 NEW_VERSION=$(node ./tools/calculate-next-version.js)
 ./tools/bump-versions.sh ${NEW_VERSION}
 node ./tools/readme/sync-readme.js
+node ./tools/updateVersionsData.js version
 
 git commit -a -m "BRANCH prep for ${NEW_VERSION}"
 git push --set-upstream origin $BRANCH
