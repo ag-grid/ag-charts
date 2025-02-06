@@ -51,7 +51,18 @@ function addMouseCloseListener(destroyFns: (() => void)[], menu: HTMLElement, hi
     return self;
 }
 
-function containsPoint(container: Element, event: MouseEvent) {
+function addTouchCloseListener(destroyFns: (() => void)[], menu: HTMLElement, hideCallback: () => void): () => void {
+    const self = addRemovableEventListener(destroyFns, window, 'touchstart', (event: TouchEvent) => {
+        const touches = Array.from(event.targetTouches);
+        if (touches.some((touch) => !containsPoint(menu, touch))) {
+            hideCallback();
+            self();
+        }
+    });
+    return self;
+}
+
+function containsPoint(container: Element, event: Pick<MouseEvent & TouchEvent, 'target' | 'clientX' | 'clientY'>) {
     if (event.target instanceof Element) {
         const { x, y, width, height } = container.getBoundingClientRect();
         const { clientX: ex, clientY: ey } = event;
@@ -155,6 +166,7 @@ class MenuCloserImp implements MenuCloser {
         public readonly closeCallback: () => void
     ) {
         this.destroyFns.push(addMouseCloseListener(this.destroyFns, menu, () => this.close(true)));
+        this.destroyFns.push(addTouchCloseListener(this.destroyFns, menu, () => this.close(true)));
     }
 
     close(mousedown?: true) {
