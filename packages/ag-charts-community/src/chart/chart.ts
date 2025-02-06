@@ -1189,7 +1189,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
         });
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
 
-        this.ctx.legendManager.clearData();
+        if (this.shouldClearLegendData(deltaOptions, seriesStatus)) this.ctx.legendManager.clearData();
+
         this.applyInitialState(newOpts);
 
         this.firstApply = false;
@@ -1247,6 +1248,16 @@ export abstract class Chart extends Observable implements ModuleInstance {
         );
         const otherRefreshUpdate = deltaOptions.title != null && deltaOptions.subtitle != null;
         return seriesDataUpdate || optionsHaveLegend || otherRefreshUpdate;
+    }
+
+    private shouldClearLegendData(deltaOptions: AgChartOptions, seriesStatus: SeriesChangeType) {
+        const seriesChanged =
+            seriesStatus === 'replaced' || seriesStatus === 'series-grouping-change' || seriesStatus === 'updated';
+        const legendKeys = legendRegistry.getKeys();
+        const optionsHaveLegend = Object.values(legendKeys).some(
+            (legendKey) => (deltaOptions as any)[legendKey] != null
+        );
+        return seriesChanged || optionsHaveLegend;
     }
 
     private applyMiniChartOptions(
