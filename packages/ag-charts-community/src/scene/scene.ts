@@ -192,7 +192,7 @@ export class Scene {
         if (root && canvasCleared) {
             if (root.visible) {
                 // Pre-render before building debug tree, so state matches that used in rendering.
-                root.preRender();
+                root.preRender(renderCtx);
             }
 
             if (this.debug.check()) {

@@ -12,8 +12,8 @@ export function clearContext({
     height: number;
 }) {
     context.save();
-    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    context.clearRect(0, 0, width, height);
+    context.resetTransform();
+    context.clearRect(0, 0, Math.ceil(width * pixelRatio), Math.ceil(height * pixelRatio));
     context.restore();
 }
 

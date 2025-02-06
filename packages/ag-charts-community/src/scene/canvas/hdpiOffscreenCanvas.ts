@@ -23,9 +23,9 @@ export class HdpiOffscreenCanvas {
     readonly canvas: OffscreenCanvas;
     readonly context: OffscreenCanvasRenderingContext2D & { verifyDepthZero?: () => void };
 
-    width: number = 600;
-    height: number = 300;
-    readonly pixelRatio: number;
+    width: number;
+    height: number;
+    pixelRatio: number;
 
     constructor(options: CanvasOptions) {
         const { width, height, pixelRatio, willReadFrequently = false } = options;
@@ -38,8 +38,7 @@ export class HdpiOffscreenCanvas {
         this.canvas = new OffscreenCanvas(canvasWidth, canvasHeight);
 
         this.context = this.canvas.getContext('2d', { willReadFrequently })!;
-
-        this.resize(width ?? 0, height ?? 0, pixelRatio ?? 1);
+        this.context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
         debugContext(this.context);
     }
@@ -56,7 +55,7 @@ export class HdpiOffscreenCanvas {
         if (!(width > 0 && height > 0)) return;
 
         const { canvas, context } = this;
-        if (width !== this.width || height !== this.height) {
+        if (width !== this.width || height !== this.height || pixelRatio !== this.pixelRatio) {
             const [canvasWidth, canvasHeight] = canvasDimensions(width, height, pixelRatio);
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
@@ -65,6 +64,7 @@ export class HdpiOffscreenCanvas {
 
         this.width = width;
         this.height = height;
+        this.pixelRatio = pixelRatio;
     }
 
     clear() {

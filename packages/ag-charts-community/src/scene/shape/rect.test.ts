@@ -190,15 +190,16 @@ describe('Rect', () => {
                     }
 
                     // Render.
-                    ctx.save();
-                    rect.preRender();
-                    rect.render({
+                    const renderCtx = {
                         ctx,
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
                         debugNodes: {},
-                    });
+                    };
+                    ctx.save();
+                    rect.preRender(renderCtx);
+                    rect.render(renderCtx);
                     ctx.restore();
 
                     // Prepare for next case.
