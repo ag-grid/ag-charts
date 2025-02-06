@@ -287,10 +287,10 @@ const options: AgCartesianChartOptions = {
         doubleClick: (_event) => {
             alert('Series Double Clicked');
         },
-        seriesNodeClick: ({ datum, xKey, yKey, seriesId }) => {
+        seriesNodeClick: ({}) => {
             alert(`Node Clicked`);
         },
-        seriesVisibilityChange: ({ seriesId, visible }: AgSeriesVisibilityChange) => {
+        seriesVisibilityChange: ({ visible }: AgSeriesVisibilityChange) => {
             alert(`Series Visible: ${visible}`);
         },
     },
