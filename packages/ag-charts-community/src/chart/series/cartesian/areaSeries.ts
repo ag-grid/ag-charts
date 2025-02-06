@@ -596,8 +596,7 @@ export class AreaSeries extends CartesianSeries<
         const { fill: seriesFill } = this.properties;
 
         if (isGradientFill(seriesFill)) {
-            const gradientFillOptions = this.getGradientFillOptions(seriesFill, this.properties.defaultColorRange);
-            fill.gradientFillOptions = gradientFillOptions;
+            fill.fillBBox = this.getFillBBox(seriesFill);
         }
 
         fill.setProperties({
@@ -609,6 +608,7 @@ export class AreaSeries extends CartesianSeries<
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
+            defaultColorRange: this.properties.defaultColorRange,
         });
 
         updateClipPath(this, stroke);

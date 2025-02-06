@@ -13,12 +13,6 @@ import { align } from '../util/pixel';
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
 
-export type GradientOptions = {
-    bbox?: BBox;
-    domain: [number, number];
-    defaultColorRange?: string[];
-};
-
 export type CanvasContext = CanvasFillStrokeStyles &
     CanvasCompositing &
     CanvasShadowStyles &
@@ -79,6 +73,9 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection()
     strokeOpacity: number = 1;
 
+    @SceneChangeDetection()
+    defaultColorRange: string[] = Shape.defaultStyles.defaultColorRange;
+
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fill?: FillType = Shape.defaultStyles.fill;
 
@@ -114,10 +111,9 @@ export abstract class Shape<D = any> extends Node<D> {
     private createLinearGradient(fill: AgGradientFill) {
         const { colorStops = [], direction } = fill;
         const isHorizontal = direction === 'horizontal';
-        const { domain, defaultColorRange = [] } = this.gradientFillOptions;
-        const stops = getColorStops(colorStops, defaultColorRange, domain);
+        const stops = getColorStops(colorStops, this.defaultColorRange, [0, 1]);
 
-        return new LinearGradient('oklch', stops, isHorizontal ? 0 : 90);
+        return new LinearGradient('rgb', stops, isHorizontal ? 0 : 90);
     }
 
     protected onFillChange() {
@@ -180,10 +176,7 @@ export abstract class Shape<D = any> extends Node<D> {
     fillShadow: DropShadow | undefined = Shape.defaultStyles.fillShadow;
 
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
-    gradientFillOptions: GradientOptions = {
-        domain: [0, 1],
-        defaultColorRange: Shape.defaultStyles.defaultColorRange,
-    };
+    fillBBox?: BBox;
 
     protected fillStroke(ctx: CanvasContext, path?: Path2D) {
         this.renderFill(ctx, path);
@@ -211,7 +204,7 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyFill(ctx: CanvasContext) {
-        const bbox = this.gradientFillOptions.bbox ?? this.getBBox();
+        const bbox = this.fillBBox ?? this.getBBox();
         ctx.fillStyle =
             this.fillGradient?.createGradient(ctx as any, bbox) ??
             (typeof this.fill === 'string' ? this.fill : undefined) ??
