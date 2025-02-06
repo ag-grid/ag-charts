@@ -28,7 +28,7 @@ const countries = [
 countries.sort();
 
 export function getData(): any[] {
-    return years.map((year, idx) => ({
+    return years.map((_, idx) => ({
         country: countries[idx],
         value: Math.round(Math.random() * 1000),
         secondaryValue: Math.round(Math.random() * 1000),

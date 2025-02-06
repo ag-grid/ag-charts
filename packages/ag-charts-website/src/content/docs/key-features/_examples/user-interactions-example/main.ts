@@ -1,11 +1,18 @@
-import { AgCartesianChartOptions, AgCharts, AgSeriesVisibilityChange } from 'ag-charts-community';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgLineSeriesTooltipRendererParams,
+    AgSeriesVisibilityChange,
+    AgTooltipRendererResult,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
-const customTooltipRenderer = ({ datum, xKey, yKey, yName }) => {
+const customTooltipRenderer = (params: AgLineSeriesTooltipRendererParams<any>): AgTooltipRendererResult => {
+    const { datum, xKey, yKey, yName } = params;
     return {
         heading: 'Imported Banana Prices',
-        title: yName,
+        title: yName || '',
         data: [
             {
                 label: 'Week #' + datum[xKey],
@@ -14,7 +21,6 @@ const customTooltipRenderer = ({ datum, xKey, yKey, yName }) => {
         ],
     };
 };
-
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
