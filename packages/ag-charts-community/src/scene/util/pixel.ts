@@ -13,3 +13,7 @@ export function align(pixelRatio: number, start: number, length?: number) {
     // Account for the rounding of alignedStart by increasing length to compensate before alignment.
     return Math.round((length + start) * pixelRatio) / pixelRatio - alignedStart;
 }
+
+export function alignBefore(pixelRatio: number, start: number) {
+    return Math.floor(start * pixelRatio) / pixelRatio;
+}
