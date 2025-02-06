@@ -1,5 +1,7 @@
 import type { AgGradientFill } from 'ag-charts-types';
 
+import { createSvgElement } from '../../core';
+import { generateUUID } from '../../util/id';
 import { clamp } from '../../util/number';
 import type { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
@@ -278,10 +280,46 @@ export abstract class Shape<D = any> extends Node<D> {
 
     abstract isPointInPath(x: number, y: number): boolean;
 
-    protected applySvgFillAttributes(element: SVGElement) {
+    protected applySvgFillAttributes(element: SVGElement, defs?: SVGElement[]) {
         const { fill, fillOpacity } = this;
-        element.setAttribute('fill', typeof fill === 'string' ? fill : 'none');
+
+        if (typeof fill === 'string') {
+            element.setAttribute('fill', fill);
+        } else if (isGradientFill(fill) && this.fillGradient) {
+            defs ??= [];
+
+            const gradient = createSvgElement('linearGradient');
+            const id = generateUUID();
+            gradient.setAttribute('id', id);
+
+            const { direction } = fill;
+            const isHorizontal = direction === 'horizontal';
+
+            if (isHorizontal) {
+                gradient.setAttribute('x1', '0');
+                gradient.setAttribute('x2', '0');
+                gradient.setAttribute('y1', '1');
+                gradient.setAttribute('y2', '0');
+            }
+
+            const { stops } = this.fillGradient;
+            stops.forEach(({ offset, color }) => {
+                const stop = createSvgElement('stop');
+
+                stop.setAttribute('offset', `${offset}`);
+                stop.setAttribute('stop-color', `${color}`);
+
+                gradient.appendChild(stop);
+            });
+
+            defs.push(gradient);
+
+            element.setAttribute('fill', `url(#${id})`);
+        }
+
         element.setAttribute('fill-opacity', String(fillOpacity));
+
+        return defs;
     }
 
     protected applySvgStrokeAttributes(element: SVGElement) {
