@@ -2208,6 +2208,160 @@ export const STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOp
     ],
 };
 
+const colorStops = [
+    {
+        stop: 0.2,
+        color: 'orange',
+    },
+    {
+        stop: 0.5,
+        color: 'red',
+    },
+    {
+        stop: 0.8,
+        color: 'blue',
+    },
+];
+
+export const AREA_SERIES_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
+    data: DATA_APPLE_REVENUE_BY_PRODUCT,
+    theme: {
+        overrides: {
+            area: {
+                series: {
+                    fill: {
+                        type: 'gradient',
+                        direction: 'vertical',
+                        colorStops,
+                    } as any, // not in the options for now
+                },
+            },
+        },
+    },
+    series: [
+        {
+            type: 'area',
+            xKey: 'quarter',
+            yKey: 'iphone',
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+};
+
+export const AREA_SERIES_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+    data: DATA_APPLE_REVENUE_BY_PRODUCT,
+    theme: {
+        overrides: {
+            area: {
+                series: {
+                    fill: {
+                        type: 'gradient',
+                        direction: 'horizontal',
+                        colorStops,
+                    } as any, // not in the options for now
+                },
+            },
+        },
+    },
+    series: [
+        {
+            type: 'area',
+            xKey: 'quarter',
+            yKey: 'iphone',
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+};
+
+export const AREA_SERIES_DEFAULT_GRADIENT_FILL: AgCartesianChartOptions = {
+    data: DATA_APPLE_REVENUE_BY_PRODUCT,
+    theme: {
+        overrides: {
+            area: {
+                series: {
+                    fill: {
+                        type: 'gradient',
+                    } as any, // not in the options for now
+                },
+            },
+        },
+    },
+    series: [
+        {
+            type: 'area',
+            xKey: 'quarter',
+            yKey: 'iphone',
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+};
+
+export const AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS: AgCartesianChartOptions = {
+    data: DATA_APPLE_REVENUE_BY_PRODUCT,
+    theme: {
+        overrides: {
+            area: {
+                series: {
+                    fill: {
+                        type: 'gradient',
+                        direction: 'horizontal',
+                        bounds: 'axes',
+                    } as any, // not in the options for now
+                },
+            },
+        },
+    },
+    series: [
+        {
+            type: 'area',
+            xKey: 'quarter',
+            yKey: 'iphone',
+        },
+        {
+            type: 'area',
+            xKey: 'quarter',
+            yKey: 'wearables',
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+};
+
 export const NORMALISED_STACKED_AREA: AgCartesianChartOptions = {
     data: DATA_BROWSER_MARKET_SHARE_MISSING_X,
     series: [

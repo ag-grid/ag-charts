@@ -177,6 +177,22 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
             options: examples.NORMALISED_STACKED_AREA,
             assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 4) }),
         },
+        AREA_SERIES_VERTICAL_GRADIENT_FILL: {
+            options: examples.AREA_SERIES_VERTICAL_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        },
+        AREA_SERIES_HORIZONTAL_GRADIENT_FILL: {
+            options: examples.AREA_SERIES_HORIZONTAL_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        },
+        AREA_SERIES_DEFAULT_GRADIENT_FILL: {
+            options: examples.AREA_SERIES_DEFAULT_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        },
+        AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS: {
+            options: examples.AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS,
+            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 2) }),
+        },
     }),
 };
 
