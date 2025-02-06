@@ -172,7 +172,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private computeLayout() {
         this.updateDirection();
         this.updateScale();
-        this.updateRange();
         this.resizeTickTree();
 
         if (!this.tickTreeLayout?.depth) {
@@ -438,9 +437,11 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.tickLabelGroupSelection.clear();
     }
 
-    protected override updateRange() {
-        super.updateRange();
+    protected override updateScale() {
+        super.updateScale();
         this.tickScale.range = this.scale.range;
+        // Outer padding must equal half inner padding to keep groups center point aligned.
+        this.scale.paddingOuter = this.scale.paddingInner / 2;
     }
 
     override processData() {
@@ -488,12 +489,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
             line.strokeWidth = width;
             line.lineDash = lineDash;
         });
-    }
-
-    override updateScale(): void {
-        super.updateScale();
-        // Outer padding must equal half inner padding to keep groups center point aligned.
-        this.scale.paddingOuter = this.scale.paddingInner / 2;
     }
 
     filterDuplicateArrays(array: string[][]): string[][] {

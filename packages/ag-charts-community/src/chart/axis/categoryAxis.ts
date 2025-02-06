@@ -35,7 +35,7 @@ export class CategoryAxis<
         return { domain, clipped: false };
     }
 
-    override updateScale() {
+    protected override updateScale() {
         super.updateScale();
 
         let { paddingInner, paddingOuter } = this;

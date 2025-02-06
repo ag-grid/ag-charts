@@ -183,6 +183,10 @@ export abstract class Axis<
         false
     );
 
+    get labelNodes() {
+        return this.tickLabelGroupSelection.nodes();
+    }
+
     private _crossLines: CrossLine[] = [];
     set crossLines(value: CrossLine[]) {
         const { CrossLineConstructor } = this.constructor as typeof Axis;
@@ -221,8 +225,8 @@ export abstract class Axis<
 
     protected axisContext: AxisContext | undefined = undefined;
 
-    private labelFormatter: ((datum: any) => string) | undefined = undefined;
-    private datumFormatter: ((datum: any) => string) | undefined = undefined;
+    private labelFormatter: ((datum: unknown) => string) | undefined = undefined;
+    private datumFormatter: ((datum: unknown) => string) | undefined = undefined;
     private scaleFormatterParams: CrosslineFormatterParams<D> | undefined = undefined;
 
     protected readonly destroyFns: Array<() => void> = [];
@@ -256,7 +260,7 @@ export abstract class Axis<
         this.destroyFns.forEach((f) => f());
     }
 
-    protected updateRange() {
+    protected updateScale() {
         const { range: rr, visibleRange: vr, scale } = this;
         const span = (rr[1] - rr[0]) / (vr[1] - vr[0]);
         const shift = span * vr[0];
@@ -309,11 +313,11 @@ export abstract class Axis<
         return value >= min - tolerance && value <= max + tolerance;
     }
 
-    protected defaultDatumFormatter(datum: any, fractionDigits: number): string {
+    protected defaultDatumFormatter(datum: unknown, fractionDigits: number): string {
         return formatValue(datum, fractionDigits + 1);
     }
 
-    protected defaultLabelFormatter(datum: any, fractionDigits: number): string {
+    protected defaultLabelFormatter(datum: unknown, fractionDigits: number): string {
         return formatValue(datum, fractionDigits);
     }
 
@@ -403,7 +407,7 @@ export abstract class Axis<
             fontWeight,
             spacing,
         } = mergeDefaults(stylerOutput, additionalStyles, defaultStyle);
-        return { fill, fontFamily, fontSize, fontStyle, fontWeight, spacing: spacing };
+        return { fill, fontFamily, fontSize, fontStyle, fontWeight, spacing };
     }
 
     protected getTickSize() {
@@ -419,12 +423,12 @@ export abstract class Axis<
             return;
         }
 
+        caption.enabled = true;
         caption.color = title.color;
         caption.fontFamily = title.fontFamily;
         caption.fontSize = title.fontSize;
         caption.fontStyle = title.fontStyle;
         caption.fontWeight = title.fontWeight;
-        caption.enabled = title.enabled;
         caption.wrapping = title.wrapping;
 
         const titleNode = caption.node;
@@ -456,29 +460,22 @@ export abstract class Axis<
         this.setDomains(...domains);
     }
 
-    private _lastDomain: D[] | undefined = undefined;
     protected animatable = true;
     setDomains(...domains: D[][]) {
         const { domain, animatable } = this.scale.normalizeDomains(...domains);
 
-        if (this._lastDomain !== domain) {
-            this.dataDomain = this.normaliseDataDomain(domain);
+        this.dataDomain = this.normaliseDataDomain(domain);
 
-            if (this.reverse) {
-                this.dataDomain.domain = this.dataDomain.domain.slice().reverse();
-            }
+        if (this.reverse) {
+            this.dataDomain.domain.reverse();
         }
 
-        this._lastDomain = domain;
         this.animatable = animatable;
     }
 
     _scaleNiceDomainRangeExtent: number = NaN;
     calculateLayout(initialPrimaryTickCount?: number) {
         const { scale, label, visibleRange, nice } = this;
-
-        const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
-        const sideFlag = this.label.getSideFlag();
 
         this.updateScale();
 
@@ -518,10 +515,10 @@ export abstract class Axis<
         const specifier = label.format;
         this.labelFormatter =
             scale.tickFormatter({ domain: tickDomain, specifier, ticks, fractionDigits }) ??
-            ((x: any) => this.defaultLabelFormatter(x, fractionDigits));
+            ((value: unknown) => this.defaultLabelFormatter(value, fractionDigits));
         this.datumFormatter =
             scale.datumFormatter({ domain: tickDomain, specifier, ticks, fractionDigits }) ??
-            ((x: any) => this.defaultDatumFormatter(x, fractionDigits));
+            ((value: unknown) => this.defaultDatumFormatter(value, fractionDigits));
         this.scaleFormatterParams = { domain: tickDomain, ticks, fractionDigits };
 
         this.layout.label = {
@@ -530,13 +527,15 @@ export abstract class Axis<
             format: this.label.format,
         };
 
+        const sideFlag = label.getSideFlag();
         const anySeriesActive = this.isAnySeriesActive();
+        const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
 
         this.crossLines.forEach((crossLine) => {
             crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
             crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
             if (crossLine instanceof CartesianCrossLine) {
-                crossLine.label.parallel ??= this.label.parallel;
+                crossLine.label.parallel ??= label.parallel;
             }
             crossLine.parallelFlipRotation = parallelFlipRotation;
             crossLine.regularFlipRotation = regularFlipRotation;
@@ -565,10 +564,6 @@ export abstract class Axis<
         const { rotation, translationX, translationY } = this.getAxisTransform();
         Matrix.updateTransformMatrix(matrix, 1, 1, rotation, translationX, translationY);
         return matrix.transformBBox(bbox);
-    }
-
-    updateScale() {
-        this.updateRange();
     }
 
     protected calculateRotations() {
@@ -653,7 +648,12 @@ export abstract class Axis<
     protected abstract updateLabels(): void;
 
     // For formatting (nice rounded) tick values.
-    formatTick(value: any, index: number, fractionDigits?: number, defaultFormatter?: (datum: any) => string): string {
+    formatTick(
+        value: unknown,
+        index: number,
+        fractionDigits?: number,
+        defaultFormatter?: (datum: unknown) => string
+    ): string {
         const {
             labelFormatter,
             label: { formatter },
@@ -672,7 +672,7 @@ export abstract class Axis<
     }
 
     // For formatting arbitrary values between the ticks.
-    formatDatum(value: any): string {
+    formatDatum(value: unknown): string {
         const {
             label: { formatter },
             moduleCtx: { callbackCache },
@@ -691,10 +691,10 @@ export abstract class Axis<
         return String(result ?? value);
     }
 
-    private getScaleValueFormatter(format?: string): (value: any) => string {
+    private getScaleValueFormatter(format?: string): (value: unknown) => string {
         const { scaleFormatterParams } = this;
 
-        let formatter: ((value: any) => string) | undefined;
+        let formatter: ((value: unknown) => string) | undefined;
         try {
             if (format != null && scaleFormatterParams != null) {
                 formatter = this.scale.tickFormatter({ ...scaleFormatterParams, specifier: format });
@@ -703,7 +703,7 @@ export abstract class Axis<
             Logger.warnOnce(`the format string ${format} is invalid, ignoring.`);
         }
 
-        formatter ??= (value: any) => this.formatDatum(value);
+        formatter ??= (value: unknown) => this.formatDatum(value);
 
         return formatter;
     }
@@ -784,15 +784,9 @@ export abstract class Axis<
             seriesKeyProperties: () =>
                 this.boundSeries.reduce((keys, series) => {
                     const seriesKeys = series.getKeyProperties(this.direction);
-
-                    seriesKeys.forEach((key) => {
-                        if (keys.indexOf(key) < 0) {
-                            keys.push(key);
-                        }
-                    });
-
+                    seriesKeys.forEach((key) => keys.add(key));
                     return keys;
-                }, [] as string[]),
+                }, new Set<string>()),
             seriesIds: () => this.boundSeries.map((series) => series.id),
             scaleValueFormatter: (specifier?: string) => this.getScaleValueFormatter(specifier),
             scaleInvert: (val) => scale.invert(val, true),

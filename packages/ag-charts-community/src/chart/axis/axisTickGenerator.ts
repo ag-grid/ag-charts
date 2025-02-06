@@ -24,7 +24,7 @@ export interface TickData<D = any> {
     rawTicks: D[];
     fractionDigits: number;
     ticks: TickDatum[];
-    niceDomain: D[];
+    niceDomain?: D[];
 }
 
 export interface TickGenerationParams<D = any> {
@@ -96,7 +96,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const { minSpacing, maxSpacing } = this.axis.interval;
         const tickSpacing = !isNaN(minSpacing) || !isNaN(maxSpacing);
         const keepEvery = tickSpacing ? Math.ceil(ticks.length / tickCount) : 2;
-        return ticks.filter((_: any, i: number) => i % keepEvery === 0);
+        const offset = ticks.length % keepEvery ? -1 : 0;
+        return ticks.filter((_: any, i: number) => (i + offset) % keepEvery === 0);
     }
 
     generateTicks({
@@ -111,8 +112,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     }: TickGenerationParams<D>): TickGenerationResult<D> {
         const {
             scale,
-            interval: { minSpacing, maxSpacing },
             label,
+            interval: { minSpacing, maxSpacing },
         } = this.axis;
         const { parallel, rotation, fontFamily, fontSize, fontStyle, fontWeight } = label;
 
@@ -167,7 +168,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             ticks: [],
             rawTicks: [],
             fractionDigits: 0,
-            niceDomain: null!,
+            niceDomain: undefined,
         };
 
         let index = 0;
@@ -378,7 +379,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         };
 
         let niceDomain = niceMode === NiceMode.TickAndDomain ? scale.niceDomain(domainParams, domain) : domain;
-
         let tickDomain: D[] = niceDomain;
         let rawTicks: any[];
 
@@ -393,6 +393,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                         .sort((a, b) => Number(a) - Number(b));
                 }
                 break;
+
             case TickGenerationType.CREATE_SECONDARY:
                 if (ContinuousScale.is(scale)) {
                     const secondaryAxisTicks = calculateNiceSecondaryAxis(
@@ -408,12 +409,13 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     rawTicks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
                 }
                 break;
+
             case TickGenerationType.FILTER:
                 rawTicks = this.filterTicks(previousTicks, tickCount);
                 break;
+
             default:
                 rawTicks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
-                break;
         }
 
         const fractionDigits = rawTicks.reduce(

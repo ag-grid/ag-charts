@@ -14,6 +14,7 @@ import type { ModuleMap } from '../module/moduleMap';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
+import type { TransformableText } from '../scene/shape/text';
 import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
 import type { AxisTick, TickInterval } from './axis/axisTick';
@@ -93,6 +94,7 @@ export interface ChartAxis {
     translation: { x: number; y: number };
     type: string;
     visibleRange: [number, number];
+    labelNodes: TransformableText[];
 }
 
 export interface ChartAxisLabel extends FontOptions {
