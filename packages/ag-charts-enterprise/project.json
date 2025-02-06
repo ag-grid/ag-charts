@@ -104,6 +104,6 @@
       }
     }
   },
-  "tags": ["no-batching"],
+  "tags": ["package"],
   "implicitDependencies": ["ag-charts-community"]
 }

@@ -54,6 +54,6 @@
       }
     }
   },
-  "tags": ["fw", "no-batching"],
+  "tags": ["fw"],
   "implicitDependencies": ["ag-charts-community"]
 }

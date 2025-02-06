@@ -79,5 +79,5 @@
     }
   },
   "implicitDependencies": [],
-  "tags": ["no-batching", "no-sharding"]
+  "tags": ["package", "no-sharding"]
 }

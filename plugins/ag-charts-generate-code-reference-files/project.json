@@ -29,5 +29,5 @@
       }
     }
   },
-  "tags": ["no-batching"]
+  "tags": ["plugin"]
 }

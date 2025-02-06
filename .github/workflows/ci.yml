@@ -205,10 +205,10 @@ jobs:
               with:
                   cache_mode: ro
 
+            - name: build
+              run: yarn nx run-many -t build -p tag:package --parallel=3
             - name: build examples
-              run: yarn nx run-many -t generate-example --parallel=3
-            - name: nx run generate-gallery-thumbnail
-              run: yarn nx run generate-gallery-thumbnail --example simple-bar
+              run: yarn nx run-many -t generate --parallel=3
 
             - name: calculate matrix
               id: matrix
