@@ -596,6 +596,7 @@ export class AreaSeries extends CartesianSeries<
         const { fill: seriesFill } = this.properties;
 
         if (isGradientFill(seriesFill)) {
+            seriesFill.bounds ??= 'series';
             fill.fillBBox = this.getFillBBox(seriesFill);
         }
 
