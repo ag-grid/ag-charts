@@ -1,10 +1,19 @@
 import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
-import type { DragWidgetEvent, MouseWidgetEvent, WidgetEventMap } from '../../widget/widgetEvents';
+import type { DragWidgetEvent, MouseWidgetEvent, TouchWidgetEvent, WidgetEventMap } from '../../widget/widgetEvents';
 
 const DRAG_THRESHOLD_PX = 3;
 
+/**
+ * A `DragInterpreterClickEvent` is either a native 'click' MouseEvent, or a sythetic click event fired by single finger
+ * 'touchstart' and 'touchend'.
+ */
+type MouseClick = { device: 'mouse' } & MouseWidgetEvent<'click'>;
+type TouchClick = { device: 'touch'; sourceEvent: TouchEvent } & Omit<MouseWidgetEvent<'click'>, 'sourceEvent'>;
+export type DragInterpreterClickEvent = MouseClick | TouchClick;
+
 type Type = 'mousemove' | 'click' | 'dblclick' | 'drag-start' | 'drag-move' | 'drag-end';
+type EventMap = Omit<WidgetEventMap, 'click'> & { click: DragInterpreterClickEvent };
 
 /**
  * In the interest of robustness (and simplicity), the Widget class always dispatches these events after mousedown &
@@ -24,12 +33,11 @@ export class DragInterpreter {
 
     private dragStartEvent?: DragWidgetEvent<'drag-start'>;
     private isDragging = false;
-    private preventNextClick = false;
 
     constructor(widget: Widget) {
         this.destroyFns.push(
+            widget.addListener('touchend', this.onTouchEnd.bind(this)),
             widget.addListener('mousemove', this.onMouseMove.bind(this)),
-            widget.addListener('click', this.onClick.bind(this)),
             widget.addListener('dblclick', this.onDblClick.bind(this)),
             widget.addListener('drag-start', this.onDragStart.bind(this)),
             widget.addListener('drag-move', this.onDragMove.bind(this)),
@@ -42,25 +50,26 @@ export class DragInterpreter {
         this.listeners.destroy();
     }
 
-    addListener<T extends Type>(type: T, handler: (e: WidgetEventMap[T]) => void): () => void;
+    addListener<T extends Type>(type: T, handler: (e: EventMap[T]) => void): () => void;
     addListener<T extends Type>(type: T, handler: (e: unknown) => void): () => void {
         return this.listeners.addListener(type, handler);
     }
 
-    private dispatch(event: (MouseWidgetEvent | DragWidgetEvent) & { type: Type }) {
+    private dispatch(event: EventMap[Type]) {
         this.listeners.dispatch(event.type, event);
     }
 
-    private onMouseMove(event: MouseWidgetEvent<'mousemove'>) {
-        this.preventNextClick = false;
-        this.dispatch(event);
+    private onTouchEnd(event: TouchWidgetEvent<'touchend'>) {
+        // Suppress the browser's MouseEvent emulation on touch devices. Emulation not standardised, iOS Webkit
+        // dispatches hover events if the <div> element is blurred, or click events if the <div> element is focused. On
+        // the other hand, Chromium Blink and Firefox Gecko always enumlate a mouse click the on <div>.
+        //
+        // We'll emulate mouse click and hover events in this class to ensure consistent and predictable behaviour.
+        event.sourceEvent.preventDefault();
     }
 
-    private onClick(event: MouseWidgetEvent<'click'>) {
-        if (!this.preventNextClick) {
-            this.dispatch(event);
-        }
-        this.preventNextClick = false;
+    private onMouseMove(event: MouseWidgetEvent<'mousemove'>) {
+        this.dispatch(event);
     }
 
     private onDblClick(event: MouseWidgetEvent<'dblclick'>) {
@@ -93,7 +102,19 @@ export class DragInterpreter {
         if (this.isDragging) {
             this.dispatch(event);
             this.isDragging = false;
-            this.preventNextClick = true;
+        } else {
+            const { device, offsetX, offsetY, clientX, clientY, currentX, currentY } = event;
+            const type = 'click';
+
+            let sytheticClick: DragInterpreterClickEvent;
+            if (device === 'mouse') {
+                const sourceEvent: MouseEvent = event.sourceEvent;
+                sytheticClick = { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
+            } else {
+                const sourceEvent: TouchEvent = event.sourceEvent;
+                sytheticClick = { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
+            }
+            this.dispatch(sytheticClick);
         }
     }
 }
