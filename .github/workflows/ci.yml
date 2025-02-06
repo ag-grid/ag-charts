@@ -97,9 +97,10 @@ jobs:
               run: |
                   yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all
 
-            - name: nx run generate-gallery-thumbnail
+            - name: nx generate
+              id: generate
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-              run: yarn nx run generate-gallery-thumbnail --example simple-bar
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }}  -t generate
 
             - name: nx run-many -t validate-examples
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
@@ -114,12 +115,12 @@ jobs:
                     count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test | wc -l)
                   fi
 
-                  matrix=$(node ./tools/test/calculate-shards.js eval --ratio 1 --zero ${count})
+                  matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --ratio 1 --zero ${count})
                   echo "test_matrix=${matrix}" >> $GITHUB_OUTPUT
                   echo "test_count=${count}" >> $GITHUB_OUTPUT
                   echo "Test matrix determined to be: ${matrix}"
 
-                  pkg_matrix=$(node ./tools/test/calculate-pkg-shards.js)
+                  pkg_matrix=$(node ./external/ag-shared/scripts/shard/calculate-pkg-shards.js)
                   echo "pkg_matrix=${pkg_matrix}" >> $GITHUB_OUTPUT
                   echo "Package test matrix determined to be: ${pkg_matrix}"
 
@@ -205,11 +206,7 @@ jobs:
                   cache_mode: ro
 
             - name: build examples
-              run: |
-                  # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
-                  yarn nx run-many -p tag:no-batching -t build --parallel=3
-                  # Batched builds.
-                  yarn nx run-many -t generate-example --parallel=3 --batch
+              run: yarn nx run-many -t generate-example --parallel=3
             - name: nx run generate-gallery-thumbnail
               run: yarn nx run generate-gallery-thumbnail --example simple-bar
 
@@ -223,7 +220,7 @@ jobs:
                     count=0
                   fi
 
-                  matrix=$(node ./tools/test/calculate-shards.js eval --zero ${count})
+                  matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --zero ${count})
                   echo "matrix=${matrix}" >> $GITHUB_OUTPUT
                   echo "count=${count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${matrix}"

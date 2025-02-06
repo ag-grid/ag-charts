@@ -9,8 +9,6 @@ env:
     NX_NO_CLOUD: true
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
-    # Set to --batch to enable batch execution.
-    NX_BATCH_FLAG: '--batch'
 
 jobs:
     update:
@@ -67,10 +65,7 @@ jobs:
 
             - name: build examples
               run: |
-                  # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
-                  yarn nx run-many -p tag:no-batching -t build --parallel=3
-                  # Batched builds.
-                  yarn nx run-many -t generate-example --parallel=3 --batch
+                  yarn nx run-many -t generate-example --parallel=3
 
             - name: nx test:e2e -c update
               run: |
