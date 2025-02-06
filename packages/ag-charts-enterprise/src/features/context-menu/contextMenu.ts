@@ -220,6 +220,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             autoCloseOnBlur: true,
             closeCallback: () => this.doClose(),
         });
+        if (sourceEvent.pointerType === 'touch') {
+            this.ctx.chartService.overrideFocusVisible(false);
+        }
     }
 
     private hide() {

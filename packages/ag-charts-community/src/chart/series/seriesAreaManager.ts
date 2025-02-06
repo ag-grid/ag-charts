@@ -65,7 +65,7 @@ export class SeriesAreaManager extends BaseManager {
     private series: Series<unknown, any, any>[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
-    private readonly focusIndicator: FocusIndicator;
+    public readonly focusIndicator: FocusIndicator;
     private readonly swapChain: FocusSwapChain;
 
     private readonly highlight = {

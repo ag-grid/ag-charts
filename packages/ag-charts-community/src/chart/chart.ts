@@ -356,6 +356,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
         this.parentResize(ctx.domManager.containerSize);
     }
 
+    overrideFocusVisible(visible: boolean | undefined): void {
+        this.seriesAreaManager.focusIndicator.overrideFocusVisible(visible);
+    }
+
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
         const { ctx, tooltip, highlight, overlays, seriesRoot, mode } = this;
         const chartType = this.getChartType();
