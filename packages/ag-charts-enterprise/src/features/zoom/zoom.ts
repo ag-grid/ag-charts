@@ -542,10 +542,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
+    private asyncUpdateZoom: ReturnType<typeof setTimeout> | undefined;
     private onTouchMove(event: _Widget.TouchWidgetEvent<'touchmove'>, current: _Widget.Widget) {
         if (!this.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
         const newZoom = this.twoFingers.update(event, current);
-        this.updateZoom(constrainZoom(newZoom));
+        clearTimeout(this.asyncUpdateZoom);
+        this.asyncUpdateZoom = setTimeout(() => this.updateZoom(constrainZoom(newZoom)));
     }
 
     private onTouchEnd(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>) {

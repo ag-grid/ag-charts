@@ -201,9 +201,11 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         });
     }
 
+    private asyncUpdateZoom: ReturnType<typeof setTimeout> | undefined;
     private updateZoom() {
         if (!this.enabled) return;
-        this.domProxy.updateZoom();
+        clearTimeout(this.asyncUpdateZoom);
+        this.asyncUpdateZoom = setTimeout(() => this.domProxy.updateZoom());
     }
 
     updateData(data: any) {
