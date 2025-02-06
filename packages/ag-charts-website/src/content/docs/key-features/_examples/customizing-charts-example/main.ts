@@ -9,7 +9,7 @@ const customTheme = {
         common: {
             title: {
                 fontSize: 22,
-                colour: '#444444',
+                color: '#444444',
             },
         },
         bar: {
@@ -38,6 +38,8 @@ const options: AgChartOptions = {
     background: {
         fill: '#EEDD8210', // or RGB, HEX, HSL, HWB, or named color
     },
+    width: 350,
+    height: 350,
     theme: customTheme,
     series: [
         {
