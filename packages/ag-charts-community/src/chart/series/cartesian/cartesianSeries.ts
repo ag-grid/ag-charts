@@ -848,7 +848,7 @@ export abstract class CartesianSeries<
         if (!dataModel || !processedData) return Infinity;
 
         const crossValues = this.keysOrValues(crossAxisKey);
-        const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
+        const allAxisValues = axisKeys.map((axisKey) => dataModel.resolveColumnById(this, axisKey, processedData));
 
         // The provided visible ranges `[xy]VisibleRange` are relative to the unzoomed axis ranges `[xy]Axis.range`.
         // `[xy]Axis.visibleRange` are relative to the zoomed scale ranges `[xy]Axis.scale.range`.
