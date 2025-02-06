@@ -19,10 +19,15 @@ import { video } from '@ag-website-shared/markdoc/tags/video';
 import { videoSection } from '@ag-website-shared/markdoc/tags/videoSection';
 import { warning } from '@ag-website-shared/markdoc/tags/warning';
 import { component, defineMarkdocConfig } from '@astrojs/markdoc/config';
+import {
+    chartsVersion,
+    chartsVersionPatch,
+    gridVersion,
+    gridVersionPatch,
+} from '@utils/markdoc/functions/libraryVersions';
 
 import prism from './plugins/prism';
 import versionsData from './src/content/versions/ag-charts-versions.json';
-import { gridVersion } from './src/utils/markdoc/functions/gridVersion';
 import { link } from './src/utils/markdoc/tags/link';
 
 export default defineMarkdocConfig({
@@ -37,6 +42,9 @@ export default defineMarkdocConfig({
         migrationVersion,
         migrationVersionPatch: getMigrationVersionPatch(versionsData),
         gridVersion,
+        gridVersionPatch,
+        chartsVersion,
+        chartsVersionPatch,
     },
     tags: {
         kbd,
