@@ -3,7 +3,7 @@ import type { FontStyle, FontWeight } from 'ag-charts-types';
 import type { BBox } from '../../scene/bbox';
 import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { Group } from '../../scene/group';
-import type { ChildNodeCounts } from '../../scene/node';
+import type { ChildNodeCounts, RenderContext } from '../../scene/node';
 import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
 import { Translatable } from '../../scene/transformable';
@@ -124,8 +124,8 @@ export class LegendMarkerLabel extends Translatable(Group) {
         }
     }
 
-    override preRender(): ChildNodeCounts {
-        const out = super.preRender();
+    override preRender(renderCtx: RenderContext): ChildNodeCounts {
+        const out = super.preRender(renderCtx);
         this.layout();
         return out;
     }

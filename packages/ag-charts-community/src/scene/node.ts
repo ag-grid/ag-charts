@@ -162,14 +162,14 @@ export abstract class Node<D = any> {
     }
 
     /** Perform any pre-rendering initialization. */
-    preRender(thisComplexity = 1): ChildNodeCounts {
+    preRender(renderCtx: RenderContext, thisComplexity = 1): ChildNodeCounts {
         this.childNodeCounts.groups = 0;
         this.childNodeCounts.nonGroups = 1; // Assume this node isn't a group.
         this.childNodeCounts.complexity = thisComplexity;
         this.childNodeCounts.thisComplexity = thisComplexity;
 
         for (const child of this.children()) {
-            const childCounts = child.preRender();
+            const childCounts = child.preRender(renderCtx);
             this.childNodeCounts.groups += childCounts.groups;
             this.childNodeCounts.nonGroups += childCounts.nonGroups;
             this.childNodeCounts.complexity += childCounts.complexity;

@@ -121,8 +121,8 @@ export class Group<D = any> extends Node<D> {
         return false;
     }
 
-    override preRender(): ChildNodeCounts {
-        const counts = super.preRender(0);
+    override preRender(renderCtx: RenderContext): ChildNodeCounts {
+        const counts = super.preRender(renderCtx, 0);
 
         // Correct counts for this group.
         counts.groups += 1;

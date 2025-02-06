@@ -187,15 +187,16 @@ describe('Sector', () => {
                     sector.centerY = currY;
 
                     // Render.
-                    ctx.save();
-                    sector.preRender();
-                    sector.render({
+                    const renderCtx = {
                         ctx,
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
                         debugNodes: {},
-                    });
+                    };
+                    ctx.save();
+                    sector.preRender(renderCtx);
+                    sector.render(renderCtx);
                     ctx.restore();
 
                     // Prepare for next case.
@@ -336,15 +337,16 @@ describe('Sector', () => {
                     sector.centerY = currY;
 
                     // Render.
-                    ctx.save();
-                    sector.preRender();
-                    sector.render({
+                    const renderCtx = {
                         ctx,
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
                         debugNodes: {},
-                    });
+                    };
+                    ctx.save();
+                    sector.preRender(renderCtx);
+                    sector.render(renderCtx);
                     ctx.restore();
 
                     // Prepare for next case.
