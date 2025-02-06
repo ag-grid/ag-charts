@@ -6,6 +6,7 @@ import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, SceneChangeDetection } from './node';
 import { type CanvasContext, Shape } from './shape/shape';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
+import { align } from './util/pixel';
 import { type ZIndex, compareZIndex } from './zIndex';
 
 interface OffscreenImageBitmap {
@@ -64,7 +65,7 @@ export class Group<D = any> extends Node<D> {
         return Group.computeChildrenBBox(this.children());
     }
 
-    private computeSafeClippingBBox(): BBox | undefined {
+    private computeSafeClippingBBox(pixelRatio: number): BBox | undefined {
         const bbox = this.computeBBox();
         if (!bbox.isFinite()) return;
 
@@ -83,10 +84,11 @@ export class Group<D = any> extends Node<D> {
             // Account for strokes (incl. miters) - this may not be the best place to include this
             (strokeWidth / 2) * strokeMiterAmount
         );
-        const x = Math.floor(bbox.x) - padding;
-        const y = Math.floor(bbox.y) - padding;
-        const width = Math.ceil(bbox.x + bbox.width) - x + padding;
-        const height = Math.ceil(bbox.y + bbox.height) - y + padding;
+        const { x: originX, y: originY } = Transformable.toCanvasPoint(this, 0, 0);
+        const x = align(pixelRatio, originX + bbox.x - padding) - originX;
+        const y = align(pixelRatio, originY + bbox.y - padding) - originY;
+        const width = Math.ceil(bbox.x + bbox.width - x + padding);
+        const height = Math.ceil(bbox.y + bbox.height - y + padding);
 
         return new BBox(x, y, width, height);
     }
@@ -160,7 +162,7 @@ export class Group<D = any> extends Node<D> {
             image?.bitmap.close();
             image = undefined;
 
-            const bbox = layer ? undefined : this.computeSafeClippingBBox();
+            const bbox = layer ? undefined : this.computeSafeClippingBBox(pixelRatio);
 
             const renderOffscreen = (
                 offscreenCanvas: HdpiOffscreenCanvas,
