@@ -160,11 +160,12 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
         const element = createSvgElement('path');
 
         element.setAttribute('d', this.svgPathData());
-        this.applySvgFillAttributes(element);
+        const defs = this.applySvgFillAttributes(element, []);
         this.applySvgStrokeAttributes(element);
 
         return {
             elements: [element],
+            defs,
         };
     }
 }
