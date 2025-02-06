@@ -22,6 +22,7 @@ import { component, defineMarkdocConfig } from '@astrojs/markdoc/config';
 
 import prism from './plugins/prism';
 import versionsData from './src/content/versions/ag-charts-versions.json';
+import { gridVersion } from './src/utils/markdoc/functions/gridVersion';
 import { link } from './src/utils/markdoc/tags/link';
 
 export default defineMarkdocConfig({
@@ -35,6 +36,7 @@ export default defineMarkdocConfig({
         isNotJavascriptFramework,
         migrationVersion,
         migrationVersionPatch: getMigrationVersionPatch(versionsData),
+        gridVersion,
     },
     tags: {
         kbd,
