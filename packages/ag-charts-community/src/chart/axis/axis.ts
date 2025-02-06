@@ -473,6 +473,7 @@ export abstract class Axis<
         this.animatable = animatable;
     }
 
+    _scaleNiceDomainInputDomain: D[] | undefined = undefined;
     _scaleNiceDomainRangeExtent: number = NaN;
     calculateLayout(initialPrimaryTickCount?: number) {
         const { scale, label, visibleRange, nice } = this;
@@ -487,7 +488,7 @@ export abstract class Axis<
             tickLayoutDomain = undefined;
         } else if (!nice) {
             tickLayoutDomain = domain;
-        } else if (this._scaleNiceDomainRangeExtent === rangeExtent) {
+        } else if (this._scaleNiceDomainInputDomain === domain && this._scaleNiceDomainRangeExtent === rangeExtent) {
             tickLayoutDomain = this.scale.domain;
         } else {
             tickLayoutDomain = this.calculateTickLayout(domain, NiceMode.TickAndDomain, [0, 1]).niceDomain;
@@ -510,6 +511,7 @@ export abstract class Axis<
 
         this.scale.domain = niceDomain;
 
+        this._scaleNiceDomainInputDomain = nice ? domain : undefined;
         this._scaleNiceDomainRangeExtent = nice ? rangeExtent : NaN;
 
         const specifier = label.format;
