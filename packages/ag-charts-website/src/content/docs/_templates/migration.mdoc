@@ -12,22 +12,23 @@
 # * `{% if not(isFramework("react")) %}` - wrap around blocks where it does *not* apply to a framework
 # * `{% metaTag tags=[...] %}` - add meta tags to the page for search engines
 
-title: 'Upgrading to AG Charts !x.x!'
+title: 'Upgrade to AG Charts !x.x!'
 description: "See what's new in AG Charts v!x.x! View a full list of breaking changes, behaviour changes and depreciations. Read the release post for feature highlights."
 migrationVersion: '!x.x.x!'
 ---
 
-<!-- Subtitle -->
-
 ## What's New
 
-<!-- Description with [release post](!BLOG_LINK!) -->
+<!-- Description with !BLOG_LINK! -->
 
-AG Charts {% migrationVersion() %} ...
+See the [release post](https://blog.ag-grid.com/whats-new-in-ag-charts-<!-- XXXX -->/) for feature highlights of what's new in this version.
+
+Users of integrated charting on AG Grid, should refer to this migration guide when upgrading to AG Grid <!-- Chart major + 22.x.x -->.
 
 <!--
 Documentation to the highest patch release of the major/minor
-NOTE: This will not show if the current library version is the same as the migration version
+NOTE: This will not show if the current library version is the same as the migration version.
+DO NOT TOUCH.
 -->
 
 {% documentationArchiveSection version=migrationVersionPatch() /%}
@@ -36,20 +37,30 @@ NOTE: This will not show if the current library version is the same as the migra
 
 ## Breaking Changes
 
+<!-- If breaking changes do *not* exist, add the following: -->
+<!--
+There are no breaking changes in AG Charts version {% migrationVersion() %}.
+-->
+
+<!-- Otherwise -->
+<!--
 The full list of breaking changes across all features for version {% migrationVersion() %}.
 
 {% expandingSection headerText="Breaking Changes" %}
 AG Charts version {% migrationVersion() %} includes the following breaking changes:
 
-### <!-- Breaking change section -->
+### Breaking changes section Name
+
+- item...
 
 {% /expandingSection %}
+-->
 
 ## Behaviour Changes
 
 <!-- If behaviour changes do *not* exist, add the following: -->
 <!--
-There are no behaviour changes in AG Charts version {% migrationVersion() %}
+There are no behaviour changes in AG Charts version {% migrationVersion() %}.
 -->
 
 <!-- Otherwise -->
@@ -58,7 +69,9 @@ The full list of behaviour changes across all features for version {% migrationV
 
 {% expandingSection headerText="Behaviour Changes" %}
 
-### Behaviour Changes section
+### Behaviour Changes section Name
+
+- item...
 
 {% /expandingSection %}
 -->
@@ -67,7 +80,7 @@ The full list of behaviour changes across all features for version {% migrationV
 
 <!-- If there are *no* deprecated APIs, add the following: -->
 <!--
-There are no deprecated APIs removed in AG Charts version {% migrationVersion() %}
+There are no deprecated APIs removed in AG Charts version {% migrationVersion() %}.
 -->
 
 <!-- Otherwise: -->
@@ -76,7 +89,9 @@ The following APIs have been deprecated since at least !PREV_x.x! and have now b
 
 {% expandingSection headerText="Removed Deprecated APIs" %}
 
-### Deprecated APIs section
+### Deprecated APIs section Name
+
+- item...
 
 {% /expandingSection %}
 -->
@@ -85,18 +100,20 @@ The following APIs have been deprecated since at least !PREV_x.x! and have now b
 
 <!-- If there are *no* deprecations, add the following: -->
 <!--
-There are no deprecations in AG Charts version {% migrationVersion() %}
+There are no deprecations in AG Charts version {% migrationVersion() %}.
 -->
 
 <!-- Otherwise: -->
 <!--
 {% expandingSection headerText="Deprecations" %}
 
-### Deprecation section
+### Deprecation section Name
+
+- item...
 
 {% /expandingSection %}
 -->
 
-<!-- Changelog for the `migrationVersion` property -->
+<!-- Changelog for the `migrationVersion` property DO NOT TOUCH -->
 
 {% changelogSection version=$migrationVersion /%}
