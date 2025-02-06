@@ -4,6 +4,7 @@ import {
     isDate,
     isFunction,
     isHtmlElement,
+    isNumber,
     isObject,
     isPlainObject,
     isRegExp,
@@ -375,6 +376,8 @@ enum Operation {
     Round = '$round',
     Rem = '$rem',
     Mix = '$mix',
+    ForegroundBackgroundMix = '$foregroundBackgroundMix',
+    ForegroundBackgroundAccentMix = '$foregroundBackgroundAccentMix',
 }
 const operationKeys = new Set(Object.values(Operation));
 type OperationFn<T, P> = (
@@ -409,6 +412,10 @@ function resolveOperation<T, P>(
     }
 
     return operations[operation](value, params, source, path, referencedParams);
+}
+
+function isRatio(value: unknown): value is number {
+    return isNumber(value) && value >= 0 && value <= 1;
 }
 
 const operations: Record<Operation, OperationFn<any, any>> = {
@@ -489,11 +496,43 @@ const operations: Record<Operation, OperationFn<any, any>> = {
         if (typeof a === 'number') return Math.round(a * params.fontSize);
     },
     $mix: ([a, b, c], _params, _source, path) => {
-        if (typeof a === 'string' && typeof b === 'string' && typeof c === 'number') {
-            return Color.mix(Color.fromString(a), Color.fromString(b), c).toString();
+        if (typeof a === 'string' && typeof b === 'string' && isRatio(c)) {
+            try {
+                return Color.mix(Color.fromString(a), Color.fromString(b), c).toString();
+            } catch {
+                // Discard and log below
+            }
         }
         Logger.warnOnce(
-            `\`$mix\` json operation failed on [${String(a)}, ${String(b)}, ${String(c)}] at [${path.join('.')}], expecting two colors and a number.`
+            `\`$mix\` json operation failed on [${String(a)}, ${String(b)}, ${String(c)}] at [${path.join('.')}], expecting two colors and a number between 0 and 1.`
+        );
+    },
+    $foregroundBackgroundMix: ([a], params, _source, path) => {
+        if (isRatio(a)) {
+            return Color.mix(
+                Color.fromString(params.foregroundColor),
+                Color.fromString(params.backgroundColor),
+                a
+            ).toString();
+        }
+        Logger.warnOnce(
+            `\`$foregroundBackgroundMix\` json operation failed on [${String(a)}}}] at [${path.join('.')}], expecting a number between 0 and 1.`
+        );
+    },
+    $foregroundBackgroundAccentMix: ([background, accent], params, _source, path) => {
+        if (isRatio(background) && isRatio(accent)) {
+            return Color.mix(
+                Color.mix(
+                    Color.fromString(params.foregroundColor),
+                    Color.fromString(params.backgroundColor),
+                    background
+                ),
+                Color.fromString(params.accentColor),
+                accent
+            ).toString();
+        }
+        Logger.warnOnce(
+            `\`$foregroundBackgroundAccentMix\` json operation failed on [${String(background)}, ${String(accent)}}] at [${path.join('.')}], expecting two numbers between 0 and 1.`
         );
     },
 };

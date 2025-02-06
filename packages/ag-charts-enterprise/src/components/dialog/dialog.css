@@ -52,7 +52,7 @@
 }
 
 .ag-charts-dialog__tab-button--active {
-    border-color: currentColor;
+    border-color: var(--ag-charts-accent-color);
     color: inherit;
 }
 

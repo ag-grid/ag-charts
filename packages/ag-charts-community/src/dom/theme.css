@@ -13,7 +13,6 @@
     --ag-charts-font-size: 12px;
     --ag-charts-font-weight: 400;
     --ag-charts-padding: 20px;
-    --ag-charts-spacing: 4px;
     --ag-charts-shadow-color: #00000080;
     --ag-charts-subtle-text-color: #8c8c8c;
     --ag-charts-text-color: #464646;
@@ -25,24 +24,25 @@
     --ag-charts-chrome-subtle-text-color: #8c8c8c;
     --ag-charts-chrome-text-color: #181d1f;
 
+    --ag-charts-input-background-color: #fff;
+    --ag-charts-input-text-color: #464646;
+
+    --ag-charts-crosshair-background-color: #fff;
+    --ag-charts-crosshair-text-color: #464646;
+
     /******************************************************************************************************************
      * Future Theme Parameters.
      * Variables to be added to the `theme.params`.
      *****************************************************************************************************************/
+    --ag-charts-spacing: 4px;
     --ag-charts-border-radius: 4px;
     --ag-charts-shadow: 0 2px 8px 0 color-mix(in srgb, black 8%, transparent);
     --ag-charts-focus-shadow: 0 0 0 3px var(--ag-charts-accent-color);
-    --ag-charts-chrome-focus-color: color-mix(
-        in srgb,
-        var(--ag-charts-background-color),
-        var(--ag-charts-accent-color) 12%
-    );
+    --ag-charts-focus-color: color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-accent-color) 12%);
 
     /* Inputs */
-    --ag-charts-input-background-color: var(--ag-charts-background-color);
     --ag-charts-input-border-color: var(--ag-charts-border-color);
     --ag-charts-input-border-radius: var(--ag-charts-border-radius);
-    --ag-charts-input-text-color: var(--ag-charts-text-color);
 
     --ag-charts-input-focus-border-color: var(--ag-charts-accent-color);
     --ag-charts-input-focus-text-color: var(--ag-charts-accent-color);
@@ -88,14 +88,14 @@
     --ag-charts-button-disabled-text-color: color-mix(
         in srgb,
         var(--ag-charts-chrome-background-color),
-        var(--ag-charts-input-text-color) 50%
+        var(--ag-charts-chrome-text-color) 50%
     );
 
     /* Checkboxes */
     --ag-charts-checkbox-background-color: color-mix(
         in srgb,
         var(--ag-charts-background-color),
-        var(--ag-charts-input-text-color) 35%
+        var(--ag-charts-foreground-color) 35%
     );
     --ag-charts-checkbox-checked-background-color: var(--ag-charts-accent-color);
 
@@ -134,11 +134,7 @@
      * Variables to be added to the `theme.params`.
      *****************************************************************************************************************/
     --ag-charts-shadow: 0 2px 12px 0 color-mix(in srgb, black 33.3%, transparent);
-    --ag-charts-chrome-focus-color: color-mix(
-        in srgb,
-        var(--ag-charts-background-color),
-        var(--ag-charts-accent-color) 22%
-    );
+    --ag-charts-focus-color: color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-accent-color) 22%);
 }
 
 .ag-chart-canvas-wrapper .ag-charts-theme-default {

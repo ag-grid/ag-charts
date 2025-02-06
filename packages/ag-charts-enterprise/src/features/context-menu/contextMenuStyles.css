@@ -35,6 +35,7 @@
     background: none;
     border: none;
     box-sizing: border-box;
+    color: inherit;
     font: inherit;
     padding: 0.5em 1em;
     text-align: left;
@@ -42,24 +43,9 @@
     -moz-appearance: none;
 }
 
-.ag-charts-context-menu__item.ag-charts-dark-context-menu {
-    color: white;
-}
-
-.ag-charts-context-menu__item:focus {
-    background: rgb(33, 150, 243, 0.1);
-}
-
-.ag-charts-context-menu__item:focus.ag-charts-dark-context-menu {
-    background: rgb(33, 150, 243, 0.1);
-}
-
+.ag-charts-context-menu__item:focus,
 .ag-charts-context-menu__item:active {
-    background: rgb(33, 150, 243, 0.2);
-}
-
-.ag-charts-context-menu__item:active.ag-charts-dark-context-menu {
-    background: rgb(33, 150, 243, 0.1);
+    background: var(--ag-charts-focus-color);
 }
 
 .ag-charts-context-menu__item[data-focus-visible-override='true']:focus,

@@ -5,7 +5,7 @@
     --input-padding: calc(var(--ag-charts-spacing) * 2);
     --input-padding-large: calc(var(--ag-charts-spacing) * 2.5);
 
-    color: inherit;
+    color: var(--ag-charts-input-text-color);
     font-family: var(--ag-charts-chrome-font-family);
     font-size: var(--ag-charts-chrome-font-size-large);
     transition-duration: 0.25s;
@@ -24,13 +24,14 @@
     background: var(--ag-charts-button-background-color);
     border: 1px solid var(--ag-charts-border-color);
     border-radius: var(--ag-charts-button-border-radius);
+    color: var(--ag-charts-button-text-color);
     cursor: pointer;
     padding: var(--input-padding);
     transition-property: background, border-color;
 }
 
 .ag-charts-button:hover {
-    background: var(--ag-charts-chrome-focus-color);
+    background: var(--ag-charts-focus-color);
 }
 
 .ag-charts-button:has(.ag-charts-icon) {

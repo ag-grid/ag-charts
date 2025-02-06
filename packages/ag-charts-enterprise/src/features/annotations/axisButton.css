@@ -3,11 +3,11 @@
 }
 
 .ag-charts-annotations__axis-button {
-    background-color: var(--ag-charts-foreground-color);
+    background-color: var(--ag-charts-crosshair-background-color);
     border-radius: calc(var(--ag-charts-border-radius) / 2);
     border: none;
     box-sizing: border-box;
-    color: var(--ag-charts-background-color);
+    color: var(--ag-charts-crosshair-text-color);
     cursor: pointer;
     font-family: var(--ag-charts-chrome-font-family);
     font-size: var(--ag-charts-chrome-font-size);

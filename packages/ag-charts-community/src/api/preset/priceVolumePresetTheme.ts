@@ -35,6 +35,7 @@ const handle = {
 };
 
 const axisLabel = {
+    color: 'white',
     fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
 };
 

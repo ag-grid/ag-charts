@@ -46,7 +46,7 @@
 }
 
 .ag-charts-menu__row:focus {
-    background: var(--ag-charts-chrome-focus-color);
+    background: var(--ag-charts-focus-color);
 }
 
 .ag-charts-menu__row:focus-visible {
@@ -57,7 +57,7 @@
 
 .ag-charts-menu__row--active {
     --icon-color: var(--ag-charts-accent-color);
-    background: var(--ag-charts-chrome-focus-color);
+    background: var(--ag-charts-focus-color);
     color: var(--ag-charts-accent-color);
 }
 

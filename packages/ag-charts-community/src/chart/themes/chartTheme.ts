@@ -34,7 +34,6 @@ import {
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_COLOR_RANGE,
-    DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FIBONACCI_STROKES,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
@@ -163,8 +162,8 @@ export class ChartTheme {
             },
             crossLines: {
                 enabled: false,
-                fill: DEFAULT_CROSS_LINES_COLOUR,
-                stroke: DEFAULT_CROSS_LINES_COLOUR,
+                fill: { $ref: 'foregroundColor' },
+                stroke: { $ref: 'foregroundColor' },
                 fillOpacity: 0.1,
                 strokeWidth: 1,
                 label: {
@@ -454,25 +453,30 @@ export class ChartTheme {
     getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
             accentColor: '#2196f3',
-            axisColor: '#c3c3c3',
+            axisColor: { $foregroundBackgroundMix: [0.675] },
             backgroundColor: DEFAULT_BACKGROUND_FILL,
-            borderColor: { $mix: [{ $ref: 'foregroundColor' }, { $ref: 'backgroundColor' }, 0.818] },
+            borderColor: { $foregroundBackgroundMix: [0.818] },
             foregroundColor: '#464646',
             fontFamily: 'Verdana, sans-serif',
             fontSize: FONT_SIZE.SMALL,
             fontWeight: 400,
-            gridLineColor: '#e0eaf1',
+            gridLineColor: { $foregroundBackgroundAccentMix: [0.93, 0.085] },
             padding: 20,
-            spacing: 4,
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'backgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
 
-            chromeBackgroundColor: { $mix: [{ $ref: 'foregroundColor' }, { $ref: 'backgroundColor' }, 0.975] },
+            chromeBackgroundColor: { $foregroundBackgroundMix: [0.975] },
             chromeFontFamily: { $ref: 'fontFamily' },
             chromeFontSize: { $ref: 'fontSize' },
             chromeFontWeight: { $ref: 'fontWeight' },
             chromeTextColor: '#181d1f',
             chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
+
+            inputBackgroundColor: { $ref: 'backgroundColor' },
+            inputTextColor: { $ref: 'textColor' },
+
+            crosshairBackgroundColor: { $ref: 'foregroundColor' },
+            crosshairTextColor: { $ref: 'backgroundColor' },
         };
     }
 
@@ -484,7 +488,6 @@ export class ChartTheme {
         params.set(IS_DARK_THEME, false);
         params.set(IS_ENTERPRISE, isEnterprise);
         params.set(IS_COMMUNITY, !isEnterprise);
-        params.set(DEFAULT_CROSS_LINES_COLOUR, '#464646');
         params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#d9d9d9');
         params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL); // TODO: remove uses in paletteFactory()
         params.set(DEFAULT_SHADOW_COLOUR, '#00000080');

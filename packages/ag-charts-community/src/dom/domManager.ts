@@ -239,7 +239,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.element.classList.add(themeClassName);
     }
 
-    // TODO: don't use AgChartThemeParams
     setThemeParameters(params: AgChartThemeParams) {
         const keysMap: Record<keyof AgChartThemeParams, string> = {
             accentColor: 'accent-color',
@@ -252,7 +251,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             fontWeight: 'font-weight',
             gridLineColor: 'grid-line-color',
             padding: 'padding',
-            spacing: 'spacing',
             subtleTextColor: 'subtle-text-color',
             textColor: 'text-color',
 
@@ -262,9 +260,15 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             chromeFontWeight: 'chrome-font-weight',
             chromeSubtleTextColor: 'chrome-subtle-text-color',
             chromeTextColor: 'chrome-text-color',
+
+            inputBackgroundColor: 'input-background-color',
+            inputTextColor: 'input-text-color',
+
+            crosshairBackgroundColor: 'crosshair-background-color',
+            crosshairTextColor: 'crosshair-text-color',
         };
 
-        const lengthKeys: Array<keyof AgChartThemeParams> = ['fontSize', 'chromeFontSize', 'spacing'];
+        const lengthKeys: Array<keyof AgChartThemeParams> = ['fontSize', 'chromeFontSize'];
 
         for (const [key, value] of Object.entries(params) as Array<[keyof AgChartThemeParams, string | number]>) {
             let formattedValue = `${value}`;
