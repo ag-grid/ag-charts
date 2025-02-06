@@ -6,20 +6,9 @@ type Origin = { identifier: number; normalX: number; normalY: number };
 type ZoomState = _ModuleSupport.ZoomState;
 type AxisZoomState = _ModuleSupport.AxisZoomState;
 type DefinedZoomState = _ModuleSupport.DefinedZoomState;
-
-// The 'zoompan' mode (default) solves four knowns to allow two fingers to adjust the zoom and pan simultaneously.
-//
-// The 'pan' mode (when fingers start very near each other) uses the average position of the two fingers to adjust just
-// the panning.
-type ZoomTwoFingersTouchStart =
-    | { type: 'zoompan'; readonly origins: [Origin, Origin] }
-    | { type: 'pan'; readonly origins: [Origin & { readonly identifier: 0 }] };
+type ZoomTwoFingersTouchStart = { readonly origins: [Origin, Origin] };
 
 const N = 1_000_000;
-
-function centerOf(touchA: Touch, touchB: Touch) {
-    return { centerX: (touchA.clientX + touchB.clientX) / 2, centerY: touchA.clientY + touchB.clientY / 2 };
-}
 
 // Interpolate `a` from [Rx, Rw] to [min, max]
 function clientToNormal({ min, max }: ZoomState, a: number, Rx: number, Rw: number): number {
@@ -43,9 +32,19 @@ function solveTwoUnknowns(x1: number, x2: number, a1: number, a2: number, Rx: nu
     return { min, max };
 }
 
+function isRangeOverlapping(centerA: number, radiusA: number, centerB: number, radiusB: number): boolean {
+    // On some platforms (e.g. Android) the radii are always 0.
+    if (radiusA === 0) radiusA = 30;
+    if (radiusB === 0) radiusB = 30;
+    const minA = centerA - radiusA;
+    const maxA = centerA + radiusA;
+    const minB = centerB - radiusB;
+    const maxB = centerB + radiusB;
+    return !(maxA < minB || maxB < minA);
+}
+
 export class ZoomTwoFingers {
     private readonly touchStart: ZoomTwoFingersTouchStart = {
-        type: 'zoompan',
         origins: [
             { identifier: 0, normalX: NaN, normalY: NaN },
             { identifier: 0, normalX: NaN, normalY: NaN },
@@ -53,25 +52,6 @@ export class ZoomTwoFingers {
     };
     private readonly initialZoom: DefinedZoomState = { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
     private readonly previous = { a1: NaN, a2: NaN, b1: NaN, b2: NaN };
-    private zoomingX: boolean = false;
-    private zoomingY: boolean = false;
-
-    // Check if X-axis or Y-axis overlap. zoompan will be sensitive if the fingers are close to one another on an axis.
-    private checkTouchOverlaps(touchA: Touch, touchB: Touch) {
-        const isRangeOverlapping = (centerA: number, radiusA: number, centerB: number, radiusB: number): boolean => {
-            // On some platforms (e.g. Android) the radii are always 0.
-            if (radiusA === 0) radiusA = 30;
-            if (radiusB === 0) radiusB = 30;
-            const minA = centerA - radiusA;
-            const maxA = centerA + radiusA;
-            const minB = centerB - radiusB;
-            const maxB = centerB + radiusB;
-            return !(maxA < minB || maxB < minA);
-        };
-
-        this.zoomingX = !isRangeOverlapping(touchA.clientX, touchA.radiusX, touchB.clientX, touchB.radiusX);
-        this.zoomingY = !isRangeOverlapping(touchA.clientY, touchA.radiusY, touchB.clientY, touchB.radiusY);
-    }
 
     start(event: _Widget.TouchWidgetEvent<'touchstart'>, target: _Widget.Widget, zoom: AxisZoomState): boolean {
         if (event.sourceEvent.targetTouches.length !== 2) return false;
@@ -80,33 +60,34 @@ export class ZoomTwoFingers {
         const targetTouches = Array.from(event.sourceEvent.targetTouches);
         const { x: Rx, y: Ry, width: Rw, height: Rh } = target.getBoundingClientRect();
 
-        this.checkTouchOverlaps(targetTouches[0], targetTouches[1]);
         this.initialZoom.x.min = zoom.x?.min ?? 0;
         this.initialZoom.x.max = zoom.x?.max ?? 1;
         this.initialZoom.y.min = zoom.y?.min ?? 0;
         this.initialZoom.y.max = zoom.y?.max ?? 1;
-
         this.touchStart.origins.forEach((t) => (t.identifier = 0));
-        this.touchStart.type = this.zoomingX || this.zoomingY ? 'zoompan' : 'pan';
 
-        if (this.touchStart.type === 'zoompan') {
-            this.previous.a1 = NaN;
-            this.previous.a2 = NaN;
-            this.previous.b1 = NaN;
-            this.previous.b2 = NaN;
-            for (const i of [0, 1]) {
-                const a = targetTouches[i].clientX;
-                const b = Ry + Rh - targetTouches[i].clientY;
-                this.touchStart.origins[i].identifier = targetTouches[i].identifier;
-                this.touchStart.origins[i].normalX = clientToNormal(this.initialZoom.x, a, Rx, Rw);
-                this.touchStart.origins[i].normalY = clientToNormal(this.initialZoom.y, b, Ry, Rh);
-            }
-        } else {
-            const { centerX, centerY } = centerOf(targetTouches[0], targetTouches[1]);
-            this.touchStart.origins[0].normalX = clientToNormal(this.initialZoom.x, centerX, Rx, Rw);
-            this.touchStart.origins[0].normalY = clientToNormal(this.initialZoom.y, Ry + Rh - centerY, Ry, Rh);
+        this.previous.a1 = NaN;
+        this.previous.a2 = NaN;
+        this.previous.b1 = NaN;
+        this.previous.b2 = NaN;
+        for (const i of [0, 1]) {
+            const a = targetTouches[i].clientX;
+            const b = Ry + Rh - targetTouches[i].clientY;
+            this.touchStart.origins[i].identifier = targetTouches[i].identifier;
+            this.touchStart.origins[i].normalX = clientToNormal(this.initialZoom.x, a, Rx, Rw);
+            this.touchStart.origins[i].normalY = clientToNormal(this.initialZoom.y, b, Ry, Rh);
         }
 
+        // Enable "pan-only" mode on axes if the X or Y values overlap.
+        // The "zoom-pan" mode will be sensitive if the are close to one another on an axis.
+        const [tA, tB] = targetTouches;
+        const [oA, oB] = this.touchStart.origins;
+        const xOverlap = isRangeOverlapping(tA.clientX, tA.radiusX, tB.clientX, tB.radiusX);
+        const yOverlap = isRangeOverlapping(tA.clientY, tA.radiusY, tB.clientY, tB.radiusY);
+        // We deliberately average out the normals instead clientXY values. This is so that we don't need to worry about
+        // flipping coords on the Y axis (and not flipping them on the X axis).
+        if (yOverlap) oA.normalY = oB.normalY = (oA.normalY + oB.normalY) / 2;
+        if (xOverlap) oA.normalX = oB.normalX = (oA.normalX + oB.normalX) / 2;
         return true;
     }
 
@@ -116,40 +97,25 @@ export class ZoomTwoFingers {
         const targetTouches = Array.from(event.sourceEvent.targetTouches);
         const { x: Rx, y: Ry, width: Rw, height: Rh } = target.getBoundingClientRect();
 
-        if (this.touchStart.type === 'zoompan') {
-            const { origins } = this.touchStart;
-            const touches = [0, 1].map((i) => targetTouches.find((t) => t.identifier === origins[i].identifier)!);
-            const x1 = origins[0].normalX;
-            const x2 = origins[1].normalX;
-            const a1 = touches[0].clientX;
-            const a2 = touches[1].clientX;
-            const y1 = origins[0].normalY;
-            const y2 = origins[1].normalY;
-            const b1 = Ry + Rh - touches[0].clientY;
-            const b2 = Ry + Rh - touches[1].clientY;
-            return this.twitchTolerantZoomPan(x1, x2, a1, a2, y1, y2, b1, b2, Rx, Ry, Rw, Rh);
-        } /* type === 'pan' */ else {
-            const touch = centerOf(targetTouches[0], targetTouches[1]);
-            const x1 = this.touchStart.origins[0].normalX;
-            const y1 = this.touchStart.origins[0].normalY;
-            const x2 = clientToNormal(this.initialZoom.x, touch.centerX, Rx, Rw);
-            const y2 = clientToNormal(this.initialZoom.y, Ry + Rh - touch.centerY, Ry, Rh);
-            const deltaX = (x1 - x2) / N;
-            const deltaY = (y1 - y2) / N;
-            return {
-                x: { min: this.initialZoom.x.min + deltaX, max: this.initialZoom.x.max + deltaX },
-                y: { min: this.initialZoom.y.min + deltaY, max: this.initialZoom.y.max + deltaY },
-            };
-        }
+        const { origins } = this.touchStart;
+        const touches = [0, 1].map((i) => targetTouches.find((t) => t.identifier === origins[i].identifier)!);
+        const x1 = origins[0].normalX;
+        const x2 = origins[1].normalX;
+        const a1 = touches[0].clientX;
+        const a2 = touches[1].clientX;
+        const y1 = origins[0].normalY;
+        const y2 = origins[1].normalY;
+        const b1 = Ry + Rh - touches[0].clientY;
+        const b2 = Ry + Rh - touches[1].clientY;
+        return this.twitchTolerantZoomPan4(x1, x2, a1, a2, y1, y2, b1, b2, Rx, Ry, Rw, Rh);
     }
 
     end(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>): boolean {
         const identifiers = Array.from(event.sourceEvent.targetTouches).map((t) => t.identifier);
-        if (this.touchStart.type === 'zoompan') {
-            const { origins } = this.touchStart;
-            return !identifiers.includes(origins[0].identifier) || !identifiers.includes(origins[1].identifier);
-        }
-        return true;
+        return (
+            !identifiers.includes(this.touchStart.origins[0].identifier) ||
+            !identifiers.includes(this.touchStart.origins[1].identifier)
+        );
     }
 
     // Small touch deltas on an axis, which can defined as one fingers moving ±1 pixel and the other not moving, can
@@ -174,7 +140,7 @@ export class ZoomTwoFingers {
     //   [0] => [2] : yMin increases, yMax increases
     //
     // ... which is a smooth panning transition. Therefore to prevent flickering, we skip event [1].
-    private twitchTolerantZoomPan(
+    private twitchTolerantZoomPan4(
         x1: number,
         x2: number,
         a1: number,
@@ -188,34 +154,44 @@ export class ZoomTwoFingers {
         Rw: number,
         Rh: number
     ) {
-        const { zoomingX, zoomingY, initialZoom, previous } = this;
-        let x: ZoomState = initialZoom.x;
-        let y: ZoomState = initialZoom.y;
-
-        if (zoomingX) {
-            const dx = Math.abs(a1 - previous.a1) + Math.abs(a2 - previous.a2);
-            if (dx <= 1) {
-                a1 = previous.a1;
-                a2 = previous.a2;
-            } else {
-                previous.a1 = a1;
-                previous.a2 = a2;
-            }
-            x = solveTwoUnknowns(x1, x2, a1, a2, Rx, Rw);
-        }
-
-        if (zoomingY) {
-            const dy = Math.abs(b1 - previous.b1) + Math.abs(b2 - previous.b2);
-            if (dy <= 1) {
-                b1 = previous.b1;
-                b2 = previous.b2;
-            } else {
-                previous.b1 = b1;
-                previous.b2 = b2;
-            }
-            y = solveTwoUnknowns(y1, y2, b1, b2, Ry, Rh);
-        }
-
+        const { initialZoom, previous } = this;
+        const x = twitchTolerantZoomPan2(x1, x2, a1, a2, previous, 'a1', 'a2', Rx, Rw, initialZoom.x);
+        const y = twitchTolerantZoomPan2(y1, y2, b1, b2, previous, 'b1', 'b2', Ry, Rh, initialZoom.y);
         return { x, y };
+    }
+}
+// The "two-unknowns" variant of twitchTolerantZoomPan4
+function twitchTolerantZoomPan2(
+    x1: number,
+    x2: number,
+    a1: number,
+    a2: number,
+    previous: ZoomTwoFingers['previous'],
+    previousKey1: keyof typeof previous,
+    previousKey2: keyof typeof previous,
+    Rx: number,
+    Rw: number,
+    initialZoom: ZoomState
+): ZoomState {
+    if (x1 != x2) {
+        // zoom-pan mode:
+        const a1prev = previous[previousKey1];
+        const a2prev = previous[previousKey2];
+        const dx = Math.abs(a1 - a1prev) + Math.abs(a2 - a2prev);
+        if (dx <= 1) {
+            a1 = a1prev;
+            a2 = a2prev;
+        } else {
+            previous[previousKey1] = a1;
+            previous[previousKey2] = a2;
+        }
+        return solveTwoUnknowns(x1, x2, a1, a2, Rx, Rw);
+    } else {
+        // pan-only mode:
+        const xn1 = clientToNormal(initialZoom, a1, Rx, Rw);
+        const xn2 = clientToNormal(initialZoom, a2, Rx, Rw);
+        const xavg = (xn1 + xn2) / 2;
+        const dzoom = (x1 - xavg) / N;
+        return { min: initialZoom.min + dzoom, max: initialZoom.max + dzoom };
     }
 }
