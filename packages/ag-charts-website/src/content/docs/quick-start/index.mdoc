@@ -5,57 +5,63 @@ description: 'Build $framework Charts with AG Charts, the best free, fast and fl
 
 {% if isFramework("react") %}
 
-Add React Charts and React Graphs to your application in 60 seconds.
+AG Charts is a high-performance, canvas-based React charting library for building React Charts and React Graphs with an intuitive API, a wide-range of series types and a rich feature set. Available in Community and Enterprise editions. Visit [Community vs. Enterprise](./community-vs-enterprise/) to learn more.
 
 {% /if %}
 
 {% if isFramework("javascript") %}
 
-Add JavaScript Charts and JavaScript Graphs to your application in 60 seconds.
+AG Charts is a high-performance, canvas-based JavaScript charting library for building JavaScript Charts and JavaScript Graphs with an intuitive API, a wide-range of series types and a rich feature set. Available in Community and Enterprise editions. Visit [Community vs. Enterprise](./community-vs-enterprise/) to learn more.
 
 {% /if %}
 
 {% if isFramework("angular") %}
 
-Add Angular Charts and Angular Graphs to your application in 60 seconds.
+AG Charts is a high-performance, canvas-based Angular charting library for building Angular Charts and Angular Graphs with an intuitive API, a wide-range of series types and a rich feature set. Available in Community and Enterprise editions. Visit [Community vs. Enterprise](./community-vs-enterprise/) to learn more.
 
 {% /if %}
 
 {% if isFramework("vue") %}
 
-Add Vue Charts and Vue Graphs to your application in 60 seconds.
+AG Charts is a high-performance, canvas-based Vue charting library for building Vue Charts and Vue Graphs with an intuitive API, a wide-range of series types and a rich feature set. Available in Community and Enterprise editions. Visit [Community vs. Enterprise](./community-vs-enterprise/) to learn more.
 
 {% /if %}
 
 {% if isFramework("react") %}
 
-## Your First React Chart
+## Create a React Chart
+
+Add React Charts to your application in 60 seconds:
 
 {% /if %}
 
 {% if isFramework("angular") %}
 
-## Your First Angular Chart
+## Create a Angular Chart
+
+Add Angular Charts to your application in 60 seconds:
 
 {% /if %}
 
 {% if isFramework("javascript") %}
 
-## Your First JavaScript Chart
+## Create a JavaScript Chart
+
+Add JavaScript Charts to your application in 60 seconds:
 
 {% /if %}
 
 {% if isFramework("vue") %}
 
-## Your First Vue Chart
+## Create a Vue Chart
+
+Add Vue Charts to your application in 60 seconds:
 
 {% /if %}
 
-Add AG Charts to your application in these steps:
-
 {% if isNotJavascriptFramework() %}
 
-**1. Install**
+### NPM Install
 
 {% if isFramework("react") %}
 
@@ -151,7 +157,7 @@ yarn add ag-charts-vue3
 
 {% if isFramework("javascript") %}
 
-**1. Provide a Container**
+### Provide a Container
 
 Load the AG Charts library and create a blank container div:
 
@@ -172,7 +178,7 @@ Load the AG Charts library and create a blank container div:
 </html>
 ```
 
-**2. Instantiate the JavaScript Chart**
+### Instantiate the JavaScript Chart
 
 Create the Chart inside of your container div using `create`.
 
@@ -184,7 +190,7 @@ const options = {};
 const chart = agCharts.AgCharts.create(options);
 ```
 
-**3. Define Chart Data and Series**
+### Define Chart Data and Series
 
 ```js
 // Chart Options
@@ -211,17 +217,14 @@ const options = {
 
 {% if isFramework("react") %}
 
-**2. Import the React Chart**
+### Import the React Chart
 
 ```js
-import React, { useState } from 'react';
-import ReactDOM from 'react-dom/client';
-
 // React Chart Component
 import { AgCharts } from 'ag-charts-react';
 ```
 
-**3. Define Chart Data and Series**
+### Define Chart Data and Series
 
 ```js
 const ChartExample = () => {
@@ -244,21 +247,15 @@ const ChartExample = () => {
 };
 ```
 
-**4. React Chart Component**
+### React Chart Component
 
-Replace your `index.js` file (or root component) with the following code:
+Return the `AgCharts` component with the `chartOptions` as a prop:
 
 ```jsx
-// React Chart Component
-  return (
-    // AgCharts component with options passed as prop
-    <AgCharts options={chartOptions} />
-  );
-}
-
-// Render component inside root element
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<ChartExample />);
+return (
+  // AgCharts component with options passed as prop
+  <AgCharts options={chartOptions} />
+);
 ```
 
 {% /if %}
@@ -267,18 +264,16 @@ root.render(<ChartExample />);
 
 {% if isFramework("angular") %}
 
-**2. Import the Angular Chart**
+### Import the Angular Chart
 
 ```js
-import { Component } from '@angular/core';
-
 // Angular Chart Component
 import { AgCharts } from 'ag-charts-angular';
 // Chart Options Type Interface
 import { AgChartOptions } from 'ag-charts-community';
 ```
 
-**3. Define Chart Data and Series**
+### Define Chart Data and Series
 
 ```jsx
 // Angular Chart Component
@@ -309,7 +304,7 @@ export class AppComponent {
 }
 ```
 
-**4. Angular Charts Component**
+### Angular Charts Component
 
 Chart options are set as an `ag-charts` component attribute.
 
@@ -330,7 +325,7 @@ template:
 
 {% if isFramework("vue") %}
 
-**2. Import the Vue Chart**
+### Import the Vue Chart
 
 ```html
 <template>
@@ -339,9 +334,6 @@ template:
 </template>
 
 <script>
-    import { ref } from 'vue';
-    import type { AgChartOptions } from 'ag-charts-types';
-
     // Vue Chart Component
     import { AgCharts } from 'ag-charts-vue3';
 
@@ -355,7 +347,7 @@ template:
 </script>
 ```
 
-**3. Define Chart Data and Series**
+### Define Chart Data and Series
 
 ```html
 <template>
@@ -386,7 +378,7 @@ template:
 </script>
 ```
 
-**4. Vue Chart Component**
+### Vue Chart Component
 
 ```html
 <template>
@@ -398,19 +390,27 @@ template:
 {% /if %}
 
 {% if isFramework("angular") %}
-**5. Running the Angular Chart**
+
+### Running the Angular Chart
+
 {% /if %}
 
 {% if isFramework("react") %}
-**5. Running the React Chart**
+
+### Running the React Chart
+
 {% /if %}
 
 {% if isFramework("vue") %}
-**5. Running the Vue Chart**
+
+### Running the Vue Chart
+
 {% /if %}
 
 {% if isFramework("javascript") %}
-**4. Running the JavaScript Chart**
+
+### Running the JavaScript Chart
+
 {% /if %}
 
 Below is a live example of the application running. Click `</> Code` to see the code.
@@ -423,4 +423,34 @@ To live-edit the code, open the example in CodeSandbox or Plunker using the butt
 
 ## Next Steps
 
--   Read our [Introductory Tutorial](./create-a-basic-chart/).
+Choose one of the following options to continue your learning journey:
+
+### Quick Reference
+
+Browse our Quick Reference to see how AG Charts implements commonly used features.
+
+_Designed for Developers who are new to AG Charts, but have worked with Charts before._
+
+[Learn More](./key-features/)
+
+---
+
+### Tutorials
+
+Follow our tutorials that guide you through our core features, how to work with themes, and get started with Enterprise features.
+
+_Designed for Developers who are new to Charts and need a more detailed onboarding experience._
+
+[Learn More](./create-a-basic-chart/)
+
+---
+
+### Community Vs. Enterprise
+
+Learn the differences between AG Charts Community & Enterprise, and how to access our [free trial] or purchase a license.
+
+_Designed for Developers who are looking for more information, or need who have more advanced use-cases._
+
+[Learn More](./community-vs-enterprise/)
+
+---

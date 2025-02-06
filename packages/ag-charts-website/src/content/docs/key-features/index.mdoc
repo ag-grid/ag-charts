@@ -1,0 +1,703 @@
+---
+title: 'Key Features'
+description: 'Overview of popular AG Charts features with code snippets. Learn how to use key Community features, customise themes and explore advanced Enterprise features.'
+---
+
+The page provides an overview of and introduction to popular features available in AG Charts. Learn how to use Community features, configure and customise themes, and get started with Enterprise features.
+
+{% note %}
+The following sections assume a level of familiarity with common Charts concepts. If you're new to Charts in general, we recommend starting with our [Introductory Tutorial](./create-a-basic-chart/) instead.
+{% /note %}
+
+## Configuring Axes
+
+The horizontal (X) and vertical (Y) lines in cartesian charts are referred to as chart axes, and they serve to illustrate the relationships between data points on the graph. We also support polar charts, which use polar axes.
+
+### Axis Types
+
+Every chart has four axis: `top`, `bottom`, `left`, `right`, which can display either [Categorical](./axes-types/#category), [Numerical](./axes-types/#number), [Time](/axes-types/#time), or [Logarithmic](/axes-types/#log) data.
+
+Use `axes.position` to control the position of the axis, and `axes.type` to define the type:
+
+```js
+axes: [
+    {
+        type: 'category', // category | grouped-category | number | log | time | ordinal-time
+        position: 'bottom', // top | right | bottom | left
+    },
+],
+```
+
+_Note: All axes must be specified in order for these changes to take effect._
+
+### Secondary Axes
+
+Charts can have more than one axes, allowing for multiple series to be displayed on the same chart.
+
+Use `axis.keys` to link the series to the axis:
+
+```js
+axes: [
+    // x-axis
+    {
+        type: 'category',
+        position: 'bottom',
+    },
+    // primary y-axis
+    {
+        type: 'number',
+        position: 'left',
+        keys: ['male', 'female'],
+    },
+    // secondary y-axis
+    {
+        type: 'number',
+        position: 'right',
+        keys: ['exportedTonnes'],
+    },
+],
+```
+
+### Axis Intervals
+
+The [Axis Interval](./axes-intervals/) determines which axis labels, grid lines and ticks are shown along the axis. Intervals can be defined in steps, values, or min/max spacing.
+
+Use `axes.interval` to control the interval of the axis:
+
+```js
+axes: [
+    {
+        interval: { step: 5 }, // or { values: [0, 5, 10] } | { minSpacing: 50, maxSpacing: 100 }
+    }
+],
+```
+
+### Axis Labels
+
+[Axis labels](./axes-labels/) can be formatted, rotated and configured to automatically avoid collisions.
+
+Use `axes.label` to control the appearance of the axis labels:
+
+```js
+axes: [
+    {
+        label: {
+            minSpacing: 20,
+            avoidCollisions: false, // enabled by default
+            autoRotate: false, // enabled by default
+            formatter: function (params) {
+                return params.value * 100 + '%';
+            },
+        },
+    },
+];
+```
+
+### Example
+
+This example demonstrates different Axis Types, Secondary Axes, Custom Intervals, and Labels:
+
+{% chartExampleRunner title="Configuring Axes Example" name="configuring-axes-example" type="generated" /%}
+
+## Enhancing Data
+
+Charts can be enhanced with data elements, such as [Legends](./legend/), [Cross Lines](./cross-lines/), and [Stylers](./stylers/) to provide additional information to users.
+
+### Enabling & Configuring Legend
+
+[Legends](./legend/) are enabled by default on charts with more than one series.
+
+Use the `legend` property to configure the legend position and size:
+
+```js
+legend: {
+    enabled: true, // defaults to true for charts with multiple series
+    position: 'bottom', // 'top', 'right', 'left',
+    maxWidth: 200,
+    maxHeight: 300,
+}
+```
+
+### Cross Lines
+
+[Cross Lines](./cross-lines/) are lines or shaded areas in a chart that denote additional information or thresholds.
+
+Use the `crossLines` property in the axis options to add a Cross Line or Range at a specific data value on an axis:
+
+```js
+axes: [
+    {
+        crossLines: [
+            {
+                type: 'line', // or 'range'
+                value: 11, // or ['Jun', 'Sep']
+            },
+        ],
+    },
+],
+```
+
+### Customizing Series & Markers
+
+[Markers](./markers/) can be customized to change their [shape, size, and style](/markers/).
+
+Use the `series.marker` property to customize markers:
+
+```js
+series: [
+    // ...
+    marker: {
+        shape: 'square', // defaults to 'circle'
+        size: 20,
+        fill: 'red',
+        stroke: 'maroon',
+    },
+]
+```
+
+[Item Stylers](./stylers/#item-stylers) allow customization of the visual appearance of Series & Markers.
+
+Use the `itemStyler` callback function to customize the appearance of a specific Series or Marker:
+
+```js
+series: [
+    {
+        marker: {
+            itemStyler: ({ datum, xKey, fill, highlighted }) => {
+                return {
+                    fill: datum[xKey] === 'Jul' ? (highlighted ? 'lime' : 'red') : fill,
+                };
+            },
+        },
+    },
+];
+```
+
+### Example
+
+This example demonstrates custom Legends, Cross Lines, and Series / Markers:
+
+{% chartExampleRunner title="Enhancing Data Example" name="enhancing-data-example" type="generated" /%}
+
+## Customizing Charts
+
+Charts can be customized with [Themes](./themes/), [Layouts](./layout/), and [Backgrounds](./background/).
+
+### Layout
+
+The chart will [auto-size](./layout/#chart-size) by default, taking the size of the container element and auto-sizing the chart dynamically.
+
+Use the `width` and/or `height` options if a fixed size is required:
+
+```js
+{
+    width: 800,
+    height: 600,
+}
+```
+
+### Background
+
+Use `background.fill` to set the [Background](./background/) of the chart to any CSS Color:
+
+```js
+background: {
+    fill: 'transparent', // or RGB, HEX, HSL, HWB, or named color
+},
+```
+
+### Themes
+
+AG Charts comes with 5 [Themes](./themes/), each available in light or dark mode.
+
+Use the `theme` property to set the theme:
+
+```js
+{
+    theme: 'ag-default', // or 'ag-sheets', 'ag-polychrome', 'ag-material', 'ag-vivid'
+}
+```
+
+Themes can also be customised with the [Theming API](/charts/themes-api/).
+
+Use `params` to set styles across the whole chart, `overrides` to merge over the defaults within the base theme, and `palette` to define the colour palette:
+
+```js
+const customTheme: AgChartTheme = {
+    palette: {
+        fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
+        strokes: ['#881008'],
+    },
+    params: {
+        fontFamily: 'Georgia, serif',
+        fontSize: 16,
+    },
+    overrides: {
+        common: {
+            title: {
+                fontSize: 24,
+            },
+        },
+        bar: {
+            series: {
+                label: {
+                    enabled: true,
+                    color: 'white',
+                },
+            },
+        },
+    }
+};
+```
+
+### Example
+
+This example demonstrates a fixed-size chart with a custom theme and background color:
+
+{% chartExampleRunner title="Customizing Charts Example" name="customizing-charts-example" type="generated" /%}
+
+## Handling User Interactions
+
+Charts can be made interactive by enabling [Tooltips](./tooltips/), [Highlighting Series & Items](./highlighting/), and responding to [Events](./events/).
+
+### Customizing Tooltips
+
+Tooltips are enabled by default. Their content is based on the data values and keys of the series.
+
+Use the `tooltip.renderer` callback function to customize the content of the tooltip.
+
+```js
+tooltip: {
+    renderer: function ({ datum, xKey, yKey }) {
+        return {
+            heading: 'Clothing Production',
+            title: yName.toUpperCase(),
+            data: [
+                {
+                    label: datum[xKey],
+                    value: datum[yKey].toFixed(1),
+                },
+            ],
+        };
+    },
+},
+```
+
+You can also return HTML to create a [Custom Tooltip](./tooltips/#using-custom-tooltips):
+
+```js
+{
+    renderer: function (params) {
+        return (
+            '<div class="custom-tooltip">' +
+                params.datum[params.xKey]
+            '</div>'
+        );
+    },
+},
+```
+
+### Highlighting Hovered Data
+
+Items and Series can be [highlighted](./series-highlighting/) when hovered over. Item highlighting (e.g. markers) is enabled by default.
+
+Use `highlightStyles` to [customize](./series-highlighting/#customisation) highlighted items and series:
+
+```js
+theme: {
+    overrides: {
+        bar: {
+            series: {
+                highlightStyle: {
+                    // Attributes that apply to individual items within a single series.
+                    item: {
+                    fill: 'red',
+                    stroke: 'maroon',
+                    strokeWidth: 4,
+                    },
+                    // Attributes that apply to the entire series containing the highlighted item.
+                    series: {
+                        dimOpacity: 0.2,
+                        strokeWidth: 2
+                    }
+                }
+            },
+        },
+    },
+},
+```
+
+### Handling Events
+
+Callbacks are provided for [Series](./events/#reference-AgSeriesListeners), [Legend](./events/#reference-AgChartLegendListeners) and [Chart](./events/#reference-AgBaseChartListeners) events.
+
+Use `listeners` to respond to [Events](./events/) on the chart:
+
+```js
+{
+    // Charts Events
+    listeners: {
+        click: (_event) => {
+            console.log('click');
+        },
+        doubleClick: (_event) => {
+            console.log('double click');
+        },
+        seriesNodeClick: ({ datum, xKey, yKey, seriesId }) => {
+            console.log('node clicked')
+        },
+        seriesVisibilityChange: ({ seriesId, visible }: AgSeriesVisibilityChange) => {
+            console.log('series visibility changed')
+        },
+        zoom: (event) => {
+            console.log('zoom level changed')
+        },
+    },
+    // Series Events
+    series: [
+        {
+            listeners: {
+                nodeClick: (event) => {
+                    console.log('node clicked')
+                },
+            },
+        },
+    ],
+    // Legend Events
+    legend: {
+        listeners: {
+            legendItemClick: ({ seriesId, itemId, enabled }: AgChartLegendClickEvent) => {
+                console.log('item clicked')
+            },
+        },
+    }
+}
+```
+
+### Saving and Restoring State
+
+The [State](./state/) of the chart can be saved and restored.
+
+Use the `getState()` and `saveState()` APIs to retrieve and save the current state of the chart:
+
+```js
+function saveState() {
+    const newState = chart.getState();
+    // save to database...
+}
+
+function restoreState() {
+    // retrieve state from database...
+    chart.setState(state);
+}
+```
+
+You can alo use the `initialState` property to set the [initial state](./api-state/#initial-state) of the chart:
+
+```js
+initialState: {
+    zoom: {
+        rangeX: {
+            start: {
+                __type: 'date',
+                value: new Date('2021-01-01').getTime(),
+            },
+        },
+    },
+    ...
+}
+```
+
+### Example
+
+This example demonstrates custom Tooltips, Highlighting, and Event Handling:
+
+{% chartExampleRunner title="User Interactions Example" name="user-interactions-example" type="generated" /%}
+
+## Enterprise Features {% enterpriseIcon /%}
+
+AG Charts comes in two forms:
+
+-   **AG Charts Community**: Free for everyone, including production use - no licence required.
+-   **AG Charts Enterprise**: Requires a licence to use in production. Free to test locally, or request a [trial](#trial-ag-charts-enterprise-for-free) to test in production.
+
+Import the `ag-charts-enterprise` package to access Enterprise features.
+
+Learn more on the [Community vs. Enterprise](./community-vs-enterprise/) page.
+
+_All Enterprise features are marked with an {% enterpriseIcon /%} in our docs_
+
+### Zoom {% enterpriseIcon /%}
+
+To Enable [Zooming](./zoom/), set the `zoom` property to `true`:
+
+```js
+zoom: {
+    enabled: true,
+}
+```
+
+Zoom can also be further customized to enable/disable specific features and control the anchor point, scrolling step, etc:
+
+```js
+zoom: {
+    anchorPointX: 'pointer',
+    anchorPointY: 'pointer',
+    scrollingStep: 0.4,
+    axes: 'xy',
+    panKey: 'shift',
+    enableAxisDragging: false,
+    enablePanning: false,
+    enableScrolling: false,
+    enableSelecting: true,
+    minVisibleItems: 10,
+    autoScaling: {
+        enabled: true,
+    }
+}
+```
+
+### Navigator {% enterpriseIcon /%}
+
+Zoom can also be controled with a [Navigator](./navigator/). To enable the Navigator, set the `navigator` property to `true`:
+
+```js
+navigator: {
+    enabled: true,
+}
+```
+
+A [Mini Chart](./navigator/#mini-chart) can also be displayed within the Navigator:
+
+```js
+navigator: {
+    miniChart: {
+        enabled: true,
+    },
+}
+```
+
+### Animations {% enterpriseIcon /%}
+
+Animations are enabled by default. Use the `animation` property to control the duration of animations:
+
+```js
+animation: {
+    duration: 500, // ms
+}
+```
+
+### Example
+
+This example demonstrates Zooming, the Navigator with a Mini Chart, and Animations:
+
+{% chartExampleRunner title="Enterprise Features Example" name="enterprise-features-example" type="generated" /%}
+
+## Specialized Charts {% enterpriseIcon /%}
+
+### Financial Charts {% enterpriseIcon /%}
+
+Build interactive [Financial Charts](./financial-charts/) featuring advanced annotations with minimal configuration.
+
+To create a financial chart, simply provide your financial data:
+
+{% if isFramework("javascript") %}
+
+```js
+const options = {
+    data: getData(),
+};
+
+AgCharts.createFinancialChart(options);
+```
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+```jsx
+const [options, setOptions] = useState({
+    data: getData(),
+});
+
+return (
+    <AgFinancialCharts options={options} />
+);
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+```js
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [AgFinancialCharts],
+  template: `<ag-financial-charts [options]="options"></ag-financial-charts>`,
+})
+export class AppComponent {
+  public options: AgFinancialChartOptions;
+  constructor() {
+    this.options = {
+      data: getData(),
+    };
+  }
+}
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```js
+template: `<ag-financial-charts:options="options"/>`,
+components: {
+    'ag-financial-charts': AgFinancialCharts,
+},
+data() {
+    return {
+        options: {
+            data: getData(),
+        },
+    };
+}
+```
+
+{% /if %}
+
+{% chartExampleRunner title="Financial Charts Showcase" name="financial-charts-showcase" type="generated" /%}
+
+### Maps {% enterpriseIcon /%}
+
+The [Map Series](./maps/) types enable visualising geographic data in different ways, using GEOJson data.
+
+To create a map chart, provide a [Map Topology](./map-topology/) in [GeoJSON](https://geojson.org/) format and link it to your `data` with `properties`:
+
+```js
+series: [
+    {
+        type: 'map-shape',
+        topology: {
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Polygon',
+                        coordinates: [...],
+                    },
+                    properties: {
+                        name: 'United Kingdom',
+                        code: 'GB'
+                    }
+                }
+            ],
+            // ...
+        },
+        data: [
+            { country: 'United Kingdom', population: 67330000 },
+            { country: 'France', population: 67500000 },
+            // ...
+        ],
+        idKey: 'country',
+        topologyIdKey: 'name' //default value
+    }
+]
+```
+
+{% chartExampleRunner title="Map Kitchen Sink Example" name="map-kitchen-sink" type="generated" /%}
+
+### Gauges {% enterpriseIcon /%}
+
+Gauges display a single data point within a predefined range using a circular or linear scale.
+
+Provide a `type`, `value` and `scale` to create a gauge with the `createGauge` API:
+
+{% if isFramework("javascript") %}
+
+```js
+const options = {
+    type: 'radial-gauge', // or 'linear-gauge'
+    container: document.getElementById('myChart'),
+    value: 80,
+    scale: {
+        min: 0,
+        max: 100,
+    },
+};
+
+AgCharts.createGauge(options);
+```
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+```jsx
+const [options, setOptions] = useState({
+    type: 'radial-gauge', // or 'linear-gauge'
+    value: 80,
+    scale: {
+      min: 0,
+      max: 100,
+    },
+});
+
+return (
+    <AgGauge options={options} />
+);
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+```js
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [AgGauge],
+  template: `<ag-gauge [options]="options"></ag-gauge>`,
+})
+export class AppComponent {
+  public options: AgRadialGaugeOptions;
+  constructor() {
+    this.options = {
+        type: 'radial-gauge', // or 'linear-gauge'
+        value: 80,
+        scale: {
+          min: 0,
+          max: 100,
+        },
+    };
+  }
+}
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```js
+template: `<ag-gauge :options="options"/>`,
+components: {
+    'ag-gauge': AgGauge,
+},
+data() {
+    return {
+        options: {
+            type: 'radial-gauge', // or 'linear-gauge'
+            value: 80,
+            scale: {
+                min: 0,
+                max: 100,
+            },
+        }
+    };
+}
+```
+
+{% /if %}
+
+{% chartExampleRunner title="Radial Gauge Example" name="simple-radial-gauge" type="generated" /%}

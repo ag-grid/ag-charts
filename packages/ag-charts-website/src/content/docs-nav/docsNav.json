@@ -9,14 +9,19 @@
                     "path": "quick-start"
                 },
                 {
+                    "type": "item",
+                    "title": "Key Features",
+                    "path": "key-features"
+                },
+                {
+                    "type": "item",
+                    "title": "Community vs. Enterprise",
+                    "path": "community-vs-enterprise"
+                },
+                {
                     "type": "group",
-                    "title": "Guides",
+                    "title": "Setup",
                     "children": [
-                        {
-                            "type": "item",
-                            "title": "Creating a Basic Chart",
-                            "path": "create-a-basic-chart"
-                        },
                         {
                             "type": "item",
                             "title": "Installation",
@@ -24,13 +29,19 @@
                         },
                         {
                             "type": "item",
-                            "title": "Upgrading to Enterprise",
-                            "path": "licensing"
-                        },
+                            "title": "Enterprise Licence Key",
+                            "path": "license-install"
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "title": "Tutorials",
+                    "children": [
                         {
                             "type": "item",
-                            "title": "Installing Your Licence Key",
-                            "path": "license-install"
+                            "title": "Creating a Basic Chart",
+                            "path": "create-a-basic-chart"
                         },
                         {
                             "type": "item",
@@ -41,7 +52,7 @@
                 },
                 {
                     "type": "group",
-                    "title": "Build & Tooling",
+                    "title": "Security & Compatibility",
                     "children": [
                         {
                             "type": "item",

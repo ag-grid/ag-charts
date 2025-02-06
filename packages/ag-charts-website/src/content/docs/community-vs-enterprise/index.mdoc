@@ -1,0 +1,101 @@
+---
+title: 'Community and Enterprise'
+---
+
+This page provides an overview of the differences between AG Charts Community and Enterprise, when to use each version, and how to access our free trial or purchase a licence.
+
+## Overview
+
+AG Charts comes in two forms:
+
+-   **AG Charts Community**: Free for everyone, including production use - no licence required.
+-   **AG Charts Enterprise**: Requires a licence to use in production. Free to test locally, or request a [trial](#trial-ag-charts-enterprise-for-free) to test in production.
+
+_All Enterprise features are marked with an {% enterpriseIcon /%} in our docs_
+
+### Community Features
+
+AG Charts Community contains all of the core features needed to build a chart, including:
+
+-   **Chart Essentials:** Basic chart types, including line, bar, column, and pie charts.
+-   **Accessibility Support:** Fully accessible charts with keyboard navigation and screen reader support.
+-   **Basic Interactivity:** Highlight data items or entire series and add tooltips to provide extra contextual information.
+-   **Intuitive Data Handling:** Handles your data in its existing format, no transformation required.
+-   **Themes and Styling:** Customize backgrounds, layouts, overlays, and themes to match your brand.
+-   **Localization**: Support for 31 languages and integration with localization engines.
+-   **Download API**: Trigger browser-based image downloads of Charts in Base64 and PNG.
+-   **Event API:** Listen to and respond to user interactions with Charts and Series.
+-   **Major Frameworks:** Support for React, Angular and Vue, in addition to vanilla JavaScript.
+
+### Enterprise Features
+
+AG Charts Enterprise contains advanced features, such as:
+
+-   **Advanced Chart Types:** Access to 20+ additional chart types, including Range, Heatmap, Sankey and more.
+-   **Financial Charts:** Build interactive financial charts with minimal configuration.
+-   **Animations:** Control charts initial load and data update animations.
+-   **Advanced Interactivity:** Context menus, cross-hairs, navigator, zoom and chart synchronization.
+-   **Background Images:** Add background images to charts for branding or context.
+-   **Dedicated Support:** Priority support with guaranteed response times, bug fixes, and direct access to the AG Grid team.
+
+{% note %}
+See the [Pricing](/licence-pricing) page for a full feature comparison.
+{% /note %}
+
+## Enterprise Bundle
+
+{% if isFramework("react") %}
+In addition to AG Charts Enterprise, we also offer an Enterprise Bundle licence, which provides access to both [AG Charts](/charts/) Enterprise and [AG Grid](https://www.ag-grid.com) Enterprise (our Data Grid library), including Integrated Charts, which allows you to build Charts directly from the Data Grid. To learn more about AG Grid Enterprise, visit the [AG Grid Community vs. Enterprise](https://www.ag-grid.com/react-data-grid/community-vs-enterprise/) docs.
+{% /if %}
+
+{% if isFramework("angular") %}
+In addition to AG Charts Enterprise, we also offer an Enterprise Bundle licence, which provides access to both [AG Charts](/charts/) Enterprise and [AG Grid](https://www.ag-grid.com) Enterprise (our Data Grid library), including Integrated Charts, which allows you to build Charts directly from the Data Grid. To learn more about AG Grid Enterprise, visit the [AG Grid Community vs. Enterprise](https://www.ag-grid.com/angular-data-grid/community-vs-enterprise/) docs.
+{% /if %}
+
+{% if isFramework("vue") %}
+In addition to AG Charts Enterprise, we also offer an Enterprise Bundle licence, which provides access to both [AG Charts](/charts/) Enterprise and [AG Grid](https://www.ag-grid.com) Enterprise (our Data Grid library), including Integrated Charts, which allows you to build Charts directly from the Data Grid. To learn more about AG Grid Enterprise, visit the [AG Grid Community vs. Enterprise](https://www.ag-grid.com/vue-data-grid/community-vs-enterprise/) docs.
+{% /if %}
+
+{% if isFramework("javascript") %}
+In addition to AG Charts Enterprise, we also offer an Enterprise Bundle licence, which provides access to both [AG Charts](/charts/) Enterprise and [AG Grid](https://www.ag-grid.com) Enterprise (our Data Grid library), including Integrated Charts, which allows you to build Charts directly from the Data Grid. To learn more about AG Grid Enterprise, visit the [AG Grid Community vs. Enterprise](https://www.ag-grid.com/javascript-data-grid/community-vs-enterprise/) docs.
+{% /if %}
+
+## Test AG Charts Enterprise Features
+
+You can test AG Charts Enterprise features locally without a licence key, just install and import the `ag-charts-enterprise` package - you do not need to provide a licence key. When you do not have a licence key installed then AG Charts Enterprise will display a watermark and an error message in the console.
+
+### Request an Enterprise Bundle Trial Licence
+
+If you would like to trial AG Charts Enterprise in a production environment, you can request a free trial licence key. The trial licence key will remove the watermark & console error message, and provide access to both AG Grid and AG Charts Enterprise.
+
+Fill out the form below and we'll send you an Enterprise Bundle licence key, valid for two weeks:
+
+TODO: Add Form
+
+## Choosing the Right Version
+
+**AG Charts Community** is an excellent choice if you need to create simple, yet appealing Charts. It is ideal for developers and organizations looking for a free, open-source solution.
+
+**AG Grid Enterprise** is the preferred option for companies that need advanced functionality, dedicated support, and a flexible licensing model. It is suited for complex applications that demand high performance, extensive customization, and large-scale data handling.
+
+**Enterprise Bundle** is the best choice for organizations that require both AG Grid Enterprise and AG Charts Enterprise, or those who have advanced use-cases for Integrated Charting.
+
+## Support
+
+AG Charts Community relies on community-driven support through GitHub and public forums.
+
+AG Charts Enterprise provides dedicated support via [Zendesk](https://ag-grid.zendesk.com/hc/en-us) with guaranteed response times, bug fixes, and direct access to the AG Charts developers, who handle all support tickets. Support is also available during your free trial period.
+
+## Licencing
+
+Both AG Charts Community and Enterprise are open source, however, **AG Charts Community is available under the MIT licence** and **AG Charts Enterprise requires a commercial, EULA licence**.
+
+For more information, review our [Licences on GitHub](https://github.com/ag-grid/ag-charts/tree/latest?tab=Licence-1-ov-file).
+
+## Pricing
+
+Licences for AG Charts Enterprise are available on a per-developer, per-deployment basis. Licences are perpetual and come with 1 year of support and updates. For more information, see the [Pricing](/licence-pricing) page.
+
+## Next Steps
+
+[Install AG Charts Enterprise](./licence-install) to start using our advanced features, or [Get Started with AG Charts Community](./quick-start) to explore the core functionality of our Charting library.
