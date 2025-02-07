@@ -3,17 +3,45 @@ import type { Widget } from '../../widget/widget';
 import type { DragWidgetEvent, MouseWidgetEvent, TouchWidgetEvent, WidgetEventMap } from '../../widget/widgetEvents';
 
 const DRAG_THRESHOLD_PX = 3;
+const DOUBLE_TAP_TIMER_MS = 505;
+
+type TSythetic = 'click' | 'dblclick';
+type SytheticMap<T extends TSythetic> = {
+    mouse: { device: 'mouse' } & MouseWidgetEvent<T>;
+    touch: { device: 'touch'; sourceEvent: TouchEvent } & Omit<MouseWidgetEvent<T>, 'sourceEvent'>;
+};
+type Device = keyof SytheticMap<TSythetic>;
+type SyntheticEvent<D extends Device, T extends TSythetic> = SytheticMap<T>[D];
 
 /**
- * A `DragInterpreterClickEvent` is either a native 'click' MouseEvent, or a sythetic click event fired by single finger
- * 'touchstart' and 'touchend'.
+ * A `DragInterpreterClickEvent` is either a native 'click' MouseEvent, or a sythetic click event fired by a single
+ * finger 'touchstart' and 'touchend'.
  */
-type MouseClick = { device: 'mouse' } & MouseWidgetEvent<'click'>;
-type TouchClick = { device: 'touch'; sourceEvent: TouchEvent } & Omit<MouseWidgetEvent<'click'>, 'sourceEvent'>;
+type MouseClick = SyntheticEvent<'mouse', 'click'>;
+type TouchClick = SyntheticEvent<'touch', 'click'>;
 export type DragInterpreterClickEvent = MouseClick | TouchClick;
 
+/**
+ * A `DragInterpreterDblClickEvent` is either a native 'dblclick' MouseEvent, or a sythetic click event fired by two
+ * finger 'touchstart' and 'touchend' in quick succession (DOUBLE_TAP_TIMER_MS).
+ */
+type MouseDblClick = SyntheticEvent<'mouse', 'dblclick'>;
+type TouchDblClick = SyntheticEvent<'touch', 'dblclick'>;
+export type DragInterpreterDblClickEvent = MouseDblClick | TouchDblClick;
+
+type WE<D extends Device> = DragWidgetEvent & { device: D };
+function makeSynthetic<T extends TSythetic>(device: 'mouse', type: T, event: WE<'mouse'>): SyntheticEvent<'mouse', T>;
+function makeSynthetic<T extends TSythetic>(device: 'touch', type: T, event: WE<'touch'>): SyntheticEvent<'touch', T>;
+function makeSynthetic(device: Device, type: TSythetic, event: DragWidgetEvent) {
+    const { offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent } = event;
+    return { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
+}
+
 type Type = 'mousemove' | 'click' | 'dblclick' | 'drag-start' | 'drag-move' | 'drag-end';
-type EventMap = Omit<WidgetEventMap, 'click'> & { click: DragInterpreterClickEvent };
+type EventMap = Omit<WidgetEventMap, 'click' | 'dblclick'> & {
+    click: DragInterpreterClickEvent;
+    dblclick: DragInterpreterDblClickEvent;
+};
 
 /**
  * In the interest of robustness (and simplicity), the Widget class always dispatches these events after mousedown &
@@ -33,6 +61,7 @@ export class DragInterpreter {
 
     private dragStartEvent?: DragWidgetEvent<'drag-start'>;
     private isDragging = false;
+    private lastClickTime?: number;
 
     constructor(widget: Widget) {
         this.destroyFns.push(
@@ -73,7 +102,7 @@ export class DragInterpreter {
     }
 
     private onDblClick(event: MouseWidgetEvent<'dblclick'>) {
-        this.dispatch(event);
+        this.dispatch({ device: 'mouse', ...event });
     }
 
     private onDragStart(event: DragWidgetEvent<'drag-start'>) {
@@ -102,33 +131,27 @@ export class DragInterpreter {
         if (this.isDragging) {
             this.dispatch(event);
             this.isDragging = false;
-        } else {
-            const { device, offsetX, offsetY, clientX, clientY, currentX, currentY } = event;
-            const type = 'click';
+            return;
+        }
 
-            let sytheticClick: DragInterpreterClickEvent | undefined;
-            if (device === 'mouse') {
-                const sourceEvent: MouseEvent = event.sourceEvent;
-                sytheticClick = { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
+        if (event.device === 'mouse') {
+            const click = makeSynthetic('mouse', 'click', event);
+            this.dispatch(click);
+        }
+        // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
+        else if (event.sourceEvent.type === 'touchend') {
+            const click = makeSynthetic('touch', 'click', event);
+            this.dispatch(click);
+
+            // Handle double-click logic
+            const now = Date.now();
+            if (this.lastClickTime !== undefined && now - this.lastClickTime <= DOUBLE_TAP_TIMER_MS) {
+                const dblClick = makeSynthetic(event.device, 'dblclick', event);
+                this.dispatch(dblClick);
+                this.lastClickTime = undefined;
             } else {
-                const sourceEvent: TouchEvent = event.sourceEvent;
-                if (sourceEvent.type === 'touchend') {
-                    // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
-                    sytheticClick = {
-                        type,
-                        device,
-                        offsetX,
-                        offsetY,
-                        clientX,
-                        clientY,
-                        currentX,
-                        currentY,
-                        sourceEvent,
-                    };
-                }
+                this.lastClickTime = now;
             }
-
-            if (sytheticClick) this.dispatch(sytheticClick);
         }
     }
 }

@@ -277,7 +277,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         return x.min === 0 && x.max === 1 && y.min === 0 && y.max === 1;
     }
 
-    private onDoubleClick(event?: _Widget.MouseWidgetEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
+    private onDoubleClick(event?: _ModuleSupport.DragInterpreterDblClickEvent & { preventZoomDblClick?: boolean }) {
         const {
             enabled,
             enableDoubleClickToReset,
