@@ -6,6 +6,7 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     zoom: {
         enabled: true,
+        autoScaling: { enabled: true },
     },
     tooltip: {
         enabled: false,
@@ -42,8 +43,16 @@ const options: AgCartesianChartOptions = {
             type: 'line',
             xKey: 'year',
             yKey: 'spending',
+            marker: {
+                enabled: false,
+            },
         },
     ],
 };
 
-AgCharts.create(options);
+let chart = AgCharts.create(options);
+
+function reloadChart() {
+    chart.destroy();
+    chart = AgCharts.create(options);
+}
