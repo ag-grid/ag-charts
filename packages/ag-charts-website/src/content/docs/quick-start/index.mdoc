@@ -309,14 +309,12 @@ export class AppComponent {
 Chart options are set as an `ag-charts` component attribute.
 
 ```js
-
 template:
   `<ag-charts
     style="height: 100%"
     [options]="chartOptions">
    </ag-charts>`,
 })
-
 ```
 
 {% /if %}
@@ -328,11 +326,6 @@ template:
 ### Import the Vue Chart
 
 ```html
-<template>
-    <!-- The AG Charts component with chartsOptions as an attribute -->
-    <ag-charts :options="options"> </ag-charts>
-</template>
-
 <script>
     // Vue Chart Component
     import { AgCharts } from 'ag-charts-vue3';
@@ -350,11 +343,6 @@ template:
 ### Define Chart Data and Series
 
 ```html
-<template>
-    <!-- The AG Charts component with chartsOptions as an attribute -->
-    <ag-charts :options="options"> </ag-charts>
-</template>
-
 <script>
     setup() {
         // Chart Options
