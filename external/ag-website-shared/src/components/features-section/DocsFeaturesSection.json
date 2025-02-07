@@ -87,7 +87,8 @@
         "community": [
             {
                 "title": "Chart Essentials",
-                "description": "Basic chart types, including line, bar, column, and pie charts."
+                "description": "Basic chart types, including line, bar, column, and pie charts.",
+                "link": "/gallery/"
             },
             {
                 "title": "Accessibility Support",
@@ -131,7 +132,8 @@
         "enterprise": [
             {
                 "title": "Advanced Chart Types",
-                "description": "Access to 20+ additional chart types, including Range, Heatmap, Sankey and more."
+                "description": "Access to 20+ additional chart types, including Range, Heatmap, Sankey and more.",
+                "link": "/gallery/"
             },
             {
                 "title": "Financial Charts",
@@ -145,7 +147,8 @@
             },
             {
                 "title": "Advanced Interactivity",
-                "description": "Context menus, cross-hairs, navigator, zoom and chart synchronization."
+                "description": "Context menus, cross-hairs, navigator, zoom and chart synchronization.",
+                "link": "./context-menu/"
             },
             {
                 "title": "Background Images",
