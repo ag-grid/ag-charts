@@ -192,6 +192,14 @@ export class ChartTheme {
                 bottom: { $ref: 'padding' },
                 left: { $ref: 'padding' },
             },
+            seriesArea: {
+                padding: {
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                },
+            },
             keyboard: { enabled: true },
             title: {
                 enabled: false,
