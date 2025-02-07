@@ -3,35 +3,22 @@
         opacity: 0;
         background-color: #81c6fd;
     }
-    10% {
+    40% {
         opacity: 0;
         background-color: #81c6fd;
     }
-    20% {
+    50% {
         opacity: 1;
         transform: scale(1);
         background-color: #81c6fd;
     }
-    25% {
+    60% {
         transform: scale(1.2);
         background-color: #2196f3;
-    }
-    75% {
-        transform: scale(1.2);
-        background-color: #2196f3;
-    }
-    80% {
-        opacity: 1;
-        transform: scale(1);
-        background-color: #81c6fd;
-    }
-    90% {
-        opacity: 0;
-        background-color: #81c6fd;
     }
     100% {
-        opacity: 0;
-        background-color: #81c6fd;
+        transform: scale(1.2);
+        background-color: #2196f3;
     }
 }
 
@@ -39,25 +26,19 @@
     0% {
         background-color: rgba(0, 0, 0, 0);
     }
-    10% {
+    15% {
         background-color: rgba(0, 0, 0, 0);
     }
-    20% {
+    30% {
         background-color: rgba(0, 0, 0, 0.1);
-    }
-    80% {
-        background-color: rgba(0, 0, 0, 0.1);
-    }
-    90% {
-        background-color: rgba(0, 0, 0, 0);
     }
     100% {
-        background-color: rgba(0, 0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.1);
     }
 }
 
 #gesture-demo {
-    animation: gesture-fade 2s infinite normal ease-in-out;
+    animation: gesture-fade 1.5s infinite alternate ease-in-out;
     position: absolute;
     left: 0px;
     top: 0px;
@@ -67,7 +48,7 @@
 }
 
 #finger {
-    animation: long-tap 2s infinite normal ease-in-out;
+    animation: long-tap 1.5s infinite alternate ease-in-out;
     width: 30px;
     height: 30px;
     border-radius: 50%;
