@@ -946,7 +946,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('click', { point, shiftKey, textInputValue, bbox });
     }
 
-    private onDoubleClick(event: _Widget.MouseWidgetEvent<'dblclick'>) {
+    private onDoubleClick(event: _ModuleSupport.DragInterpreterDblClickEvent) {
         const { state } = this;
 
         const context = this.getAnnotationContext();

@@ -23,7 +23,7 @@ import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { ChartType } from '../factory/chartTypes';
-import type { DragInterpreterClickEvent } from '../interaction/dragInterpreter';
+import type { DragInterpreterClickEvent, DragInterpreterDblClickEvent } from '../interaction/dragInterpreter';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -49,7 +49,11 @@ export interface SeriesAreaChartDependencies {
     mode: ChartMode;
 }
 
-type ClickLikeEvent = DragInterpreterClickEvent | MouseWidgetEvent<'click'> | MouseWidgetEvent<'dblclick'>;
+type ClickLikeEvent =
+    | DragInterpreterClickEvent
+    | DragInterpreterDblClickEvent
+    | MouseWidgetEvent<'click'>
+    | MouseWidgetEvent<'dblclick'>;
 type HoverLikeEvent = Partial<Pick<DragWidgetEvent, 'device'>> &
     (ClickLikeEvent | MouseWidgetEvent<'mousemove'> | DragWidgetEvent<'drag-move'>);
 
