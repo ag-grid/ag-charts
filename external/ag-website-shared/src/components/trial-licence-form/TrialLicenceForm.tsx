@@ -22,7 +22,6 @@ const getFormErrorMessage = (message: string) => {
         // eg, "Error: Unable to create a lead for a trial LK for email something@somewhere.com. Error: Duplicate email"
         errorMessage = MESSAGES.formErrorDuplicateEmail;
     }
-    ('');
 
     return errorMessage;
 };
