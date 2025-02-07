@@ -6,6 +6,24 @@
     }
 }
 
+.ag-charts-annotations__text-size-menu {
+    --item-padding: 4px 8px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    min-width: 34px;
+    text-align: center;
+}
+
+.ag-charts-annotations__line-stroke-width-menu {
+    --item-padding: 6px;
+    column-gap: 6px;
+}
+
+.ag-charts-annotations__line-style-type-menu {
+    --item-padding: 6px;
+    column-gap: 0;
+}
+
 .ag-charts-annotations__stroke-width-button::before {
     background: var(--ag-charts-foreground-color);
     content: '';

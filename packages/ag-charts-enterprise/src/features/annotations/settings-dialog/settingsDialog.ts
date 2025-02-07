@@ -238,7 +238,6 @@ export class AnnotationSettingsDialog extends Dialog {
             onChange: (value) => options.onChangeText({ label: value }),
         });
 
-        const fontSizeAndColor = this.createInputGroupLine();
         const fontSize = this.createFontSizeSelect(datum.text.fontSize, options.onChangeTextFontSize);
         const colorPicker = this.createColorPickerInput(
             'text-color',
@@ -249,9 +248,7 @@ export class AnnotationSettingsDialog extends Dialog {
             options.onChangeTextColor,
             options.onChangeHideTextColor
         );
-        fontSizeAndColor.append(fontSize, colorPicker);
 
-        const positionAndAlignment = this.createInputGroupLine();
         const textPosition = datum.text.position === 'inside' ? 'center' : datum.text.position;
         const position = this.createPositionRadioGroup(textPosition ?? 'top', (value) =>
             options.onChangeText({ position: value as unknown as LineTextPosition | ChannelTextPosition })
@@ -259,9 +256,10 @@ export class AnnotationSettingsDialog extends Dialog {
         const alignment = this.createAlignmentRadioGroup(datum.text.alignment ?? 'center', (value) =>
             options.onChangeText({ alignment: value as unknown as LineTextAlignment })
         );
-        positionAndAlignment.append(position, alignment);
 
-        panel.append(textArea, fontSizeAndColor, positionAndAlignment);
+        const inputGroupLine = this.createInputGroupLine();
+        inputGroupLine.append(fontSize, colorPicker, position, alignment);
+        panel.append(textArea, inputGroupLine);
 
         return { panel, onShow: () => focusCursorAtEnd(textArea) };
     }
