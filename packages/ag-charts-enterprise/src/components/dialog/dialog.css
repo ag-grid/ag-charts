@@ -93,7 +93,8 @@
 /* Input group */
 .ag-charts-dialog__input-group-line {
     display: flex;
-    gap: 18px;
+    gap: 16px 18px;
+    flex-wrap: wrap;
 }
 
 .ag-charts-dialog__input-group {
