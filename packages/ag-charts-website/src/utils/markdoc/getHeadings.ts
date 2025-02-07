@@ -35,8 +35,8 @@ function isHeadingTag(node: Node) {
     );
 }
 
-function hasHeadingAttribute(node: Node) {
-    return node.attributes[HEADING_ATTR_NAME];
+function hasHeadingAttribute(node?: Node) {
+    return node?.attributes?.[HEADING_ATTR_NAME];
 }
 
 function createHeadingRenderableNode({
