@@ -117,7 +117,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
                     break;
 
                 case 'topRight':
-                    datum.end.x = invertedMove.y;
+                    datum.end.x = invertedMove.x;
                     datum.end.y = invertedMove.y;
                     break;
             }
