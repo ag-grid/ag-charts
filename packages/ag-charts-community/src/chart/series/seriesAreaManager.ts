@@ -314,6 +314,10 @@ export class SeriesAreaManager extends BaseManager {
         if (event.device === 'touch' || excludesType(event, 'drag-move')) {
             this.tooltip.lastHover = event;
         }
+        if (event.device === 'touch' && this.chart.ctx.chartService.touch.dragAction === 'hover') {
+            event.sourceEvent.preventDefault();
+        }
+
         this.hoverDevice = 'pointer';
         this.previousInputDevice = 'pointer';
         this.highlight.pendingHoverEvent = event;
