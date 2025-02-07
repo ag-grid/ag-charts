@@ -4,8 +4,8 @@ import { getData } from './data';
 
 const myTheme: AgChartTheme = {
     palette: {
-        fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
-        strokes: ['black'],
+        fills: ['#006f9b', '#ff7faa', '#00994d', '#ff8833', '#00a0dd'],
+        strokes: ['#003f58', '#934962', '#004a25', '#914d1d', '#006288'],
     },
     overrides: {
         common: {

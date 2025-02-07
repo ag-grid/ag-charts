@@ -4,16 +4,17 @@ import { getData } from './data';
 
 const myTheme: AgChartTheme = {
     palette: {
-        fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
-        strokes: ['#881008'],
+        fills: ['#006f9b', '#ff7faa', '#00994d', '#ff8833', '#00a0dd'],
+        strokes: ['#003f58', '#934962', '#004a25', '#914d1d', '#006288'],
     },
     params: {
-        axisColor: '#881008',
-        backgroundColor: '#FFE8E0',
-        foregroundColor: '#881008',
+        foregroundColor: '#262a33',
+        backgroundColor: '#fff1e5',
+        accentColor: '#0d7680',
+        chromeBackgroundColor: '#fff7ef',
+        chromeTextColor: '#262a33',
         fontFamily: 'Georgia, serif',
-        fontSize: 16,
-        gridLineColor: '#881008',
+        fontSize: 14,
     },
     overrides: {
         common: {

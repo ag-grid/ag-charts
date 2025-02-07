@@ -94,37 +94,37 @@ export interface AgChartThemeParams {
     /** Default color for borders. */
     borderColor?: CssColor;
     /**
-     * Background color of menus, dialogs, toolbars and buttons.
+     * Background color of tooltips, menus, dialogs, toolbars and buttons.
      *
-     * Default: Mix of `foregroundColor` and `backgroundColor`
+     * Default: `foregroundColor + backgroundColor`
      */
     chromeBackgroundColor?: CssColor;
     /**
-     * Font family used for text in menus, dialogs, toolbars, buttons and text inputs.
+     * Font family used for text in tooltips, menus, dialogs, toolbars, buttons and text inputs.
      *
      * Default: `fontFamily`
      */
     chromeFontFamily?: FontFamily;
     /**
-     * Font size used for text in menus, dialogs, toolbars, buttons and text inputs.
+     * Font size used for text in tooltips, menus, dialogs, toolbars, buttons and text inputs.
      *
      * Default: `fontSize`
      */
     chromeFontSize?: FontSize;
     /**
-     * Font weight used for text in menus, dialogs, toolbars, buttons and text inputs.
+     * Font weight used for text in tooltips, menus, dialogs, toolbars, buttons and text inputs.
      *
      * Default: `fontWeight`
      */
     chromeFontWeight?: FontWeight;
     /**
-     * Default color for text in menus, dialogs, toolbars, buttons and text inputs.
+     * Default color for text in tooltips, menus, dialogs, toolbars, buttons and text inputs.
      *
      * Default: `textColor`
      */
     chromeTextColor?: CssColor;
     /**
-     * Color of text that should stand out less than the default in menus, dialogs, toolbars and buttons.
+     * Color of text that should stand out less than the default in tooltips, menus, dialogs, toolbars and buttons.
      *
      * Default: `subtleTextColor`
      */
@@ -157,7 +157,7 @@ export interface AgChartThemeParams {
     /**
      * Background color for text inputs.
      *
-     * Default: 'backgroundColor'
+     * Default: `backgroundColor`
      */
     inputBackgroundColor?: CssColor;
     /**
@@ -171,7 +171,7 @@ export interface AgChartThemeParams {
     /**
      * Color of text that should stand out less than the default.
      *
-     * Default: Mix of `foregroundColor` and `backgroundColor`
+     * Default: `foregroundColor + backgroundColor`
      */
     subtleTextColor?: CssColor;
     /**
