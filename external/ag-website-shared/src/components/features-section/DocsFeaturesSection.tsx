@@ -1,3 +1,4 @@
+import type { Library } from '@ag-grid-types';
 import { gridUrlWithPrefix } from '@ag-website-shared/utils/gridUrlWithPrefix';
 import { useFrameworkFromStore } from '@utils/hooks/useFrameworkFromStore';
 import type { FunctionComponent } from 'react';
@@ -6,6 +7,7 @@ import styles from './features.module.scss';
 
 interface Props {
     type: 'community' | 'enterprise';
+    library: Library;
 }
 
 function Section({ index, feature }) {
@@ -18,7 +20,7 @@ function Section({ index, feature }) {
     );
 }
 
-const FeaturesSection: FunctionComponent<Props> = ({ type }) => {
+const FeaturesSection: FunctionComponent<Props> = ({ type, library }) => {
     const communityFeatures = [
         {
             title: 'Data Grid Essentials',
