@@ -350,6 +350,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             panner,
             selector,
             seriesRect,
+            shouldFlipXY,
             hoveredAxis,
             ctx: { interactionManager, tooltipManager, updateService, zoomManager },
         } = this;
@@ -373,7 +374,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 if (!hoveredAxis) break;
 
                 const { id: axisId, direction } = hoveredAxis;
-                const anchor = direction === _ModuleSupport.ChartAxisDirection.X ? anchorPointX : anchorPointY;
+                let anchor = direction === ChartAxisDirection.X ? anchorPointX : anchorPointY;
+                if (shouldFlipXY) anchor = direction === ChartAxisDirection.X ? anchorPointY : anchorPointX;
                 const axisZoom = zoomManager.getAxisZoom(axisId);
                 const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
                 zoomManager.setAxisManuallyAdjusted('zoom', axisId);
