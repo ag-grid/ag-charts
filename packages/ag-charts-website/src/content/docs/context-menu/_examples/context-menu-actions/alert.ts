@@ -1,20 +1,23 @@
 // Less obtrusive alert using HTML Popover API.
 (() => {
-    let currentPopover: any;
+    const noOp = () => {};
+    let removePopover = noOp;
     window.alert = (msg) => {
-        if (currentPopover) {
-            clearTimeout(currentPopover[0]);
-            currentPopover[1]?.remove?.();
-        }
+        removePopover();
         const popover = document.createElement('div');
         popover.popover = 'manual';
         popover.innerText = msg;
         document.body.appendChild(popover);
         popover.showPopover();
+
         const timeout = setTimeout(() => {
             popover.remove();
-            currentPopover = undefined;
+            removePopover = noOp;
         }, 2000);
-        currentPopover = [timeout, popover];
+
+        removePopover = () => {
+            clearTimeout(timeout);
+            popover.remove?.();
+        };
     };
 })();
