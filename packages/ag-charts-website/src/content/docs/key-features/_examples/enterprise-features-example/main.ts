@@ -50,9 +50,5 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-let chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
-function reloadChart() {
-    chart.destroy();
-    chart = AgCharts.create(options);
-}
