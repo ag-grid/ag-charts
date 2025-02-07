@@ -996,7 +996,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.state.transition('resize', { textInputValue, bbox });
     }
 
-    private hoverTouchPreHandler(event: Parameters<Annotations['onHover']>[0] & {device: 'mouse'|'touch'}) {
+    private hoverTouchPreHandler(event: Parameters<Annotations['onHover']>[0] & { device: 'mouse' | 'touch' }) {
         if (event.device === 'touch') {
             this.onHover(event);
         }
