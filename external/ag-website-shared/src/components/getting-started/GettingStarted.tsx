@@ -32,21 +32,21 @@ const GettingStarted: FunctionComponent = () => {
     return (
         <div className={styles.container}>
             {features.map((feature, index) => (
-                <a href={urlWithPrefix({ framework, url: feature.link })}>
-                    <div key={index} className={styles.card}>
-                        <div className={styles.iconGroup}>
-                            <Icon name={feature.icon} className={styles.icon}>
-                                {feature.icon}
-                            </Icon>
-                        </div>
-                        <div className={styles.titleIcon}>
-                            <h3 className={styles.title}>{feature.title}</h3>
-                            <div>
-                                <Icon name="chevronRight" className={`${styles.icon} ${styles.arrowRight}`}></Icon>
-                            </div>
-                        </div>
-                        <p className={styles.description}>{feature.description}</p>
+                <a href={urlWithPrefix({ framework, url: feature.link })} key={index} className={styles.card}>
+                    <div className={styles.iconGroup}>
+                        <Icon name={feature.icon} className={styles.icon}>
+                            {feature.icon}
+                        </Icon>
                     </div>
+
+                    <div className={styles.titleIcon}>
+                        <h3 className={styles.title}>{feature.title}</h3>
+                        <div>
+                            <Icon name="chevronRight" className={`${styles.icon} ${styles.arrowRight}`}></Icon>
+                        </div>
+                    </div>
+
+                    <p className={styles.description}>{feature.description}</p>
                 </a>
             ))}
         </div>
