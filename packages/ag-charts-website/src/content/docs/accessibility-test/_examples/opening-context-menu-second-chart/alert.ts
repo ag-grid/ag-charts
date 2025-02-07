@@ -1,6 +1,6 @@
 // Less obtrusive alert using HTML Popover API.
 (() => {
-    let currentPopover;
+    let currentPopover: any;
     window.alert = (msg) => {
         if (currentPopover) {
             clearTimeout(currentPopover[0]);
