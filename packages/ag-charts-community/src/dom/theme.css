@@ -27,8 +27,8 @@
     --ag-charts-input-background-color: #fff;
     --ag-charts-input-text-color: #464646;
 
-    --ag-charts-crosshair-background-color: #fff;
-    --ag-charts-crosshair-text-color: #464646;
+    --ag-charts-crosshair-label-background-color: #fff;
+    --ag-charts-crosshair-label-text-color: #464646;
 
     /******************************************************************************************************************
      * Future Theme Parameters.

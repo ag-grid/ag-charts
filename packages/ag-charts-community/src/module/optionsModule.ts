@@ -468,8 +468,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             inputBackgroundColor: color,
             inputTextColor: color,
 
-            crosshairBackgroundColor: color,
-            crosshairTextColor: color,
+            crosshairLabelBackgroundColor: color,
+            crosshairLabelTextColor: color,
         };
         const { valid, errors } = validate(options.theme.params, themeParamsOptionsDef);
 

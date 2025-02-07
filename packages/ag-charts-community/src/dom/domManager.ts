@@ -264,8 +264,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             inputBackgroundColor: 'input-background-color',
             inputTextColor: 'input-text-color',
 
-            crosshairBackgroundColor: 'crosshair-background-color',
-            crosshairTextColor: 'crosshair-text-color',
+            crosshairLabelBackgroundColor: 'crosshair-label-background-color',
+            crosshairLabelTextColor: 'crosshair-label-text-color',
         };
 
         const lengthKeys: Array<keyof AgChartThemeParams> = ['fontSize', 'chromeFontSize'];

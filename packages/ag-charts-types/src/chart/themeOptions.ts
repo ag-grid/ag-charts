@@ -134,13 +134,13 @@ export interface AgChartThemeParams {
      *
      * Default: `foregroundColor`
      */
-    crosshairBackgroundColor?: CssColor;
+    crosshairLabelBackgroundColor?: CssColor;
     /**
      * Color for text in crosshair labels.
      *
      * Default: `backgroundColor`
      */
-    crosshairTextColor?: CssColor;
+    crosshairLabelTextColor?: CssColor;
     /**
      * Default color for neutral UI elements. Most text, borders and backgrounds are defined as a blend between the
      * background and foreground colors.

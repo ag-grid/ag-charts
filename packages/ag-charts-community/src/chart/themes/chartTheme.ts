@@ -475,8 +475,8 @@ export class ChartTheme {
             inputBackgroundColor: { $ref: 'backgroundColor' },
             inputTextColor: { $ref: 'textColor' },
 
-            crosshairBackgroundColor: { $ref: 'foregroundColor' },
-            crosshairTextColor: { $ref: 'backgroundColor' },
+            crosshairLabelBackgroundColor: { $ref: 'foregroundColor' },
+            crosshairLabelTextColor: { $ref: 'backgroundColor' },
         };
     }
 

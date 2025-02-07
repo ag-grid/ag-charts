@@ -81,7 +81,7 @@ export class DarkTheme extends ChartTheme {
 
             chromeTextColor: { $ref: 'textColor' },
 
-            crosshairBackgroundColor: { $foregroundBackgroundAccentMix: [0.35, 0.1] },
+            crosshairLabelBackgroundColor: { $foregroundBackgroundAccentMix: [0.35, 0.1] },
         };
     }
 
