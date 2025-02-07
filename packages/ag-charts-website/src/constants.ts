@@ -126,3 +126,5 @@ function getChartsUrl() {
     return PRODUCTION_CHARTS_SITE_URL;
 }
 export const CHARTS_SITE_URL = getChartsUrl();
+
+export const TRIAL_LICENCE_FORM_URL = import.meta.env?.PUBLIC_TRIAL_LICENCE_FORM_URL;
