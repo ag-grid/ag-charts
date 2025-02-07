@@ -28,12 +28,12 @@ const options: AgChartOptions = {
         toolbar: {
             buttons: [
                 {
-                    icon: 'text-annotation',
-                    value: 'text-menu',
-                },
-                {
                     icon: 'delete',
                     value: 'clear',
+                },
+                {
+                    icon: 'text-annotation',
+                    value: 'text-menu',
                 },
             ],
         },

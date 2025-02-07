@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, AgLineSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -20,58 +20,46 @@ const options: AgChartOptions = {
             marker: {
                 enabled: false,
             },
+            label: {
+                enabled: true,
+            },
         },
     ],
     annotations: {
         enabled: true,
-        toolbar: {
-            enabled: false,
-        },
     },
     initialState: {
         annotations: [
             {
-                type: 'text',
-                x: { value: 'Feb', groupPercentage: -0.2 },
-                y: 46,
-                text: '$45,000',
-                fontSize: 12,
-            },
-            {
-                type: 'text',
+                type: 'comment',
                 x: { value: 'May', groupPercentage: 0.2 },
-                y: 100,
+                y: 98,
                 text: 'Sales increased\nsignificantly\nin May',
                 fontSize: 12,
             },
             {
                 type: 'vertical-line',
                 value: 'May',
-                axisLabel: {
-                    enabled: false,
-                },
                 lineStyle: 'dotted',
                 strokeWidth: 1,
             },
             {
-                type: 'text',
-                x: { value: 'Jun', groupPercentage: -0.2 },
-                y: 81,
-                text: '$80,000',
-                fontSize: 12,
+                type: 'vertical-line',
+                value: 'Sep',
+                lineStyle: 'dotted',
+                strokeWidth: 1,
             },
             {
-                type: 'text',
-                x: 'Sep',
-                y: 76,
+                type: 'callout',
+                start: {
+                    x: { value: 'Sep', groupPercentage: 0.1 },
+                    y: 80,
+                },
+                end: {
+                    x: { value: 'Sep', groupPercentage: 0.5 },
+                    y: 55,
+                },
                 text: 'End of summer\ndip recovered',
-                fontSize: 12,
-            },
-            {
-                type: 'text',
-                x: { value: 'Oct', groupPercentage: -0.2 },
-                y: 96,
-                text: '$95,000',
                 fontSize: 12,
             },
             {
@@ -88,6 +76,44 @@ const options: AgChartOptions = {
                 start: { x: 'Jan', y: 32 },
                 end: { x: 'Dec', y: 105 },
                 strokeWidth: 1,
+            },
+            {
+                type: 'parallel-channel',
+                height: 13,
+                start: {
+                    x: {
+                        value: 'Mar',
+                        groupPercentage: 0.08,
+                    },
+                    y: 44.7,
+                },
+                end: {
+                    x: {
+                        value: 'Jun',
+                        groupPercentage: -0.08,
+                    },
+                    y: 86.2,
+                },
+                strokeWidth: 0,
+            },
+            {
+                type: 'parallel-channel',
+                height: 13,
+                start: {
+                    x: {
+                        value: 'Aug',
+                        groupPercentage: 0.08,
+                    },
+                    y: 78.7,
+                },
+                end: {
+                    x: {
+                        value: 'Oct',
+                        groupPercentage: -0.08,
+                    },
+                    y: 101.5,
+                },
+                strokeWidth: 0,
             },
         ],
     },

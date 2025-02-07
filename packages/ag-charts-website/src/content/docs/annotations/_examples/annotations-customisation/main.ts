@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, AgLineSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -12,16 +12,15 @@ const options: AgChartOptions = {
         text: 'Views of the Annapurna massif, an immersive experience in the Himalayas',
     },
     footnote: {
-        text: 'Total Distance: 70-80km, Highest Elevation: 4130m\nStart Point: Pokhara (1,000m), End Point: Annapurna Base Camp (4,130 m)',
+        text: 'Total Distance: 70-80km, Highest Elevation: 4130m',
     },
     series: [
         {
-            type: 'line',
+            type: 'area',
             xKey: 'distance',
             yKey: 'elevation',
-            marker: {
-                enabled: false,
-            },
+            strokeWidth: 1,
+            fillOpacity: 0.1,
         },
     ],
     axes: [
@@ -47,7 +46,7 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'left',
             min: 800,
-            max: 4500,
+            max: 4700,
             nice: false,
         },
     ],
@@ -62,7 +61,7 @@ const options: AgChartOptions = {
             common: {
                 annotations: {
                     line: {
-                        stroke: 'lime',
+                        stroke: '#4444C0',
                         strokeWidth: 1,
                         lineDash: [3, 1],
                     },
@@ -74,7 +73,7 @@ const options: AgChartOptions = {
                         },
                     },
                     text: {
-                        color: 'blue',
+                        color: '#4444C0',
                         fontSize: 12,
                     },
                 },
@@ -162,16 +161,16 @@ const options: AgChartOptions = {
             },
             {
                 type: 'text',
-                x: 34,
-                y: 2050,
                 text: 'Himalaya',
+                x: 34.55,
+                y: 2020,
                 // Himalaya
             },
             {
                 type: 'text',
-                x: 34,
-                y: 3200,
                 text: '2,900 m\nalt. 100',
+                x: 35,
+                y: 3280,
                 // Himalaya
             },
             {
@@ -182,23 +181,51 @@ const options: AgChartOptions = {
             },
             {
                 type: 'text',
-                x: 25,
-                y: 1870,
                 text: 'Chhomrong',
+                x: 24,
+                y: 1825,
                 // Chhomrong
             },
             {
                 type: 'text',
-                x: 25,
-                y: 2370,
                 text: '3,300 m\nalt. 300',
+                x: 24.84,
+                y: 2455,
                 // Chhomrong
             },
             {
+                type: 'line',
+                start: {
+                    x: 62,
+                    y: 2754,
+                },
+                end: {
+                    x: 62,
+                    y: 1898,
+                },
+                // Bamboo
+            },
+            {
                 type: 'text',
-                x: 44,
-                y: 4130,
+                text: 'Bamboo',
+                visible: true,
+                x: 60.5,
+                y: 1735.7,
+                // Bamboo
+            },
+            {
+                type: 'text',
+                text: '2,310 m\nalt. 40',
+                visible: true,
+                x: 60.5,
+                y: 2829.3,
+                // Bamboo
+            },
+            {
+                type: 'text',
                 text: '4,130 m\nalt. 230',
+                x: 44.77,
+                y: 4190,
                 // Peak
             },
             {
