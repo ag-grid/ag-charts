@@ -32,8 +32,14 @@ export class SizeMonitor {
             });
         }
 
+        // The resize observer should most pixel ratio changes
+        // with the exception of moving the browser to a monitor with a different scaling
+        // The resize observer will re-read the pixel ratio
+        // so make sure this fires after the resize observer to avoid double rendering
+        let animationFrame: NodeJS.Timeout;
         this.pixelRatioObserver = new PixelRatioObserver(() => {
-            this.checkPixelRatio();
+            clearTimeout(animationFrame);
+            animationFrame = setTimeout(() => this.checkPixelRatio(), 0);
         });
 
         this.documentReady = getDocument('readyState') === 'complete';
@@ -84,7 +90,7 @@ export class SizeMonitor {
         if (!entry) return;
 
         if (width !== entry.size?.width || height !== entry.size?.height) {
-            const pixelRatio = entry.size?.pixelRatio ?? this.pixelRatioObserver?.pixelRatio ?? 1;
+            const pixelRatio = this.pixelRatioObserver?.pixelRatio ?? 1;
             entry.size = { width, height, pixelRatio };
             entry.cb(entry.size, element);
         }

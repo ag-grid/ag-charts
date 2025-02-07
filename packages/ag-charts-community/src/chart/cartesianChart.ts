@@ -48,8 +48,6 @@ export class CartesianChart extends Chart {
         super(options, resources);
     }
 
-    private firstSeriesTranslation = true;
-
     override onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         super.onAxisChange(newValue, oldValue);
 
@@ -61,7 +59,8 @@ export class CartesianChart extends Chart {
     override destroySeries(series: Series<unknown, any, any>[]) {
         super.destroySeries(series);
 
-        this.firstSeriesTranslation = true;
+        this.lastLayoutWidth = NaN;
+        this.lastLayoutHeight = NaN;
     }
 
     override getChartType() {
@@ -90,8 +89,10 @@ export class CartesianChart extends Chart {
         this.ctx.updateService.dispatchProcessData({ series: { shouldFlipXY: this.shouldFlipXY() } });
     }
 
+    private lastLayoutWidth = NaN;
+    private lastLayoutHeight = NaN;
     protected performLayout(ctx: LayoutContext) {
-        const { firstSeriesTranslation, seriesRoot, annotationRoot } = this;
+        const { seriesRoot, annotationRoot } = this;
         const { clipSeries, seriesRect, visible } = this.updateAxes(ctx.layoutBox);
 
         this.seriesRoot.visible = visible;
@@ -99,13 +100,12 @@ export class CartesianChart extends Chart {
         this.animationRect = ctx.layoutBox;
 
         const { x, y } = seriesRect;
-        if (firstSeriesTranslation) {
+        if (ctx.width !== this.lastLayoutWidth || ctx.height !== this.lastLayoutHeight) {
             // For initial rendering, don't animate.
             for (const group of [seriesRoot, annotationRoot]) {
                 group.translationX = Math.floor(x);
                 group.translationY = Math.floor(y);
             }
-            this.firstSeriesTranslation = false;
         } else {
             // Animate seriesRect movements - typically caused by axis size changes.
             const { translationX, translationY } = seriesRoot;
@@ -119,6 +119,9 @@ export class CartesianChart extends Chart {
                 { phase: 'update' }
             );
         }
+
+        this.lastLayoutWidth = ctx.width;
+        this.lastLayoutHeight = ctx.height;
 
         // Recreate padding object to prevent issues with getters in `BBox.shrink()`
         const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.padding);
