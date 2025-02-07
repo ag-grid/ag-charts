@@ -455,11 +455,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.destroyFns.push(
             // Interactions
+            seriesDragInterpreter.addListener('click', this.clickTouchPreHandler.bind(this)),
+            seriesDragInterpreter.addListener('drag-start', this.dragStartTouchPreHandler.bind(this)),
+            seriesDragInterpreter.addListener('drag-move', this.dragMoveTouchPreHandler.bind(this)),
             seriesDragInterpreter.addListener('mousemove', this.onHover.bind(this)),
             seriesDragInterpreter.addListener('click', this.onClick.bind(this)),
             seriesDragInterpreter.addListener('dblclick', this.onDoubleClick.bind(this)),
-            seriesDragInterpreter.addListener('drag-start', this.dragStartTouchPreHandler.bind(this)),
-            seriesDragInterpreter.addListener('drag-move', this.dragMoveTouchPreHandler.bind(this)),
             seriesDragInterpreter.addListener('drag-start', this.onDragStart.bind(this)),
             seriesDragInterpreter.addListener('drag-move', this.onDrag.bind(this)),
             seriesDragInterpreter.addListener('drag-end', this.onDragEnd.bind(this)),
@@ -918,7 +919,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private onHover(event: _Widget.MouseWidgetEvent<'mousemove'> | _Widget.DragWidgetEvent<'drag-start'>) {
+    private onHover(event: { currentX: number; currentY: number; sourceEvent: MouseEvent | TouchEvent }) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -993,6 +994,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const bbox = this.textInput.getBBox();
 
         this.state.transition('resize', { textInputValue, bbox });
+    }
+
+    private clickTouchPreHandler(event: _ModuleSupport.DragInterpreterClickEvent) {
+        if (event.device === 'touch') {
+            this.onHover(event);
+        }
     }
 
     private dragStartTouchPreHandler(event: _Widget.DragWidgetEvent<'drag-start'>) {
