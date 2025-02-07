@@ -1,5 +1,7 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
+import './alert';
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

@@ -6,6 +6,7 @@ import {
     AgTooltipRendererResult,
 } from 'ag-charts-community';
 
+import './alert';
 import { getData } from './data';
 
 const customTooltipRenderer = (params: AgLineSeriesTooltipRendererParams<any>): AgTooltipRendererResult => {

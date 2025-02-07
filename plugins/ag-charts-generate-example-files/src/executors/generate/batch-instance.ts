@@ -15,7 +15,8 @@ export default async function processor(msg: Message) {
         await generateFiles(options);
         result = { task: taskName, result: { success: true, terminalOutput: '' } };
     } catch (e) {
-        result = { task: taskName, result: { success: false, terminalOutput: `${e}` } };
+        console.error(e);
+        result = { task: taskName, result: { success: false, terminalOutput: `${e.stack}` } };
     }
 
     return result;

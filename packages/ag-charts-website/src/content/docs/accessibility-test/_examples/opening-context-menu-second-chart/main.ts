@@ -1,6 +1,8 @@
 // @ag-skip-fws
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
+import './alert';
+
 const action = () => window.alert('Hello world!');
 const nodeAction = (event: any) => window.alert(`Hello ${event.yKey} in ${event.datum.month}!`);
 const legendItemAction = (event: any) => window.alert(`Hello ${event.itemId}!`);

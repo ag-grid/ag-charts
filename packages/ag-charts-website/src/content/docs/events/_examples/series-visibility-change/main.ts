@@ -1,5 +1,7 @@
 import { AgChartLegendClickEvent, AgCharts, AgPolarChartOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
 
+import './alert';
+
 let counter = 1;
 
 let options: AgPolarChartOptions = {

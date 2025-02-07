@@ -16,6 +16,7 @@ export function readAsJsFile(srcFile, options: { includeImports: boolean } = und
     const tsFile = srcFile
         // Remove imports that are not required in javascript
         .replace(options?.includeImports ? '' : /import ((.|\r?\n)*?)from.*\r?\n/g, '')
+        .replace(options?.includeImports ? '' : /import '.*';\r?\n/g, '')
         // Remove export statement
         .replace(/export /g, '');
 

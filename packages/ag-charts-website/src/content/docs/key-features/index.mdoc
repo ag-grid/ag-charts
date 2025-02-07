@@ -339,19 +339,19 @@ Use `listeners` to respond to [Events](./events/) on the chart:
     // Charts Events
     listeners: {
         click: (_event) => {
-            console.log('click');
+            alert('click');
         },
         doubleClick: (_event) => {
-            console.log('double click');
+            alert('double click');
         },
         seriesNodeClick: ({ datum, xKey, yKey, seriesId }) => {
-            console.log('node clicked')
+            alert('node clicked')
         },
         seriesVisibilityChange: ({ seriesId, visible }: AgSeriesVisibilityChange) => {
-            console.log('series visibility changed')
+            alert('series visibility changed')
         },
         zoom: (event) => {
-            console.log('zoom level changed')
+            alert('zoom level changed')
         },
     },
     // Series Events
