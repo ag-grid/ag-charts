@@ -11,11 +11,15 @@ The following sections assume a level of familiarity with common Charts concepts
 
 ## Configuring Axes
 
-The horizontal (X) and vertical (Y) lines in cartesian charts are referred to as chart axes, and they serve to illustrate the relationships between data points on the graph. We also support polar charts, which use polar axes.
+The horizontal (X) and vertical (Y) lines in cartesian charts are referred to as chart axes, and they serve to illustrate the relationships between data points on the graph.
+
+Polar charts such as the [Radar Line Series](./radar-line-series), use angle and radial axes which have similar options.
+
+{% chartExampleRunner title="Configuring Axes Example" name="configuring-axes-example" type="generated" /%}
 
 ### Axis Types
 
-Every chart has four axis: `top`, `bottom`, `left`, `right`, which can display either [Categorical](./axes-types/#category), [Numerical](./axes-types/#number), [Time](/axes-types/#time), or [Logarithmic](/axes-types/#log) data.
+Every cartesian chart has four axis positions `top`, `bottom`, `left`, `right`, which can display either [Categorical](./axes-types/#category), [Numerical](./axes-types/#number), [Time](/axes-types/#time), or [Logarithmic](/axes-types/#log) data.
 
 Use `axes.position` to control the position of the axis, and `axes.type` to define the type:
 
@@ -28,13 +32,13 @@ axes: [
 ],
 ```
 
-_Note: All axes must be specified in order for these changes to take effect._
+_Note: All of the axes must be specified in order for these changes to take effect._
 
 ### Secondary Axes
 
-Charts can have more than one axes, allowing for multiple series to be displayed on the same chart.
+Charts can have more than one axes, allowing for series with different domains to be displayed on the same chart.
 
-Use `axis.keys` to link the series to the axis:
+Use the `keys` property to link the series to the axis:
 
 ```js
 axes: [
@@ -60,13 +64,15 @@ axes: [
 
 ### Axis Intervals
 
-The [Axis Interval](./axes-intervals/) determines which axis labels, grid lines and ticks are shown along the axis. Intervals can be defined in steps, values, or min/max spacing.
+The [Axis Interval](./axes-intervals/) determines which axis labels, grid lines and ticks are shown along the axis. Intervals can be defined in steps, absolute values, or dynamically with min/max spacing.
 
 Use `axes.interval` to control the interval of the axis:
 
 ```js
 axes: [
     {
+        type: 'number',
+        position: 'left',
         interval: { step: 5 }, // or { values: [0, 5, 10] } | { minSpacing: 50, maxSpacing: 100 }
     }
 ],
@@ -81,6 +87,8 @@ Use `axes.label` to control the appearance of the axis labels:
 ```js
 axes: [
     {
+        type: 'number',
+        position: 'left',
         label: {
             minSpacing: 20,
             avoidCollisions: false, // enabled by default
@@ -93,17 +101,13 @@ axes: [
 ];
 ```
 
-### Example
-
-This example demonstrates different Axis Types, Secondary Axes, Custom Intervals, and Labels:
-
-{% chartExampleRunner title="Configuring Axes Example" name="configuring-axes-example" type="generated" /%}
-
 ## Enhancing Data
 
-Charts can be enhanced with data elements, such as [Legends](./legend/), [Cross Lines](./cross-lines/), and [Stylers](./stylers/) to provide additional information to users.
+Charts can be enhanced with data elements, such as [Legends](./legend/), [Cross Lines](./cross-lines/), and conditional [Stylers](./stylers/) to provide additional information to users.
 
-### Enabling & Configuring Legend
+{% chartExampleRunner title="Enhancing Data Example" name="enhancing-data-example" type="generated" /%}
+
+### Legend
 
 [Legends](./legend/) are enabled by default on charts with more than one series.
 
@@ -122,7 +126,7 @@ legend: {
 
 [Cross Lines](./cross-lines/) are lines or shaded areas in a chart that denote additional information or thresholds.
 
-Use the `crossLines` property in the axis options to add a Cross Line or Range at a specific data value on an axis:
+Use the `crossLines` property in the axis options to add a Line or Range at a specific data value on an axis:
 
 ```js
 axes: [
@@ -155,7 +159,9 @@ series: [
 ]
 ```
 
-[Item Stylers](./stylers/#item-stylers) allow customization of the visual appearance of Series & Markers.
+### Conditional Styling
+
+[Item Stylers](./stylers/#item-stylers) allow customization of the visual appearance of Series & Markers based on certain conditions.
 
 Use the `itemStyler` callback function to customize the appearance of a specific Series or Marker:
 
@@ -173,21 +179,17 @@ series: [
 ];
 ```
 
-### Example
-
-This example demonstrates custom Legends, Cross Lines, and Series / Markers:
-
-{% chartExampleRunner title="Enhancing Data Example" name="enhancing-data-example" type="generated" /%}
-
 ## Customizing Charts
 
 Charts can be customized with [Themes](./themes/), [Layouts](./layout/), and [Backgrounds](./background/).
 
+{% chartExampleRunner title="Customizing Charts Example" name="customizing-charts-example" type="generated" /%}
+
 ### Layout
 
-The chart will [auto-size](./layout/#chart-size) by default, taking the size of the container element and auto-sizing the chart dynamically.
+The chart will [auto-size](./layout/#chart-size) by default, taking the size of the container element and auto-sizing the chart dynamically. It will default to a minimum width and height of 300px.
 
-Use the `width` and/or `height` options if a fixed size is required:
+Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is required:
 
 ```js
 {
@@ -220,7 +222,7 @@ Use the `theme` property to set the theme:
 
 Themes can also be customised with the [Theming API](/charts/themes-api/).
 
-Use `params` to set styles across the whole chart, `overrides` to merge over the defaults within the base theme, and `palette` to define the colour palette:
+Use `params` to set styles across the whole chart, `overrides` to merge over the defaults within the base theme, and `palette` to define the colour palette used for the datapoints:
 
 ```js
 const customTheme: AgChartTheme = {
@@ -250,15 +252,13 @@ const customTheme: AgChartTheme = {
 };
 ```
 
-### Example
+## Interactivity
 
-This example demonstrates a fixed-size chart with a custom theme and background color:
+Charts can be made interactive by enabling [Tooltips](./tooltips/), [Highlighting](./highlighting/), and responding to [Events](./events/).
 
-{% chartExampleRunner title="Customizing Charts Example" name="customizing-charts-example" type="generated" /%}
+{% chartExampleRunner title="User Interactions Example" name="user-interactions-example" type="generated" /%}
 
-## Handling User Interactions
-
-Charts can be made interactive by enabling [Tooltips](./tooltips/), [Highlighting Series & Items](./highlighting/), and responding to [Events](./events/).
+In the above example you can hover a marker to see the highlight and tooltip customisation, and click the chart or legend to see the event handling.
 
 ### Customizing Tooltips
 
@@ -299,7 +299,7 @@ You can also return HTML to create a [Custom Tooltip](./tooltips/#using-custom-t
 
 ### Highlighting Hovered Data
 
-Items and Series can be [highlighted](./series-highlighting/) when hovered over. Item highlighting (e.g. markers) is enabled by default.
+Items and Series can be [highlighted](./series-highlighting/) when hovered over. Item highlighting is enabled by default.
 
 Use `highlightStyles` to [customize](./series-highlighting/#customisation) highlighted items and series:
 
@@ -330,6 +330,7 @@ theme: {
 ### Handling Events
 
 Callbacks are provided for [Series](./events/#reference-AgSeriesListeners), [Legend](./events/#reference-AgChartLegendListeners) and [Chart](./events/#reference-AgBaseChartListeners) events.
+These include clicks, double-clicks and zoom events.
 
 Use `listeners` to respond to [Events](./events/) on the chart:
 
@@ -376,7 +377,7 @@ Use `listeners` to respond to [Events](./events/) on the chart:
 
 ### Saving and Restoring State
 
-The [State](./state/) of the chart can be saved and restored.
+The dynamic [State](./state/) of the chart can be saved and restored.
 
 Use the `getState()` and `saveState()` APIs to retrieve and save the current state of the chart:
 
@@ -392,7 +393,7 @@ function restoreState() {
 }
 ```
 
-You can alo use the `initialState` property to set the [initial state](./api-state/#initial-state) of the chart:
+You can also use the `initialState` property to set the [initial state](./api-state/#initial-state) of the chart:
 
 ```js
 initialState: {
@@ -408,12 +409,6 @@ initialState: {
 }
 ```
 
-### Example
-
-This example demonstrates custom Tooltips, Highlighting, and Event Handling:
-
-{% chartExampleRunner title="User Interactions Example" name="user-interactions-example" type="generated" /%}
-
 ## Enterprise Features {% enterpriseIcon /%}
 
 AG Charts comes in two forms:
@@ -427,6 +422,10 @@ Learn more on the [Community vs. Enterprise](./community-vs-enterprise/) page.
 
 _All Enterprise features are marked with an {% enterpriseIcon /%} in our docs_
 
+{% chartExampleRunner title="Enterprise Features Example" name="enterprise-features-example" type="generated" /%}
+
+In the above example you can use Zoom on the chart or Navigator, and see the animation on initial load.
+
 ### Zoom {% enterpriseIcon /%}
 
 To Enable [Zooming](./zoom/), set the `zoom` property to `true`:
@@ -437,7 +436,7 @@ zoom: {
 }
 ```
 
-Zoom can also be further customized to enable/disable specific features and control the anchor point, scrolling step, etc:
+Zoom can also be further customized to enable/disable specific zoom methods and control the anchor point, scrolling step, etc:
 
 ```js
 zoom: {
@@ -459,7 +458,7 @@ zoom: {
 
 ### Navigator {% enterpriseIcon /%}
 
-Zoom can also be controled with a [Navigator](./navigator/). To enable the Navigator, set the `navigator` property to `true`:
+Zoom can also be controlled with a [Navigator](./navigator/). To enable the Navigator, set the `navigator` property to `true`:
 
 ```js
 navigator: {
@@ -487,17 +486,13 @@ animation: {
 }
 ```
 
-### Example
-
-This example demonstrates Zooming, the Navigator with a Mini Chart, and Animations:
-
-{% chartExampleRunner title="Enterprise Features Example" name="enterprise-features-example" type="generated" /%}
-
 ## Specialized Charts {% enterpriseIcon /%}
 
 ### Financial Charts {% enterpriseIcon /%}
 
 Build interactive [Financial Charts](./financial-charts/) featuring advanced annotations with minimal configuration.
+
+{% chartExampleRunner title="Financial Charts Showcase" name="financial-charts-showcase" type="generated" /%}
 
 To create a financial chart, simply provide your financial data:
 
@@ -566,13 +561,13 @@ data() {
 
 {% /if %}
 
-{% chartExampleRunner title="Financial Charts Showcase" name="financial-charts-showcase" type="generated" /%}
-
 ### Maps {% enterpriseIcon /%}
 
-The [Map Series](./maps/) types enable visualising geographic data in different ways, using GEOJson data.
+The [Map Series](./maps/) types enable visualising geographic data in different ways, using [GeoJSON](https://geojson.org/) data.
 
-To create a map chart, provide a [Map Topology](./map-topology/) in [GeoJSON](https://geojson.org/) format and link it to your `data` with `properties`:
+{% chartExampleRunner title="Map Kitchen Sink Example" name="map-kitchen-sink" type="generated" /%}
+
+To create a map chart, provide a [Map Topology](./map-topology/) in [GeoJSON](https://geojson.org/) format and link the correct property in the `properties` key:
 
 ```js
 series: [
@@ -606,11 +601,11 @@ series: [
 ]
 ```
 
-{% chartExampleRunner title="Map Kitchen Sink Example" name="map-kitchen-sink" type="generated" /%}
-
 ### Gauges {% enterpriseIcon /%}
 
-Gauges display a single data point within a predefined range using a circular or linear scale.
+Gauges display a single data point within a predefined range using a Radial or Linear scale.
+
+{% chartExampleRunner title="Radial Gauge Example" name="simple-radial-gauge" type="generated" /%}
 
 Provide a `type`, `value` and `scale` to create a gauge with the `createGauge` API:
 
@@ -699,5 +694,3 @@ data() {
 ```
 
 {% /if %}
-
-{% chartExampleRunner title="Radial Gauge Example" name="simple-radial-gauge" type="generated" /%}
