@@ -37,6 +37,12 @@ function makeSynthetic(device: Device, type: TSythetic, event: DragWidgetEvent) 
     return { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
 }
 
+function checkDistanceSquared(dx: number, dy: number) {
+    const distanceSquared = dx * dx + dy * dy;
+    const thresholdSquared = DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX;
+    return distanceSquared >= thresholdSquared;
+}
+
 type Type = 'mousemove' | 'click' | 'dblclick' | 'drag-start' | 'drag-move' | 'drag-end';
 type EventMap = Omit<WidgetEventMap, 'click' | 'dblclick'> & {
     click: DragInterpreterClickEvent;
@@ -62,9 +68,12 @@ export class DragInterpreter {
     private dragStartEvent?: DragWidgetEvent<'drag-start'>;
     private isDragging = false;
     private lastClickTime?: number;
+    private readonly touch = { distanceTravelledX: 0, distanceTravelledY: 0, clientX: 0, clientY: 0 };
 
     constructor(widget: Widget) {
         this.destroyFns.push(
+            widget.addListener('touchstart', this.onTouchStart.bind(this)),
+            widget.addListener('touchmove', this.onTouchMove.bind(this)),
             widget.addListener('touchend', this.onTouchEnd.bind(this)),
             widget.addListener('mousemove', this.onMouseMove.bind(this)),
             widget.addListener('dblclick', this.onDblClick.bind(this)),
@@ -86,6 +95,22 @@ export class DragInterpreter {
 
     private dispatch(event: EventMap[Type]) {
         this.listeners.dispatch(event.type, event);
+    }
+
+    private onTouchStart(e: TouchWidgetEvent<'touchstart'>) {
+        const { clientX, clientY } = e.sourceEvent.targetTouches.item(0) ?? { clientX: Infinity, clientY: Infinity };
+        this.touch.distanceTravelledX = 0;
+        this.touch.distanceTravelledY = 0;
+        this.touch.clientX = clientX;
+        this.touch.clientY = clientY;
+    }
+
+    private onTouchMove(e: TouchWidgetEvent<'touchmove'>) {
+        const { clientX, clientY } = e.sourceEvent.targetTouches.item(0) ?? { clientX: Infinity, clientY: Infinity };
+        this.touch.distanceTravelledX += Math.abs(this.touch.clientX - clientX);
+        this.touch.distanceTravelledY += Math.abs(this.touch.clientY - clientY);
+        this.touch.clientX = clientX;
+        this.touch.clientY = clientY;
     }
 
     private onTouchEnd(event: TouchWidgetEvent<'touchend'>) {
@@ -111,10 +136,7 @@ export class DragInterpreter {
 
     private onDragMove(event: DragWidgetEvent<'drag-move'>) {
         if (this.dragStartEvent != null) {
-            const { originDeltaX: dx, originDeltaY: dy } = event;
-            const distanceSquared = dx * dx + dy * dy;
-            const thresholdSquared = DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX;
-            if (distanceSquared >= thresholdSquared) {
+            if (checkDistanceSquared(event.originDeltaX, event.originDeltaY)) {
                 this.dispatch(this.dragStartEvent);
                 this.dispatch({ ...this.dragStartEvent, type: 'drag-move' });
                 this.dragStartEvent = undefined;
@@ -140,6 +162,10 @@ export class DragInterpreter {
         }
         // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
         else if (event.sourceEvent.type === 'touchend') {
+            if (checkDistanceSquared(this.touch.distanceTravelledX, this.touch.distanceTravelledY)) {
+                return; // this is a drag not a click, do not dispatch a 'click' event.
+            }
+
             const click = makeSynthetic('touch', 'click', event);
             this.dispatch(click);
 
