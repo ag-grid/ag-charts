@@ -5,49 +5,27 @@
         opacity: 0;
         background-color: #81c6fd;
     }
-    10% {
-        top: 55%;
-        left: 45%;
-        opacity: 0;
-        background-color: #81c6fd;
-    }
     20% {
-        top: 55%;
-        left: 45%;
-        opacity: 1;
-        transform: scale(1);
-        background-color: #81c6fd;
-    }
-    25% {
-        top: 55%;
-        left: 45%;
-        transform: scale(1.2);
-        background-color: #2196f3;
-    }
-    75% {
-        top: 75%;
-        left: 30%;
-        transform: scale(1.2);
-        background-color: #2196f3;
-    }
-    80% {
-        top: 75%;
-        left: 30%;
-        opacity: 1;
-        transform: scale(1);
-        background-color: #81c6fd;
-    }
-    90% {
-        top: 75%;
-        left: 30%;
         opacity: 0;
+    }
+    40% {
+        opacity: 1;
+        transform: scale(1);
         background-color: #81c6fd;
+    }
+    50% {
+        top: 55%;
+        left: 45%;
+        opacity: 1;
+        transform: scale(1.2);
+        background-color: #2196f3;
     }
     100% {
         top: 75%;
         left: 30%;
-        opacity: 0;
-        background-color: #81c6fd;
+        opacity: 1;
+        transform: scale(1.2);
+        background-color: #2196f3;
     }
 }
 
@@ -58,49 +36,27 @@
         opacity: 0;
         background-color: #81c6fd;
     }
-    10% {
-        top: 45%;
-        left: 55%;
-        opacity: 0;
-        background-color: #81c6fd;
-    }
     20% {
-        top: 45%;
-        left: 55%;
-        opacity: 1;
-        transform: scale(1);
-        background-color: #81c6fd;
-    }
-    25% {
-        top: 45%;
-        left: 55%;
-        transform: scale(1.2);
-        background-color: #2196f3;
-    }
-    75% {
-        top: 25%;
-        left: 70%;
-        transform: scale(1.2);
-        background-color: #2196f3;
-    }
-    80% {
-        top: 25%;
-        left: 70%;
-        opacity: 1;
-        transform: scale(1);
-        background-color: #81c6fd;
-    }
-    90% {
-        top: 25%;
-        left: 70%;
         opacity: 0;
+    }
+    40% {
+        opacity: 1;
+        transform: scale(1);
         background-color: #81c6fd;
+    }
+    50% {
+        top: 45%;
+        left: 55%;
+        opacity: 1;
+        transform: scale(1.2);
+        background-color: #2196f3;
     }
     100% {
         top: 25%;
         left: 70%;
-        opacity: 0;
-        background-color: #81c6fd;
+        opacity: 1;
+        transform: scale(1.2);
+        background-color: #2196f3;
     }
 }
 
@@ -108,25 +64,19 @@
     0% {
         background-color: rgba(0, 0, 0, 0);
     }
-    10% {
-        background-color: rgba(0, 0, 0, 0);
-    }
     20% {
-        background-color: rgba(0, 0, 0, 0.1);
-    }
-    80% {
-        background-color: rgba(0, 0, 0, 0.1);
-    }
-    90% {
         background-color: rgba(0, 0, 0, 0);
+    }
+    40% {
+        background-color: rgba(0, 0, 0, 0.1);
     }
     100% {
-        background-color: rgba(0, 0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.1);
     }
 }
 
 #gesture-demo {
-    animation: gesture-fade 3s infinite normal ease-in-out;
+    animation: gesture-fade 2s infinite alternate ease-in-out;
     position: absolute;
     left: 0px;
     top: 0px;
@@ -136,7 +86,7 @@
 }
 
 #finger1 {
-    animation: finger1-move 3s infinite normal ease-in-out;
+    animation: finger1-move 2s infinite alternate ease-in-out;
     width: 30px;
     height: 30px;
     border-radius: 50%;
@@ -145,7 +95,7 @@
 }
 
 #finger2 {
-    animation: finger2-move 3s infinite normal ease-in-out;
+    animation: finger2-move 2s infinite alternate ease-in-out;
     width: 30px;
     height: 30px;
     border-radius: 50%;
