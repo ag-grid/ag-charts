@@ -136,7 +136,7 @@
             {
                 "title": "Financial Charts",
                 "description": "Build interactive financial charts with minimal configuration.",
-                "link": "financial-charts/"
+                "link": "./financial-charts/"
             },
             {
                 "title": "Animations",
