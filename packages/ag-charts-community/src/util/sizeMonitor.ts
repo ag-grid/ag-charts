@@ -1,5 +1,3 @@
-import type { NodeBuilderFlags } from 'typescript';
-
 import { getDocument, getWindow } from '../core';
 import { PixelRatioObserver } from './pixelRatioObserver';
 
@@ -38,7 +36,7 @@ export class SizeMonitor {
         // with the exception of moving the browser to a monitor with a different scaling
         // The resize observer will re-read the pixel ratio
         // so make sure this fires after the resize observer to avoid double rendering
-        let animationFrame: NodeJS.Timeout | NodeBuilderFlags;
+        let animationFrame: NodeJS.Timeout;
         this.pixelRatioObserver = new PixelRatioObserver(() => {
             clearTimeout(animationFrame);
             animationFrame = setTimeout(() => this.checkPixelRatio(), 0);
