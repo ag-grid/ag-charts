@@ -455,8 +455,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.destroyFns.push(
             // Interactions
-            seriesDragInterpreter.addListener('click', this.clickTouchPreHandler.bind(this)),
-            seriesDragInterpreter.addListener('drag-start', this.dragStartTouchPreHandler.bind(this)),
+            seriesDragInterpreter.addListener('click', this.hoverTouchPreHandler.bind(this)),
+            seriesDragInterpreter.addListener('drag-start', this.hoverTouchPreHandler.bind(this)),
             seriesDragInterpreter.addListener('drag-move', this.dragMoveTouchPreHandler.bind(this)),
             seriesDragInterpreter.addListener('mousemove', this.onHover.bind(this)),
             seriesDragInterpreter.addListener('click', this.onClick.bind(this)),
@@ -996,13 +996,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.state.transition('resize', { textInputValue, bbox });
     }
 
-    private clickTouchPreHandler(event: _ModuleSupport.DragInterpreterClickEvent) {
-        if (event.device === 'touch') {
-            this.onHover(event);
-        }
-    }
-
-    private dragStartTouchPreHandler(event: _Widget.DragWidgetEvent<'drag-start'>) {
+    private hoverTouchPreHandler(event: Parameters<Annotations['onHover']>[0] & {device: 'mouse'|'touch'}) {
         if (event.device === 'touch') {
             this.onHover(event);
         }
