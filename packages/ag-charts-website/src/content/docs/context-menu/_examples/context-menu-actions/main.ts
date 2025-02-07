@@ -1,5 +1,7 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
+import './alert';
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {

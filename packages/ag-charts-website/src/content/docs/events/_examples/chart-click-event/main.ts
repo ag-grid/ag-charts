@@ -1,5 +1,7 @@
 import { AgChartClickEvent, AgChartDoubleClickEvent, AgChartOptions, AgCharts } from 'ag-charts-community';
 
+import './alert';
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -32,10 +34,10 @@ const options: AgChartOptions = {
     ],
     listeners: {
         click: (_event: AgChartClickEvent) => {
-            console.log('click');
+            window.alert('click');
         },
         doubleClick: (_event: AgChartDoubleClickEvent) => {
-            console.log('double click');
+            window.alert('double click');
         },
     },
 };
