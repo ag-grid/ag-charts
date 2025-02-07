@@ -36,7 +36,7 @@ const options: AgChartOptions = {
         { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200000 },
     ],
     background: {
-        fill: '#EEDD8210', // or RGB, HEX, HSL, HWB, or named color
+        fill: '#80764440', // or RGB, HEX, HSL, HWB, or named color
     },
     width: 350,
     height: 350,
