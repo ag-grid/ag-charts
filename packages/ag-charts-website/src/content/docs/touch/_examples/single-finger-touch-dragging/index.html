@@ -4,14 +4,15 @@
     <button onclick="changeAction('drag')"><code>'drag'</code></button>
     <button onclick="changeAction('hover')"><code>'hover'</code></button>
 </div>
+
 <div id="myChart"></div>
 
 <script>
-  document.addEventListener(
-    'touchstart',
-    () => document.getElementById('gesture-demo').style.display = 'none',
-    { capture: true, once: true }
-  );
+    const f = () => (document.getElementById('gesture-demo').style.display = 'none');
+    document.addEventListener('touchstart', f, { capture: true, once: true });
+    document.addEventListener('wheel', f, { capture: true, once: true });
+    document.addEventListener('mousedown', f, { capture: true, once: true });
+    document.addEventListener('keydown', f, { capture: true, once: true });
 </script>
 <div id="gesture-demo">
     <div id="finger"></div>
