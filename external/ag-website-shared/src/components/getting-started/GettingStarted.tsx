@@ -1,5 +1,5 @@
-import { gridUrlWithPrefix } from '@ag-website-shared/utils/gridUrlWithPrefix';
 import { useFrameworkFromStore } from '@utils/hooks/useFrameworkFromStore';
+import { urlWithPrefix } from '@utils/urlWithPrefix';
 import type { FunctionComponent } from 'react';
 
 import { Icon } from '../icon/Icon';
@@ -32,7 +32,7 @@ const GettingStarted: FunctionComponent = () => {
     return (
         <div className={styles.container}>
             {features.map((feature, index) => (
-                <a href={gridUrlWithPrefix({ framework, url: feature.link })}>
+                <a href={urlWithPrefix({ framework, url: feature.link })}>
                     <div key={index} className={styles.card}>
                         <div className={styles.iconGroup}>
                             <Icon name={feature.icon} className={styles.icon}>
