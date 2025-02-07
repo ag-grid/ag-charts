@@ -26,6 +26,7 @@ const {
     PointerEvents,
     motion,
     checkCrisp,
+    createDatumId,
 } = _ModuleSupport;
 
 export type Bounds = {
@@ -575,7 +576,7 @@ export abstract class BaseFunnelSeries<
     }
 
     private getDatumId(datum: FunnelNodeDatum) {
-        return `${datum.xValue}`;
+        return createDatumId(datum.xValue);
     }
 
     protected isLabelEnabled() {
@@ -613,17 +614,18 @@ export abstract class BaseFunnelSeries<
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
 
         return (processedData.dataSources.get(this.id) ?? [])
-            .map((_datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {
+            .map((datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {
                 const stageValue = xValues[datumIndex];
                 if (stageValue == null) return;
 
                 return {
                     legendType: 'category',
                     id: seriesId,
+                    datum,
                     itemId: datumIndex,
                     seriesId,
                     enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
-                    label: { text: stageValue },
+                    label: { text: String(stageValue) },
                     symbol: this.legendItemSymbol(datumIndex),
                     skipAnimations: true,
                     hideInLegend: !showInLegend,
