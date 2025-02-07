@@ -5,3 +5,14 @@
     <button onclick="changeAction('hover')"><code>'hover'</code></button>
 </div>
 <div id="myChart"></div>
+
+<script>
+  document.addEventListener(
+    'touchstart',
+    () => document.getElementById('gesture-demo').style.display = 'none',
+    { capture: true, once: true }
+  );
+</script>
+<div id="gesture-demo">
+    <div id="finger"></div>
+</div>
