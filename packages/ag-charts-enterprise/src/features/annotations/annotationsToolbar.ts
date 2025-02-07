@@ -129,6 +129,10 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
                 case 'shape-menu':
                     this.updateButtonByIndex(index, { icon: 'arrow-drawing', value: 'shape-menu' });
                     break;
+
+                case 'measurer-menu':
+                    this.updateButtonByIndex(index, { icon: 'measurer-drawing', value: 'measurer-menu' });
+                    break;
             }
         }
     }
