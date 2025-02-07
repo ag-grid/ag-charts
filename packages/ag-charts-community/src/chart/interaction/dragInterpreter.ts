@@ -128,7 +128,6 @@ export class DragInterpreter {
     }
 
     private onDragEnd(event: DragWidgetEvent<'drag-end'>) {
-        DOUBLE_TAP_TIMER_MS;
         if (this.isDragging) {
             this.dispatch(event);
             this.isDragging = false;
