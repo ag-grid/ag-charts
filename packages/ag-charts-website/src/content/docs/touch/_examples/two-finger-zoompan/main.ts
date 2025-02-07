@@ -4,7 +4,11 @@ import { getData } from './data';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
+    touch: {
+        dragAction: 'none',
+    },
     zoom: {
+        enableDoubleClickToReset: false,
         enableTwoFingerZoom: true,
     },
     initialState: {
