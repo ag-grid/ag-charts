@@ -1,1 +1,21 @@
+<div class="toolbar">
+    <span>Enabled:</span>
+    <button onclick="setEnabled(true)"><code>true</code></button>
+    <button onclick="setEnabled(false)"><code>false</code></button>
+</div>
+
 <div id="myChart"></div>
+
+<!-- -->
+<script>
+    const f = () => (document.getElementById('gesture-demo').style.display = 'none');
+    document.addEventListener('touchstart', f, { capture: true, once: true });
+    document.addEventListener('wheel', f, { capture: true, once: true });
+    document.addEventListener('mousedown', f, { capture: true, once: true });
+    document.addEventListener('keydown', f, { capture: true, once: true });
+</script>
+<div id="gesture-demo">
+    <div id="finger1"></div>
+    <div id="finger2"></div>
+</div>
+<!-- -->

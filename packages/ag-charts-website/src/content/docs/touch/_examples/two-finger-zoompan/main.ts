@@ -5,7 +5,7 @@ import { getData } from './data';
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     zoom: {
-        enableTwoFingerZoom: false,
+        enableTwoFingerZoom: true,
     },
     initialState: {
         zoom: {
@@ -48,4 +48,11 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function setEnabled(enabled: boolean) {
+    if (options.zoom) {
+        options.zoom.enableTwoFingerZoom = enabled;
+    }
+    chart.update(options);
+}
