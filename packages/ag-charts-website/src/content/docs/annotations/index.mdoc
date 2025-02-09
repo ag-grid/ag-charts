@@ -3,29 +3,35 @@ title: 'Annotations'
 enterprise: true
 ---
 
-To improve data analysis, a range of annotations can be applied to Cartesian charts. TThese annotations are especially useful for highlighting trends and key data points.
+To improve data analysis, a range of annotations can be added to Cartesian charts. These annotations are especially useful for highlighting trends and key data points.
 
 {% chartExampleRunner title="Annotations" name="simple-annotations" type="generated" /%}
 
 In the example above:
 
 -   Select annotations from the toolbar and click on the series area to add them.
--   Use the floating options toolbar to adjust their position, color, or style.
--   Remove annotations either via the main toolbar (to delete all) or the floating toolbar (to delete individually).
+-   Use the floating options toolbar to adjust the position, colour, or style.
+-   Add labels or extend lines using the options available from the 'Settings' button.
+-   Delete annotations via the main toolbar (to delete all), or the floating toolbar (to delete individually).
 
 ## Annotation Types
 
 A subset of annotation types is available across all Cartesian charts, including:
 
 -   **[Text Annotations](./financial-charts-toolbar/#annotations)**: `text`, `comment`, `callout` and `note`.
--   **[Lines](./financial-charts-toolbar/#lines)**: `line`, `horizontal-line` and `vertical-line`. For charts with vertical [Number Axes](./axes-types/#number), the `parallel-channel` and `disjoint-channel` are also available.
--   **[Arrows](./financial-charts-toolbar/#arrows)**: `arrow`, `arrow-up` and `arrow-down`
+-   **[Lines](./financial-charts-toolbar/#lines)**: `line`, `horizontal-line` and `vertical-line`.  
+    For charts with a vertical [Number Axes](./axes-types/#number), the `parallel-channel` and `disjoint-channel` are also available.
+-   **[Arrows](./financial-charts-toolbar/#arrows)**: `arrow`, `arrow-up` and `arrow-down`.
+
+For more details about these and for the full set of annotations, see [Financial Charts](./financial-charts-toolbar/).
 
 ## Toolbar
 
 The Annotations Toolbar offers menu options for annotating charts. By default, the toolbar is enabled, but it can be disabled by setting `toolbar.enabled` to `false`.
 
-The menu items in the toolbar can be cutomised by configuring the `toolbar.buttons` options array.
+The menu items in the toolbar can be customised by configuring the `toolbar.buttons` options array.
+
+{% chartExampleRunner title="Annotations Toolbar" name="annotations-toolbar" type="generated" /%}
 
 ```js
 annotations: {
@@ -44,7 +50,10 @@ annotations: {
 },
 ```
 
-{% chartExampleRunner title="Annotations Toolbar" name="annotations-toolbar" type="generated" /%}
+In the above example:
+
+-   Only the Text Annotations and Delete button are available.
+-   The order of these is switched.
 
 ## Keyboard Shortcuts
 
@@ -67,33 +76,38 @@ Drawings and Annotations can be saved, restored and programmatically initialised
 
 {% chartExampleRunner title="Annotation Customisation" name="annotations-customisation" type="generated" /%}
 
-To customise the look of Drawings and Annotations, use [Theme Override Options](/themes-api/#reference-AgChartTheme-overrides-common-annotations).
+To customise the initial look of Drawings and Annotations, use [Theme Override Options](/themes-api/#reference-AgChartTheme-overrides-common-annotations).
 
 ```ts
-theme: {
+  theme: {
     overrides: {
-        common: {
-            annotations: {
-                line: {
-                    stroke: 'lime',
-                    strokeWidth: 1,
-                    lineDash: [3, 1],
-                },
-                arrow: {
-                    stroke: 'red',
-                    strokeWidth: 1,
-                    text: {
-                        fontSize: 12,
-                    },
-                },
-                text: {
-                    color: 'blue',
-                    fontSize: 12,
-                },
+      common: {
+        annotations: {
+          line: {
+            stroke: "lime",
+            strokeWidth: 3,
+            lineDash: [3, 4],
+          },
+          "parallel-channel": {
+            stroke: "red",
+            strokeWidth: 4,
+            background: {
+              fill: "red",
             },
+            middle: {
+              strokeOpacity: 0,
+            },
+          },
+          comment: {
+            fill: "orange",
+            color: "blue",
+            stroke: "blue",
+            strokeWidth: 2,
+          },
         },
+      },
     },
-},
+  },
 ```
 
 ## API Reference
@@ -102,54 +116,6 @@ theme: {
 
 {% tabItem id="AgAnnotationsOptions" label="Annotation Options" %}
 {% apiReference id="AgAnnotationsOptions" /%}
-{% /tabItem %}
-
-{% tabItem id="AgLineAnnotation" label="Line" %}
-{% apiReference id="AgLineAnnotation" /%}
-{% /tabItem %}
-
-{% tabItem id="AgHorizontalLineAnnotation" label="Horizontal Line" %}
-{% apiReference id="AgHorizontalLineAnnotation" /%}
-{% /tabItem %}
-
-{% tabItem id="AgVerticalLineAnnotation" label="Vertical Line" %}
-{% apiReference id="AgVerticalLineAnnotation" /%}
-{% /tabItem %}
-
-{% tabItem id="AgDisjointChannelAnnotation" label="Disjoint Channel" %}
-{% apiReference id="AgDisjointChannelAnnotation" /%}
-{% /tabItem %}
-
-{% tabItem id="AgParallelChannelAnnotation" label="Parallel Channel" %}
-{% apiReference id="AgParallelChannelAnnotation" /%}
-{% /tabItem %}
-
-{% tabItem id="AgCalloutAnnotation" label="Callout" %}
-{% apiReference id="AgCalloutAnnotation" /%}
-{% /tabItem %}
-
-{% tabItem id="AgCommentAnnotation" label="Comment" %}
-{% apiReference id="AgCommentAnnotation" /%}
-{% /tabItem %}
-
-{% tabItem id="AgNoteAnnotation" label="Note" %}
-{% apiReference id="AgNoteAnnotation" /%}
-{% /tabItem %}
-
-{% tabItem id="AgTextAnnotation" label="Text" %}
-{% apiReference id="AgTextAnnotation" /%}
-{% /tabItem %}
-
-{% tabItem id="AgArrowAnnotation" label="Arrow" %}
-{% apiReference id="AgArrowAnnotation" /%}
-{% /tabItem %}
-
-{% tabItem id="AgArrowUpAnnotation" label="Arrow Up" %}
-{% apiReference id="AgArrowUpAnnotation" /%}
-{% /tabItem %}
-
-{% tabItem id="AgArrowDownAnnotation" label="Arrow Down" %}
-{% apiReference id="AgArrowDownAnnotation" /%}
 {% /tabItem %}
 
 {% /tabs %}
