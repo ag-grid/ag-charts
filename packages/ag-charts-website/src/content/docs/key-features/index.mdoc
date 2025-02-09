@@ -350,9 +350,6 @@ Use `listeners` to respond to [Events](./events/) on the chart:
         seriesVisibilityChange: ({ seriesId, visible }: AgSeriesVisibilityChange) => {
             alert('series visibility changed')
         },
-        zoom: (event) => {
-            alert('zoom level changed')
-        },
     },
     // Series Events
     series: [
