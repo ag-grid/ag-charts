@@ -19,7 +19,7 @@ zoom: {
 In the above example you can:
 
 -   Scroll in and out with the mouse wheel or trackpad.
--   Adjust the zoom-pan using two fingers.
+-   Zoom and pan using [touch and multi-touch](./touch) functionality.
 -   Use {% kbd "+" /%} and {% kbd "-" /%} keys to zoom in or out (when in focus).
 -   Click and drag the mouse to pan around the zoomed in chart.
 -   Click (or touch) and drag an axis to zoom in or out on only that axis.
@@ -119,7 +119,9 @@ zoom: {
 
 ## Two Finger Zoom-Pan
 
-PLACEHOLDER PARAGRAPH.
+By default, using two fingers to pinch in or out will zoom the chart. It is also possible to use two fingers to pan a zoomed chart.
+
+To disable this behaviour, use `enableTwoFingerZoom: false`.
 
 {% chartExampleRunner title="Two Finger Zoom-Pan Disabled" name="two-finger-disabled" type="generated" /%}
 
@@ -128,6 +130,10 @@ zoom: {
     enableTwoFingerZoom: false,
 }
 ```
+
+In the above example:
+
+-   Two fingers gestures are not consumed by the chart. Instead they zoom or scroll the entire page.
 
 ## Dragging an Axis
 
@@ -140,10 +146,6 @@ In the example below, we have two series, each attached to a different y-axis. D
 ## Double-Click to Reset
 
 This allows users to reset the zoom by double-clicking in an empty space in the chart area, and is enabled by default. To disable, use `enableDoubleClickToReset: false`.
-
-## Touch Input
-
-The zoom functionality can controlled using Touch Input. For more information see the [Touch](./touch) documentation.
 
 ## Minimum Visible Items
 

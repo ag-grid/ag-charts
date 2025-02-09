@@ -14,6 +14,10 @@
             {
                 "text": "Theme Parameters",
                 "path": "./themes/#theme-parameters"
+            },
+            {
+                "text": "Touch Interactions",
+                "path": "./touch"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-11-1",
