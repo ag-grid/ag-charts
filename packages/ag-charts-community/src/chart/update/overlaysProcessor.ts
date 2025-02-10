@@ -10,6 +10,8 @@ import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS, type Overlay } from '../overlay/overlay';
 import type { ChartLike, UpdateProcessor } from './processor';
 
+const visibleIgnoredSeries = new Set(['map-shape-background', 'map-line-background']);
+
 export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private readonly destroyFns: (() => void)[] = [];
     private readonly overlayElem: HTMLElement;
@@ -40,7 +42,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private onLayoutComplete({ series: { rect } }: LayoutCompleteEvent) {
         const isLoading = this.dataService.isLoading();
         const hasData = this.chartLike.series.some((s) => s.hasData);
-        const anySeriesVisible = this.chartLike.series.some((s) => s.visible);
+        const anySeriesVisible = this.chartLike.series.some((s) => s.visible && !visibleIgnoredSeries.has(s.type));
 
         if (this.overlays.darkTheme) {
             this.overlayElem.classList.add(DEFAULT_OVERLAY_DARK_CLASS);
