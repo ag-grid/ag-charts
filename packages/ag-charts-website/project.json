@@ -123,6 +123,7 @@
       "outputs": [],
       "cache": true,
       "configurations": {
+        "archive": {},
         "staging": {},
         "production": {}
       }
