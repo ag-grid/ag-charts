@@ -37,7 +37,7 @@
     }
 }
 
-#gesture-demo {
+.gesture-demo {
     animation: gesture-fade 1.5s infinite alternate ease-in-out;
     position: absolute;
     left: 0px;
@@ -47,7 +47,7 @@
     pointer-events: none;
 }
 
-#finger {
+.finger {
     animation: long-tap 1.5s infinite alternate ease-in-out;
     width: 30px;
     height: 30px;

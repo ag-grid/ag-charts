@@ -75,7 +75,7 @@
     }
 }
 
-#gesture-demo {
+.gesture-demo {
     animation: gesture-fade 2s infinite alternate ease-in-out;
     position: absolute;
     left: 0px;
@@ -85,7 +85,7 @@
     pointer-events: none;
 }
 
-#finger1 {
+.finger1 {
     animation: finger1-move 2s infinite alternate ease-in-out;
     width: 30px;
     height: 30px;
@@ -94,7 +94,7 @@
     transform: translate(-50%, -50%);
 }
 
-#finger2 {
+.finger2 {
     animation: finger2-move 2s infinite alternate ease-in-out;
     width: 30px;
     height: 30px;

@@ -64,7 +64,7 @@
     }
 }
 
-#gesture-demo {
+.gesture-demo {
     animation: gesture-fade 3s infinite normal ease-in-out;
     position: absolute;
     left: 0px;
@@ -74,7 +74,7 @@
     pointer-events: none;
 }
 
-#finger {
+.finger {
     animation: touch-drag 3s infinite normal ease-in-out;
     width: 30px;
     height: 30px;
