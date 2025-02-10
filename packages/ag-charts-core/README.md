@@ -123,12 +123,19 @@ AG Charts Core Charting Library comes with every feature you'd expect:
 | [Localisation](https://www.ag-grid.com/charts/core/localisation/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)               | ✅                  | ✅                   |
 | [Series Highlighting](https://www.ag-grid.com/charts/core/series-highlighting/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) | ✅                  | ✅                   |
 | [Tooltips](https://www.ag-grid.com/charts/core/tooltips/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                       | ✅                  | ✅                   |
+| [Touch](https://www.ag-grid.com/charts/core/touch/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                             | ✅                  | ✅                   |
+| [Cross Lines](https://www.ag-grid.com/charts/core/axes-cross-lines/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)            | ✅                  | ✅                   |
+| [Legend](https://www.ag-grid.com/charts/core/legend/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                           | ✅                  | ✅                   |
+| [Stylers](https://www.ag-grid.com/charts/core/stylers/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                         | ✅                  | ✅                   |
+| [Series Markers](https://www.ag-grid.com/charts/core/markers/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                  | ✅                  | ✅                   |
 | [Animations](https://www.ag-grid.com/charts/core/animation/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                    | ❌                  | ✅                   |
 | [Context Menu](https://www.ag-grid.com/charts/core/context-menu/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)               | ❌                  | ✅                   |
 | [Crosshairs](https://www.ag-grid.com/charts/core/axes-crosshairs/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)              | ❌                  | ✅                   |
 | [Navigator](https://www.ag-grid.com/charts/core/navigator/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                     | ❌                  | ✅                   |
 | [Synchronization](https://www.ag-grid.com/charts/core/sync/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                    | ❌                  | ✅                   |
 | [Zoom](https://www.ag-grid.com/charts/core/zoom/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                               | ❌                  | ✅                   |
+| [Annotations](https://www.ag-grid.com/charts/core/annotations/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                 | ❌                  | ✅                   |
+| [Error Bars](https://www.ag-grid.com/charts/core/error-bars/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                   | ❌                  | ✅                   |
 
 <blockquote>
     <p>ℹ️ <b>Note:</b></p>
