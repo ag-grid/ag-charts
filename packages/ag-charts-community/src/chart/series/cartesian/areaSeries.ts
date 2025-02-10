@@ -154,6 +154,12 @@ export class AreaSeries extends CartesianSeries<
         stroke.zIndex = -1;
     }
 
+    protected override detachPaths([fill, stroke]: Path[]) {
+        this.backgroundGroup.removeChild(fill);
+
+        this.contentGroup.removeChild(stroke);
+    }
+
     private isStacked() {
         const stackCount = this.seriesGrouping?.stackCount ?? 1;
         return stackCount > 1;
