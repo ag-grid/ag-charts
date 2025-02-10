@@ -363,6 +363,366 @@ export const HISTOGRAM_SERIES_LABELS: AgCartesianChartOptions = {
     series: [...(HISTOGRAM_EXAMPLE.series?.map((s: any) => ({ ...s, label: { enabled: true } })) ?? [])],
 };
 
+export const HISTOGRAM_DATE_BASED_BUCKETS: AgCartesianChartOptions = {
+    data: [
+        {
+            day: new Date('2010-07-30T00:00:00.000'),
+            bicycleHires: 6897,
+        },
+        {
+            day: new Date('2010-07-31T00:00:00.000'),
+            bicycleHires: 5564,
+        },
+        {
+            day: new Date('2010-08-01T00:00:00.000'),
+            bicycleHires: 4303,
+        },
+        {
+            day: new Date('2010-08-02T00:00:00.000'),
+            bicycleHires: 6642,
+        },
+        {
+            day: new Date('2010-08-03T00:00:00.000'),
+            bicycleHires: 7966,
+        },
+        {
+            day: new Date('2010-08-04T00:00:00.000'),
+            bicycleHires: 7893,
+        },
+        {
+            day: new Date('2010-08-05T00:00:00.000'),
+            bicycleHires: 8724,
+        },
+        {
+            day: new Date('2010-08-06T00:00:00.000'),
+            bicycleHires: 9797,
+        },
+        {
+            day: new Date('2010-08-07T00:00:00.000'),
+            bicycleHires: 6631,
+        },
+        {
+            day: new Date('2010-08-08T00:00:00.000'),
+            bicycleHires: 7864,
+        },
+        {
+            day: new Date('2010-08-09T00:00:00.000'),
+            bicycleHires: 6191,
+        },
+        {
+            day: new Date('2010-08-10T00:00:00.000'),
+            bicycleHires: 4802,
+        },
+        {
+            day: new Date('2010-08-11T00:00:00.000'),
+            bicycleHires: 14013,
+        },
+        {
+            day: new Date('2010-08-12T00:00:00.000'),
+            bicycleHires: 13080,
+        },
+        {
+            day: new Date('2010-08-13T00:00:00.000'),
+            bicycleHires: 12151,
+        },
+        {
+            day: new Date('2010-08-14T00:00:00.000'),
+            bicycleHires: 9195,
+        },
+        {
+            day: new Date('2010-08-15T00:00:00.000'),
+            bicycleHires: 10928,
+        },
+        {
+            day: new Date('2010-08-16T00:00:00.000'),
+            bicycleHires: 15384,
+        },
+        {
+            day: new Date('2010-08-17T00:00:00.000'),
+            bicycleHires: 15396,
+        },
+        {
+            day: new Date('2010-08-18T00:00:00.000'),
+            bicycleHires: 16062,
+        },
+        {
+            day: new Date('2010-08-19T00:00:00.000'),
+            bicycleHires: 17170,
+        },
+        {
+            day: new Date('2010-08-20T00:00:00.000'),
+            bicycleHires: 16462,
+        },
+        {
+            day: new Date('2010-08-21T00:00:00.000'),
+            bicycleHires: 11719,
+        },
+        {
+            day: new Date('2010-08-22T00:00:00.000'),
+            bicycleHires: 10129,
+        },
+        {
+            day: new Date('2010-08-23T00:00:00.000'),
+            bicycleHires: 12935,
+        },
+        {
+            day: new Date('2010-08-24T00:00:00.000'),
+            bicycleHires: 17006,
+        },
+        {
+            day: new Date('2010-08-25T00:00:00.000'),
+            bicycleHires: 10062,
+        },
+        {
+            day: new Date('2010-08-26T00:00:00.000'),
+            bicycleHires: 9875,
+        },
+        {
+            day: new Date('2010-08-27T00:00:00.000'),
+            bicycleHires: 12854,
+        },
+        {
+            day: new Date('2010-08-28T00:00:00.000'),
+            bicycleHires: 10116,
+        },
+        {
+            day: new Date('2010-08-29T00:00:00.000'),
+            bicycleHires: 7811,
+        },
+        {
+            day: new Date('2010-08-30T00:00:00.000'),
+            bicycleHires: 10534,
+        },
+        {
+            day: new Date('2010-08-31T00:00:00.000'),
+            bicycleHires: 17508,
+        },
+        {
+            day: new Date('2010-09-01T00:00:00.000'),
+            bicycleHires: 19332,
+        },
+        {
+            day: new Date('2010-09-02T00:00:00.000'),
+            bicycleHires: 20909,
+        },
+        {
+            day: new Date('2010-09-03T00:00:00.000'),
+            bicycleHires: 20113,
+        },
+        {
+            day: new Date('2010-09-04T00:00:00.000'),
+            bicycleHires: 14373,
+        },
+        {
+            day: new Date('2010-09-05T00:00:00.000'),
+            bicycleHires: 12924,
+        },
+        {
+            day: new Date('2010-09-06T00:00:00.000'),
+            bicycleHires: 16841,
+        },
+        {
+            day: new Date('2010-09-07T00:00:00.000'),
+            bicycleHires: 25361,
+        },
+        {
+            day: new Date('2010-09-08T00:00:00.000'),
+            bicycleHires: 18727,
+        },
+        {
+            day: new Date('2010-09-09T00:00:00.000'),
+            bicycleHires: 20774,
+        },
+        {
+            day: new Date('2010-09-10T00:00:00.000'),
+            bicycleHires: 19532,
+        },
+        {
+            day: new Date('2010-09-11T00:00:00.000'),
+            bicycleHires: 13383,
+        },
+        {
+            day: new Date('2010-09-12T00:00:00.000'),
+            bicycleHires: 14002,
+        },
+        {
+            day: new Date('2010-09-13T00:00:00.000'),
+            bicycleHires: 18037,
+        },
+        {
+            day: new Date('2010-09-14T00:00:00.000'),
+            bicycleHires: 17026,
+        },
+        {
+            day: new Date('2010-09-15T00:00:00.000'),
+            bicycleHires: 20890,
+        },
+        {
+            day: new Date('2010-09-16T00:00:00.000'),
+            bicycleHires: 20433,
+        },
+        {
+            day: new Date('2010-09-17T00:00:00.000'),
+            bicycleHires: 20488,
+        },
+        {
+            day: new Date('2010-09-18T00:00:00.000'),
+            bicycleHires: 15495,
+        },
+        {
+            day: new Date('2010-09-19T00:00:00.000'),
+            bicycleHires: 11492,
+        },
+        {
+            day: new Date('2010-09-20T00:00:00.000'),
+            bicycleHires: 20169,
+        },
+        {
+            day: new Date('2010-09-21T00:00:00.000'),
+            bicycleHires: 22906,
+        },
+        {
+            day: new Date('2010-09-22T00:00:00.000'),
+            bicycleHires: 23905,
+        },
+        {
+            day: new Date('2010-09-23T00:00:00.000'),
+            bicycleHires: 17729,
+        },
+        {
+            day: new Date('2010-09-24T00:00:00.000'),
+            bicycleHires: 18053,
+        },
+        {
+            day: new Date('2010-09-25T00:00:00.000'),
+            bicycleHires: 14010,
+        },
+        {
+            day: new Date('2010-09-26T00:00:00.000'),
+            bicycleHires: 7890,
+        },
+        {
+            day: new Date('2010-09-27T00:00:00.000'),
+            bicycleHires: 18789,
+        },
+        {
+            day: new Date('2010-09-28T00:00:00.000'),
+            bicycleHires: 21554,
+        },
+        {
+            day: new Date('2010-09-29T00:00:00.000'),
+            bicycleHires: 13899,
+        },
+        {
+            day: new Date('2010-09-30T00:00:00.000'),
+            bicycleHires: 21823,
+        },
+        {
+            day: new Date('2010-10-01T00:00:00.000'),
+            bicycleHires: 11424,
+        },
+        {
+            day: new Date('2010-10-02T00:00:00.000'),
+            bicycleHires: 10704,
+        },
+        {
+            day: new Date('2010-10-03T00:00:00.000'),
+            bicycleHires: 8237,
+        },
+        {
+            day: new Date('2010-10-04T00:00:00.000'),
+            bicycleHires: 23688,
+        },
+        {
+            day: new Date('2010-10-05T00:00:00.000'),
+            bicycleHires: 22054,
+        },
+        {
+            day: new Date('2010-10-06T00:00:00.000'),
+            bicycleHires: 20114,
+        },
+        {
+            day: new Date('2010-10-07T00:00:00.000'),
+            bicycleHires: 24072,
+        },
+        {
+            day: new Date('2010-10-08T00:00:00.000'),
+            bicycleHires: 22886,
+        },
+        {
+            day: new Date('2010-10-09T00:00:00.000'),
+            bicycleHires: 14463,
+        },
+        {
+            day: new Date('2010-10-10T00:00:00.000'),
+            bicycleHires: 14871,
+        },
+        {
+            day: new Date('2010-10-11T00:00:00.000'),
+            bicycleHires: 21986,
+        },
+        {
+            day: new Date('2010-10-12T00:00:00.000'),
+            bicycleHires: 23016,
+        },
+        {
+            day: new Date('2010-10-13T00:00:00.000'),
+            bicycleHires: 22251,
+        },
+        {
+            day: new Date('2010-10-14T00:00:00.000'),
+            bicycleHires: 21582,
+        },
+        {
+            day: new Date('2010-10-15T00:00:00.000'),
+            bicycleHires: 20934,
+        },
+        {
+            day: new Date('2010-10-16T00:00:00.000'),
+            bicycleHires: 12735,
+        },
+        {
+            day: new Date('2010-10-17T00:00:00.000'),
+            bicycleHires: 12764,
+        },
+        {
+            day: new Date('2010-10-18T00:00:00.000'),
+            bicycleHires: 20464,
+        },
+        {
+            day: new Date('2010-10-19T00:00:00.000'),
+            bicycleHires: 17964,
+        },
+        {
+            day: new Date('2010-10-20T00:00:00.000'),
+            bicycleHires: 20750,
+        },
+    ],
+    series: [
+        {
+            type: 'histogram',
+            yKey: 'bicycleHires',
+            xKey: 'day',
+        },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'right',
+            label: {
+                formatter: (params) => `${params.value / 1000000}M`,
+            },
+        },
+        {
+            type: 'time',
+            position: 'bottom',
+            label: {
+                format: `%b %d`,
+            },
+        },
+    ],
+};
+
 export const SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
     ...SCATTER_EXAMPLE,
     series: [

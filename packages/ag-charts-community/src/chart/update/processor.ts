@@ -18,6 +18,7 @@ export interface AxisLike {
 }
 
 interface SeriesLike {
+    type: string;
     hasData: boolean;
     visible: boolean;
 }

@@ -21,6 +21,10 @@ const DOM_ELEMENT_CLASSES = [
     'canvas-proxy',
     'series-area',
 ] as const;
+const CONTAINER_MODIFIERS = {
+    safeHorizontal: 'ag-charts-wrapper--safe-horizontal',
+    safeVertical: 'ag-charts-wrapper--safe-vertical',
+};
 type DOMElementClass = (typeof DOM_ELEMENT_CLASSES)[number];
 type DOMElementConfig = { childElementType: 'style' | 'canvas' | 'div'; style?: Partial<CSSStyleDeclaration> };
 type DOMInsertOption = { where: InsertPosition; query: string };
@@ -93,6 +97,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly sizeMonitor = new SizeMonitor();
     private readonly cursorState = new StateTracker('default');
 
+    private minWidth: number = 0;
+    private minHeight: number = 0;
+
     constructor(container?: HTMLElement, styleContainer?: HTMLElement) {
         super();
 
@@ -163,6 +170,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         style.width = `${optionsWidth ?? minWidth}px`;
         style.height = `${optionsHeight ?? minHeight}px`;
+
+        this.minWidth = optionsWidth ?? minWidth;
+        this.minHeight = optionsHeight ?? minHeight;
+
+        this.updateContainerClassName();
     }
 
     private updateContainerSize() {
@@ -176,6 +188,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             centerStyle.width = '';
             centerStyle.height = '';
         }
+
+        this.updateContainerClassName();
     }
 
     setTabGuardIndex(tabIndex: number) {
@@ -517,5 +531,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     setDataBoolean(name: string, value: boolean) {
         this.element.dataset[name] = String(value);
+    }
+
+    private updateContainerClassName() {
+        const { element, containerSize, minWidth, minHeight } = this;
+        element.classList.toggle(CONTAINER_MODIFIERS.safeHorizontal, minWidth >= (containerSize?.width ?? Infinity));
+        element.classList.toggle(CONTAINER_MODIFIERS.safeVertical, minHeight >= (containerSize?.height ?? Infinity));
     }
 }

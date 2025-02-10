@@ -19,12 +19,21 @@ import {
 } from '../../test/utils';
 import type { ChartOrProxy } from '../../test/utils';
 import type { SeriesNodeDataContext } from '../series';
-import { HISTOGRAM_SCATTER_COMBO_SERIES_LABELS, HISTOGRAM_SERIES_LABELS } from '../test/examples';
+import {
+    HISTOGRAM_DATE_BASED_BUCKETS,
+    HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
+    HISTOGRAM_SERIES_LABELS,
+} from '../test/examples';
 
 const EXAMPLES: Record<string, TestCase> = {
     SIMPLE_HISTOGRAM: GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE,
     HISTOGRAM_WITH_SPECIFIED_BINS: GALLERY_EXAMPLES.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE,
     XY_HISTOGRAM_WITH_MEAN: GALLERY_EXAMPLES.XY_HISTOGRAM_WITH_MEAN_EXAMPLE,
+    HISTOGRAM_DATE_BASED_BUCKETS: {
+        options: HISTOGRAM_DATE_BASED_BUCKETS,
+        enterprise: true,
+        assertions: cartesianChartAssertions({ axisTypes: ['number', 'time'], seriesTypes: ['histogram'] }),
+    },
 };
 
 describe('HistogramSeries', () => {
@@ -83,39 +92,43 @@ describe('HistogramSeries', () => {
     describe('#reversed axes', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                chart = createHistogramChart(example, {
-                    axes: [
-                        {
-                            type: 'number',
-                            position: 'left',
-                            reverse: true,
-                        },
-                        {
-                            type: 'number',
-                            position: 'bottom',
-                            reverse: true,
-                        },
-                    ],
-                });
+                const axes = (example.options as AgCartesianChartOptions).axes?.map((a) => ({
+                    ...a,
+                    reverse: true,
+                })) ?? [
+                    {
+                        type: 'number',
+                        position: 'left',
+                        reverse: true,
+                    },
+                    {
+                        type: 'number',
+                        position: 'bottom',
+                        reverse: true,
+                    },
+                ];
+                chart = createHistogramChart(example, { axes });
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                chart = createHistogramChart(example, {
-                    axes: [
-                        {
-                            type: 'number',
-                            position: 'left',
-                            reverse: true,
-                        },
-                        {
-                            type: 'number',
-                            position: 'bottom',
-                            reverse: true,
-                        },
-                    ],
-                });
+                const axes = (example.options as AgCartesianChartOptions).axes?.map((a) => ({
+                    ...a,
+                    reverse: true,
+                })) ?? [
+                    {
+                        type: 'number',
+                        position: 'left',
+                        reverse: true,
+                    },
+                    {
+                        type: 'number',
+                        position: 'bottom',
+                        reverse: true,
+                    },
+                ];
+                chart = createHistogramChart(example, { axes });
                 await compare();
 
                 if (example.extraScreenshotActions) {

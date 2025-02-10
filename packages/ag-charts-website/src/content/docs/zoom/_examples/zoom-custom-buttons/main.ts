@@ -7,6 +7,7 @@ const options: AgCartesianChartOptions = {
     zoom: {
         enabled: true,
         buttons: {
+            visible: 'always',
             buttons: [
                 {
                     icon: 'zoom-in',

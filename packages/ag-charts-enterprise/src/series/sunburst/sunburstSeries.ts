@@ -77,7 +77,7 @@ type ItemStyle = Pick<AgSunburstSeriesStyle, 'fill' | 'stroke'> &
     Omit<Required<AgSunburstSeriesStyle>, 'fill' | 'stroke'>;
 
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<
-    _ModuleSupport.ScalableGroup,
+    _ModuleSupport.Sector,
     SunburstSeriesProperties,
     SunburstNode
 > {
@@ -614,11 +614,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
     }
 
-    protected override computeFocusBounds(node: _ModuleSupport.ScalableGroup): _ModuleSupport.Path | undefined {
-        for (const child of node.children()) {
-            if (child instanceof _ModuleSupport.Sector) {
-                return child;
-            }
-        }
+    protected override computeFocusBounds(node: _ModuleSupport.Sector): _ModuleSupport.Path | undefined {
+        return node;
     }
 }

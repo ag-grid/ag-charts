@@ -563,7 +563,12 @@ export class SeriesAreaManager extends BaseManager {
             const tooltipContent = focus.series.getTooltipContent(datum);
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
+            const tooltipEnabled = this.chart.tooltip.enabled && focus.series.tooltipEnabled;
+            if (tooltipEnabled) {
+                this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
+            } else {
+                this.chart.ctx.tooltipManager.removeTooltip(this.id);
+            }
 
             if (!refresh) {
                 // AG-13874 If all deltas are 0, it means that we're tabbing in (always announce). Otherwise, announce
@@ -686,6 +691,8 @@ export class SeriesAreaManager extends BaseManager {
                 pick.datum
             );
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content);
+        } else {
+            this.chart.ctx.tooltipManager.removeTooltip(this.id);
         }
     }
 

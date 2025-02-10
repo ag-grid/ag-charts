@@ -492,7 +492,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             if (visibleItemsCount >= minVisibleItems) return true;
         }
 
-        return false;
+        return processedSeriesIds.size === 0;
     }
 
     private getMementoRanges() {

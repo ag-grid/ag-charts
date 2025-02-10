@@ -539,6 +539,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
             applyShapeStyle(rect, style, overrides);
 
+            rect.cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
             rect.crisp = datum.crisp;

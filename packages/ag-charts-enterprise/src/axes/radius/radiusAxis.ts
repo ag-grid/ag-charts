@@ -16,8 +16,10 @@ const {
     Caption,
     Group,
     Path,
+    Line,
     Selection,
     AxisTickGenerator,
+    AxisGroupZIndexMap,
 } = _ModuleSupport;
 
 interface GeneratedTicks {
@@ -45,6 +47,13 @@ export abstract class RadiusAxis<
 
     private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);
     private generatedTicks: GeneratedTicks | undefined = undefined;
+
+    protected readonly lineNode = this.axisGroup.appendChild(
+        new Line({
+            name: `${this.id}-Axis-line`,
+            zIndex: AxisGroupZIndexMap.AxisLine,
+        })
+    );
 
     protected readonly gridPathGroup = this.gridGroup.appendChild(
         new Group({
@@ -85,6 +94,16 @@ export abstract class RadiusAxis<
         super.update();
 
         this.updateTitle();
+
+        const { enabled, stroke, width } = this.line;
+        this.lineNode.setProperties({
+            stroke,
+            strokeWidth: enabled ? width : 0,
+            x1: 0,
+            y1: this.range[0],
+            x2: 0,
+            y2: this.range[1],
+        });
     }
 
     override calculateTickLayout(

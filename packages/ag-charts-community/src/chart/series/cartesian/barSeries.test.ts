@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import {
@@ -74,6 +74,39 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
             assertions: cartesianChartAssertions({
                 axisTypes: ['number', 'number'],
                 seriesTypes: repeat('bar', 4),
+            }),
+        },
+        STACKED_NORMALISED_SINGLE_BAR_COLUMN_NUMBER_Y_AXIS: {
+            options: {
+                ...examples.STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
+                series: [
+                    {
+                        ...(examples.STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS.series?.[0] as AgBarSeriesOptions),
+                        type: 'bar',
+                        normalizedTo: 100,
+                    },
+                ],
+            } satisfies AgCartesianChartOptions,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'number'],
+                seriesTypes: repeat('bar', 1),
+            }),
+        },
+        UNSTACKED_NORMALISED_SINGLE_BAR_COLUMN_NUMBER_Y_AXIS: {
+            options: {
+                ...examples.STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
+                series: [
+                    {
+                        ...(examples.STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS.series?.[0] as AgBarSeriesOptions),
+                        type: 'bar',
+                        stacked: false,
+                        normalizedTo: 100,
+                    },
+                ],
+            } satisfies AgCartesianChartOptions,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'number'],
+                seriesTypes: repeat('bar', 1),
             }),
         },
         STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: {
