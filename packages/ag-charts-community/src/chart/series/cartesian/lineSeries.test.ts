@@ -129,6 +129,23 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 seriesTypes: repeat('line', 1),
             }),
         },
+        UNSTACKED_LINE_NORMALISED_SINGLE_LINE: {
+            options: {
+                ...examples.NORMALISED_STACKED_AREA,
+                series: [
+                    {
+                        ...(examples.NORMALISED_STACKED_AREA.series?.[0] as AgAreaSeriesOptions),
+                        type: 'line',
+                        normalizedTo: 100,
+                        stacked: false,
+                    },
+                ],
+            } satisfies AgCartesianChartOptions,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['category', 'number'],
+                seriesTypes: repeat('line', 1),
+            }),
+        },
     }),
 };
 

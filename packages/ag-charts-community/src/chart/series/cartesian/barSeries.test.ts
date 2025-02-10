@@ -92,6 +92,23 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 seriesTypes: repeat('bar', 1),
             }),
         },
+        UNSTACKED_NORMALISED_SINGLE_BAR_COLUMN_NUMBER_Y_AXIS: {
+            options: {
+                ...examples.STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
+                series: [
+                    {
+                        ...(examples.STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS.series?.[0] as AgBarSeriesOptions),
+                        type: 'bar',
+                        stacked: false,
+                        normalizedTo: 100,
+                    },
+                ],
+            } satisfies AgCartesianChartOptions,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'number'],
+                seriesTypes: repeat('bar', 1),
+            }),
+        },
         STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: {
             options: examples.STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
