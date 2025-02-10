@@ -462,7 +462,16 @@ export abstract class Axis<
 
     protected animatable = true;
     setDomains(...domains: D[][]) {
-        const { domain, animatable } = this.scale.normalizeDomains(...domains);
+        let domain: D[];
+        let animatable: boolean;
+        if (domains.length > 0) {
+            ({ domain, animatable } = this.scale.normalizeDomains(...domains));
+        } else {
+            // Series (or all series in a group) hidden
+            // There could be multiple axes, so we still consider this to be animatable
+            domain = [];
+            animatable = true;
+        }
 
         this.dataDomain = this.normaliseDataDomain(domain);
 
