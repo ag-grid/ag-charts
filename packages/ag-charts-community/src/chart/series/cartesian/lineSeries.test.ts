@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions, AgLineSeriesOptions } from 'ag-charts-types';
+import type { AgAreaSeriesOptions, AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { deepClone } from '../../../util/json';
@@ -113,19 +113,19 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
             options: examples.LINE_STACKED_DATA_PER_SERIES,
             assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line', 'line'] }),
         },
-        LINE_NORMALISED_SINGLE_BAR: {
+        LINE_NORMALISED_SINGLE_LINE: {
             options: {
                 ...examples.NORMALISED_STACKED_AREA,
                 series: [
                     {
-                        ...(examples.NORMALISED_STACKED_AREA.series?.[0] as AgLineSeriesOptions),
+                        ...(examples.NORMALISED_STACKED_AREA.series?.[0] as AgAreaSeriesOptions),
                         type: 'line',
                         normalizedTo: 100,
                     },
                 ],
             } satisfies AgCartesianChartOptions,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: ['category', 'number'],
                 seriesTypes: repeat('line', 1),
             }),
         },
