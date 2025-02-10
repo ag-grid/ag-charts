@@ -70,11 +70,11 @@ validateCommonDist()
   local expected_count=4
   if [[ "$directory" == "dist/packages/contents/ag-charts-community/package" ]]
   then
-      expected_count=8
+      expected_count=12
   fi
   if [[ "$directory" == "dist/packages/contents/ag-charts-enterprise/package" ]]
   then
-      expected_count=12
+      expected_count=8
   fi
   if [[ "$directory" == "dist/packages/contents/ag-charts-types/package" ]]
   then
