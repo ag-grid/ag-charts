@@ -116,14 +116,14 @@ export class LineSeries extends CartesianSeries<
             return;
         }
 
-        const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
+        const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 0 } = {} } = this;
         const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
-        const stacked = stackCount > 1;
+        const stacked = stackCount >= 1;
 
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
         if (connectMissingData && stacked) {
@@ -239,15 +239,13 @@ export class LineSeries extends CartesianSeries<
             return fixNumericExtent(extent(domain));
         }
 
-        const stackCount = this.seriesGrouping?.stackCount ?? 1;
-        const yKey = stackCount > 1 ? 'yValueEnd' : 'yValueRaw';
+        const yKey = this.dataModel?.hasColumnById(this, `yValueEnd`) ? 'yValueEnd' : 'yValueRaw';
         const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, [yKey], 'xValue', true);
         return fixNumericExtent(yExtent);
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): number[] {
-        const stackCount = this.seriesGrouping?.stackCount ?? 1;
-        const yKey = stackCount > 1 ? 'yValueEnd' : 'yValueRaw';
+        const yKey = this.dataModel?.hasColumnById(this, `yValueEnd`) ? 'yValueEnd' : 'yValueRaw';
         return this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange, true);
     }
 
@@ -256,8 +254,7 @@ export class LineSeries extends CartesianSeries<
         yVisibleRange: [number, number],
         minVisibleItems: number
     ): number {
-        const stackCount = this.seriesGrouping?.stackCount ?? 1;
-        const yKey = stackCount > 1 ? 'yValueEnd' : 'yValueRaw';
+        const yKey = this.dataModel?.hasColumnById(this, `yValueEnd`) ? 'yValueEnd' : 'yValueRaw';
         return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
@@ -287,7 +284,7 @@ export class LineSeries extends CartesianSeries<
             interpolation,
             legendItemName,
         } = this.properties;
-        const stacked = (this.seriesGrouping?.stackCount ?? 1) > 1;
+        const stacked = this.dataModel?.hasColumnById(this, `yValueEnd`);
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;

@@ -161,7 +161,7 @@ export class BarSeries extends AbstractBarSeries<
         const { seriesGrouping: { groupIndex = this.id } = {}, data } = this;
         const groupCount = this.seriesGrouping?.groupCount ?? 0;
         const stackCount = this.seriesGrouping?.stackCount ?? 0;
-        const stacked = stackCount > 1;
+        const stacked = stackCount >= 1;
         const grouped = !fastDataProcessing || normalizedTo != null || groupCount > 1 || stacked;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
