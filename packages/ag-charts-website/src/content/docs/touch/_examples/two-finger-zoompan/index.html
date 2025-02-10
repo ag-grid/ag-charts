@@ -1,8 +1,7 @@
 <div class="toolbar">
-    <span>Action:</span>
-    <button onclick="changeAction('none')"><code>'none'</code></button>
-    <button onclick="changeAction('drag')"><code>'drag'</code></button>
-    <button onclick="changeAction('hover')"><code>'hover'</code></button>
+    <span>Enabled:</span>
+    <button onclick="setEnabled(true)"><code>true</code></button>
+    <button onclick="setEnabled(false)"><code>false</code></button>
 </div>
 
 <div id="myChart"></div>
@@ -16,6 +15,7 @@
     document.addEventListener('keydown', f, { capture: true, once: true });
 </script>
 <div id="gesture-demo">
-    <div id="finger"></div>
+    <div id="finger1"></div>
+    <div id="finger2"></div>
 </div>
 <!-- -->

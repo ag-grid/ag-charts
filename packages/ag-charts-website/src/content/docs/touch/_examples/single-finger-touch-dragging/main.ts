@@ -6,7 +6,7 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(1e3),
     animation: { enabled: false },
-    touch: { dragAction: 'none' },
+    touch: { dragAction: 'hover' },
     zoom: {
         enabled: true,
         enableAxisDragging: false,
