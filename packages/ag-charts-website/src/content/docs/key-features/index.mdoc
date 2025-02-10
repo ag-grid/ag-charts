@@ -19,7 +19,7 @@ Polar charts such as the [Radar Line Series](./radar-line-series), use angle and
 
 ### Axis Types
 
-Every cartesian chart has four axis positions `top`, `bottom`, `left`, `right`, which can display either [Categorical](./axes-types/#category), [Numerical](./axes-types/#number), [Time](/axes-types/#time), or [Logarithmic](/axes-types/#log) data.
+Every cartesian chart has four axis positions `top`, `bottom`, `left`, `right`, which can display either [Categorical](./axes-types/#category), [Numerical](./axes-types/#number), [Time](./axes-types/#time), or [Logarithmic](./axes-types/#log) data.
 
 Use `axes.position` to control the position of the axis, and `axes.type` to define the type:
 
@@ -103,7 +103,7 @@ axes: [
 
 ## Enhancing Data
 
-Charts can be enhanced with data elements, such as [Legends](./legend/), [Cross Lines](./cross-lines/), and conditional [Stylers](./stylers/) to provide additional information to users.
+Charts can be enhanced with data elements, such as [Legends](./legend/), [Cross Lines](./axes-cross-lines/), and conditional [Stylers](./stylers/) to provide additional information to users.
 
 {% chartExampleRunner title="Enhancing Data Example" name="enhancing-data-example" type="generated" /%}
 
@@ -124,7 +124,7 @@ legend: {
 
 ### Cross Lines
 
-[Cross Lines](./cross-lines/) are lines or shaded areas in a chart that denote additional information or thresholds.
+[Cross Lines](./axes-cross-lines/) are lines or shaded areas in a chart that denote additional information or thresholds.
 
 Use the `crossLines` property in the axis options to add a Line or Range at a specific data value on an axis:
 
@@ -133,8 +133,12 @@ axes: [
     {
         crossLines: [
             {
-                type: 'line', // or 'range'
-                value: 11, // or ['Jun', 'Sep']
+                type: 'line',
+                value: 11,
+            },
+            {
+                type: "range",
+                range: ["Jun", "Sep"],
             },
         ],
     },
@@ -143,9 +147,9 @@ axes: [
 
 ### Customizing Series & Markers
 
-[Markers](./markers/) can be customized to change their [shape, size, and style](/markers/).
+[Markers](./markers/) can be customised to change their [shape, size, and style](./markers/).
 
-Use the `series.marker` property to customize markers:
+Use the `series.marker` property to customise markers:
 
 ```js
 series: [
@@ -163,7 +167,7 @@ series: [
 
 [Item Stylers](./stylers/#item-stylers) allow customization of the visual appearance of Series & Markers based on certain conditions.
 
-Use the `itemStyler` callback function to customize the appearance of a specific Series or Marker:
+Use the `itemStyler` callback function to customise the appearance of a specific Series or Marker:
 
 ```js
 series: [
@@ -181,7 +185,7 @@ series: [
 
 ## Customizing Charts
 
-Charts can be customized with [Themes](./themes/), [Layouts](./layout/), and [Backgrounds](./background/).
+Charts can be customised with [Themes](./themes/), [Layouts](./layout/), and [Backgrounds](./background/).
 
 {% chartExampleRunner title="Customizing Charts Example" name="customizing-charts-example" type="generated" /%}
 
@@ -220,7 +224,7 @@ Use the `theme` property to set the theme:
 }
 ```
 
-Themes can also be customised with the [Theming API](/charts/themes-api/).
+Themes can also be customised with the [Theming API](/themes-api/).
 
 Use `params` to set styles across the whole chart, `overrides` to merge over the defaults within the base theme, and `palette` to define the colour palette used for the datapoints:
 
@@ -254,7 +258,7 @@ const customTheme: AgChartTheme = {
 
 ## Interactivity
 
-Charts can be made interactive by enabling [Tooltips](./tooltips/), [Highlighting](./highlighting/), and responding to [Events](./events/).
+Charts can be made interactive by enabling [Tooltips](./tooltips/), [Highlighting](./series-highlighting/), and responding to [Events](./events/).
 
 {% chartExampleRunner title="User Interactions Example" name="user-interactions-example" type="generated" /%}
 
@@ -264,7 +268,7 @@ In the above example you can hover a marker to see the highlight and tooltip cus
 
 Tooltips are enabled by default. Their content is based on the data values and keys of the series.
 
-Use the `tooltip.renderer` callback function to customize the content of the tooltip.
+Use the `tooltip.renderer` callback function to customise the content of the tooltip.
 
 ```js
 tooltip: {
@@ -301,7 +305,7 @@ You can also return HTML to create a [Custom Tooltip](./tooltips/#using-custom-t
 
 Items and Series can be [highlighted](./series-highlighting/) when hovered over. Item highlighting is enabled by default.
 
-Use `highlightStyles` to [customize](./series-highlighting/#customisation) highlighted items and series:
+Use `highlightStyles` to [customise](./series-highlighting/#customisation) highlighted items and series:
 
 ```js
 theme: {
@@ -329,7 +333,7 @@ theme: {
 
 ### Handling Events
 
-Callbacks are provided for [Series](./events/#reference-AgSeriesListeners), [Legend](./events/#reference-AgChartLegendListeners) and [Chart](./events/#reference-AgBaseChartListeners) events.
+Callbacks are provided for [Series](./events/#series-events), [Legend](./events/#legend-events) and [Chart](./events/#chart-events) events.
 These include clicks, double-clicks and zoom events.
 
 Use `listeners` to respond to [Events](./events/) on the chart:
@@ -374,7 +378,7 @@ Use `listeners` to respond to [Events](./events/) on the chart:
 
 ### Saving and Restoring State
 
-The dynamic [State](./state/) of the chart can be saved and restored.
+The dynamic [State](./api-state/) of the chart can be saved and restored.
 
 Use the `getState()` and `saveState()` APIs to retrieve and save the current state of the chart:
 
@@ -411,7 +415,7 @@ initialState: {
 AG Charts comes in two forms:
 
 -   **AG Charts Community**: Free for everyone, including production use - no licence required.
--   **AG Charts Enterprise**: Requires a licence to use in production. Free to test locally, or request a [trial](#trial-ag-charts-enterprise-for-free) to test in production.
+-   **AG Charts Enterprise**: Requires a licence to use in production. Free to test locally, or request a [trial](./community-vs-enterprise/#request-an-enterprise-bundle-trial-licence) to test in production.
 
 Import the `ag-charts-enterprise` package to access Enterprise features.
 
@@ -433,7 +437,7 @@ zoom: {
 }
 ```
 
-Zoom can also be further customized to enable/disable specific zoom methods and control the anchor point, scrolling step, etc:
+Zoom can also be further customised to enable/disable specific zoom methods and control the anchor point, scrolling step, etc:
 
 ```js
 zoom: {
@@ -600,7 +604,7 @@ series: [
 
 ### Gauges {% enterpriseIcon /%}
 
-Gauges display a single data point within a predefined range using a Radial or Linear scale.
+[Radial Gauges](./radial-gauge/) and [Linear Gauges](./linear-gauge/) display a single data point within a predefined range using a Radial or Linear scale.
 
 {% chartExampleRunner title="Radial Gauge Example" name="simple-radial-gauge" type="generated" /%}
 
