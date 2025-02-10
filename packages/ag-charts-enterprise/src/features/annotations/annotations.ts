@@ -489,6 +489,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }),
             toolbar.addListener('pressed-clear', () => {
                 this.clear();
+                this.recordActionAfterNextUpdate('Clear all');
             }),
             toolbar.addListener('pressed-show-menu', () => {
                 this.cancel();
