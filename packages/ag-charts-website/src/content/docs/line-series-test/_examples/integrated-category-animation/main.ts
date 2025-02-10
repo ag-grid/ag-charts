@@ -1,35 +1,27 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-const data = [
-    { quarter: 'week 3', week: 3, iphone: 60, android: 50 },
-    { quarter: 'week 4', week: 4, iphone: 185, android: 90 },
-    { quarter: 'week 5', week: 5, iphone: 148, android: 70 },
-    { quarter: 'week 6', week: 6, iphone: 130, android: 130 },
-    { quarter: 'week 9', week: 9, iphone: 62, android: 120 },
-    { quarter: 'week 10', week: 10, iphone: 137, android: 105 },
-    { quarter: 'week 11', week: 11, iphone: 121, android: 100 },
-];
+const quarters = Array.from({ length: 14 }, (_, id) => ({
+    id,
+    label: `week ${id}`,
+    toString: () => `week ${id}`,
+}));
 
-function toIntegratedKey({ quarter, week, ...datum }: any, idx: number) {
-    let quarterResult;
-    if (typeof quarter === 'string') {
-        quarterResult = { id: idx, value: quarter, toString: () => `${quarter}` };
-    } else {
-        quarterResult = { ...quarter, id: idx };
-    }
-    return {
-        ...datum,
-        week,
-        quarter: quarterResult,
-    };
-}
+const data = [
+    { quarter: quarters[3], week: 3, iphone: 60, android: 50 },
+    { quarter: quarters[4], week: 4, iphone: 185, android: 90 },
+    { quarter: quarters[5], week: 5, iphone: 148, android: 70 },
+    { quarter: quarters[6], week: 6, iphone: 130, android: 130 },
+    { quarter: quarters[9], week: 9, iphone: 62, android: 120 },
+    { quarter: quarters[10], week: 10, iphone: 137, android: 105 },
+    { quarter: quarters[11], week: 11, iphone: 121, android: 100 },
+];
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,
     },
-    data: [...data].map(toIntegratedKey),
+    data: data,
     series: [
         {
             type: 'line',
@@ -66,7 +58,7 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function actionReset() {
-    options.data = [...data].map(toIntegratedKey);
+    options.data = data;
     chart.update(options);
 }
 
@@ -86,12 +78,12 @@ function actionAddEndWeek() {
     options.data = [
         ...data,
         {
-            quarter: `week ${nextWeek}`,
+            quarter: quarters[nextWeek],
             week: nextWeek,
             iphone: 78 * (Math.random() - 0.5),
             android: 65 * (Math.random() - 0.5),
         },
-    ].map(toIntegratedKey);
+    ];
     chart.update(options);
 }
 
@@ -100,32 +92,32 @@ function actionAddStartWeek() {
     const prevWeek = data[0].week - 1;
     options.data = [
         {
-            quarter: `week ${prevWeek}`,
+            quarter: quarters[prevWeek],
             week: prevWeek,
             iphone: 78 * (Math.random() - 0.5),
             android: 65 * (Math.random() - 0.5),
         },
         ...data,
-    ].map(toIntegratedKey);
+    ];
     chart.update(options);
 }
 
 function actionAddWeek12and13() {
-    options.data = insertAfter(options.data!, 11, { quarter: 'week 12', week: 12, iphone: 78, android: 67 });
-    options.data = insertAfter(options.data, 12, { quarter: 'week 13', week: 13, iphone: 138, android: 120 });
-    options.data = options.data.map(toIntegratedKey);
+    options.data = insertAfter(options.data!, 11, { quarter: quarters[12], week: 12, iphone: 78, android: 67 });
+    options.data = insertAfter(options.data, 12, { quarter: quarters[13], week: 13, iphone: 138, android: 120 });
+    options.data = options.data;
     chart.update(options);
 }
 
 function actionAddWeek7and8() {
-    options.data = insertAfter(options.data!, 6, { quarter: 'week 7', week: 7, iphone: 142, android: 67 });
-    options.data = insertAfter(options.data, 7, { quarter: 'week 8', week: 8, iphone: 87, android: 120 });
-    options.data = options.data.map(toIntegratedKey);
+    options.data = insertAfter(options.data!, 6, { quarter: quarters[7], week: 7, iphone: 142, android: 67 });
+    options.data = insertAfter(options.data, 7, { quarter: quarters[8], week: 8, iphone: 87, android: 120 });
+    options.data = options.data;
     chart.update(options);
 }
 
 function reverse() {
-    options.data = options.data!.slice().reverse().map(toIntegratedKey);
+    options.data = options.data!.slice().reverse();
     chart.update(options);
 }
 
@@ -133,23 +125,22 @@ function reorder() {
     options.data = [...(options.data ?? [])];
     options.data?.forEach((d) => (d.random = Math.random()));
     options.data?.sort((a, b) => a.random - b.random);
-    options.data = options.data?.map(toIntegratedKey);
 
     chart.update(options);
 }
 
 function rapidUpdate() {
     chart.updateDelta({
-        data: [...data, { quarter: 'week 12', iphone: 78, android: 67 }],
+        data: [...data, { quarter: quarters[12], iphone: 78, android: 67 }],
     });
 
     chart.waitForUpdate().then(() => {
         chart.updateDelta({
             data: [
                 ...data,
-                { quarter: 'week 12', week: 12, iphone: 78, android: 67 },
-                { quarter: 'week 13', week: 13, iphone: 138, android: 120 },
-            ].map(toIntegratedKey),
+                { quarter: quarters[12], week: 12, iphone: 78, android: 67 },
+                { quarter: quarters[13], week: 13, iphone: 138, android: 120 },
+            ],
         });
     });
 }
