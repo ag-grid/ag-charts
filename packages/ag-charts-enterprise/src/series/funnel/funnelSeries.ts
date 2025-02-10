@@ -193,12 +193,9 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         });
     }
 
-    protected tooltipStyle(datum: any, datumIndex: number) {
-        const style = this.getItemBaseStyle(false) as any as Required<ItemStyle>;
-        Object.assign(
-            style,
-            this.getItemStyleOverrides(String(datum.datumIndex), datum.datum, datumIndex, style, false)
-        );
+    protected tooltipStyle(datum: unknown, datumIndex: number) {
+        const style = this.getItemBaseStyle(false) as Required<ItemStyle>;
+        Object.assign(style, this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, style, false));
         return style;
     }
 
