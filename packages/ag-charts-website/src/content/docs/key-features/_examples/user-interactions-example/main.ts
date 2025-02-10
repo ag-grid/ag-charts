@@ -283,10 +283,10 @@ const options: AgCartesianChartOptions = {
     ],
     listeners: {
         click: (_event) => {
-            alert('Series Clicked');
+            alert('Chart Clicked');
         },
         doubleClick: (_event) => {
-            alert('Series Double Clicked');
+            alert('Chart Double Clicked');
         },
         seriesNodeClick: ({}) => {
             alert(`Node Clicked`);
