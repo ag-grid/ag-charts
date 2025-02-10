@@ -224,9 +224,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const previousNode = previous != null ? annotations.at(previous) : null;
 
                 // Only change anything else if a different node has been selected or when deselecting
-                if (previousNode === selectedNode && selectedNode != null) {
-                    return;
-                }
+                if (previousNode === selectedNode) return;
 
                 // Deselect the previous node
                 previousNode?.toggleActive(false);
