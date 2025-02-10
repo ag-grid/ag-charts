@@ -40,6 +40,7 @@ export function groupSum(id: string, matchGroupId?: string): AggregatePropertyDe
             acc[1] += next?.[1] ?? 0;
             return acc;
         },
+        round: true,
     };
 }
 
@@ -86,6 +87,7 @@ export function groupAverage(id: string, matchGroupId?: string) {
             }
             return [result / acc[2], 0];
         },
+        round: true,
     };
 
     return def;
@@ -100,6 +102,7 @@ export function area(id: string, aggFn: AggregatePropertyDefinition<any, any>, m
             const keyWidth = keyRange[1] - keyRange[0];
             return aggFn.aggregateFunction(values).map((v) => v / keyWidth) as [number, number];
         },
+        round: true,
     };
 
     if (aggFn.groupAggregateFunction) {

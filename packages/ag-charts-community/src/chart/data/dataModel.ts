@@ -96,6 +96,17 @@ function toKeyString(keys: any[]) {
     return keys.map((key) => (isObject(key) ? JSON.stringify(key) : key)).join('-');
 }
 
+function round(val: number): number {
+    const accuracy = 10000;
+    if (Number.isInteger(val)) {
+        return val;
+    } else if (Math.abs(val) > accuracy) {
+        return Math.trunc(val);
+    }
+
+    return Math.round(val * accuracy) / accuracy;
+}
+
 export function fixNumericExtent(extent: Array<number | Date> | null): [] | [number, number] {
     const numberExtent = extent?.map(Number) as [number, number] | undefined;
     return numberExtent?.every(Number.isFinite) ? numberExtent : [];
@@ -182,6 +193,7 @@ export type AggregatePropertyDefinition<D, K extends keyof D & string, R = [numb
         aggregateFunction: (values: D[K][], keys?: D[K][]) => R;
         groupAggregateFunction?: (next?: R, acc?: R2) => R2;
         finalFunction?: (result: R2) => [number, number];
+        round?: boolean;
     };
 
 type GroupValueAdjustFn<D, K extends keyof D & string> = (
@@ -1031,6 +1043,11 @@ export class DataModel<
                 }
 
                 const finalValues = def.finalFunction?.(groupAggValues) ?? groupAggValues;
+                if (def.round === true) {
+                    for (const idx in finalValues) {
+                        finalValues[idx] = round(finalValues[idx]);
+                    }
+                }
 
                 aggregation[index] = finalValues;
                 ContinuousDomain.extendDomain(finalValues, domainAggValues[index]);
@@ -1073,6 +1090,11 @@ export class DataModel<
                 }
 
                 const finalValues = def.finalFunction?.(groupAggValues) ?? groupAggValues;
+                if (def.round === true) {
+                    for (const idx in finalValues) {
+                        finalValues[idx] = round(finalValues[idx]);
+                    }
+                }
 
                 group.aggregation[index] = finalValues;
                 ContinuousDomain.extendDomain(finalValues, domainAggValues[index]);
