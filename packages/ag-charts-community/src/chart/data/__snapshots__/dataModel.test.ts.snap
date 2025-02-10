@@ -256,7 +256,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     "aggValues": [
       [
         0,
-        0.012000000000000004,
+        0.012,
       ],
     ],
     "groups": [
@@ -291,7 +291,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       "aggregation": [
         [
           0,
-          0.012000000000000004,
+          0.012,
         ],
       ],
       "datumIndices": [
@@ -612,7 +612,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       "aggregation": [
         [
           0,
-          25.545454545454547,
+          25.5455,
         ],
       ],
       "datumIndices": [
@@ -641,7 +641,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       "aggregation": [
         [
           0,
-          24.428571428571427,
+          24.4286,
         ],
       ],
       "datumIndices": [
