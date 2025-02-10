@@ -285,7 +285,9 @@ export abstract class Node<D = any> {
 
     removeChild(node: Node): boolean {
         if (!this.childNodes?.delete(node)) {
-            return false;
+            throw new Error(
+                `AG Charts - internal error, unknown child node ${node.name ?? node.id} in $${this.name ?? this.id}`
+            );
         }
 
         delete node.parentNode;
