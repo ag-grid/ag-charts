@@ -1,4 +1,4 @@
-import { isNumber } from 'ag-charts-core';
+import { isDate, isNumber } from 'ag-charts-core';
 import type { AgHistogramBinDatum } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -192,8 +192,11 @@ export class HistogramSeries extends CartesianSeries<
             this.calculatedBins = [...bins];
 
             return (keys) => {
-                const xValue = keys[0];
-                if (typeof xValue !== 'number') return [];
+                let xValue = keys[0];
+                if (isDate(xValue)) {
+                    xValue = xValue.getTime();
+                }
+                if (!isNumber(xValue)) return [];
 
                 for (let i = 0; i < binCount; i++) {
                     const nextBin = bins[i];
