@@ -7,15 +7,13 @@
 
 <div id="myChart"></div>
 
-<!-- -->
 <script>
-    const f = () => (document.getElementById('gesture-demo').style.display = 'none');
+    const f = () => (document.querySelector('.gesture-demo').style.display = 'none');
     document.addEventListener('touchstart', f, { capture: true, once: true });
     document.addEventListener('wheel', f, { capture: true, once: true });
     document.addEventListener('mousedown', f, { capture: true, once: true });
     document.addEventListener('keydown', f, { capture: true, once: true });
 </script>
-<div id="gesture-demo">
-    <div id="finger"></div>
+<div class="gesture-demo">
+    <div class="finger"></div>
 </div>
-<!-- -->
