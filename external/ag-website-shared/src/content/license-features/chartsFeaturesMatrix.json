@@ -412,6 +412,15 @@
             },
             {
                 "label": {
+                    "name": "Touch",
+                    "link": "https://www.ag-grid.com/charts/react/touch/"
+                },
+                "community": true,
+                "enterprise": true,
+                "chartsGrid": true
+            },
+            {
+                "label": {
                     "name": "Animations",
                     "link": "https://www.ag-grid.com/charts/react/animation/"
                 },
