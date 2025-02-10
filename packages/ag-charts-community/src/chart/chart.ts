@@ -1264,7 +1264,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
         const seriesChanged =
             seriesStatus === 'replaced' || seriesStatus === 'series-grouping-change' || seriesStatus === 'updated';
 
-        const legendRemoved = oldOpts.legend && !options.legend;
+        const legendRemoved = oldOpts.legend != null && options.legend == null;
         const legendKeys = legendRegistry.getKeys();
         const optionsHaveLegend = Object.values(legendKeys).some(
             (legendKey) => (deltaOptions as any)[legendKey] != null
