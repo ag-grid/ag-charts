@@ -5,6 +5,7 @@ import { getData } from './data';
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
+    animation: { enabled: false },
     theme: {
         palette: {
             strokes: ['#AC9BF5', '#5984C2', '#36A883', '#F5CA46'],
