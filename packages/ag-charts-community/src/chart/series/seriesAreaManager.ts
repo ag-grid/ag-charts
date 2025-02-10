@@ -52,10 +52,12 @@ export interface SeriesAreaChartDependencies {
 type ClickLikeEvent =
     | DragInterpreterClickEvent
     | DragInterpreterDblClickEvent
-    | MouseWidgetEvent<'click'>
-    | MouseWidgetEvent<'dblclick'>;
-type HoverLikeEvent = Partial<Pick<DragWidgetEvent, 'device'>> &
-    (ClickLikeEvent | MouseWidgetEvent<'mousemove'> | DragWidgetEvent<'drag-move'>);
+    | (MouseWidgetEvent<'click'> & { device?: undefined })
+    | (MouseWidgetEvent<'dblclick'> & { device?: undefined });
+type HoverLikeEvent =
+    | ClickLikeEvent
+    | (MouseWidgetEvent<'mousemove'> & { device?: undefined })
+    | DragWidgetEvent<'drag-move'>;
 
 type PickedNode = {
     series: Series<unknown, any, any>;
@@ -335,6 +337,9 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onClick(event: ClickLikeEvent, current: Widget) {
+        if (event.device === 'touch' && current === this.chart.ctx.widgets.seriesWidget) {
+            this.swapChain.focus({ preventScroll: true });
+        }
         if (!this.isState(InteractionState.Clickable)) return;
 
         // Check whether the `event.sourceEvent` targets on the series-area, or the back of the chart. The logic is
