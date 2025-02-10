@@ -41,13 +41,11 @@ const options: AgChartOptions = {
                 type: 'vertical-line',
                 value: 'May',
                 lineStyle: 'dotted',
-                strokeWidth: 1,
             },
             {
                 type: 'vertical-line',
                 value: 'Sep',
                 lineStyle: 'dotted',
-                strokeWidth: 1,
             },
             {
                 type: 'callout',
@@ -69,13 +67,11 @@ const options: AgChartOptions = {
                     fillOpacity: 0.5,
                 },
                 lineStyle: 'dotted',
-                strokeWidth: 1,
             },
             {
                 type: 'line',
                 start: { x: 'Jan', y: 32 },
                 end: { x: 'Dec', y: 105 },
-                strokeWidth: 1,
             },
             {
                 type: 'parallel-channel',
