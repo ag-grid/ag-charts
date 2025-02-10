@@ -40,14 +40,8 @@ export class RadiusCategoryAxis extends RadiusAxis {
         const minRadius = maxRadius * innerRadiusRatio;
 
         if (CategoryScale.is(scale)) {
-            const ticks = scale.ticks({
-                nice: this.nice,
-                interval: undefined,
-                tickCount: undefined,
-                minTickCount: 0,
-                maxTickCount: Infinity,
-            });
-            const index = ticks.length - 1 - ticks.indexOf(tickDatum.tickId);
+            const ticks = scale.domain;
+            const index = ticks.length - 1 - ticks.indexOf(tickDatum.tick);
             return index === 0 ? minRadius : scale.inset + scale.step * (index - 0.5) + scale.bandwidth / 2;
         } else {
             const tickRange = (maxRadius - minRadius) / scale.domain.length;
