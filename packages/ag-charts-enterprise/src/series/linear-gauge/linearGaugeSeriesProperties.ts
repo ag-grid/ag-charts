@@ -40,8 +40,10 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    NUMBER_ARRAY,
     UNION,
     Label,
+    AxisLabel,
 } = _ModuleSupport;
 
 const TARGET_PLACEMENT = UNION(['before', 'after', 'middle'], 'a placement');
@@ -138,6 +140,8 @@ export type LinearGaugeLabelDatum = {
         | undefined;
 };
 
+const PLACEMENT = UNION(['before', 'after'], 'a placement');
+
 class LinearGaugeDefaultTargetLabelProperties extends Label<never> {
     @Validate(NUMBER, { optional: true })
     spacing: number | undefined;
@@ -228,7 +232,32 @@ class LinearGaugeBarProperties extends BaseProperties {
     lineDashOffset: number = 0;
 }
 
+class LinearGaugeScaleIntervalProperties extends BaseProperties {
+    @Validate(NUMBER_ARRAY, { optional: true })
+    values?: number[] = undefined;
+
+    @Validate(NUMBER, { optional: true })
+    step?: number = undefined;
+
+    @Validate(NUMBER)
+    minSpacing: number = 0;
+
+    @Validate(NUMBER)
+    maxSpacing: number = 1000;
+}
+
+class LinearGaugeScaleLabelProperties extends AxisLabel {
+    @Validate(PLACEMENT, { optional: true })
+    placement?: 'before' | 'after' = undefined;
+}
+
 class LinearGaugeScaleProperties extends BaseProperties {
+    @Validate(NUMBER)
+    min: number = 0;
+
+    @Validate(NUMBER)
+    max: number = 1;
+
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
 
@@ -258,6 +287,12 @@ class LinearGaugeScaleProperties extends BaseProperties {
 
     @Validate(COLOR_STRING)
     defaultFill: string = 'black';
+
+    @Validate(OBJECT)
+    readonly interval = new LinearGaugeScaleIntervalProperties();
+
+    @Validate(OBJECT)
+    readonly label = new LinearGaugeScaleLabelProperties();
 }
 
 export class LinearGaugeLabelProperties extends AutoSizedLabel<AgLinearGaugeLabelFormatterParams> {

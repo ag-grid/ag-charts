@@ -5,7 +5,6 @@ import { LinearGaugeSeries } from './linearGaugeSeries';
 
 const {
     ThemeSymbols: { DEFAULT_HIERARCHY_FILLS, DEFAULT_GAUGE_SERIES_COLOR_RANGE },
-    ThemeConstants: { CARTESIAN_AXIS_TYPE },
 } = _ModuleSupport;
 
 export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
@@ -17,10 +16,6 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
     identifier: 'linear-gauge',
     moduleFactory: (ctx) => new LinearGaugeSeries(ctx),
     tooltipDefaults: { range: 10 },
-    defaultAxes: [
-        { type: CARTESIAN_AXIS_TYPE.NUMBER, line: { enabled: false } },
-        { type: CARTESIAN_AXIS_TYPE.NUMBER, line: { enabled: false } },
-    ],
     themeTemplate: {
         minWidth: 200,
         minHeight: 200,
@@ -29,6 +24,11 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
         },
         series: {
             thickness: 50,
+            scale: {
+                label: {
+                    spacing: 11,
+                },
+            },
             bar: {
                 strokeWidth: 0,
             },
@@ -65,16 +65,6 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 color: { $ref: 'backgroundColor' },
             },
             margin: 4,
-        },
-        axes: {
-            [CARTESIAN_AXIS_TYPE.NUMBER]: {
-                line: {
-                    enabled: false,
-                },
-                gridLine: {
-                    enabled: false,
-                },
-            },
         },
     },
     paletteFactory(params) {

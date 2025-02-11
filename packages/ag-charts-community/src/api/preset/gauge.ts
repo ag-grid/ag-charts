@@ -1,8 +1,6 @@
 import type { RequireOptional } from 'ag-charts-core';
 import {
     type AgBaseGaugePresetOptions,
-    type AgCartesianAxisOptions,
-    type AgCartesianAxisPosition,
     type AgChartTooltipOptions,
     type AgGaugeChartOptions,
     type AgGaugeOptions,
@@ -232,22 +230,6 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         ...rest
     } = opts as AgLinearGaugeOptions & UndocumentedProperties;
 
-    const {
-        fills: scaleFills,
-        fillMode: scaleFillMode,
-        fill: scaleFill,
-        fillOpacity: scaleFillOpacity,
-        stroke: scaleStroke,
-        strokeWidth: scaleStrokeWidth,
-        strokeOpacity: scaleStrokeOpacity,
-        lineDash: scaleLineDash,
-        lineDashOffset: scaleLineDashOffset,
-        min: scaleMin = 0,
-        max: scaleMax = 1,
-        interval: scaleInterval = {},
-        label: scaleLabel = {},
-    } = scale;
-
     const chartOpts = pickProps<AgBaseGaugePresetOptions & UndocumentedProperties>(opts, {
         animation,
         background,
@@ -267,19 +249,8 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         tooltip: pickTooltipProps(tooltip),
         width,
     });
-    const scaleOpts = pickProps<ScaleStyle>(scale, {
-        fills: scaleFills,
-        fillMode: scaleFillMode,
-        fill: scaleFill,
-        fillOpacity: scaleFillOpacity,
-        stroke: scaleStroke,
-        strokeWidth: scaleStrokeWidth,
-        strokeOpacity: scaleStrokeOpacity,
-        lineDash: scaleLineDash,
-        lineDashOffset: scaleLineDashOffset,
-    });
     const seriesOpts = pickProps<AgLinearGaugePreset>(opts, {
-        scale: scaleOpts,
+        scale,
         type,
         cursor,
         nodeClickRange,
@@ -298,42 +269,9 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         ...rest,
     });
 
-    const { placement: labelPlacement, ...axisLabel } = scaleLabel;
-    let mainAxisPosition: AgCartesianAxisPosition;
-    let crossAxisPosition: AgCartesianAxisPosition;
-    const horizontal = direction === 'horizontal';
-    if (horizontal) {
-        mainAxisPosition = labelPlacement === 'before' ? 'top' : 'bottom';
-        crossAxisPosition = 'left';
-    } else {
-        mainAxisPosition = labelPlacement === 'after' ? 'right' : 'left';
-        crossAxisPosition = 'bottom';
-    }
-    const mainAxis: AgCartesianAxisOptions = {
-        type: 'number',
-        position: mainAxisPosition,
-        min: scaleMin,
-        max: scaleMax,
-        reverse: !horizontal,
-        interval: scaleInterval,
-        label: axisLabel,
-        nice: false,
-    };
-    const crossAxis: AgCartesianAxisOptions = {
-        type: 'number',
-        position: crossAxisPosition,
-        min: 0,
-        max: 1,
-        label: {
-            enabled: false,
-        },
-    };
-    const axesOpts: AgCartesianAxisOptions[] = horizontal ? [mainAxis, crossAxis] : [crossAxis, mainAxis];
-
     return {
         ...chartOpts,
         series: [seriesOpts],
-        axes: axesOpts,
     };
 }
 

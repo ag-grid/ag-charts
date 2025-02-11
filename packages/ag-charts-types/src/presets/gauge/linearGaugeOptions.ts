@@ -30,6 +30,8 @@ export interface AgLinearGaugeScaleInterval {
 }
 
 export interface AgLinearGaugeScaleLabel extends AgGaugeScaleLabel {
+    /** Spacing between the gauge and its labels */
+    spacing?: number;
     /** Placement of labels */
     placement?: 'before' | 'after';
 }

@@ -35,7 +35,6 @@ const {
     SeriesNodePickMode,
     StateMachine,
     createDatumId,
-    ChartAxisDirection,
     CachedTextMeasurerPool,
     toRadians,
     BBox,
@@ -46,8 +45,12 @@ const {
     Text,
     LinearGradient,
     Marker,
+    LinearScale,
+    AxisTickGenerator,
+    NiceMode,
     easing,
     getColorStops,
+    findRangeExtent,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -96,6 +99,7 @@ interface LinearGaugeNodeDataContext
         LinearGaugeNodeDatum,
         LinearGaugeLabelDatum
     > {
+    tickData: _ModuleSupport.TickDatum[];
     targetData: LinearGaugeTargetDatum[];
     scaleData: LinearGaugeNodeDatum[];
 }
@@ -111,61 +115,68 @@ const verticalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, numb
     after: -90,
 };
 
-export class LinearGaugeSeries
-    extends _ModuleSupport.Series<
-        LinearGaugeNodeDatumIndex,
-        LinearGaugeNodeDatum,
-        LinearGaugeSeriesProperties,
-        LinearGaugeLabelDatum,
-        LinearGaugeNodeDataContext
-    >
-    implements _ModuleSupport.LinearGaugeSeries
-{
+class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSupport.LinearScale, number> {
+    constructor(private readonly gauge: LinearGaugeSeries) {}
+
+    get defaultTickMinSpacing(): number {
+        return 0;
+    }
+
+    get range(): [number, number] {
+        return this.gauge.range;
+    }
+
+    get reverse(): boolean {
+        return false;
+    }
+
+    get scale() {
+        return this.gauge.scale;
+    }
+
+    get label() {
+        return this.gauge.properties.scale.label;
+    }
+
+    get interval() {
+        return this.gauge.properties.scale.interval;
+    }
+
+    formatTick(value: any): string {
+        return this.gauge.formatLabel(value);
+    }
+
+    inRange(): boolean {
+        return true;
+    }
+}
+
+export class LinearGaugeSeries extends _ModuleSupport.Series<
+    LinearGaugeNodeDatumIndex,
+    LinearGaugeNodeDatum,
+    LinearGaugeSeriesProperties,
+    LinearGaugeLabelDatum,
+    LinearGaugeNodeDataContext
+> {
     static readonly className = 'LinearGaugeSeries';
     static readonly type = 'linear-gauge' as const;
 
-    override canHaveAxes: boolean = true;
-
     override properties = new LinearGaugeSeriesProperties();
 
+    private seriesRect = BBox.NaN;
+    private gaugeRect = BBox.NaN;
+
+    public scale = new LinearScale();
+    private readonly axis = new LinearGaugeAxis(this);
+    private readonly tickGenerator = new AxisTickGenerator<_ModuleSupport.LinearScale, number>(this.axis);
+
+    public get range(): [number, number] {
+        return this.horizontal ? [0, this.gaugeRect.width] : [0, this.gaugeRect.height];
+    }
     public originX = 0;
     public originY = 0;
     get horizontal() {
         return this.properties.direction === 'horizontal';
-    }
-    get thickness() {
-        return this.properties.thickness;
-    }
-    computeInset(direction: _ModuleSupport.ChartAxisDirection, ticks: number[]): number {
-        const { label } = this.properties;
-        let factor: 1 | -1;
-        switch (label.placement) {
-            case 'outside-start':
-                factor = 1;
-                break;
-            case 'outside-end':
-                factor = -1;
-                break;
-            default:
-                return 0;
-        }
-
-        const lines = label.text?.split('\n');
-
-        let size: number;
-        if (direction === ChartAxisDirection.Y) {
-            size = getLineHeight(label, label.fontSize) * (lines?.length ?? 1);
-        } else {
-            const font = label.getFont();
-            const linesOrTicks = lines ?? ticks.map((tick) => getLabelText(this, this.labelDatum(label, tick)) ?? '');
-
-            size = linesOrTicks.reduce((accum, text) => {
-                const { width } = CachedTextMeasurerPool.measureText(text, { font });
-                return Math.max(accum, width);
-            }, 0);
-        }
-
-        return factor * (label.spacing + size);
     }
 
     private readonly scaleGroup = this.contentGroup.appendChild(new Group({ name: 'scaleGroup' }));
@@ -176,6 +187,7 @@ export class LinearGaugeSeries
     private readonly highlightTargetGroup = this.highlightGroup.appendChild(
         new Group({ name: 'itemTargetLabelGroup' })
     );
+    private readonly tickGroup = this.highlightGroup.appendChild(new Group({ name: 'tickGroup' }));
 
     private scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum> = Selection.select(
         this.scaleGroup,
@@ -197,6 +209,10 @@ export class LinearGaugeSeries
     );
     private highlightTargetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> =
         Selection.select(this.highlightTargetGroup, () => this.markerFactory());
+    private tickSelection: _ModuleSupport.Selection<_ModuleSupport.Text, _ModuleSupport.TickDatum> = Selection.select(
+        this.tickGroup,
+        Text
+    );
 
     public datumUnion: DatumUnion<_ModuleSupport.Rect, LinearGaugeNodeDatum> = new DatumUnion();
     private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
@@ -266,22 +282,21 @@ export class LinearGaugeSeries
         this.animationState.transition('updateData');
     }
 
-    private formatLabel(value: number) {
-        const { axes, horizontal } = this;
-        const mainAxis = horizontal ? axes[ChartAxisDirection.X] : axes[ChartAxisDirection.Y];
-        return formatLabel(value, mainAxis);
+    public formatLabel(value: number) {
+        return formatLabel(value, this.properties.scale);
     }
 
-    private createLinearGradient(fills: _ModuleSupport.StopProperties[], fillMode: AgGradientFillMode) {
-        const { properties, originX, originY, horizontal, axes } = this;
+    private createLinearGradient(
+        scale: _ModuleSupport.LinearScale,
+        fills: _ModuleSupport.StopProperties[],
+        fillMode: AgGradientFillMode
+    ) {
+        const { properties, originX, originY, horizontal } = this;
         const { thickness, defaultColorRange } = properties;
 
-        const mainAxis = horizontal ? axes[ChartAxisDirection.X] : axes[ChartAxisDirection.Y];
-        const { domain, range } = mainAxis!.scale;
+        const length = findRangeExtent(scale.range);
 
-        const length = range[1] - range[0];
-
-        const stops = getColorStops(fills, defaultColorRange, domain, fillMode);
+        const stops = getColorStops(fills, defaultColorRange, scale.domain, fillMode);
 
         return new LinearGradient(
             'oklch',
@@ -350,17 +365,11 @@ export class LinearGaugeSeries
     }
 
     private getTargetPoint(target: Target) {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const yAxis = this.axes[ChartAxisDirection.Y];
-
-        if (xAxis == null || yAxis == null) return { x: 0, y: 0 };
-
-        const { properties, originX, originY, horizontal } = this;
+        const { properties, originX, originY, horizontal, scale, gaugeRect } = this;
         const { thickness } = properties;
         const { value, placement, spacing, size } = target;
 
-        const mainAxis = horizontal ? xAxis : yAxis;
-        const mainOffset = mainAxis.scale.convert(value) - mainAxis.scale.range[0];
+        const mainOffset = scale.convert(value) - scale.range[0];
 
         let crossOffset: number;
         switch (placement) {
@@ -376,8 +385,8 @@ export class LinearGaugeSeries
         }
 
         return {
-            x: originX + xAxis.range[0] + (horizontal ? mainOffset : crossOffset),
-            y: originY + yAxis.range[0] + (horizontal ? crossOffset : mainOffset),
+            x: originX + gaugeRect.x + (horizontal ? mainOffset : crossOffset),
+            y: originY + gaugeRect.y + (horizontal ? crossOffset : mainOffset),
         };
     }
 
@@ -465,46 +474,119 @@ export class LinearGaugeSeries
     }
 
     override createNodeData() {
-        const { id: seriesId, properties, originX, originY, horizontal } = this;
+        const { id: seriesId, properties, horizontal, scale, seriesRect } = this;
 
         if (!properties.isValid()) return;
 
-        const { value, segmentation, thickness, cornerRadius, cornerMode, bar, scale, label } = properties;
-        const targets = this.getTargets();
+        const { value, segmentation, thickness, cornerRadius, cornerMode, bar, scale: scaleProps, label } = properties;
 
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const yAxis = this.axes[ChartAxisDirection.Y];
-        if (xAxis == null || yAxis == null) return;
-        const mainAxis = horizontal ? xAxis : yAxis;
+        scale.domain = [scaleProps.min, scaleProps.max];
 
-        const xScale = xAxis.scale;
-        const yScale = yAxis.scale;
-        const mainAxisScale = mainAxis.scale;
-
-        let { domain } = mainAxis.scale;
-        if (mainAxis.isReversed()) {
-            domain = domain.slice().reverse();
+        let parallelFlipRotation: number;
+        let sideFlag: 1 | -1;
+        if (horizontal) {
+            sideFlag = 1;
+            parallelFlipRotation = Math.PI / 2;
+        } else if (scaleProps.label.placement === 'before') {
+            sideFlag = 1;
+            parallelFlipRotation = 0;
+        } else {
+            sideFlag = -1;
+            parallelFlipRotation = 0;
         }
+
+        const regularFlipRotation = parallelFlipRotation - Math.PI / 2;
+
+        let factor: 1 | -1 | 0;
+        switch (label.placement) {
+            case 'outside-start':
+                factor = 1;
+                break;
+            case 'outside-end':
+                factor = -1;
+                break;
+            default:
+                factor = 0;
+                break;
+        }
+
+        const lines = label.text?.split('\n');
+
+        let labelSize: number;
+        if (horizontal) {
+            labelSize = getLineHeight(label, label.fontSize) * (lines?.length ?? 1);
+        } else {
+            const font = label.getFont();
+            const ticks =
+                scaleProps.interval.values ??
+                scale.ticks({
+                    nice: false,
+                    interval: scaleProps.interval.step,
+                    minTickCount: 0,
+                    maxTickCount: 6,
+                    tickCount: 5,
+                });
+            const linesOrTicks = lines ?? ticks.map((tick) => getLabelText(this, this.labelDatum(label, tick)) ?? '');
+
+            labelSize = linesOrTicks.reduce((accum, text) => {
+                const { width } = CachedTextMeasurerPool.measureText(text, { font });
+                return Math.max(accum, width);
+            }, 0);
+        }
+
+        const labelInset = factor * (label.spacing + labelSize);
+
+        let x0: number;
+        let x1: number;
+        let y0: number;
+        let y1: number;
+        if (horizontal) {
+            x0 = 0;
+            x1 = seriesRect.width;
+            y0 = (seriesRect.height - thickness) / 2;
+            y1 = y0 + thickness;
+        } else {
+            x0 = (seriesRect.width - thickness) / 2;
+            x1 = x0 + thickness;
+            // Reversed
+            y1 = 0;
+            y0 = seriesRect.height;
+        }
+
+        this.gaugeRect = new BBox(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
+        console.log(this.gaugeRect);
+
+        const originX = 0;
+        const originY = 0;
+        scale.domain = [scaleProps.min, scaleProps.max];
+        scale.range = horizontal ? [x0, x1] : [y0, y1];
+
+        const { ticks: tickData } = this.tickGenerator.generateTicks({
+            domain: scale.domain,
+            primaryTickCount: undefined,
+            visibleRange: [0, 1],
+            niceMode: NiceMode.Off,
+            labelX: 0,
+            parallelFlipRotation,
+            regularFlipRotation,
+            sideFlag,
+        }).tickData;
+        console.log(tickData);
+
+        const isReversed = false; // Can this be removed?
+
+        const targets = this.getTargets();
 
         const nodeData: LinearGaugeNodeDatum[] = [];
         const targetData: LinearGaugeTargetDatum[] = [];
         const labelData: LinearGaugeLabelDatum[] = [];
         const scaleData: LinearGaugeNodeDatum[] = [];
 
-        const [m0, m1] = mainAxisScale.range;
+        const [m0, m1] = scale.range;
         const mainAxisSize = Math.abs(m1 - m0);
 
-        let [x0, x1] = xAxis.range;
-        if (xAxis.isReversed()) {
-            [x1, x0] = [x0, x1];
-        }
-        let [y0, y1] = yAxis.range;
-        if (yAxis.isReversed()) {
-            [y1, y0] = [y0, y1];
-        }
-
-        const containerX = horizontal ? xScale.convert(value) : x1;
-        const containerY = horizontal ? y1 : yScale.convert(value);
+        const containerX = horizontal ? scale.convert(value) : x1;
+        const containerY = horizontal ? y1 : scale.convert(value);
 
         const inset = segmentation.enabled ? segmentation.spacing / 2 : 0;
         const horizontalInset = horizontal ? inset : 0;
@@ -519,22 +601,22 @@ export class LinearGaugeSeries
         const cornersOnAllItems = cornerMode === 'item';
 
         const maxTicks = Math.ceil(mainAxisSize);
-        let segments = segmentation.enabled ? segmentation.interval.getSegments(mainAxisScale, maxTicks) : undefined;
+        let segments = segmentation.enabled ? segmentation.interval.getSegments(scale, maxTicks) : undefined;
 
-        const barFill = bar.fill ?? this.createLinearGradient(bar.fills, bar.fillMode);
+        const barFill = bar.fill ?? this.createLinearGradient(scale, bar.fills, bar.fillMode);
         const scaleFill =
-            scale.fill ??
-            (bar.enabled && scale.fills.length === 0 ? scale.defaultFill : undefined) ??
-            this.createLinearGradient(scale.fills, scale.fillMode);
+            scaleProps.fill ??
+            (bar.enabled && scaleProps.fills.length === 0 ? scaleProps.defaultFill : undefined) ??
+            this.createLinearGradient(scale, scaleProps.fills, scaleProps.fillMode);
 
         if (segments == null && cornersOnAllItems) {
-            const segmentStart = Math.min(...domain);
-            const segmentEnd = Math.max(...domain);
+            const segmentStart = Math.min(...scale.domain);
+            const segmentEnd = Math.max(...scale.domain);
             const datum = { value, segmentStart, segmentEnd };
 
             if (bar.enabled) {
                 const barAppliedCornerRadius = Math.min(cornerRadius, barThickness / 2, mainAxisSize / 2);
-                const barCornerInset = barAppliedCornerRadius * (mainAxis.isReversed() ? -1 : 1);
+                const barCornerInset = barAppliedCornerRadius * (isReversed ? -1 : 1);
 
                 const barCornerXInset = horizontal ? barCornerInset : 0;
                 const barCornerYInset = horizontal ? 0 : barCornerInset;
@@ -564,7 +646,7 @@ export class LinearGaugeSeries
             }
 
             const scaleAppliedCornerRadius = Math.min(cornerRadius, thickness / 2, mainAxisSize / 2);
-            const scaleCornerInset = scaleAppliedCornerRadius * (mainAxis.isReversed() ? -1 : 1);
+            const scaleCornerInset = scaleAppliedCornerRadius * (isReversed ? -1 : 1);
 
             const scaleCornerXInset = horizontal ? scaleCornerInset : 0;
             const scaleCornerYInset = horizontal ? 0 : scaleCornerInset;
@@ -592,7 +674,7 @@ export class LinearGaugeSeries
                 verticalInset,
             });
         } else {
-            segments ??= domain;
+            segments ??= scale.domain;
 
             const clipX0 = originX + x0 - barXInset;
             const clipY0 = originY + y0 - barYInset;
@@ -607,8 +689,8 @@ export class LinearGaugeSeries
                 const isStart = i === 0;
                 const isEnd = i === segments.length - 2;
 
-                const itemStart = mainAxisScale.convert(segmentStart);
-                const itemEnd = mainAxisScale.convert(segmentEnd);
+                const itemStart = scale.convert(segmentStart);
+                const itemEnd = scale.convert(segmentEnd);
 
                 const startCornerRadius = cornersOnAllItems || isStart ? cornerRadius : 0;
                 const endCornerRadius = cornersOnAllItems || isEnd ? cornerRadius : 0;
@@ -721,6 +803,7 @@ export class LinearGaugeSeries
         return {
             itemId: seriesId,
             nodeData,
+            tickData,
             targetData,
             labelData,
             scaleData,
@@ -748,7 +831,10 @@ export class LinearGaugeSeries
             targetLabelSelection,
             scaleSelection,
             highlightTargetSelection,
+            tickSelection,
         } = this;
+
+        this.seriesRect = seriesRect ?? BBox.NaN;
 
         const resize = this.checkResize(seriesRect);
         this.updateSelections(resize);
@@ -760,6 +846,7 @@ export class LinearGaugeSeries
         const labelData = this.contextNodeData?.labelData ?? [];
         const targetData = this.contextNodeData?.targetData ?? [];
         const scaleData = this.contextNodeData?.scaleData ?? [];
+        const tickData = this.contextNodeData?.tickData ?? [];
 
         const highlightTargetDatum = this.highlightDatum(this.ctx.highlightManager.getActiveHighlight());
 
@@ -783,6 +870,9 @@ export class LinearGaugeSeries
             targetSelection: highlightTargetSelection,
         });
         this.updateTargetNodes({ targetSelection: highlightTargetSelection, isHighlight: true });
+
+        this.tickSelection = this.updateTickSelection({ tickData, tickSelection });
+        this.updateTickNodes({ tickSelection });
 
         if (resize) {
             this.animationState.transition('resize');
@@ -840,7 +930,7 @@ export class LinearGaugeSeries
             node.y = first.y;
             node.clipBBox.x = first.clipBBox?.x ?? first.x;
             node.clipBBox.y = first.clipBBox?.y ?? first.y;
-            if (this.properties.direction === 'horizontal') {
+            if (this.horizontal) {
                 node.height = node.clipBBox.height = last.height;
                 node.width = last === first ? last.width : last.x + last.width;
                 node.clipBBox.width = node.width - (last.width - (last.clipBBox?.width ?? last.width));
@@ -972,6 +1062,51 @@ export class LinearGaugeSeries
         });
     }
 
+    private updateTickSelection(opts: {
+        tickData: _ModuleSupport.TickDatum[];
+        tickSelection: _ModuleSupport.Selection<_ModuleSupport.Text, _ModuleSupport.TickDatum>;
+    }) {
+        return opts.tickSelection.update(opts.tickData, undefined, (datum) => datum.tickId);
+    }
+
+    private updateTickNodes(opts: {
+        tickSelection: _ModuleSupport.Selection<_ModuleSupport.Text, _ModuleSupport.TickDatum>;
+    }) {
+        const { gaugeRect, properties } = this;
+        const { x, y, width, height } = gaugeRect;
+        const { color, fontFamily, fontSize, fontStyle, fontWeight, spacing } = properties.scale.label;
+        let { placement } = properties.scale.label;
+
+        let textAlign: CanvasTextAlign;
+        let textBaseline: CanvasTextBaseline;
+        let textX: number | undefined;
+        let textY: number | undefined;
+        if (this.horizontal) {
+            placement ??= 'after';
+            textAlign = 'center';
+            textBaseline = placement === 'before' ? 'bottom' : 'top';
+            textY = this.originY + y + (placement === 'before' ? -spacing : height + spacing);
+        } else {
+            placement ??= 'before';
+            textAlign = placement === 'before' ? 'end' : 'start';
+            textBaseline = 'middle';
+            textX = this.originX + x + (placement === 'before' ? -spacing : width + spacing);
+        }
+
+        opts.tickSelection.each((label, datum) => {
+            label.text = datum.tickLabel;
+            label.fill = color;
+            label.fontFamily = fontFamily;
+            label.fontSize = fontSize;
+            label.fontStyle = fontStyle;
+            label.fontWeight = fontWeight;
+            label.textBaseline = textBaseline;
+            label.textAlign = textAlign;
+            label.x = textX ?? datum.translationY;
+            label.y = textY ?? datum.translationY;
+        });
+    }
+
     private updateLabelSelection(opts: {
         labelData: LinearGaugeLabelDatum[];
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum>;
@@ -1008,26 +1143,17 @@ export class LinearGaugeSeries
     }
 
     formatLabelText(datum?: { label: number }) {
-        const { labelSelection, horizontal, axes } = this;
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-        if (xAxis == null || yAxis == null) return;
-        const [x0, x1] = xAxis.range;
-        const [y0, y1] = yAxis.range;
-
-        const x = this.originX + Math.min(x0, x1);
-        const y = this.originY + Math.min(y0, y1);
-        const width = Math.abs(x1 - x0);
-        const height = Math.abs(y1 - y0);
+        const { labelSelection, horizontal, scale, gaugeRect } = this;
+        const { x, y, width, height } = gaugeRect;
 
         const value = datum?.label ?? this.properties.value;
 
         let barBBox: _ModuleSupport.BBox;
         if (horizontal) {
-            const xValue = xAxis.scale.convert(value);
+            const xValue = scale.convert(value);
             barBBox = new BBox(x, y, xValue - x, height);
         } else {
-            const yValue = yAxis.scale.convert(value);
+            const yValue = scale.convert(value);
             barBBox = new BBox(x, yValue, width, height - yValue);
         }
 
