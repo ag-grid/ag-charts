@@ -452,7 +452,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private setupListeners() {
         const { ctx, optionsToolbar, settingsDialog, toolbar } = this;
-        const { seriesWidget, seriesDragInterpreter, containerWidget } = ctx.widgets;
+        const { seriesWidget, seriesDragInterpreter, chartWidget } = ctx.widgets;
 
         this.destroyFns.push(
             // Interactions
@@ -467,7 +467,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesDragInterpreter.addListener('drag-end', this.onDragEnd.bind(this)),
             seriesWidget.addListener('keydown', this.onKeyDown.bind(this)),
             seriesWidget.addListener('keyup', this.onKeyUp.bind(this)),
-            containerWidget.addListener('click', this.onCancel.bind(this)),
+            chartWidget.addListener('click', this.onCancel.bind(this)),
 
             // Services
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
