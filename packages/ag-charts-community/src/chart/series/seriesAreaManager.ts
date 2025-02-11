@@ -515,8 +515,12 @@ export class SeriesAreaManager extends BaseManager {
             seriesRect,
         } = this;
         if (series == null) return;
+        const oldPick = {
+            datumIndex: this.focus.datumIndex - datumIndexDelta,
+            otherIndex: this.focus.seriesIndex - otherIndexDelta,
+        };
         const pick = series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
-        this.updatePickedFocus(otherIndexDelta, datumIndexDelta, { datumIndex, otherIndex }, pick, refresh);
+        this.updatePickedFocus(otherIndexDelta, datumIndexDelta, oldPick, pick, refresh);
     }
 
     private updatePickedFocus(
