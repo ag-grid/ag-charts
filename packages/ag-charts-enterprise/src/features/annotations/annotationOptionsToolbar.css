@@ -1,6 +1,9 @@
 .ag-charts-annotations__line-stroke-width-menu,
 .ag-charts-annotations__line-style-type-menu,
 .ag-charts-annotations__text-size-menu {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+
     .ag-charts-menu__row:first-child {
         border-radius: 0;
     }
@@ -8,8 +11,6 @@
 
 .ag-charts-annotations__text-size-menu {
     --item-padding: 4px 8px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
     min-width: 34px;
     text-align: center;
 }
