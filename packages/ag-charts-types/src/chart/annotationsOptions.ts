@@ -136,8 +136,6 @@ export interface AgAnnotationsOptions extends Toggleable {
     toolbar?: AgAnnotationsToolbar;
     /** Configuration for the options toolbar for editing an annotation. */
     optionsToolbar?: AgAnnotationOptionsToolbar;
-    /** When true, the annotation snaps to the data point. By default this property is false. */
-    snap?: boolean;
 }
 
 export type AgAnnotation =
