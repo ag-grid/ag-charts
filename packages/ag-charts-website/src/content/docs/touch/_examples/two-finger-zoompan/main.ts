@@ -2,8 +2,20 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+function initAnimation() {
+    const f = () => {
+        (document.querySelector('.gesture-demo') as HTMLElement).style.display = 'none';
+    };
+    document.addEventListener('touchstart', f, { capture: true, once: true });
+    document.addEventListener('wheel', f, { capture: true, once: true });
+    document.addEventListener('mousedown', f, { capture: true, once: true });
+    document.addEventListener('keydown', f, { capture: true, once: true });
+    return { enabled: false };
+}
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
+    animation: initAnimation(),
     touch: {
         dragAction: 'none',
     },
