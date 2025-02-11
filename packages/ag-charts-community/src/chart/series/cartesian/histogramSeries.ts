@@ -287,7 +287,7 @@ export class HistogramSeries extends CartesianSeries<
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
         const { xKey, yKey, xName, yName } = this.properties;
-        const labelFormatter = this.properties.label.formatter ?? ((params) => String(params.value));
+        const labelFormatter = this.properties.label.formatter;
 
         const nodeData: HistogramNodeDatum[] = [];
         const context = {
@@ -330,7 +330,7 @@ export class HistogramSeries extends CartesianSeries<
                     y: y + h / 2,
                     text:
                         this.cachedDatumCallback(createDatumId(groupIndex, 'label'), () =>
-                            labelFormatter({
+                            labelFormatter?.({
                                 value: total,
                                 datum,
                                 seriesId,
@@ -339,7 +339,7 @@ export class HistogramSeries extends CartesianSeries<
                                 xName,
                                 yName,
                             })
-                        ) ?? String(total),
+                        ) ?? yAxis.formatDatum(total),
                 };
             }
 
