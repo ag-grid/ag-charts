@@ -90,7 +90,6 @@ const options: AgChartOptions = {
                     },
                     y: 86.2,
                 },
-                strokeWidth: 0,
             },
             {
                 type: 'parallel-channel',
@@ -109,7 +108,6 @@ const options: AgChartOptions = {
                     },
                     y: 101.5,
                 },
-                strokeWidth: 0,
             },
         ],
     },
