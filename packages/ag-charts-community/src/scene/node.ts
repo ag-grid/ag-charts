@@ -283,9 +283,11 @@ export abstract class Node<D = any> {
         return node;
     }
 
-    removeChild(node: Node): boolean {
+    removeChild(node: Node) {
         if (!this.childNodes?.delete(node)) {
-            return false;
+            throw new Error(
+                `AG Charts - internal error, unknown child node ${node.name ?? node.id} in $${this.name ?? this.id}`
+            );
         }
 
         delete node.parentNode;
@@ -294,12 +296,10 @@ export abstract class Node<D = any> {
         this.invalidateCachedBBox();
         this.dirtyZIndex = true;
         this.markDirty();
-
-        return true;
     }
 
     remove() {
-        return this.parentNode?.removeChild(this) ?? false;
+        this.parentNode?.removeChild(this);
     }
 
     clear() {
