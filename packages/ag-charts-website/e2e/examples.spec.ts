@@ -70,6 +70,11 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         // Buttons have no visible rendering change
         'interaction-range': { skipCanvasUpdateCheck: true },
     },
+    touch: {
+        'long-tap': { skipCanvasUpdateCheck: true },
+        'single-finger-touch-dragging': { skipCanvasUpdateCheck: true },
+        'two-finger-zoompan': { skipCanvasUpdateCheck: true },
+    },
 
     sparklines: {
         // FWs not ready yet

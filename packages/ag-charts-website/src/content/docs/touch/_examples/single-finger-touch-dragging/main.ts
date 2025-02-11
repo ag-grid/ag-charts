@@ -2,11 +2,22 @@ import { AgCartesianChartOptions, AgCharts, AgTouchOptions } from 'ag-charts-ent
 
 import { getData } from './data';
 
+function initAnimation() {
+    const f = () => {
+        (document.querySelector('.gesture-demo') as HTMLElement).style.display = 'none';
+    };
+    document.addEventListener('touchstart', f, { capture: true, once: true });
+    document.addEventListener('wheel', f, { capture: true, once: true });
+    document.addEventListener('mousedown', f, { capture: true, once: true });
+    document.addEventListener('keydown', f, { capture: true, once: true });
+    return { enabled: false };
+}
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(1e3),
-    animation: { enabled: false },
-    touch: { dragAction: 'none' },
+    animation: initAnimation(),
+    touch: { dragAction: 'hover' },
     zoom: {
         enabled: true,
         enableAxisDragging: false,

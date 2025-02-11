@@ -30,7 +30,7 @@ By default, Single Finger Touch Drag events are handled like mouse drag events. 
 
 ```ts
 touch: {
-    dragAction: 'none',
+    dragAction: 'hover',
 }
 ```
 
@@ -39,6 +39,32 @@ In this example:
 -   `dragAction: 'none'` disables the chart's Single Finger input handling, scrolling the entire page.
 -   `dragAction: 'drag'` emulates mouse dragging, updating the view's pan.
 -   `dragAction: 'hover'` emulates mouse movements, updating the tooltip & highlighted node.
+
+{% note %}
+When emulating mouse dragging, Touch event will page through if Zoom is disabled or if the chart cannot be panned.
+{% /note %}
+
+## Two Finger Zoom-Pan
+
+By default, charts with the [Zoom](./zoom) feature enabled still update the viewport's zoom and pan when using two fingers. To disable, use `enableTwoFingerZoom: false`.
+
+{% chartExampleRunner
+    title="Two Finger Zoom-Pan"
+    name="two-finger-zoompan"
+    type="generated"
+    options={ "enterprise": true }
+/%}
+
+## Long Tap
+
+Long Tapping the chart will expand the [Context Menu](./context-menu), if available.
+
+{% chartExampleRunner
+    title="Long Tap"
+    name="long-tap"
+    type="generated"
+    options={ "enterprise": true }
+/%}
 
 ## API Reference
 
