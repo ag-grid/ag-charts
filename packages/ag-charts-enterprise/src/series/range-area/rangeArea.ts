@@ -623,7 +623,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighName}`, value }],
+                data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
             },
             {
                 seriesId,
