@@ -135,6 +135,7 @@ export class NavigatorDOMProxy {
         const sliderLeft = slider.cssLeft();
         this.dragStartX = toolbarLeft + sliderLeft + event.offsetX;
         this.moveToFront(index); // AG-13780
+        event.sourceEvent.preventDefault();
         this.sliderHandlers.onDragStart(key, this.toCanvasOffsets(event));
     }
 
@@ -143,6 +144,7 @@ export class NavigatorDOMProxy {
         event: _ModuleSupport.DragWidgetEvent<'drag-move'>,
         key: NavigatorButtonType
     ) {
+        event.sourceEvent.preventDefault();
         this.sliderHandlers.onDrag(key, this.toCanvasOffsets(event));
     }
 
