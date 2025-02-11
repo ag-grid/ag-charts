@@ -1199,10 +1199,6 @@ export abstract class Chart extends Observable implements ModuleInstance {
         });
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
 
-        if (this.shouldClearLegendData(newOpts, oldOpts, seriesStatus)) this.ctx.legendManager.clearData();
-
-        this.applyInitialState(newOpts);
-
         this.firstApply = false;
     }
 
