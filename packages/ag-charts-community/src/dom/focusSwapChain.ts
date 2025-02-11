@@ -12,6 +12,7 @@ export class FocusSwapChain {
     private inactiveAnnouncer: HTMLElement & { tabIndex: 0 | -1 };
     private activeAnnouncer: HTMLElement & { tabIndex: 0 | -1 };
 
+    private focusOptions?: FocusOptions;
     private hasFocus = false;
     private skipDispatch = false;
 
@@ -66,15 +67,17 @@ export class FocusSwapChain {
         }
     }
 
-    focus() {
-        this.activeAnnouncer.focus();
+    focus(opts?: FocusOptions) {
+        this.focusOptions = opts;
+        this.activeAnnouncer.focus(opts);
+        this.focusOptions = undefined;
     }
 
     update(newLabel: string) {
         this.skipDispatch = true;
         this.swap(newLabel);
         if (this.hasFocus) {
-            this.activeAnnouncer.focus();
+            this.activeAnnouncer.focus(this.focusOptions);
         }
         this.skipDispatch = false;
     }
