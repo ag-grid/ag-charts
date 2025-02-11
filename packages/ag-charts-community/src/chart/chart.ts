@@ -1187,7 +1187,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
         const updateType = majorChange ? ChartUpdateType.FULL : ChartUpdateType.PERFORM_LAYOUT;
         this.maybeResetAnimations(seriesStatus);
 
-        if (this.shouldClearLegendData(newOpts, oldOpts, deltaOptions, seriesStatus)) {
+        if (this.shouldClearLegendData(newOpts, oldOpts, seriesStatus)) {
             this.ctx.legendManager.clearData();
         }
 
@@ -1199,8 +1199,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
         });
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
 
-        if (this.shouldClearLegendData(newOpts, oldOpts, seriesStatus))
-            this.ctx.legendManager.clearData();
+        if (this.shouldClearLegendData(newOpts, oldOpts, seriesStatus)) this.ctx.legendManager.clearData();
 
         this.applyInitialState(newOpts);
 
