@@ -486,7 +486,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
         const { focus, seriesRect } = this;
-        const visibleSeries = focus.sortedSeries.filter((s) => s.visible);
+        const visibleSeries = focus.sortedSeries.filter((s) => s.visible && s.focusable);
         if (visibleSeries.length === 0) return;
 
         const oldPick = {

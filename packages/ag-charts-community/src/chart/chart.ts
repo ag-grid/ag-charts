@@ -1187,7 +1187,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
         const updateType = majorChange ? ChartUpdateType.FULL : ChartUpdateType.PERFORM_LAYOUT;
         this.maybeResetAnimations(seriesStatus);
 
-        if (this.shouldClearLegendData(newOpts, oldOpts, deltaOptions, seriesStatus)) {
+        if (this.shouldClearLegendData(newOpts, oldOpts, seriesStatus)) {
             this.ctx.legendManager.clearData();
         }
 
@@ -1256,22 +1256,12 @@ export abstract class Chart extends Observable implements ModuleInstance {
         return seriesDataUpdate || optionsHaveLegend || otherRefreshUpdate;
     }
 
-    private shouldClearLegendData(
-        options: AgChartOptions,
-        oldOpts: AgChartOptions,
-        deltaOptions: AgChartOptions,
-        seriesStatus: SeriesChangeType
-    ) {
+    private shouldClearLegendData(options: AgChartOptions, oldOpts: AgChartOptions, seriesStatus: SeriesChangeType) {
         const seriesChanged =
             seriesStatus === 'replaced' || seriesStatus === 'series-grouping-change' || seriesStatus === 'updated';
-
         const legendRemoved = oldOpts.legend != null && options.legend == null;
-        const legendKeys = legendRegistry.getKeys();
-        const optionsHaveLegend = Object.values(legendKeys).some(
-            (legendKey) => (deltaOptions as any)[legendKey] != null
-        );
 
-        return seriesChanged || legendRemoved || optionsHaveLegend;
+        return seriesChanged || legendRemoved;
     }
 
     private applyMiniChartOptions(

@@ -356,6 +356,8 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     public panToBBox(callerId: string, seriesRect: BBox, target: BBoxValues): boolean {
+        if (!this.isZoomEnabled()) return false;
+
         const zoom = this.getZoom();
         if (zoom === undefined || (!zoom.x && !zoom.y)) return false;
 

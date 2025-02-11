@@ -181,6 +181,7 @@ export class Legend extends BaseProperties {
 
     private _data: CategoryLegendDatum[] = [];
     set data(value: CategoryLegendDatum[]) {
+        if (objectsEqual(value, this._data)) return;
         this.domProxy.onDataUpdate(this._data, value);
         this._data = value;
         this.updateGroupVisibility();
@@ -291,13 +292,7 @@ export class Legend extends BaseProperties {
 
     private onLegendDataChange({ legendData = [] }: LegendChangeEvent) {
         if (!this.enabled) return;
-
-        const visibleItems = legendData.filter((datum) => !datum.hideInLegend);
-        const { data } = this;
-
-        if (!objectsEqual(visibleItems, data)) {
-            this.data = visibleItems;
-        }
+        this.data = legendData.filter((datum) => !datum.hideInLegend);
     }
 
     public destroy() {
