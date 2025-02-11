@@ -27,7 +27,7 @@ const oceanTheme: AgChartTheme = {
         foregroundColor: '#0a54a4',
         backgroundColor: '#d9e0ed',
         accentColor: '#0ba268',
-        fontFamily: 'cursive',
+        fontFamily: 'Savoye LET, cursive',
         fontSize: 16,
     },
 };
