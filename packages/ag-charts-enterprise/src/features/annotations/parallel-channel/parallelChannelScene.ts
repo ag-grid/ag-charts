@@ -98,13 +98,10 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         const { value: startY } = getGroupingValue(datum.start.y);
         if ((activeHandle === 'topMiddle' || activeHandle === 'bottomMiddle') && startY != null && isNumber(startY)) {
             const topLeft = invertCoords(Vec2.add(handles.topLeft.handle, offset), context);
-
-            if (validateDatumPoint(context, topLeft)) {
-                if (activeHandle === 'topMiddle') {
-                    datum.height += topLeft.y - startY;
-                } else {
-                    datum.height -= topLeft.y - startY;
-                }
+            if (activeHandle === 'topMiddle') {
+                datum.height += topLeft.y - startY;
+            } else {
+                datum.height -= topLeft.y - startY;
             }
         }
 
