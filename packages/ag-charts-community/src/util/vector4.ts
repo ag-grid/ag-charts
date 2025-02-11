@@ -2,6 +2,7 @@ export const Vec4 = {
     bottomCenter,
     center,
     clone,
+    collides,
     end,
     from,
     height,
@@ -92,6 +93,16 @@ function round(a: Vec4): Vec4 {
  */
 function clone(a: Vec4): Vec4 {
     return { x1: a.x1, y1: a.y1, x2: a.x2, y2: a.y2 };
+}
+
+function collides(a: Vec4, b: Vec4): boolean {
+    const an = normalise(a);
+    const bn = normalise(b);
+    return an.x1 <= bn.x2 && an.x2 >= bn.x1 && an.y1 <= bn.y2 && an.y2 >= bn.y1;
+}
+
+function normalise(a: Vec4): Vec4 {
+    return { x1: Math.min(a.x1, a.x2), x2: Math.max(a.x1, a.x2), y1: Math.min(a.y1, a.y2), y2: Math.max(a.y1, a.y2) };
 }
 
 /**
