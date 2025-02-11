@@ -48,14 +48,8 @@ export function SearchBox({
                 placeholder={placeholder}
                 onInput={handleInput}
                 onKeyDown={handleKeyDown}
-                onBlur={() => {
-                    document.documentElement.style.removeProperty('scroll-padding-top'); // Fix Windows/Chrome typing/scrolling issue
-                    setInFocus(false);
-                }}
-                onFocus={() => {
-                    document.documentElement.style.setProperty('scroll-padding-top', 'unset'); // Fix Windows/Chrome typing/scrolling issue
-                    setInFocus(true);
-                }}
+                onBlur={() => setInFocus(false)}
+                onFocus={() => setInFocus(true)}
             />
             <Icon svgClasses={styles.searchIcon} name={iconName} />
 
