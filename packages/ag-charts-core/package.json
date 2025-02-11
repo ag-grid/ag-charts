@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-core",
-  "version": "11.1.0-beta.20250211.1109",
+  "version": "11.1.0-beta.20250211.1201",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "private": true,
   "sideEffects": false,
