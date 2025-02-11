@@ -1,7 +1,7 @@
 export function getData() {
     return [
         {
-            year: new Date(1975, 0, 0),
+            year: new Date(1975, 0, 1),
             vinyl: 3000,
             cassette: 1000,
             eightTrack: 800,
@@ -13,7 +13,7 @@ export function getData() {
             concertTicketSales: 500,
         },
         {
-            year: new Date(1976, 0, 0),
+            year: new Date(1976, 0, 1),
             vinyl: 3200,
             cassette: 1200,
             eightTrack: 900,
@@ -25,7 +25,7 @@ export function getData() {
             concertTicketSales: 550,
         },
         {
-            year: new Date(1977, 0, 0),
+            year: new Date(1977, 0, 1),
             vinyl: 3500,
             cassette: 1500,
             eightTrack: 950,
@@ -37,7 +37,7 @@ export function getData() {
             concertTicketSales: 600,
         },
         {
-            year: new Date(1978, 0, 0),
+            year: new Date(1978, 0, 1),
             vinyl: 4000,
             cassette: 2000,
             eightTrack: 1000,
@@ -49,7 +49,7 @@ export function getData() {
             concertTicketSales: 650,
         },
         {
-            year: new Date(1979, 0, 0),
+            year: new Date(1979, 0, 1),
             vinyl: 4500,
             cassette: 2800,
             eightTrack: 950,
@@ -61,7 +61,7 @@ export function getData() {
             concertTicketSales: 700,
         },
         {
-            year: new Date(1980, 0, 0),
+            year: new Date(1980, 0, 1),
             vinyl: 5000,
             cassette: 4000,
             eightTrack: 900,
@@ -73,7 +73,7 @@ export function getData() {
             concertTicketSales: 750,
         },
         {
-            year: new Date(1981, 0, 0),
+            year: new Date(1981, 0, 1),
             vinyl: 4800,
             cassette: 5000,
             eightTrack: 500,
@@ -85,7 +85,7 @@ export function getData() {
             concertTicketSales: 800,
         },
         {
-            year: new Date(1982, 0, 0),
+            year: new Date(1982, 0, 1),
             vinyl: 4500,
             cassette: 5500,
             eightTrack: 300,
@@ -97,7 +97,7 @@ export function getData() {
             concertTicketSales: 850,
         },
         {
-            year: new Date(1983, 0, 0),
+            year: new Date(1983, 0, 1),
             vinyl: 4200,
             cassette: 6000,
             eightTrack: 100,
@@ -109,7 +109,7 @@ export function getData() {
             concertTicketSales: 900,
         },
         {
-            year: new Date(1984, 0, 0),
+            year: new Date(1984, 0, 1),
             vinyl: 3800,
             cassette: 6500,
             eightTrack: 0,
@@ -121,7 +121,7 @@ export function getData() {
             concertTicketSales: 950,
         },
         {
-            year: new Date(1985, 0, 0),
+            year: new Date(1985, 0, 1),
             vinyl: 3500,
             cassette: 7000,
             eightTrack: 0,
@@ -133,7 +133,7 @@ export function getData() {
             concertTicketSales: 1000,
         },
         {
-            year: new Date(1986, 0, 0),
+            year: new Date(1986, 0, 1),
             vinyl: 3000,
             cassette: 7500,
             eightTrack: 0,
@@ -145,7 +145,7 @@ export function getData() {
             concertTicketSales: 1050,
         },
         {
-            year: new Date(1987, 0, 0),
+            year: new Date(1987, 0, 1),
             vinyl: 2500,
             cassette: 8000,
             eightTrack: 0,
@@ -157,7 +157,7 @@ export function getData() {
             concertTicketSales: 1100,
         },
         {
-            year: new Date(1988, 0, 0),
+            year: new Date(1988, 0, 1),
             vinyl: 2000,
             cassette: 8500,
             eightTrack: 0,
@@ -169,7 +169,7 @@ export function getData() {
             concertTicketSales: 1150,
         },
         {
-            year: new Date(1989, 0, 0),
+            year: new Date(1989, 0, 1),
             vinyl: 1500,
             cassette: 9000,
             eightTrack: 0,
@@ -181,7 +181,7 @@ export function getData() {
             concertTicketSales: 1200,
         },
         {
-            year: new Date(1990, 0, 0),
+            year: new Date(1990, 0, 1),
             vinyl: 1000,
             cassette: 9500,
             eightTrack: 0,
@@ -193,7 +193,7 @@ export function getData() {
             concertTicketSales: 1250,
         },
         {
-            year: new Date(1991, 0, 0),
+            year: new Date(1991, 0, 1),
             vinyl: 800,
             cassette: 9200,
             eightTrack: 0,
@@ -205,7 +205,7 @@ export function getData() {
             concertTicketSales: 1300,
         },
         {
-            year: new Date(1992, 0, 0),
+            year: new Date(1992, 0, 1),
             vinyl: 700,
             cassette: 8800,
             eightTrack: 0,
@@ -217,7 +217,7 @@ export function getData() {
             concertTicketSales: 1400,
         },
         {
-            year: new Date(1993, 0, 0),
+            year: new Date(1993, 0, 1),
             vinyl: 600,
             cassette: 8500,
             eightTrack: 0,
@@ -229,7 +229,7 @@ export function getData() {
             concertTicketSales: 1500,
         },
         {
-            year: new Date(1994, 0, 0),
+            year: new Date(1994, 0, 1),
             vinyl: 500,
             cassette: 8000,
             eightTrack: 0,
@@ -241,7 +241,7 @@ export function getData() {
             concertTicketSales: 1600,
         },
         {
-            year: new Date(1995, 0, 0),
+            year: new Date(1995, 0, 1),
             vinyl: 400,
             cassette: 7500,
             eightTrack: 0,
@@ -253,7 +253,7 @@ export function getData() {
             concertTicketSales: 1800,
         },
         {
-            year: new Date(1996, 0, 0),
+            year: new Date(1996, 0, 1),
             vinyl: 350,
             cassette: 7000,
             eightTrack: 0,
@@ -265,7 +265,7 @@ export function getData() {
             concertTicketSales: 2000,
         },
         {
-            year: new Date(1997, 0, 0),
+            year: new Date(1997, 0, 1),
             vinyl: 300,
             cassette: 6500,
             eightTrack: 0,
@@ -277,7 +277,7 @@ export function getData() {
             concertTicketSales: 2300,
         },
         {
-            year: new Date(1998, 0, 0),
+            year: new Date(1998, 0, 1),
             vinyl: 250,
             cassette: 6000,
             eightTrack: 0,
@@ -289,7 +289,7 @@ export function getData() {
             concertTicketSales: 2600,
         },
         {
-            year: new Date(1999, 0, 0),
+            year: new Date(1999, 0, 1),
             vinyl: 200,
             cassette: 5000,
             eightTrack: 0,
@@ -301,7 +301,7 @@ export function getData() {
             concertTicketSales: 3000,
         },
         {
-            year: new Date(2000, 0, 0),
+            year: new Date(2000, 0, 1),
             vinyl: 150,
             cassette: 4000,
             eightTrack: 0,
@@ -313,7 +313,7 @@ export function getData() {
             concertTicketSales: 3500,
         },
         {
-            year: new Date(2001, 0, 0),
+            year: new Date(2001, 0, 1),
             vinyl: 120,
             cassette: 3000,
             eightTrack: 0,
@@ -325,7 +325,7 @@ export function getData() {
             concertTicketSales: 4000,
         },
         {
-            year: new Date(2002, 0, 0),
+            year: new Date(2002, 0, 1),
             vinyl: 100,
             cassette: 2500,
             eightTrack: 0,
@@ -337,7 +337,7 @@ export function getData() {
             concertTicketSales: 4500,
         },
         {
-            year: new Date(2003, 0, 0),
+            year: new Date(2003, 0, 1),
             vinyl: 90,
             cassette: 2000,
             eightTrack: 0,
@@ -349,7 +349,7 @@ export function getData() {
             concertTicketSales: 5000,
         },
         {
-            year: new Date(2004, 0, 0),
+            year: new Date(2004, 0, 1),
             vinyl: 80,
             cassette: 1500,
             eightTrack: 0,
@@ -361,7 +361,7 @@ export function getData() {
             concertTicketSales: 5500,
         },
         {
-            year: new Date(2005, 0, 0),
+            year: new Date(2005, 0, 1),
             vinyl: 70,
             cassette: 1000,
             eightTrack: 0,
@@ -373,7 +373,7 @@ export function getData() {
             concertTicketSales: 6000,
         },
         {
-            year: new Date(2006, 0, 0),
+            year: new Date(2006, 0, 1),
             vinyl: 65,
             cassette: 800,
             eightTrack: 0,
@@ -385,7 +385,7 @@ export function getData() {
             concertTicketSales: 7000,
         },
         {
-            year: new Date(2007, 0, 0),
+            year: new Date(2007, 0, 1),
             vinyl: 70,
             cassette: 600,
             eightTrack: 0,
@@ -397,7 +397,7 @@ export function getData() {
             concertTicketSales: 8000,
         },
         {
-            year: new Date(2008, 0, 0),
+            year: new Date(2008, 0, 1),
             vinyl: 80,
             cassette: 500,
             eightTrack: 0,
@@ -409,7 +409,7 @@ export function getData() {
             concertTicketSales: 9000,
         },
         {
-            year: new Date(2009, 0, 0),
+            year: new Date(2009, 0, 1),
             vinyl: 100,
             cassette: 400,
             eightTrack: 0,
@@ -421,7 +421,7 @@ export function getData() {
             concertTicketSales: 10000,
         },
         {
-            year: new Date(2010, 0, 0),
+            year: new Date(2010, 0, 1),
             vinyl: 200,
             cassette: 200,
             eightTrack: 0,
@@ -433,7 +433,7 @@ export function getData() {
             concertTicketSales: 11000,
         },
         {
-            year: new Date(2011, 0, 0),
+            year: new Date(2011, 0, 1),
             vinyl: 300,
             cassette: 100,
             eightTrack: 0,
@@ -445,7 +445,7 @@ export function getData() {
             concertTicketSales: 12000,
         },
         {
-            year: new Date(2012, 0, 0),
+            year: new Date(2012, 0, 1),
             vinyl: 400,
             cassette: 50,
             eightTrack: 0,
@@ -457,7 +457,7 @@ export function getData() {
             concertTicketSales: 13000,
         },
         {
-            year: new Date(2013, 0, 0),
+            year: new Date(2013, 0, 1),
             vinyl: 500,
             cassette: 30,
             eightTrack: 0,
@@ -469,7 +469,7 @@ export function getData() {
             concertTicketSales: 14000,
         },
         {
-            year: new Date(2014, 0, 0),
+            year: new Date(2014, 0, 1),
             vinyl: 600,
             cassette: 20,
             eightTrack: 0,
@@ -481,7 +481,7 @@ export function getData() {
             concertTicketSales: 15000,
         },
         {
-            year: new Date(2015, 0, 0),
+            year: new Date(2015, 0, 1),
             vinyl: 800,
             cassette: 10,
             eightTrack: 0,
@@ -493,7 +493,7 @@ export function getData() {
             concertTicketSales: 16000,
         },
         {
-            year: new Date(2016, 0, 0),
+            year: new Date(2016, 0, 1),
             vinyl: 1000,
             cassette: 5,
             eightTrack: 0,
@@ -505,7 +505,7 @@ export function getData() {
             concertTicketSales: 17000,
         },
         {
-            year: new Date(2017, 0, 0),
+            year: new Date(2017, 0, 1),
             vinyl: 1200,
             cassette: 2,
             eightTrack: 0,
@@ -517,7 +517,7 @@ export function getData() {
             concertTicketSales: 18000,
         },
         {
-            year: new Date(2018, 0, 0),
+            year: new Date(2018, 0, 1),
             vinyl: 1500,
             cassette: 1,
             eightTrack: 0,
@@ -529,7 +529,7 @@ export function getData() {
             concertTicketSales: 19000,
         },
         {
-            year: new Date(2019, 0, 0),
+            year: new Date(2019, 0, 1),
             vinyl: 1800,
             cassette: 1,
             eightTrack: 0,
@@ -541,7 +541,7 @@ export function getData() {
             concertTicketSales: 20000,
         },
         {
-            year: new Date(2020, 0, 0),
+            year: new Date(2020, 0, 1),
             vinyl: 2000,
             cassette: 0,
             eightTrack: 0,
@@ -553,7 +553,7 @@ export function getData() {
             concertTicketSales: 21000,
         },
         {
-            year: new Date(2021, 0, 0),
+            year: new Date(2021, 0, 1),
             vinyl: 2500,
             cassette: 0,
             eightTrack: 0,
@@ -565,7 +565,7 @@ export function getData() {
             concertTicketSales: 22000,
         },
         {
-            year: new Date(2022, 0, 0),
+            year: new Date(2022, 0, 1),
             vinyl: 3000,
             cassette: 0,
             eightTrack: 0,
@@ -577,7 +577,7 @@ export function getData() {
             concertTicketSales: 23000,
         },
         {
-            year: new Date(2023, 0, 0),
+            year: new Date(2023, 0, 1),
             vinyl: 3500,
             cassette: 0,
             eightTrack: 0,
@@ -589,7 +589,7 @@ export function getData() {
             concertTicketSales: 24000,
         },
         {
-            year: new Date(2024, 0, 0),
+            year: new Date(2024, 0, 1),
             vinyl: 4000,
             cassette: 0,
             eightTrack: 0,
