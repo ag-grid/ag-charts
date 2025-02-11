@@ -110,8 +110,8 @@
                 "link": "./themes/"
             },
             {
-                "title": "Localization",
-                "description": "Support for 31 languages and integration with localization engines.",
+                "title": "Localisation",
+                "description": "Support for 31 languages and integration with localisation engines.",
                 "link": "./localisation/"
             },
             {
@@ -133,7 +133,7 @@
             {
                 "title": "Advanced Chart Types",
                 "description": "Access to 20+ additional chart types, including Range, Heatmap, Sankey and more.",
-                "link": "/gallery/"
+                "link": "/gallery/#maps"
             },
             {
                 "title": "Financial Charts",
@@ -147,7 +147,7 @@
             },
             {
                 "title": "Advanced Interactivity",
-                "description": "Context menus, cross-hairs, navigator, zoom and chart synchronization.",
+                "description": "Context menus, crosshairs, navigator, zoom and chart synchronization.",
                 "link": "./context-menu/"
             },
             {
