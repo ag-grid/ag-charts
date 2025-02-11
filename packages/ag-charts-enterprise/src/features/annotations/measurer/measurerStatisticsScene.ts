@@ -50,6 +50,7 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         datum: MeasurerTypeProperties,
         stats: Statistics,
         anchor: _ModuleSupport.Vec2,
+        coords: _ModuleSupport.Vec4,
         context: AnnotationContext,
         verticalDirection?: 'up' | 'down',
         localeManager?: _ModuleSupport.ModuleContext['localeManager']
@@ -64,6 +65,17 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
 
         this.updateBackground(datum, bbox, padding);
         this.reposition(scenes, padding, context);
+        this.checkVisibility(datum, context, coords);
+    }
+
+    private checkVisibility(datum: MeasurerTypeProperties, context: AnnotationContext, coords: _ModuleSupport.Vec4) {
+        const bounds = Vec4.from(new _ModuleSupport.BBox(0, 0, context.seriesRect.width, context.seriesRect.height));
+
+        if (Vec4.collides(coords, bounds)) {
+            this.visible = datum.visible ?? true;
+        } else {
+            this.visible = false;
+        }
     }
 
     private updateStatistics(

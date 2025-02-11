@@ -286,7 +286,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             };
         }
 
-        this.statistics.update(datum, statistics, point, context, this.verticalDirection, datum.localeManager);
+        this.statistics.update(datum, statistics, point, coords, context, this.verticalDirection, datum.localeManager);
     }
 
     override updateAnchor(

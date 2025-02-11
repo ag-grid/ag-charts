@@ -27,6 +27,7 @@ import { AnnotationsToolbar } from './annotationsToolbar';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
+import { getGroupingValue } from './utils/scale';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
@@ -451,7 +452,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private setupListeners() {
         const { ctx, optionsToolbar, settingsDialog, toolbar } = this;
-        const { seriesWidget, seriesDragInterpreter, containerWidget } = ctx.widgets;
+        const { seriesWidget, seriesDragInterpreter, chartWidget } = ctx.widgets;
 
         this.destroyFns.push(
             // Interactions
@@ -466,7 +467,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesDragInterpreter.addListener('drag-end', this.onDragEnd.bind(this)),
             seriesWidget.addListener('keydown', this.onKeyDown.bind(this)),
             seriesWidget.addListener('keyup', this.onKeyUp.bind(this)),
-            containerWidget.addListener('click', this.onCancel.bind(this)),
+            chartWidget.addListener('click', this.onCancel.bind(this)),
 
             // Services
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
@@ -624,9 +625,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
-    private getDatumRangeVolume(from: Point['x'], to: Point['x']) {
+    private getDatumRangeVolume(fromPoint: Point['x'], toPoint: Point['x']) {
         const { dataModel, processedData } = this;
 
+        let from = getGroupingValue(fromPoint).value;
+        let to = getGroupingValue(toPoint).value;
         if (!isValidDate(from) || !isValidDate(to) || !dataModel || !processedData || this.volumeKey == null) return;
 
         if (from > to) {

@@ -635,4 +635,39 @@ describe('Legend', () => {
             await compare(chart);
         });
     });
+
+    describe('CRT-638', () => {
+        test('updateDelta changing legend options should NOT reset legend data NOR refresh series visibility', async () => {
+            const options: AgChartOptions = prepareTestOptions({
+                title: { text: 'Chinese Olympic medals' },
+                data: [
+                    { year: '2016', gold: 26, silver: 18, bronze: 26 },
+                    { year: '2020', gold: 38, silver: 32, bronze: 19 },
+                    { year: '2024', gold: 40, silver: 27, bronze: 24 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'year', yKey: 'gold' },
+                    { type: 'line', xKey: 'year', yKey: 'silver' },
+                    { type: 'line', xKey: 'year', yKey: 'bronze' },
+                ],
+            });
+
+            const chartInstance = AgCharts.create(options);
+            chart = deproxy(chartInstance);
+            await waitForChartStability(chart);
+
+            // click legend to hide series
+            const { x, y } = computeLegendBBox(chart);
+            await clickAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            // remove legend, all series should become visible again
+            await chartInstance.updateDelta({
+                ...options,
+                legend: { item: { showSeriesStroke: true } },
+            });
+
+            await compare(chart);
+        });
+    });
 });

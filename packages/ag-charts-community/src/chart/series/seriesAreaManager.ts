@@ -52,10 +52,12 @@ export interface SeriesAreaChartDependencies {
 type ClickLikeEvent =
     | DragInterpreterClickEvent
     | DragInterpreterDblClickEvent
-    | MouseWidgetEvent<'click'>
-    | MouseWidgetEvent<'dblclick'>;
-type HoverLikeEvent = Partial<Pick<DragWidgetEvent, 'device'>> &
-    (ClickLikeEvent | MouseWidgetEvent<'mousemove'> | DragWidgetEvent<'drag-move'>);
+    | (MouseWidgetEvent<'click'> & { device?: void })
+    | (MouseWidgetEvent<'dblclick'> & { device?: void });
+type HoverLikeEvent =
+    | ClickLikeEvent
+    | (MouseWidgetEvent<'mousemove'> & { device?: void })
+    | DragWidgetEvent<'drag-move'>;
 
 type PickedNode = {
     series: Series<unknown, any, any>;
@@ -335,6 +337,9 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onClick(event: ClickLikeEvent, current: Widget) {
+        if (event.device === 'touch' && current === this.chart.ctx.widgets.seriesWidget) {
+            this.swapChain.focus({ preventScroll: true });
+        }
         if (!this.isState(InteractionState.Clickable)) return;
 
         // Check whether the `event.sourceEvent` targets on the series-area, or the back of the chart. The logic is
@@ -481,7 +486,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
         const { focus, seriesRect } = this;
-        const visibleSeries = focus.sortedSeries.filter((s) => s.visible);
+        const visibleSeries = focus.sortedSeries.filter((s) => s.visible && s.focusable);
         if (visibleSeries.length === 0) return;
 
         const oldPick = {
@@ -510,8 +515,12 @@ export class SeriesAreaManager extends BaseManager {
             seriesRect,
         } = this;
         if (series == null) return;
+        const oldPick = {
+            datumIndex: this.focus.datumIndex - datumIndexDelta,
+            otherIndex: this.focus.seriesIndex - otherIndexDelta,
+        };
         const pick = series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
-        this.updatePickedFocus(otherIndexDelta, datumIndexDelta, { datumIndex, otherIndex }, pick, refresh);
+        this.updatePickedFocus(otherIndexDelta, datumIndexDelta, oldPick, pick, refresh);
     }
 
     private updatePickedFocus(

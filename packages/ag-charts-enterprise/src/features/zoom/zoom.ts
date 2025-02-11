@@ -1,5 +1,4 @@
-import type { AgZoomAnchorPoint } from 'ag-charts-community';
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { type AgZoomAnchorPoint, _ModuleSupport, _Widget } from 'ag-charts-community';
 import { debounce } from 'ag-charts-core';
 
 import { ZoomRect } from './scenes/zoomRect';
@@ -14,6 +13,7 @@ import { ZoomToolbar } from './zoomToolbar';
 import { ZoomTwoFingers } from './zoomTwoFingers';
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
+    ANCHOR_POINT,
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
     UNIT,
@@ -44,8 +44,6 @@ const {
 } = _ModuleSupport;
 
 const round = (value: number) => sharedRound(value, 10);
-
-const ANCHOR_POINT = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor cord');
 
 const CURSOR_ID = 'zoom-cursor';
 const TOOLTIP_ID = 'zoom-tooltip';

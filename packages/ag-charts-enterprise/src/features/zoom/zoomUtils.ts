@@ -2,11 +2,12 @@ import { type AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
 
 import type { DefinedZoomState } from './zoomTypes';
 
-const { clamp, isNumberEqual, round } = _ModuleSupport;
+const { UNION, clamp, isNumberEqual, round } = _ModuleSupport;
 
 export const UNIT = { min: 0, max: 1 };
 export const DEFAULT_ANCHOR_POINT_X: AgZoomAnchorPoint = 'end';
 export const DEFAULT_ANCHOR_POINT_Y: AgZoomAnchorPoint = 'middle';
+export const ANCHOR_POINT = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor point');
 
 const constrain = (value: number, min = UNIT.min, max = UNIT.max) => clamp(min, value, max);
 

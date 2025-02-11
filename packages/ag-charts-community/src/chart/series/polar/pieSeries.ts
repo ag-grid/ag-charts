@@ -565,25 +565,27 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         let format: AgPieSeriesStyle | undefined;
         if (itemStyler) {
-            format = this.cachedDatumCallback(this.getDatumId(datum) + (highlighted ? '-highlight' : '-hide'), () =>
-                itemStyler({
-                    datum,
-                    angleKey,
-                    radiusKey,
-                    calloutLabelKey,
-                    sectorLabelKey,
-                    legendItemKey,
-                    fill: fill!,
-                    strokeOpacity,
-                    stroke,
-                    strokeWidth,
-                    fillOpacity,
-                    lineDash,
-                    lineDashOffset,
-                    cornerRadius,
-                    highlighted,
-                    seriesId: this.id,
-                })
+            format = this.cachedDatumCallback(
+                this.getDatumId(datum, datumIndex) + (highlighted ? '-highlight' : '-hide'),
+                () =>
+                    itemStyler({
+                        datum,
+                        angleKey,
+                        radiusKey,
+                        calloutLabelKey,
+                        sectorLabelKey,
+                        legendItemKey,
+                        fill: fill!,
+                        strokeOpacity,
+                        stroke,
+                        strokeWidth,
+                        fillOpacity,
+                        lineDash,
+                        lineDashOffset,
+                        cornerRadius,
+                        highlighted,
+                        seriesId: this.id,
+                    })
             );
         }
 
@@ -725,7 +727,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         }));
 
         const update = (selection: typeof this.itemSelection, nodeData: PieNodeDatum[]) => {
-            selection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
+            selection.update(nodeData, undefined, (datum) => this.getDatumId(datum.datum, datum.datumIndex));
             if (this.ctx.animationManager.isSkipped()) {
                 selection.cleanup();
             }
@@ -1448,7 +1450,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             animationManager,
             [this.itemSelection, this.highlightSelection, this.phantomSelection],
             fns.nodes,
-            (_, datum) => this.getDatumId(datum)
+            (_, datum) => this.getDatumId(datum.datum, datum.datumIndex)
         );
 
         seriesLabelFadeInAnimation(this, 'callout', animationManager, this.calloutLabelSelection);
@@ -1485,7 +1487,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             animationManager,
             [itemSelection, highlightSelection, phantomSelection],
             fns.nodes,
-            (_, datum) => this.getDatumId(datum),
+            (_, datum) => this.getDatumId(datum.datum, datum.datumIndex),
             dataDiff
         );
 
@@ -1512,7 +1514,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             animationManager,
             [itemSelection, highlightSelection, phantomSelection],
             fns.nodes,
-            (_, datum) => this.getDatumId(datum)
+            (_, datum) => this.getDatumId(datum.datum, datum.datumIndex)
         );
 
         seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
@@ -1522,21 +1524,21 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.previousRadiusScale.range = this.radiusScale.range;
     }
 
-    getDatumId(datum: PieNodeDatum) {
+    getDatumId(datum: any, datumIndex: number) {
         const { calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
 
         if (!this.processedData?.reduced?.animationValidation?.uniqueKeys) {
-            return `${datum.datumIndex}`;
+            return `${datumIndex}`;
         }
 
         if (legendItemKey) {
-            return createDatumId(datum.datum[legendItemKey]);
+            return createDatumId(datum[legendItemKey]);
         } else if (calloutLabelKey) {
-            return createDatumId(datum.datum[calloutLabelKey]);
+            return createDatumId(datum[calloutLabelKey]);
         } else if (sectorLabelKey) {
-            return createDatumId(datum.datum[sectorLabelKey]);
+            return createDatumId(datum[sectorLabelKey]);
         }
 
-        return `${datum.datumIndex}`;
+        return `${datumIndex}`;
     }
 }
