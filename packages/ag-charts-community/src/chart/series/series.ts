@@ -256,6 +256,10 @@ export abstract class Series<
 
     connectsToYAxis = false;
 
+    get focusable() {
+        return true; // See CRT-692
+    }
+
     get data() {
         return this._data ?? this._chartData;
     }

@@ -44,6 +44,10 @@ export class MapLineBackgroundSeries
         return this.properties.topology ?? this._chartTopology;
     }
 
+    override get focusable() {
+        return false;
+    }
+
     override setOptionsData() {
         // Ignore data
     }
