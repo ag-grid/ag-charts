@@ -5,6 +5,11 @@ export const MAP_THEME_DEFAULTS: _ModuleSupport.ExtensibleTheme<'map-shape' | 'm
         axes: 'xy',
         anchorPointX: 'pointer',
         anchorPointY: 'pointer',
+        buttons: {
+            // @ts-expect-error undocumented options
+            anchorPointX: 'middle',
+            anchorPointY: 'middle',
+        },
     },
     legend: {
         enabled: false,

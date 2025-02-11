@@ -1,7 +1,8 @@
-import { type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
+import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
+    ANCHOR_POINT,
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
     UNIT,
@@ -66,6 +67,12 @@ export class ZoomToolbar extends BaseProperties {
         },
     })
     public visible: ZoomButtonsVisible = 'hover';
+
+    @Validate(ANCHOR_POINT)
+    public anchorPointX?: AgZoomAnchorPoint;
+
+    @Validate(ANCHOR_POINT)
+    public anchorPointY?: AgZoomAnchorPoint;
 
     private readonly verticalSpacing = 10;
     private readonly detectionRange = 38;
@@ -242,7 +249,7 @@ export class ZoomToolbar extends BaseProperties {
         direction: _ModuleSupport.ChartAxisDirection,
         zoom: _ModuleSupport.ZoomState
     ) {
-        const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
+        const { isScalingX, isScalingY, scrollingStep } = props;
 
         let newZoom = { ...zoom };
         const delta = zoom.max - zoom.min;
@@ -275,13 +282,10 @@ export class ZoomToolbar extends BaseProperties {
 
                 let scale = event.value === 'zoom-in' ? 1 - scrollingStep : 1 + scrollingStep;
                 if (!isScalingDirection) scale = 1;
-
-                const useAnchorPointX = anchorPointX === 'pointer' ? DEFAULT_ANCHOR_POINT_X : anchorPointX;
-                const useAnchorPointY = anchorPointY === 'pointer' ? DEFAULT_ANCHOR_POINT_Y : anchorPointY;
-                const useAnchorPoint = isDirectionX ? useAnchorPointX : useAnchorPointY;
+                const anchorPoint = isDirectionX ? this.getAnchorPointX(props) : this.getAnchorPointY(props);
 
                 newZoom.max = newZoom.min + (newZoom.max - newZoom.min) * scale;
-                newZoom = scaleZoomAxisWithAnchor(newZoom, zoom, useAnchorPoint);
+                newZoom = scaleZoomAxisWithAnchor(newZoom, zoom, anchorPoint);
                 break;
             }
         }
@@ -329,16 +333,23 @@ export class ZoomToolbar extends BaseProperties {
     }
 
     private getNextZoomStateUnified(button: 'zoom-in' | 'zoom-out', oldZoom: DefinedZoomState, props: ZoomProperties) {
-        const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
+        const { isScalingX, isScalingY, scrollingStep } = props;
 
         const scale = button === 'zoom-in' ? 1 - scrollingStep : 1 + scrollingStep;
-        const useAnchorPointX = anchorPointX === 'pointer' ? DEFAULT_ANCHOR_POINT_X : anchorPointX;
-        const useAnchorPointY = anchorPointY === 'pointer' ? DEFAULT_ANCHOR_POINT_Y : anchorPointY;
-
         const zoom = scaleZoom(oldZoom, isScalingX ? scale : 1, isScalingY ? scale : 1);
-        zoom.x = scaleZoomAxisWithAnchor(zoom.x, oldZoom.x, useAnchorPointX);
-        zoom.y = scaleZoomAxisWithAnchor(zoom.y, oldZoom.y, useAnchorPointY);
+        zoom.x = scaleZoomAxisWithAnchor(zoom.x, oldZoom.x, this.getAnchorPointX(props));
+        zoom.y = scaleZoomAxisWithAnchor(zoom.y, oldZoom.y, this.getAnchorPointY(props));
 
         return zoom;
+    }
+
+    private getAnchorPointX(props: ZoomProperties) {
+        const anchorPointX = this.anchorPointX ?? props.anchorPointX;
+        return anchorPointX === 'pointer' ? DEFAULT_ANCHOR_POINT_X : anchorPointX;
+    }
+
+    private getAnchorPointY(props: ZoomProperties) {
+        const anchorPointY = this.anchorPointY ?? props.anchorPointY;
+        return anchorPointY === 'pointer' ? DEFAULT_ANCHOR_POINT_Y : anchorPointY;
     }
 }
