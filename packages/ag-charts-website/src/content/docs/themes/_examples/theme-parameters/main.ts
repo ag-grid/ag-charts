@@ -7,6 +7,13 @@ const paperTheme: AgChartTheme = {
         fills: ['#006f9b', '#ff7faa', '#00994d', '#ff8833', '#00a0dd'],
         strokes: ['#003f58', '#934962', '#004a25', '#914d1d', '#006288'],
     },
+    overrides: {
+        common: {
+            subtitle: {
+                text: 'Paper Theme',
+            },
+        },
+    },
     params: {
         foregroundColor: '#262a33',
         backgroundColor: '#fff1e5',
@@ -20,8 +27,15 @@ const paperTheme: AgChartTheme = {
 
 const oceanTheme: AgChartTheme = {
     palette: {
-        fills: ['#072b6e', '#094890', '#0b6ca8', '#0c94b6', '#0bc9c9'],
+        fills: ['#072b6e', '#0c94b6', '#0b6ca8', '#094890', '#0bc9c9'],
         strokes: ['#051c48', '#073569', '#095686', '#097590', '#0a9999'],
+    },
+    overrides: {
+        common: {
+            subtitle: {
+                text: 'Ocean Theme',
+            },
+        },
     },
     params: {
         foregroundColor: '#0a54a4',
@@ -34,8 +48,15 @@ const oceanTheme: AgChartTheme = {
 
 const neonTheme: AgChartTheme = {
     palette: {
-        fills: ['#00ff1e', '#ff00dd', '#00fff7', '#8f00ff', '#ff0000'],
+        fills: ['#8f00ff', '#ff00dd', '#00ff1e', '#00fff7', '#ff0000'],
         strokes: ['#fff'],
+    },
+    overrides: {
+        common: {
+            subtitle: {
+                text: 'Neon Theme',
+            },
+        },
     },
     params: {
         foregroundColor: '#00ff1e',
@@ -50,6 +71,17 @@ const neonTheme: AgChartTheme = {
     },
 };
 
+const defaultTheme: AgChartTheme = {
+    baseTheme: 'ag-default',
+    overrides: {
+        common: {
+            subtitle: {
+                text: 'Default Theme',
+            },
+        },
+    },
+};
+
 const options: AgCartesianChartOptions = {
     theme: paperTheme,
     container: document.getElementById('myChart'),
@@ -57,7 +89,7 @@ const options: AgCartesianChartOptions = {
         text: 'Dolphins & Mirrors',
     },
     subtitle: {
-        text: 'Interactions of Dolphins With Marked Mirrors',
+        enabled: true,
     },
     data: getData(),
     series: [
@@ -146,24 +178,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function changeParam() {
-    const foregroundColor = document.getElementById('foreground-color') as HTMLInputElement;
-    const backgroundColor = document.getElementById('background-color') as HTMLInputElement;
-    const accentColor = document.getElementById('accent-color') as HTMLInputElement;
-    const fontFamily = document.getElementById('font-family') as HTMLInputElement;
-    const fontSize = document.getElementById('font-size') as HTMLInputElement;
-
-    (options.theme as AgChartTheme).params!.foregroundColor = foregroundColor.value;
-    (options.theme as AgChartTheme).params!.backgroundColor = backgroundColor.value;
-    (options.theme as AgChartTheme).params!.accentColor = accentColor.value;
-    (options.theme as AgChartTheme).params!.fontFamily = fontFamily.value;
-    (options.theme as AgChartTheme).params!.fontSize = Number(fontSize.value);
-
-    chart.update(options as any);
-}
-
 function useDefaultTheme() {
-    delete options.theme;
+    options.theme = defaultTheme;
     chart.update(options);
 }
 
