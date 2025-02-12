@@ -98,7 +98,7 @@ export class DragInterpreter {
     }
 
     private onTouchStart(e: TouchWidgetEvent<'touchstart'>) {
-        const { clientX, clientY } = e.sourceEvent.targetTouches.item(0) ?? { clientX: Infinity, clientY: Infinity };
+        const { clientX, clientY } = e.sourceEvent.targetTouches[0] ?? { clientX: Infinity, clientY: Infinity };
         this.touch.distanceTravelledX = 0;
         this.touch.distanceTravelledY = 0;
         this.touch.clientX = clientX;
@@ -106,7 +106,7 @@ export class DragInterpreter {
     }
 
     private onTouchMove(e: TouchWidgetEvent<'touchmove'>) {
-        const { clientX, clientY } = e.sourceEvent.targetTouches.item(0) ?? { clientX: Infinity, clientY: Infinity };
+        const { clientX, clientY } = e.sourceEvent.targetTouches[0] ?? { clientX: Infinity, clientY: Infinity };
         this.touch.distanceTravelledX += Math.abs(this.touch.clientX - clientX);
         this.touch.distanceTravelledY += Math.abs(this.touch.clientY - clientY);
         this.touch.clientX = clientX;
