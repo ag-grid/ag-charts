@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 
-const { BBoxValues } = _ModuleSupport;
+const { BBoxValues, ChartAxisDirection } = _ModuleSupport;
 
 type AxesHandlers = {
     onDragStart: (id: string, direction: _ModuleSupport.ChartAxisDirection) => void;
@@ -11,34 +11,12 @@ type AxesHandlers = {
 
 type ProxyAxis = {
     axisId: string;
+    direction: _ModuleSupport.ChartAxisDirection;
     div: _Widget.NativeWidget<HTMLDivElement>;
 };
 
 export class ZoomDOMProxy {
     private axes: ProxyAxis[] = [];
-
-    private initAxis(
-        ctx: Pick<_ModuleSupport.ModuleContext, 'proxyInteractionService' | 'localeManager'>,
-        axisId: string,
-        handlers: AxesHandlers,
-        direction: _ModuleSupport.ChartAxisDirection
-    ): ProxyAxis {
-        const { X, Y } = _ModuleSupport.ChartAxisDirection;
-        const cursor = ({ [X]: 'ew-resize', [Y]: 'ns-resize' } as const)[direction];
-        const where = 'afterend';
-        const div = ctx.proxyInteractionService.createProxyElement({ type: 'region', domManagerId: axisId, where });
-        div.setCursor(cursor);
-        div.addListener('drag-start', (e) => {
-            if (e.device === 'touch') {
-                e.sourceEvent.preventDefault();
-            }
-            handlers.onDragStart(axisId, direction);
-        });
-        div.addListener('drag-move', (ev) => handlers.onDrag(ev));
-        div.addListener('drag-end', handlers.onDragEnd);
-        div.addListener('dblclick', () => handlers.onDoubleClick(axisId, direction));
-        return { axisId, div };
-    }
 
     constructor(private readonly axesHandlers: AxesHandlers) {}
 
@@ -70,13 +48,45 @@ export class ZoomDOMProxy {
         }
 
         for (const axis of this.axes) {
-            const axisCtx = axesCtx.filter((ac) => ac.axisId === axis.axisId)[0];
+            const axisCtx = axesCtx.find((ac) => ac.axisId === axis.axisId)!;
             const bbox = axisCtx.getCanvasBounds();
             axis.div.setHidden(BBoxValues.isEmpty(bbox));
             if (bbox !== undefined) {
                 axis.div.setBounds(bbox);
             }
         }
+    }
+
+    toggleAxisDraggingCursor(direction: _ModuleSupport.ChartAxisDirection, enabled: boolean) {
+        for (const axis of this.axes) {
+            if (axis.direction !== direction) continue;
+            axis.div.setCursor(enabled ? this.getCursor(direction) : undefined);
+        }
+    }
+
+    private getCursor(direction: _ModuleSupport.ChartAxisDirection) {
+        return direction === ChartAxisDirection.X ? 'ew-resize' : 'ns-resize';
+    }
+
+    private initAxis(
+        ctx: Pick<_ModuleSupport.ModuleContext, 'proxyInteractionService' | 'localeManager'>,
+        axisId: string,
+        handlers: AxesHandlers,
+        direction: _ModuleSupport.ChartAxisDirection
+    ): ProxyAxis {
+        const where = 'afterend';
+        const div = ctx.proxyInteractionService.createProxyElement({ type: 'region', domManagerId: axisId, where });
+        div.setCursor(this.getCursor(direction));
+        div.addListener('drag-start', (e) => {
+            if (e.device === 'touch') {
+                e.sourceEvent.preventDefault();
+            }
+            handlers.onDragStart(axisId, direction);
+        });
+        div.addListener('drag-move', (ev) => handlers.onDrag(ev));
+        div.addListener('drag-end', handlers.onDragEnd);
+        div.addListener('dblclick', () => handlers.onDoubleClick(axisId, direction));
+        return { axisId, div, direction };
     }
 
     private diffAxisIds(axesCtx: _ModuleSupport.AxisContext[]) {

@@ -2,7 +2,7 @@ import type { AgSeriesAreaContextMenuActionEvent, _ModuleSupport } from 'ag-char
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
-    UNIT,
+    UNIT_SIZE,
     constrainZoom,
     definedZoomState,
     dx,
@@ -90,7 +90,7 @@ export class ZoomContextMenu {
         const scaledOriginX = origin.x * scaleX;
         const scaledOriginY = origin.y * scaleY;
 
-        const halfSize = (UNIT.max - UNIT.min) / 2;
+        const halfSize = UNIT_SIZE / 2;
 
         let newZoom = {
             x: { min: origin.x - halfSize, max: origin.x + halfSize },
@@ -122,15 +122,18 @@ export class ZoomContextMenu {
         const scaledOriginX = origin.x * dx(zoom);
         const scaledOriginY = origin.y * dy(zoom);
 
-        const size = UNIT.max - UNIT.min;
-        const halfSize = size / 2;
+        const halfSize = UNIT_SIZE / 2;
 
         let newZoom = {
             x: { min: origin.x - halfSize, max: origin.x + halfSize },
             y: { min: origin.y - halfSize, max: origin.y + halfSize },
         };
 
-        newZoom = scaleZoomCenter(newZoom, isScalingX ? dx(zoom) * step : size, isScalingY ? dy(zoom) * step : size);
+        newZoom = scaleZoomCenter(
+            newZoom,
+            isScalingX ? dx(zoom) * step : UNIT_SIZE,
+            isScalingY ? dy(zoom) * step : UNIT_SIZE
+        );
         newZoom = translateZoom(newZoom, zoom.x.min - origin.x + scaledOriginX, zoom.y.min - origin.y + scaledOriginY);
 
         return constrainZoom(newZoom);
