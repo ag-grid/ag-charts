@@ -118,7 +118,7 @@ export function prepareSceneNodeHighlight(ctx: RenderContext) {
 export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNodes: Record<string, Node>) {
     ctx.save();
 
-    for (const name in debugNodes) {
+    for (const name of Object.keys(debugNodes)) {
         const node = debugNodes[name];
         const bbox = Transformable.toCanvas(node);
 
@@ -170,7 +170,7 @@ const allowedProperties = new Set([
 
 function nodeProps(node: Node) {
     const { ...allProps } = node as any;
-    for (const prop in allProps) {
+    for (const prop of Object.keys(allProps)) {
         if (allowedProperties.has(prop)) continue;
         if (typeof allProps[prop] === 'number') continue;
         if (typeof allProps[prop] === 'string') continue;

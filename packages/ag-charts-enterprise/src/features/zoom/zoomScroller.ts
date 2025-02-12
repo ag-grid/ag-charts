@@ -29,7 +29,7 @@ export class ZoomScroller {
             sourceEvent.offsetY ?? sourceEvent.clientY
         );
 
-        for (const axisId in zooms) {
+        for (const axisId of Object.keys(zooms)) {
             const { direction, zoom } = zooms[axisId];
             if (zoom == null) continue;
 

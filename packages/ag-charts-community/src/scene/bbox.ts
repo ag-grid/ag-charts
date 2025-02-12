@@ -142,8 +142,8 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         if (typeof amount === 'number') {
             this.applyMargin(amount, position);
         } else {
-            for (const key in amount) {
-                const value = (amount as any)[key];
+            for (const key of Object.keys(amount) as (keyof Padding)[]) {
+                const value = amount[key];
                 if (typeof value === 'number') {
                     this.applyMargin(value, key as ShrinkOrGrowPosition);
                 }
@@ -166,8 +166,8 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         if (typeof amount === 'number') {
             this.applyMargin(-amount, position);
         } else {
-            for (const key in amount) {
-                const value = (amount as any)[key];
+            for (const key of Object.keys(amount) as (keyof Padding)[]) {
+                const value = amount[key];
                 if (typeof value === 'number') {
                     this.applyMargin(-value, key as ShrinkOrGrowPosition);
                 }

@@ -54,7 +54,7 @@ if (argv.base === argv.compare) {
 
 console.log(`Comparing ${argv.base} (baseline) vs. ${argv.compare}`);
 const result = [];
-for (const test in baseData.results) {
+for (const test of Object.keys(baseData.results)) {
     const base = baseData.results[test];
     const compare = compareData.results[test];
 

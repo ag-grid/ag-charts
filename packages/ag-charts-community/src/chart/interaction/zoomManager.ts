@@ -154,7 +154,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         if (blob == null) return true;
         if (!isObject(blob)) return false;
 
-        for (const key in blob) {
+        for (const key of Object.keys(blob)) {
             if (!expectedMementoKeys.includes(key as keyof ZoomMemento)) {
                 return false;
             }

@@ -53,7 +53,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
         return path ? `${path}.${key}` : key;
     }
 
-    for (const key in optionsDefs) {
+    for (const key of Object.keys(optionsDefs)) {
         const validatorOrDefs: Validator | ObjectLikeDef<any> = (optionsDefs as any)[key];
         optionsKeys.delete(key);
         const value = options[key as keyof object];

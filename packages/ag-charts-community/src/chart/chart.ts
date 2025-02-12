@@ -623,7 +623,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
                 extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
                 ctx.scene.render({ debugSplitTimes: splits, extraDebugStats, seriesRect: this.seriesRect });
                 this.extraDebugStats = {};
-                for (const key in splits) {
+                for (const key of Object.keys(splits)) {
                     delete splits[key];
                 }
 
@@ -1578,7 +1578,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     private registerListeners(source: Observable, listeners: Record<string, TypedEventListener>) {
         source.clearEventListeners();
-        for (const property in listeners) {
+        for (const property of Object.keys(listeners)) {
             const listener = listeners[property];
             if (isFunction(listener)) {
                 source.addEventListener(property, listener);

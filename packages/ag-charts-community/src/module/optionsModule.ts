@@ -95,7 +95,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static readonly FAST_PATH_OPTIONS = new Set<keyof AgChartOptions>(['data', 'width', 'height']);
     private static isFastPathDelta(deltaOptions: DeepPartial<AgChartOptions>) {
-        for (const key in deltaOptions) {
+        for (const key of Object.keys(deltaOptions)) {
             if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions)) return false;
         }
         return true;
@@ -759,7 +759,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static removeLeftoverSymbolsJson(this: void, optionsNode: any) {
         if (!optionsNode || !isObject(optionsNode)) return;
-        for (const key in optionsNode) {
+        for (const key of Object.keys(optionsNode)) {
             const value = optionsNode[key];
             if (isSymbol(value)) {
                 delete optionsNode[key];

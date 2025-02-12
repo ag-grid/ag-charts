@@ -17,7 +17,7 @@ export class ZoomScrollPanner {
         const offset = pointToRatio(bbox, bbox.x + Math.abs(deltaX), 0);
         const offsetX = deltaX < 0 ? -offset.x : offset.x;
 
-        for (const axisId in currentZooms) {
+        for (const axisId of Object.keys(currentZooms)) {
             const { direction, zoom: currentZoom } = currentZooms[axisId];
             if (direction !== _ModuleSupport.ChartAxisDirection.X) continue;
 

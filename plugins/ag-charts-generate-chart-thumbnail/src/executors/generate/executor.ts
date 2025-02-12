@@ -63,7 +63,7 @@ export async function generateFiles(
     await ensureDirectory(outputPath);
 
     const timesCalled = await consolePrefix(`[${ctx.projectName}] `, async () => {
-        for (const theme in THEMES as AgChartThemeName[]) {
+        for (const theme of Object.keys(THEMES) as AgChartThemeName[]) {
             if (!THEMES[theme]) continue;
 
             for (const dpi of dpiOutputs) {

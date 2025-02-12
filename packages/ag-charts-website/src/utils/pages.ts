@@ -199,7 +199,7 @@ export const getBoilerPlateUrl = ({
 export function getDevFiles(): DevFileRoute[] {
     const result = [];
 
-    for (const filePath in DEV_FILE_PATH_MAP) {
+    for (const filePath of Object.keys(DEV_FILE_PATH_MAP)) {
         const sourceFilePath = DEV_FILE_PATH_MAP[filePath];
         const fullFilePath = pathJoin(getRootUrl().pathname, sourceFilePath);
         if (fullFilePath.includes('**')) {

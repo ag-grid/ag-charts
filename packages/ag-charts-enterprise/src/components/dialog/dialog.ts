@@ -117,7 +117,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const tabButtonIds = mapValues(tabs, () => createElementId('ag-charts-dialog__tab'));
         const tabPanelIds = mapValues(tabs, () => createElementId('ag-charts-dialog__tab-panel'));
 
-        for (const key in tabs) {
+        for (const key of Object.keys(tabs)) {
             setAttributes(tabs[key].panel, {
                 id: tabPanelIds[key],
                 role: 'tabpanel',
@@ -126,7 +126,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         }
 
         const onPressTab = (active: keyof T) => {
-            for (const key in tabs) {
+            for (const key of Object.keys(tabs)) {
                 tabs[key].panel.classList.toggle('ag-charts-dialog__tab-panel--active', key === active);
                 tabButtons[key].classList.toggle('ag-charts-dialog__tab-button--active', key === active);
                 setAttribute(tabButtons[key], 'aria-selected', key === active);
