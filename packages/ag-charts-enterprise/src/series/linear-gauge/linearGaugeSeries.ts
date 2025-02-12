@@ -142,8 +142,18 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
         return this.gauge.properties.scale.interval;
     }
 
-    formatTick(value: any): string {
-        return this.gauge.formatLabel(value);
+    formatTick(
+        value: any,
+        index: number,
+        _fractionDigits?: number,
+        defaultFormatter?: (datum: unknown) => string
+    ): string {
+        const { label } = this;
+        return (
+            label.formatter?.({ value, index }) ??
+            (label.format != null ? defaultFormatter?.(value) : undefined) ??
+            this.gauge.formatLabel(value)
+        );
     }
 
     inRange(): boolean {
@@ -369,7 +379,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { thickness } = properties;
         const { value, placement, spacing, size } = target;
 
-        const mainOffset = scale.convert(value) - scale.range[0];
+        const mainOffset = scale.convert(value);
 
         let crossOffset: number;
         switch (placement) {
