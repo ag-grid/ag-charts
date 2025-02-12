@@ -85,6 +85,7 @@ const options: AgChartOptions = {
             },
         },
     ],
+    seriesArea: { padding: { right: 10 } },
 };
 
 AgCharts.create(options);
