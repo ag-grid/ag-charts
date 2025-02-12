@@ -325,12 +325,12 @@ describe('Zoom', () => {
                 { clientX: cx + 50, clientY: cy + 50 },
             ])(chart);
             await touchAction('touchmove', [
-                { clientX: cx - 100, clientY: cy - 100 },
-                { clientX: cx + 100, clientY: cy + 100 },
+                { clientX: cx - 150, clientY: cy - 150 },
+                { clientX: cx + 150, clientY: cy + 150 },
             ])(chart);
             await touchAction('touchend', [
-                { clientX: cx - 100, clientY: cy - 100 },
-                { clientX: cx + 100, clientY: cy + 100 },
+                { clientX: cx - 150, clientY: cy - 150 },
+                { clientX: cx + 150, clientY: cy + 150 },
             ])(chart);
         });
 
