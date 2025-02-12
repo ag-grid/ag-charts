@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-properties */
 import { Logger, isString, toArray } from 'ag-charts-core';
 
 import { getWindow } from '../core';
@@ -62,14 +63,14 @@ export function debugStats(
     const end = performance.now();
     const { start, ...durations } = debugSplitTimes;
 
-    const splits = Object.keys(durations)
-        .map((n) => {
-            return time(n, durations[n]);
+    const splits = Object.entries(durations)
+        .map(([n, t]) => {
+            return time(n, t);
         })
         .filter((v) => v != null)
         .join(' + ');
-    const extras = Object.keys(extraDebugStats)
-        .map((k) => `${k}: ${JSON.stringify((extraDebugStats as any)[k])}`)
+    const extras = Object.entries(extraDebugStats)
+        .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
         .join(' ; ');
 
     const detailedStats = Debug.check(DebugSelectors.SCENE_STATS_VERBOSE);
@@ -118,8 +119,7 @@ export function prepareSceneNodeHighlight(ctx: RenderContext) {
 export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNodes: Record<string, Node>) {
     ctx.save();
 
-    for (const name of Object.keys(debugNodes)) {
-        const node = debugNodes[name];
+    for (const [name, node] of Object.entries(debugNodes)) {
         const bbox = Transformable.toCanvas(node);
 
         if (!bbox) {

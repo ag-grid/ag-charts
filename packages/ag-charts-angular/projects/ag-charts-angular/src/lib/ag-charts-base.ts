@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, EventEmitter, NgZone, OnChanges, OnDestroy } from '@angular/core';
 
 import { AgBaseChartListeners, AgChartInstance, AgChartLegendListeners, AgSeriesListeners } from 'ag-charts-community';
+import { entries } from 'ag-charts-core';
 
 @Component({
     template: '',
@@ -50,8 +51,7 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
             listenerConfig: undefined | AgChartLegendListeners | AgSeriesListeners<any> | AgBaseChartListeners<any>
         ) => {
             const config = listenerConfig ?? ({} as any);
-            for (const listenerName of Object.keys(config)) {
-                const listener = config[listenerName];
+            for (const [listenerName, listener] of entries(config)) {
                 if (typeof listener !== 'function') continue;
 
                 config[listenerName] = (...args: any) => {

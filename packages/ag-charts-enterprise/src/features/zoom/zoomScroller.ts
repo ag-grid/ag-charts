@@ -1,4 +1,5 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { entries } from 'ag-charts-core';
 
 import type { AxisZoomStates, DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -29,8 +30,7 @@ export class ZoomScroller {
             sourceEvent.offsetY ?? sourceEvent.clientY
         );
 
-        for (const axisId of Object.keys(zooms)) {
-            const { direction, zoom } = zooms[axisId];
+        for (const [axisId, { direction, zoom }] of entries(zooms)) {
             if (zoom == null) continue;
 
             let newZoom = { ...zoom };

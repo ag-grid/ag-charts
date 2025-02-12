@@ -1,4 +1,4 @@
-import { isArray } from 'ag-charts-core';
+import { entries, isArray } from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeOptions,
@@ -370,8 +370,7 @@ export class ChartTheme {
     }
 
     private createChartConfigPerChartType(config: AgChartThemeOverrides) {
-        for (const nextType of Object.keys(CHART_TYPE_CONFIG) as ChartType[]) {
-            const { seriesTypes } = CHART_TYPE_CONFIG[nextType];
+        for (const [nextType, { seriesTypes }] of entries(CHART_TYPE_CONFIG)) {
             const typeDefaults = chartDefaults.get(nextType);
             for (const seriesType of seriesTypes) {
                 config[seriesType as keyof AgChartThemeOverrides] ??= deepClone(typeDefaults);
@@ -428,13 +427,11 @@ export class ChartTheme {
                     node[i] = params.get(symbol);
                 }
             }
-            return;
-        }
-
-        for (const name of Object.keys(node)) {
-            const value = node[name];
-            if (typeof value === 'symbol' && params?.has(value)) {
-                node[name] = params.get(value);
+        } else {
+            for (const [name, value] of entries(node)) {
+                if (typeof value === 'symbol' && params?.has(value)) {
+                    node[name] = params.get(value);
+                }
             }
         }
     }

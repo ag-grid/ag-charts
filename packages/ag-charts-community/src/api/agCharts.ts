@@ -1,4 +1,4 @@
-import { type DeepPartial, ModuleRegistry } from 'ag-charts-core';
+import { type DeepPartial, ModuleRegistry, entries } from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -242,8 +242,7 @@ class AgChartsInternal {
 
     private static markRemovedProperties(this: void, node: any, _: unknown, modified = false) {
         if (typeof node !== 'object') return modified;
-        for (const key of Object.keys(node)) {
-            const value = node[key];
+        for (const [key, value] of entries(node)) {
             if (typeof value === 'undefined') {
                 Object.assign(node, { [key]: Symbol('UNSET') });
                 modified ||= true;

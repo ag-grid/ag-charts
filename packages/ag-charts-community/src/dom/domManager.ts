@@ -1,3 +1,4 @@
+import { entries } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
 import { createElement, getDocument, getWindow } from '../core';
@@ -284,8 +285,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         const lengthKeys: Array<keyof AgChartThemeParams> = ['fontSize', 'chromeFontSize'];
 
-        for (const key of Object.keys(params) as Array<keyof AgChartThemeParams>) {
-            const value = params[key];
+        for (const [key, value] of entries(params) as Array<[keyof AgChartThemeParams, string | number]>) {
             let formattedValue = `${value}`;
             if (lengthKeys.includes(key)) {
                 formattedValue = `${value}px`;

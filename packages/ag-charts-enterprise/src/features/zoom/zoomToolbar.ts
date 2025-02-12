@@ -1,4 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
+import { entries } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -229,8 +230,7 @@ export class ZoomToolbar extends BaseProperties {
 
         if (props.independentAxes && button.value !== 'reset') {
             const axisZooms = this.ctx.zoomManager.getAxisZooms();
-            for (const axisId of Object.keys(axisZooms)) {
-                const { direction, zoom } = axisZooms[axisId];
+            for (const [axisId, { direction, zoom }] of entries(axisZooms)) {
                 if (zoom == null) continue;
                 this.onButtonPressAxis(button, props, axisId, direction, zoom);
             }

@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { entries } from 'ag-charts-core';
 
 import type { AxisZoomStates, ZoomCoords } from './zoomTypes';
 import { UNIT, constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
@@ -159,8 +160,7 @@ export class ZoomPanner {
 
         const newZooms: AxisZoomStates = {};
 
-        for (const axisId of Object.keys(currentZooms)) {
-            const { direction, zoom: currentZoom } = currentZooms[axisId];
+        for (const [axisId, { direction, zoom: currentZoom }] of entries(currentZooms)) {
             // Skip panning axes that are fully zoomed out to prevent floating point issues
             if (currentZoom && currentZoom.min === UNIT.min && currentZoom.max === UNIT.max) {
                 continue;

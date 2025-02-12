@@ -1,4 +1,4 @@
-import { Logger, arraysEqual, groupBy } from 'ag-charts-core';
+import { Logger, arraysEqual, entries, groupBy } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { LayoutContext, ModuleInstance } from '../module/baseModule';
@@ -252,8 +252,7 @@ export class CartesianChart extends Chart {
         const newAxisAreaWidths: AreaWidthMap = new Map();
         const axisOffsets = new Map<string, number>();
 
-        for (const position of Object.keys(axisGroups) as AgCartesianAxisPosition[]) {
-            const axes = axisGroups[position];
+        for (const [position, axes] of entries(axisGroups)) {
             const isVertical = position === 'left' || position === 'right';
 
             // Adjust offset for pixel ratio to prevent alignment issues with series rendering.
@@ -275,9 +274,9 @@ export class CartesianChart extends Chart {
         }
 
         // Step 3) position all axes taking adjacent positions into account.
-        for (const position of Object.keys(axisGroups) as AgCartesianAxisPosition[]) {
+        for (const [position, axes] of entries(axisGroups)) {
             this.positionAxes({
-                axes: axisGroups[position] ?? [],
+                axes: axes ?? [],
                 position,
                 axisWidths,
                 axisOffsets,
@@ -299,9 +298,8 @@ export class CartesianChart extends Chart {
             });
         });
         // Reduce cross-line padding to account for overlap with axes.
-        for (const side of Object.keys(crossLinePadding) as AgCartesianAxisPosition[]) {
-            const padding = crossLinePadding[side] ?? 0;
-            crossLinePadding[side] = Math.max(padding - (axisAreaSize.get(side) ?? 0), 0);
+        for (const [side, padding = 0] of entries(crossLinePadding)) {
+            crossLinePadding[side] = Math.max(padding - (axisAreaSize.get(side as AgCartesianAxisPosition) ?? 0), 0);
         }
 
         crossLinePadding.hPadding = crossLinePadding.left + crossLinePadding.right;

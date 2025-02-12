@@ -1,4 +1,4 @@
-import { Logger, type ModuleInstance, groupBy, isFiniteNumber, isFunction } from 'ag-charts-core';
+import { Logger, type ModuleInstance, entries, groupBy, isFiniteNumber, isFunction } from 'ag-charts-core';
 import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateLegendOptions } from 'ag-charts-types';
 
 import type { AxisOptionModule } from '../module/axisOptionModule';
@@ -1578,8 +1578,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     private registerListeners(source: Observable, listeners: Record<string, TypedEventListener>) {
         source.clearEventListeners();
-        for (const property of Object.keys(listeners)) {
-            const listener = listeners[property];
+        for (const [property, listener] of entries(listeners)) {
             if (isFunction(listener)) {
                 source.addEventListener(property, listener);
             }
