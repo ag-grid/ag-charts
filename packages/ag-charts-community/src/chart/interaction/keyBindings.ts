@@ -49,10 +49,10 @@ function matchesKeyBinding(e: KeyboardEvent, bindings: Readonly<KeyBinding>[]) {
 }
 
 export function mapKeyboardEventToAction(event: KeyboardEvent): KeyAction | undefined {
-    for (const actionName of Object.keys(KEY_BINDINGS) as KeyActionName[]) {
-        const { activatesFocusIndicator = true, bindings } = KEY_BINDINGS[actionName];
+    for (const actionName in KEY_BINDINGS) {
+        const { activatesFocusIndicator = true, bindings } = KEY_BINDINGS[actionName as KeyActionName];
         if (matchesKeyBinding(event, bindings)) {
-            return { name: actionName, activatesFocusIndicator };
+            return { name: actionName as KeyActionName, activatesFocusIndicator };
         }
     }
     return undefined;

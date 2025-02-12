@@ -404,7 +404,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private hideCrosshairs() {
         this.crosshairGroup.visible = false;
-        for (const key of Object.keys(this.labels)) {
+        for (const key in this.labels) {
             this.hideLabel(key);
         }
     }

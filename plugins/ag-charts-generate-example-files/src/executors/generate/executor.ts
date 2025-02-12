@@ -53,7 +53,7 @@ export async function generateFiles(options: ExecutorOptions) {
             }
 
             if (options.writeFiles) {
-                for (const file of Object.keys(result.files)) {
+                for (const file in result.files) {
                     await writeFile(path.join(options.outputPath, internalFramework, file), result.files[file]);
                 }
             }

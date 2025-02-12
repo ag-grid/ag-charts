@@ -84,7 +84,7 @@ const baseCrossLineOptions: AgCartesianCrossLineOptions = {
 const createChartOptions = (rangeConfig: CrossLinesRangeConfig): Record<string, AgCartesianChartOptions> => {
     const result: Record<string, AgCartesianChartOptions> = {};
 
-    for (const name of Object.keys(rangeConfig)) {
+    for (const name in rangeConfig) {
         result[name] = {
             ...baseChartOptions,
             axes: baseChartOptions['axes']?.map((axis) => {
@@ -102,7 +102,7 @@ const createChartOptionsWithInvalidCrossLines = (
 ): Record<string, AgCartesianChartOptions> => {
     const result: Record<string, AgCartesianChartOptions> = {};
 
-    for (const name of Object.keys(config)) {
+    for (const name in config) {
         const invalidCrossLineOptions = config[name];
         result[name] = {
             ...baseChartOptions,

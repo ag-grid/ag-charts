@@ -262,7 +262,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
 
         type InterpolatorTuple = [string, (d: number) => number | string | Interpolating];
         const interpolatorEntries: InterpolatorTuple[] = [];
-        for (const key of Object.keys(to)) {
+        for (const key in to) {
             const interpolator = this.interpolateValue((from as typeof to)[key], to[key]);
             if (interpolator != null) {
                 interpolatorEntries.push([key, interpolator]);

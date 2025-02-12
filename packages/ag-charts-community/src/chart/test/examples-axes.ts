@@ -205,7 +205,7 @@ export const LOG_AXIS_TICK_VALUES: AgCartesianChartOptions = {
     ...NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE,
     data: NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE.data?.map((d) => {
         const datum = { ...d };
-        for (const key of Object.keys(datum)) {
+        for (const key in datum) {
             datum[key] = Math.max(1, datum[key]);
         }
         return datum;

@@ -252,8 +252,8 @@ export class CartesianChart extends Chart {
         const newAxisAreaWidths: AreaWidthMap = new Map();
         const axisOffsets = new Map<string, number>();
 
-        for (const position of Object.keys(axisGroups) as AgCartesianAxisPosition[]) {
-            const axes = axisGroups[position];
+        for (const position in axisGroups) {
+            const axes = axisGroups[position as AgCartesianAxisPosition];
             const isVertical = position === 'left' || position === 'right';
 
             // Adjust offset for pixel ratio to prevent alignment issues with series rendering.
@@ -271,14 +271,14 @@ export class CartesianChart extends Chart {
                 }
             }
 
-            newAxisAreaWidths.set(position, Math.ceil(totalAxisWidth));
+            newAxisAreaWidths.set(position as AgCartesianAxisPosition, Math.ceil(totalAxisWidth));
         }
 
         // Step 3) position all axes taking adjacent positions into account.
-        for (const position of Object.keys(axisGroups) as AgCartesianAxisPosition[]) {
+        for (const position in axisGroups) {
             this.positionAxes({
-                axes: axisGroups[position] ?? [],
-                position,
+                axes: axisGroups[position as AgCartesianAxisPosition] ?? [],
+                position: position as AgCartesianAxisPosition,
                 axisWidths,
                 axisOffsets,
                 axisAreaWidths: newAxisAreaWidths,
@@ -299,9 +299,9 @@ export class CartesianChart extends Chart {
             });
         });
         // Reduce cross-line padding to account for overlap with axes.
-        for (const side of Object.keys(crossLinePadding) as AgCartesianAxisPosition[]) {
-            const padding = crossLinePadding[side] ?? 0;
-            crossLinePadding[side] = Math.max(padding - (axisAreaSize.get(side) ?? 0), 0);
+        for (const side in crossLinePadding) {
+            const padding = (crossLinePadding as any)[side] ?? 0;
+            (crossLinePadding as any)[side] = Math.max(padding - (axisAreaSize.get(side as any) ?? 0), 0);
         }
 
         crossLinePadding.hPadding = crossLinePadding.left + crossLinePadding.right;

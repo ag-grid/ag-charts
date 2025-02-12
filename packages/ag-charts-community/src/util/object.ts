@@ -21,10 +21,10 @@ export function objectsEqual(a: unknown, b: unknown): boolean {
 }
 
 export function objectsEqualWith<T extends PlainObject>(a: T, b: T, cmp: (a: T, b: T) => boolean): boolean {
-    for (const key of Object.keys(b)) {
+    for (const key in b) {
         if (!(key in a)) return false;
     }
-    for (const key of Object.keys(a)) {
+    for (const key in a) {
         if (!(key in b)) return false;
         if (!cmp(a[key], b[key])) return false;
     }

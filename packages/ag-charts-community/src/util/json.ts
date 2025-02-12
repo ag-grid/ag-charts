@@ -79,7 +79,7 @@ export function jsonDiff<T>(source: T, target: T, skip?: (keyof T)[]): Partial<T
  * @returns true if all properties in source have identical values in target
  */
 export function jsonPropertyCompare<T>(source: Partial<T>, target: T) {
-    for (const key of Object.keys(source) as (keyof T)[]) {
+    for (const key in source) {
         if (source[key] === target?.[key]) continue;
 
         return false;
@@ -111,7 +111,7 @@ export function deepClone<T>(source: T, shallow?: Set<string>): T {
 
 function clonePlainObject(source: PlainObject, shallow?: Set<string>) {
     const target: PlainObject = {};
-    for (const key of Object.keys(source)) {
+    for (const key in source) {
         target[key] = shallow?.has(key) ? shallowClone(source[key]) : deepClone(source[key], shallow);
     }
     return target;
@@ -169,7 +169,7 @@ export function jsonWalk<T, C, R>(
         }
     } else if (isPlainObject(json)) {
         acc = visit(json, parallelJson, ctx, acc);
-        for (const key of Object.keys(json)) {
+        for (const key in json) {
             if (skip?.has(key)) {
                 continue;
             }
@@ -217,7 +217,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
 
     const targetAny = target as any;
     const targetType = classify(target);
-    for (const property of Object.keys(source)) {
+    for (const property in source) {
         if (SKIP_JS_BUILTINS.has(property)) continue;
 
         const propertyMatcherPath = `${matcherPath ? matcherPath + '.' : ''}${property}`;
@@ -326,7 +326,7 @@ function jsonResolveInner<T, P>(
         }
     } else if (isPlainObject(json)) {
         jsonResolveVisitor(json, params, source, path, modifiedPaths);
-        for (const key of Object.keys(json)) {
+        for (const key in json) {
             if (skip?.has(key)) {
                 continue;
             }
@@ -344,7 +344,7 @@ function jsonResolveVisitor<T, P>(node: any, params: P, source: T, path: string[
             node[i] = jsonResolveVisitorValue(node[i], params, source, [...path, `${i}`], modifiedPaths);
         }
     } else {
-        for (const name of Object.keys(node)) {
+        for (const name in node) {
             const value = node[name];
             node[name] = jsonResolveVisitorValue(value, params, source, [...path, name], modifiedPaths);
         }

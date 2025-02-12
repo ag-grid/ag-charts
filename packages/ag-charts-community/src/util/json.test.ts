@@ -500,7 +500,7 @@ describe('json module', () => {
         it('should return false with mismatching property values', () => {
             const source = { a: 1, b: true, c: 'three' };
 
-            for (const key of Object.keys(source) as (keyof typeof source)[]) {
+            for (const key in source as (keyof typeof source)[]) {
                 const target = { ...source, [key]: (source[key] as any) + 1 };
                 expect(jsonPropertyCompare(source, target)).toEqual(false);
             }
@@ -509,7 +509,7 @@ describe('json module', () => {
         it('should return false with missing properties', () => {
             const source = { a: 1, b: true, c: 'three' };
 
-            for (const key of Object.keys(source) as (keyof typeof source)[]) {
+            for (const key in source as (keyof typeof source)[]) {
                 const target = { ...source };
                 delete target[key];
                 expect(jsonPropertyCompare(source, target)).toEqual(false);

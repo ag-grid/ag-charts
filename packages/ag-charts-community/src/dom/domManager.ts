@@ -284,13 +284,13 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         const lengthKeys: Array<keyof AgChartThemeParams> = ['fontSize', 'chromeFontSize'];
 
-        for (const key of Object.keys(params) as Array<keyof AgChartThemeParams>) {
-            const value = params[key];
+        for (const key in params) {
+            const value = (params as any)[key];
             let formattedValue = `${value}`;
-            if (lengthKeys.includes(key)) {
+            if (lengthKeys.includes(key as keyof AgChartThemeParams)) {
                 formattedValue = `${value}px`;
             }
-            this.element.style.setProperty(`--ag-charts-${keysMap[key]}`, formattedValue);
+            this.element.style.setProperty(`--ag-charts-${keysMap[key as keyof AgChartThemeParams]}`, formattedValue);
         }
     }
 

@@ -120,10 +120,10 @@ export function setAttributes(e: Nullable<HTMLTextAreaElement>, attrs: InputAttr
 export function setAttributes(e: Nullable<HTMLElement>, attrs: AttributeSet | undefined) {
     if (attrs == null) return;
 
-    for (const key of Object.keys(attrs) as (keyof AttributeSet)[]) {
-        const value = attrs[key];
+    for (const key in attrs) {
+        const value = (attrs as any)[key];
         if (key === 'class') continue;
-        setAttribute(e as HTMLElement, key as any, value as any);
+        setAttribute(e as HTMLElement, key as any, value);
     }
 }
 
@@ -172,8 +172,8 @@ export function setElementStyle<P extends keyof BaseStyleTypeMap>(
     }
 }
 export function setElementStyles(e: Nullable<HTMLElement>, styles: StyleSet) {
-    for (const key of Object.keys(styles) as (keyof StyleSet)[]) {
-        const value = styles[key];
+    for (const key in styles) {
+        const value = (styles as any)[key];
         setElementStyle(e as HTMLElement, key as any, value);
     }
 }
