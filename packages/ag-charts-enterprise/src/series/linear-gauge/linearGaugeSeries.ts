@@ -1164,7 +1164,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             barRect = new BBox(x, y, xValue - x, height);
         } else {
             const yValue = scale.convert(value);
-            barRect = new BBox(x, yValue, width, y);
+            barRect = new BBox(x, yValue, width, height - yValue);
         }
 
         const bboxes = { seriesRect, gaugeRect, barRect };
