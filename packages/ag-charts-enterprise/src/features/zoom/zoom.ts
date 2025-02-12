@@ -474,7 +474,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         event.sourceEvent.preventDefault();
 
         const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
-        for (const [axisId, { direction, zoom }] of Object.entries(newZooms)) {
+        for (const axisId of Object.keys(newZooms)) {
+            const { direction, zoom } = newZooms[axisId];
             this.updateAxisZoom(axisId, direction, zoom);
         }
     }
@@ -509,7 +510,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
-            for (const [axisId, { direction, zoom: axisZoom }] of Object.entries(newZooms)) {
+            for (const axisId of Object.keys(newZooms)) {
+                const { direction, zoom: axisZoom } = newZooms[axisId];
                 if (isAxisScrolling && hoveredAxis.id !== axisId) continue;
                 updated &&= this.updateAxisZoom(axisId, direction, axisZoom);
             }
@@ -600,7 +602,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
 
-        for (const [axisId, { direction, zoom }] of Object.entries(newZooms)) {
+        for (const axisId of Object.keys(newZooms)) {
+            const { direction, zoom } = newZooms[axisId];
             this.updateAxisZoom(axisId, direction, zoom);
         }
 

@@ -759,7 +759,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static removeLeftoverSymbolsJson(this: void, optionsNode: any) {
         if (!optionsNode || !isObject(optionsNode)) return;
-        for (const [key, value] of Object.entries(optionsNode)) {
+        for (const key of Object.keys(optionsNode)) {
+            const value = optionsNode[key];
             if (isSymbol(value)) {
                 delete optionsNode[key];
             }

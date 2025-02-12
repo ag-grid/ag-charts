@@ -245,24 +245,22 @@ export class CartesianChart extends Chart {
             axisWidths.set(axis.id, Math.ceil(axis.thickness ?? (isVertical ? bbox?.width : bbox?.height) ?? 0));
         }
 
-        const axisGroups = Object.entries(groupBy(this.axes, (axis) => axis.position ?? 'left')) as [
-            AgCartesianAxisPosition,
-            ChartAxis[],
-        ][];
+        const axisGroups = groupBy(this.axes, (axis) => axis.position ?? 'left');
 
         // Step 2) calculate axis offsets and total depth for each position.
         const { width, height, pixelRatio } = this.ctx.scene;
         const newAxisAreaWidths: AreaWidthMap = new Map();
         const axisOffsets = new Map<string, number>();
 
-        for (const [position, axes] of axisGroups) {
+        for (const position of Object.keys(axisGroups) as AgCartesianAxisPosition[]) {
+            const axes = axisGroups[position];
             const isVertical = position === 'left' || position === 'right';
 
             // Adjust offset for pixel ratio to prevent alignment issues with series rendering.
             let currentOffset = isVertical ? height % pixelRatio : width % pixelRatio;
             let totalAxisWidth = 0;
 
-            for (const axis of axes) {
+            for (const axis of axes ?? []) {
                 axisOffsets.set(axis.id, currentOffset);
 
                 const axisThickness = axisWidths.get(axis.id) ?? 0;
@@ -277,9 +275,9 @@ export class CartesianChart extends Chart {
         }
 
         // Step 3) position all axes taking adjacent positions into account.
-        for (const [position, axes] of axisGroups) {
+        for (const position of Object.keys(axisGroups) as AgCartesianAxisPosition[]) {
             this.positionAxes({
-                axes,
+                axes: axisGroups[position] ?? [],
                 position,
                 axisWidths,
                 axisOffsets,
@@ -301,7 +299,8 @@ export class CartesianChart extends Chart {
             });
         });
         // Reduce cross-line padding to account for overlap with axes.
-        for (const [side, padding = 0] of Object.entries(crossLinePadding) as [AgCartesianAxisPosition, number][]) {
+        for (const side of Object.keys(crossLinePadding) as AgCartesianAxisPosition[]) {
+            const padding = crossLinePadding[side] ?? 0;
             crossLinePadding[side] = Math.max(padding - (axisAreaSize.get(side) ?? 0), 0);
         }
 

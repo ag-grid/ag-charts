@@ -43,8 +43,8 @@ export function getDragStartState<PointName extends string>(
 ) {
     const dragState = {} as Record<PointName, _ModuleSupport.Vec2>;
 
-    Object.entries(points).forEach(([name, point]) => {
-        dragState[name as PointName] = convertPoint(point as Point, context);
+    Object.keys(points).forEach((name) => {
+        dragState[name as PointName] = convertPoint((points as any)[name], context);
     });
 
     return dragState;
@@ -58,8 +58,9 @@ export function translate<VectorName extends string>(
     const vecs: _ModuleSupport.Vec2[] = [];
     const result: Partial<Record<VectorName, _ModuleSupport.Vec2>> = {};
 
-    Object.entries(vectors).forEach(([name, vector]) => {
-        const translatedVec = Vec2.add(vector as _ModuleSupport.Vec2, translation);
+    Object.keys(vectors).forEach((name) => {
+        const vector: _ModuleSupport.Vec2 = (vectors as any)[name];
+        const translatedVec = Vec2.add(vector, translation);
         vecs.push(translatedVec);
         result[name as VectorName] = invertCoords(translatedVec, context);
     });

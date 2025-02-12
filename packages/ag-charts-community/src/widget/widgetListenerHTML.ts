@@ -52,9 +52,10 @@ export class WidgetListenerHTML {
     }
 
     destroy<T extends Targetable>(target: T): void {
-        for (const [key, sourceHandler] of Object.entries(this.sourceListeners ?? {})) {
-            const type = key as keyof typeof this.sourceListeners;
-            target.getElement().removeEventListener(type, sourceHandler);
+        for (const key of Object.keys(this.sourceListeners ?? {}) as EventType[]) {
+            const sourceHandler = this.sourceListeners?.[key] as SourceListener<typeof key>;
+            if (!sourceHandler) continue;
+            target.getElement().removeEventListener(key, sourceHandler);
         }
         this.widgetListeners = undefined;
         this.sourceListeners = undefined;

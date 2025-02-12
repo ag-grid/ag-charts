@@ -62,9 +62,9 @@ export function mapValues<T extends PlainObject, R>(
     object: T,
     mapper: (value: T[keyof T], key: keyof T, object: T) => R
 ) {
-    return Object.entries(object).reduce(
-        (result, [key, value]) => {
-            result[key as keyof T] = mapper(value, key, object);
+    return Object.keys(object).reduce(
+        (result, key) => {
+            result[key as keyof T] = mapper(object[key], key, object);
             return result;
         },
         {} as Record<keyof T, R>

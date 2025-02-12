@@ -159,7 +159,8 @@ export class ZoomPanner {
 
         const newZooms: AxisZoomStates = {};
 
-        for (const [axisId, { direction, zoom: currentZoom }] of Object.entries(currentZooms)) {
+        for (const axisId of Object.keys(currentZooms)) {
+            const { direction, zoom: currentZoom } = currentZooms[axisId];
             // Skip panning axes that are fully zoomed out to prevent floating point issues
             if (currentZoom && currentZoom.min === UNIT.min && currentZoom.max === UNIT.max) {
                 continue;

@@ -232,7 +232,8 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         for (const [annotationType, options] of this.fibonacciOptions) {
             if (datum.type !== annotationType || options == null) continue;
 
-            Object.entries(options).forEach(([option, value]) => {
+            Object.keys(options).forEach((option) => {
+                const value = (options as any)[option];
                 if (value == null) {
                     return;
                 }

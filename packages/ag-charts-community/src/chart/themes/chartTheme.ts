@@ -370,8 +370,9 @@ export class ChartTheme {
     }
 
     private createChartConfigPerChartType(config: AgChartThemeOverrides) {
-        for (const [nextType, { seriesTypes }] of Object.entries(CHART_TYPE_CONFIG)) {
-            const typeDefaults = chartDefaults.get(nextType as ChartType);
+        for (const nextType of Object.keys(CHART_TYPE_CONFIG) as ChartType[]) {
+            const { seriesTypes } = CHART_TYPE_CONFIG[nextType];
+            const typeDefaults = chartDefaults.get(nextType);
             for (const seriesType of seriesTypes) {
                 config[seriesType as keyof AgChartThemeOverrides] ??= deepClone(typeDefaults);
             }
@@ -427,11 +428,13 @@ export class ChartTheme {
                     node[i] = params.get(symbol);
                 }
             }
-        } else {
-            for (const [name, value] of Object.entries(node)) {
-                if (typeof value === 'symbol' && params?.has(value)) {
-                    node[name] = params.get(value);
-                }
+            return;
+        }
+
+        for (const name of Object.keys(node)) {
+            const value = node[name];
+            if (typeof value === 'symbol' && params?.has(value)) {
+                node[name] = params.get(value);
             }
         }
     }

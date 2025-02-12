@@ -284,7 +284,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         const lengthKeys: Array<keyof AgChartThemeParams> = ['fontSize', 'chromeFontSize'];
 
-        for (const [key, value] of Object.entries(params) as Array<[keyof AgChartThemeParams, string | number]>) {
+        for (const key of Object.keys(params) as Array<keyof AgChartThemeParams>) {
+            const value = params[key];
             let formattedValue = `${value}`;
             if (lengthKeys.includes(key)) {
                 formattedValue = `${value}px`;

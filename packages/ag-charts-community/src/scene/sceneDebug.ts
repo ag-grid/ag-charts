@@ -62,14 +62,14 @@ export function debugStats(
     const end = performance.now();
     const { start, ...durations } = debugSplitTimes;
 
-    const splits = Object.entries(durations)
-        .map(([n, t]) => {
-            return time(n, t);
+    const splits = Object.keys(durations)
+        .map((n) => {
+            return time(n, durations[n]);
         })
         .filter((v) => v != null)
         .join(' + ');
-    const extras = Object.entries(extraDebugStats)
-        .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
+    const extras = Object.keys(extraDebugStats)
+        .map((k) => `${k}: ${JSON.stringify((extraDebugStats as any)[k])}`)
         .join(' ; ');
 
     const detailedStats = Debug.check(DebugSelectors.SCENE_STATS_VERBOSE);
@@ -118,7 +118,8 @@ export function prepareSceneNodeHighlight(ctx: RenderContext) {
 export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNodes: Record<string, Node>) {
     ctx.save();
 
-    for (const [name, node] of Object.entries(debugNodes)) {
+    for (const name of Object.keys(debugNodes)) {
+        const node = debugNodes[name];
         const bbox = Transformable.toCanvas(node);
 
         if (!bbox) {

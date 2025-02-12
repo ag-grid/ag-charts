@@ -1578,7 +1578,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     private registerListeners(source: Observable, listeners: Record<string, TypedEventListener>) {
         source.clearEventListeners();
-        for (const [property, listener] of Object.entries(listeners)) {
+        for (const property of Object.keys(listeners)) {
+            const listener = listeners[property];
             if (isFunction(listener)) {
                 source.addEventListener(property, listener);
             }
