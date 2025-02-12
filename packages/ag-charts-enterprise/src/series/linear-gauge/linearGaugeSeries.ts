@@ -473,6 +473,43 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         };
     }
 
+    private verticalLabelInset() {
+        const { properties } = this;
+        const { label } = properties;
+
+        const lines = label.text?.split('\n');
+
+        const labelSize = getLineHeight(label, label.fontSize) * (lines?.length ?? 1);
+
+        return label.spacing + labelSize;
+    }
+
+    private horizontalLabelInset() {
+        const { scale, properties } = this;
+        const { scale: scaleProps, label } = properties;
+
+        const lines = label.text?.split('\n');
+
+        const font = label.getFont();
+        const ticks =
+            scaleProps.interval.values ??
+            scale.ticks({
+                nice: false,
+                interval: scaleProps.interval.step,
+                minTickCount: 0,
+                maxTickCount: 6,
+                tickCount: 5,
+            });
+        const linesOrTicks = lines ?? ticks.map((tick) => getLabelText(this, this.labelDatum(label, tick)) ?? '');
+
+        const labelSize = linesOrTicks.reduce((accum, text) => {
+            const { width } = CachedTextMeasurerPool.measureText(text, { font });
+            return Math.max(accum, width);
+        }, 0);
+
+        return label.spacing + labelSize;
+    }
+
     override createNodeData() {
         const { id: seriesId, properties, horizontal, scale, seriesRect } = this;
 
@@ -481,6 +518,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { value, segmentation, thickness, cornerRadius, cornerMode, bar, scale: scaleProps, label } = properties;
 
         scale.domain = [scaleProps.min, scaleProps.max];
+        // Required to generate ticks in horizontalLabelInset
+        scale.range = horizontal ? [0, seriesRect.width] : [seriesRect.height, 0];
 
         let parallelFlipRotation: number;
         let sideFlag: 1 | -1;
@@ -497,45 +536,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         const regularFlipRotation = parallelFlipRotation - Math.PI / 2;
 
-        let factor: 1 | -1 | 0;
-        switch (label.placement) {
-            case 'outside-start':
-                factor = 1;
-                break;
-            case 'outside-end':
-                factor = -1;
-                break;
-            default:
-                factor = 0;
-                break;
-        }
-
-        const lines = label.text?.split('\n');
-
-        let labelSize: number;
-        if (horizontal) {
-            labelSize = getLineHeight(label, label.fontSize) * (lines?.length ?? 1);
-        } else {
-            const font = label.getFont();
-            const ticks =
-                scaleProps.interval.values ??
-                scale.ticks({
-                    nice: false,
-                    interval: scaleProps.interval.step,
-                    minTickCount: 0,
-                    maxTickCount: 6,
-                    tickCount: 5,
-                });
-            const linesOrTicks = lines ?? ticks.map((tick) => getLabelText(this, this.labelDatum(label, tick)) ?? '');
-
-            labelSize = linesOrTicks.reduce((accum, text) => {
-                const { width } = CachedTextMeasurerPool.measureText(text, { font });
-                return Math.max(accum, width);
-            }, 0);
-        }
-
-        const labelInset = factor * (label.spacing + labelSize);
-
         let x0: number;
         let x1: number;
         let y0: number;
@@ -545,16 +545,27 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             x1 = seriesRect.width;
             y0 = (seriesRect.height - thickness) / 2;
             y1 = y0 + thickness;
+
+            if (label.placement === 'outside-start') {
+                x0 += this.horizontalLabelInset();
+            } else if (label.placement === 'outside-end') {
+                x1 -= this.horizontalLabelInset();
+            }
         } else {
             x0 = (seriesRect.width - thickness) / 2;
             x1 = x0 + thickness;
             // Reversed
             y1 = 0;
             y0 = seriesRect.height;
+
+            if (label.placement === 'outside-start') {
+                y0 -= this.verticalLabelInset();
+            } else if (label.placement === 'outside-end') {
+                y1 += this.verticalLabelInset();
+            }
         }
 
         this.gaugeRect = new BBox(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
-        console.log(this.gaugeRect);
 
         const originX = 0;
         const originY = 0;
@@ -571,7 +582,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             regularFlipRotation,
             sideFlag,
         }).tickData;
-        console.log(tickData);
 
         const isReversed = false; // Can this be removed?
 
@@ -1143,24 +1153,21 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     formatLabelText(datum?: { label: number }) {
-        const { labelSelection, horizontal, scale, gaugeRect } = this;
+        const { labelSelection, horizontal, scale, seriesRect, gaugeRect } = this;
         const { x, y, width, height } = gaugeRect;
 
         const value = datum?.label ?? this.properties.value;
 
-        let barBBox: _ModuleSupport.BBox;
+        let barRect: _ModuleSupport.BBox;
         if (horizontal) {
             const xValue = scale.convert(value);
-            barBBox = new BBox(x, y, xValue - x, height);
+            barRect = new BBox(x, y, xValue - x, height);
         } else {
             const yValue = scale.convert(value);
-            barBBox = new BBox(x, yValue, width, height - yValue);
+            barRect = new BBox(x, yValue, width, y);
         }
 
-        const bboxes = {
-            scale: new BBox(x, y, width, height),
-            bar: barBBox,
-        };
+        const bboxes = { seriesRect, gaugeRect, barRect };
 
         const { margin: padding } = this.properties;
 

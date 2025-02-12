@@ -213,29 +213,48 @@ export function formatLinearGaugeLabels(
     series: _ModuleSupport.Series<unknown, any, any>,
     selection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum>,
     opts: { padding: number; horizontal: boolean },
-    bboxes: { scale: _ModuleSupport.BBox; bar: _ModuleSupport.BBox },
+    bboxes: { seriesRect: _ModuleSupport.BBox; gaugeRect: _ModuleSupport.BBox; barRect: _ModuleSupport.BBox },
     datumOverrides?: { label: number | undefined }
 ) {
-    const { scale, bar } = bboxes;
+    const { seriesRect, gaugeRect, barRect } = bboxes;
     const { padding, horizontal } = opts;
 
     selection.each((label, labelDatum) => {
         const labelText = getLabelText(series, labelDatum, datumOverrides?.label);
 
-        const sizeFittingHeight = () => ({
-            width: scale.width,
-            height: scale.height,
-            meta: null,
-        });
+        let boundingWidth: number | undefined;
+        let boundingHeight: number | undefined;
+        if (labelDatum.placement === 'outside-start') {
+            if (horizontal) {
+                boundingWidth = gaugeRect.x;
+                boundingHeight = seriesRect.height;
+            } else {
+                boundingWidth = seriesRect.width;
+                boundingHeight = seriesRect.height - (gaugeRect.y + gaugeRect.height);
+            }
+        } else if (labelDatum.placement === 'outside-end') {
+            if (horizontal) {
+                boundingWidth = seriesRect.width - (gaugeRect.x + gaugeRect.width);
+                boundingHeight = seriesRect.height;
+            } else {
+                boundingWidth = seriesRect.width;
+                boundingHeight = gaugeRect.y;
+            }
+        } else if (labelDatum.avoidCollisions) {
+            boundingWidth = gaugeRect.width;
+            boundingHeight = gaugeRect.height;
+        }
 
         let layout: LabelFormatting | undefined;
-        const sizeToFit =
-            labelDatum.avoidCollisions &&
-            labelDatum.placement !== 'outside-start' &&
-            labelDatum.placement !== 'outside-end';
         if (labelText == null) {
             return;
-        } else if (sizeToFit) {
+        } else if (boundingWidth != null && boundingHeight != null) {
+            const sizeFittingHeight = () => ({
+                width: boundingWidth,
+                height: boundingHeight,
+                meta: null,
+            });
+
             const labelMeta = formatSingleLabel(labelText, labelDatum, { padding }, sizeFittingHeight);
             layout = labelMeta?.[0];
         } else {
@@ -261,10 +280,10 @@ export function formatLinearGaugeLabels(
             return;
         }
 
-        const scale0 = horizontal ? scale.x : scale.y + scale.height;
-        const scale1 = horizontal ? scale.x + scale.width : scale.y;
-        const bar0 = horizontal ? bar.x : bar.y + bar.height;
-        const bar1 = horizontal ? bar.x + bar.width : bar.y;
+        const scale0 = horizontal ? gaugeRect.x : gaugeRect.y + gaugeRect.height;
+        const scale1 = horizontal ? gaugeRect.x + gaugeRect.width : gaugeRect.y;
+        const bar0 = horizontal ? barRect.x : barRect.y + barRect.height;
+        const bar1 = horizontal ? barRect.x + barRect.width : barRect.y;
 
         const offset = labelDatum.spacing * (horizontal ? 1 : -1);
 
@@ -329,8 +348,8 @@ export function formatLinearGaugeLabels(
                 break;
         }
 
-        const x = horizontal ? s : scale.x + scale.width / 2;
-        const y = horizontal ? scale.y + scale.height / 2 : s;
+        const x = horizontal ? s : gaugeRect.x + gaugeRect.width / 2;
+        const y = horizontal ? gaugeRect.y + gaugeRect.height / 2 : s;
 
         let s0: number;
         let s1: number;
