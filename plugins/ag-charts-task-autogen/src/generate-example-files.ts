@@ -38,7 +38,8 @@ export const createDependencies: CreateDependencies = (opts, ctx) => {
     const { projects } = ctx;
 
     const result: ReturnType<CreateDependencies> = [];
-    for (const [name, config] of Object.entries(projects)) {
+    for (const name of Object.keys(projects)) {
+        const config = projects[name];
         if (!config.tags?.includes('type:generated-example')) continue;
 
         const parent = config.tags?.find((t) => t.startsWith('scope:'))?.split(':')[1];

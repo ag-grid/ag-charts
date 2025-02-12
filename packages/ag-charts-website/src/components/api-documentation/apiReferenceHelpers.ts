@@ -117,6 +117,7 @@ export function processMembers(
     let { members } = interfaceRef;
     const { prioritise, include, exclude } = config;
     const isInterface = interfaceRef.kind === 'interface';
+    // eslint-disable-next-line no-restricted-properties
     const genericsMap = new Map(isInterface ? Object.entries(interfaceRef.genericsMap ?? {}) : null);
     if (isInterface && interfaceRef.typeParams) {
         for (const [i, typeParam] of interfaceRef.typeParams.entries()) {

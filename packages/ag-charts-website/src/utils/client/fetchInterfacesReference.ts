@@ -11,5 +11,6 @@ export async function fetchInterfacesReference(): Promise<ApiReferenceType> {
         })
     ).then((res) => res.json());
 
+    // eslint-disable-next-line no-restricted-properties
     return new Map(Object.entries(contents));
 }

@@ -194,9 +194,9 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
     },
 };
 
-export const EXAMPLES = Object.entries(COMMUNITY_AND_ENTERPRISE_EXAMPLES)
-    .filter(([, v]) => !v.enterprise)
-    .reduce<typeof COMMUNITY_AND_ENTERPRISE_EXAMPLES>((pv, [k, v]) => {
-        pv[k] = v;
+export const EXAMPLES = Object.keys(COMMUNITY_AND_ENTERPRISE_EXAMPLES)
+    .filter((k) => !COMMUNITY_AND_ENTERPRISE_EXAMPLES[k].enterprise)
+    .reduce<typeof COMMUNITY_AND_ENTERPRISE_EXAMPLES>((pv, k) => {
+        pv[k] = COMMUNITY_AND_ENTERPRISE_EXAMPLES[k];
         return pv;
     }, {});

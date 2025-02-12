@@ -66,6 +66,7 @@ function getRelevantConfig(configuration: Configuration, framework: InternalFram
 
     const buildChartCopy = (config: Paths) => {
         const valid = {} as Paths;
+        // eslint-disable-next-line no-restricted-properties
         Object.entries(config)
             .filter(filterByFramework)
             .sort(([k1], [k2]) => (k1 < k2 ? -1 : 1))

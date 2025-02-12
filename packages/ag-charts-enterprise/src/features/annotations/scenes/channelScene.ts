@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-properties */
 import { _ModuleSupport } from 'ag-charts-community';
 
 import type { ChannelTextProperties } from '../annotationProperties';

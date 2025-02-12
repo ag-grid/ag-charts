@@ -203,6 +203,7 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
             this.start.visible = show;
             this.end.visible = show;
         } else {
+            // eslint-disable-next-line no-restricted-properties
             for (const [handle, visible] of Object.entries(show) as [StartEndHandle, boolean][]) {
                 this[handle].visible = visible;
             }

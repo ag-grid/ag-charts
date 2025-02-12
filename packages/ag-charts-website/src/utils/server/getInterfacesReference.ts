@@ -18,5 +18,6 @@ function getJsonFromDevFile(devFileKey: DevFileKey) {
  */
 export function getInterfacesReference(): ApiReferenceType {
     const jsonContent = getJsonFromDevFile('resolved-interfaces.json');
+    // eslint-disable-next-line no-restricted-properties
     return new Map(Object.entries(jsonContent));
 }
