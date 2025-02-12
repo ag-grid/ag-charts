@@ -6,6 +6,7 @@ import {
     clickAction,
     delay,
     doubleClickAction,
+    doubleTapAction,
     dragAction,
     extractImageData,
     hoverAction,
@@ -190,6 +191,27 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(32, 300)(chart);
+            await compare();
+        });
+    });
+
+    describe('double tap', () => {
+        it('should reset the zoom', async () => {
+            await prepareChart();
+            await scrollAction(cx, cy, -1)(chart);
+            await doubleTapAction(cx, cy)(chart);
+            await compare();
+        });
+        it('should reset the X axis zoom', async () => {
+            await prepareChart();
+            await scrollAction(cx, cy, -1)(chart);
+            await doubleTapAction(400, 578)(chart);
+            await compare();
+        });
+        it('should reset the Y axis zoom', async () => {
+            await prepareChart();
+            await scrollAction(cx, cy, -1)(chart);
+            await doubleTapAction(32, 300)(chart);
             await compare();
         });
     });

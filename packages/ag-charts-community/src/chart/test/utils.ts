@@ -536,6 +536,19 @@ export function touchAction(type: MockTouchTypes, touches: MockTouch[]): (chart:
     };
 }
 
+export function doubleTapAction(clientX: number, clientY: number): (chart: ChartOrProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const testTarget = findChartTarget(chart, clientX, clientY);
+        const touches: MockTouch[] = [{ clientX, clientY }];
+        dispatchEvent(testTarget, touchEvent('touchstart', testTarget, touches));
+        dispatchEvent(testTarget, touchEvent('touchend', testTarget, touches));
+        dispatchEvent(testTarget, touchEvent('touchstart', testTarget, touches));
+        dispatchEvent(testTarget, touchEvent('touchend', testTarget, touches));
+        await delay(50);
+    };
+}
+
 export { setupMockCanvas, toMatchImage, CANVAS_TO_BUFFER_DEFAULTS, extractImageData };
 
 export async function createChart(options: AgChartOptions) {
