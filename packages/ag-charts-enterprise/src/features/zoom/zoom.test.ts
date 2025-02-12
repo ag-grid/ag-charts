@@ -15,6 +15,7 @@ import {
     scrollAction,
     setupMockCanvas,
     setupMockConsole,
+    touchAction,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -313,6 +314,109 @@ describe('Zoom', () => {
             await scrollAction(cx, cy, -1)(chart); // This is the limit
             await scrollAction(cx, cy, -1)(chart);
             await compare();
+        });
+    });
+
+    describe('twoFingers', () => {
+        beforeEach(async () => {
+            await prepareChart({ axes: 'y', enableSelecting: true });
+            await touchAction('touchstart', [
+                { clientX: cx - 50, clientY: cy - 50 },
+                { clientX: cx + 50, clientY: cy + 50 },
+            ])(chart);
+            await touchAction('touchmove', [
+                { clientX: cx - 100, clientY: cy - 100 },
+                { clientX: cx + 100, clientY: cy + 100 },
+            ])(chart);
+            await touchAction('touchend', [
+                { clientX: cx - 100, clientY: cy - 100 },
+                { clientX: cx + 100, clientY: cy + 100 },
+            ])(chart);
+        });
+
+        test('init zoomed in', async () => {
+            await compare();
+        });
+
+        test('zoom back out', async () => {
+            await touchAction('touchstart', [
+                { clientX: cx - 100, clientY: cy - 100 },
+                { clientX: cx + 100, clientY: cy + 100 },
+            ])(chart);
+            await touchAction('touchmove', [
+                { clientX: cx - 50, clientY: cy - 50 },
+                { clientX: cx + 50, clientY: cy + 50 },
+            ])(chart);
+            await touchAction('touchend', [
+                { clientX: cx - 50, clientY: cy - 50 },
+                { clientX: cx + 50, clientY: cy + 50 },
+            ])(chart);
+            await compare();
+        });
+
+        test('zoom and pan', async () => {
+            await touchAction('touchstart', [
+                { clientX: cx - 50, clientY: cy - 50 },
+                { clientX: cx + 50, clientY: cy + 50 },
+            ])(chart);
+            await touchAction('touchmove', [
+                { clientX: cx - 150, clientY: cy - 80 },
+                { clientX: cx, clientY: cy + 80 },
+            ])(chart);
+            await touchAction('touchend', [
+                { clientX: cx - 150, clientY: cy - 80 },
+                { clientX: cx, clientY: cy + 80 },
+            ])(chart);
+            await compare();
+        });
+
+        test('x overlap', async () => {
+            await touchAction('touchstart', [
+                { clientX: cx - 5, clientY: cy - 50 },
+                { clientX: cx + 5, clientY: cy + 50 },
+            ])(chart);
+
+            await touchAction('touchmove', [
+                { clientX: cx - 100, clientY: cy - 50 },
+                { clientX: cx + 100, clientY: cy + 50 },
+            ])(chart);
+            await compare(); // no change (clientX average unchanged)
+
+            await touchAction('touchmove', [
+                { clientX: cx + 20, clientY: cy - 50 },
+                { clientX: cx + 100, clientY: cy + 50 },
+            ])(chart);
+            await compare(); // pans left
+
+            await touchAction('touchmove', [
+                { clientX: cx + 20, clientY: cy - 150 },
+                { clientX: cx + 100, clientY: cy + 35 },
+            ])(chart);
+            await compare(); // zoompans y axis
+        });
+
+        test('y overlap', async () => {
+            await touchAction('touchstart', [
+                { clientX: cx - 50, clientY: cy - 5 },
+                { clientX: cx + 50, clientY: cy + 5 },
+            ])(chart);
+            await touchAction('touchmove', [
+                { clientX: cx - 50, clientY: cy - 100 },
+                { clientX: cx + 50, clientY: cy + 100 },
+            ])(chart);
+            await compare(); // no change (clientY average unchanged)
+
+            await touchAction('touchmove', [
+                { clientX: cx - 50, clientY: cy + 20 },
+                { clientX: cx + 50, clientY: cy + 100 },
+            ])(chart);
+            await compare(); // pans down
+
+            await touchAction('touchmove', [
+                { clientX: cx - 150, clientY: cy + 20 },
+                { clientX: cx + 35, clientY: cy + 100 },
+            ])(chart);
+            await compare(); // zoompans x axis
         });
     });
 

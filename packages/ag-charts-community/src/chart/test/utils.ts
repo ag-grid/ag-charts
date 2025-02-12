@@ -266,6 +266,42 @@ export function wheelEvent(mockEvent: MockEvent, { deltaX, deltaY, deltaMode }: 
     return event;
 }
 
+type MockTouch = { clientX: number; clientY: number };
+type MockTouchTypes = 'touchstart' | 'touchmove' | 'touchend';
+
+function touchAverage(touches: MockTouch[]): MockTouch {
+    expect(touches.length).not.toBe(0);
+    let sumX = 0,
+        sumY = 0;
+    touches.forEach((t) => {
+        sumX += t.clientX;
+        sumY += t.clientY;
+    });
+    return { clientX: sumX / touches.length, clientY: sumY / touches.length };
+}
+
+function touchEvent(type: MockTouchTypes, mockEvent: MockEvent, mockTouches: MockTouch[]): TouchEvent {
+    const targetTouches: Touch[] = mockTouches.map<Touch>((mockTouch, index) => {
+        const { clientX, clientY } = mockTouch;
+        return {
+            clientX,
+            clientY,
+            force: 0,
+            identifier: index + 1,
+            pageX: clientX,
+            pageY: clientY,
+            radiusX: 0,
+            radiusY: 0,
+            rotationAngle: 0,
+            screenX: clientX,
+            screenY: clientY,
+            target: mockEvent.target,
+        };
+    });
+    const event = new TouchEvent(type, { bubbles: true, targetTouches });
+    return event;
+}
+
 export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {
     const { axisTypes = ['category', 'number'], seriesTypes = ['bar', 'bar'] } = params ?? {};
 
@@ -485,6 +521,18 @@ export function scrollAction(
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         dispatchEvent(testTarget, wheelEvent(testTarget, { deltaY, deltaX, deltaMode }));
         await delay(delayMs);
+    };
+}
+
+export function touchAction(type: MockTouchTypes, touches: MockTouch[]): (chart: ChartOrProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const { clientX, clientY } = touchAverage(touches);
+        const chart = deproxy(chartOrProxy);
+        const testTarget = findChartTarget(chart, clientX, clientY);
+        checkTargetValid(testTarget);
+
+        dispatchEvent(testTarget, touchEvent(type, testTarget, touches));
+        await delay(50);
     };
 }
 
