@@ -28,12 +28,39 @@ const argv = yargs(hideBin(process.argv))
     .parse();
 
 const summaryExampleDataFile = 'packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/data.ts';
-let dataFile = fs.readFileSync(summaryExampleDataFile).toString();
-dataFile = dataFile.replace('export function', 'function');
+function loadDataFile() {
+    let dataFile = fs.readFileSync(summaryExampleDataFile).toString();
+    dataFile = dataFile.replace('export function', 'function');
 
-const data = eval(`${dataFile}; getData()`);
-const baseData = data.find(({ name }) => name === argv.base);
-const compareData = data.find(({ name }) => name === argv.compare);
+    return eval(`${dataFile}; getData()`);
+}
+
+const dataFile = loadDataFile();
+let unmodifiedDataFile = dataFile;
+
+if (argv.base === argv.compare) {
+    const { output, ...result } = spawnSync(`git`, [
+        'stash',
+        '-m',
+        'Temp stash results',
+        '--',
+        'packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/data.ts',
+    ]);
+    if (output?.some((b) => b?.toString().indexOf('No local changes to save') >= 0)) {
+        output?.filter((b) => b != null && b.length > 0).forEach((b) => console.log(`git: ${b.toString()}`));
+        console.error('Comparing same version, nothing to do!');
+        process.exit(1);
+    }
+
+    try {
+        unmodifiedDataFile = loadDataFile();
+    } finally {
+        spawnSync(`git`, ['stash', 'pop']);
+    }
+}
+
+const baseData = unmodifiedDataFile.find(({ name }) => name === argv.base);
+const compareData = dataFile.find(({ name }) => name === argv.compare);
 
 if (baseData == null) {
     console.error('Unknown base of: ' + argv.base);
@@ -44,11 +71,6 @@ if (baseData == null) {
 if (compareData == null) {
     console.error('Unknown version of: ' + argv.compare);
     console.error('Known bases: ' + data.map(({ name }) => name));
-    process.exit(1);
-}
-
-if (argv.base === argv.compare) {
-    console.error('Comparing same version, nothing to do!');
     process.exit(1);
 }
 
