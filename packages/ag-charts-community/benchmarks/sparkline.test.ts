@@ -23,7 +23,7 @@ suite('sparkline benchmark', () => {
     });
 
     benchmark('initial load (pooled)', ctx, { ...EXPECTATIONS, autoSnapshot: false }, async () => {
-        await ctx.create();
+        await ctx.create({ container: document.createElement('div') });
     });
 
     describe('after load', () => {
