@@ -43,6 +43,32 @@
         }
       },
       "dependsOn": ["build:test"]
+    },
+    "pack": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "inputs": ["allTransitiveOutputs"],
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
+      "options": {
+        "cwd": "{projectRoot}",
+        "parallel": false,
+        "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-core.tgz"]
+      }
+    },
+    "pack:extract": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["pack"],
+      "inputs": ["allOutputs"],
+      "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-core/"],
+      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
+    },
+    "pack:verify": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["pack:extract"],
+      "inputs": ["allOutputs"],
+      "options": {
+        "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-core/package"]
+      }
     }
   },
   "tags": ["support", "no-sharding"]
