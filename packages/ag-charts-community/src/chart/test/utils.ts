@@ -325,6 +325,11 @@ function touchEvent(type: MockTouchTypes, mockEvent: MockEvent, mockTouches: Moc
     }
 
     const event = new TouchEvent(type, { bubbles: true, targetTouches, changedTouches });
+    const originalPreventDefault = event.preventDefault.bind(event);
+    event.preventDefault = function () {
+        originalPreventDefault();
+        Object.defineProperty(event, 'defaultPrevented', { value: true, configurable: true });
+    };
     return event;
 }
 
@@ -574,11 +579,24 @@ export function doubleTapAction(clientX: number, clientY: number): (chart: Chart
         event = touchEvent('touchend', testTarget, [{ identifier: 1, clientX, clientY, states: ['changed'] }]);
         dispatchEvent(testTarget, event);
 
+        if (!event.defaultPrevented) {
+            dispatchEvent(testTarget, mouseDownEvent(testTarget, clientX, clientY));
+            dispatchEvent(testTarget, mouseUpEvent(testTarget, clientX, clientY));
+            dispatchEvent(testTarget, clickEvent(testTarget, clientX, clientY));
+        }
+
         event = touchEvent('touchstart', testTarget, [{ identifier: 2, clientX, clientY, states: ['target'] }]);
         dispatchEvent(testTarget, event);
 
         event = touchEvent('touchend', testTarget, [{ identifier: 2, clientX, clientY, states: ['changed'] }]);
         dispatchEvent(testTarget, event);
+
+        if (!event.defaultPrevented) {
+            dispatchEvent(testTarget, mouseDownEvent(testTarget, clientX, clientY));
+            dispatchEvent(testTarget, mouseUpEvent(testTarget, clientX, clientY));
+            dispatchEvent(testTarget, clickEvent(testTarget, clientX, clientY));
+            dispatchEvent(testTarget, doubleClickEvent(testTarget, clientX, clientY));
+        }
 
         await delay(50);
     };
