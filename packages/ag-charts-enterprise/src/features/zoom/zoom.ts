@@ -16,12 +16,14 @@ import {
     ANCHOR_POINT,
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
-    UNIT,
+    UNIT_SIZE,
     constrainZoom,
     definedZoomState,
     dx,
     dy,
     isZoomEqual,
+    scaleZoom,
+    scaleZoomAxisWithAnchor,
     unitZoomState,
 } from './zoomUtils';
 
@@ -125,7 +127,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public axes: 'x' | 'y' | 'xy' = 'x';
 
     @Validate(RATIO)
-    public scrollingStep = (UNIT.max - UNIT.min) / 10;
+    public scrollingStep = UNIT_SIZE / 10;
 
     @Validate(BOOLEAN)
     public keepAspectRatio = false;
@@ -562,16 +564,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         this.domProxy.update(this.enableAxisDragging, this.ctx);
-        const { enabled } = this;
 
-        if (!enabled) return;
+        if (!this.enabled) return;
 
-        const {
-            series: { rect, paddedRect },
-        } = event;
+        this.seriesRect = event.series.rect;
+        this.paddedRect = event.series.paddedRect;
 
-        this.seriesRect = rect;
-        this.paddedRect = paddedRect;
+        if (this.enableAxisDragging) {
+            this.toggleAxisDraggingCursors();
+        }
     }
 
     private onZoomChange(event: _ModuleSupport.ZoomChangeEvent) {
@@ -750,6 +751,30 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         zoomManager.updateAxisZoom('zoom', axisId, axisZoom);
         return true;
+    }
+
+    private toggleAxisDraggingCursors() {
+        const { anchorPointX, anchorPointY, domProxy } = this;
+
+        const zoom = this.getZoom();
+
+        let showCursorX = dx(zoom) !== UNIT_SIZE;
+        let showCursorY = dy(zoom) !== UNIT_SIZE;
+
+        if (!showCursorX) {
+            const checkZoomX = scaleZoom(zoom, 0.999, 1);
+            checkZoomX.x = scaleZoomAxisWithAnchor(checkZoomX.x, zoom.x, anchorPointX);
+            showCursorX = this.isZoomValid(checkZoomX);
+        }
+
+        if (!showCursorY) {
+            const checkZoomY = scaleZoom(zoom, 1, 0.999);
+            checkZoomY.y = scaleZoomAxisWithAnchor(checkZoomY.y, zoom.y, anchorPointY);
+            showCursorY = this.isZoomValid(checkZoomY);
+        }
+
+        domProxy.toggleAxisDraggingCursor(ChartAxisDirection.X, showCursorX);
+        domProxy.toggleAxisDraggingCursor(ChartAxisDirection.Y, showCursorY);
     }
 
     private getZoom() {

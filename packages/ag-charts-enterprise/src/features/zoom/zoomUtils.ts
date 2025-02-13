@@ -5,6 +5,7 @@ import type { DefinedZoomState } from './zoomTypes';
 const { UNION, clamp, isNumberEqual, round } = _ModuleSupport;
 
 export const UNIT = { min: 0, max: 1 };
+export const UNIT_SIZE = UNIT.max - UNIT.min;
 export const DEFAULT_ANCHOR_POINT_X: AgZoomAnchorPoint = 'end';
 export const DEFAULT_ANCHOR_POINT_Y: AgZoomAnchorPoint = 'middle';
 export const ANCHOR_POINT = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor point');
