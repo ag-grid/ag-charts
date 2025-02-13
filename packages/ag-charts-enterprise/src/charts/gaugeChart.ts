@@ -2,27 +2,12 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 import type { TextAlign, VerticalAlign } from 'ag-charts-types';
 
-const {
-    CartesianAxis,
-    Chart,
-    ChartAxisDirection,
-    LinearScale,
-    PolarAxis,
-    isBetweenAngles,
-    normalizeAngle360Inclusive,
-    sectorBox,
-} = _ModuleSupport;
+const { Chart, ChartAxisDirection, PolarAxis, isBetweenAngles, normalizeAngle360Inclusive, sectorBox } = _ModuleSupport;
 
 function isRadialGaugeSeries(
     series: _ModuleSupport.Series<unknown, any, any>
 ): series is _ModuleSupport.RadialGaugeSeries {
     return series.type === 'radial-gauge';
-}
-
-function isLinearGaugeSeries(
-    series: _ModuleSupport.Series<unknown, any, any>
-): series is _ModuleSupport.LinearGaugeSeries {
-    return series.type === 'linear-gauge';
 }
 
 export class GaugeChart extends Chart {
@@ -139,73 +124,6 @@ export class GaugeChart extends Chart {
         }
     }
 
-    private updateLinearGauge(seriesRect: _ModuleSupport.BBox, series: _ModuleSupport.LinearGaugeSeries) {
-        const xAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
-        const yAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Y);
-
-        if (!(xAxis instanceof CartesianAxis)) return seriesRect;
-        if (!(yAxis instanceof CartesianAxis)) return seriesRect;
-
-        const { horizontal, thickness } = series;
-
-        let horizontalInset = 0;
-        let verticalInset = 0;
-
-        // Must be done on a new scale, as the domain isn't set on the axes
-        const scale = new LinearScale();
-        const scaleAxis = horizontal ? xAxis : yAxis;
-        scale.domain = [0, 100];
-        scale.range = scaleAxis.range;
-        const ticks = scale.ticks({
-            nice: scaleAxis.nice,
-            interval: undefined,
-            tickCount: undefined,
-            minTickCount: 0,
-            maxTickCount: Infinity,
-        });
-
-        if (horizontal) {
-            horizontalInset = series.computeInset(ChartAxisDirection.X, ticks);
-        } else {
-            verticalInset = series.computeInset(ChartAxisDirection.Y, ticks);
-        }
-
-        const seriesWidth = seriesRect.width - Math.abs(horizontalInset);
-        const seriesHeight = seriesRect.height - Math.abs(verticalInset);
-
-        const { width, height } = horizontal
-            ? {
-                  width: Math.max(seriesWidth, 0),
-                  height: Math.max(Math.min(seriesHeight, thickness), 0),
-              }
-            : {
-                  width: Math.max(Math.min(seriesWidth, thickness), 0),
-                  height: Math.max(seriesHeight, 0),
-              };
-
-        const x0 = seriesRect.x + (seriesWidth - width) / 2 + Math.max(horizontalInset, 0);
-        const y0 = seriesRect.y + (seriesHeight - height) / 2 - Math.min(verticalInset, 0);
-
-        xAxis.range = [0, width];
-        xAxis.gridLength = width;
-        xAxis.calculateLayout();
-        xAxis.translation.x = x0;
-        xAxis.translation.y = y0 + (xAxis.position === 'bottom' ? thickness : 0);
-
-        yAxis.range = [0, height];
-        yAxis.gridLength = height;
-        yAxis.calculateLayout();
-        yAxis.translation.x = x0 + (yAxis.position === 'right' ? thickness : 0);
-        yAxis.translation.y = y0;
-
-        series.originX = x0 - seriesRect.x;
-        series.originY = y0 - seriesRect.y;
-
-        if (width === 0 || height === 0) {
-            Logger.warnOnce('There was insufficient space to display the Linear Gauge.');
-        }
-    }
-
     protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot, series, seriesArea } = this;
         const { layoutBox } = ctx;
@@ -216,8 +134,6 @@ export class GaugeChart extends Chart {
         const firstSeries = this.series[0];
         if (isRadialGaugeSeries(firstSeries)) {
             this.updateRadialGauge(layoutBox, firstSeries);
-        } else if (isLinearGaugeSeries(firstSeries)) {
-            this.updateLinearGauge(layoutBox, firstSeries);
         }
 
         this.axes.forEach((axis) => axis.update());

@@ -262,7 +262,8 @@ export class RadialGaugeSeries
     }
 
     private formatLabel(value: number) {
-        return formatLabel(value, this.axes[ChartAxisDirection.X]);
+        const { min = 0, max = 1 } = this.axes[ChartAxisDirection.X] as _ModuleSupport.ChartAxisLike;
+        return formatLabel(value, { min, max });
     }
 
     private createConicGradient(fills: _ModuleSupport.StopProperties[], fillMode: AgGradientFillMode) {

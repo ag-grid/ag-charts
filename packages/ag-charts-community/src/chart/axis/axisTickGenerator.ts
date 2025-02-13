@@ -72,14 +72,19 @@ enum TickGenerationType {
     VALUES,
 }
 
-export interface IAxis<S extends Scale<D, number, TickInterval<S>>, D> extends ChartAxis {
-    interval: AxisInterval<S>;
-    defaultTickMinSpacing: number;
+export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>, D> {
+    readonly range: [number, number];
+    readonly reverse: boolean;
+    readonly scale: S;
+    readonly label: ChartAxis['label'];
+    readonly interval: AxisInterval<S>;
+    readonly defaultTickMinSpacing: number;
+    readonly inRange: ChartAxis['inRange'];
     formatTick(value: any, index: number, fractionDigits?: number, formatter?: (datum: any) => string): string;
 }
 
 export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
-    constructor(private readonly axis: IAxis<S, D>) {}
+    constructor(private readonly axis: TickGenerationAxis<S, D>) {}
 
     private estimateTickCount(visibleRange: [number, number], minSpacing: number, maxSpacing: number) {
         return estimateTickCount(
@@ -403,7 +408,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     );
 
                     rawTicks = secondaryAxisTicks.ticks;
-                    niceDomain = secondaryAxisTicks.domain.map((d) => scale.toDomain(d));
+                    niceDomain = secondaryAxisTicks.domain.map((d) => scale.toDomain(d)!);
                 } else {
                     // AG-10654 Just use normal ticks for categorical axes.
                     rawTicks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
