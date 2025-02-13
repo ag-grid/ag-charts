@@ -150,7 +150,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         const { horizontalLine, verticalLine } = this;
         const { direction } = datum;
         const { x1, y1, x2, y2 } = coords;
-        const center = Vec2.round(Vec4.center(coords));
+        const center = Vec2.round(Vec4.center(coords), 0);
 
         const lineStyles = this.getLineStyles(datum);
 
@@ -177,7 +177,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private updateText(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
         const { direction } = datum;
-        const center = Vec2.round(Vec4.center(coords));
+        const center = Vec2.round(Vec4.center(coords), 0);
 
         let line;
         const textCoords = { ...coords };
@@ -224,7 +224,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         const { direction } = datum;
         const { x1, y1, x2, y2 } = coords;
 
-        const center = Vec2.round(Vec4.center(coords));
+        const center = Vec2.round(Vec4.center(coords), 0);
 
         const { stroke, strokeWidth, strokeOpacity } = this.getLineStyles(datum);
         const capStyles = { stroke, strokeWidth, strokeOpacity };

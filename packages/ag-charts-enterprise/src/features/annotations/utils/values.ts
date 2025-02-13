@@ -27,7 +27,7 @@ export function convertPoint(point: Point, context: AnnotationContext) {
     return { x, y };
 }
 
-export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext, 'scale' | 'snapToGroup'>) {
+export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext, 'scale' | 'snapToGroup'>): number {
     if (p == null) return 0;
 
     const { value, groupPercentage } = getGroupingValue(p);

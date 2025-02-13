@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { PointProperties } from '../properties/pointProperties';
-import { getDragStartState } from '../utils/coords';
+import { getDragStartState, translate } from '../utils/coords';
 import { validateDatumPoint } from '../utils/validation';
 import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
@@ -55,12 +55,9 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
     }
 
     public translate(datum: Datum, translation: _ModuleSupport.Vec2, context: AnnotationContext) {
-        const coords = Vec2.add(convertPoint(datum, context), translation);
-        const point = invertCoords(coords, context);
+        if (datum.locked) return;
 
-        if (!validateDatumPoint(context, point)) {
-            return;
-        }
+        const { point } = translate({ point: convertPoint(datum, context) }, translation, context);
 
         datum.x = point.x;
         datum.y = point.y;

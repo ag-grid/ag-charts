@@ -6,9 +6,10 @@ import { AxisLabelScene } from '../scenes/axisLabelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { UnivariantHandle } from '../scenes/handle';
+import { translate } from '../utils/coords';
 import { updateLineText } from '../utils/lineWithText';
 import { getGroupingValue } from '../utils/scale';
-import { convert, invert, invertCoords } from '../utils/values';
+import { convert, invertCoords } from '../utils/values';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
 const { ChartAxisDirection, Vec2, Vec4 } = _ModuleSupport;
@@ -189,36 +190,39 @@ export class CrossLineScene extends AnnotationScene {
     public drag(datum: CrossLineProperties, target: _ModuleSupport.Vec2, context: AnnotationContext) {
         const { activeHandle, dragState } = this;
 
-        if (datum.locked) return;
-
-        let coords;
+        if (datum.locked || !dragState) return;
 
         if (activeHandle) {
             this[activeHandle].toggleDragging(true);
-            coords = this[activeHandle].drag(target).point;
-        } else if (dragState) {
-            coords = Vec2.add(dragState.middle, Vec2.sub(target, dragState.offset));
-        } else {
-            return;
         }
 
-        const point = invertCoords(coords, context);
-
-        const isHorizontal = HorizontalLineProperties.is(datum);
-        datum.set({ value: isHorizontal ? point.y : point.x });
+        this.translatePoint(datum, dragState.middle, Vec2.sub(target, dragState.offset), context);
     }
 
-    public translate(datum: CrossLineProperties, { x, y }: _ModuleSupport.Vec2, context: AnnotationContext) {
+    public translate(datum: CrossLineProperties, translation: _ModuleSupport.Vec2, context: AnnotationContext) {
         if (datum.locked) return;
 
-        const { axisContext, translation } = HorizontalLineProperties.is(datum)
-            ? { axisContext: context.yAxis, translation: y }
-            : { axisContext: context.xAxis, translation: x };
+        const vector = HorizontalLineProperties.is(datum)
+            ? Vec2.from(0, convert(datum.value, context.yAxis))
+            : Vec2.from(convert(datum.value, context.xAxis), 0);
 
-        const translated = convert(datum.value, axisContext) + translation;
-        const value = invert(translated, axisContext);
+        this.translatePoint(datum, vector, translation, context);
+    }
 
-        if (!isNaN(value)) datum.set({ value });
+    protected translatePoint(
+        datum: CrossLineProperties,
+        value: _ModuleSupport.Vec2,
+        translation: _ModuleSupport.Vec2,
+        context: AnnotationContext
+    ) {
+        const isHorizontal = HorizontalLineProperties.is(datum);
+        if (isHorizontal) {
+            translation.x = 0;
+        } else {
+            translation.y = 0;
+        }
+        const { point } = translate({ point: value }, translation, context);
+        datum.value = isHorizontal ? point.y : point.x;
     }
 
     override stopDragging() {

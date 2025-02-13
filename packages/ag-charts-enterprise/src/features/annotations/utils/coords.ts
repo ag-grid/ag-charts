@@ -56,23 +56,29 @@ export function translate<VectorName extends string>(
     translation: _ModuleSupport.Vec2,
     context: AnnotationContext
 ) {
-    const vecs: _ModuleSupport.Vec2[] = [];
-    const result: Partial<Record<VectorName, _ModuleSupport.Vec2>> = {};
+    const { xAxis, yAxis } = context;
+    const overflow = Vec2.origin();
 
-    for (const [name, vector] of entries(vectors)) {
-        const translatedVec = Vec2.add(vector as _ModuleSupport.Vec2, translation);
-        vecs.push(translatedVec);
-        result[name] = invertCoords(translatedVec, context);
+    for (const name of Object.keys(vectors) as VectorName[]) {
+        vectors[name] = Vec2.add(vectors[name], translation);
+
+        const overflowX = xAxis.getRangeOverflow(vectors[name].x);
+        const overflowY = yAxis.getRangeOverflow(vectors[name].y);
+        if (Math.abs(overflowX) > Math.abs(overflow.x)) overflow.x = overflowX;
+        if (Math.abs(overflowY) > Math.abs(overflow.y)) overflow.y = overflowY;
     }
 
-    const { xAxis, yAxis } = context;
+    if (!Vec2.equal(overflow, Vec2.origin())) {
+        for (const name of Object.keys(vectors) as VectorName[]) {
+            // Round to prevent slight adjustments from floating point imprecision
+            vectors[name] = Vec2.round(Vec2.sub(vectors[name], overflow), 4);
+        }
+    }
 
-    // Only move the points along each axis if all the corners are within the axis, allowing the annotation to
-    // slide along the perpendicular axis.
-    const within = (min: number, value: number, max: number) => value >= min && value <= max;
+    const result = {} as Record<VectorName, _ModuleSupport.Vec2>;
+    for (const name of Object.keys(vectors) as VectorName[]) {
+        result[name] = invertCoords(vectors[name], context);
+    }
 
-    const translateX = vecs.every((vec) => within(xAxis.bounds.x, vec.x, xAxis.bounds.x + xAxis.bounds.width));
-    const translateY = vecs.every((vec) => within(yAxis.bounds.y, vec.y, yAxis.bounds.y + yAxis.bounds.height));
-
-    return { vectors: result, translateX, translateY };
+    return result;
 }

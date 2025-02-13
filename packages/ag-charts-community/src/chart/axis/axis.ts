@@ -313,6 +313,21 @@ export abstract class Axis<
         return value >= min - tolerance && value <= max + tolerance;
     }
 
+    /**
+     * Get a point's overflow on the range, expanded to include the non-visible range.
+     * @param value Point
+     * @returns Overflow
+     */
+    getRangeOverflow(value: number): number {
+        const { range: rr, visibleRange: vr } = this;
+        const size = (rr[1] - rr[0]) / (vr[1] - vr[0]);
+        const [min, max] = findMinMax([rr[0] - size * vr[0], rr[0] - size * vr[0] + size]);
+
+        if (value < min) return value - min;
+        if (value > max) return value - max;
+        return 0;
+    }
+
     protected defaultDatumFormatter(datum: unknown, fractionDigits: number): string {
         return formatValue(datum, fractionDigits + 1);
     }
@@ -803,7 +818,8 @@ export abstract class Axis<
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),
             attachLabel: (node: Node) => this.attachLabel(node),
-            inRange: (x, tolerance) => this.inRange(x, tolerance),
+            inRange: (value, tolerance) => this.inRange(value, tolerance),
+            getRangeOverflow: (value) => this.getRangeOverflow(value),
         };
     }
 

@@ -24,8 +24,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
     type = 'parallel-channel';
 
-    protected override ignoreYBounds: boolean = true;
-
     override activeHandle?: ChannelHandle;
     override handles = {
         topLeft: new DivariantHandle(),
@@ -123,6 +121,15 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         if (!datum.isValidWithContext(context)) {
             datum.set(prev);
         }
+    }
+
+    protected override getTranslatePointsVectors(start: _ModuleSupport.Vec2, end: _ModuleSupport.Vec2) {
+        const { bottomLeft, topLeft } = this.handles;
+        const height = bottomLeft.getBBox().y - topLeft.getBBox().y;
+        const bottomStart = Vec2.add(start, Vec2.from(0, height));
+        const bottomEnd = Vec2.add(end, Vec2.from(0, height));
+
+        return { start, end, bottomStart, bottomEnd };
     }
 
     override containsPoint(x: number, y: number) {

@@ -22,8 +22,6 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
     type = 'disjoint-channel';
 
-    protected override ignoreYBounds: boolean = true;
-
     override activeHandle?: ChannelHandle;
     override handles = {
         topLeft: new DivariantHandle(),
@@ -127,6 +125,16 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         if (!datum.isValidWithContext(context)) {
             datum.set(prev);
         }
+    }
+
+    protected override getTranslatePointsVectors(start: _ModuleSupport.Vec2, end: _ModuleSupport.Vec2) {
+        const { bottomLeft, bottomRight, topLeft, topRight } = this.handles;
+        const startHeight = bottomLeft.getBBox().y - topLeft.getBBox().y;
+        const endHeight = bottomRight.getBBox().y - topRight.getBBox().y;
+        const bottomStart = Vec2.add(start, Vec2.from(0, startHeight));
+        const bottomEnd = Vec2.add(end, Vec2.from(0, endHeight));
+
+        return { start, end, bottomStart, bottomEnd };
     }
 
     override updateLines(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
