@@ -8,6 +8,7 @@ import type {
     AgChartTheme,
     AgFinancialChartOptions,
     AgPolarChartOptions,
+    AgSparklineOptions,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -31,7 +32,7 @@ export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
 export * from '../../util/test/mockConsole';
 
-export type ChartOrProxy<O extends AgChartOptions | AgFinancialChartOptions = AgChartOptions> =
+export type ChartOrProxy<O extends AgChartOptions | AgFinancialChartOptions | AgSparklineOptions = AgChartOptions> =
     | AgChartInstance<O>
     | AgChartProxy
     | Chart;
@@ -74,7 +75,10 @@ export function prepareFinancialTestOptions(options: AgFinancialChartOptions, co
     return options;
 }
 
-export function prepareTestOptions<T extends AgChartOptions>(options: T, container = getDocument('body')) {
+export function prepareTestOptions<T extends AgChartOptions | AgSparklineOptions>(
+    options: T,
+    container = getDocument('body')
+) {
     options.width = CANVAS_WIDTH;
     options.height = CANVAS_HEIGHT;
     options.container = container;
@@ -143,7 +147,7 @@ export function dateRange(start: Date, end: Date, step = 24 * 60 * 60 * 1000): D
     return result;
 }
 
-export async function waitForChartStability<O extends AgChartOptions | AgFinancialChartOptions>(
+export async function waitForChartStability<O extends AgChartOptions | AgFinancialChartOptions | AgSparklineOptions>(
     chartOrProxy: ChartOrProxy<O>,
     animationAdvanceMs = 0
 ): Promise<void> {

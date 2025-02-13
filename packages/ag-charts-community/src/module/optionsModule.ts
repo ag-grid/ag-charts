@@ -180,7 +180,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const processor = presetType ? PRESET_DATA_PROCESSORS[presetType] : undefined;
         if (presetType != null && deltaOptions.data != null && processor != null) {
             // Handle preset data transforms gracefully.
-            deltaOptions = mergeDefaults(processor(deltaOptions.data), deltaOptions) as DeepPartial<T>;
+            const { series, data } = processor(deltaOptions.data);
+            deltaOptions = mergeDefaults({ series, data }, deltaOptions) as DeepPartial<T>;
         }
 
         this.fastSeriesSetup(deltaOptions, baseOptions);
