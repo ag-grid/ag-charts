@@ -1,6 +1,5 @@
 import {
     Logger,
-    entries,
     isArray,
     isDate,
     isFunction,
@@ -345,7 +344,8 @@ function jsonResolveVisitor<T, P>(node: any, params: P, source: T, path: string[
             node[i] = jsonResolveVisitorValue(node[i], params, source, [...path, `${i}`], modifiedPaths);
         }
     } else {
-        for (const [name, value] of entries<object>(node)) {
+        for (const name of Object.keys(node)) {
+            const value = node[name];
             node[name] = jsonResolveVisitorValue(value, params, source, [...path, name], modifiedPaths);
         }
     }

@@ -1,5 +1,3 @@
-import { entries } from 'ag-charts-core';
-
 import type { BBoxContainsTester } from '../util/bboxinterface';
 import { BBoxValues } from '../util/bboxinterface';
 import { type Interpolating, interpolate } from '../util/interpolating';
@@ -144,9 +142,10 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         if (typeof amount === 'number') {
             this.applyMargin(amount, position);
         } else {
-            for (const [key, value] of entries(amount)) {
+            for (const key of Object.keys(amount) as (keyof Padding)[]) {
+                const value = amount[key];
                 if (typeof value === 'number') {
-                    this.applyMargin(value, key);
+                    this.applyMargin(value, key as ShrinkOrGrowPosition);
                 }
             }
         }
@@ -167,9 +166,10 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         if (typeof amount === 'number') {
             this.applyMargin(-amount, position);
         } else {
-            for (const [key, value] of entries(amount)) {
+            for (const key of Object.keys(amount) as (keyof Padding)[]) {
+                const value = amount[key];
                 if (typeof value === 'number') {
-                    this.applyMargin(-value, key);
+                    this.applyMargin(-value, key as ShrinkOrGrowPosition);
                 }
             }
         }

@@ -1,5 +1,3 @@
-import { entries } from 'ag-charts-core';
-
 import { joinFormatted, stringifyValue } from './strings';
 import { isArray, isBoolean, isDate, isFiniteNumber, isFunction, isObject, isString, isValidDate } from './typeGuards';
 
@@ -55,10 +53,10 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
         return path ? `${path}.${key}` : key;
     }
 
-    for (const [keyRaw, validatorOrDefs] of entries<OptionsDefs<T>>(optionsDefs)) {
-        const key = keyRaw as string;
+    for (const key of Object.keys(optionsDefs)) {
+        const validatorOrDefs: Validator | ObjectLikeDef<any> = (optionsDefs as any)[key];
         optionsKeys.delete(key);
-        const value = options[key];
+        const value = options[key as keyof object];
         if (!validatorOrDefs[requiredSymbol] && typeof value === 'undefined') continue;
         if (isFunction(validatorOrDefs)) {
             if (validatorOrDefs(value, options)) {
@@ -67,7 +65,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
                 errors.push({ key, path, value, message: validateMessage(extendPath(key), value, validatorOrDefs) });
             }
         } else {
-            const nestedResult = validate(value, validatorOrDefs as any, extendPath(key));
+            const nestedResult = validate(value, validatorOrDefs, extendPath(key));
             valid[key as keyof T] = nestedResult.valid as any;
             errors.push(...nestedResult.errors);
         }
@@ -151,7 +149,7 @@ export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
         (value: unknown) =>
             isObject(value) &&
             Object.keys(defs).every((key) => {
-                const validatorOrDefs = (defs as any)[key];
+                const validatorOrDefs: Validator | ObjectLikeDef<any> = (defs as any)[key];
                 const validator = isFunction(validatorOrDefs) ? validatorOrDefs : optionsDefs(validatorOrDefs);
                 return validator(value[key], value);
             }),

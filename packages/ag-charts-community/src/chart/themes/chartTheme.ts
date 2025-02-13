@@ -428,7 +428,8 @@ export class ChartTheme {
                 }
             }
         } else {
-            for (const [name, value] of entries(node)) {
+            for (const name of Object.keys(node)) {
+                const value = node[name];
                 if (typeof value === 'symbol' && params?.has(value)) {
                     node[name] = params.get(value);
                 }

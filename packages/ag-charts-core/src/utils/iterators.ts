@@ -34,16 +34,19 @@ export function first<T>(iterable: Iterable<T>): T | never {
 
 /**
  * Efficient key/value iterator. Note that the returned tuple is always the same array, only
- * elements change from one iteration to the next.
+ * elements change from one iteration to the next, so should only be used in destructing for
+ * statements.
+ *
+ * NOTE: For performance sensitive code, prefer using `Object.keys()` directly.
  *
  * @param obj to iterate over
  * @returns An iterator for all key/value tuples of obj
  */
 export function* entries<T extends object>(obj: T): Iterable<[keyof T, T[keyof T]]> {
     const resultTuple: [keyof T, T[keyof T]] = [undefined!, undefined!];
-    for (const key in obj) {
-        resultTuple[0] = key;
-        resultTuple[1] = obj[key];
+    for (const key of Object.keys(obj)) {
+        resultTuple[0] = key as keyof T;
+        resultTuple[1] = obj[key as keyof T];
         yield resultTuple;
     }
 }
