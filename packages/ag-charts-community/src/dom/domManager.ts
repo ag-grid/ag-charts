@@ -44,8 +44,8 @@ function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => 
     if (typeof IntersectionObserver === 'undefined') return;
 
     const observer = new IntersectionObserver(
-        (entries) => {
-            for (const entry of entries) {
+        (observedEntries) => {
+            for (const entry of observedEntries) {
                 if (entry.target === element) {
                     cb(entry.intersectionRatio);
                 }
