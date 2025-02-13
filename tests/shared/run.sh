@@ -125,7 +125,7 @@ if ${production} ; then
     npm i ag-charts-${fw} @playwright/test@1.45.0
 else
     echo ">>> npm i ../ag-charts*.tgz"
-    npm i ../ag-charts-types.tgz ../ag-charts-locale.tgz ../ag-charts-community.tgz ../ag-charts-enterprise.tgz ../ag-charts-${fw}.tgz @playwright/test@1.45.0
+    npm i ../ag-charts-types.tgz ../ag-charts-locale.tgz ../ag-charts-community.tgz ../ag-charts-core.tgz ../ag-charts-enterprise.tgz ../ag-charts-${fw}.tgz @playwright/test@1.45.0
 fi
 git add .
 git commit -m "Initial commit"
