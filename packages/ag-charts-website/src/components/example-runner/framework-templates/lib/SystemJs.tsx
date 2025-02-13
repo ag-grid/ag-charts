@@ -54,7 +54,7 @@ const publishedConfiguration = {
 };
 
 function getRelevantConfig(configuration: Configuration, framework: InternalFramework) {
-    const filterByFramework = ([k]: string[]) => {
+    const filterByFramework = (k: string) => {
         const inverseFrameworks: Record<string, string[]> = {
             react: ['angular', 'vue3'],
             angular: ['react', 'vue3'],
@@ -66,12 +66,11 @@ function getRelevantConfig(configuration: Configuration, framework: InternalFram
 
     const buildChartCopy = (config: Paths) => {
         const valid = {} as Paths;
-        // eslint-disable-next-line no-restricted-properties
-        Object.entries(config)
+        Object.keys(config)
             .filter(filterByFramework)
-            .sort(([k1], [k2]) => (k1 < k2 ? -1 : 1))
-            .forEach(([k, v]) => {
-                valid[k] = v;
+            .sort((k1, k2) => (k1 < k2 ? -1 : 1))
+            .forEach((k) => {
+                valid[k] = config[k];
             });
         return valid;
     };

@@ -1,16 +1,17 @@
 import type { ApiReferenceType } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { getDevFileUrl } from '@utils/devFileUrl';
 
+import { entries } from 'ag-charts-core';
+
 /**
  * Get interfaces reference by fetching from the dev files url
  */
-export async function fetchInterfacesReference(): Promise<ApiReferenceType> {
+export async function fetchInterfacesReference() {
     const contents = await fetch(
         getDevFileUrl({
             filePath: '/resolved-interfaces.json',
         })
     ).then((res) => res.json());
 
-    // eslint-disable-next-line no-restricted-properties
-    return new Map(Object.entries(contents));
+    return new Map(entries(contents)) as ApiReferenceType;
 }

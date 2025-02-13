@@ -268,16 +268,16 @@ export const useLicenseData = ({ library }: { library: Library }) => {
     }, [library, licenseDetails, chartsLicenseDetails]);
 
     const licenseInvalidErrors = useMemo(() => {
-        // eslint-disable-next-line no-restricted-properties
-        return Object.entries(licenseState)
-            .filter(([key, value]) => hasValue(value) && licenseInvalidKeys.includes(key as LicenseStateKey))
-            .map(([, message]) => message);
+        return Object.keys(licenseState)
+            .filter(
+                (key) => hasValue((licenseState as any)[key]) && licenseInvalidKeys.includes(key as LicenseStateKey)
+            )
+            .map((key) => (licenseState as any)[key]);
     }, [licenseState]);
     const licenseValidMessage = useMemo(() => {
-        // eslint-disable-next-line no-restricted-properties
-        return Object.entries(licenseState)
-            .filter(([key, value]) => hasValue(value) && licenseValidKeys.includes(key as LicenseStateKey))
-            .map(([, message]) => message);
+        return Object.keys(licenseState)
+            .filter((key) => hasValue((licenseState as any)[key]) && licenseValidKeys.includes(key as LicenseStateKey))
+            .map((key) => (licenseState as any)[key]);
     }, [licenseState]);
 
     return {
