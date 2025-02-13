@@ -823,7 +823,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const { offset } = this.properties.calloutLabel;
 
         this.calloutLabelSelection.selectByTag<Line>(PieNodeTag.Callout).forEach((line, index) => {
-            const datum = line.datum as PieNodeDatum;
+            const datum = line.closestDatum() as PieNodeDatum;
             const { calloutLabel: label, outerRadius } = datum;
 
             if (label?.text && !label.hidden && outerRadius !== 0) {
@@ -1053,7 +1053,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const tempTextNode = new Text();
 
         this.calloutLabelSelection.selectByTag<Text>(PieNodeTag.Label).forEach((text) => {
-            const { datum } = text;
+            const datum = text.closestDatum();
             const label = datum.calloutLabel;
             const radius = radiusScale.convert(datum.radius);
             const outerRadius = Math.max(0, radius);

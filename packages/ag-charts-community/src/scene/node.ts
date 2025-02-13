@@ -139,7 +139,7 @@ export abstract class Node<D = any> {
      * Some arbitrary data bound to the node.
      */
     get datum() {
-        return this._datum ?? this.parentNode?.datum;
+        return this._datum;
     }
 
     set datum(datum: any) {
@@ -159,6 +159,14 @@ export abstract class Node<D = any> {
 
     get dirty() {
         return this._dirty;
+    }
+
+    closestDatum() {
+        for (const { datum } of this.traverseUp(true)) {
+            if (datum != null) {
+                return datum;
+            }
+        }
     }
 
     /** Perform any pre-rendering initialization. */
