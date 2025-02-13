@@ -261,11 +261,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isIgnoredTouch(event: Pick<_Widget.DragWidgetEvent, 'device'> | undefined): boolean {
-        if (this.ctx.chartService.touch.dragAction !== 'drag') {
-            return true;
-        }
         if (event?.device !== 'touch') {
             return false;
+        }
+        if (this.ctx.chartService.touch.dragAction !== 'drag') {
+            return true;
         }
         if (this.enableSelecting) {
             return false;
