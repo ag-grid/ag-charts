@@ -182,7 +182,7 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(cx, cy)(chart);
-            await compare('dblclick-xy');
+            await compare('reset');
         });
         it('should reset the X axis zoom', async () => {
             await prepareChart();
@@ -203,7 +203,7 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleTapAction(cx, cy)(chart);
-            await compare('dblclick-xy');
+            await compare('reset');
         });
         it('should reset the X axis zoom', async () => {
             await prepareChart();
@@ -288,7 +288,7 @@ describe('Zoom', () => {
 
             it('should not zoom on mouseup', async () => {
                 await mouseUpAction(b.x, b.y)(chart);
-                await compare();
+                await compare('reset');
             });
         });
     });
@@ -365,7 +365,7 @@ describe('Zoom', () => {
             await twoFingerStart(3, cx - 250, cy - 250, 4, cx + 250, cy + 250)(chart);
             await twoFingerMove(3, cx - 10, cy - 10, 4, cx + 10, cy + 10)(chart);
             await twoFingerEnd(3, cx - 10, cy - 10, 4, cx + 10, cy + 10)(chart);
-            await compare('dblclick-xy');
+            await compare('reset');
         });
 
         test('zoom and pan', async () => {
