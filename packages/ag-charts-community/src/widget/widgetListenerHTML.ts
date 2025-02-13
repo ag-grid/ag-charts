@@ -1,3 +1,5 @@
+import { entries } from 'ag-charts-core';
+
 import { WidgetEventUtil } from './widgetEvents';
 import type { WidgetEventMap_HTML, WidgetSourceEventMap_HTML } from './widgetEvents';
 
@@ -52,9 +54,8 @@ export class WidgetListenerHTML {
     }
 
     destroy<T extends Targetable>(target: T): void {
-        for (const [key, sourceHandler] of Object.entries(this.sourceListeners ?? {})) {
-            const type = key as keyof typeof this.sourceListeners;
-            target.getElement().removeEventListener(type, sourceHandler);
+        for (const [key, sourceHandler] of entries(this.sourceListeners ?? {})) {
+            target.getElement().removeEventListener(key, sourceHandler as any);
         }
         this.widgetListeners = undefined;
         this.sourceListeners = undefined;

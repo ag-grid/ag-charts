@@ -3,6 +3,8 @@ import { DEV_FILE_PATH_MAP, getRootUrl } from '@utils/pages';
 import { pathJoin } from '@utils/pathJoin';
 import { readFileSync } from 'node:fs';
 
+import { entries } from 'ag-charts-core';
+
 type DevFileKey = keyof typeof DEV_FILE_PATH_MAP;
 
 function getJsonFromDevFile(devFileKey: DevFileKey) {
@@ -16,7 +18,7 @@ function getJsonFromDevFile(devFileKey: DevFileKey) {
  *
  * For static site generation
  */
-export function getInterfacesReference(): ApiReferenceType {
+export function getInterfacesReference() {
     const jsonContent = getJsonFromDevFile('resolved-interfaces.json');
-    return new Map(Object.entries(jsonContent));
+    return new Map(entries(jsonContent)) as ApiReferenceType;
 }

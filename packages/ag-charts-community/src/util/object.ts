@@ -1,5 +1,5 @@
 import type { Intersection, PlainObject } from 'ag-charts-core';
-import { isArray, isObject, isPlainObject } from 'ag-charts-core';
+import { entries, isArray, isObject, isPlainObject } from 'ag-charts-core';
 
 import { isDecoratedObject, listDecoratedProperties } from './decorator';
 
@@ -62,13 +62,11 @@ export function mapValues<T extends PlainObject, R>(
     object: T,
     mapper: (value: T[keyof T], key: keyof T, object: T) => R
 ) {
-    return Object.entries(object).reduce(
-        (result, [key, value]) => {
-            result[key as keyof T] = mapper(value, key, object);
-            return result;
-        },
-        {} as Record<keyof T, R>
-    );
+    const result = {} as Record<keyof T, R>;
+    for (const [key, value] of entries(object)) {
+        result[key] = mapper(value, key, object);
+    }
+    return result;
 }
 
 export function without(object: object | undefined, keys: string[]) {

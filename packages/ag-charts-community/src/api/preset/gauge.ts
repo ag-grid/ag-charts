@@ -29,6 +29,7 @@ function pickTooltipProps(tooltip: AgChartTooltipOptions | undefined): AgChartTo
         delay,
         wrapping,
     };
+    // eslint-disable-next-line no-restricted-properties
     return Object.fromEntries(Object.entries(result).filter(([_, value]) => value !== undefined));
 }
 

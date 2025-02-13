@@ -242,7 +242,8 @@ class AgChartsInternal {
 
     private static markRemovedProperties(this: void, node: any, _: unknown, modified = false) {
         if (typeof node !== 'object') return modified;
-        for (const [key, value] of Object.entries(node)) {
+        for (const key of Object.keys(node)) {
+            const value = node[key];
             if (typeof value === 'undefined') {
                 Object.assign(node, { [key]: Symbol('UNSET') });
                 modified ||= true;

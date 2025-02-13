@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { entries } from 'ag-charts-core';
 
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext } from '../annotationTypes';
@@ -283,8 +284,8 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
             this.end.visible = show;
             this.endRetracement.visible = show;
         } else {
-            for (const [handle, visible] of Object.entries(show) as [StartEndHandle, boolean][]) {
-                this[handle].visible = visible;
+            for (const [handle, visible] of entries(show)) {
+                this[handle].visible = visible!;
             }
         }
 

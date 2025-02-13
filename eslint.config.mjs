@@ -149,6 +149,20 @@ export default [
             '@typescript-eslint/no-this-alias': 0,
         },
     },
+    {
+        files: ['**/*.{js,ts,tsx}'],
+        ignores: ['**/*.{spec,test}.ts'],
+        rules: {
+            'no-restricted-properties': [
+                'error',
+                {
+                    object: 'Object',
+                    property: 'entries',
+                    message: 'Prefer Object.keys() to Object.entries() for performance reasons.',
+                },
+            ],
+        },
+    },
     testDefaults,
     {
         files: ['packages/*/tools/*.ts'],

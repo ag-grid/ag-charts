@@ -129,8 +129,9 @@ async function updateVersionsData({ isVerbose }: { isVerbose: boolean }) {
     const minVersionParts = MIN_VERSION.split('.').map(Number);
     const agVersions = JSON.parse((await fs.readFile(VERSIONS_DATA_PATH)).toString());
     const allNpmVersionMap = getNpmLibraryVersions('ag-charts-community');
-    const npmVersions = Object.entries(allNpmVersionMap)
-        .map(([version, date]: [string, string]) => {
+    const npmVersions = Object.keys(allNpmVersionMap)
+        .map((version) => {
+            const date = allNpmVersionMap[version];
             const formattedDate = formatDate(date);
             return { version, date: formattedDate };
         })

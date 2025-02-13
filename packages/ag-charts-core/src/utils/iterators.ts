@@ -31,3 +31,23 @@ export function first<T>(iterable: Iterable<T>): T | never {
     }
     throw new Error('AG Charts - no first() value found');
 }
+
+/**
+ * Efficient key/value iterator. Note that the returned tuple is always the same array, only
+ * elements change from one iteration to the next, so should only be used in destructing for
+ * statements.
+ *
+ * NOTE: For performance sensitive code, prefer using `Object.keys()` directly, or consider
+ * using a `Map` instead.
+ *
+ * @param obj to iterate over
+ * @returns An iterator for all key/value tuples of obj
+ */
+export function* entries<T extends object>(obj: T): Iterable<[keyof T, T[keyof T]]> {
+    const resultTuple: [keyof T, T[keyof T]] = [undefined!, undefined!];
+    for (const key of Object.keys(obj)) {
+        resultTuple[0] = key as keyof T;
+        resultTuple[1] = obj[key as keyof T];
+        yield resultTuple;
+    }
+}

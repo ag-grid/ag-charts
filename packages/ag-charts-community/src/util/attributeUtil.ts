@@ -1,4 +1,4 @@
-import type { Nullable } from 'ag-charts-core';
+import { type Nullable, entries } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
 type ElementID = string;
@@ -120,7 +120,7 @@ export function setAttributes(e: Nullable<HTMLTextAreaElement>, attrs: InputAttr
 export function setAttributes(e: Nullable<HTMLElement>, attrs: AttributeSet | undefined) {
     if (attrs == null) return;
 
-    for (const [key, value] of Object.entries(attrs)) {
+    for (const [key, value] of entries(attrs)) {
         if (key === 'class') continue;
         setAttribute(e as HTMLElement, key as any, value as any);
     }
@@ -171,7 +171,7 @@ export function setElementStyle<P extends keyof BaseStyleTypeMap>(
     }
 }
 export function setElementStyles(e: Nullable<HTMLElement>, styles: StyleSet) {
-    for (const [key, value] of Object.entries(styles)) {
+    for (const [key, value] of entries(styles)) {
         setElementStyle(e as HTMLElement, key as any, value);
     }
 }

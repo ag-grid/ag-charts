@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { entries } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
 import { ColorPicker } from '../color-picker/colorPicker';
@@ -117,7 +118,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const tabButtonIds = mapValues(tabs, () => createElementId('ag-charts-dialog__tab'));
         const tabPanelIds = mapValues(tabs, () => createElementId('ag-charts-dialog__tab-panel'));
 
-        for (const [key, tab] of Object.entries(tabs)) {
+        for (const [key, tab] of entries(tabs)) {
             setAttributes(tab.panel, {
                 id: tabPanelIds[key],
                 role: 'tabpanel',
@@ -126,7 +127,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         }
 
         const onPressTab = (active: keyof T) => {
-            for (const [key, tab] of Object.entries(tabs)) {
+            for (const [key, tab] of entries(tabs)) {
                 tab.panel.classList.toggle('ag-charts-dialog__tab-panel--active', key === active);
                 tabButtons[key].classList.toggle('ag-charts-dialog__tab-button--active', key === active);
                 setAttribute(tabButtons[key], 'aria-selected', key === active);

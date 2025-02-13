@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-properties */
 import { Logger, isString, toArray } from 'ag-charts-core';
 
 import { getWindow } from '../core';

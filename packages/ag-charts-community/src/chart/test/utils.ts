@@ -570,7 +570,8 @@ export function mixinReversedAxesCases(
 ): Record<string, CartesianOrPolarTestCase> {
     const result = { ...baseCases };
 
-    Object.entries(baseCases).forEach(([name, baseCase]) => {
+    Object.keys(baseCases).forEach((name) => {
+        const baseCase = baseCases[name];
         result[name + '_REVERSED_AXES'] = {
             ...baseCase,
             options: reverseAxes(baseCase.options, true),

@@ -1,3 +1,5 @@
+import { entries } from 'ag-charts-core';
+
 type KeyBinding = Readonly<{ key: string; ctrlOrMeta?: boolean; shift?: boolean } | { code: string }>;
 type KeyActionConfig = Readonly<{ bindings: KeyBinding[]; activatesFocusIndicator?: boolean }>;
 type KeyAction = { name: KeyActionName; activatesFocusIndicator: boolean };
@@ -49,10 +51,9 @@ function matchesKeyBinding(e: KeyboardEvent, bindings: Readonly<KeyBinding>[]) {
 }
 
 export function mapKeyboardEventToAction(event: KeyboardEvent): KeyAction | undefined {
-    for (const [actionName, { activatesFocusIndicator = true, bindings }] of Object.entries(KEY_BINDINGS)) {
+    for (const [actionName, { activatesFocusIndicator = true, bindings }] of entries(KEY_BINDINGS)) {
         if (matchesKeyBinding(event, bindings)) {
-            const name = actionName as keyof typeof KEY_BINDINGS;
-            return { name, activatesFocusIndicator };
+            return { name: actionName, activatesFocusIndicator };
         }
     }
     return undefined;

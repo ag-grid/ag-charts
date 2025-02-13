@@ -50,7 +50,8 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
             listenerConfig: undefined | AgChartLegendListeners | AgSeriesListeners<any> | AgBaseChartListeners<any>
         ) => {
             const config = listenerConfig ?? ({} as any);
-            for (const [listenerName, listener] of Object.entries(config)) {
+            for (const listenerName of Object.keys(config)) {
+                const listener = config[listenerName];
                 if (typeof listener !== 'function') continue;
 
                 config[listenerName] = (...args: any) => {

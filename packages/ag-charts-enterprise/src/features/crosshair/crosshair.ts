@@ -102,7 +102,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.layoutManager.addListener('layout:complete', (event) => this.layout(event)),
-            () => Object.entries(this.labels).forEach(([_, label]) => label.destroy())
+            () => Object.values(this.labels).forEach((label) => label.destroy())
         );
     }
 

@@ -414,8 +414,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         if (props.alignment) this.defaults.setDefaultLineTextAlignment(datum.type, props.alignment);
                         if (props.position) this.defaults.setDefaultLineTextPosition(datum.type, props.position);
                         this.recordActionAfterNextUpdate(
-                            `Change ${datum.type} text ${Object.entries(props)
-                                .map(([key, value]) => `${key} to ${value}`)
+                            `Change ${datum.type} text ${Object.keys(props)
+                                .map((key) => `${key} to ${(props as any)[key]}`)
                                 .join(', ')}`
                         );
                     },

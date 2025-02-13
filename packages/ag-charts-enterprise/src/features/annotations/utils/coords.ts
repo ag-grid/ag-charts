@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { entries } from 'ag-charts-core';
 
 import type { AnnotationContext, Point } from '../annotationTypes';
 import { convertPoint, invertCoords } from './values';
@@ -43,9 +44,9 @@ export function getDragStartState<PointName extends string>(
 ) {
     const dragState = {} as Record<PointName, _ModuleSupport.Vec2>;
 
-    Object.entries(points).forEach(([name, point]) => {
-        dragState[name as PointName] = convertPoint(point as Point, context);
-    });
+    for (const [name, point] of entries(points)) {
+        dragState[name] = convertPoint(point as Point, context);
+    }
 
     return dragState;
 }
@@ -58,11 +59,11 @@ export function translate<VectorName extends string>(
     const vecs: _ModuleSupport.Vec2[] = [];
     const result: Partial<Record<VectorName, _ModuleSupport.Vec2>> = {};
 
-    Object.entries(vectors).forEach(([name, vector]) => {
+    for (const [name, vector] of entries(vectors)) {
         const translatedVec = Vec2.add(vector as _ModuleSupport.Vec2, translation);
         vecs.push(translatedVec);
-        result[name as VectorName] = invertCoords(translatedVec, context);
-    });
+        result[name] = invertCoords(translatedVec, context);
+    }
 
     const { xAxis, yAxis } = context;
 

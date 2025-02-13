@@ -1,4 +1,5 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
+import { entries } from 'ag-charts-core';
 
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext } from '../annotationTypes';
@@ -41,8 +42,8 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
             this.start.visible = show;
             this.end.visible = show;
         } else {
-            for (const [handle, visible] of Object.entries(show) as [StartEndHandle, boolean][]) {
-                this[handle].visible = visible;
+            for (const [handle, visible] of entries(show)) {
+                this[handle].visible = visible!;
             }
         }
 

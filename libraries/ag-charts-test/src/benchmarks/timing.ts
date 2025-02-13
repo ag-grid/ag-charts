@@ -26,19 +26,24 @@ export function recordTiming(suitePath: string, name: string, measurement: Bench
     return getRelativeMemoryUsage(measurement.memory);
 }
 
+function formatMemoryUse(memory: BenchmarkMeasurement['memory']) {
+    return Object.fromEntries(
+        (memory?.nativeAllocations ? Object.keys(memory.nativeAllocations) : []).flatMap((objectName) => {
+            const value = memory.nativeAllocations[objectName];
+            return [
+                [`${objectName}Count`, value.count],
+                [`${objectName}Bytes`, formatBytes(value.bytes)],
+            ];
+        })
+    );
+}
+
 export function logTimings() {
     const timings = collectTimings((measurement) => ({
         time: formatMillis(measurement.timeMs),
         memoryUsage: measurement.memory ? formatBytes(getTotalMemoryUsage(measurement.memory)) : null,
         heapUsed: measurement.memory ? formatBytes(measurement.memory.after.heapUsed) : null,
-        ...Object.fromEntries(
-            (measurement.memory?.nativeAllocations ? Object.entries(measurement.memory.nativeAllocations) : []).flatMap(
-                ([objectName, value]) => [
-                    [`${objectName}Count`, value.count],
-                    [`${objectName}Bytes`, formatBytes(value.bytes)],
-                ]
-            )
-        ),
+        ...formatMemoryUse(measurement.memory),
     }));
     for (const [suitePath, results] of timings) {
         console.log(suitePath);
@@ -51,14 +56,7 @@ export function flushTimings() {
         timeMs: measurement.timeMs,
         memoryUsage: measurement.memory ? getTotalMemoryUsage(measurement.memory) : null,
         heapUsed: measurement.memory ? measurement.memory.after.heapUsed : null,
-        ...Object.fromEntries(
-            (measurement.memory?.nativeAllocations ? Object.entries(measurement.memory.nativeAllocations) : []).flatMap(
-                ([objectName, value]) => [
-                    [`${objectName}Count`, value.count],
-                    [`${objectName}Bytes`, value.bytes],
-                ]
-            )
-        ),
+        ...formatMemoryUse(measurement.memory),
     }));
     for (const [suitePath, results] of timings) {
         const filename = `./reports${suitePath.replace(/.ts$/, '.json')}`;

@@ -1,3 +1,4 @@
+import { entries } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
 import { createElement, getDocument, getWindow } from '../core';
@@ -43,8 +44,8 @@ function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => 
     if (typeof IntersectionObserver === 'undefined') return;
 
     const observer = new IntersectionObserver(
-        (entries) => {
-            for (const entry of entries) {
+        (observedEntries) => {
+            for (const entry of observedEntries) {
                 if (entry.target === element) {
                     cb(entry.intersectionRatio);
                 }
@@ -284,7 +285,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         const lengthKeys: Array<keyof AgChartThemeParams> = ['fontSize', 'chromeFontSize'];
 
-        for (const [key, value] of Object.entries(params) as Array<[keyof AgChartThemeParams, string | number]>) {
+        for (const [key, value] of entries(params) as Array<[keyof AgChartThemeParams, string | number]>) {
             let formattedValue = `${value}`;
             if (lengthKeys.includes(key)) {
                 formattedValue = `${value}px`;

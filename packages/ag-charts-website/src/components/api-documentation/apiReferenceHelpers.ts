@@ -12,6 +12,8 @@ import type {
 } from '@generate-code-reference-plugin/doc-interfaces/types';
 import type Flexsearch from 'flexsearch';
 
+import { entries } from 'ag-charts-core';
+
 type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
 
 export type SearchDatum = { label: string; searchable: string; navPath: NavigationPath[] };
@@ -117,7 +119,7 @@ export function processMembers(
     let { members } = interfaceRef;
     const { prioritise, include, exclude } = config;
     const isInterface = interfaceRef.kind === 'interface';
-    const genericsMap = new Map(isInterface ? Object.entries(interfaceRef.genericsMap ?? {}) : null);
+    const genericsMap = new Map(isInterface ? entries(interfaceRef.genericsMap ?? {}) : null);
     if (isInterface && interfaceRef.typeParams) {
         for (const [i, typeParam] of interfaceRef.typeParams.entries()) {
             genericsMap.set(

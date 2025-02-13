@@ -53,7 +53,8 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
         return path ? `${path}.${key}` : key;
     }
 
-    for (const [key, validatorOrDefs] of Object.entries<Validator | ObjectLikeDef<any>>(optionsDefs)) {
+    for (const key of Object.keys(optionsDefs)) {
+        const validatorOrDefs: Validator | ObjectLikeDef<any> = (optionsDefs as any)[key];
         optionsKeys.delete(key);
         const value = options[key as keyof object];
         if (!validatorOrDefs[requiredSymbol] && typeof value === 'undefined') continue;
@@ -147,7 +148,8 @@ export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
     attachDescription(
         (value: unknown) =>
             isObject(value) &&
-            Object.entries<Validator | ObjectLikeDef<any>>(defs).every(([key, validatorOrDefs]) => {
+            Object.keys(defs).every((key) => {
+                const validatorOrDefs: Validator | ObjectLikeDef<any> = (defs as any)[key];
                 const validator = isFunction(validatorOrDefs) ? validatorOrDefs : optionsDefs(validatorOrDefs);
                 return validator(value[key], value);
             }),
