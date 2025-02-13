@@ -37,7 +37,8 @@ export function first<T>(iterable: Iterable<T>): T | never {
  * elements change from one iteration to the next, so should only be used in destructing for
  * statements.
  *
- * NOTE: For performance sensitive code, prefer using `Object.keys()` directly.
+ * NOTE: For performance sensitive code, prefer using `Object.keys()` directly, or consider
+ * using a `Map` instead.
  *
  * @param obj to iterate over
  * @returns An iterator for all key/value tuples of obj
