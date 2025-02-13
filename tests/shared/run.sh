@@ -142,11 +142,11 @@ for filename in ${patch_dir}/* ; do
     ext=${filename##*.}
 
     if [[ ${ext} == 'sed' ]] ; then
-        target=$(find src -name "$(basename ${filename%.*})")
+        target=$(find . -not \( -path ./node_modules -prune \) -name "$(basename ${filename%.*})" -type f)
         echo ">>> Modifying ${target}"
         sed_inplace -f $filename $(pwd)/$target
     else
-        target=$(find src -name "$(basename $filename)")
+        target=$(find . -not \( -path ./node_modules -prune \) -name "$(basename $filename)" -type f)
         echo ">>> Updating ${target}"
         cp $filename $target
     fi
