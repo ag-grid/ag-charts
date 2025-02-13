@@ -388,7 +388,7 @@ export class Legend extends BaseProperties {
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
-        const markerWidth = this.calculateMarkerWidth();
+        const { markerWidth, anyLineEnabled } = this.calculateMarkerWidth();
 
         this.itemSelection.each((markerLabel, datum) => {
             markerLabel.fontStyle = fontStyle;
@@ -396,7 +396,7 @@ export class Legend extends BaseProperties {
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth);
+            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
@@ -461,11 +461,8 @@ export class Legend extends BaseProperties {
         return { markerEnabled, lineEnabled, isCustomMarker };
     }
 
-    private calcSymbolsLengths(symbol: LegendSymbolOptions) {
+    private calcSymbolsLengths(symbol: LegendSymbolOptions, markerEnabled: boolean, lineEnabled: boolean) {
         const { marker, line } = this.item;
-        const { markerEnabled, lineEnabled } = this.calcSymbolsEnabled(symbol);
-        const { strokeWidth: markerStrokeWidth } = this.getMarkerStyles(symbol);
-        const { strokeWidth: lineStrokeWidth } = lineEnabled ? this.getLineStyles(symbol) : { strokeWidth: 0 };
 
         let customMarkerSize: number | undefined;
         const { shape } = symbol.marker;
@@ -480,30 +477,43 @@ export class Legend extends BaseProperties {
 
         const markerLength = markerEnabled ? marker.size : 0;
         const lineLength = lineEnabled ? line.length ?? 25 : 0;
-        return { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth, customMarkerSize };
+        return { markerLength, lineLength, customMarkerSize };
     }
 
-    private calculateMarkerWidth(): number {
+    private calculateMarkerWidth() {
         let markerWidth = 0;
+        let anyLineEnabled = false;
         this.itemSelection.each((_, datum) => {
             const { symbol } = datum;
 
-            const { markerLength, lineLength, customMarkerSize = -Infinity } = this.calcSymbolsLengths(symbol);
+            const { lineEnabled, markerEnabled } = this.calcSymbolsEnabled(symbol);
+            const {
+                markerLength,
+                lineLength,
+                customMarkerSize = -Infinity,
+            } = this.calcSymbolsLengths(symbol, markerEnabled, lineEnabled);
             markerWidth = Math.max(markerWidth, lineLength, customMarkerSize, markerLength);
+
+            anyLineEnabled ||= lineEnabled;
         });
-        return markerWidth;
+        return { markerWidth, anyLineEnabled };
     }
 
-    private updateMarkerLabel(markerLabel: LegendMarkerLabel, datum: CategoryLegendDatum, markerWidth: number): number {
+    private updateMarkerLabel(
+        markerLabel: LegendMarkerLabel,
+        datum: CategoryLegendDatum,
+        markerWidth: number,
+        anyLineEnabled: boolean
+    ): number {
         const { marker: itemMarker, paddingX } = this.item;
         const { symbol } = datum;
         let paddedSymbolWidth = paddingX;
 
-        const { markerEnabled, lineEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol);
+        const { markerEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol);
 
         const spacing = itemMarker.padding;
 
-        if (markerEnabled || lineEnabled) {
+        if (markerEnabled || anyLineEnabled) {
             paddedSymbolWidth += spacing + markerWidth;
         }
 
@@ -516,7 +526,7 @@ export class Legend extends BaseProperties {
             applyShapeStyle(marker, this.getMarkerStyles(symbol));
         }
 
-        line.visible = lineEnabled;
+        line.visible = anyLineEnabled;
         if (line.visible) {
             applyShapeStyle(line, this.getLineStyles(symbol));
         }
