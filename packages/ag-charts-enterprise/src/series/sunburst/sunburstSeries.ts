@@ -527,7 +527,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         };
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight() as any;
         this.labelSelection.selectByClass(TransformableText).forEach((text) => {
-            updateText(text.datum, text, text.tag, text.datum === highlightedDatum);
+            const datum = text.closestDatum();
+            updateText(datum, text, text.tag, datum === highlightedDatum);
         });
     }
 

@@ -882,7 +882,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const { offset } = this.properties.calloutLabel;
 
         this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.Callout).forEach((line, index) => {
-            const datum = line.datum as DonutNodeDatum;
+            const datum = line.closestDatum() as DonutNodeDatum;
             const { calloutLabel: label, outerRadius } = datum;
 
             if (label?.text && !label.hidden && outerRadius !== 0) {
@@ -1112,7 +1112,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const tempTextNode = new Text();
 
         this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.Label).forEach((text) => {
-            const { datum } = text;
+            const datum = text.closestDatum();
             const label = datum.calloutLabel;
             const radius = radiusScale.convert(datum.radius);
             const outerRadius = Math.max(0, radius);
