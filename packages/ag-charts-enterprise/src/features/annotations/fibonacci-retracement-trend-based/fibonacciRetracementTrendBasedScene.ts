@@ -209,27 +209,15 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         translation: _ModuleSupport.Vec2;
         context: AnnotationContext;
     }) {
-        const { vectors, translateX, translateY } = translate(
-            {
-                start,
-                end,
-                endRetracement,
-            },
-            translation,
-            context
-        );
+        const points = translate({ start, end, endRetracement }, translation, context);
 
-        if (translateX) {
-            datum.start.x = vectors.start?.x;
-            datum.end.x = vectors.end?.x;
-            datum.endRetracement.x = vectors.endRetracement?.x;
-        }
+        datum.start.x = points.start.x;
+        datum.end.x = points.end.x;
+        datum.endRetracement.x = points.endRetracement.x;
 
-        if (this.ignoreYBounds || translateY) {
-            datum.start.y = vectors.start?.y;
-            datum.end.y = vectors.end?.y;
-            datum.endRetracement.y = vectors.endRetracement?.y;
-        }
+        datum.start.y = points.start.y;
+        datum.end.y = points.end.y;
+        datum.endRetracement.y = points.endRetracement.y;
     }
 
     public translate(

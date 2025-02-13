@@ -119,6 +119,7 @@ export interface AnnotationAxisContext
         | 'scaleValueFormatter'
         | 'attachLabel'
         | 'inRange'
+        | 'getRangeOverflow'
     > {
     bounds: _ModuleSupport.BBox;
     labelPadding: number;

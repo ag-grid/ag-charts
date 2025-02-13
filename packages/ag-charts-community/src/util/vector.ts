@@ -1,3 +1,5 @@
+import { round as roundNumber } from './number';
+
 export const Vec2 = {
     add,
     angle,
@@ -169,10 +171,10 @@ function intersectAtX(gradient: number, coefficient: number, x: number = 0, refl
 }
 
 /**
- * Round each component of the vector to the nearest integer.
+ * Round each component of the vector.
  */
-function round(a: Vec2): Vec2 {
-    return { x: Math.round(a.x), y: Math.round(a.y) };
+function round(a: Vec2, decimals: number = 2): Vec2 {
+    return { x: roundNumber(a.x, decimals), y: roundNumber(a.y, decimals) };
 }
 
 /**

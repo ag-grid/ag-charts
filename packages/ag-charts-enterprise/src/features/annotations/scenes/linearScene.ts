@@ -18,8 +18,6 @@ export abstract class LinearScene<
         locked?: boolean;
     },
 > extends AnnotationScene {
-    protected readonly ignoreYBounds?: boolean;
-
     protected dragState?: {
         offset: _ModuleSupport.Vec2;
         start: _ModuleSupport.Vec2;
@@ -93,27 +91,9 @@ export abstract class LinearScene<
         this.translatePoints(datum, dragState.start, dragState.end, Vec2.sub(target, dragState.offset), context);
     }
 
-    public translatePoints(
-        datum: Datum,
-        start: _ModuleSupport.Vec2,
-        end: _ModuleSupport.Vec2,
-        translation: _ModuleSupport.Vec2,
-        context: AnnotationContext
-    ) {
-        const { vectors, translateX, translateY } = translate({ start, end }, translation, context);
-
-        if (translateX) {
-            datum.start.x = vectors.start?.x;
-            datum.end.x = vectors.end?.x;
-        }
-
-        if (this.ignoreYBounds || translateY) {
-            datum.start.y = vectors.start?.y;
-            datum.end.y = vectors.end?.y;
-        }
-    }
-
     public translate(datum: Datum, translation: _ModuleSupport.Vec2, context: AnnotationContext) {
+        if (datum.locked) return;
+
         this.translatePoints(
             datum,
             convertPoint(datum.start, context),
@@ -135,5 +115,25 @@ export abstract class LinearScene<
         this.translatePoints(copiedDatum, Vec4.start(coords), Vec4.end(coords), translation, context);
 
         return copiedDatum;
+    }
+
+    protected translatePoints(
+        datum: Datum,
+        start: _ModuleSupport.Vec2,
+        end: _ModuleSupport.Vec2,
+        translation: _ModuleSupport.Vec2,
+        context: AnnotationContext
+    ) {
+        const points = translate(this.getTranslatePointsVectors(start, end), translation, context);
+
+        datum.start.x = points.start.x;
+        datum.end.x = points.end.x;
+
+        datum.start.y = points.start.y;
+        datum.end.y = points.end.y;
+    }
+
+    protected getTranslatePointsVectors(start: _ModuleSupport.Vec2, end: _ModuleSupport.Vec2) {
+        return { start, end };
     }
 }
