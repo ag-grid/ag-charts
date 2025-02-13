@@ -61,9 +61,7 @@
     "@types/jest-image-snapshot": "^5.1.0",
     "@types/pixelmatch": "^5.2.4",
     "@types/pngjs": "^6.0.1",
-    "ag-charts-community": "11.1.1-beta.20250217.1432",
-    "ag-charts-core": "11.1.1-beta.20250217.1432",
-    "ag-charts-test": "11.1.1-beta.20250217.1432",
+    "ag-charts-test": "11.1.0",
     "canvas": "^2.10.2",
     "del": "^6.0.0",
     "glob": "8.0.3",
@@ -81,7 +79,8 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "ag-charts-community": "11.1.1-beta.20250217.1432"
+    "ag-charts-community": "11.1.0",
+    "ag-charts-core": "11.1.0"
   },
   "publishConfig": {
     "access": "public"
