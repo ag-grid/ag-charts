@@ -93,14 +93,41 @@ const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-ba
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private static readonly OPTIONS_CLONE_OPTS = new Set(['data', 'container']);
 
-    private static readonly FAST_PATH_OPTIONS = new Set<keyof AgChartOptions>(['data', 'width', 'height', 'container']);
-    private static isFastPathDelta(deltaOptions: DeepPartial<AgChartOptions>) {
+    private static readonly FAST_PATH_OPTIONS = new Map([
+        ['data', null],
+        ['width', null],
+        ['height', null],
+        ['container', null],
+        ['tooltip', new Map([['renderer', null]])],
+    ]);
+    private static isFastPathDelta(
+        deltaOptions: DeepPartial<AgChartOptions>,
+        options = ChartOptions.FAST_PATH_OPTIONS,
+        path = ''
+    ) {
+        const slowKeys = new Set<string>();
         for (const key of Object.keys(deltaOptions)) {
-            if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions)) {
-                return false;
+            const config = options.get(key);
+            if (config === undefined) {
+                slowKeys.add(path + key);
+            } else if (config === null) {
+                // Supported key, no need to recurse.
+            } else if (!ChartOptions.isFastPathDelta((deltaOptions as any)[key], config, `${key}.`)) {
+                slowKeys.add(path + key);
             }
         }
-        return true;
+        if (path === '' && ChartOptions.perfDebug.check()) {
+            if (slowKeys.size > 0) {
+                ChartOptions.perfDebug(
+                    `ChartOptions.isFastPathDelta() - slow path required due to presence of:`,
+                    slowKeys
+                );
+            } else {
+                ChartOptions.perfDebug(`ChartOptions.isFastPathDelta() - fast path possible.`);
+            }
+        }
+
+        return slowKeys.size === 0;
     }
 
     activeTheme: ChartTheme;
@@ -115,6 +142,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     fastDelta?: DeepPartial<T>;
 
     private static readonly debug = Debug.create(true, 'opts');
+    private static readonly perfDebug = Debug.create(true, 'opts', 'perf');
 
     constructor(
         userOptions: T | ChartOptions<T>,
