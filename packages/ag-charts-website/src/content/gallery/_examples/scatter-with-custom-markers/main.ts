@@ -2,7 +2,7 @@ import { AgChartOptions, AgCharts, AgMarkerShapeFnParams, AgPath } from 'ag-char
 
 import { getData } from './data';
 
-function agChartsLogo({ path, size }: AgMarkerShapeFnParams) {
+function agChartsLogo({ path, size, x, y }: AgMarkerShapeFnParams) {
     const pathData = [
         'M0.480769 0.846154V0.692308H0.211538L0.134615 0.769423V0.846154H0.480769Z',
         'M0 0.615385V0.769L0.134615 0.769231L0.288308 0.615385L0 0.614481V0.615385Z',
@@ -11,12 +11,12 @@ function agChartsLogo({ path, size }: AgMarkerShapeFnParams) {
         'M0.711538 0.615385V0.461635H0.442308L0.383074 0.520772L0.365385 0.538462H0.365356L0.288308 0.615385H0.711538Z',
         'M0.192308 0.384615V0.538462H0.365356L0.383074 0.520772L0.519231 0.384615H0.192308Z',
     ].join('');
-    updatePath(pathData, path, size);
+    updatePath(pathData, path, size, x, y);
 }
 
-function npmLogo({ path, size }: AgMarkerShapeFnParams) {
+function npmLogo({ path, size, x, y }: AgMarkerShapeFnParams) {
     const pathData = 'M0.8325 0.8325H0.6993V0.2997H0.4995V0.8325H0.1665V0.1665H0.8325V0.8325Z';
-    updatePath(pathData, path, size);
+    updatePath(pathData, path, size, x, y);
 }
 
 const options: AgChartOptions = {
@@ -110,7 +110,7 @@ const options: AgChartOptions = {
 
 AgCharts.create(options);
 
-function updatePath(pathData: string, path: AgPath, scale: number) {
+function updatePath(pathData: string, path: AgPath, scale: number, x: number, y: number) {
     path.clear();
 
     let x0 = 0;
@@ -124,21 +124,21 @@ function updatePath(pathData: string, path: AgPath, scale: number) {
 
         switch (command.toLowerCase()) {
             case 'm':
-                x0 = coordinates[0] + dx;
-                y0 = coordinates[1] + dy;
+                x0 = x + coordinates[0] + dx;
+                y0 = y + coordinates[1] + dy;
                 path.moveTo(x0, y0);
                 break;
             case 'l':
-                x0 = coordinates[0] + dx;
-                y0 = coordinates[1] + dy;
+                x0 = x + coordinates[0] + dx;
+                y0 = y + coordinates[1] + dy;
                 path.lineTo(x0, y0);
                 break;
             case 'v':
-                y0 = coordinates[0] + dy;
+                y0 = y + coordinates[0] + dy;
                 path.lineTo(x0, y0);
                 break;
             case 'h':
-                x0 = coordinates[0] + dx;
+                x0 = x + coordinates[0] + dx;
                 path.lineTo(x0, y0);
                 break;
             case 'z':
