@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, test } from '@jest/globals';
 
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
-import { contextMenuAction, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import { contextMenuAction, longTapAction, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
@@ -26,6 +26,7 @@ describe('Context Menu', () => {
         contextMenu: {
             enabled: true,
         },
+        legend: {},
     };
 
     let cx: number = 0;
@@ -64,9 +65,29 @@ describe('Context Menu', () => {
         await compare();
     });
 
-    it('should show the default actions', async () => {
-        await prepareChart();
-        await contextMenuAction(cx, cy)(chart);
-        await compare();
+    describe('should show the default actions', () => {
+        test('mouse', async () => {
+            await prepareChart();
+            await contextMenuAction(cx, cy)(chart);
+            await compare();
+        });
+        test('touch', async () => {
+            await prepareChart();
+            await longTapAction(cx, cy)(chart);
+            await compare();
+        });
+    });
+
+    describe('should show the legend actions', () => {
+        test('mouse', async () => {
+            await prepareChart();
+            await contextMenuAction(410, 575)(chart);
+            await compare();
+        });
+        test('touch', async () => {
+            await prepareChart();
+            await longTapAction(410, 575)(chart);
+            await compare();
+        });
     });
 });
