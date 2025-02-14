@@ -115,7 +115,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     fastDelta?: DeepPartial<T>;
 
     private static readonly debug = Debug.create(true, 'opts');
-    private static readonly perfDebug = Debug.create(true, 'opts', 'perf');
 
     constructor(
         userOptions: T | ChartOptions<T>,
