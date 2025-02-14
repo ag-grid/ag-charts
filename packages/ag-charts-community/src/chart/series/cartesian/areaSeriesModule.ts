@@ -62,7 +62,6 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     },
     paletteFactory: (params) => {
         const { marker } = markerPaletteFactory(params);
-        const defaultColorRange = params.themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
-        return { fill: marker.fill, stroke: marker.stroke, marker, defaultColorRange };
+        return { fill: marker.fill, stroke: marker.stroke, marker, defaultColorRange: marker.defaultColorRange };
     },
 };
