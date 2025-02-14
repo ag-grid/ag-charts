@@ -37,8 +37,12 @@ export class Pool<T, P> {
         return this.freePool.length + this.busyPool.size >= this.maxPoolSize;
     }
 
+    public hasFree() {
+        return this.freePool.length > 0;
+    }
+
     public obtain(params: P) {
-        if (this.freePool.length === 0 && this.isFull()) {
+        if (!this.hasFree() && this.isFull()) {
             throw new Error('AG Charts - pool exhausted');
         }
 
@@ -55,6 +59,20 @@ export class Pool<T, P> {
                 nextFree
             );
         }
+
+        this.busyPool.add(nextFree);
+        return { item: nextFree, release: () => this.release(nextFree) };
+    }
+
+    public obtainFree() {
+        const nextFree = this.freePool.pop();
+        if (nextFree == null) {
+            throw new Error('AG Charts - pool has no free instances');
+        }
+        Pool.debug(
+            `Pool[name=${this.name}]: Re-used instance (${this.freePool.length} / ${this.busyPool.size + 1} / ${this.maxPoolSize})`,
+            nextFree
+        );
 
         this.busyPool.add(nextFree);
         return { item: nextFree, release: () => this.release(nextFree) };

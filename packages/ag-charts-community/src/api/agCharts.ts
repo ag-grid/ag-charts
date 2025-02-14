@@ -17,7 +17,7 @@ import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Debug } from '../util/debug';
-import { deepClone, jsonWalk } from '../util/json';
+import { deepClone, jsonDiff, jsonWalk } from '../util/json';
 import { Pool } from '../util/pool';
 import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';
@@ -173,8 +173,21 @@ class AgChartsInternal {
             debug(() => ['>>> AgCharts.createOrUpdate() MUTATED user options', deepClone(mutableOptions)]);
         }
 
+        const pool = this.getPool(optionsMetadata);
+        let create = false;
+        let poolResult;
+        let poolOptionsDiff;
+        let chart = proxy?.chart;
+        if (chart == null && pool?.hasFree()) {
+            // Pooled re-use case - we should use the pooled instances options as our base options
+            // to optimise the processing here.
+            poolResult = pool.obtainFree();
+            chart = poolResult.item;
+            poolOptionsDiff = jsonDiff(chart.getOptions(), userOptions);
+        }
+
         const { document, window: userWindow, styleContainer, ...options } = mutableOptions ?? {};
-        const baseOptions = (deltaOptions ? proxy?.chart.getChartOptions() : options) ?? options;
+        const baseOptions = (deltaOptions ? chart?.getChartOptions() : options) ?? options;
         const chartOptions = new ChartOptions(
             baseOptions,
             processedOverrides,
@@ -185,30 +198,28 @@ class AgChartsInternal {
                 styleContainer,
             },
             optionsMetadata,
-            deltaOptions,
+            poolOptionsDiff ?? deltaOptions,
             stripSymbols
         );
 
-        let create = false;
-        let chart = proxy?.chart;
-        let poolResult;
         if (
             chart == null ||
             ModuleRegistry.detectChartDefinition(chartOptions.processedOptions) !==
                 ModuleRegistry.detectChartDefinition(chart.chartOptions.processedOptions)
         ) {
-            poolResult = this.getPool(chartOptions)?.obtain(chartOptions);
+            poolResult?.release(); // Undo previous obtain(), we need to use a different pool!
+            poolResult = this.getPool(chartOptions.optionMetadata)?.obtain(chartOptions);
             if (poolResult) {
                 chart = poolResult.item;
             } else {
                 create = true;
                 chart = AgChartsInternal.createChartInstance(chartOptions, chart);
             }
-
-            styles.forEach(([id, css]) => {
-                chart?.ctx.domManager.addStyles(id, css);
-            });
         }
+
+        styles.forEach(([id, css]) => {
+            chart.ctx.domManager.addStyles(id, css);
+        });
 
         if (proxy == null) {
             proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi, licenseManager);
@@ -281,11 +292,11 @@ class AgChartsInternal {
 
     private static readonly detachAndClear = (chart: Chart) => chart.detachAndClear();
     private static readonly destroy = (chart: Chart) => chart.destroy();
-    private static getPool(options: ChartOptions) {
-        if (options.optionMetadata.pool !== true) return;
+    private static getPool(optionMetadata: ChartInternalOptionMetadata) {
+        if (optionMetadata.pool !== true) return;
 
         return Pool.getPool<Chart, ChartOptions>(
-            options.optionMetadata.presetType ?? 'default',
+            optionMetadata.presetType ?? 'default',
             this.createChartInstance,
             this.detachAndClear,
             this.destroy,

@@ -93,10 +93,12 @@ const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-ba
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private static readonly OPTIONS_CLONE_OPTS = new Set(['data', 'container']);
 
-    private static readonly FAST_PATH_OPTIONS = new Set<keyof AgChartOptions>(['data', 'width', 'height']);
+    private static readonly FAST_PATH_OPTIONS = new Set<keyof AgChartOptions>(['data', 'width', 'height', 'container']);
     private static isFastPathDelta(deltaOptions: DeepPartial<AgChartOptions>) {
         for (const key of Object.keys(deltaOptions)) {
-            if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions)) return false;
+            if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions)) {
+                return false;
+            }
         }
         return true;
     }
