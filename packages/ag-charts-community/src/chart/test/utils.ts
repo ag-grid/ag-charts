@@ -602,6 +602,35 @@ export function doubleTapAction(clientX: number, clientY: number): (chart: Chart
     };
 }
 
+export function touchDragAction(
+    from: { x: number; y: number },
+    to: { x: number; y: number }
+): (chart: ChartOrProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const testTarget = findChartTarget(chart, from.x, to.x);
+
+        const identifier = 1;
+        let clientX: number;
+        let clientY: number;
+        let event: TouchEvent;
+
+        clientX = from.x;
+        clientY = from.y;
+        event = touchEvent('touchstart', testTarget, [{ identifier, clientX, clientY, states: ['target'] }]);
+        dispatchEvent(testTarget, event);
+
+        clientX = to.x;
+        clientY = to.y;
+        event = touchEvent('touchmove', testTarget, [{ identifier, clientX, clientY, states: ['target'] }]);
+        dispatchEvent(testTarget, event);
+        event = touchEvent('touchend', testTarget, [{ identifier, clientX, clientY, states: ['changed'] }]);
+        dispatchEvent(testTarget, event);
+
+        await delay(50);
+    };
+}
+
 export function twoFingerStart(
     identifier1: number,
     clientX1: number,
