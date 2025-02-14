@@ -186,7 +186,8 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     }
 
     public show() {
-        this.toolbar.show({});
+        if (!this.enabled) return;
+        this.toolbar.show();
     }
 
     public hide() {
@@ -194,6 +195,8 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     }
 
     public updateButtons(datum: AnnotationProperties) {
+        if (!this.enabled) return;
+
         const visible = {
             [AnnotationOptions.LineStyleType]: hasLineStyle(datum),
             [AnnotationOptions.LineStrokeWidth]: hasLineStyle(datum),
