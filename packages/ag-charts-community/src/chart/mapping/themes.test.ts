@@ -7,6 +7,7 @@ import type {
     AgChartTheme,
     AgChartThemeName,
     AgChartThemePalette,
+    AgGradientFill,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -32,7 +33,7 @@ describe('themes module', () => {
     const getActualPalette = (chart: AgChartInstance) => {
         let result = undefined;
         for (const series of deproxy(chart).chartOptions.processedOptions.series ?? []) {
-            result ??= { fills: [] as string[], strokes: [] as string[] };
+            result ??= { fills: [] as (string | AgGradientFill)[], strokes: [] as string[] };
 
             expect(series.type).toEqual('bar');
             const barseries = series as AgBarSeriesOptions;

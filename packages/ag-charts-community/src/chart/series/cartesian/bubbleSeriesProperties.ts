@@ -4,6 +4,7 @@ import type {
     AgBubbleSeriesOptionsKeys,
     AgBubbleSeriesStyle,
     AgBubbleSeriesTooltipRendererParams,
+    AgGradientFill,
     AgMarkerShape,
     BubbleSeriesItemStylerParams,
     LabelPlacement,
@@ -120,8 +121,11 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     @ProxyProperty('marker.domain', { optional: true })
     domain?: [number, number];
 
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
+
     @ProxyProperty('marker.fill', { optional: true })
-    fill?: string;
+    fill?: string | AgGradientFill;
 
     @ProxyProperty('marker.fillOpacity')
     fillOpacity!: number;

@@ -431,6 +431,10 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
 [
   {
+    "defaultColorRange": [
+      "#5090dc",
+      "#ef5452",
+    ],
     "direction": "vertical",
     "fill": "pink",
     "fillOpacity": 1,
@@ -473,6 +477,10 @@ describe('ChartOptions', () => {
     "yName": "IPhone",
   },
   {
+    "defaultColorRange": [
+      "#5090dc",
+      "#ef5452",
+    ],
     "direction": "vertical",
     "fill": "red",
     "fillOpacity": 1,
@@ -515,6 +523,10 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
+    "defaultColorRange": [
+      "#5090dc",
+      "#ef5452",
+    ],
     "direction": "vertical",
     "fill": "#e1cc00",
     "fillOpacity": 1,
@@ -557,6 +569,10 @@ describe('ChartOptions', () => {
     "yName": "Wearables",
   },
   {
+    "defaultColorRange": [
+      "#5090dc",
+      "#ef5452",
+    ],
     "direction": "vertical",
     "fill": "#9669cb",
     "fillOpacity": 1,
@@ -616,6 +632,10 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#ffa03a",
       "shape": "circle",
       "size": 7,
@@ -655,6 +675,10 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#34bfe1",
       "shape": "circle",
       "size": 7,
@@ -688,6 +712,10 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
 [
   {
+    "defaultColorRange": [
+      "#5090dc",
+      "#ef5452",
+    ],
     "direction": "vertical",
     "fill": "pink",
     "fillOpacity": 1,
@@ -730,6 +758,10 @@ describe('ChartOptions', () => {
     "yName": "IPhone",
   },
   {
+    "defaultColorRange": [
+      "#5090dc",
+      "#ef5452",
+    ],
     "direction": "vertical",
     "fill": "red",
     "fillOpacity": 1,
@@ -772,6 +804,10 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
+    "defaultColorRange": [
+      "#5090dc",
+      "#ef5452",
+    ],
     "direction": "vertical",
     "fill": "#e1cc00",
     "fillOpacity": 1,
@@ -814,6 +850,10 @@ describe('ChartOptions', () => {
     "yName": "Wearables",
   },
   {
+    "defaultColorRange": [
+      "#5090dc",
+      "#ef5452",
+    ],
     "direction": "vertical",
     "fill": "#9669cb",
     "fillOpacity": 1,
@@ -873,6 +913,10 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#ffa03a",
       "shape": "circle",
       "size": 7,
@@ -912,6 +956,10 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#34bfe1",
       "shape": "circle",
       "size": 7,
@@ -945,6 +993,10 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
 [
   {
+    "defaultColorRange": [
+      "#5090dc",
+      "#ef5452",
+    ],
     "direction": "vertical",
     "fill": "pink",
     "fillOpacity": 1,
@@ -987,6 +1039,10 @@ describe('ChartOptions', () => {
     "yName": "IPhone",
   },
   {
+    "defaultColorRange": [
+      "#5090dc",
+      "#ef5452",
+    ],
     "direction": "vertical",
     "fill": "red",
     "fillOpacity": 1,
@@ -1029,6 +1085,10 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
+    "defaultColorRange": [
+      "#5090dc",
+      "#ef5452",
+    ],
     "direction": "vertical",
     "fill": "#e1cc00",
     "fillOpacity": 1,
@@ -1071,6 +1131,10 @@ describe('ChartOptions', () => {
     "yName": "Wearables",
   },
   {
+    "defaultColorRange": [
+      "#5090dc",
+      "#ef5452",
+    ],
     "direction": "vertical",
     "fill": "#9669cb",
     "fillOpacity": 1,
@@ -1130,6 +1194,10 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#ffa03a",
       "shape": "circle",
       "size": 7,
@@ -1169,6 +1237,10 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fill": "#34bfe1",
       "shape": "circle",
       "size": 7,
