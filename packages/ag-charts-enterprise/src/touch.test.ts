@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 
-import { AgCartesianChartOptions, type AgChartOptions, AgCharts, AgTouchOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     extractImageData,
     setupMockCanvas,
@@ -28,30 +28,44 @@ describe('Touch', () => {
     }
 
     describe('dragAction', () => {
-        async function prepareChart(dragAction: NonNullable<AgTouchOptions['dragAction']>) {
-            const options: AgChartOptions = { ...OPTIONS, touch: { dragAction } };
+        async function prepareChart(opts: AgCartesianChartOptions) {
+            const options: AgChartOptions = { ...OPTIONS, ...opts };
             prepareEnterpriseTestOptions(options);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
         }
 
         test(`'none'`, async () => {
-            await prepareChart('none');
+            await prepareChart({ touch: { dragAction: 'none' } });
             await compare('dragAction-none');
             await touchDragAction({ x: 200, y: 200 }, { x: 400, y: 400 })(chart);
             await compare('dragAction-none');
         });
 
         test(`'drag'`, async () => {
-            await prepareChart('drag');
+            await prepareChart({ touch: { dragAction: 'drag' } });
             await touchDragAction({ x: 200, y: 200 }, { x: 400, y: 250 })(chart);
             await compare('dragAction-dragged');
         });
 
         test(`'hover'`, async () => {
-            await prepareChart('hover');
+            await prepareChart({ touch: { dragAction: 'hover' } });
             await touchDragAction({ x: 200, y: 200 }, { x: 400, y: 400 })(chart);
             await compare('dragAction-hovered');
+        });
+
+        test(`'drag' zoomed out`, async () => {
+            await prepareChart({ touch: { dragAction: 'drag' }, zoom: { enabled: true }, initialState: {} });
+            await compare('dragAction-drag-zoomed-out');
+            await touchDragAction({ x: 200, y: 200 }, { x: 400, y: 400 })(chart);
+            await compare('dragAction-drag-zoomed-out');
+        });
+
+        test(`'drag' zoom disabled`, async () => {
+            await prepareChart({ touch: { dragAction: 'drag' }, zoom: { enabled: false } });
+            await compare('dragAction-drag-zoomed-out');
+            await touchDragAction({ x: 200, y: 200 }, { x: 400, y: 400 })(chart);
+            await compare('dragAction-drag-zoomed-out');
         });
     });
 });
