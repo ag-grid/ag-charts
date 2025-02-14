@@ -247,7 +247,7 @@ describe('Legend', () => {
     });
 
     describe('Listeners', () => {
-        let listeners: AgChartLegendListeners = {};
+        const listeners: AgChartLegendListeners = {};
 
         beforeEach(async () => {
             listeners.legendItemClick = jest.fn();
