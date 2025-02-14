@@ -260,7 +260,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
     private getMarkerItemBaseStyle(
         highlighted: boolean
-    ): RequireOptional<FillOptions & StrokeOptions & LineDashOptions> {
+    ): RequireOptional<FillOptions & StrokeOptions & LineDashOptions> & { defaultColorRange: string[] } {
         const { properties } = this;
 
         const { marker } = properties;
@@ -273,6 +273,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? marker.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
+            defaultColorRange: marker.defaultColorRange,
         };
     }
 
@@ -310,8 +311,10 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const { xKey, yKey, labelKey, marker, highlightStyle } = this.properties;
         const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle());
 
+        const fillBBox = this.getFillBBox(baseStyle.fill);
+
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, labelKey }, baseStyle, {
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, labelKey }, baseStyle, fillBBox, {
                 selected: datum.selected,
             });
         });

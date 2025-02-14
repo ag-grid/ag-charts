@@ -1,6 +1,6 @@
 import type { RequireOptional } from 'ag-charts-core';
 import { isFiniteNumber } from 'ag-charts-core';
-import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
+import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams, AgGradientFill } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -11,6 +11,7 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
+import { isGradientFill } from '../../../scene/util/fill';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -640,7 +641,7 @@ export class BarSeries extends AbstractBarSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemBaseStyle(highlighted: boolean): Required<AgBarSeriesStyle> {
+    private getItemBaseStyle(highlighted: boolean): Required<AgBarSeriesStyle> & { defaultColorRange: string[] } {
         const { properties } = this;
         const { cornerRadius } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -654,6 +655,7 @@ export class BarSeries extends AbstractBarSeries<
             lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             cornerRadius,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -698,6 +700,8 @@ export class BarSeries extends AbstractBarSeries<
 
         const style = this.getItemBaseStyle(opts.isHighlight);
 
+        const fillBBox = isGradientFill(style.fill) ? this.getFillBBox(style.fill) : undefined;
+
         opts.datumSelection.each((rect, datum) => {
             const overrides = this.getItemStyleOverrides(
                 String(datum.datumIndex),
@@ -709,6 +713,10 @@ export class BarSeries extends AbstractBarSeries<
             );
 
             rect.opacity = datum.opacity ?? 0;
+
+            if (fillBBox) {
+                rect.fillBBox = fillBBox;
+            }
 
             applyShapeStyle(rect, style, overrides);
 
@@ -725,6 +733,15 @@ export class BarSeries extends AbstractBarSeries<
             rect.crisp = datum.crisp;
             rect.fillShadow = shadow;
         });
+    }
+
+    protected override getFillBBox(fill: AgGradientFill): BBox | undefined {
+        const { bounds = 'item' } = fill;
+        if (bounds === 'item') {
+            return;
+        }
+
+        return super.getFillBBox(fill);
     }
 
     protected override updateLabelSelection(opts: {

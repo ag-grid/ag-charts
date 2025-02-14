@@ -534,12 +534,15 @@ export class LineSeries extends CartesianSeries<
         });
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
+        const fillBBox = this.getFillBBox(baseStyle.fill);
+
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
                 node,
                 marker,
                 { ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain), highlighted },
                 baseStyle,
+                fillBBox,
                 { applyTranslation, selected: datum.selected }
             );
         });
