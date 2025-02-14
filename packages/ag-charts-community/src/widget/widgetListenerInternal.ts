@@ -194,7 +194,7 @@ export class WidgetListenerInternal {
     }
 
     private triggerTouchDrag<T extends Targetable>(current: T, startEvent: TouchEvent) {
-        const touch = startEvent.targetTouches.item(0);
+        const touch: Touch | null = startEvent.targetTouches[0];
         if (startEvent.targetTouches.length === 1 && touch != null) {
             this.startOneFingerTouch(current, startEvent, touch);
         }

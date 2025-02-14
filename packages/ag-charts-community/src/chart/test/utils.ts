@@ -266,6 +266,73 @@ export function wheelEvent(mockEvent: MockEvent, { deltaX, deltaY, deltaMode }: 
     return event;
 }
 
+type MockTouch = {
+    identifier: number;
+    clientX: number;
+    clientY: number;
+    states: ('changed' | 'target')[];
+};
+type MockTouchTypes = 'touchstart' | 'touchmove' | 'touchend';
+
+function touchAverage(touches: MockTouch[]): Pick<MockTouch, 'clientX' | 'clientY'> {
+    expect(touches.length).not.toBe(0);
+    let sumX = 0,
+        sumY = 0;
+    touches.forEach((t) => {
+        sumX += t.clientX;
+        sumY += t.clientY;
+    });
+    return { clientX: sumX / touches.length, clientY: sumY / touches.length };
+}
+
+function touchEvent(type: MockTouchTypes, mockEvent: MockEvent, mockTouches: MockTouch[]): TouchEvent {
+    const targetTouches: Touch[] = [];
+    const changedTouches: Touch[] = [];
+    for (const mockTouch of mockTouches) {
+        const { identifier, clientX, clientY } = mockTouch;
+        if (mockTouch.states.includes('target')) {
+            targetTouches.push({
+                clientX,
+                clientY,
+                force: 0,
+                identifier,
+                pageX: clientX,
+                pageY: clientY,
+                radiusX: 0,
+                radiusY: 0,
+                rotationAngle: 0,
+                screenX: clientX,
+                screenY: clientY,
+                target: mockEvent.target,
+            });
+        }
+        if (mockTouch.states.includes('changed')) {
+            changedTouches.push({
+                clientX,
+                clientY,
+                force: 0,
+                identifier,
+                pageX: clientX,
+                pageY: clientY,
+                radiusX: 0,
+                radiusY: 0,
+                rotationAngle: 0,
+                screenX: clientX,
+                screenY: clientY,
+                target: mockEvent.target,
+            });
+        }
+    }
+
+    const event = new TouchEvent(type, { bubbles: true, targetTouches, changedTouches });
+    const originalPreventDefault = event.preventDefault.bind(event);
+    event.preventDefault = function () {
+        originalPreventDefault();
+        Object.defineProperty(event, 'defaultPrevented', { value: true, configurable: true });
+    };
+    return event;
+}
+
 export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {
     const { axisTypes = ['category', 'number'], seriesTypes = ['bar', 'bar'] } = params ?? {};
 
@@ -486,6 +553,95 @@ export function scrollAction(
         dispatchEvent(testTarget, wheelEvent(testTarget, { deltaY, deltaX, deltaMode }));
         await delay(delayMs);
     };
+}
+
+export function touchAction(type: MockTouchTypes, touches: MockTouch[]): (chart: ChartOrProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const { clientX, clientY } = touchAverage(touches);
+        const chart = deproxy(chartOrProxy);
+        const testTarget = findChartTarget(chart, clientX, clientY);
+        checkTargetValid(testTarget);
+
+        dispatchEvent(testTarget, touchEvent(type, testTarget, touches));
+        await delay(50);
+    };
+}
+
+export function doubleTapAction(clientX: number, clientY: number): (chart: ChartOrProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const testTarget = findChartTarget(chart, clientX, clientY);
+        let event: TouchEvent;
+
+        event = touchEvent('touchstart', testTarget, [{ identifier: 1, clientX, clientY, states: ['target'] }]);
+        dispatchEvent(testTarget, event);
+
+        event = touchEvent('touchend', testTarget, [{ identifier: 1, clientX, clientY, states: ['changed'] }]);
+        dispatchEvent(testTarget, event);
+
+        if (!event.defaultPrevented) {
+            dispatchEvent(testTarget, mouseDownEvent(testTarget, clientX, clientY));
+            dispatchEvent(testTarget, mouseUpEvent(testTarget, clientX, clientY));
+            dispatchEvent(testTarget, clickEvent(testTarget, clientX, clientY));
+        }
+
+        event = touchEvent('touchstart', testTarget, [{ identifier: 2, clientX, clientY, states: ['target'] }]);
+        dispatchEvent(testTarget, event);
+
+        event = touchEvent('touchend', testTarget, [{ identifier: 2, clientX, clientY, states: ['changed'] }]);
+        dispatchEvent(testTarget, event);
+
+        if (!event.defaultPrevented) {
+            dispatchEvent(testTarget, mouseDownEvent(testTarget, clientX, clientY));
+            dispatchEvent(testTarget, mouseUpEvent(testTarget, clientX, clientY));
+            dispatchEvent(testTarget, clickEvent(testTarget, clientX, clientY));
+            dispatchEvent(testTarget, doubleClickEvent(testTarget, clientX, clientY));
+        }
+
+        await delay(50);
+    };
+}
+
+export function twoFingerStart(
+    identifier1: number,
+    clientX1: number,
+    clientY1: number,
+    identifier2: number,
+    clientX2: number,
+    clientY2: number
+): (chart: ChartOrProxy) => Promise<void> {
+    return touchAction('touchstart', [
+        { identifier: identifier1, clientX: clientX1, clientY: clientY1, states: ['target'] },
+        { identifier: identifier2, clientX: clientX2, clientY: clientY2, states: ['target'] },
+    ]);
+}
+
+export function twoFingerMove(
+    identifier1: number,
+    clientX1: number,
+    clientY1: number,
+    identifier2: number,
+    clientX2: number,
+    clientY2: number
+): (chart: ChartOrProxy) => Promise<void> {
+    return touchAction('touchmove', [
+        { identifier: identifier1, clientX: clientX1, clientY: clientY1, states: ['target'] },
+        { identifier: identifier2, clientX: clientX2, clientY: clientY2, states: ['target'] },
+    ]);
+}
+
+export function twoFingerEnd(
+    identifier1: number,
+    clientX1: number,
+    clientY1: number,
+    identifier2: number,
+    clientX2: number,
+    clientY2: number
+): (chart: ChartOrProxy) => Promise<void> {
+    return touchAction('touchend', [
+        { identifier: identifier1, clientX: clientX1, clientY: clientY1, states: ['changed'] },
+        { identifier: identifier2, clientX: clientX2, clientY: clientY2, states: ['changed'] },
+    ]);
 }
 
 export { setupMockCanvas, toMatchImage, CANVAS_TO_BUFFER_DEFAULTS, extractImageData };
