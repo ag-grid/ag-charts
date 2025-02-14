@@ -24,7 +24,7 @@ export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
     sizeName: string,
     colorName: string,
     labelName: string,
-    topology: arrayOf(object),
+    topology: object,
     topologyIdKey: string,
     legendItemName: string,
     maxStrokeWidth: positiveNumber,

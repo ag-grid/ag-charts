@@ -130,7 +130,7 @@ function validateMessage(path: string, value: unknown, validatorOrDefs: Validato
     const description = isString(validatorOrDefs) ? validatorOrDefs : validatorOrDefs[descriptionSymbol];
     const expecting = description ? `; expecting ${description}` : '';
     const prefix = path ? `Option \`${path}\`` : 'Value';
-    return `${prefix} cannot be set to \`${stringifyValue(value)}\`${expecting}, ignoring.`;
+    return `${prefix} cannot be set to \`${stringifyValue(value, 50)}\`${expecting}, ignoring.`;
 }
 
 /**

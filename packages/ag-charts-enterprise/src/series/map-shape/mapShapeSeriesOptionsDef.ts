@@ -24,7 +24,7 @@ export const mapShapeSeriesOptionsDef: OptionsDefs<AgMapShapeSeriesOptions> = {
     idName: string,
     colorName: string,
     labelName: string,
-    topology: arrayOf(object),
+    topology: object,
     topologyIdKey: string,
     legendItemName: string,
     colorRange: arrayOf(string),
