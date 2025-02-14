@@ -1,5 +1,15 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
+const selectedMonths = new Set<string>();
+
+function getData() {
+    return [
+        { month: 'March', units: 25, brands: { BMW: 10, Toyota: 15 }, selected: selectedMonths.has('March') },
+        { month: 'April', units: 27, brands: { Ford: 17, BMW: 10 }, selected: selectedMonths.has('April') },
+        { month: 'May', units: 42, brands: { Nissan: 20, Toyota: 22 }, selected: selectedMonths.has('May') },
+    ];
+}
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -8,11 +18,7 @@ const options: AgCartesianChartOptions = {
     subtitle: {
         text: '(click a marker to toggle its selected state)',
     },
-    data: [
-        { month: 'March', units: 25, brands: { BMW: 10, Toyota: 15 } },
-        { month: 'April', units: 27, brands: { Ford: 17, BMW: 10 } },
-        { month: 'May', units: 42, brands: { Nissan: 20, Toyota: 22 } },
-    ],
+    data: getData(),
     series: [
         {
             type: 'line',
@@ -20,7 +26,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'units',
             listeners: {
                 nodeClick: (event: any) => {
-                    event.datum.selected = !event.datum.selected;
+                    toggleNode(event.datum);
                 },
             },
             marker: {
@@ -52,10 +58,14 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function listUnitsSoldByBrand(brands: Record<string, number>) {
-    var result = '';
-    for (var key in brands) {
-        result += key + ': ' + brands[key] + '\n';
+function toggleNode(datum: any) {
+    const { month } = datum;
+    if (selectedMonths.has(month)) {
+        selectedMonths.delete(month);
+    } else {
+        selectedMonths.add(month);
     }
-    return result;
+
+    options.data = getData();
+    chart.update(options);
 }
