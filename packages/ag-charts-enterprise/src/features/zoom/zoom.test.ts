@@ -384,8 +384,8 @@ describe('Zoom', () => {
             await twoFingerMove(3, cx + 20, cy - 50, 4, cx + 100, cy + 50)(chart);
             await compare(); // pans left
 
-            await twoFingerMove(3, cx + 20, cy - 150, 4, cx + 100, cy + 35)(chart);
-            //await compare(); // zoompans y axis
+            await twoFingerMove(3, cx + 20, cy - 65, 4, cx + 100, cy + 20)(chart);
+            await compare(); // zoompans y axis
         });
 
         test('y overlap', async () => {
@@ -397,7 +397,7 @@ describe('Zoom', () => {
             await compare(); // pans down
 
             await twoFingerMove(3, cx - 150, cy + 20, 4, cx + 35, cy + 100)(chart);
-            //await compare(); // zoompans x axis
+            await compare(); // zoompans x axis
         });
     });
 
