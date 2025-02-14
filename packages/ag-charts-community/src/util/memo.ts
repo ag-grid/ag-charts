@@ -13,7 +13,10 @@ export function memo<T, R>(params: T, fnGenerator: (params: T) => () => R): () =
     return memorizedFns.get(fnGenerator)?.get(serialisedParams) as () => R;
 }
 
-export function simpleMemorize<F extends (...args: any[]) => any>(fn: F) {
+export function simpleMemorize<F extends (...args: any[]) => any>(
+    fn: F,
+    cacheCallback?: (type: 'hit' | 'miss', fn: F, keys: any[]) => void
+) {
     const primitveCache = new Map<string | number, object>();
 
     const paramsToKeys = (...params: (WeakKey | string | number)[]) => {
@@ -46,9 +49,12 @@ export function simpleMemorize<F extends (...args: any[]) => any>(fn: F) {
 
         const finalKey = keys.at(-1)!;
         let cachedValue = currentCache.get(finalKey);
-        if (!cachedValue) {
+        if (cachedValue) {
+            cacheCallback?.('hit', fn, p);
+        } else {
             cachedValue = fn(...p);
             currentCache.set(finalKey, cachedValue);
+            cacheCallback?.('miss', fn, p);
         }
 
         return cachedValue as ReturnType<F>;
