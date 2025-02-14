@@ -19,7 +19,7 @@ export interface AxisOptions {
  */
 export interface FillOptions {
     /** The colour for filling shapes. */
-    fill?: CssColor;
+    fill?: CssColor | AgGradientFill;
     /** The opacity of the fill colour. */
     fillOpacity?: Opacity;
 }
@@ -36,12 +36,15 @@ export interface AgGradientColorStop {
 export interface AgGradientFill {
     type: 'gradient';
     /** Direction of the gradient, defaults to vertical. */
-    direction?: 'horizontal' | 'vertical';
+    direction?: AgGradientFillDirection;
     /** Represents the position and color of stops in the gradient. */
     colorStops?: AgGradientColorStop[];
     /** The domain of the color gradient, defaults to item. */
-    bounds?: 'series' | 'item' | 'axes';
+    bounds?: AgGradientFillBounds;
 }
+
+export type AgGradientFillBounds = 'series' | 'item' | 'axes';
+export type AgGradientFillDirection = 'horizontal' | 'vertical';
 
 /**
  * Represents options for the strokes in a chart.

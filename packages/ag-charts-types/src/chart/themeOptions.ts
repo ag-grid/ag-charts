@@ -8,6 +8,7 @@ import type { AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleO
 import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/candlestickOptions';
 import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { AgGradientFill } from '../series/cartesian/commonOptions';
 import type { AgConeFunnelSeriesThemeableOptions } from '../series/cartesian/coneFunnelOptions';
 import type { AgFunnelSeriesThemeableOptions } from '../series/cartesian/funnelOptions';
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
@@ -182,12 +183,19 @@ export interface AgChartThemeParams {
     textColor?: CssColor;
 }
 
-type ExtendLiteralLeaves<T, V> = {
-    [P in keyof T]: T[P] extends (infer U)[]
-        ? ExtendLiteralLeaves<U, V>[]
-        : T[P] extends string | symbol | number | undefined
+/**
+ * Modify a type T by extending it's leaves with the type V, excluding any leaf that extends E.
+ *
+ * @param T type to extend
+ * @param V value to union with the leaves
+ * @param E leaf types to exclude and keep their original type
+ */
+type ExtendLiteralLeaves<T, V, E> = {
+    [P in keyof T]: T[P] extends Array<infer U>
+        ? Array<ExtendLiteralLeaves<U, V, E>>
+        : T[P] extends E
           ? T[P] | V
-          : ExtendLiteralLeaves<T[P], V>;
+          : ExtendLiteralLeaves<T[P], V, E>;
 };
 
 type ThemeParam = keyof AgChartThemeParams;
@@ -204,9 +212,11 @@ type ThemeParamsOperation =
     | { $mix: [ThemeParamsLeaf, ThemeParamsLeaf, ThemeParamsLeaf<number>] }
     | { $foregroundBackgroundMix: [ThemeParamsLeaf<number>] }
     | { $foregroundBackgroundAccentMix: [ThemeParamsLeaf<number>, ThemeParamsLeaf<number>] };
-type ThemeParamsLeaf<T = boolean | string | number> = ThemeParamsOperation | T;
 
-export type WithThemeParams<T> = ExtendLiteralLeaves<T, ThemeParamsOperation>;
+type ThemeParamsLeaf<T = boolean | string | number | any> = ThemeParamsOperation | T;
+
+export type WithThemeParams<T> = ExtendLiteralLeaves<T, ThemeParamsOperation, ExcludeLeaves>;
+type ExcludeLeaves = string | symbol | number | undefined | AgGradientFill;
 
 export interface AgBaseChartThemeOptions {
     /** The palette to use. If specified, this replaces the palette from the base theme. */

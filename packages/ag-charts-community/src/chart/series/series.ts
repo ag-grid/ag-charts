@@ -820,14 +820,24 @@ export abstract class Series<
         marker: ISeriesMarker<TParams>,
         params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
+        fillBBox?: BBox,
         { applyTranslation = true, selected = true } = {}
     ) {
         const { point } = params.datum;
         const activeStyle = this.getMarkerStyle(marker, params, defaultStyle);
         const visible = this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
+        markerNode.fillBBox = fillBBox;
+
         if (applyTranslation) {
-            markerNode.setProperties({ visible, ...activeStyle, translationX: point?.x, translationY: point?.y });
+            markerNode.setProperties({
+                visible,
+                ...activeStyle,
+                x: point?.x,
+                y: point?.y,
+                scalingCenterX: point?.x,
+                scalingCenterY: point?.y,
+            });
         } else {
             markerNode.setProperties({ visible, ...activeStyle });
         }
