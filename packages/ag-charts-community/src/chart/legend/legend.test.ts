@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import type { AgCartesianChartOptions, AgChartOptions, AgMarkerShapeFnParams, AgPath } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgChartLegendListeners,
+    AgChartOptions,
+    AgMarkerShapeFnParams,
+    AgPath,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
@@ -13,6 +19,7 @@ import {
     createChart,
     deproxy,
     doubleClickAction,
+    doubleTapAction,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
@@ -236,6 +243,34 @@ describe('Legend', () => {
                 expect(button).toBeInstanceOf(HTMLButtonElement);
                 expect(button.style.cursor).toBe('pointer');
             }
+        });
+    });
+
+    describe('Listeners', () => {
+        let listeners: AgChartLegendListeners = {};
+
+        beforeEach(async () => {
+            listeners.legendItemClick = jest.fn();
+            listeners.legendItemDoubleClick = jest.fn();
+            const options = prepareTestOptions({
+                data: [{ x: 'Q1', y: 200 }],
+                series: [{ xKey: 'x', yKey: 'y' }],
+                legend: { enabled: true, listeners },
+            });
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+        });
+
+        test('mouse', async () => {
+            await doubleClickAction(400, 570)(chart);
+            expect(listeners.legendItemClick).toBeCalledTimes(2);
+            expect(listeners.legendItemDoubleClick).toBeCalledTimes(1);
+        });
+
+        test('touch', async () => {
+            await doubleTapAction(400, 570)(chart);
+            expect(listeners.legendItemClick).toBeCalledTimes(2);
+            expect(listeners.legendItemDoubleClick).toBeCalledTimes(1);
         });
     });
 
