@@ -4,7 +4,7 @@ import type { AgAreaSeriesOptions } from 'ag-charts-types';
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { DEFAULT_COLOR_RANGE, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
+import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { markerPaletteFactory } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
