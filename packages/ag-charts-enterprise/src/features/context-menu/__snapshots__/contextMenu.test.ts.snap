@@ -30,11 +30,65 @@ HTMLCollection [
 ]
 `;
 
+exports[`Context Menu should show the default actions touch 1`] = `
+HTMLCollection [
+  <div
+    class="ag-charts-context-menu"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
+  >
+    <div
+      class="ag-charts-context-menu__menu"
+      tabindex="-1"
+    >
+      <button
+        class="ag-charts-context-menu__item"
+        tabindex="0"
+      >
+        Download
+      </button>
+    </div>
+  </div>,
+]
+`;
+
 exports[`Context Menu should show the legend actions mouse 1`] = `
 HTMLCollection [
   <div
     class="ag-charts-context-menu"
     style="display: block; left: 0px; top: calc(0px - 0.5em);"
+  >
+    <div
+      class="ag-charts-context-menu__menu"
+      tabindex="-1"
+    >
+      <button
+        class="ag-charts-context-menu__item"
+        tabindex="0"
+      >
+        Download
+      </button>
+      <button
+        class="ag-charts-context-menu__item"
+        tabindex="-1"
+      >
+        Toggle Visibility
+      </button>
+      <button
+        class="ag-charts-context-menu__item"
+        tabindex="-1"
+      >
+        Toggle Other Series
+      </button>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Context Menu should show the legend actions touch 1`] = `
+HTMLCollection [
+  <div
+    class="ag-charts-context-menu"
+    style="display: block; top: calc(NaNpx - 0.5em);"
   >
     <div
       class="ag-charts-context-menu__menu"
