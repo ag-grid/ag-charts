@@ -124,7 +124,10 @@ export abstract class LinearScene<
         translation: _ModuleSupport.Vec2,
         context: AnnotationContext
     ) {
-        const points = translate(this.getTranslatePointsVectors(start, end), translation, context);
+        const vectors = this.getTranslatePointsVectors(start, end);
+        const points = translate(vectors, translation, context, {
+            overflowContinuous: Math.max(0, Object.keys(vectors).length - 2),
+        });
 
         datum.start.x = points.start.x;
         datum.end.x = points.end.x;

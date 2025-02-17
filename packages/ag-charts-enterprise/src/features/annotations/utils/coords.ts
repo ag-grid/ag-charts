@@ -54,29 +54,43 @@ export function getDragStartState<PointName extends string>(
 export function translate<VectorName extends string>(
     vectors: Record<VectorName, _ModuleSupport.Vec2>,
     translation: _ModuleSupport.Vec2,
-    context: AnnotationContext
+    context: AnnotationContext,
+    options: { overflowContinuous: number } = { overflowContinuous: 0 }
 ) {
     const { xAxis, yAxis } = context;
-    const overflow = Vec2.origin();
+    const vectorNames = Object.keys(vectors) as VectorName[];
+    const overflowsX: number[] = [];
+    const overflowsY: number[] = [];
 
-    for (const name of Object.keys(vectors) as VectorName[]) {
+    for (const name of vectorNames) {
         vectors[name] = Vec2.add(vectors[name], translation);
 
-        const overflowX = xAxis.getRangeOverflow(vectors[name].x);
-        const overflowY = yAxis.getRangeOverflow(vectors[name].y);
-        if (Math.abs(overflowX) > Math.abs(overflow.x)) overflow.x = overflowX;
-        if (Math.abs(overflowY) > Math.abs(overflow.y)) overflow.y = overflowY;
+        overflowsX.push(xAxis.getRangeOverflow(vectors[name].x));
+        overflowsY.push(yAxis.getRangeOverflow(vectors[name].y));
+    }
+
+    const sortedOverflowsX = overflowsX.toSorted((a, b) => Math.abs(a) - Math.abs(b));
+    const sortedOverflowsY = overflowsY.toSorted((a, b) => Math.abs(a) - Math.abs(b));
+
+    const overflow = Vec2.from(sortedOverflowsX.at(-1) ?? 0, sortedOverflowsY.at(-1) ?? 0);
+
+    // Explicitly test the scales because ordinal time axes report as continuous
+    if (_ModuleSupport.ContinuousScale.is(xAxis.scale) && options.overflowContinuous > 0) {
+        overflow.x = sortedOverflowsX.at(-options.overflowContinuous - 1) ?? 0;
+    }
+    if (_ModuleSupport.ContinuousScale.is(yAxis.scale) && options.overflowContinuous > 0) {
+        overflow.y = sortedOverflowsY.at(-options.overflowContinuous - 1) ?? 0;
     }
 
     if (!Vec2.equal(overflow, Vec2.origin())) {
-        for (const name of Object.keys(vectors) as VectorName[]) {
+        for (const name of vectorNames) {
             // Round to prevent slight adjustments from floating point imprecision
             vectors[name] = Vec2.round(Vec2.sub(vectors[name], overflow), 4);
         }
     }
 
     const result = {} as Record<VectorName, _ModuleSupport.Vec2>;
-    for (const name of Object.keys(vectors) as VectorName[]) {
+    for (const name of vectorNames) {
         result[name] = invertCoords(vectors[name], context);
     }
 

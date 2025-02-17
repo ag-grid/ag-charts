@@ -114,7 +114,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     annotationThemes: any;
     fastDelta?: DeepPartial<T>;
 
-    private readonly debug = Debug.create(true, 'opts');
+    private static readonly debug = Debug.create(true, 'opts');
 
     constructor(
         userOptions: T | ChartOptions<T>,
@@ -193,6 +193,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.fastSeriesSetup(deltaOptions, baseOptions);
         const processedOptions = mergeDefaults(deltaOptions, baseOptions);
+
+        ChartOptions.debug('ChartOptions.fastSetup() - processed options', processedOptions);
+
         return { activeTheme, defaultAxes, processedOptions, fastDelta: deltaOptions };
     }
 
@@ -238,7 +241,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const presetTheme =
                 presetSubType != null ? getChartTheme(this.userOptions.theme).presets[presetSubType] : undefined;
 
-            this.debug('>>> AgCharts.createOrUpdate() - applying preset', presetParams);
+            ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', presetParams);
             options = presetConstructor?.(presetParams, presetTheme, () => this.activeTheme) ?? options;
         }
 
@@ -325,7 +328,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             removeUsedEnterpriseOptions(processedOptions, true);
         }
 
-        this.debug('AgCharts.createOrUpdate() - processed options', processedOptions);
+        ChartOptions.debug('ChartOptions.slowSetup() - processed options', processedOptions);
 
         return { activeTheme, processedOptions, defaultAxes, themeParameters };
     }
@@ -513,7 +516,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private resolveThemeOperations(params: WithThemeParams<AgChartThemeParams>, options: object) {
         const modifiedPaths = jsonResolveOperations(options, params, new Set(['palette', 'data']));
-        this.debug('resolveTheme()', modifiedPaths);
+        ChartOptions.debug('ChartOptions.resolveTheme()', modifiedPaths);
     }
 
     private getSeriesPalette(
@@ -566,7 +569,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private setSeriesGroupingOptions(allSeries: GroupingSeriesOptions[]) {
         const seriesGroups = this.getSeriesGrouping(allSeries);
 
-        this.debug('setSeriesGroupingOptions() - series grouping: ', seriesGroups);
+        ChartOptions.debug('ChartOptions.setSeriesGroupingOptions() - series grouping: ', seriesGroups);
 
         const groupIdx: Record<string, number> = {};
         const groupCount = seriesGroups.reduce<Record<string, number>>((countMap, seriesGroup) => {

@@ -209,7 +209,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         translation: _ModuleSupport.Vec2;
         context: AnnotationContext;
     }) {
-        const points = translate({ start, end, endRetracement }, translation, context);
+        const points = translate({ start, end, endRetracement }, translation, context, { overflowContinuous: 2 });
 
         datum.start.x = points.start.x;
         datum.end.x = points.end.x;
