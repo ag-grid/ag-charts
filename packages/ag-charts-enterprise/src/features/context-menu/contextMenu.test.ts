@@ -53,11 +53,7 @@ describe('Context Menu', () => {
         // Node.js does not have a PointerEvent constructor (which is what we use to create synthetic 'contextmenu'
         // events). So create custom class for it (Note: the standard PointerEvent class extends MouseEvent).
         tmpPointerEvent = global.PointerEvent;
-        global.PointerEvent = class extends MouseEvent {
-            constructor(type: string, eventInitDict?: PointerEventInit) {
-                super(type, eventInitDict);
-            }
-        } as typeof global.PointerEvent;
+        global.PointerEvent = class extends MouseEvent {} as typeof global.PointerEvent;
     });
 
     afterEach(() => {
