@@ -10,6 +10,7 @@ import {
     callback,
     constant,
     date,
+    greaterThan,
     instanceOf,
     isValid,
     lessThan,
@@ -167,6 +168,30 @@ describe('Validation utils', () => {
         test('validates objects against provided definitions', () => {
             expect(optionDefsValidator({ key1: 'value', key2: 42 })).toBe(true);
             expect(optionDefsValidator({ key1: 'value', key2: 'not a number' })).toBe(false);
+        });
+    });
+
+    describe('Conditional Validators', () => {
+        const axisSchema: OptionsDefs<any> = {
+            min: and(number, lessThan('max')),
+            max: and(number, greaterThan('min')),
+        };
+
+        test('validates axis schema with min and max constraints', () => {
+            const validAxis = { min: 0, max: 100 };
+            const invalidAxis = { min: 100, max: 0 };
+
+            expect(isValid(validAxis, axisSchema)).toBe(true);
+            expect(isValid(invalidAxis, axisSchema)).toBe(false);
+        });
+
+        test('validates axis schema with optional min/max', () => {
+            expect(isValid({ min: 1000 }, axisSchema)).toBe(true);
+            expect(isValid({ max: 100 }, axisSchema)).toBe(true);
+
+            const { valid, errors } = validate({ min: 1000, max: '100' }, axisSchema);
+            expect(valid).toEqual({ min: 1000 });
+            expect(errors).toMatchSnapshot();
         });
     });
 

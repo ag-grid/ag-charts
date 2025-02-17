@@ -1,5 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Validation utils Conditional Validators validates axis schema with optional min/max 1`] = `
+[
+  {
+    "key": "max",
+    "message": "Option \`max\` cannot be set to \`"100"\`; expecting a number and to be greater than min, ignoring.",
+    "path": "",
+    "required": undefined,
+    "toString": [Function],
+    "value": "100",
+  },
+]
+`;
+
 exports[`Validation utils Utility Functions attachDescription adds a description to a validator 1`] = `
 [
   {

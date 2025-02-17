@@ -156,7 +156,7 @@ export function required(validatorOrDefs: Validator): Validator;
 export function required<T>(validatorOrDefs: T): T {
     return Object.assign(
         isFunction(validatorOrDefs)
-            ? (value: any) => (validatorOrDefs as Function)(value)
+            ? (value: unknown, context: any) => validatorOrDefs(value, context)
             : optionsDefs(validatorOrDefs as OptionsDefs<any>),
         { [requiredSymbol]: true }
     ) as T;
@@ -170,7 +170,7 @@ export function required<T>(validatorOrDefs: T): T {
  */
 export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
     attachDescription(
-        (value: unknown) =>
+        (value) =>
             isObject(value) &&
             Object.keys(defs).every((key) => {
                 const validatorOrDefs: Validator | ObjectLikeDef<any> = (defs as any)[key];
@@ -188,7 +188,7 @@ export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
  */
 export const and = (...validators: Validator[]) =>
     attachDescription(
-        (value: unknown, context: any) => validators.every((validator) => validator(value, context)),
+        (value, context) => validators.every((validator) => validator(value, context)),
         validators
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
@@ -202,7 +202,7 @@ export const and = (...validators: Validator[]) =>
  */
 export const or = (...validators: Validator[]) =>
     attachDescription(
-        (value: unknown, context: any) => validators.some((validator) => validator(value, context)),
+        (value, context) => validators.some((validator) => validator(value, context)),
         validators
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
@@ -242,9 +242,14 @@ const isComparable = (value: unknown): value is number | Date => isFiniteNumber(
 
 export const lessThan = (otherField: string) =>
     attachDescription(
-        (value, context: any) =>
-            !isComparable(value) || !isComparable(context[otherField]) || value < context[otherField],
+        (value, context) => !isComparable(value) || !isComparable(context[otherField]) || value < context[otherField],
         `to be less than ${otherField}`
+    );
+
+export const greaterThan = (otherField: string) =>
+    attachDescription(
+        (value, context) => !isComparable(value) || !isComparable(context[otherField]) || value > context[otherField],
+        `to be greater than ${otherField}`
     );
 
 /**
@@ -259,7 +264,7 @@ export function union(...allowed: any[]) {
         allowed = Object.values(allowed[0]);
     }
     const keywords = joinFormatted(allowed, 'or', (value) => `'${value}'`, 6);
-    return attachDescription((value: any) => allowed.includes(value), `a keyword such as ${keywords}`);
+    return attachDescription((value) => allowed.includes(value), `a keyword such as ${keywords}`);
 }
 
 /**
@@ -268,7 +273,7 @@ export function union(...allowed: any[]) {
  * @returns A validator function that checks for equality with the allowed value.
  */
 export const constant = (allowed: boolean | number | string) =>
-    attachDescription((value: any) => allowed === value, `the value ${JSON.stringify(allowed)}`);
+    attachDescription((value) => allowed === value, `the value ${JSON.stringify(allowed)}`);
 
 /**
  * Creates a validator for instances of a specific class.
@@ -287,6 +292,6 @@ export const instanceOf = (instanceType: Function, description?: string) =>
  */
 export const arrayOf = (validator: Validator, description?: string) =>
     attachDescription(
-        (value: unknown, context: any) => isArray(value) && value.every((v) => validator(v, context)),
+        (value, context) => isArray(value) && value.every((v) => validator(v, context)),
         description ?? `${validator[descriptionSymbol]} array`
     );
