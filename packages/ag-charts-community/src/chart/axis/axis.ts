@@ -132,7 +132,7 @@ export abstract class Axis<
         unit: 'percent',
     };
 
-    boundSeries: ISeries<unknown, unknown>[] = [];
+    boundSeries: ISeries<unknown, unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;

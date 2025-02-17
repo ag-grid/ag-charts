@@ -187,7 +187,7 @@ class AgChartsInternal {
         }
 
         const { document, window: userWindow, styleContainer, ...options } = mutableOptions ?? {};
-        const baseOptions = (deltaOptions ? chart?.getChartOptions() : options) ?? options;
+        const baseOptions = (deltaOptions ?? poolOptionsDiff ? chart?.getChartOptions() : options) ?? options;
         const chartOptions = new ChartOptions(
             baseOptions,
             processedOverrides,

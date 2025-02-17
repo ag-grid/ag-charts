@@ -570,7 +570,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip } = properties;
         const xAxis = this.getCategoryAxis();
@@ -580,7 +580,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             return;
         }
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];

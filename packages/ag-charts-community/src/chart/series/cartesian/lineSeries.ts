@@ -578,7 +578,7 @@ export class LineSeries extends CartesianSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: LineNodeDatum): TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xKey, xName, yKey, yName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
@@ -588,7 +588,6 @@ export class LineSeries extends CartesianSeries<
             return;
         }
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];

@@ -83,8 +83,8 @@ interface MarkerNodeDatum extends SeriesNodeDatum<unknown> {
     readonly point: Point & SizedPoint;
 }
 
-interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<TDatum, unknown, unknown> {
-    getNodeData(): TDatum[] | undefined;
+interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<number, TDatum, unknown, unknown> {
+    getNodeData(): { [index: number]: TDatum | undefined } | undefined;
     getFormattedMarkerStyle(datum: TDatum): { size: number };
 }
 
@@ -96,7 +96,7 @@ export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
     if (nodeData === undefined) return undefined;
 
     const datum = nodeData[datumIndex];
-    const { point } = datum;
+    const { point } = datum ?? {};
     if (datum == null || point == null) return undefined;
 
     // AG-13067 Add 2px padding on all sides:

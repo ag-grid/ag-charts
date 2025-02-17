@@ -189,10 +189,11 @@ function makeMouseEvent<T extends TMouseEvent>(
     type: T,
     testTarget: MockEvent,
     clientX: number,
-    clientY: number
+    clientY: number,
+    bubbles = true
 ): MouseEvent {
     const { offsetX, offsetY } = testTarget;
-    const event = new MouseEvent(type, { bubbles: true, clientX, clientY });
+    const event = new MouseEvent(type, { bubbles, clientX, clientY });
     Object.assign(event, { offsetX, offsetY, pageX: clientX, pageY: clientY });
     return event;
 }
@@ -226,10 +227,14 @@ function doubleClickEvent(offsets: MockEvent, clientX: number, clientY: number):
 }
 
 function contextMenuEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('contextmenu', offsets, clientX, clientY);
+    return makeMouseEvent('contextmenu', offsets, clientX, clientY, false);
 }
 
 function dispatchEvent({ bubbleChain, target }: MockEvent, event: Event) {
+    if (!event.bubbles && bubbleChain.length > 0) {
+        bubbleChain = [bubbleChain[0]];
+    }
+
     bubbleChain.forEach((currentTarget) => {
         Object.defineProperty(event, 'target', {
             value: target,
@@ -598,6 +603,22 @@ export function doubleTapAction(clientX: number, clientY: number): (chart: Chart
             dispatchEvent(testTarget, doubleClickEvent(testTarget, clientX, clientY));
         }
 
+        await delay(50);
+    };
+}
+
+export function longTapAction(clientX: number, clientY: number): (chart: ChartOrProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const testTarget = findChartTarget(chart, clientX, clientY);
+        let event: TouchEvent;
+
+        event = touchEvent('touchstart', testTarget, [{ identifier: 1, clientX, clientY, states: ['target'] }]);
+        dispatchEvent(testTarget, event);
+        await delay(501);
+
+        event = touchEvent('touchend', testTarget, [{ identifier: 1, clientX, clientY, states: ['changed'] }]);
+        dispatchEvent(testTarget, event);
         await delay(50);
     };
 }

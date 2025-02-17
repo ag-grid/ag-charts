@@ -482,7 +482,7 @@ export class HistogramSeries extends CartesianSeries<
         return findQuadtreeMatch(this, point);
     }
 
-    override getTooltipContent(nodeDatum: HistogramNodeDatum): TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const {
             id: seriesId,
             dataModel,
@@ -499,8 +499,7 @@ export class HistogramSeries extends CartesianSeries<
             return;
         }
 
-        const groupIndex = nodeDatum.datumIndex;
-        const group = processedData.groups[groupIndex];
+        const group = processedData.groups[datumIndex];
         const { aggregation, datumIndices, keys } = group;
         const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
         const frequency = datumIndices.length;

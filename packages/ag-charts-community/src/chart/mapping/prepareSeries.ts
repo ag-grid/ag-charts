@@ -5,7 +5,7 @@ import type { ISeries } from '../series/seriesTypes';
 
 const MATCHING_KEYS = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'radiusKey', 'normalizedTo'];
 
-export function matchSeriesOptions<S extends ISeries<any, any>>(
+export function matchSeriesOptions<S extends ISeries<any, any, any>>(
     series: S[],
     optSeries: NonNullable<AgChartOptions['series']>,
     oldOptsSeries?: AgChartOptions['series']

@@ -198,7 +198,7 @@ export function resetBarSelectionsFn(
 }
 
 export function computeBarFocusBounds(
-    series: ISeries<unknown, unknown>,
+    series: ISeries<unknown, unknown, unknown>,
     datum: { x: number; y: number; width: number; height: number } | undefined
 ): BBox | undefined {
     if (datum === undefined) return undefined;

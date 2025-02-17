@@ -111,7 +111,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum<unknown>, TEvent ext
         readonly type: TEvent,
         readonly event: Event,
         { datum }: TDatum,
-        series: ISeries<TDatum, unknown, unknown>
+        series: ISeries<unknown, TDatum, unknown, unknown>
     ) {
         this.datum = datum;
         this.seriesId = series.id;
@@ -168,7 +168,7 @@ export abstract class Series<
         >,
     >
     extends Observable
-    implements ISeries<TDatum, TProps, TLabel>
+    implements ISeries<TDatumIndex, TDatum, TProps, TLabel>
 {
     protected destroyFns: (() => void)[] = [];
     abstract readonly properties: TProps;
@@ -585,7 +585,7 @@ export abstract class Series<
             .reduce((total, current) => Object.assign(total, current), {});
     }
 
-    abstract getTooltipContent(_seriesDatum: any): TooltipContent | undefined;
+    abstract getTooltipContent(datumIndex: TDatumIndex): TooltipContent | undefined;
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {

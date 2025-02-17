@@ -68,7 +68,7 @@ export interface ChartAxis {
     setCrossLinesVisible(visible: boolean): void;
     processData(): void;
     update(animated?: boolean): void;
-    boundSeries: ISeries<unknown, unknown>[];
+    boundSeries: ISeries<unknown, unknown, unknown>[];
     crossLines?: CrossLine[];
     dataDomain: { domain: any[]; clipped: boolean };
     direction: ChartAxisDirection;

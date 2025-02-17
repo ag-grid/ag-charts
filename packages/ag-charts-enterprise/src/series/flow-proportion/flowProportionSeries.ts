@@ -60,7 +60,11 @@ export class FlowProportionSeriesNodeEvent<
         type: TEvent,
         nativeEvent: Event,
         datum: _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>,
-        series: _ModuleSupport.ISeries<_ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>, unknown> & {
+        series: _ModuleSupport.ISeries<
+            FlowProportionNodeDatumIndex,
+            _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>,
+            unknown
+        > & {
             contextNodeData?: _ModuleSupport.SeriesNodeDataContext<
                 FlowProportionNodeDatumIndex,
                 TDatum<FlowProportionNodeDatum<any, any>, FlowProportionLinkDatum<any, any>>,

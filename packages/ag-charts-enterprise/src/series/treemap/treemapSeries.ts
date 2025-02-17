@@ -778,11 +778,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         return this.pickNodeNearestDistantObject(point, this.datumSelection.nodes());
     }
 
-    override getTooltipContent(nodeDatum: TreemapNode): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number[]): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
             properties;
-        const { datum, datumIndex, depth, children } = nodeDatum;
+
+        const nodeDatum = datumIndex.reduce((n, i) => n?.children[i], this.rootNode);
+        if (nodeDatum == null) return;
+        const { datum, depth, children } = nodeDatum;
         if (datum == null || depth == null) return;
 
         const isLeaf = children.length === 0;

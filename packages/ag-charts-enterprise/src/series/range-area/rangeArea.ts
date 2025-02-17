@@ -599,7 +599,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
-    override getTooltipContent(nodeDatum: RangeAreaMarkerDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xName, yName, yLowKey, yLowName, xKey, yHighKey, yHighName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
@@ -607,7 +607,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
@@ -629,7 +628,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 seriesId,
                 datum,
                 title: yName,
-                itemId: nodeDatum.itemId,
+                itemId: 'up',
                 xName,
                 yName,
                 yLowKey,
@@ -827,17 +826,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return undefined;
     }
 
-    protected override computeFocusDatumIndex(
-        opts: _ModuleSupport.PickFocusInputs,
-        nodeData: RangeAreaMarkerDatum[]
-    ): number | undefined {
-        // CRT-586 Double the datumIndexDeltas to skip odd values
-        // (1 range-area datum is actually a pair of datums)
-        const newOpts = {
-            ...opts,
-            datumIndex: opts.datumIndex + opts.datumIndexDelta,
-            datumIndexDelta: opts.datumIndexDelta * 2,
-        };
-        return super.computeFocusDatumIndex(newOpts, nodeData);
+    protected override isDatumEnabled(nodeData: RangeAreaMarkerDatum[], datumIndex: number): boolean {
+        return datumIndex % 2 === 0 && super.isDatumEnabled(nodeData, datumIndex);
     }
 }

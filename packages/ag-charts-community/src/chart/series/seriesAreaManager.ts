@@ -290,7 +290,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         this.chart.ctx.domManager.updateCursor(this.id);
-        if (!this.focusIndicator.isFocusVisible()) this.clearAll();
+        if (this.hoverDevice !== 'keyboard') this.clearAll();
     }
 
     private onWheel(_event: WheelWidgetEvent): void {
@@ -569,7 +569,7 @@ export class SeriesAreaManager extends BaseManager {
             this.highlight.pendingHoverEvent = undefined;
             this.highlight.stashedHoverEvent = undefined;
 
-            const tooltipContent = focus.series.getTooltipContent(datum);
+            const tooltipContent = focus.series.getTooltipContent(datum.datumIndex);
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
             const tooltipEnabled = this.chart.tooltip.enabled && focus.series.tooltipEnabled;
@@ -690,7 +690,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         this.hoverDevice = 'pointer';
-        const content = pick.series.getTooltipContent(pick.datum);
+        const content = pick.series.getTooltipContent(pick.datum.datumIndex);
         const tooltipEnabled = this.chart.tooltip.enabled && pick.series.tooltipEnabled;
         const shouldUpdateTooltip = tooltipEnabled && content != null;
         if (shouldUpdateTooltip) {
@@ -706,7 +706,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private changeHighlightDatum(event: HighlightChangeEvent) {
-        const seriesToUpdate: Set<ISeries<any, any>> = new Set();
+        const seriesToUpdate: Set<ISeries<any, any, any>> = new Set();
         const { series: newSeries = undefined, datum: newDatum } = event.currentHighlight ?? {};
         const { series: lastSeries = undefined, datum: lastDatum } = event.previousHighlight ?? {};
 

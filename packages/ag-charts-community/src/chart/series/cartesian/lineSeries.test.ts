@@ -571,5 +571,35 @@ describe('LineSeries', () => {
                 failureThresholdType: 'percent',
             });
         });
+
+        it('should handle stacked case', async () => {
+            const options = {
+                ...examples.LINE_STACKED_DATA_PER_SERIES,
+                series: examples.LINE_STACKED_DATA_PER_SERIES.series!.map((series, index) => ({
+                    ...series,
+                    id: `series-${index}`,
+                })),
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+
+            const state = chart.getState();
+
+            state.legend = [
+                {
+                    seriesId: 'series-0',
+                    visible: false,
+                },
+            ];
+
+            await chart.setState(state);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot();
+        });
     });
 });
