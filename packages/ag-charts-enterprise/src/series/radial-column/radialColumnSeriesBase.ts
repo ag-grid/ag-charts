@@ -495,7 +495,7 @@ export abstract class RadialColumnSeriesBase<
         seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
-    override getTooltipContent(nodeDatum: RadialColumnNodeDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
         const angleAxis = axes[ChartAxisDirection.X];
@@ -503,7 +503,6 @@ export abstract class RadialColumnSeriesBase<
 
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
         const radiusValue = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData)[datumIndex];

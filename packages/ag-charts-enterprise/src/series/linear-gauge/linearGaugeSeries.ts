@@ -11,7 +11,6 @@ import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
-import { type UnknownGaugeNodeDatum, parseUnknownGaugeNodeDatum } from '../gauge-util/properties';
 import { getLineHeight } from '../util/labelFormatter';
 import {
     type LinearGaugeLabelDatum,
@@ -1271,13 +1270,22 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return [];
     }
 
-    override getTooltipContent(nodeDatum: UnknownGaugeNodeDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: LinearGaugeNodeDatumIndex): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
 
         if (!properties.isValid()) return;
 
-        const { value = properties.value, text = properties.label.text } = parseUnknownGaugeNodeDatum(nodeDatum);
+        let value: number | undefined;
+        let text: string | undefined;
+        if (datumIndex.type === NodeDataType.Node) {
+            value = properties.value;
+            text = properties.label.text;
+        } else {
+            ({ value, text } = properties.targets[datumIndex.index]);
+        }
+
+        if (value == null) return;
 
         return tooltip.formatTooltip(
             {

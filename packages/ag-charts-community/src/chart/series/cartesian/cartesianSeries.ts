@@ -91,7 +91,7 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
         type: TEvent,
         nativeEvent: Event,
         datum: SeriesNodeDatum<number>,
-        series: ISeries<SeriesNodeDatum<number>, { xKey?: string; yKey?: string }>
+        series: ISeries<number, SeriesNodeDatum<number>, { xKey?: string; yKey?: string }>
     ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;

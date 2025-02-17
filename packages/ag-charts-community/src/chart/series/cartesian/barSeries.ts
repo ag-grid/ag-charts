@@ -743,7 +743,7 @@ export class BarSeries extends AbstractBarSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: BarNodeDatum): TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = properties;
         const xAxis = this.getCategoryAxis();
@@ -753,7 +753,6 @@ export class BarSeries extends AbstractBarSeries<
             return;
         }
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];

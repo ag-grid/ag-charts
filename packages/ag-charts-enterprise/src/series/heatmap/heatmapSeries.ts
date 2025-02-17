@@ -444,7 +444,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties, colorScale } = this;
         const { xKey, xName, yKey, yName, colorKey, colorName, colorRange, title, legendItemName, tooltip } =
             properties;
@@ -453,7 +453,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];

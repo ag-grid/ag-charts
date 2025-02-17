@@ -555,13 +555,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
     }
 
-    override getTooltipContent(nodeDatum: PyramidNodeDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { stageKey, valueKey, tooltip } = properties;
 
         if (!dataModel || !processedData) return;
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, 'xValue', processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];

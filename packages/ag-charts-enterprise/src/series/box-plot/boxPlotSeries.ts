@@ -295,7 +295,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         ];
     }
 
-    override getTooltipContent(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             xKey,
@@ -319,7 +319,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const minValue = dataModel.resolveColumnById(this, `minValue`, processedData)[datumIndex];

@@ -75,7 +75,7 @@ export type ChartAxisLike = {
     visibleRange: [number, number];
     scale: Scale<any, any>;
     range: [number, number];
-    boundSeries: ISeries<any, any>[];
+    boundSeries: ISeries<any, any, any>[];
     min?: number;
     max?: number;
 };

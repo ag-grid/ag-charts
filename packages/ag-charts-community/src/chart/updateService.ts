@@ -26,7 +26,7 @@ export type UpdateOpts = {
     forceNodeDataRefresh?: boolean;
     skipAnimations?: boolean;
     newAnimationBatch?: boolean;
-    seriesToUpdate?: Iterable<ISeries<any, any>>;
+    seriesToUpdate?: Iterable<ISeries<any, any, any>>;
     backOffMs?: number;
     skipSync?: boolean;
 };

@@ -10,7 +10,7 @@ type GroupId = string | symbol;
 
 /** Breaks circular dependencies which occur when importing ChartAxis. */
 type AxisLike = {
-    boundSeries: ISeries<any, any>[];
+    boundSeries: ISeries<any, any, any>[];
     direction: ChartAxisDirection;
     keys: string[];
     reverse?: boolean;
@@ -23,7 +23,7 @@ type AxisLike = {
 type ChartLike = {
     id: string;
     axes: AxisLike[];
-    series: ISeries<any, any>[];
+    series: ISeries<any, any, any>[];
     modulesManager: { getModule<R>(module: string): R | undefined };
     ctx: {
         highlightManager: HighlightManager;

@@ -11,7 +11,7 @@ type PickProperties = {
     clipFocusBox: boolean;
 };
 
-function computeCenter(series: ISeries<any, any>, hoverRect: BBox, pick: PickProperties) {
+function computeCenter(series: ISeries<any, any, any>, hoverRect: BBox, pick: PickProperties) {
     const refPoint = getDatumRefPoint(series, pick.datum);
     if (refPoint != null) return { x: refPoint.canvasX, y: refPoint.canvasY };
 
@@ -34,7 +34,7 @@ export function getPickedFocusBBox({ bounds }: PickProperties): Readonly<BBox> {
 }
 
 export function makeKeyboardPointerEvent(
-    series: ISeries<any, any>,
+    series: ISeries<any, any, any>,
     hoverRect: BBox,
     pick: PickProperties
 ): TooltipPointerEvent<'keyboard'> | undefined {

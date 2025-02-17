@@ -18,7 +18,7 @@ type NodeContextMenuActionEvent = Parameters<
     NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']
 >[0];
 
-export interface ISeries<TDatum, TProps, TLabel = TDatum> {
+export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     id: string;
     axes: Record<ChartAxisDirection, ChartAxisLike | undefined>;
     contentGroup: Group;
@@ -33,7 +33,7 @@ export interface ISeries<TDatum, TProps, TLabel = TDatum> {
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): (TLabel & PointLabelDatum)[];
-    getTooltipContent(seriesDatum: any): TooltipContent | undefined;
+    getTooltipContent(datumIndex: TDatumIndex): TooltipContent | undefined;
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
@@ -55,7 +55,7 @@ export interface ISeries<TDatum, TProps, TLabel = TDatum> {
  * contains information used to render pie sectors, bars, markers, etc.
  */
 export interface SeriesNodeDatum<I> {
-    readonly series: ISeries<any, any>;
+    readonly series: ISeries<I, any, any>;
     readonly itemId?: any;
     readonly datum: any;
     readonly datumIndex: I;

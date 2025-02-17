@@ -1352,7 +1352,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return pickByMatchingAngle(this, point);
     }
 
-    override getTooltipContent(nodeDatum: DonutNodeDatum): TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             legendItemKey,
@@ -1369,8 +1369,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const title = this.properties.title.text;
 
         if (!dataModel || !processedData) return;
-
-        const { datumIndex } = nodeDatum;
 
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const { angleRawValues, legendItemValues, calloutLabelValues, sectorLabelValues } = this.getProcessedDataValues(

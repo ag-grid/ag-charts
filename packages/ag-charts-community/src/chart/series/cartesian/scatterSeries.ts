@@ -355,7 +355,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         });
     }
 
-    override getTooltipContent(nodeDatum: ScatterNodeDatum): TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xKey, xName, yKey, yName, labelKey, labelName, title, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
@@ -365,7 +365,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             return;
         }
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];

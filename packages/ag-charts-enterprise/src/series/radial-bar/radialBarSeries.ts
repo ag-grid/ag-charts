@@ -492,7 +492,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
-    override getTooltipContent(nodeDatum: RadialBarNodeDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
         const angleAxis = axes[ChartAxisDirection.X];
@@ -500,7 +500,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const radiusValue = dataModel.resolveKeysById(this, `radiusValue`, processedData)[datumIndex];
         const angleValue = dataModel.resolveColumnById(this, `angleValue-raw`, processedData)[datumIndex];

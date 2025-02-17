@@ -645,12 +645,11 @@ export class MapShapeSeries
         }
     }
 
-    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { idKey, idName, colorKey, colorName, labelKey, labelName, legendItemName, title, tooltip } = properties;
         if (!dataModel || !processedData) return;
 
-        const { datumIndex } = seriesDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const idValue = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
         const colorValue =

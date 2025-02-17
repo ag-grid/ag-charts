@@ -593,7 +593,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { xKey, xName, yKey, yName, tooltip } = properties;
         const xAxis = this.getCategoryAxis();
@@ -601,7 +601,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData)[datumIndex];

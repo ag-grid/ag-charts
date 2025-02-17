@@ -410,7 +410,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: RadarNodeDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
         const angleAxis = axes[ChartAxisDirection.X];
@@ -418,7 +418,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const angleValue = dataModel.resolveColumnById(this, `angleValue`, processedData)[datumIndex];
         const radiusValue = dataModel.resolveColumnById(this, `radiusValue`, processedData)[datumIndex];

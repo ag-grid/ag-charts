@@ -479,7 +479,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
     private runningUpdateType: ChartUpdateType = ChartUpdateType.NONE;
 
     private updateShortcutCount = 0;
-    private readonly seriesToUpdate: Set<ISeries<any, any>> = new Set();
+    private readonly seriesToUpdate: Set<ISeries<any, any, any>> = new Set();
     private readonly updateMutex = new Mutex();
     private updateRequestors: Record<string, ChartUpdateType> = {};
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
@@ -1020,7 +1020,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
     // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
 
-    private async updateSeries(seriesToUpdate: ISeries<unknown, unknown>[]) {
+    private async updateSeries(seriesToUpdate: ISeries<unknown, unknown, unknown>[]) {
         const { seriesRect } = this;
 
         await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));

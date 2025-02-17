@@ -13,7 +13,6 @@ import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
-import { type UnknownGaugeNodeDatum, parseUnknownGaugeNodeDatum } from '../gauge-util/properties';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     LabelType,
@@ -104,7 +103,11 @@ interface RadialGaugeNeedleDatum {
 }
 
 interface RadialGaugeNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<0, RadialGaugeNodeDatum, RadialGaugeLabelDatum> {
+    extends _ModuleSupport.SeriesNodeDataContext<
+        RadialGaugeNodeDatumIndex,
+        RadialGaugeNodeDatum,
+        RadialGaugeLabelDatum
+    > {
     needleData: RadialGaugeNeedleDatum[];
     targetData: RadialGaugeTargetDatum[];
     scaleData: RadialGaugeNodeDatum[];
@@ -1165,13 +1168,22 @@ export class RadialGaugeSeries
         return [];
     }
 
-    override getTooltipContent(nodeDatum: UnknownGaugeNodeDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: RadialGaugeNodeDatumIndex): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
 
         if (!properties.isValid()) return;
 
-        const { value = properties.value, text = properties.label.text } = parseUnknownGaugeNodeDatum(nodeDatum);
+        let value: number | undefined;
+        let text: string | undefined;
+        if (datumIndex.type === NodeDataType.Node) {
+            value = properties.value;
+            text = properties.label.text;
+        } else {
+            ({ value, text } = properties.targets[datumIndex.index]);
+        }
+
+        if (value == null) return;
 
         return tooltip.formatTooltip(
             {

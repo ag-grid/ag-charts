@@ -599,7 +599,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
-    override getTooltipContent(nodeDatum: RangeAreaMarkerDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xName, yName, yLowKey, yLowName, xKey, yHighKey, yHighName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
@@ -607,7 +607,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
@@ -629,7 +628,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 seriesId,
                 datum,
                 title: yName,
-                itemId: nodeDatum.itemId,
+                itemId: 'up',
                 xName,
                 yName,
                 yLowKey,

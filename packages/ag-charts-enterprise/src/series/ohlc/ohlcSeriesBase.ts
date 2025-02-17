@@ -461,7 +461,7 @@ export abstract class OhlcSeriesBase<
         });
     }
 
-    override getTooltipContent(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             xKey,
@@ -483,7 +483,6 @@ export abstract class OhlcSeriesBase<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const { datumIndex } = nodeDatum;
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const openValue = dataModel.resolveColumnById(this, `openValue`, processedData)[datumIndex];

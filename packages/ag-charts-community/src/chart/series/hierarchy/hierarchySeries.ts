@@ -48,7 +48,7 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
     readonly midPoint: Point;
 
     constructor(
-        public readonly series: ISeries<any, any>,
+        public readonly series: ISeries<any, any, any>,
         public readonly datumIndex: number[],
         public readonly datum: TDatum | undefined,
         public readonly sizeValue: number,
