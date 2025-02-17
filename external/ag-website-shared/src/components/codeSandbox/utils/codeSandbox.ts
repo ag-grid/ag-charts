@@ -1,7 +1,6 @@
 import type { InternalFramework } from '@ag-grid-types';
 import type { FileContents } from '@components/example-generator/types';
 import { isReactInternalFramework } from '@utils/framework';
-import { entries } from 'ag-charts-core';
 import { getParameters } from 'codesandbox/lib/api/define';
 
 type SandboxFiles = Parameters<typeof getParameters>[0]['files'];
@@ -74,7 +73,7 @@ const getCodeSandboxFiles = ({
         delete allFiles['package.json'];
     }
 
-    for (const [name, content] of entries<object>(allFiles)) {
+    for (const [name, content] of Object.entries(allFiles)) {
         const key = getPathForFile({ fileName: name, internalFramework });
         sandboxFiles[key] = {
             content: content as string,
