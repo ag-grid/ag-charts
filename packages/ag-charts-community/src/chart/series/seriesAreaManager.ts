@@ -290,7 +290,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         this.chart.ctx.domManager.updateCursor(this.id);
-        if (!this.focusIndicator.isFocusVisible()) this.clearAll();
+        if (this.hoverDevice !== 'keyboard') this.clearAll();
     }
 
     private onWheel(_event: WheelWidgetEvent): void {
