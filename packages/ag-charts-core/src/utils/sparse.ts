@@ -1,6 +1,7 @@
 export interface SimpleArray<T> {
     [index: number]: T | undefined;
     readonly length: number;
+    [Symbol.iterator](): Iterator<T>;
 }
 
 export function createImmutableSparseArray<T>(data: (T | undefined)[]): SimpleArray<T> {
@@ -77,5 +78,13 @@ class ImmutableSparseArrayImpl<T> implements SimpleArray<T> {
         if (isNaN(bucketIndex)) return undefined;
         const bucket = this.buckets[bucketIndex];
         return bucket.elements[index - bucket.start];
+    }
+
+    *[Symbol.iterator](): IterableIterator<T> {
+        for (const bucket of this.buckets) {
+            for (let i = 0; i < bucket.elements.length; i++) {
+                yield bucket.elements[i];
+            }
+        }
     }
 }

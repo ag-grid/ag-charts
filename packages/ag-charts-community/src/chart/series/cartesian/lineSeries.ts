@@ -685,12 +685,16 @@ export class LineSeries extends CartesianSeries<
     private plotNodeDataPoints(path: ExtendedPath2D, nodeData: SimpleArray<LineNodeDatum>) {
         if (nodeData.length === 0) return;
 
-        const initialPoint = nodeData[0].point;
+        const iter = nodeData[Symbol.iterator]();
+        const firstResult = iter.next();
+        const { point: initialPoint } = firstResult.value;
         path.moveTo(initialPoint.x, initialPoint.y);
 
-        for (let i = 1; i < nodeData.length; i += 1) {
-            const { x, y } = nodeData[i].point;
+        let result = iter.next();
+        while (!result.done) {
+            const { x, y } = result.value.point;
             path.lineTo(x, y);
+            result = iter.next();
         }
     }
 
