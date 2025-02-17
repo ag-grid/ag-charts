@@ -213,7 +213,7 @@ type ThemeParamsOperation =
     | { $foregroundBackgroundMix: [ThemeParamsLeaf<number>] }
     | { $foregroundBackgroundAccentMix: [ThemeParamsLeaf<number>, ThemeParamsLeaf<number>] };
 
-type ThemeParamsLeaf<T = boolean | string | number | any> = ThemeParamsOperation | T;
+type ThemeParamsLeaf<T = ExcludeLeaves> = ThemeParamsOperation | T;
 
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, ThemeParamsOperation, ExcludeLeaves>;
 type ExcludeLeaves = string | symbol | number | undefined | AgGradientFill;
