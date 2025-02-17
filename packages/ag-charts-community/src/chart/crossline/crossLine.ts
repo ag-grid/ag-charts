@@ -1,5 +1,5 @@
 import { Logger, stringifyValue } from 'ag-charts-core';
-import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from 'ag-charts-types';
+import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition, AgGradientFill } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
@@ -79,7 +79,8 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     clippedRange: [number, number];
     direction: ChartAxisDirection;
     enabled?: boolean;
-    fill?: string;
+    defaultColorRange: string[];
+    fill?: string | AgGradientFill;
     fillOpacity?: number;
     gridLength: number;
     lineGroup: Group;
