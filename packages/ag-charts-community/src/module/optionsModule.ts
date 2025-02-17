@@ -105,7 +105,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options = ChartOptions.FAST_PATH_OPTIONS,
         path = ''
     ) {
-        const slowKeys = new Set<string>();
+        let slowKeys: Set<string> | undefined;
         for (const key of Object.keys(deltaOptions)) {
             const config = options.get(key);
             if (config === undefined) {
@@ -127,7 +127,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         }
 
-        return slowKeys.size === 0;
+        return slowKeys === undefined;
     }
 
     activeTheme: ChartTheme;
