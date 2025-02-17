@@ -35,7 +35,7 @@ class FloatingToolbarPopover extends DraggablePopover {
         super(ctx, id);
     }
 
-    public show(children: HTMLElement[], options: PopoverOptions) {
+    public show(children: HTMLElement[], options: PopoverOptions = {}) {
         this.showWithChildren(children, {
             ...options,
             class: 'ag-charts-floating-toolbar',
@@ -122,7 +122,7 @@ export abstract class FloatingToolbar<
         this.popover.setDragHandle(this.dragHandle);
     }
 
-    public show(options: PopoverOptions) {
+    public show(options: PopoverOptions = {}) {
         this.popover.show([this.dragHandle.getElement(), this.getElement()], options);
     }
 

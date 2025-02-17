@@ -12,3 +12,4 @@ tsconfig-lib.json
 tslint.json
 vue.config.js
 !dist/types/src
+eslint.*

@@ -11,6 +11,7 @@ const exportedNames = {
     'ag-charts-enterprise': 'agCharts',
     'ag-charts-react': 'AgCharts',
     'ag-charts-locale': 'agChartsLocale',
+    'ag-charts-core': 'agChartsCore',
 };
 
 /** @type {import('esbuild').Plugin} */

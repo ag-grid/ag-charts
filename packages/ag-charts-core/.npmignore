@@ -10,6 +10,8 @@ tsconfig.*
 project.json
 .esbuild.*
 .env*
+eslint.*
+coverage/
 
 dist/*.d.ts
 dist/**/*.test.*
