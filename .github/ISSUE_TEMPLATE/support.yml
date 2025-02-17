@@ -26,7 +26,7 @@ body:
     id: version
     attributes:
       label: Version
-      description: What version of AG Grid are you using?
+      description: What version of AG Charts are you using?
     validations:
       required: true
   - type: dropdown
