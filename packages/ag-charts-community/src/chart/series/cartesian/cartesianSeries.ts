@@ -738,6 +738,10 @@ export abstract class CartesianSeries<
     protected abstract xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number];
     protected abstract yCoordinateRange(yValues: any[], pixelSize: number, index: number): [number, number];
 
+    public xValues(): any[] {
+        return undefined!;
+    }
+
     // Workaround - it would be nice if this difference didn't exist
     private keysOrValues(xKey: string) {
         const key = this.dataModel!.resolveProcessedDataIndexById(this, xKey);

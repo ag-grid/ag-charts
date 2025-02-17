@@ -1022,10 +1022,9 @@ export class Legend extends BaseProperties {
         const series = datum ? this.ctx.chartService.series.find((s) => s.id === datum?.id) : undefined;
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
             const meta = this.toTooltipMeta(event, node);
-            this.ctx.tooltipManager.updateTooltip(this.id, meta, {
-                type: 'structured',
-                title: this.getItemLabel(datum),
-            });
+            this.ctx.tooltipManager.updateTooltip(this.id, meta, [
+                { type: 'structured', title: this.getItemLabel(datum) },
+            ]);
         } else {
             this.ctx.tooltipManager.removeTooltip(this.id);
         }

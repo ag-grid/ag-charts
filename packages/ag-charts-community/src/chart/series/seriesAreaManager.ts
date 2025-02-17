@@ -40,6 +40,11 @@ import type { ISeries, SeriesNodeDatum } from './seriesTypes';
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
+    getTooltipContent: <DatumIndex = unknown>(
+        series: Series<DatumIndex, any, any>,
+        datumIndex: DatumIndex,
+        removeThisDatum: unknown
+    ) => TooltipContent[];
     chartType: ChartType;
     seriesRoot: TranslatableGroup;
     ctx: ChartContext;
@@ -569,7 +574,7 @@ export class SeriesAreaManager extends BaseManager {
             this.highlight.pendingHoverEvent = undefined;
             this.highlight.stashedHoverEvent = undefined;
 
-            const tooltipContent = focus.series.getTooltipContent(datum.datumIndex);
+            const tooltipContent = this.chart.getTooltipContent(focus.series, datum.datumIndex, datum);
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
             const tooltipEnabled = this.chart.tooltip.enabled && focus.series.tooltipEnabled;
@@ -593,7 +598,8 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private getDatumAriaText(datum: SeriesNodeDatum<unknown>, tooltipContent: TooltipContent | undefined): string {
+    // @todo(AG-7126) - handle label for multiple tooltips
+    private getDatumAriaText(datum: SeriesNodeDatum<unknown>, [tooltipContent]: TooltipContent[]): string {
         const description = tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent);
         return this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: datum.series.getDatumAriaText?.(datum, description) ?? description,
@@ -690,7 +696,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         this.hoverDevice = 'pointer';
-        const content = pick.series.getTooltipContent(pick.datum.datumIndex);
+        const content = this.chart.getTooltipContent(pick.series, pick.datum.datumIndex, pick.datum);
         const tooltipEnabled = this.chart.tooltip.enabled && pick.series.tooltipEnabled;
         const shouldUpdateTooltip = tooltipEnabled && content != null;
         if (shouldUpdateTooltip) {

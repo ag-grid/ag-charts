@@ -578,6 +578,12 @@ export class LineSeries extends CartesianSeries<
         });
     }
 
+    public override xValues(): any[] {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return [];
+        return dataModel.resolveColumnById(this, `xValue`, processedData);
+    }
+
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xKey, xName, yKey, yName, tooltip } = properties;

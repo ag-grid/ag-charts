@@ -128,11 +128,9 @@ export class Caption extends BaseProperties implements CaptionLike {
             const canvasX = event.sourceEvent.offsetX + x;
             const canvasY = event.sourceEvent.offsetY + y;
             const lastPointerEvent = { type: 'pointermove', canvasX, canvasY } as const;
-            moduleCtx.tooltipManager.updateTooltip(
-                this.id,
-                { canvasX, canvasY, lastPointerEvent, showArrow: false },
-                { type: 'structured', title: this.text }
-            );
+            moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, lastPointerEvent, showArrow: false }, [
+                { type: 'structured', title: this.text },
+            ]);
         }
     }
 
