@@ -44,6 +44,7 @@ const {
     ContinuousScale,
     OrdinalTimeScale,
     findMinMax,
+    isGradientFill,
 } = _ModuleSupport;
 
 class RangeAreaSeriesNodeEvent<
@@ -435,6 +436,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             opacity,
             visible: visible || animationEnabled,
         });
+
+        const { fill: seriesFill } = this.properties;
+        if (isGradientFill(seriesFill)) {
+            seriesFill.bounds ??= 'series';
+            fill.fillBBox = this.getFillBBox(seriesFill);
+        }
+
         fill.setProperties({
             stroke: undefined,
             lineJoin: 'round',

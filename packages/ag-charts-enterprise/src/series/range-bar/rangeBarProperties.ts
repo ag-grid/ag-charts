@@ -1,4 +1,5 @@
 import type {
+    AgGradientFill,
     AgRangeBarSeriesItemStylerParams,
     AgRangeBarSeriesLabelFormatterParams,
     AgRangeBarSeriesLabelPlacement,
@@ -22,6 +23,9 @@ const {
     RATIO,
     STRING,
     BOOLEAN,
+    COLOR_GRADIENT,
+    COLOR_STRING_ARRAY,
+    OR,
     DropShadow,
     Label,
 } = _ModuleSupport;
@@ -56,8 +60,11 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
     @Validate(STRING, { optional: true })
     yHighName?: string;
 
-    @Validate(COLOR_STRING)
-    fill: string = '#99CCFF';
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    fill: string | AgGradientFill = '#99CCFF';
 
     @Validate(RATIO)
     fillOpacity: number = 1;
