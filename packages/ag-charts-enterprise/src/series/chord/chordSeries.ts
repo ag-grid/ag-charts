@@ -5,6 +5,7 @@ import {
     FlowProportionDatumType,
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,
+    type FlowProportionNodeDatumIndex,
     FlowProportionSeries,
     type FlowProportionSeriesContext,
 } from '../flow-proportion/flowProportionSeries';
@@ -591,11 +592,16 @@ export class ChordSeries extends FlowProportionSeries<
         });
     }
 
-    override getTooltipContent(seriesDatum: ChordDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: FlowProportionNodeDatumIndex): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, linksProcessedData, nodesProcessedData, properties } = this;
         const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
 
-        const { datumIndex } = seriesDatum;
+        // This needs refactoring
+        const seriesDatum = this.contextNodeData?.nodeData.find(
+            (d) => d.datumIndex.type === datumIndex.type && d.datumIndex.index === datumIndex.index
+        );
+        if (seriesDatum == null) return;
+
         const nodeIndex =
             seriesDatum.type === FlowProportionDatumType.Link ? seriesDatum.fromNode.index : seriesDatum.index;
         const title =

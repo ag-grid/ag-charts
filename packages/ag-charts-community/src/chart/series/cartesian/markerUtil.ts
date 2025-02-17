@@ -83,7 +83,7 @@ interface MarkerNodeDatum extends SeriesNodeDatum<unknown> {
     readonly point: Point & SizedPoint;
 }
 
-interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<TDatum, unknown, unknown> {
+interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<number, TDatum, unknown, unknown> {
     getNodeData(): TDatum[] | undefined;
     getFormattedMarkerStyle(datum: TDatum): { size: number };
 }

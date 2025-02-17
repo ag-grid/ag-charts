@@ -532,11 +532,13 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number[]): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
             properties;
-        const { datum, datumIndex, depth } = nodeDatum;
+        const nodeDatum = datumIndex.reduce((n, i) => n?.children[i], this.rootNode);
+        if (nodeDatum == null) return;
+        const { datum, depth } = nodeDatum;
         if (datum == null || depth == null) return;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];

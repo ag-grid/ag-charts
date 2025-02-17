@@ -72,7 +72,7 @@ export function visibleRangeIndices(
 }
 
 export function getDatumRefPoint(
-    series: ISeries<any, any>,
+    series: ISeries<any, any, any>,
     datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
 ): { canvasX: number; canvasY: number } | undefined {
     // On `line` and `scatter` series, the tooltip covers the top of error-bars when using datum.midPoint.

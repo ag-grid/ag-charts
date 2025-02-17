@@ -7,8 +7,11 @@ import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 type ContextTypeMap = {
     all: object;
     legend: { legendItem: CategoryLegendDatum | undefined };
-    'series-area': { pickedSeries: ISeries<any, any> | undefined; pickedNode: SeriesNodeDatum<unknown> | undefined };
-    node: { pickedSeries: ISeries<any, any> | undefined; pickedNode: SeriesNodeDatum<unknown> | undefined };
+    'series-area': {
+        pickedSeries: ISeries<any, any, any> | undefined;
+        pickedNode: SeriesNodeDatum<unknown> | undefined;
+    };
+    node: { pickedSeries: ISeries<any, any, any> | undefined; pickedNode: SeriesNodeDatum<unknown> | undefined };
 };
 
 export type MouseEventWithPointerType = MouseEvent & Partial<Pick<PointerEvent, 'pointerType'>>;

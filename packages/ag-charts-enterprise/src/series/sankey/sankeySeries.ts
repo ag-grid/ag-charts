@@ -1,7 +1,11 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
-import { FlowProportionDatumType, FlowProportionSeries } from '../flow-proportion/flowProportionSeries';
+import {
+    FlowProportionDatumType,
+    type FlowProportionNodeDatumIndex,
+    FlowProportionSeries,
+} from '../flow-proportion/flowProportionSeries';
 import type { NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
 import { type Column, layoutColumns } from './sankeyLayout';
 import { SankeyLink } from './sankeyLink';
@@ -592,11 +596,16 @@ export class SankeySeries extends FlowProportionSeries<
         });
     }
 
-    override getTooltipContent(seriesDatum: SankeyDatum): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: FlowProportionNodeDatumIndex): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, linksProcessedData, nodesProcessedData, properties } = this;
         const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
 
-        const { datumIndex } = seriesDatum;
+        // This needs refactoring
+        const seriesDatum = this.contextNodeData?.nodeData.find(
+            (d) => d.datumIndex.type === datumIndex.type && d.datumIndex.index === datumIndex.index
+        );
+        if (seriesDatum == null) return;
+
         const nodeIndex =
             seriesDatum.type === FlowProportionDatumType.Link ? seriesDatum.fromNode.index : seriesDatum.index;
         const title =

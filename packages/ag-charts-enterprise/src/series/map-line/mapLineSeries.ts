@@ -601,7 +601,7 @@ export class MapLineSeries extends TopologySeries<
         }
     }
 
-    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             idKey,
@@ -617,8 +617,6 @@ export class MapLineSeries extends TopologySeries<
             tooltip,
         } = properties;
         if (!dataModel || !processedData) return;
-
-        const { datumIndex } = seriesDatum;
 
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);

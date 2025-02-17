@@ -55,7 +55,7 @@ class SeriesRegistry {
         }
     }
 
-    create(seriesType: SeriesType, moduleContext: ModuleContext): ISeries<any, any> {
+    create(seriesType: SeriesType, moduleContext: ModuleContext): ISeries<any, any, any> {
         const seriesFactory = this.seriesMap.get(seriesType)?.moduleFactory;
         if (seriesFactory) {
             return seriesFactory(moduleContext);

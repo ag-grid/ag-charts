@@ -1259,7 +1259,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return pickByMatchingAngle(this, point);
     }
 
-    override getTooltipContent(nodeDatum: PieNodeDatum): TooltipContent | undefined {
+    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             legendItemKey,
@@ -1276,8 +1276,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const title = this.properties.title.text;
 
         if (!dataModel || !processedData) return;
-
-        const { datumIndex } = nodeDatum;
 
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const { angleRawValues, legendItemValues, calloutLabelValues, sectorLabelValues } = this.getProcessedDataValues(
