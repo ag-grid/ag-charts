@@ -20,9 +20,9 @@ const EXAMPLES: Record<string, AgFinancialChartOptions> = {
     candlestick: { chartType: 'candlestick', data: getStockData().slice(0, 40) },
     'hollow-candlestick': { chartType: 'hollow-candlestick', data: getStockData().slice(0, 40) },
     ohlc: { chartType: 'ohlc', data: getStockData().slice(0, 40) },
-    // line: { chartType: 'line', data: getStockData().slice(0, 40) },
-    // 'step-line': { chartType: 'step-line', data: getStockData().slice(0, 40) },
-    // hlc: { chartType: 'hlc', data: getStockData().slice(0, 40) },
+    line: { chartType: 'line', data: getStockData().slice(0, 40) },
+    'step-line': { chartType: 'step-line', data: getStockData().slice(0, 40) },
+    hlc: { chartType: 'hlc', data: getStockData().slice(0, 40) },
     'high-low': { chartType: 'high-low', data: getStockData().slice(0, 40) },
 };
 

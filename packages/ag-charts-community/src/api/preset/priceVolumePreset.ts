@@ -224,13 +224,16 @@ export function priceVolume(
                     line: {
                         series: {
                             marker: { enabled: false },
-                            stroke: PALETTE_NEUTRAL_STROKE,
                             ...inlineSwitch(chartType, {
                                 hlc: {
                                     stroke: PALETTE_ALT_NEUTRAL_STROKE,
                                     strokeWidth: 2,
                                 },
+                                line: {
+                                    stroke: PALETTE_NEUTRAL_STROKE,
+                                },
                                 'step-line': {
+                                    stroke: PALETTE_NEUTRAL_STROKE,
                                     interpolation: { type: 'step' },
                                 },
                             }),
