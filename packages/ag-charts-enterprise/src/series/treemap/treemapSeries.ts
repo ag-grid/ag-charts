@@ -759,8 +759,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         };
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight() as any;
         this.labelSelection.selectByClass(Text).forEach((text) => {
-            const datum = text.closestDatum();
-            updateLabelFn(datum, text, text.tag, datum === highlightedDatum);
+            updateLabelFn(text.datum, text, text.tag, text.datum === highlightedDatum);
         });
     }
 
