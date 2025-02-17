@@ -3047,6 +3047,241 @@ export const STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions
     ],
 };
 
+export const STACKED_COLUMN_GRADIENT_FILL: AgCartesianChartOptions = {
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: { type: 'gradient' },
+                },
+            },
+        },
+    },
+    title: {
+        text: "Apple's revenue by product category",
+    },
+    subtitle: {
+        text: 'in billion U.S. dollars',
+    },
+    data: DATA_APPLE_REVENUE_BY_PRODUCT,
+    series: [
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'mac',
+            yName: 'Mac',
+            stacked: true,
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'ipad',
+            yName: 'iPad',
+            stacked: true,
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'wearables',
+            yName: 'Wearables',
+            stacked: true,
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'services',
+            yName: 'Services',
+            stacked: true,
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+    ],
+};
+
+export const STACKED_COLUMN_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+    ...STACKED_COLUMN_GRADIENT_FILL,
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: { type: 'gradient', direction: 'horizontal' },
+                },
+            },
+        },
+    },
+};
+
+export const STACKED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
+    ...STACKED_COLUMN_GRADIENT_FILL,
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: { type: 'gradient', direction: 'vertical', bounds: 'series' },
+                },
+            },
+        },
+    },
+};
+
+export const STACKED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+    ...STACKED_COLUMN_GRADIENT_FILL,
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: { type: 'gradient', direction: 'horizontal', bounds: 'series' },
+                },
+            },
+        },
+    },
+};
+
+export const STACKED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
+    ...STACKED_COLUMN_GRADIENT_FILL,
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: { type: 'gradient', direction: 'vertical', bounds: 'axes' },
+                },
+            },
+        },
+    },
+};
+
+export const STACKED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+    ...STACKED_COLUMN_GRADIENT_FILL,
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: { type: 'gradient', direction: 'horizontal', bounds: 'axes' },
+                },
+            },
+        },
+    },
+};
+
+export const GROUPED_COLUMN_GRADIENT_FILL: AgCartesianChartOptions = {
+    ...STACKED_COLUMN_GRADIENT_FILL,
+    series: [
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'mac',
+            yName: 'Mac',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'ipad',
+            yName: 'iPad',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'wearables',
+            yName: 'Wearables',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'services',
+            yName: 'Services',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+    ],
+};
+
+export const GROUPED_COLUMN_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+    ...GROUPED_COLUMN_GRADIENT_FILL,
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: { type: 'gradient', direction: 'horizontal' },
+                },
+            },
+        },
+    },
+};
+
+export const GROUPED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
+    ...GROUPED_COLUMN_GRADIENT_FILL,
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: { type: 'gradient', direction: 'vertical', bounds: 'series' },
+                },
+            },
+        },
+    },
+};
+
+export const GROUPED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+    ...GROUPED_COLUMN_GRADIENT_FILL,
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: { type: 'gradient', direction: 'horizontal', bounds: 'series' },
+                },
+            },
+        },
+    },
+};
+
+export const GROUPED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
+    ...GROUPED_COLUMN_GRADIENT_FILL,
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: { type: 'gradient', direction: 'vertical', bounds: 'axes' },
+                },
+            },
+        },
+    },
+};
+
+export const GROUPED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+    ...GROUPED_COLUMN_GRADIENT_FILL,
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: { type: 'gradient', direction: 'horizontal', bounds: 'axes' },
+                },
+            },
+        },
+    },
+};
+
 export const GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     title: {
         text: "Apple's revenue by product category",
