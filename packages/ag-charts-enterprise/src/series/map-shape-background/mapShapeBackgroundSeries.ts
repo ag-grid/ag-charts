@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, type SimpleArray } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -53,7 +53,7 @@ export class MapShapeBackgroundSeries
         // Ignore data
     }
 
-    public override getNodeData(): MapShapeBackgroundNodeDatum[] | undefined {
+    public override getNodeData(): SimpleArray<MapShapeBackgroundNodeDatum> | undefined {
         return;
     }
 

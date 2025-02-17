@@ -1,5 +1,5 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, type SimpleArray } from 'ag-charts-core';
 
 import { extendBbox } from '../map-util/bboxUtil';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -70,7 +70,7 @@ export class MapMarkerSeries
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
-    public override getNodeData(): MapMarkerNodeDatum[] | undefined {
+    public override getNodeData(): SimpleArray<MapMarkerNodeDatum> | undefined {
         return this.contextNodeData?.nodeData;
     }
 

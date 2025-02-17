@@ -1,3 +1,4 @@
+import type { SimpleArray } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -120,7 +121,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum<unknown>, TEvent ext
 
 export type SeriesNodeDataContext<I, S = SeriesNodeDatum<I>, L = S> = {
     itemId: string;
-    nodeData: S[];
+    nodeData: SimpleArray<S>;
     labelData: L[];
 };
 

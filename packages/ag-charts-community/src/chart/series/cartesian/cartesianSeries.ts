@@ -1,4 +1,4 @@
-import { findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
+import { type SimpleArray, findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
 
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -165,7 +165,7 @@ export abstract class CartesianSeries<
         return this._contextNodeData;
     }
 
-    public override getNodeData(): TDatum[] | undefined {
+    public override getNodeData(): SimpleArray<TDatum> | undefined {
         return this.contextNodeData?.nodeData;
     }
 
@@ -511,7 +511,7 @@ export abstract class CartesianSeries<
         return labelItems.length === 0 ? undefined : labelItems;
     }
 
-    protected getHighlightData(_nodeData: TDatum[], highlightedItem: TDatum): TDatum[] | undefined {
+    protected getHighlightData(_nodeData: SimpleArray<TDatum>, highlightedItem: TDatum): TDatum[] | undefined {
         return highlightedItem ? [highlightedItem] : undefined;
     }
 
@@ -927,7 +927,7 @@ export abstract class CartesianSeries<
     }
 
     protected updateDatumSelection(opts: {
-        nodeData: TDatum[];
+        nodeData: SimpleArray<TDatum>;
         datumSelection: Selection<TNode, TDatum>;
     }): Selection<TNode, TDatum> {
         // Override point for sub-classes.
@@ -942,7 +942,7 @@ export abstract class CartesianSeries<
     }
 
     protected updateMarkerSelection(opts: {
-        nodeData: TDatum[];
+        nodeData: SimpleArray<TDatum>;
         markerSelection: Selection<Marker, TDatum>;
     }): Selection<Marker, TDatum> {
         // Override point for sub-classes.

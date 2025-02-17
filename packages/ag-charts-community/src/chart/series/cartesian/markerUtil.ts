@@ -1,3 +1,5 @@
+import type { SimpleArray } from 'ag-charts-core';
+
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
@@ -84,7 +86,7 @@ interface MarkerNodeDatum extends SeriesNodeDatum<unknown> {
 }
 
 interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<number, TDatum, unknown, unknown> {
-    getNodeData(): { [index: number]: TDatum | undefined } | undefined;
+    getNodeData(): SimpleArray<TDatum> | undefined;
     getFormattedMarkerStyle(datum: TDatum): { size: number };
 }
 

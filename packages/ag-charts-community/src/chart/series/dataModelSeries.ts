@@ -1,3 +1,5 @@
+import type { SimpleArray } from 'ag-charts-core';
+
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
@@ -81,7 +83,7 @@ export abstract class DataModelSeries<
 
     protected abstract computeFocusBounds(opts: PickFocusInputs): Path | BBox | undefined;
 
-    public abstract getNodeData(): TDatum[] | undefined;
+    public abstract getNodeData(): SimpleArray<TDatum> | undefined;
 
     public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
         const nodeData = this.getNodeData();
@@ -98,17 +100,17 @@ export abstract class DataModelSeries<
         const datum = nodeData[datumIndex];
         const derivedOpts = { ...opts, datumIndex };
         const bounds = this.computeFocusBounds(derivedOpts);
-        if (bounds !== undefined) {
+        if (datum !== undefined && bounds !== undefined) {
             return { bounds, clipFocusBox, datum, datumIndex };
         }
     }
 
-    protected isDatumEnabled(nodeData: TDatum[], datumIndex: number): boolean {
-        const { missing = false, enabled = true, focusable = true } = nodeData[datumIndex];
+    protected isDatumEnabled(nodeData: SimpleArray<TDatum>, datumIndex: number): boolean {
+        const { missing = false, enabled = true, focusable = true } = nodeData[datumIndex] ?? {};
         return !missing && enabled && focusable;
     }
 
-    private computeFocusDatumIndex(opts: PickFocusInputs, nodeData: TDatum[]): number | undefined {
+    private computeFocusDatumIndex(opts: PickFocusInputs, nodeData: SimpleArray<TDatum>): number | undefined {
         const searchBackward = (datumIndex: number, delta: number): number | undefined => {
             while (datumIndex >= 0 && !this.isDatumEnabled(nodeData, datumIndex)) {
                 datumIndex += delta;

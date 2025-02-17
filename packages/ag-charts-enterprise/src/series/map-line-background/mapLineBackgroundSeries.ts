@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, type SimpleArray } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -36,7 +36,7 @@ export class MapLineBackgroundSeries
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
-    public override getNodeData(): MapLineBackgroundNodeDatum[] | undefined {
+    public override getNodeData(): SimpleArray<MapLineBackgroundNodeDatum> | undefined {
         return this.contextNodeData?.nodeData;
     }
 

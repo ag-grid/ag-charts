@@ -17,6 +17,7 @@ export * from './utils/binarySearch';
 export * from './utils/diff';
 export * from './utils/functions';
 export * from './utils/iterators';
+export * from './utils/sparse';
 export * from './utils/strings';
 export * from './utils/typeGuards';
 export * from './utils/validation';

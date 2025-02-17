@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, type SimpleArray } from 'ag-charts-core';
 import type { AgMapShapeSeriesStyle } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -65,7 +65,7 @@ export class MapShapeSeries
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
-    public override getNodeData(): MapShapeNodeDatum[] | undefined {
+    public override getNodeData(): SimpleArray<MapShapeNodeDatum> | undefined {
         return this.contextNodeData?.nodeData;
     }
 

@@ -1,9 +1,20 @@
-export interface SparseArray<T> {
-    get (index: number): T | undefined;
+export interface SimpleArray<T> {
+    [index: number]: T | undefined;
     readonly length: number;
-};
+}
 
-export class ImmutableSparseArrayImpl<T> implements SparseArray<T> {
+export function createImmutableSparseArray<T>(data: (T | undefined)[]): SimpleArray<T> {
+    return new Proxy(new ImmutableSparseArrayImpl<T>(data), {
+        get(target, prop, receiver) {
+            if (typeof prop === 'string' && !isNaN(Number(prop))) {
+                return target.get(Number(prop));
+            }
+            return Reflect.get(target, prop, receiver);
+        },
+    });
+}
+
+class ImmutableSparseArrayImpl<T> implements SimpleArray<T> {
     private buckets: { start: number; end: number; elements: T[] }[] = [];
     private _length: number;
 
@@ -44,7 +55,8 @@ export class ImmutableSparseArrayImpl<T> implements SparseArray<T> {
     }
 
     private findBucketIndex(index: number): number {
-        let left = 0, right = this.buckets.length - 1;
+        let left = 0,
+            right = this.buckets.length - 1;
         while (left <= right) {
             const mid = Math.floor((left + right) / 2);
             if (index < this.buckets[mid].start) {
@@ -55,13 +67,14 @@ export class ImmutableSparseArrayImpl<T> implements SparseArray<T> {
                 return mid;
             }
         }
-        return -1;
+        return NaN;
     }
 
+    [index: number]: T | undefined;
     get(index: number): T | undefined {
         if (index < 0 || index >= this._length) return undefined;
         const bucketIndex = this.findBucketIndex(index);
-        if (bucketIndex === -1) return undefined;
+        if (isNaN(bucketIndex)) return undefined;
         const bucket = this.buckets[bucketIndex];
         return bucket.elements[index - bucket.start];
     }

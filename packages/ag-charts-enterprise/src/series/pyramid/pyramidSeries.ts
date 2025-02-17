@@ -3,6 +3,7 @@ import {
     type AgPyramidSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { SimpleArray } from 'ag-charts-core';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
@@ -101,7 +102,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return new FunnelConnector();
     }
 
-    public override getNodeData(): PyramidNodeDatum[] | undefined {
+    public override getNodeData(): SimpleArray<PyramidNodeDatum> | undefined {
         return this.contextNodeData?.nodeData;
     }
 

@@ -1,5 +1,5 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, type SimpleArray } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
@@ -47,7 +47,7 @@ export class MapLineSeries extends TopologySeries<
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
-    public override getNodeData(): MapLineNodeDatum[] | undefined {
+    public override getNodeData(): SimpleArray<MapLineNodeDatum> | undefined {
         return this.contextNodeData?.nodeData;
     }
 

@@ -1,4 +1,4 @@
-import type { RequireOptional } from 'ag-charts-core';
+import type { RequireOptional, SimpleArray } from 'ag-charts-core';
 import { isDefined } from 'ag-charts-core';
 import type { AgErrorBoundSeriesTooltipRendererParams, AgSeriesMarkerStyle } from 'ag-charts-types';
 
@@ -682,7 +682,7 @@ export class LineSeries extends CartesianSeries<
         this.updateLinePaths(opts.paths, opts.contextData);
     }
 
-    private plotNodeDataPoints(path: ExtendedPath2D, nodeData: LineNodeDatum[]) {
+    private plotNodeDataPoints(path: ExtendedPath2D, nodeData: SimpleArray<LineNodeDatum>) {
         if (nodeData.length === 0) return;
 
         const initialPoint = nodeData[0].point;
