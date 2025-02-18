@@ -98,6 +98,149 @@ describe('BubbleSeries', () => {
         });
     });
 
+    describe('gradient fill', () => {
+        it('should render bubble series with a vertical gradient fill', async () => {
+            const options: AgChartOptions = {
+                theme: {
+                    overrides: {
+                        bubble: {
+                            series: {
+                                fill: {
+                                    type: 'gradient',
+                                },
+                            },
+                        },
+                    },
+                },
+                ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render bubble series with a horizontal gradient fill', async () => {
+            const options: AgChartOptions = {
+                theme: {
+                    overrides: {
+                        bubble: {
+                            series: {
+                                fill: {
+                                    type: 'gradient',
+                                    direction: 'horizontal',
+                                },
+                            },
+                        },
+                    },
+                },
+                ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render bubble series with a series bound vertical gradient fill', async () => {
+            const options: AgChartOptions = {
+                theme: {
+                    overrides: {
+                        bubble: {
+                            series: {
+                                fill: {
+                                    type: 'gradient',
+                                    direction: 'vertical',
+                                    bounds: 'series',
+                                },
+                            },
+                        },
+                    },
+                },
+                ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render bubble series with a series bound horizontal gradient fill', async () => {
+            const options: AgChartOptions = {
+                theme: {
+                    overrides: {
+                        bubble: {
+                            series: {
+                                fill: {
+                                    type: 'gradient',
+                                    direction: 'horizontal',
+                                    bounds: 'series',
+                                },
+                            },
+                        },
+                    },
+                },
+                ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render bubble series with an axes bound vertical gradient fill', async () => {
+            const options: AgChartOptions = {
+                theme: {
+                    overrides: {
+                        bubble: {
+                            series: {
+                                fill: {
+                                    type: 'gradient',
+                                    direction: 'vertical',
+                                    bounds: 'axes',
+                                },
+                            },
+                        },
+                    },
+                },
+                ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render bubble series with an axes bound horizontal gradient fill', async () => {
+            const options: AgChartOptions = {
+                theme: {
+                    overrides: {
+                        bubble: {
+                            series: {
+                                fill: {
+                                    type: 'gradient',
+                                    direction: 'horizontal',
+                                    bounds: 'axes',
+                                },
+                            },
+                        },
+                    },
+                },
+                ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     describe('initial animation', () => {
         const animate = spyOnAnimationManager();
 

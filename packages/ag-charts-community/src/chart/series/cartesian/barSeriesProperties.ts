@@ -5,17 +5,21 @@ import type {
     AgBarSeriesOptions,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
+    AgGradientFill,
     Styler,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
 import {
     BOOLEAN,
+    COLOR_GRADIENT,
     COLOR_STRING,
+    COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
     NUMBER,
     OBJECT,
+    OR,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -56,8 +60,11 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     @Validate(NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @Validate(COLOR_STRING)
-    fill: string = '#c16068';
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    fill: string | AgGradientFill = '#c16068';
 
     @Validate(RATIO)
     fillOpacity: number = 1;

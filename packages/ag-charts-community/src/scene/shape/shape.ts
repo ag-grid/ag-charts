@@ -1,5 +1,7 @@
 import type { AgGradientFill } from 'ag-charts-types';
 
+import { createSvgElement } from '../../core';
+import { generateUUID } from '../../util/id';
 import { clamp } from '../../util/number';
 import type { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
@@ -12,12 +14,6 @@ import { align } from '../util/pixel';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
-
-export type GradientOptions = {
-    bbox?: BBox;
-    domain: [number, number];
-    defaultColorRange?: string[];
-};
 
 export type CanvasContext = CanvasFillStrokeStyles &
     CanvasCompositing &
@@ -79,6 +75,9 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection()
     strokeOpacity: number = 1;
 
+    @SceneChangeDetection()
+    defaultColorRange: string[] = Shape.defaultStyles.defaultColorRange;
+
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fill?: FillType = Shape.defaultStyles.fill;
 
@@ -114,10 +113,9 @@ export abstract class Shape<D = any> extends Node<D> {
     private createLinearGradient(fill: AgGradientFill) {
         const { colorStops = [], direction } = fill;
         const isHorizontal = direction === 'horizontal';
-        const { domain, defaultColorRange = [] } = this.gradientFillOptions;
-        const stops = getColorStops(colorStops, defaultColorRange, domain);
+        const stops = getColorStops(colorStops, this.defaultColorRange, [0, 1]);
 
-        return new LinearGradient('oklch', stops, isHorizontal ? 0 : 90);
+        return new LinearGradient('rgb', stops, isHorizontal ? 0 : 90);
     }
 
     protected onFillChange() {
@@ -180,10 +178,7 @@ export abstract class Shape<D = any> extends Node<D> {
     fillShadow: DropShadow | undefined = Shape.defaultStyles.fillShadow;
 
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
-    gradientFillOptions: GradientOptions = {
-        domain: [0, 1],
-        defaultColorRange: Shape.defaultStyles.defaultColorRange,
-    };
+    fillBBox?: BBox;
 
     protected fillStroke(ctx: CanvasContext, path?: Path2D) {
         this.renderFill(ctx, path);
@@ -211,7 +206,7 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyFill(ctx: CanvasContext) {
-        const bbox = this.gradientFillOptions.bbox ?? this.getBBox();
+        const bbox = this.fillBBox ?? this.getBBox();
         ctx.fillStyle =
             this.fillGradient?.createGradient(ctx as any, bbox) ??
             (typeof this.fill === 'string' ? this.fill : undefined) ??
@@ -285,10 +280,46 @@ export abstract class Shape<D = any> extends Node<D> {
 
     abstract isPointInPath(x: number, y: number): boolean;
 
-    protected applySvgFillAttributes(element: SVGElement) {
+    protected applySvgFillAttributes(element: SVGElement, defs?: SVGElement[]) {
         const { fill, fillOpacity } = this;
-        element.setAttribute('fill', typeof fill === 'string' ? fill : 'none');
+
+        if (typeof fill === 'string') {
+            element.setAttribute('fill', fill);
+        } else if (isGradientFill(fill) && this.fillGradient) {
+            defs ??= [];
+
+            const gradient = createSvgElement('linearGradient');
+            const id = generateUUID();
+            gradient.setAttribute('id', id);
+
+            const { direction } = fill;
+            const isHorizontal = direction === 'horizontal';
+
+            if (isHorizontal) {
+                gradient.setAttribute('x1', '0');
+                gradient.setAttribute('x2', '0');
+                gradient.setAttribute('y1', '1');
+                gradient.setAttribute('y2', '0');
+            }
+
+            const { stops } = this.fillGradient;
+            stops.forEach(({ offset, color }) => {
+                const stop = createSvgElement('stop');
+
+                stop.setAttribute('offset', `${offset}`);
+                stop.setAttribute('stop-color', `${color}`);
+
+                gradient.appendChild(stop);
+            });
+
+            defs.push(gradient);
+
+            element.setAttribute('fill', `url(#${id})`);
+        }
+
         element.setAttribute('fill-opacity', String(fillOpacity));
+
+        return defs;
     }
 
     protected applySvgStrokeAttributes(element: SVGElement) {

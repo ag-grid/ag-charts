@@ -595,12 +595,14 @@ export class AreaSeries extends CartesianSeries<
 
         const { fill: seriesFill } = this.properties;
 
+        let fillBBox;
         if (isGradientFill(seriesFill)) {
-            const gradientFillOptions = this.getGradientFillOptions(seriesFill, this.properties.defaultColorRange);
-            fill.gradientFillOptions = gradientFillOptions;
+            seriesFill.bounds ??= 'series';
+            fillBBox = this.getFillBBox(seriesFill);
         }
 
         fill.setProperties({
+            fillBBox,
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
@@ -609,6 +611,7 @@ export class AreaSeries extends CartesianSeries<
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
+            defaultColorRange: this.properties.defaultColorRange,
         });
 
         updateClipPath(this, stroke);
@@ -667,7 +670,9 @@ export class AreaSeries extends CartesianSeries<
         return markerSelection.update(markersEnabled ? nodeData : []);
     }
 
-    private getMarkerItemBaseStyle(highlighted: boolean): RequireOptional<FillOptions & StrokeOptions> {
+    private getMarkerItemBaseStyle(
+        highlighted: boolean
+    ): RequireOptional<FillOptions & StrokeOptions> & { defaultColorRange: string[] } {
         const { marker } = this.properties;
         const highlightStyle = highlighted ? this.properties.highlightStyle.item : undefined;
         return {
@@ -676,6 +681,7 @@ export class AreaSeries extends CartesianSeries<
             stroke: highlightStyle?.stroke ?? marker.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
             strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+            defaultColorRange: marker.defaultColorRange,
         };
     }
 
@@ -727,12 +733,15 @@ export class AreaSeries extends CartesianSeries<
             strokeOpacity,
         });
 
+        const fillBBox = this.getFillBBox(fill);
+
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
                 node,
                 marker,
                 { ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain), highlighted },
                 baseStyle,
+                fillBBox,
                 { selected: datum.selected }
             );
         });
@@ -825,10 +834,18 @@ export class AreaSeries extends CartesianSeries<
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.properties;
         const useAreaFill = !marker.enabled || marker.fill === undefined;
 
+        let legendMarkerFill = useAreaFill ? fill : marker.fill;
+        if (isGradientFill(marker.fill) && isGradientFill(fill)) {
+            legendMarkerFill = {
+                ...fill,
+                ...marker.fill,
+            };
+        }
+
         return {
             marker: {
                 shape: marker.shape,
-                fill: useAreaFill ? fill : marker.fill,
+                fill: legendMarkerFill,
                 fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
                 stroke: marker.stroke ?? stroke,
                 strokeOpacity: marker.strokeOpacity,

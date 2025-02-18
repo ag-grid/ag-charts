@@ -31,6 +31,7 @@ const {
     motion,
     applyShapeStyle,
     findMinMax,
+    isGradientFill,
 } = _ModuleSupport;
 
 type Bounds = {
@@ -534,10 +535,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const style = this.getItemBaseStyle(isHighlight);
 
+        const fillBBox = isGradientFill(style.fill) ? this.getFillBBox(style.fill) : undefined;
+
         datumSelection.each((rect, datum) => {
             const overrides = this.getItemStyleOverrides(String(datum.datumIndex), datum.datum, style, isHighlight);
 
-            applyShapeStyle(rect, style, overrides);
+            applyShapeStyle(rect, style, overrides, fillBBox);
 
             rect.cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;

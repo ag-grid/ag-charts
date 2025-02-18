@@ -82,6 +82,9 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     @ProxyProperty('marker.fill')
     fill?: string;
 
+    @ProxyProperty('marker.defaultColorRange')
+    defaultColorRange?: string[];
+
     @ProxyProperty('marker.fillOpacity')
     fillOpacity!: number;
 

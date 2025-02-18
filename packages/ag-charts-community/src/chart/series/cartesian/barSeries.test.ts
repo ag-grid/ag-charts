@@ -160,6 +160,90 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
             options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
             assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('bar', 2) }),
         },
+        STACKED_COLUMN_GRADIENT_FILL: {
+            options: examples.STACKED_COLUMN_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        STACKED_COLUMN_HORIZONTAL_GRADIENT_FILL: {
+            options: examples.STACKED_COLUMN_HORIZONTAL_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        STACKED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: {
+            options: examples.STACKED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        STACKED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: {
+            options: examples.STACKED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        STACKED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: {
+            options: examples.STACKED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        STACKED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: {
+            options: examples.STACKED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        GROUPED_COLUMN_GRADIENT_FILL: {
+            options: examples.GROUPED_COLUMN_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        GROUPED_COLUMN_HORIZONTAL_GRADIENT_FILL: {
+            options: examples.GROUPED_COLUMN_HORIZONTAL_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        GROUPED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: {
+            options: examples.GROUPED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        GROUPED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: {
+            options: examples.GROUPED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        GROUPED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: {
+            options: examples.GROUPED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        GROUPED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: {
+            options: examples.GROUPED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
     }),
 };
 

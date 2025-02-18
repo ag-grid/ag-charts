@@ -1,6 +1,7 @@
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import type { SeriesPaletteFactoryParams } from '../../module/coreModulesTypes';
+import { DEFAULT_COLOR_RANGE } from './symbols';
 
 type CartesianAxis = Exclude<AgCartesianChartOptions['axes'], undefined>[0];
 
@@ -15,12 +16,15 @@ export function swapAxisCondition(axes: [CartesianAxis, CartesianAxis], swap: (s
     };
 }
 
-export function singleSeriesPaletteFactory({ takeColors }: SeriesPaletteFactoryParams) {
+export function singleSeriesPaletteFactory({ takeColors, themeTemplateParameters }: SeriesPaletteFactoryParams) {
     const {
         fills: [fill],
         strokes: [stroke],
     } = takeColors(1);
-    return { fill, stroke };
+
+    const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
+
+    return { fill, stroke, defaultColorRange };
 }
 
 export function markerPaletteFactory(params: SeriesPaletteFactoryParams) {
