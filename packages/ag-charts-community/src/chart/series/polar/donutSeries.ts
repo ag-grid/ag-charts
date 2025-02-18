@@ -1,4 +1,4 @@
-import type { Has, SimpleArray } from 'ag-charts-core';
+import type { Has } from 'ag-charts-core';
 import { Logger } from 'ag-charts-core';
 import type { AgDonutSeriesStyle } from 'ag-charts-types';
 
@@ -108,7 +108,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     override properties = new DonutSeriesProperties();
 
-    private phantomNodeData: SimpleArray<DonutNodeDatum> | undefined = undefined;
+    private phantomNodeData: DonutNodeDatum[] | undefined = undefined;
     private get calloutNodeData() {
         return this.phantomNodeData ?? this.nodeData;
     }
@@ -759,7 +759,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             sectorFormat: { ...datum.sectorFormat },
         }));
 
-        const update = (selection: typeof this.itemSelection, nodeData: SimpleArray<DonutNodeDatum>) => {
+        const update = (selection: typeof this.itemSelection, nodeData: DonutNodeDatum[]) => {
             selection.update(nodeData, undefined, (datum) => this.getDatumId(datum.datum, datum.datumIndex));
             if (this.ctx.animationManager.isSkipped()) {
                 selection.cleanup();

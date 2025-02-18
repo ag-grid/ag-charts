@@ -1,5 +1,4 @@
 import type { SimpleArray } from 'ag-charts-core';
-
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -47,7 +46,7 @@ export abstract class PolarSeries<
         return [...this.itemGroup.children()] as TNode[];
     }
 
-    protected nodeData: SimpleArray<TDatum> = [];
+    protected nodeData: TDatum[] = [];
     public override getNodeData(): SimpleArray<TDatum> | undefined {
         return this.nodeData;
     }
