@@ -2,6 +2,25 @@ export interface SimpleArray<T> {
     [index: number]: T | undefined;
     readonly length: number;
     [Symbol.iterator](): Iterator<T>;
+
+    push(...items: T[]): number;
+    find<S extends T>(predicate: (value: T, index: number, obj: T[]) => value is S, thisArg?: any): S | undefined;
+    find(predicate: (value: T, index: number, obj: T[]) => unknown, thisArg?: any): T | undefined;
+    indexOf(searchElement: T, fromIndex?: number): number;
+
+    // Do not use, these methods exist for backward compatibility.
+    // They normalise the sparse array (low performance).
+    /** @deprecated */
+    filter<S extends T>(predicate: (value: T, index: number, array: T[]) => value is S, thisArg?: any): SimpleArray<S>;
+    filter(predicate: (value: T, index: number, array: T[]) => unknown, thisArg?: any): SimpleArray<T>;
+    /** @deprecated */
+    map<U>(callback: (value: T, index: number) => U): SimpleArray<U>;
+    /** @deprecated */
+    slice(start?: number, end?: number): SimpleArray<T>;
+    // /** @deprecated */
+    // forEach(callback: (value: T, index: number) => void): void;
+    // /** @deprecated */
+    // sort(compareFn?: (a: T, b: T) => number): SimpleArray<T>;
 }
 
 export function createImmutableSparseArray<T>(data: (T | undefined)[]): SimpleArray<T> {
@@ -87,4 +106,77 @@ class ImmutableSparseArrayImpl<T> implements SimpleArray<T> {
             }
         }
     }
+
+    push(...items: T[]): number {
+        if (this.buckets.length === 0) {
+            this.buckets = [{ start: 0, end: 0, elements: [] }];
+        }
+
+        const lastBucket = this.buckets[this.buckets.length - 1];
+        lastBucket.elements.push(...items);
+        lastBucket.end += items.length;
+        this._length += items.length;
+        return this._length;
+    }
+
+    find<S extends T>(predicate: (value: T, index: number, obj: T[]) => value is S, thisArg?: any): S | undefined;
+    find(predicate: (value: T, index: number, obj: T[]) => unknown, thisArg?: any): T | undefined {
+        for (const bucket of this.buckets) {
+            const result = bucket.elements.find(predicate, thisArg);
+            if (result) {
+                return result;
+            }
+        }
+        return undefined;
+    }
+
+    indexOf(searchElement: T, fromIndex?: number): number {
+        fromIndex ??= 0;
+        for (const bucket of this.buckets) {
+            if (bucket.end < fromIndex) continue;
+            let bucketFromIndex: number | undefined = fromIndex - bucket.start;
+            if (bucketFromIndex < 0) bucketFromIndex = undefined;
+
+            const result = bucket.elements.indexOf(searchElement, bucketFromIndex);
+            if (result !== -1) {
+                return result;
+            }
+        }
+        return -1;
+    }
+
+    private normalArray() {
+        return Array.from(this).filter((v) => v !== undefined) as T[];
+    }
+
+    /** @deprecated */
+    filter<S extends T>(predicate: (value: T, index: number, array: T[]) => value is S, thisArg?: any): SimpleArray<S>;
+    filter(predicate: (value: T, index: number, array: T[]) => unknown, thisArg?: any): SimpleArray<T> {
+        return this.normalArray().filter(predicate, thisArg);
+    }
+
+    /** @deprecated */
+    map<U>(callback: (value: T, index: number) => U): SimpleArray<U> {
+        return this.normalArray().map(callback);
+    }
+
+    /** @deprecated */
+    slice(start?: number, end?: number): SimpleArray<T> {
+        return this.normalArray().slice(start, end);
+    }
+
+    // forEach(callback: (value: T, index: number) => void): void {
+    //     let index = 0;
+    //     for (const value of this) {
+    //         callback(value, index);
+    //         index++;
+    //     }
+    // }
+
+    // sort(compareFn?: (a: T, b: T) => number): SimpleArray<T> {
+    //     const normalArray = this.normalArray();
+    //     this.buckets = [{ start: 0, end: normalArray.length - 1, elements: normalArray }];
+    //     this.buckets[0].elements.sort(compareFn);
+    //     return this;
+    // }
 }
