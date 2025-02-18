@@ -59,7 +59,7 @@ import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/se
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries } from './series/seriesTypes';
-import { Tooltip } from './tooltip/tooltip';
+import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { Touch } from './touch';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
@@ -365,7 +365,23 @@ export abstract class Chart extends Observable implements ModuleInstance {
         const chartType = this.getChartType();
         const fireEvent = this.fireEvent.bind(this);
         const getUpdateType = () => this.performUpdateType;
-        return { fireEvent, getUpdateType, chartType, ctx, tooltip, highlight, overlays, seriesRoot, mode };
+        const getTooltipContent = <DatumIndex = unknown>(
+            series: ISeries<DatumIndex, unknown, unknown>,
+            datumIndex: DatumIndex,
+            removeThisDatum: unknown
+        ) => this.getTooltipContent(series, datumIndex, removeThisDatum);
+        return {
+            fireEvent,
+            getUpdateType,
+            getTooltipContent,
+            chartType,
+            ctx,
+            tooltip,
+            highlight,
+            overlays,
+            seriesRoot,
+            mode,
+        };
     }
 
     getModuleContext(): ModuleContext {
@@ -373,6 +389,15 @@ export abstract class Chart extends Observable implements ModuleInstance {
     }
 
     abstract getChartType(): ChartType;
+
+    public getTooltipContent(
+        series: ISeries<unknown, unknown, unknown>,
+        datumIndex: unknown,
+        removeThisDatum: unknown
+    ): TooltipContent[] {
+        const tooltipContent = series.getTooltipContent(datumIndex, removeThisDatum);
+        return tooltipContent == null ? [] : [tooltipContent];
+    }
 
     protected getCaptionText(): string {
         return [this.title, this.subtitle, this.footnote]

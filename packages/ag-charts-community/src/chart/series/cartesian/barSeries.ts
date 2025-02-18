@@ -743,6 +743,12 @@ export class BarSeries extends AbstractBarSeries<
         });
     }
 
+    public override xValues(): any[] {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return [];
+        return dataModel.resolveKeysById(this, `xValue`, processedData);
+    }
+
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = properties;

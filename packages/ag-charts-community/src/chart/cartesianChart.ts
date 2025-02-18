@@ -14,6 +14,7 @@ import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { Series } from './series/series';
+import type { TooltipContent } from './tooltip/tooltip';
 
 type Dimension = 'x' | 'y';
 type Direction = -1 | 1;
@@ -152,6 +153,35 @@ export class CartesianChart extends Chart {
                 paddedRect: seriesPaddedRect,
             },
             clipSeries,
+        });
+    }
+
+    public override getTooltipContent(
+        series: Series<number, any, any>,
+        datumIndex: number,
+        removeMeDatum: unknown
+    ): TooltipContent[] {
+        if (this.tooltip.grouping !== 'category' || this.series.length === 1) {
+            return super.getTooltipContent(series, datumIndex, removeMeDatum);
+        }
+
+        const xValues = series instanceof CartesianSeries ? series.xValues() : undefined;
+        const xValue = xValues?.[datumIndex]?.valueOf();
+        // Series does not yet support multi-series tooltips
+        if (xValue == null) return super.getTooltipContent(series, datumIndex, removeMeDatum);
+
+        return this.series.flatMap((s): TooltipContent | [] => {
+            if (!(s instanceof CartesianSeries)) return [];
+            if (!s.properties.tooltip.enabled) return [];
+
+            let tooltipContent: TooltipContent | undefined;
+            if (s === series) {
+                tooltipContent = s.getTooltipContent(datumIndex, removeMeDatum);
+            } else {
+                const seriesDatumIndex = s.xValues().findIndex((x) => x.valueOf() === xValue);
+                tooltipContent = s.getTooltipContent(seriesDatumIndex, undefined);
+            }
+            return tooltipContent ?? [];
         });
     }
 

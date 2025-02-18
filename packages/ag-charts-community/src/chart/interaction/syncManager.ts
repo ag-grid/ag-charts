@@ -1,6 +1,7 @@
 import { BaseManager } from '../../util/baseManager';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ISeries } from '../series/seriesTypes';
+import type { TooltipContent } from '../tooltip/tooltip';
 import type { UpdateService } from '../updateService';
 import type { HighlightManager } from './highlightManager';
 import type { TooltipManager } from './tooltipManager';
@@ -31,6 +32,11 @@ type ChartLike = {
         updateService: UpdateService;
         zoomManager: ZoomManager;
     };
+    getTooltipContent(
+        series: ISeries<unknown, unknown, unknown>,
+        datumIndex: unknown,
+        removeThisDatum: unknown
+    ): TooltipContent[];
 };
 
 export class SyncManager extends BaseManager {
