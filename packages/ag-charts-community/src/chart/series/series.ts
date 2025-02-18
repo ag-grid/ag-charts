@@ -585,7 +585,8 @@ export abstract class Series<
             .reduce((total, current) => Object.assign(total, current), {});
     }
 
-    abstract getTooltipContent(datumIndex: TDatumIndex): TooltipContent | undefined;
+    // @todo(AG-7126) - removeThisDatum
+    abstract getTooltipContent(datumIndex: TDatumIndex, removeThisDatum: TDatum): TooltipContent | undefined;
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
@@ -645,12 +646,10 @@ export abstract class Series<
     }
 
     protected pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
-        const match = this.contentGroup.pickNode(point.x, point.y);
-        if (match && match.datum.missing !== true) {
-            return { datum: match.datum, distance: 0 };
+        const datum = this.contentGroup.pickNode(point.x, point.y)?.closestDatum();
+        if (datum != null && datum.missing !== true) {
+            return { datum, distance: 0 };
         }
-
-        return undefined;
     }
 
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
@@ -661,10 +660,10 @@ export abstract class Series<
 
     public pickNodeNearestDistantObject<T extends Node & DistantObject>(point: Point, items: Iterable<T>) {
         const match = nearestSquared(point.x, point.y, items);
-        if (match.nearest !== undefined && match.nearest.datum.missing !== true) {
-            return { datum: match.nearest.datum, distance: Math.sqrt(match.distanceSquared) };
+        const datum = match.nearest?.closestDatum();
+        if (datum != null && datum.missing !== true) {
+            return { datum, distance: Math.sqrt(match.distanceSquared) };
         }
-        return undefined;
     }
 
     protected pickNodeMainAxisFirst(_point: Point, _requireCategoryAxis: boolean): SeriesNodePickMatch | undefined {

@@ -19,6 +19,11 @@ interface ChartLike {
             update(type: _ModuleSupport.ChartUpdateType, options: { skipSync: boolean }): void;
         };
     };
+    getTooltipContent(
+        series: _ModuleSupport.ISeries<unknown, unknown, unknown>,
+        datumIndex: unknown,
+        removeMeDatum: unknown
+    ): _ModuleSupport.TooltipContent[];
 }
 
 export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
@@ -135,7 +140,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                             chart.ctx.tooltipManager.updateTooltip(
                                 chart.id,
                                 tooltipMeta,
-                                series.getTooltipContent(nodeDatum.datumIndex)
+                                chart.getTooltipContent(series, nodeDatum.datumIndex, nodeDatum)
                             );
                         } else {
                             chart.ctx.tooltipManager.removeTooltip(chart.id);

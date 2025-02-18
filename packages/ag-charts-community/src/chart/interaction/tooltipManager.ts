@@ -7,7 +7,7 @@ import { getDatumRefPoint } from '../series/util';
 import type { Tooltip, TooltipContent, TooltipMeta, TooltipPointerEvent } from '../tooltip/tooltip';
 
 interface TooltipState {
-    content?: TooltipContent;
+    content?: TooltipContent[];
     meta?: TooltipMeta;
 }
 
@@ -29,7 +29,7 @@ export class TooltipManager {
         domManager.addListener('hidden', () => this.tooltip.hide());
     }
 
-    public updateTooltip(callerId: string, meta?: TooltipMeta, content?: TooltipContent) {
+    public updateTooltip(callerId: string, meta?: TooltipMeta, content?: TooltipContent[]) {
         if (!this.tooltip.enabled) return;
         content ??= this.stateTracker.get(callerId)?.content;
         this.stateTracker.set(callerId, { content, meta });
