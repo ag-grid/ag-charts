@@ -1,7 +1,12 @@
+import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { AgScatterSeriesOptions } from 'ag-charts-types';
+
 import type { SeriesModule } from '../../../module/coreModules';
+import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { singleSeriesPaletteFactory } from '../../themes/util';
 import { ScatterSeries } from './scatterSeries';
+import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
 
 export const ScatterSeriesModule: SeriesModule<'scatter'> = {
     type: 'series',
@@ -43,4 +48,14 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
         },
     },
     paletteFactory: singleSeriesPaletteFactory,
+};
+
+export const NewScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {
+    type: 'series',
+    name: 'scatter',
+    chartType: 'cartesian',
+
+    options: scatterSeriesOptionsDef,
+
+    create: (ctx: ModuleContext) => new ScatterSeries(ctx),
 };

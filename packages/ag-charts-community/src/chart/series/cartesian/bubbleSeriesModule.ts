@@ -1,7 +1,12 @@
+import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { AgBubbleSeriesOptions } from 'ag-charts-types';
+
 import type { SeriesModule } from '../../../module/coreModules';
+import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { singleSeriesPaletteFactory } from '../../themes/util';
 import { BubbleSeries } from './bubbleSeries';
+import { bubbleSeriesOptionsDef } from './bubbleSeriesOptionsDef';
 
 export const BubbleSeriesModule: SeriesModule<'bubble'> = {
     type: 'series',
@@ -39,4 +44,14 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
         },
     },
     paletteFactory: singleSeriesPaletteFactory,
+};
+
+export const NewBubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> = {
+    type: 'series',
+    name: 'bubble',
+    chartType: 'cartesian',
+
+    options: bubbleSeriesOptionsDef,
+
+    create: (ctx: ModuleContext) => new BubbleSeries(ctx),
 };

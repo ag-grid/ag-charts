@@ -1,0 +1,1 @@
+export { RadarAreaSeriesModule } from './radarAreaModule';

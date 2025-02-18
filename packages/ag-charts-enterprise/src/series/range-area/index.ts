@@ -1,0 +1,1 @@
+export { RangeAreaSeriesModule } from './rangeAreaModule';

@@ -248,7 +248,10 @@ module.exports = {
             comment: "Don't use top-level export bundles internally.",
             severity: 'error',
             from: { path: '^src/.*/.*' },
-            to: { path: '^src/[^/]*\\.ts', pathNot: ['src/version.ts', 'ag-charts-types/', 'ag-charts-locale/'] },
+            to: {
+                path: '^src/[^/]*\\.ts',
+                pathNot: ['src/version.ts', 'src/main-modules.ts', 'ag-charts-types/', 'ag-charts-locale/'],
+            },
         },
     ],
     options: {

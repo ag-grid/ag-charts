@@ -1326,7 +1326,7 @@ describe('ChartOptions', () => {
                             });
                         } else {
                             expect(console.warn).toHaveBeenCalledWith(
-                                `AG Charts - unsupported grouping of series type "${seriesType}".`
+                                expect.stringMatching(/AG Charts - Unknown option `series\[\d+].grouped`, ignoring./)
                             );
                             expect(series.seriesGrouping).toBe(undefined);
                         }
@@ -1339,12 +1339,19 @@ describe('ChartOptions', () => {
                 (seriesType) => {
                     const testOptions = getSeriesOptions(seriesType, (s) => ({ ...s, grouped: false }));
                     const options = prepareOptions({ series: testOptions });
-                    const { stackable, stackedByDefault } = seriesTypes[seriesType as SeriesType]!;
+                    const { groupable, stackable, stackedByDefault } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
-                        expect(console.warn).not.toHaveBeenCalled();
+
+                        if (groupable) {
+                            expect(console.warn).not.toHaveBeenCalled();
+                        } else {
+                            expect(console.warn).toHaveBeenCalledWith(
+                                expect.stringMatching(/AG Charts - Unknown option `series\[\d+].grouped`, ignoring./)
+                            );
+                        }
 
                         if (stackable && stackedByDefault) {
                             expect(series.seriesGrouping).toMatchSnapshot({
@@ -1399,12 +1406,12 @@ describe('ChartOptions', () => {
 
                         if (!stackable) {
                             expect(console.warn).toHaveBeenCalledWith(
-                                `AG Charts - unsupported stacking of series type "${seriesType}".`
+                                expect.stringMatching(/AG Charts - Unknown option `series\[\d+].stacked`, ignoring./)
                             );
                         }
                         if (!groupable) {
                             expect(console.warn).toHaveBeenCalledWith(
-                                `AG Charts - unsupported grouping of series type "${seriesType}".`
+                                expect.stringMatching(/AG Charts - Unknown option `series\[\d+].grouped`, ignoring./)
                             );
                         }
                         if (stackable && groupable) {
@@ -1441,12 +1448,20 @@ describe('ChartOptions', () => {
                         grouped: false,
                     }));
                     const options = prepareOptions({ series: testOptions });
+                    const { groupable } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
                         expect(series.seriesGrouping).toBe(undefined);
-                        expect(console.warn).not.toHaveBeenCalled();
+
+                        if (groupable) {
+                            expect(console.warn).not.toHaveBeenCalled();
+                        } else {
+                            expect(console.warn).toHaveBeenCalledWith(
+                                expect.stringMatching(/AG Charts - Unknown option `series\[\d+].grouped`, ignoring./)
+                            );
+                        }
                     });
                 }
             );
@@ -1470,7 +1485,7 @@ describe('ChartOptions', () => {
                             expect(console.warn).not.toHaveBeenCalled();
                         } else {
                             expect(console.warn).toHaveBeenCalledWith(
-                                `AG Charts - unsupported grouping of series type "${seriesType}".`
+                                expect.stringMatching(/AG Charts - Unknown option `series\[\d+].grouped`, ignoring./)
                             );
                         }
 
@@ -1497,25 +1512,38 @@ describe('ChartOptions', () => {
                         grouped: false,
                     }));
                     const options = prepareOptions({ series: testOptions });
-                    const { stackable } = seriesTypes[seriesType as SeriesType]!;
+                    const { groupable, stackable } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
                         if (stackable) {
-                            expect(console.warn).not.toHaveBeenCalled();
                             expect(series.seriesGrouping).toMatchSnapshot({
                                 groupIndex: expect.any(Number),
                                 groupCount: expect.any(Number),
                                 stackIndex: expect.any(Number),
                                 stackCount: expect.any(Number),
                             });
+                        }
+
+                        if (stackable && groupable) {
+                            expect(console.warn).not.toHaveBeenCalled();
                         } else {
-                            expect(console.warn).toHaveBeenCalledWith(
-                                `AG Charts - unsupported stacking of series type "${seriesType}".`
-                            );
-                            expect(series.seriesGrouping).toBe(undefined);
+                            if (!stackable) {
+                                expect(console.warn).toHaveBeenCalledWith(
+                                    expect.stringMatching(
+                                        /AG Charts - Unknown option `series\[\d+].stacked`, ignoring./
+                                    )
+                                );
+                            }
+                            if (!groupable) {
+                                expect(console.warn).toHaveBeenCalledWith(
+                                    expect.stringMatching(
+                                        /AG Charts - Unknown option `series\[\d+].grouped`, ignoring./
+                                    )
+                                );
+                            }
                         }
                     });
                 }

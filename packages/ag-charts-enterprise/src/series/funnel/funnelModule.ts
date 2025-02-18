@@ -1,6 +1,8 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { AgFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { FunnelSeries } from './funnelSeries';
+import { funnelSeriesOptionsDef } from './funnelSeriesOptionsDef';
 import { FUNNEL_SERIES_THEME, funnelSeriesAxes } from './funnelThemes';
 
 export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
@@ -20,4 +22,15 @@ export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
         const { fills, strokes } = takeColors(1);
         return { fills, strokes };
     },
+};
+
+export const FunnelSeriesModule: SeriesModuleDefinition<AgFunnelSeriesOptions> = {
+    type: 'series',
+    name: 'funnel',
+    chartType: 'cartesian',
+    enterprise: true,
+
+    options: funnelSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new FunnelSeries(ctx),
 };

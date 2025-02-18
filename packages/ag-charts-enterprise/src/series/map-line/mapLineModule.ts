@@ -1,7 +1,9 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgMapLineSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapLineSeries } from './mapLineSeries';
+import { mapLineSeriesOptionsDef } from './mapLineSeriesOptionsDef';
 
 const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
@@ -40,4 +42,15 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
             stroke: fill,
         };
     },
+};
+
+export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions> = {
+    type: 'series',
+    name: 'map-line',
+    chartType: 'topology',
+    enterprise: true,
+
+    options: mapLineSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new MapLineSeries(ctx),
 };

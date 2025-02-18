@@ -1,0 +1,1 @@
+export { ConeFunnelSeriesModule } from './coneFunnelModule';

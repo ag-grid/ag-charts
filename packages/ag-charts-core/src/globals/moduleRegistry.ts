@@ -5,48 +5,53 @@ import {
     type SeriesModuleDefinition,
 } from '../interfaces/moduleDefinition';
 
-export class ModuleRegistry {
-    private static readonly registeredModules: Map<string, ModuleDefinition> = new Map();
+const registeredModules: Map<string, ModuleDefinition> = new Map();
 
-    static [Symbol.iterator]() {
-        return this.registeredModules.values();
+export function register(definition: ModuleDefinition): void {
+    // Allow enterprise modules to overwrite community modules definition.
+    const existingDefinition = registeredModules.get(definition.name);
+    if (existingDefinition && (existingDefinition.enterprise || !definition.enterprise)) {
+        throw new Error(`AG Charts - Module '${definition.name}' already registered`);
     }
+    registeredModules.set(definition.name, definition);
+}
 
-    static register(definition: ModuleDefinition): void {
-        // Allow enterprise modules to overwrite community modules definition.
-        const existingDefinition = this.registeredModules.get(definition.name);
-        if (existingDefinition && (existingDefinition.enterprise || !definition.enterprise)) {
-            throw new Error(`AG Charts - Module '${definition.name}' already registered`);
+export function registerMany(definitions: ModuleDefinition[]): void {
+    for (const definition of definitions) {
+        register(definition);
+    }
+}
+
+export function reset(): void {
+    registeredModules.clear();
+}
+
+export function hasModule(moduleName: string): boolean {
+    return registeredModules.has(moduleName);
+}
+
+export function detectChartDefinition(options: object): ChartModuleDefinition {
+    for (const definition of registeredModules.values()) {
+        if (isChartModule(definition) && definition.detect(options)) {
+            return definition;
         }
-        this.registeredModules.set(definition.name, definition);
     }
+    throw new Error(
+        `AG Charts - Unknown chart type; Check options are correctly structured and series types are specified`
+    );
+}
 
-    static registerMany(definitions: ModuleDefinition[]): void {
-        for (const definition of definitions) {
-            this.register(definition);
-        }
+export function getSeriesModule(moduleName: string): SeriesModuleDefinition<any> | undefined {
+    const definition = registeredModules.get(moduleName);
+    if (isSeriesModule(definition)) {
+        return definition;
     }
+}
 
-    static reset(): void {
-        this.registeredModules.clear();
-    }
+function isChartModule(definition?: ModuleDefinition): definition is ChartModuleDefinition {
+    return definition?.type === ModuleType.Chart;
+}
 
-    static detectChartDefinition(options: object): ChartModuleDefinition {
-        return this.detectDefinition(ModuleType.Chart, options) as ChartModuleDefinition;
-    }
-
-    static detectSeriesDefinition(options: object): SeriesModuleDefinition {
-        return this.detectDefinition(ModuleType.Series, options) as SeriesModuleDefinition;
-    }
-
-    private static detectDefinition(moduleType: ModuleType, options: object): ModuleDefinition {
-        for (const definition of this.registeredModules.values()) {
-            if (definition.type === moduleType && definition.detect(options)) {
-                return definition;
-            }
-        }
-        throw new Error(
-            `AG Charts - Unknown ${moduleType} type; Check options are correctly structured and series types are specified`
-        );
-    }
+function isSeriesModule(definition?: ModuleDefinition): definition is SeriesModuleDefinition<any> {
+    return definition?.type === ModuleType.Series;
 }

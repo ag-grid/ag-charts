@@ -69,6 +69,8 @@ export function mapValues<T extends PlainObject, R>(
     return result;
 }
 
+export function without<T extends object, K extends keyof T>(object: T | undefined, keys: K[]): Omit<T, K>;
+export function without(object: object | undefined, keys: string[]): object;
 export function without(object: object | undefined, keys: string[]) {
     const clone = { ...object };
     for (const key of keys) {

@@ -1,0 +1,1 @@
+export { RangeBarSeriesModule } from './rangeBarModule';

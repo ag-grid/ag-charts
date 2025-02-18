@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgHeatmapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { HeatmapSeries } from './heatmapSeries';
+import { heatmapSeriesOptionsDef } from './heatmapSeriesOptionsDef';
 import { HEATMAP_SERIES_THEME } from './heatmapThemes';
 
 const {
@@ -33,4 +35,15 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
             colorRange: userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]],
         };
     },
+};
+
+export const HeatmapSeriesModule: SeriesModuleDefinition<AgHeatmapSeriesOptions> = {
+    type: 'series',
+    name: 'heatmap',
+    chartType: 'cartesian',
+    enterprise: true,
+
+    options: heatmapSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new HeatmapSeries(ctx),
 };

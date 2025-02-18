@@ -1,0 +1,71 @@
+import {
+    type AgWaterfallSeriesItemOptions,
+    type AgWaterfallSeriesOptions,
+    type WaterfallSeriesTotalMeta,
+    _ModuleSupport,
+} from 'ag-charts-community';
+import {
+    type OptionsDefs,
+    arrayOf,
+    boolean,
+    callback,
+    constant,
+    fillOptionsDef,
+    lineDashOptionsDef,
+    optionsDefs,
+    positiveNumber,
+    required,
+    string,
+    strokeOptionsDef,
+    union,
+} from 'ag-charts-core';
+
+const { commonSeriesOptionsDef, seriesLabelOptionsDef, shadowOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+
+const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<any>> = {
+    name: string,
+    cornerRadius: positiveNumber,
+    itemStyler: callback,
+    label: {
+        ...seriesLabelOptionsDef,
+        padding: positiveNumber,
+        placement: union('inside-start', 'inside-center', 'inside-end', 'outside-start', 'outside-end'),
+    },
+    tooltip: tooltipOptionsDef,
+    shadow: shadowOptionsDef,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = {
+    type: required(constant('waterfall')),
+    xKey: required(string),
+    yKey: required(string),
+    xName: string,
+    yName: string,
+    direction: union('horizontal', 'vertical'),
+    totals: arrayOf(
+        optionsDefs<WaterfallSeriesTotalMeta>(
+            {
+                totalType: required(union('total', 'subtotal')),
+                index: required(positiveNumber),
+                axisLabel: required(string),
+            },
+            'a total definition object'
+        )
+    ),
+    showInMiniChart: boolean,
+    item: {
+        positive: waterfallSeriesItemOptionsDef,
+        negative: waterfallSeriesItemOptionsDef,
+        total: waterfallSeriesItemOptionsDef,
+    },
+    line: {
+        enabled: boolean,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    tooltip: tooltipOptionsDef,
+    ...commonSeriesOptionsDef,
+};

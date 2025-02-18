@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { NightingaleSeries } from './nightingaleSeries';
+import { nightingaleSeriesOptionsDef } from './nightingaleSeriesOptionsDef';
 import { NIGHTINGALE_SERIES_THEME } from './nightingaleThemes';
 
 const {
@@ -32,4 +34,15 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
     stackable: true,
     groupable: true,
     stackedByDefault: true,
+};
+
+export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeriesOptions> = {
+    type: 'series',
+    name: 'nightingale',
+    chartType: 'polar',
+    enterprise: true,
+
+    options: nightingaleSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new NightingaleSeries(ctx),
 };

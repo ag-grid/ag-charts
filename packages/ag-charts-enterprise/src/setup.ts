@@ -5,11 +5,6 @@ import { AngleNumberAxisModule } from './axes/angle-number/main';
 import { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
 import { RadiusCategoryAxisModule } from './axes/radius-category/main';
 import { RadiusNumberAxisModule } from './axes/radius-number/main';
-import { FlowProportionChartModule } from './charts/flowProportionChartModule';
-import { GaugeChartModule } from './charts/gaugeChartModule';
-import { HierarchyChartModule } from './charts/hierarchyChartModule';
-import { StandaloneChartModule } from './charts/standaloneChartModule';
-import { TopologyChartModule } from './charts/topologyChartModule';
 import { AnimationModule } from './features/animation/main';
 import { AnnotationsModule } from './features/annotations/annotationsModule';
 import { BackgroundModule } from './features/background/main';
@@ -28,6 +23,7 @@ import { ZoomModule } from './features/zoom/main';
 import { GradientLegendModule } from './gradient-legend/gradientLegendModule';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
+import { AllEnterpriseModules } from './main-modules';
 import { BarModule } from './series/bar/barModule';
 import { BoxPlotModule } from './series/box-plot/main';
 import { CandlestickModule } from './series/candlestick/main';
@@ -59,13 +55,7 @@ import { WaterfallModule } from './series/waterfall/main';
 import styles from './styles.css';
 
 // Temporarily set here, in the future users will register modules manually
-_ModuleSupport.ModuleRegistry.registerMany([
-    FlowProportionChartModule,
-    GaugeChartModule,
-    HierarchyChartModule,
-    StandaloneChartModule,
-    TopologyChartModule,
-]);
+_ModuleSupport.ModuleRegistry.registerMany(AllEnterpriseModules);
 
 export function setupEnterpriseModules() {
     _ModuleSupport.moduleRegistry.register(

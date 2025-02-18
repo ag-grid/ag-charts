@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgChordSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { ChordSeries } from './chordSeries';
+import { chordSeriesOptionsDef } from './chordSeriesOptionsDef';
 
 export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
     type: 'series',
@@ -51,4 +53,15 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
             strokes,
         };
     },
+};
+
+export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
+    type: 'series',
+    name: 'chord',
+    chartType: 'flow-proportion',
+    enterprise: true,
+
+    options: chordSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new ChordSeries(ctx),
 };
