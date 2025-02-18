@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { iterate } from 'ag-charts-core';
+import { type SimpleArray, iterate } from 'ag-charts-core';
 
 const { clamp } = _ModuleSupport;
 type SceneNode = _ModuleSupport.Node;
@@ -13,7 +13,7 @@ type PickFocusOutputs = _ModuleSupport.PickFocusOutputs;
 
 type GaugeSeries = {
     contextNodeData?: {
-        nodeData: SeriesNodeDatum[];
+        nodeData: SimpleArray<SeriesNodeDatum>;
         targetData: SeriesNodeDatum[];
     };
     datumUnion: SelectionLike;

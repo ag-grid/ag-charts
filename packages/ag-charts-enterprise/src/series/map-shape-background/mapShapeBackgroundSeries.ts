@@ -171,7 +171,7 @@ export class MapShapeBackgroundSeries
     }
 
     private updateDatumSelection(opts: {
-        nodeData: MapShapeBackgroundNodeDatum[];
+        nodeData: SimpleArray<MapShapeBackgroundNodeDatum>;
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeBackgroundNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.index));

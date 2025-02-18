@@ -410,7 +410,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     private updateDatumSelection(opts: {
-        nodeData: PyramidNodeDatum[];
+        nodeData: SimpleArray<PyramidNodeDatum>;
         datumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData);

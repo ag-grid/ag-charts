@@ -546,7 +546,7 @@ export abstract class OhlcSeriesBase<
     }
 
     override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        const nodeDatum = this.getNodeData()?.at(opts.datumIndex);
+        const nodeDatum = this.getNodeData()?.[opts.datumIndex];
         if (nodeDatum == null) return;
         const { centerX, y, width, height } = nodeDatum;
         const datum = {

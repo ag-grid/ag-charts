@@ -6,6 +6,7 @@ import {
     type FontWeight,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { SimpleArray } from 'ag-charts-core';
 
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
@@ -861,7 +862,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         this.contentGroup.visible = this.visible;
         this.contentGroup.opacity = this.getOpacity();
 
-        const nodeData = this.contextNodeData?.nodeData ?? [];
+        const nodeData: SimpleArray<LinearGaugeNodeDatum> = this.contextNodeData?.nodeData ?? [];
         const labelData = this.contextNodeData?.labelData ?? [];
         const targetData = this.contextNodeData?.targetData ?? [];
         const scaleData = this.contextNodeData?.scaleData ?? [];
@@ -900,7 +901,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     private updateDatumSelection(opts: {
-        nodeData: LinearGaugeNodeDatum[];
+        nodeData: SimpleArray<LinearGaugeNodeDatum>;
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {

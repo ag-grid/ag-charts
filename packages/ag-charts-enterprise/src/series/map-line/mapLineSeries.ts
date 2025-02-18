@@ -356,7 +356,7 @@ export class MapLineSeries extends TopologySeries<
     }
 
     private updateDatumSelection(opts: {
-        nodeData: MapLineNodeDatum[];
+        nodeData: SimpleArray<MapLineNodeDatum>;
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));

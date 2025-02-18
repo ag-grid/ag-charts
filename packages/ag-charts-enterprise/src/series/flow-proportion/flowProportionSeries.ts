@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { SimpleArray } from 'ag-charts-core';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
@@ -396,7 +397,7 @@ export abstract class FlowProportionSeries<
 
         this.updateSelections();
 
-        const nodeData = this.contextNodeData?.nodeData ?? [];
+        const nodeData: SimpleArray<TDatum<TNodeDatum, TLinkDatum>> = this.contextNodeData?.nodeData ?? [];
         const labelData = this.contextNodeData?.labelData ?? [];
 
         let highlightedDatum: TDatum<TNodeDatum, TLinkDatum> | undefined =
@@ -431,8 +432,8 @@ export abstract class FlowProportionSeries<
         });
         this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
 
-        let focusLinkSelection: TLinkDatum[];
-        let focusNodeSelection: TNodeDatum[];
+        let focusLinkSelection: SimpleArray<TLinkDatum>;
+        let focusNodeSelection: SimpleArray<TNodeDatum>;
         let highlightLinkSelection: TLinkDatum[];
         let highlightNodeSelection: TNodeDatum[];
         if (highlightedDatum?.type === FlowProportionDatumType.Node) {
@@ -486,7 +487,7 @@ export abstract class FlowProportionSeries<
     }
 
     protected abstract updateLabelSelection(opts: {
-        labelData: TLabel[];
+        labelData: SimpleArray<TLabel>;
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, TLabel>;
     }): _ModuleSupport.Selection<_ModuleSupport.TransformableText, TLabel>;
 
@@ -495,7 +496,7 @@ export abstract class FlowProportionSeries<
     }): void;
 
     protected abstract updateNodeSelection(opts: {
-        nodeData: TNodeDatum[];
+        nodeData: SimpleArray<TNodeDatum>;
         datumSelection: _ModuleSupport.Selection<TNode, TNodeDatum>;
     }): _ModuleSupport.Selection<TNode, TNodeDatum>;
 
@@ -505,7 +506,7 @@ export abstract class FlowProportionSeries<
     }): void;
 
     protected abstract updateLinkSelection(opts: {
-        nodeData: TLinkDatum[];
+        nodeData: SimpleArray<TLinkDatum>;
         datumSelection: _ModuleSupport.Selection<TLink, TLinkDatum>;
     }): _ModuleSupport.Selection<TLink, TLinkDatum>;
 

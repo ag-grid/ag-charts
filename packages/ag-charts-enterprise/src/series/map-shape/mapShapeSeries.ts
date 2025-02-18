@@ -427,7 +427,7 @@ export class MapShapeSeries
     }
 
     private updateDatumSelection(opts: {
-        nodeData: MapShapeNodeDatum[];
+        nodeData: SimpleArray<MapShapeNodeDatum>;
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));

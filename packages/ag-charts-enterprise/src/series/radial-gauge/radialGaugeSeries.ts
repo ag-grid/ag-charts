@@ -8,6 +8,7 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { SimpleArray } from 'ag-charts-core';
 
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
@@ -772,7 +773,7 @@ export class RadialGaugeSeries
     }
 
     private updateDatumSelection(opts: {
-        nodeData: RadialGaugeNodeDatum[];
+        nodeData: SimpleArray<RadialGaugeNodeDatum>;
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {

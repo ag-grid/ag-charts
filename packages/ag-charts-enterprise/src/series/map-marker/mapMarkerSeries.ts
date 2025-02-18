@@ -546,7 +546,7 @@ export class MapMarkerSeries
     }
 
     private updateMarkerSelection(opts: {
-        markerData: MapMarkerNodeDatum[];
+        markerData: SimpleArray<MapMarkerNodeDatum>;
         markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum>;
     }) {
         const { markerData, markerSelection } = opts;
@@ -689,7 +689,7 @@ export class MapMarkerSeries
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
 
-        this.contextNodeData?.nodeData.forEach((datum) => {
+        for (const datum of this.contextNodeData?.nodeData ?? []) {
             const { x, y, size } = datum.point;
             const dx = Math.max(Math.abs(x - x0) - size, 0);
             const dy = Math.max(Math.abs(y - y0) - size, 0);
@@ -698,7 +698,7 @@ export class MapMarkerSeries
                 minDistanceSquared = distanceSquared;
                 minDatum = datum;
             }
-        });
+        }
 
         return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }

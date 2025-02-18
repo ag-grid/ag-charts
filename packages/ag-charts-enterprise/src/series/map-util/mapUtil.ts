@@ -1,4 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+import type { SimpleArray } from 'ag-charts-core';
 
 import type { GeoGeometry } from './geoGeometry';
 
@@ -35,7 +36,7 @@ export function prepareMapMarkerAnimationFunctions() {
 }
 
 type SomeMapSeries<TDatum> = {
-    contextNodeData?: { nodeData: TDatum[] };
+    contextNodeData?: { nodeData: SimpleArray<TDatum> };
     datumSelection: _ModuleSupport.Selection<GeoGeometry, TDatum>;
 };
 
