@@ -10,6 +10,7 @@ import {
     type AgCategoryAxisOptions,
     type AgChartTheme,
     type AgChartThemeName,
+    type AgChartTooltipOptions,
     type AgCommonThemeableAxisOptions,
     type AgLineSeriesOptions,
     type AgLineSeriesTooltipRendererParams,
@@ -18,7 +19,6 @@ import {
     type AgSparklineOptions,
     type AgSparklineTooltip,
     type AgTimeAxisOptions,
-    type AgTooltipPositionType,
     type WithThemeParams,
 } from 'ag-charts-types';
 
@@ -54,10 +54,18 @@ const numericAxisProperties = {
     nice: false,
 };
 
-const tooltipDefaults = {
+const seriesTooltipDefaults: AgChartTooltipOptions = {
     position: {
-        type: 'sparkline' as any as AgTooltipPositionType,
+        // @ts-expect-error Undocumented atm.
+        affixment: 'node',
+        tether: ['right', 'left'],
     },
+};
+
+const chartTooltipDefaults: AgChartTooltipOptions = {
+    showArrow: false,
+    // @ts-expect-error Undocumented.
+    compact: true,
 };
 
 const barGridLineDefaults: WithThemeParams<AgAxisGridLineOptions> = {
@@ -115,13 +123,14 @@ const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
                     placement: 'inside-end',
                     padding: 4,
                 },
+                tooltip: {
+                    ...seriesTooltipDefaults,
+                    range: 'nearest',
+                },
                 // @ts-expect-error undocumented option
                 sparklineMode: true,
             },
-            tooltip: {
-                ...tooltipDefaults,
-                range: 'nearest',
-            },
+            tooltip: chartTooltipDefaults,
             axes: barAxisDefaults,
         },
         line: {
@@ -141,8 +150,9 @@ const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
                     enabled: false,
                     size: 3,
                 },
-                tooltip: tooltipDefaults,
+                tooltip: seriesTooltipDefaults,
             },
+            tooltip: chartTooltipDefaults,
         },
         area: {
             seriesArea: {
@@ -156,8 +166,9 @@ const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
             series: {
                 strokeWidth: 1,
                 fillOpacity: 0.4,
-                tooltip: tooltipDefaults,
+                tooltip: seriesTooltipDefaults,
             },
+            tooltip: chartTooltipDefaults,
         },
     },
 };

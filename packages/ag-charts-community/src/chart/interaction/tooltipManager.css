@@ -37,35 +37,36 @@
     height: var(--tooltip-arrow-size);
 
     border: inherit;
-    border-top: none;
-    border-left: none;
+    border-bottom-color: transparent;
+    border-right-color: transparent;
     background: inherit;
 
-    clip-path: polygon(0% 100%, 100% 0%, 100% 100%);
+    /* AG-11705 triangle is slightly larger to accommodate for any anti-aliasing */
+    clip-path: polygon(0 0, 100% 0, 100% 1px, 1px 100%, 0 100%);
 }
 
 .ag-charts-tooltip--arrow-top::before {
     bottom: 100%;
     left: 50%;
-    transform: translateX(-50%) translateY(calc(var(--tooltip-arrow-size) * 0.5)) rotate(225deg);
+    transform: translateX(-50%) translateY(calc(var(--tooltip-arrow-size) * 0.5)) rotate(45deg);
 }
 
 .ag-charts-tooltip--arrow-bottom::before {
     top: 100%;
     left: 50%;
-    transform: translateX(-50%) translateY(calc(var(--tooltip-arrow-size) * -0.5)) rotate(45deg);
+    transform: translateX(-50%) translateY(calc(var(--tooltip-arrow-size) * -0.5)) rotate(225deg);
 }
 
 .ag-charts-tooltip--arrow-left::before {
     right: 100%;
     top: 50%;
-    transform: translateY(-50%) translateX(calc(var(--tooltip-arrow-size) * 0.5)) rotate(135deg);
+    transform: translateY(-50%) translateX(calc(var(--tooltip-arrow-size) * 0.5)) rotate(315deg);
 }
 
 .ag-charts-tooltip--arrow-right::before {
     left: 100%;
     top: 50%;
-    transform: translateY(-50%) translateX(calc(var(--tooltip-arrow-size) * -0.5)) rotate(315deg);
+    transform: translateY(-50%) translateX(calc(var(--tooltip-arrow-size) * -0.5)) rotate(135deg);
 }
 
 .ag-charts-tooltip--no-interaction {

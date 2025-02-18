@@ -3,14 +3,16 @@ import type { InteractionRange, TextWrap } from 'ag-charts-types';
 import { getWindow } from '../../core';
 import type { DOMManager } from '../../dom/domManager';
 import { clamp } from '../../util/number';
-import { type Bounds, calculatePlacement } from '../../util/placement';
+import { type Bounds, type Placement, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
 import { sanitizeHtml } from '../../util/sanitize';
 import {
+    ARRAY_OF,
     BOOLEAN,
     INTERACTION_RANGE,
     NUMBER,
     OBJECT,
+    OR,
     POSITIVE_NUMBER,
     TEXT_WRAP,
     UNION,
@@ -32,9 +34,7 @@ type TooltipPositionType =
     | 'top-left'
     | 'top-right'
     | 'bottom-right'
-    | 'bottom-left'
-    | 'sparkline'
-    | 'sparkline-constrained';
+    | 'bottom-left';
 
 type TooltipOffsets = { canvasX: number; canvasY: number };
 export type TooltipEventType = 'pointermove' | 'click' | 'dblclick' | 'keyboard';
@@ -44,7 +44,7 @@ export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> =
 
 export interface TooltipMetaPosition {
     affixment?: TooltipAffixment;
-    tether?: TooltipTether;
+    tether?: TooltipTether | TooltipTether[];
     xOffset?: number;
     yOffset?: number;
 }
@@ -148,6 +148,11 @@ function tooltipContentHtml(content: TooltipContent) {
     return html;
 }
 
+const POSITION_TYPE = UNION(
+    ['pointer', 'node', 'top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-right', 'bottom-left'],
+    'a position type'
+);
+
 export type TooltipAffixment = 'pointer' | 'node' | 'chart';
 const AFFIXMENT = UNION(['pointer', 'node', 'chart'], 'an affixment');
 
@@ -161,31 +166,14 @@ export type TooltipTether =
     | 'bottom-left'
     | 'top-left'
     | 'center';
-const TETHER = UNION(
+const TETHER_UNION = UNION(
     ['top', 'right', 'bottom', 'left', 'top-right', 'bottom-right', 'bottom-left', 'top-left', 'center'],
     'a tether'
 );
+const TETHER = OR(TETHER_UNION, ARRAY_OF(TETHER_UNION));
 
 export class TooltipPosition extends BaseProperties {
-    @Validate(
-        UNION(
-            [
-                'pointer',
-                'node',
-                'top',
-                'right',
-                'bottom',
-                'left',
-                'top-left',
-                'top-right',
-                'bottom-right',
-                'bottom-left',
-                { value: 'sparkline', undocumented: true },
-                { value: 'sparkline-', undocumented: true },
-            ],
-            'a position type'
-        )
-    )
+    @Validate(POSITION_TYPE)
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
     type: TooltipPositionType = 'pointer';
 
@@ -201,14 +189,12 @@ export class TooltipPosition extends BaseProperties {
     affixment?: TooltipAffixment;
 
     @Validate(TETHER, { optional: true })
-    tether?: TooltipTether;
+    tether?: TooltipTether | TooltipTether[];
 
     get defaultAffixment(): TooltipAffixment {
         const { type } = this;
         if (type === 'node' || type === 'pointer') {
             return type;
-        } else if (type === 'sparkline' || type === 'sparkline-constrained') {
-            return 'pointer';
         } else {
             return 'chart';
         }
@@ -218,10 +204,6 @@ export class TooltipPosition extends BaseProperties {
         const { type } = this;
         if (type === 'node' || type === 'pointer') {
             return 'top';
-        } else if (type === 'sparkline') {
-            return 'right';
-        } else if (type === 'sparkline-constrained') {
-            return 'left';
         } else {
             return type;
         }
@@ -252,18 +234,42 @@ const verticalAlignments: Record<TooltipTether, -1 | 0 | 1> = {
     'bottom-right': 1,
 };
 
-type ArrowPosition = 'left' | 'top' | 'bottom' | 'right';
+enum ArrowPosition {
+    Left,
+    Top,
+    Bottom,
+    Right,
+}
 
 const arrowPositions: Record<TooltipTether, ArrowPosition | undefined> = {
-    left: 'right',
+    left: ArrowPosition.Right,
     'top-left': undefined,
     'bottom-left': undefined,
-    top: 'bottom',
+    top: ArrowPosition.Bottom,
     center: undefined,
-    bottom: 'top',
-    right: 'left',
+    bottom: ArrowPosition.Top,
+    right: ArrowPosition.Left,
     'top-right': undefined,
     'bottom-right': undefined,
+};
+
+enum DirectionCheck {
+    Horizontal = 0b01,
+    Vertical = 0b10,
+    Both = 0b11,
+    None = 0b00,
+}
+
+const directionChecks: Record<TooltipTether, DirectionCheck> = {
+    top: DirectionCheck.Vertical,
+    bottom: DirectionCheck.Vertical,
+    left: DirectionCheck.Horizontal,
+    right: DirectionCheck.Horizontal,
+    'top-right': DirectionCheck.Both,
+    'top-left': DirectionCheck.Both,
+    'bottom-right': DirectionCheck.Both,
+    'bottom-left': DirectionCheck.Both,
+    center: DirectionCheck.None,
 };
 
 export class Tooltip extends BaseProperties {
@@ -292,6 +298,10 @@ export class Tooltip extends BaseProperties {
     @Validate(UNION(['extended', 'canvas']))
     bounds: 'extended' | 'canvas' = 'extended';
 
+    /** Undocumented sparkline option */
+    @Validate(BOOLEAN)
+    compact = false;
+
     private readonly destroyFns: Array<() => void> = [];
     private readonly springAnimation = new SpringAnimation();
 
@@ -302,7 +312,6 @@ export class Tooltip extends BaseProperties {
 
     private showTimeout: NodeJS.Timeout | number = 0;
     private _arrowPosition: ArrowPosition | undefined = undefined;
-    private _compact = false;
     private _visible = false;
 
     private positionParams:
@@ -351,7 +360,7 @@ export class Tooltip extends BaseProperties {
         const { canvasRect, relativeRect, meta } = positionParams;
         const { x: canvasX, y: canvasY } = this.springAnimation;
 
-        const tether = meta.position?.tether ?? this.position.tether ?? this.position.defaultTether;
+        let tethers = meta.position?.tether ?? this.position.tether ?? this.position.defaultTether;
         const affixment = meta.position?.affixment ?? this.position.affixment ?? this.position.defaultAffixment;
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
@@ -361,42 +370,49 @@ export class Tooltip extends BaseProperties {
         const maxX = relativeRect.width - element.clientWidth - 1 + minX;
         const maxY = relativeRect.height - element.clientHeight + minY;
 
-        const tooltipBounds = this.getTooltipBounds({
-            tether,
-            affixment,
-            canvasX,
-            canvasY,
-            yOffset,
-            xOffset,
-            canvasRect,
-        });
-        const position = calculatePlacement(element.clientWidth, element.clientHeight, relativeRect, tooltipBounds);
+        if (!Array.isArray(tethers)) {
+            tethers = [tethers];
+        }
+        let i = 0;
+        let tether: TooltipTether | undefined;
+        let position: Placement | undefined;
+        let constrained = false;
+        do {
+            tether = tethers[i];
+            i += 1;
 
-        // if (positionType === 'sparkline' && (position.x <= minX || position.x >= maxX)) {
-        //     tooltipBounds = this.getTooltipBounds({
-        //         positionType: 'sparkline-constrained',
-        //         canvasX,
-        //         canvasY,
-        //         yOffset,
-        //         xOffset,
-        //         canvasRect,
-        //     });
-        //     position = calculatePlacement(element.clientWidth, element.clientHeight, relativeRect, tooltipBounds);
-        // }
+            const tooltipBounds = this.getTooltipBounds({
+                tether,
+                affixment,
+                canvasX,
+                canvasY,
+                yOffset,
+                xOffset,
+                canvasRect,
+            });
+            position = calculatePlacement(element.clientWidth, element.clientHeight, relativeRect, tooltipBounds);
+
+            constrained = false;
+            if (directionChecks[tether] & DirectionCheck.Horizontal) {
+                constrained ||= position.x < minX || position.x > maxX;
+            }
+            if (directionChecks[tether] & DirectionCheck.Vertical) {
+                constrained ||= position.y < minY || position.y > maxY;
+            }
+        } while (i < tethers.length && constrained);
 
         const left = clamp(minX, position.x, maxX);
         const top = clamp(minY, position.y, maxY);
 
-        const constrained = left !== position.x || top !== position.y;
+        constrained ||= left !== position.x || top !== position.y;
         const defaultShowArrow = affixment !== 'chart' && !constrained && !xOffset && !yOffset;
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
         const arrowPosition = showArrow ? arrowPositions[tether] : undefined;
         this.updateArrowPosition(arrowPosition);
 
-        // this.updateCompact(positionType === 'sparkline' || positionType === 'sparkline-constrained');
-        this.updateCompact(false);
-
         element.style.transform = `translate(${left}px, ${top}px)`;
+
+        this.updateClassModifiers();
     }
 
     /**
@@ -446,6 +462,8 @@ export class Tooltip extends BaseProperties {
             element.setAttribute('aria-hidden', 'true');
         }
 
+        this.updateClassModifiers();
+
         if (this.delay > 0 && !instantly) {
             this.toggle(false);
             this.showTimeout = setTimeout(() => {
@@ -466,22 +484,9 @@ export class Tooltip extends BaseProperties {
 
         this._visible = visible;
 
-        const { classList } = this.element;
-        const toggleClass = (name: string, include: boolean) =>
-            classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--${name}`, include);
-
         if (!visible) {
             clearTimeout(this.showTimeout);
         }
-
-        toggleClass('no-interaction', !this.enableInteraction); // Prevent interaction.
-        toggleClass('arrow-top', this._arrowPosition === 'top');
-        toggleClass('arrow-right', this._arrowPosition === 'right');
-        toggleClass('arrow-bottom', this._arrowPosition === 'bottom');
-        toggleClass('arrow-left', this._arrowPosition === 'left');
-        toggleClass('compact', this._compact);
-
-        classList.toggle(DEFAULT_TOOLTIP_DARK_CLASS, this.darkTheme);
 
         this.element.togglePopover(visible);
 
@@ -490,6 +495,24 @@ export class Tooltip extends BaseProperties {
             // This removes a possible jump for the tooltip
             this.updateTooltipPosition();
         }
+    }
+
+    private updateClassModifiers() {
+        if (!this.element?.isConnected) return;
+
+        const { classList } = this.element;
+
+        const toggleClass = (name: string, include: boolean) =>
+            classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--${name}`, include);
+
+        toggleClass('no-interaction', !this.enableInteraction); // Prevent interaction.
+        toggleClass('arrow-top', this._arrowPosition === ArrowPosition.Top);
+        toggleClass('arrow-right', this._arrowPosition === ArrowPosition.Right);
+        toggleClass('arrow-bottom', this._arrowPosition === ArrowPosition.Bottom);
+        toggleClass('arrow-left', this._arrowPosition === ArrowPosition.Left);
+        toggleClass('compact', this.compact);
+
+        classList.toggle(DEFAULT_TOOLTIP_DARK_CLASS, this.darkTheme);
 
         for (const wrapType of this.wrapTypes) {
             classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--wrap-${wrapType}`, wrapType === this.wrapping);
@@ -498,10 +521,6 @@ export class Tooltip extends BaseProperties {
 
     private updateArrowPosition(arrowPosition: ArrowPosition | undefined) {
         this._arrowPosition = arrowPosition;
-    }
-
-    private updateCompact(compact: boolean) {
-        this._compact = compact;
     }
 
     private getTooltipBounds(opts: {
@@ -569,16 +588,6 @@ export class Tooltip extends BaseProperties {
                 bounds.left = xOffset;
                 return bounds;
             }
-            // case 'sparkline': {
-            //     bounds.top = canvasY + yOffset - tooltipHeight / 2;
-            //     bounds.left = canvasX + xOffset + 8;
-            //     return bounds;
-            // }
-            // case 'sparkline-constrained': {
-            //     bounds.top = canvasY + yOffset - tooltipHeight / 2;
-            //     bounds.left = canvasX + xOffset - 8 - tooltipWidth;
-            //     return bounds;
-            // }
         }
 
         return bounds;
