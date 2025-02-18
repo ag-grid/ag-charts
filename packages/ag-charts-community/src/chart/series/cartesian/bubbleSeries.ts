@@ -1,4 +1,4 @@
-import type { RequireOptional } from 'ag-charts-core';
+import { type RequireOptional, createSparseArray } from 'ag-charts-core';
 import type {
     AgErrorBoundSeriesTooltipRendererParams,
     AgSeriesMarkerStyle,
@@ -246,7 +246,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const nodeData: BubbleNodeDatum[] = [];
+        const nodeData = createSparseArray<BubbleNodeDatum>();
 
         sizeScale.range = [marker.size, marker.maxSize];
 

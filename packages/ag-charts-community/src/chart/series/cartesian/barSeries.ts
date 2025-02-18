@@ -1,5 +1,5 @@
 import type { RequireOptional } from 'ag-charts-core';
-import { isFiniteNumber } from 'ag-charts-core';
+import { createSparseArray, isFiniteNumber } from 'ag-charts-core';
 import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -307,7 +307,7 @@ export class BarSeries extends AbstractBarSeries<
         return;
     }
 
-    createNodeData() {
+    createNodeData(): BarSeriesNodeDataContext | undefined {
         const { dataModel, processedData, groupScale, dataAggregationFilters } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
@@ -450,9 +450,9 @@ export class BarSeries extends AbstractBarSeries<
             };
         };
 
-        const phantomNodes: BarNodeDatum[] = [];
-        const nodes: BarNodeDatum[] = [];
-        const labels: BarNodeDatum[] = [];
+        const phantomNodes = createSparseArray<BarNodeDatum>();
+        const nodes = createSparseArray<BarNodeDatum>();
+        const labels = createSparseArray<BarNodeDatum>();
 
         const handleDatum = (
             datumIndex: number,
@@ -611,7 +611,7 @@ export class BarSeries extends AbstractBarSeries<
 
         return {
             itemId: yKey,
-            nodeData: phantomNodes.length > 0 ? [...phantomNodes, ...nodes] : nodes,
+            nodeData: phantomNodes.length > 0 ? createSparseArray(phantomNodes, nodes) : nodes,
             labelData: labels,
             scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,

@@ -1,5 +1,5 @@
 import type { RequireOptional } from 'ag-charts-core';
-import { isDefined } from 'ag-charts-core';
+import { createSparseArray, isDefined } from 'ag-charts-core';
 import type {
     AgErrorBoundSeriesTooltipRendererParams,
     AgSeriesMarkerStyle,
@@ -366,8 +366,8 @@ export class AreaSeries extends CartesianSeries<
             };
         };
 
-        const labelData: LabelSelectionDatum[] = [];
-        const markerData: MarkerSelectionDatum[] = [];
+        const labelData = createSparseArray<LabelSelectionDatum>();
+        const markerData = createSparseArray<MarkerSelectionDatum>();
         const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
 
         let crossFiltering = false;
