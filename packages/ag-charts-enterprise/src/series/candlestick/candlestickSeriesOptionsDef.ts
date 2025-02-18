@@ -51,8 +51,9 @@ export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions
     showInMiniChart: boolean,
     tooltip: tooltipOptionsDef,
     ...commonSeriesOptionsDef,
-
-    // @ts-expect-error undocumented option
-    pickOutsideVisibleMinorAxis: boolean,
-    focusPriority: number,
 };
+
+// @ts-expect-error undocumented option
+candlestickSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
+// @ts-expect-error undocumented option
+candlestickSeriesOptionsDef.focusPriority = number;

@@ -39,8 +39,9 @@ export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
     },
     tooltip: tooltipOptionsDef,
     ...commonSeriesOptionsDef,
-
-    // @ts-expect-error undocumented option
-    pickOutsideVisibleMinorAxis: boolean,
-    focusPriority: number,
 };
+
+// @ts-expect-error undocumented option
+ohlcSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
+// @ts-expect-error undocumented option
+ohlcSeriesOptionsDef.focusPriority = number;

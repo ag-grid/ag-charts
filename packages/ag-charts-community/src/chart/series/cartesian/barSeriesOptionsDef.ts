@@ -50,9 +50,11 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-
-    // @ts-expect-error undocumented option
-    pickOutsideVisibleMinorAxis: boolean,
-    fastDataProcessing: boolean,
-    focusPriority: number,
 };
+
+// @ts-expect-error undocumented option
+barSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
+// @ts-expect-error undocumented option
+barSeriesOptionsDef.fastDataProcessing = boolean;
+// @ts-expect-error undocumented option
+barSeriesOptionsDef.focusPriority = number;

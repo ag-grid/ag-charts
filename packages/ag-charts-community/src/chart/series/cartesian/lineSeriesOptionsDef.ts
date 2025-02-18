@@ -42,8 +42,9 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-
-    // @ts-expect-error undocumented option
-    pickOutsideVisibleMinorAxis: boolean,
-    focusPriority: number,
 };
+
+// @ts-expect-error undocumented option
+lineSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
+// @ts-expect-error undocumented option
+lineSeriesOptionsDef.focusPriority = number;

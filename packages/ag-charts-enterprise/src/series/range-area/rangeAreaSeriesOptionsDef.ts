@@ -46,8 +46,9 @@ export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = 
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-
-    // @ts-expect-error undocumented option
-    pickOutsideVisibleMinorAxis: boolean,
-    focusPriority: number,
 };
+
+// @ts-expect-error undocumented option
+rangeAreaSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
+// @ts-expect-error undocumented option
+rangeAreaSeriesOptionsDef.focusPriority = number;
