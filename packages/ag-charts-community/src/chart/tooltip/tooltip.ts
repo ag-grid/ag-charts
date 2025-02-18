@@ -1,4 +1,4 @@
-import type { InteractionRange, TextWrap, TooltipGrouping } from 'ag-charts-types';
+import type { InteractionRange, TextWrap, TooltipAffixment, TooltipGrouping, TooltipTether } from 'ag-charts-types';
 
 import { getWindow } from '../../core';
 import type { DOMManager } from '../../dom/domManager';
@@ -195,19 +195,8 @@ const POSITION_TYPE = UNION(
     'a position type'
 );
 
-export type TooltipAffixment = 'pointer' | 'node' | 'chart';
 const AFFIXMENT = UNION(['pointer', 'node', 'chart'], 'an affixment');
 
-export type TooltipTether =
-    | 'top'
-    | 'right'
-    | 'bottom'
-    | 'left'
-    | 'top-right'
-    | 'bottom-right'
-    | 'bottom-left'
-    | 'top-left'
-    | 'center';
 const TETHER_UNION = UNION(
     ['top', 'right', 'bottom', 'left', 'top-right', 'bottom-right', 'bottom-left', 'top-left', 'center'],
     'a tether'
