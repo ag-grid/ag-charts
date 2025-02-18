@@ -4,7 +4,7 @@ exports[`ErrorBars AG-10525 should render tooltips with no errorbars 1`] = `
 NodeList [
   <div
     aria-hidden="true"
-    class="ag-charts-tooltip ag-charts-tooltip--no-interaction ag-charts-tooltip--arrow ag-charts-tooltip--wrap-hyphenate"
+    class="ag-charts-tooltip ag-charts-tooltip--no-interaction ag-charts-tooltip--arrow-bottom ag-charts-tooltip--wrap-hyphenate"
     data-presented-as-popover=""
     popover="manual"
     style="transform: translate(314px, 200px); top: 0px; left: 0px; pointer-events: none;"
@@ -36,7 +36,7 @@ exports[`ErrorBars should render default tooltips 1`] = `
 NodeList [
   <div
     aria-hidden="true"
-    class="ag-charts-tooltip ag-charts-tooltip--no-interaction ag-charts-tooltip--arrow ag-charts-tooltip--wrap-hyphenate"
+    class="ag-charts-tooltip ag-charts-tooltip--no-interaction ag-charts-tooltip--arrow-bottom ag-charts-tooltip--wrap-hyphenate"
     data-presented-as-popover=""
     popover="manual"
     style="transform: translate(413px, 380px); top: 0px; left: 0px; pointer-events: none;"
