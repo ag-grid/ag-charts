@@ -1,3 +1,5 @@
+import type { SimpleArray } from 'ag-charts-core';
+
 import { Debug } from '../util/debug';
 import { Node } from './node';
 
@@ -42,7 +44,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
 
     private readonly _nodesMap = new Map<TChild, ValidId>();
     private _nodes: TChild[] = [];
-    private data: TDatum[] = [];
+    private data: SimpleArray<TDatum> = [];
 
     private readonly debug = Debug.create(true, 'scene', 'scene:selections');
 
@@ -74,7 +76,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
      * the nodes. Otherwise, take the more efficient route of simply creating and destroying nodes at the end
      * of the array.
      */
-    update(data: TDatum[], initializer?: (node: TChild) => void, getDatumId?: (datum: TDatum) => ValidId) {
+    update(data: SimpleArray<TDatum>, initializer?: (node: TChild) => void, getDatumId?: (datum: TDatum) => ValidId) {
         if (this.garbageBin.size > 0) {
             this.debug(`Selection - update() called with pending garbage`, data);
         }
@@ -102,7 +104,10 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
                 if (i >= data.length) {
                     this.garbageBin.add(this._nodes[i]);
                 } else if (i >= this._nodes.length) {
-                    this.createNode(data[i], initializer);
+                    const nodeDatum = data[i];
+                    if (nodeDatum !== undefined) {
+                        this.createNode(nodeDatum, initializer);
+                    }
                 } else {
                     this._nodes[i].datum = data[i];
                     this.garbageBin.delete(this._nodes[i]);
