@@ -26,7 +26,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'units',
             listeners: {
                 nodeClick: (event: any) => {
-                    toggleNode(event.datum);
+                    toggleDatum(event, event.datum);
                 },
             },
             marker: {
@@ -58,12 +58,13 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function toggleNode(datum: any) {
-    const { month } = datum;
-    if (selectedMonths.has(month)) {
-        selectedMonths.delete(month);
+function toggleDatum(_event: any, datum?: any) {
+    if (datum == null) {
+        selectedMonths.clear();
+    } else if (selectedMonths.has(datum.month)) {
+        selectedMonths.delete(datum.month);
     } else {
-        selectedMonths.add(month);
+        selectedMonths.add(datum.month);
     }
 
     options.data = getData();
