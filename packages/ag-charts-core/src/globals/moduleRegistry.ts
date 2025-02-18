@@ -55,7 +55,3 @@ function isChartModule(definition?: ModuleDefinition): definition is ChartModule
 function isSeriesModule(definition?: ModuleDefinition): definition is SeriesModuleDefinition<any> {
     return definition?.type === ModuleType.Series;
 }
-
-// function isFeatureModule(definition?: ModuleDefinition): definition is FeatureModuleDefinition {
-//     return definition?.type === ModuleType.Feature;
-// }
