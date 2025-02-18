@@ -8,6 +8,9 @@ export * from './interfaces/moduleDefinition';
 // Classes
 export * from './classes/eventEmitter';
 
+// Options
+export * from './options/commonOptionsDefs';
+
 // Utils
 export * from './utils/arrays';
 export * from './utils/binarySearch';

@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { OhlcSeries } from './ohlcSeries';
+import { ohlcSeriesOptionsDef } from './ohlcSeriesOptionsDef';
 
 const { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } = _ModuleSupport.ThemeConstants;
 
@@ -52,4 +54,15 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
             },
         };
     },
+};
+
+export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
+    type: 'series',
+    name: 'ohlc',
+    chartType: 'cartesian',
+    enterprise: true,
+
+    options: ohlcSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new OhlcSeries(ctx),
 };

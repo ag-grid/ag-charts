@@ -1,7 +1,9 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgMapMarkerSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
+import { mapMarkerSeriesOptionsDef } from './mapMarkerSeriesOptionsDef';
 
 const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
@@ -36,4 +38,15 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
             colorRange: userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]],
         };
     },
+};
+
+export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOptions> = {
+    type: 'series',
+    name: 'map-marker',
+    chartType: 'topology',
+    enterprise: true,
+
+    options: mapMarkerSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new MapMarkerSeries(ctx),
 };

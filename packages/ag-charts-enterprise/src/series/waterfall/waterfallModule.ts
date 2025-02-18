@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgWaterfallSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { WaterfallSeries } from './waterfallSeries';
+import { waterfallSeriesOptionsDef } from './waterfallSeriesOptionsDef';
 import { WATERFALL_SERIES_THEME } from './waterfallThemes';
 
 const { ThemeConstants } = _ModuleSupport;
@@ -71,4 +73,15 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
             },
         };
     },
+};
+
+export const WaterfallSeriesModule: SeriesModuleDefinition<AgWaterfallSeriesOptions> = {
+    type: 'series',
+    name: 'waterfall',
+    chartType: 'cartesian',
+    enterprise: true,
+
+    options: waterfallSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new WaterfallSeries(ctx),
 };

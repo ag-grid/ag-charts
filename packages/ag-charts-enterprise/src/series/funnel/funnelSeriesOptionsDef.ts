@@ -1,0 +1,55 @@
+import { type AgFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type OptionsDefs,
+    arrayOf,
+    boolean,
+    callback,
+    constant,
+    fillOptionsDef,
+    lineDashOptionsDef,
+    number,
+    positiveNumber,
+    ratio,
+    required,
+    string,
+    strokeOptionsDef,
+    union,
+} from 'ag-charts-core';
+
+const { commonSeriesOptionsDef, seriesLabelOptionsDef, shadowOptionsDef, tooltipOptionsDef, without } = _ModuleSupport;
+
+export const funnelSeriesOptionsDef: OptionsDefs<AgFunnelSeriesOptions> = {
+    type: required(constant('funnel')),
+    stageKey: required(string),
+    valueKey: required(string),
+    direction: union('horizontal', 'vertical'),
+    fills: arrayOf(string),
+    strokes: arrayOf(string),
+    showInMiniChart: boolean,
+    itemStyler: callback,
+    spacingRatio: ratio,
+    crisp: boolean,
+    dropOff: {
+        enabled: boolean,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    stageLabel: {
+        rotation: number,
+        spacing: positiveNumber,
+        minSpacing: positiveNumber,
+        placement: union('before', 'after'),
+        avoidCollisions: boolean,
+        itemStyler: callback,
+        format: string,
+        ...seriesLabelOptionsDef,
+    },
+    label: seriesLabelOptionsDef,
+    tooltip: tooltipOptionsDef,
+    shadow: shadowOptionsDef,
+    ...commonSeriesOptionsDef,
+    ...without(fillOptionsDef, ['fill']),
+    ...without(strokeOptionsDef, ['stroke']),
+    ...lineDashOptionsDef,
+};

@@ -7,7 +7,7 @@ import type {
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 /* All the label properties that can be changed without affecting the layout. */
 export type AgTreemapSeriesLabelHighlightOptions<TDatum> = Pick<
@@ -89,7 +89,7 @@ export interface AgTreemapSeriesTileOptions<TDatum>
     cornerRadius?: PixelSize;
 }
 
-export interface AgTreemapSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle {
+export interface AgTreemapSeriesHighlightStyle<TDatum> {
     /** Options for the label in a tile. */
     group?: AgTreemapSeriesGroupHighlightStyle<TDatum>;
     /** Options for a secondary, smaller label in a tile - displayed under the primary label. */

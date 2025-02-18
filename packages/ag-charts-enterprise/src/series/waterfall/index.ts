@@ -1,0 +1,1 @@
+export { WaterfallSeriesModule } from './waterfallModule';

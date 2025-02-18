@@ -1,7 +1,9 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgConeFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { funnelSeriesAxes } from '../funnel/funnelThemes';
 import { ConeFunnelSeries } from './coneFunnelSeries';
+import { coneFunnelSeriesOptionsDef } from './coneFunnelSeriesOptionsDef';
 import { CONE_FUNNEL_SERIES_THEME } from './coneFunnelThemes';
 
 export const ConeFunnelModule: _ModuleSupport.SeriesModule<'cone-funnel'> = {
@@ -25,4 +27,15 @@ export const ConeFunnelModule: _ModuleSupport.SeriesModule<'cone-funnel'> = {
         const fills = userPalette === 'inbuilt' ? defaultFills : [userFills[0], userFills[1]];
         return { fills, strokes: fills.slice(0) };
     },
+};
+
+export const ConeFunnelSeriesModule: SeriesModuleDefinition<AgConeFunnelSeriesOptions> = {
+    type: 'series',
+    name: 'cone-funnel',
+    chartType: 'cartesian',
+    enterprise: true,
+
+    options: coneFunnelSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new ConeFunnelSeries(ctx),
 };

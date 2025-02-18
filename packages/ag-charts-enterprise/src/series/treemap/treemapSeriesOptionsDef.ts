@@ -1,0 +1,89 @@
+import { type AgTreemapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type OptionsDefs,
+    arrayOf,
+    boolean,
+    callback,
+    constant,
+    fillOptionsDef,
+    positiveNumber,
+    required,
+    string,
+    strokeOptionsDef,
+    union,
+} from 'ag-charts-core';
+
+const { commonSeriesOptionsDef, seriesLabelOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+
+export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
+    type: required(constant('treemap')),
+    labelKey: string,
+    secondaryLabelKey: string,
+    childrenKey: string,
+    sizeKey: string,
+    colorKey: string,
+    sizeName: string,
+    colorName: string,
+    fills: arrayOf(string),
+    strokes: arrayOf(string),
+    colorRange: arrayOf(string),
+    itemStyler: callback,
+    group: {
+        gap: positiveNumber,
+        padding: positiveNumber,
+        cornerRadius: positiveNumber,
+        textAlign: union('left', 'center', 'right'),
+        interactive: boolean,
+        label: {
+            ...seriesLabelOptionsDef,
+            spacing: positiveNumber,
+        },
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+    },
+    tile: {
+        gap: positiveNumber,
+        padding: positiveNumber,
+        cornerRadius: positiveNumber,
+        textAlign: union('left', 'center', 'right'),
+        verticalAlign: union('top', 'middle', 'bottom'),
+        label: {
+            ...seriesLabelOptionsDef,
+            spacing: positiveNumber,
+            lineHeight: positiveNumber,
+            minimumFontSize: positiveNumber,
+            wrapping: union('never', 'always', 'hyphenate', 'on-space'),
+            overflowStrategy: union('ellipsis', 'hide'),
+        },
+        secondaryLabel: {
+            ...seriesLabelOptionsDef,
+            lineHeight: positiveNumber,
+            minimumFontSize: positiveNumber,
+            wrapping: union('never', 'always', 'hyphenate', 'on-space'),
+            overflowStrategy: union('ellipsis', 'hide'),
+        },
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+    },
+    tooltip: tooltipOptionsDef,
+    ...commonSeriesOptionsDef,
+    highlightStyle: {
+        group: {
+            label: {
+                color: string,
+            },
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+        },
+        tile: {
+            label: {
+                color: string,
+            },
+            secondaryLabel: {
+                color: string,
+            },
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+        },
+    },
+};

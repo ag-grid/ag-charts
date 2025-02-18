@@ -7,7 +7,7 @@ import type {
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 /* All the label properties that can be changed without affecting the layout. */
 export type AgSunburstSeriesLabelHighlightOptions<TDatum> = Pick<
@@ -24,7 +24,7 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum>
     depth: number;
 }
 
-export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle, AgSunburstSeriesStyle {
+export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSunburstSeriesStyle {
     /** Options for the label in a sector. */
     label?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */

@@ -7,12 +7,11 @@ import type {
     AgSparklineOptions,
 } from 'ag-charts-types';
 
-import { CartesianChartModule } from '../chart/cartesianChartModule';
 import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
-import { PolarChartModule } from '../chart/polarChartModule';
+import { AllCommunityModules } from '../main-modules';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
@@ -23,7 +22,8 @@ import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';
 
 // Temporarily set here, in the future users will register modules manually
-ModuleRegistry.registerMany([CartesianChartModule, PolarChartModule]);
+// Remember to remove dep-cruiser exception for main-modules imports when removed
+ModuleRegistry.registerMany(AllCommunityModules);
 
 const debug = Debug.create(true, 'opts');
 

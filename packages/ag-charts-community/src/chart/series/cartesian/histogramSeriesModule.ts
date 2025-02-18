@@ -1,7 +1,12 @@
+import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { AgHistogramSeriesOptions } from 'ag-charts-types';
+
 import type { SeriesModule } from '../../../module/coreModules';
+import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { HistogramSeries } from './histogramSeries';
+import { histogramSeriesOptionsDef } from './histogramSeriesOptionsDef';
 
 export const HistogramSeriesModule: SeriesModule<'histogram'> = {
     type: 'series',
@@ -52,4 +57,15 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
         } = takeColors(1);
         return { fill, stroke };
     },
+};
+
+export const NewHistogramSeriesModule: SeriesModuleDefinition<AgHistogramSeriesOptions> = {
+    type: 'series',
+    name: 'histogram',
+    chartType: 'cartesian',
+    enterprise: true,
+
+    options: histogramSeriesOptionsDef,
+
+    create: (ctx: ModuleContext) => new HistogramSeries(ctx),
 };

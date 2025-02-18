@@ -86,7 +86,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     strokeOpacity?: Opacity;
     /** The width in pixels of the stroke for the sectors. */
     strokeWidth?: PixelSize;
-    /** The rotation of the Donut series in degrees.f */
+    /** The rotation of the Donut series in degrees. */
     rotation?: Degree;
     /** The offset in pixels of the outer radius of the series. */
     outerRadiusOffset?: PixelSize;

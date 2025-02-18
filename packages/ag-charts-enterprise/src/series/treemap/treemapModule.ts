@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgTreemapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { TreemapSeries } from './treemapSeries';
+import { treemapSeriesOptionsDef } from './treemapSeriesOptionsDef';
 
 const {
     FONT_SIZE_RATIO,
@@ -105,4 +107,15 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             undocumentedGroupStrokes: groupStrokes,
         };
     },
+};
+
+export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions> = {
+    type: 'series',
+    name: 'treemap',
+    chartType: 'hierarchy',
+    enterprise: true,
+
+    options: treemapSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new TreemapSeries(ctx),
 };

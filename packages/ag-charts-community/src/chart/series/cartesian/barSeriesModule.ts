@@ -1,8 +1,13 @@
+import { type SeriesModuleDefinition } from 'ag-charts-core';
+import type { AgBarSeriesOptions } from 'ag-charts-types';
+
 import type { SeriesModule } from '../../../module/coreModules';
+import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { singleSeriesPaletteFactory, swapAxisCondition } from '../../themes/util';
 import { BarSeries } from './barSeries';
+import { barSeriesOptionsDef } from './barSeriesOptionsDef';
 
 export const BarSeriesModule: SeriesModule<'bar'> = {
     type: 'series',
@@ -63,4 +68,14 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
         },
     },
     paletteFactory: singleSeriesPaletteFactory,
+};
+
+export const NewBarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
+    type: 'series',
+    name: 'bar',
+    chartType: 'cartesian',
+
+    options: barSeriesOptionsDef,
+
+    create: (ctx: ModuleContext) => new BarSeries(ctx),
 };

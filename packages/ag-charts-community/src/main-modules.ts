@@ -1,6 +1,40 @@
 // Entry point to implement and test our tree-shaking abilities
+import { CartesianChartModule } from './chart/cartesianChartModule';
+import { PolarChartModule } from './chart/polarChartModule';
+import { NewAreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
+import { NewBarSeriesModule } from './chart/series/cartesian/barSeriesModule';
+import { NewBubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
+import { NewHistogramSeriesModule } from './chart/series/cartesian/histogramSeriesModule';
+import { NewLineSeriesModule } from './chart/series/cartesian/lineSeriesModule';
+import { NewScatterSeriesModule } from './chart/series/cartesian/scatterSeriesModule';
+import { NewDonutSeriesModule } from './chart/series/polar/donutSeriesModule';
+import { NewPieSeriesModule } from './chart/series/polar/pieSeriesModule';
 
 export { ModuleRegistry } from 'ag-charts-core';
 
-export { CartesianChartModule } from './chart/cartesianChartModule';
-export { PolarChartModule } from './chart/polarChartModule';
+export {
+    CartesianChartModule,
+    NewAreaSeriesModule,
+    NewBarSeriesModule,
+    NewBubbleSeriesModule,
+    NewHistogramSeriesModule,
+    NewLineSeriesModule,
+    NewScatterSeriesModule,
+    PolarChartModule,
+    NewDonutSeriesModule,
+    NewPieSeriesModule,
+};
+
+export const AllCartesianCommunityModules = [
+    CartesianChartModule,
+    NewAreaSeriesModule,
+    NewBarSeriesModule,
+    NewBubbleSeriesModule,
+    NewHistogramSeriesModule,
+    NewLineSeriesModule,
+    NewScatterSeriesModule,
+];
+
+export const AllPolarCommunityModules = [PolarChartModule, NewDonutSeriesModule, NewPieSeriesModule];
+
+export const AllCommunityModules = [...AllCartesianCommunityModules, ...AllPolarCommunityModules];
