@@ -19,8 +19,12 @@ export interface SimpleArray<T> {
     slice(start?: number, end?: number): SimpleArray<T>;
 }
 
-export function createImmutableSparseArray<T>(data: (T | undefined)[]): SimpleArray<T> {
-    return new Proxy(new ImmutableSparseArrayImpl<T>(data), {
+export interface SparseArray<T> extends SimpleArray<T> {
+    readonly sparse: true; // type-branding to block implicit SimpleArray -> SparseArray conversion.
+}
+
+export function createSparseArray<T>(data?: (T | undefined)[]): SparseArray<T> {
+    return new Proxy(new SparseArrayImpl<T>(data ?? []), {
         get(target, prop, receiver) {
             if (typeof prop === 'string' && !isNaN(Number(prop))) {
                 return target.get(Number(prop));
@@ -30,9 +34,10 @@ export function createImmutableSparseArray<T>(data: (T | undefined)[]): SimpleAr
     });
 }
 
-class ImmutableSparseArrayImpl<T> implements SimpleArray<T> {
+class SparseArrayImpl<T> implements SparseArray<T> {
     private buckets: { start: number; end: number; elements: T[] }[] = [];
     private _length: number;
+    readonly sparse = true;
 
     constructor(data: (T | undefined)[]) {
         this._length = data.length;
