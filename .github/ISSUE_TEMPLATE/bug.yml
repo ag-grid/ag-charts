@@ -3,7 +3,7 @@ description: Report a bug.
 title: '[Bug]: '
 labels: ['triage']
 assignees:
-    - AG-David
+    - AG-DavidG
 body:
     - type: markdown
       attributes:
