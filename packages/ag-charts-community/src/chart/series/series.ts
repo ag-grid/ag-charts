@@ -1,4 +1,4 @@
-import type { SimpleArray } from 'ag-charts-core';
+import type { SimpleArray, SparseArray } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -121,8 +121,8 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum<unknown>, TEvent ext
 
 export type SeriesNodeDataContext<I, S = SeriesNodeDatum<I>, L = S> = {
     itemId: string;
-    nodeData: SimpleArray<S>;
-    labelData: L[];
+    nodeData: SparseArray<S>;
+    labelData: SparseArray<L>;
 };
 
 enum SeriesHighlight {
@@ -673,7 +673,7 @@ export abstract class Series<
         throw new Error('AG Charts - Series.pickNodeMainAxisFirst() not implemented');
     }
 
-    public getLabelData(): (TLabel & PointLabelDatum)[] {
+    public getLabelData(): SimpleArray<TLabel & PointLabelDatum> {
         return [];
     }
     public updatePlacedLabelData(_labels: PlacedLabel<TLabel>[]) {

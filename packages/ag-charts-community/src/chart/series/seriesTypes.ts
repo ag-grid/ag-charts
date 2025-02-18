@@ -1,3 +1,4 @@
+import type { SimpleArray } from 'ag-charts-core';
 import type { AgContextMenuOptions } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
@@ -32,7 +33,7 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): NodeContextMenuActionEvent;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
-    getLabelData(): (TLabel & PointLabelDatum)[];
+    getLabelData(): SimpleArray<TLabel & PointLabelDatum>;
     getTooltipContent(datumIndex: TDatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
     // BoundSeries
