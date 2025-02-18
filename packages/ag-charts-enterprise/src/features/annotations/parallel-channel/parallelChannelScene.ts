@@ -1,5 +1,4 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isNumber } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -7,15 +6,15 @@ import { ChannelScene } from '../scenes/channelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
+import { translate } from '../utils/coords';
 import { updateChannelText } from '../utils/lineWithText';
-import { getGroupingValue } from '../utils/scale';
-import { isPoint, validateDatumPoint } from '../utils/validation';
-import { invertCoords } from '../utils/values';
+import { convertLine } from '../utils/values';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
 
 const { Vec2, Vec4 } = _ModuleSupport;
 
 type ChannelHandle = keyof ParallelChannelScene['handles'];
+type DivariantChannelHandle = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 
 export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties> {
     static override is(value: unknown): value is ParallelChannelScene {
@@ -53,74 +52,66 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         const { offset } = handles[activeHandle].drag(target);
         handles[activeHandle].toggleDragging(true);
 
-        const prev = datum.toJson();
-        let moves: Array<ChannelHandle> = [];
-        let origins: Array<ChannelHandle> = [];
+        if (activeHandle === 'topMiddle' || activeHandle === 'bottomMiddle') {
+            offset.x = 0;
+        }
+
+        let translateVectors: Array<DivariantChannelHandle> = [];
+        let allowSnapping = snapping;
 
         switch (activeHandle) {
             case 'topLeft':
             case 'bottomLeft':
-                moves = ['topLeft', 'bottomLeft'];
-                origins = ['topRight', 'bottomRight'];
+                translateVectors = ['topLeft', 'bottomLeft'];
                 break;
             case 'topMiddle':
-                moves = ['topLeft', 'topRight'];
+                translateVectors = ['topLeft', 'topRight'];
                 offset.y -= UnivariantHandle.HANDLE_SIZE / 2;
+                allowSnapping = false;
                 break;
             case 'topRight':
             case 'bottomRight':
-                moves = ['topRight', 'bottomRight'];
-                origins = ['topLeft', 'bottomLeft'];
+                translateVectors = ['topRight', 'bottomRight'];
                 break;
             case 'bottomMiddle':
-                moves = ['bottomLeft', 'bottomRight'];
+                translateVectors = ['bottomLeft', 'bottomRight'];
                 offset.y -= UnivariantHandle.HANDLE_SIZE / 2;
+                allowSnapping = false;
                 break;
         }
 
-        const angle = datum.snapToAngle;
-        const invertedMoves = moves
-            .map((handle, index) =>
-                snapping && origins[index]
-                    ? this.snapToAngle(target, context, handle, origins[index], angle)
-                    : invertCoords(Vec2.add(handles[handle].handle, offset), context)
-            )
-            .filter(isPoint);
+        const top = convertLine(datum, context);
+        const bottom = convertLine(datum.bottom, context);
+        if (!top || !bottom) return;
 
-        // Do not move any handles if some of them are trying to move to invalid points
-        if (invertedMoves.some((invertedMove) => !validateDatumPoint(context, invertedMove, { y: false }))) {
-            return;
-        }
+        const vectors = {
+            topLeft: Vec4.start(top),
+            topRight: Vec4.end(top),
+            bottomLeft: Vec4.start(bottom),
+            bottomRight: Vec4.end(bottom),
+        };
 
-        // Adjust the height if dragging a middle handle
-        const { value: startY } = getGroupingValue(datum.start.y);
-        if ((activeHandle === 'topMiddle' || activeHandle === 'bottomMiddle') && startY != null && isNumber(startY)) {
-            const topLeft = invertCoords(Vec2.add(handles.topLeft.handle, offset), context);
-            if (activeHandle === 'topMiddle') {
-                datum.height += topLeft.y - startY;
-            } else {
-                datum.height -= topLeft.y - startY;
-            }
-        }
+        const snap = {
+            vectors: {
+                topLeft: vectors.topRight,
+                bottomLeft: vectors.bottomRight,
+                topRight: vectors.topLeft,
+                bottomRight: vectors.bottomLeft,
+            },
+            angle: datum.snapToAngle,
+        };
 
-        // Move the start and end points if required
-        for (const [index, invertedMove] of invertedMoves.entries()) {
-            switch (moves[index]) {
-                case 'topLeft':
-                    datum.start.x = invertedMove.x;
-                    datum.start.y = invertedMove.y;
-                    break;
+        const points = translate(vectors, offset, context, {
+            overflowContinuous: this.overflowContinuous,
+            translateVectors,
+            snap: allowSnapping ? snap : undefined,
+        });
 
-                case 'topRight':
-                    datum.end.x = invertedMove.x;
-                    datum.end.y = invertedMove.y;
-                    break;
-            }
-        }
-
-        if (!datum.isValidWithContext(context)) {
-            datum.set(prev);
-        }
+        datum.start.x = points.topLeft.x;
+        datum.start.y = points.topLeft.y;
+        datum.end.x = points.topRight.x;
+        datum.end.y = points.topRight.y;
+        datum.height = points.topLeft.y - points.bottomLeft.y;
     }
 
     protected override getTranslatePointsVectors(start: _ModuleSupport.Vec2, end: _ModuleSupport.Vec2) {

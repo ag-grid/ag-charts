@@ -1,16 +1,14 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
 import { entries } from 'ag-charts-core';
 
-import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext } from '../annotationTypes';
 import type { StartEndProperties } from '../properties/startEndProperties';
-import { snapToAngle } from '../utils/coords';
-import { validateDatumPoint } from '../utils/validation';
-import { convertLine, convertPoint, invertCoords } from '../utils/values';
+import { translate } from '../utils/coords';
+import { convertLine, convertPoint } from '../utils/values';
 import { DivariantHandle } from './handle';
 import { LinearScene } from './linearScene';
 
-const { Vec4 } = _ModuleSupport;
+const { Vec2, Vec4 } = _ModuleSupport;
 
 export type StartEndHandle = 'start' | 'end';
 
@@ -63,33 +61,21 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         if (!activeHandle || !dragState) return;
 
         this[activeHandle].toggleDragging(true);
-        const point = snapping
-            ? this.snapToAngle(datum, target, context)
-            : invertCoords(this[activeHandle].drag(target).point, context);
 
-        if (!point || !validateDatumPoint(context, point)) return;
+        const snapHandle = activeHandle === 'start' ? 'end' : 'start';
+        const snap = snapping
+            ? { vectors: { [activeHandle]: convertPoint(datum[snapHandle], context) }, angle: datum.snapToAngle }
+            : undefined;
+
+        const { [activeHandle]: point } = translate(
+            { [activeHandle]: dragState[activeHandle] },
+            Vec2.sub(target, dragState.offset),
+            context,
+            { overflowContinuous: 0, snap }
+        );
 
         datum[activeHandle].x = point.x;
         datum[activeHandle].y = point.y;
-    }
-
-    snapToAngle(
-        datum: Datum,
-        coords: _ModuleSupport.Vec2,
-        context: AnnotationContext
-    ): Pick<PointProperties, 'x' | 'y'> | undefined {
-        const { activeHandle } = this;
-
-        const handles: StartEndHandle[] = ['start', 'end'];
-        const fixedHandle = handles.find((handle) => handle !== activeHandle);
-
-        if (!activeHandle || !fixedHandle) return;
-
-        this[activeHandle].toggleDragging(true);
-
-        const fixed = convertPoint(datum[fixedHandle], context);
-
-        return invertCoords(snapToAngle(coords, fixed, datum.snapToAngle), context);
     }
 
     override stopDragging() {
