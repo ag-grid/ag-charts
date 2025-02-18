@@ -1,6 +1,6 @@
 import type { RequireOptional } from 'ag-charts-core';
 import { isFiniteNumber } from 'ag-charts-core';
-import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams, AgGradientFill } from 'ag-charts-types';
+import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
