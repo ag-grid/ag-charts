@@ -3,6 +3,19 @@ import type { DurationMs, InteractionRange, PixelSize, TextWrap } from './types'
 
 export type TooltipGrouping = 'none' | 'category';
 
+export type TooltipAffixment = 'pointer' | 'node' | 'chart';
+
+export type TooltipTether =
+    | 'top'
+    | 'right'
+    | 'bottom'
+    | 'left'
+    | 'top-right'
+    | 'bottom-right'
+    | 'bottom-left'
+    | 'top-left'
+    | 'center';
+
 export interface AgChartTooltipOptions {
     /** Set to `false` to disable tooltips for all series in the chart. */
     enabled?: boolean;
@@ -44,6 +57,10 @@ export enum AgTooltipPositionType {
 export interface AgTooltipPositionOptions {
     /** The type of positioning for the tooltip. By default, the tooltip follows the mouse pointer for series without markers, and it is anchored to the highlighted marker node for series with markers. */
     type?: `${AgTooltipPositionType}`;
+    /** Fixme */
+    affixment?: TooltipAffixment;
+    /** Fixme */
+    tether?: TooltipTether | TooltipTether[];
     /** The horizontal offset in pixels for the position of the tooltip. */
     xOffset?: PixelSize;
     /** The vertical offset in pixels for the position of the tooltip. */

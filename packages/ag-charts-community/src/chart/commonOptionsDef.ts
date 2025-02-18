@@ -96,6 +96,18 @@ export const errorBarOptionsDef: OptionsDefs<AgErrorBarOptions<any>> = {
     ...lineDashOptionsDef,
 };
 
+const tether = union(
+    'top',
+    'right',
+    'bottom',
+    'left',
+    'top-left',
+    'top-right',
+    'bottom-left',
+    'bottom-right',
+    'center'
+);
+
 export const tooltipOptionsDef: OptionsDefs<AgSeriesTooltip<any>> = {
     enabled: boolean,
     showArrow: boolean,
@@ -114,6 +126,8 @@ export const tooltipOptionsDef: OptionsDefs<AgSeriesTooltip<any>> = {
             'bottom-left',
             'bottom-right'
         ),
+        affixment: union('node', 'pointer', 'canvas'),
+        tether: or(tether, arrayOf(tether)),
         xOffset: number,
         yOffset: number,
     },

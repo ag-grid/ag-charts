@@ -56,7 +56,6 @@ const numericAxisProperties = {
 
 const seriesTooltipDefaults: AgChartTooltipOptions = {
     position: {
-        // @ts-expect-error Undocumented atm.
         affixment: 'node',
         tether: ['right', 'left'],
     },
