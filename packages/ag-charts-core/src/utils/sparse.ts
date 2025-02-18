@@ -17,10 +17,6 @@ export interface SimpleArray<T> {
     map<U>(callback: (value: T, index: number) => U): SimpleArray<U>;
     /** @deprecated */
     slice(start?: number, end?: number): SimpleArray<T>;
-    // /** @deprecated */
-    // forEach(callback: (value: T, index: number) => void): void;
-    // /** @deprecated */
-    // sort(compareFn?: (a: T, b: T) => number): SimpleArray<T>;
 }
 
 export function createImmutableSparseArray<T>(data: (T | undefined)[]): SimpleArray<T> {
@@ -164,19 +160,4 @@ class ImmutableSparseArrayImpl<T> implements SimpleArray<T> {
     slice(start?: number, end?: number): SimpleArray<T> {
         return this.normalArray().slice(start, end);
     }
-
-    // forEach(callback: (value: T, index: number) => void): void {
-    //     let index = 0;
-    //     for (const value of this) {
-    //         callback(value, index);
-    //         index++;
-    //     }
-    // }
-
-    // sort(compareFn?: (a: T, b: T) => number): SimpleArray<T> {
-    //     const normalArray = this.normalArray();
-    //     this.buckets = [{ start: 0, end: normalArray.length - 1, elements: normalArray }];
-    //     this.buckets[0].elements.sort(compareFn);
-    //     return this;
-    // }
 }
