@@ -23,8 +23,8 @@ export interface SparseArray<T> extends SimpleArray<T> {
     readonly sparse: true; // type-branding to block implicit SimpleArray -> SparseArray conversion.
 }
 
-export function createSparseArray<T>(data?: (T | undefined)[]): SparseArray<T> {
-    return new Proxy(new SparseArrayImpl<T>(data ?? []), {
+export function createSparseArray<T>(...data: SimpleArray<T>[]): SparseArray<T> {
+    return new Proxy(new SparseArrayImpl<T>(...data), {
         get(target, prop, receiver) {
             if (typeof prop === 'string' && !isNaN(Number(prop))) {
                 return target.get(Number(prop));
@@ -34,26 +34,35 @@ export function createSparseArray<T>(data?: (T | undefined)[]): SparseArray<T> {
     });
 }
 
+function* nestedSimpleArrayIter<T>(arrays: SimpleArray<SimpleArray<T>>): IterableIterator<T> {
+    for (const array of arrays) {
+        for (const element of array) {
+            yield element;
+        }
+    }
+}
+
 class SparseArrayImpl<T> implements SparseArray<T> {
     private buckets: { start: number; end: number; elements: T[] }[] = [];
     private _length: number;
     readonly sparse = true;
 
-    constructor(data: (T | undefined)[]) {
-        this._length = data.length;
-        this.initializeBuckets(data);
+    constructor(...data: SimpleArray<T>[]) {
+        this._length = this.initializeBuckets(data);
     }
 
     get length(): number {
         return this._length;
     }
 
-    private initializeBuckets(data: (T | undefined)[]): void {
+    private initializeBuckets(data: SimpleArray<SimpleArray<T>>): number {
+        let length = 0;
         let currentStart: number | null = null;
 
         // First pass: Determine bucket start/end ranges and create bucket entries
-        for (let i = 0; i < data.length; i++) {
-            if (data[i] !== undefined) {
+        let i = 0;
+        for (const elem of nestedSimpleArrayIter(data)) {
+            if (elem !== undefined) {
                 if (currentStart === null) {
                     currentStart = i;
                 }
@@ -61,18 +70,22 @@ class SparseArrayImpl<T> implements SparseArray<T> {
                 this.buckets.push({ start: currentStart, end: i - 1, elements: [] });
                 currentStart = null;
             }
+            i++;
         }
         if (currentStart !== null) {
-            this.buckets.push({ start: currentStart, end: data.length - 1, elements: [] });
+            this.buckets.push({ start: currentStart, end: length - 1, elements: [] });
         }
 
         // Second pass: Allocate exact-sized arrays and populate elements
+        const it = nestedSimpleArrayIter(data);
         for (const bucket of this.buckets) {
             bucket.elements = new Array<T>(bucket.end - bucket.start + 1);
             for (let i = bucket.start, j = 0; i <= bucket.end; i++, j++) {
-                bucket.elements[j] = data[i]!;
+                bucket.elements[j] = it.next().value();
             }
         }
+
+        return length;
     }
 
     private findBucketIndex(index: number): number {
