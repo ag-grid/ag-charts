@@ -714,9 +714,7 @@ export class BarSeries extends AbstractBarSeries<
 
             rect.opacity = datum.opacity ?? 0;
 
-            rect.fillBBox = fillBBox;
-
-            applyShapeStyle(rect, style, overrides);
+            applyShapeStyle(rect, style, overrides, fillBBox);
 
             const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
             rect.topLeftCornerRadius = datum.topLeftCornerRadius ? cornerRadius : 0;
