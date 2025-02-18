@@ -3,7 +3,14 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, Degree, Opacity, PixelSize, Ratio } from '../../chart/types';
-import type { FillOptions, FontOptions, LineDashOptions, StrokeOptions, Toggleable } from '../cartesian/commonOptions';
+import type {
+    AgGradientFill,
+    FillOptions,
+    FontOptions,
+    LineDashOptions,
+    StrokeOptions,
+    Toggleable,
+} from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgDonutSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
@@ -60,7 +67,7 @@ export interface AgDonutInnerLabelThemeOptions extends Omit<AgDonutInnerLabel, '
 
 export interface AgDonutInnerCircle {
     /** The colour of the fill for the inner circle. */
-    fill: CssColor;
+    fill: CssColor | AgGradientFill;
     /** The opacity of the fill for the inner circle. */
     fillOpacity?: Opacity;
 }

@@ -1,3 +1,4 @@
+import type { AgGradientFill } from '../series/cartesian/commonOptions';
 import type { AxisValue, CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
 
 export interface AgCrossLineThemeOptions extends Omit<AgBaseCrossLineOptions, 'type'> {}
@@ -12,7 +13,7 @@ export interface AgBaseCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions>
     /** The range of values from the data used to display lines at a desired chart region. This property is only used for Cross Line type `range`. */
     range?: [AxisValue, AxisValue];
     /** The colour to use for the fill of the range. */
-    fill?: CssColor;
+    fill?: CssColor | AgGradientFill;
     /** The opacity of the fill for the range. */
     fillOpacity?: Opacity;
     /** The colour of the stroke for the lines. */
