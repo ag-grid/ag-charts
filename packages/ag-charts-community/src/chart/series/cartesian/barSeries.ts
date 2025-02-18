@@ -714,9 +714,7 @@ export class BarSeries extends AbstractBarSeries<
 
             rect.opacity = datum.opacity ?? 0;
 
-            if (fillBBox) {
-                rect.fillBBox = fillBBox;
-            }
+            rect.fillBBox = fillBBox;
 
             applyShapeStyle(rect, style, overrides);
 

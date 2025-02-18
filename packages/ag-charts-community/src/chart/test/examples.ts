@@ -2233,7 +2233,7 @@ export const AREA_SERIES_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
                         type: 'gradient',
                         direction: 'vertical',
                         colorStops,
-                    } as any, // not in the options for now
+                    },
                 },
             },
         },
@@ -2267,7 +2267,7 @@ export const AREA_SERIES_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
                         type: 'gradient',
                         direction: 'horizontal',
                         colorStops,
-                    } as any, // not in the options for now
+                    },
                 },
             },
         },
@@ -2299,7 +2299,7 @@ export const AREA_SERIES_DEFAULT_GRADIENT_FILL: AgCartesianChartOptions = {
                 series: {
                     fill: {
                         type: 'gradient',
-                    } as any, // not in the options for now
+                    },
                 },
             },
         },
@@ -2333,7 +2333,7 @@ export const AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS: AgCartesianChartOptions = {
                         type: 'gradient',
                         direction: 'horizontal',
                         bounds: 'axes',
-                    } as any, // not in the options for now
+                    },
                 },
             },
         },
