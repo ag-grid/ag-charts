@@ -585,7 +585,8 @@ export abstract class Series<
             .reduce((total, current) => Object.assign(total, current), {});
     }
 
-    abstract getTooltipContent(datumIndex: TDatumIndex): TooltipContent | undefined;
+    // @todo(AG-7126) - removeThisDatum
+    abstract getTooltipContent(datumIndex: TDatumIndex, removeThisDatum: TDatum): TooltipContent | undefined;
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
@@ -660,7 +661,7 @@ export abstract class Series<
     public pickNodeNearestDistantObject<T extends Node & DistantObject>(point: Point, items: Iterable<T>) {
         const match = nearestSquared(point.x, point.y, items);
         const datum = match.nearest?.closestDatum();
-        if (match.nearest != null && datum.missing !== true) {
+        if (datum != null && datum.missing !== true) {
             return { datum, distance: Math.sqrt(match.distanceSquared) };
         }
     }

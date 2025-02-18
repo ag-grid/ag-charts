@@ -14,7 +14,7 @@ export interface AgRangeAreaSeriesTooltipRendererParams
         AgRangeAreaSeriesOptionsNames,
         Omit<AgSeriesMarkerStyle, 'shape'> {
     /** Hovered marker */
-    itemId: 'up' | 'down';
+    itemId: 'up' | 'down' | 'unknown';
 }
 
 export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {

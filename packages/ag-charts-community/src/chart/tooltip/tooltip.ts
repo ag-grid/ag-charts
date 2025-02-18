@@ -1,4 +1,4 @@
-import type { InteractionRange, TextWrap } from 'ag-charts-types';
+import type { InteractionRange, TextWrap, TooltipGrouping } from 'ag-charts-types';
 
 import { getWindow } from '../../core';
 import type { DOMManager } from '../../dom/domManager';
@@ -66,10 +66,38 @@ export type TooltipStructuredContent = {
     data?: TooltipContentDataRow[];
 };
 export type TooltipContent =
-    | ({
-          type: 'structured';
-      } & TooltipStructuredContent)
+    | ({ type: 'structured' } & TooltipStructuredContent)
     | { type: 'raw'; rawHtmlString: string };
+
+interface GroupedStructuredContent {
+    heading?: string;
+    items: Omit<TooltipStructuredContent, 'heading'>[];
+}
+
+type GroupedTooltipContent =
+    | ({ type: 'structured' } & GroupedStructuredContent)
+    | { type: 'raw'; rawHtmlString: string };
+
+function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipContent[] {
+    const out: GroupedTooltipContent[] = [];
+    const groupedContents = new Map<string, GroupedStructuredContent>();
+    for (const item of content) {
+        if (item.type === 'structured') {
+            const { heading } = item;
+            const insertionTarget = heading != null ? groupedContents.get(heading) : undefined;
+            const groupedItem: GroupedTooltipContent = { type: 'structured', heading, items: [item] };
+            if (insertionTarget == null) {
+                groupedContents.set(heading!, groupedItem);
+                out.push(groupedItem);
+            } else {
+                insertionTarget.items.push(item);
+            }
+        } else {
+            out.push(item);
+        }
+    }
+    return out;
+}
 
 export function tooltipContentAriaLabel(content: TooltipContent) {
     const ariaLabel: string[] = [];
@@ -102,43 +130,57 @@ function dataHtml(label: string | undefined, value: string, inline: boolean) {
     return rowHtml;
 }
 
-function tooltipContentHtml(content: TooltipContent) {
+function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
+    let html = '';
+
+    const dataInline = content.title == null && content.data?.length === 1;
+
+    const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
+    if (symbol != null && (content.title != null || content.data?.length)) {
+        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-symbol">${symbol}</span>`;
+    }
+
+    if (content.title != null) {
+        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(content.title)}</span>`;
+        html += ' ';
+    }
+
+    content.data?.forEach((datum) => {
+        html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
+        html += ' ';
+    });
+
+    return html;
+}
+
+function tooltipContentHtml(content: GroupedTooltipContent) {
     if (content.type === 'raw') return content.rawHtmlString;
 
     let html = '';
 
+    const singleItem = content.items.length === 1 ? content.items[0] : undefined;
+
     if (
-        (content.heading == null || content.title == null) &&
-        content.data?.length === 1 &&
-        content.data[0].label == null &&
-        content.data[0].value != null
+        singleItem != null &&
+        (content.heading == null || singleItem.title == null) &&
+        singleItem.data?.length === 1 &&
+        singleItem.data[0].label == null &&
+        singleItem.data[0].value != null
     ) {
         // Compact rendering
-        const datum = content.data[0];
+        const datum = singleItem.data[0];
 
-        html += dataHtml(content.heading ?? content.title, datum.value, false);
+        html += dataHtml(content.heading ?? singleItem.title, datum.value, false);
     } else {
         // Full rendering
-        const dataInline = content.title == null && content.data?.length === 1;
 
         if (content.heading != null) {
             html += `<span class="${DEFAULT_TOOLTIP_CLASS}-heading">${sanitizeHtml(content.heading)}</span>`;
             html += ' ';
         }
 
-        const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
-        if (symbol != null && (content.title != null || content.data?.length)) {
-            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-symbol">${symbol}</span>`;
-        }
-
-        if (content.title != null) {
-            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(content.title)}</span>`;
-            html += ' ';
-        }
-
-        content.data?.forEach((datum) => {
-            html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
-            html += ' ';
+        content.items.forEach((item) => {
+            html += tooltipRowContentHtml(item);
         });
     }
 
@@ -179,9 +221,14 @@ export class TooltipPosition extends BaseProperties {
     yOffset: number = 0;
 }
 
+const TOOLTIP_GROUPING = UNION(['none', 'category']);
+
 export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
+
+    @Validate(TOOLTIP_GROUPING)
+    grouping: TooltipGrouping = 'none';
 
     @Validate(BOOLEAN, { optional: true })
     showArrow?: boolean;
@@ -310,13 +357,13 @@ export class Tooltip extends BaseProperties {
         boundingRect: DOMRect,
         canvasRect: DOMRect,
         meta: TooltipMeta,
-        content?: TooltipContent | null,
+        content?: TooltipContent[] | null,
         instantly = false
     ) {
         const { element } = this;
 
-        if (element != null && content != null) {
-            element.innerHTML = tooltipContentHtml(content);
+        if (element != null && content != null && content.length !== 0) {
+            element.innerHTML = aggregateTooltipContent(content).map(tooltipContentHtml).join('');
         } else if (element == null || element.innerHTML === '') {
             this.toggle(false);
             return;
