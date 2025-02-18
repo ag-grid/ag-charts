@@ -1,6 +1,6 @@
 import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport } from 'ag-charts-community';
-import { Logger, isDefined } from 'ag-charts-core';
+import { Logger, type SimpleArray, isDefined } from 'ag-charts-core';
 
 import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
@@ -203,7 +203,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
     }
 
-    private getNodeData(): ErrorBarNodeDatum[] | undefined {
+    private getNodeData(): SimpleArray<ErrorBarNodeDatum> | undefined {
         return this.hasErrorBars() ? this.cartesianSeries.contextNodeData?.nodeData : undefined;
     }
 
@@ -232,8 +232,11 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
                         upperPoint: { x: midPoint.x, y: this.convert(yScale, yUpper) },
                     };
                 }
-                nodeData[i].xBar = xBar;
-                nodeData[i].yBar = yBar;
+                const nodeDatum = nodeData[i];
+                if (nodeDatum) {
+                    nodeDatum.xBar = xBar;
+                    nodeDatum.yBar = yBar;
+                }
             }
         }
     }
@@ -268,9 +271,9 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         return value + offset;
     }
 
-    private getDatum(nodeData: ErrorBarNodeDatum[], datumIndex: number) {
+    private getDatum(nodeData: SimpleArray<ErrorBarNodeDatum>, datumIndex: number) {
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.getMaybeFlippedKeys();
-        const datum = nodeData[datumIndex];
+        const datum = nodeData[datumIndex]!;
 
         // In stacked bar series, we need to calculate the cumulative error values.
         // But generally, these offsets will both be 0.
