@@ -1,4 +1,5 @@
 import type { SimpleArray } from 'ag-charts-core';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
