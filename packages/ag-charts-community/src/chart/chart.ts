@@ -266,6 +266,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
         const scene: Scene | undefined = resources?.scene;
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
         const styleContainer = resources?.styleContainer ?? options.specialOverrides.styleContainer;
+        if (scene) {
+            this._firstAutoSize = false;
+            this._lastAutoSize = [scene.width, scene.height, scene.pixelRatio];
+        }
 
         const root = new Group({ name: 'root' });
         // Prevent the scene from rendering chart components in an invalid state
