@@ -172,7 +172,7 @@ export class CartesianChart extends Chart {
 
         return this.series.flatMap((s): TooltipContent | [] => {
             if (!(s instanceof CartesianSeries)) return [];
-            if (!s.properties.tooltip.enabled) return [];
+            if (!s.isEnabled() || !s.properties.tooltip.enabled) return [];
 
             let tooltipContent: TooltipContent | undefined;
             if (s === series) {
