@@ -731,15 +731,6 @@ export class BarSeries extends AbstractBarSeries<
         });
     }
 
-    protected override getFillBBox(fill: AgGradientFill): BBox | undefined {
-        const { bounds = 'item' } = fill;
-        if (bounds === 'item') {
-            return;
-        }
-
-        return super.getFillBBox(fill);
-    }
-
     protected override updateLabelSelection(opts: {
         labelData: BarNodeDatum[];
         labelSelection: Selection<Text, BarNodeDatum>;

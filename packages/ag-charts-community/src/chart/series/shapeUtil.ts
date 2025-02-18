@@ -7,6 +7,7 @@ export type ShapeStyle = Partial<
 
 export function applyShapeStyle(shape: Shape, style: ShapeStyle, overrides?: ShapeStyle, fillBBox?: BBox) {
     shape.fillBBox = fillBBox;
+    shape.fill = overrides?.fill ?? style.fill;
     shape.fillOpacity = overrides?.fillOpacity ?? style.fillOpacity ?? 1;
     shape.stroke = overrides?.stroke ?? style.stroke;
     shape.strokeOpacity = overrides?.strokeOpacity ?? style.strokeOpacity ?? 1;
