@@ -35,7 +35,6 @@ export interface BubbleNodeDatum extends CartesianSeriesNodeDatum {
     readonly label: MeasuredLabel;
     readonly placement: LabelPlacement;
     readonly anchor: Point;
-    readonly fill: string | undefined;
     readonly selected: boolean | undefined;
 }
 
@@ -74,9 +73,6 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     labelKey?: string;
 
     @Validate(STRING, { optional: true })
-    colorKey?: string;
-
-    @Validate(STRING, { optional: true })
     xFilterKey: string | undefined;
 
     @Validate(STRING, { optional: true })
@@ -96,15 +92,6 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
 
     @Validate(STRING, { optional: true })
     labelName?: string;
-
-    @Validate(STRING, { optional: true })
-    colorName?: string;
-
-    @Validate(NUMBER_ARRAY, { optional: true })
-    colorDomain?: number[];
-
-    @Validate(COLOR_STRING_ARRAY)
-    colorRange: string[] = ['#ffff00', '#00ff00', '#0000ff'];
 
     @Validate(STRING, { optional: true })
     title?: string;

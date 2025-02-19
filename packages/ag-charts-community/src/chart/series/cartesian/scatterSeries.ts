@@ -7,7 +7,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
-import { ColorScale } from '../../../scale/colorScale';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
@@ -46,8 +45,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
     override properties = new ScatterSeriesProperties();
 
-    readonly colorScale = new ColorScale();
-
     override get pickModeAxis() {
         return 'main-category' as const;
     }
@@ -79,26 +76,17 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
-        const colorScaleType = this.colorScale.type;
-        const { xKey, yKey, xFilterKey, yFilterKey, labelKey, colorKey, colorDomain, colorRange } = this.properties;
+        const { xKey, yKey, xFilterKey, yFilterKey, labelKey } = this.properties;
 
-        const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
+        await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 valueProperty(xKey, xScaleType, { id: `xValue` }),
                 valueProperty(yKey, yScaleType, { id: `yValue` }),
                 ...(xFilterKey != null ? [valueProperty(xFilterKey, xScaleType, { id: 'xFilterValue' })] : []),
                 ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterValue' })] : []),
-                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(labelKey, 'band', { id: `labelValue` })] : []),
             ],
         });
-
-        if (colorKey) {
-            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`);
-            this.colorScale.domain = colorDomain ?? processedData.domain.values[colorKeyIdx] ?? [];
-            this.colorScale.range = colorRange;
-            this.colorScale.update();
-        }
 
         this.animationState.transition('updateData');
     }
@@ -151,8 +139,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     override createNodeData() {
-        const { axes, dataModel, processedData, colorScale, visible } = this;
-        const { xKey, yKey, xFilterKey, yFilterKey, labelKey, colorKey, xName, yName, labelName, marker, label } =
+        const { axes, dataModel, processedData, visible } = this;
+        const { xKey, yKey, xFilterKey, yFilterKey, labelKey, xName, yName, labelName, marker, label } =
             this.properties;
         const { placement } = label;
         const anchor = Marker.anchor(marker.shape);
@@ -164,8 +152,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData);
         const yDataValues = dataModel.resolveColumnById(this, `yValue`, processedData);
-        const colorDataValues =
-            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
         const labelDataValues =
             labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
         const xFilterDataValues =
@@ -204,7 +190,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             });
 
             const size = textMeasurer.measureText(labelText);
-            const fill = colorDataValues != null ? colorScale.convert(colorDataValues[datumIndex]) : undefined;
 
             nodeData.push({
                 series: this,
@@ -218,7 +203,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 capDefaults: { lengthRatioMultiplier: marker.getDiameter(), lengthMax: Infinity },
                 point: { x, y, size: marker.size },
                 midPoint: { x, y },
-                fill,
                 label: { text: labelText, ...size },
                 anchor,
                 placement,
