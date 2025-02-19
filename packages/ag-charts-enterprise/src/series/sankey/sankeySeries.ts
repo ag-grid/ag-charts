@@ -424,7 +424,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         if (itemStyler != null) {
             const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                createDatumId(datumId, 'node', highlighted ? 'highlight' : 'node'),
                 () => {
                     const {
                         fillOpacity = 1,
@@ -468,8 +468,8 @@ export class SankeySeries extends FlowProportionSeries<
         datumSelection.each((rect, datum) => {
             const { datumIndex, size, label } = datum;
             const overrides = this.getNodeStyleOverrides(
-                String(datumIndex),
-                datum,
+                String(datumIndex.index),
+                datum.datum,
                 datumIndex.index,
                 size,
                 label,
@@ -534,7 +534,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         if (itemStyler != null) {
             const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                createDatumId(datumId, 'link', highlighted ? 'highlight' : 'node'),
                 () => {
                     const {
                         fillOpacity = 1,
@@ -577,8 +577,8 @@ export class SankeySeries extends FlowProportionSeries<
             const { datumIndex } = datum;
             const fromNodeDatumIndex = datum.fromNode.datumIndex;
             const overrides = this.getLinkStyleOverrides(
-                String(datumIndex),
-                datum,
+                String(datumIndex.index),
+                datum.datum,
                 fromNodeDatumIndex.index,
                 style,
                 isHighlight
@@ -624,7 +624,7 @@ export class SankeySeries extends FlowProportionSeries<
             const linkFormat = this.getBaseLinkStyle(false);
             Object.assign(
                 linkFormat,
-                this.getLinkStyleOverrides(String(datumIndex), datum, fromNodeDatumIndex.index, linkFormat, false)
+                this.getLinkStyleOverrides(String(datumIndex.index), datum, fromNodeDatumIndex.index, linkFormat, false)
             );
             format = linkFormat as any;
         } else {
@@ -632,7 +632,15 @@ export class SankeySeries extends FlowProportionSeries<
             const nodeFormat = this.getBaseNodeStyle(false);
             Object.assign(
                 nodeFormat,
-                this.getNodeStyleOverrides(String(datumIndex), datum, datumIndex.index, size, label, nodeFormat, false)
+                this.getNodeStyleOverrides(
+                    String(datumIndex.index),
+                    datum,
+                    datumIndex.index,
+                    size,
+                    label,
+                    nodeFormat,
+                    false
+                )
             );
             format = nodeFormat as any;
         }
