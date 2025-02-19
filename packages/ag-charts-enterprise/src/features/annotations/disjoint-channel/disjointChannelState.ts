@@ -62,8 +62,8 @@ export class DisjointChannelStateMachine extends StateMachine<
         const actionHeightUpdate = ({ point }: { point: Point }) => {
             const { datum, node } = this;
 
-            const { value: endY } = getGroupingValue(datum?.end.y);
-            const { value: startY } = getGroupingValue(datum?.start.y);
+            const endY = getGroupingValue(datum?.end.y);
+            const startY = getGroupingValue(datum?.start.y);
 
             const { y: pointY } = point;
 
@@ -88,8 +88,8 @@ export class DisjointChannelStateMachine extends StateMachine<
         const actionHeightFinish = ({ point }: { point: Point }) => {
             const { datum, node } = this;
 
-            const { value: endY } = getGroupingValue(datum?.end.y);
-            const { value: startY } = getGroupingValue(datum?.start.y);
+            const endY = getGroupingValue(datum?.end.y);
+            const startY = getGroupingValue(datum?.start.y);
 
             const { y: pointY } = point;
 

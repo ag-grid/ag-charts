@@ -628,8 +628,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private getDatumRangeVolume(fromPoint: Point['x'], toPoint: Point['x']) {
         const { dataModel, processedData } = this;
 
-        let from = getGroupingValue(fromPoint).value;
-        let to = getGroupingValue(toPoint).value;
+        let from = getGroupingValue(fromPoint);
+        let to = getGroupingValue(toPoint);
         if (!isValidDate(from) || !isValidDate(to) || !dataModel || !processedData || this.volumeKey == null) return;
 
         if (from > to) {

@@ -139,7 +139,7 @@ export class CrossLineScene extends AnnotationScene {
                 return;
             }
 
-            const { value } = getGroupingValue(datum.value);
+            const value = getGroupingValue(datum.value);
             axisLabel.update({
                 ...Vec2.add(labelCorner, Vec2.required(seriesRect)),
                 value,
