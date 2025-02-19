@@ -375,6 +375,8 @@ export class Tooltip extends BaseProperties {
             this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
             this.element.setAttribute('popover', 'manual');
             this.element.className = DEFAULT_TOOLTIP_CLASS;
+            // @ts-expect-error Typings need updating
+            this.element.style.positionAnchor = domManager.anchorName;
         }
     }
 
@@ -497,8 +499,8 @@ export class Tooltip extends BaseProperties {
             element.setAttribute('aria-hidden', 'true');
         }
 
-        element.style.top = `${canvasRect.top}px`;
-        element.style.left = `${canvasRect.left}px`;
+        element.style.setProperty('--top', `${canvasRect.top}px`);
+        element.style.setProperty('--left', `${canvasRect.left}px`);
         this.updateClassModifiers();
 
         if (this.delay > 0 && !instantly) {

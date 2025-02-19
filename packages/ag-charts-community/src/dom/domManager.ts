@@ -2,6 +2,7 @@ import { entries } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
 import { createElement, getDocument, getWindow } from '../core';
+import { createId } from '../module-support';
 import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
 import { setAttribute } from '../util/attributeUtil';
@@ -86,6 +87,8 @@ function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 
 }
 
 export class DOMManager extends BaseManager<Events['type'], Events> {
+    readonly anchorName = `--${createId(this)}`;
+
     private readonly rootElements: Record<DOMElementClass, LiveDOMElement>;
     private readonly styles = new Map<string, string>();
     private readonly element: HTMLElement;
@@ -123,6 +126,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             },
             {} as typeof this.rootElements
         );
+
+        // @ts-expect-error Typings need updating
+        this.element.style.anchorName = this.anchorName;
 
         let hidden = false;
         this.observer = setupObserver(this.element, (intersectionRatio) => {
