@@ -60,6 +60,7 @@ type CartesianSeriesOpts<
     hasHighlightedLabels: boolean;
     directionKeys: SeriesDirectionKeysMapping<TProps>;
     directionNames: SeriesDirectionKeysMapping<TProps>;
+    directionValues?: { x?: string; y?: string };
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
@@ -213,6 +214,7 @@ export abstract class CartesianSeries<
         animationResetFns,
         directionKeys,
         directionNames,
+        directionValues,
         ...otherOpts
     }: Partial<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>> &
         Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'directionKeys' | 'directionNames'> &
@@ -233,6 +235,7 @@ export abstract class CartesianSeries<
             pathsZIndexSubOrderOffset,
             directionKeys,
             directionNames,
+            directionValues,
             animationResetFns,
             animationAlwaysUpdateSelections,
             datumSelectionGarbageCollection,
@@ -738,8 +741,28 @@ export abstract class CartesianSeries<
     protected abstract xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number];
     protected abstract yCoordinateRange(yValues: any[], pixelSize: number, index: number): [number, number];
 
-    public xValues(): any[] {
-        return undefined!;
+    public categoryValue(datumIndex: number): any {
+        const { processedData, dataModel } = this;
+        const categoryKey = this.opts.directionValues?.x;
+        if (!processedData || !dataModel || !categoryKey) return;
+        const invalid = processedData.invalidData?.get(this.id)?.[datumIndex] ?? false;
+        return invalid ? undefined : this.keysOrValues(categoryKey)[datumIndex];
+    }
+
+    public datumIndexForCategoryValue(categoryValue: any): number | undefined {
+        const { processedData, dataModel } = this;
+        const categoryKey = this.opts.directionValues?.x;
+        if (!processedData || !dataModel || !categoryKey) return;
+
+        categoryValue = categoryValue.valueOf();
+        const invalidValues = processedData.invalidData?.get(this.id);
+        const xValues = this.keysOrValues(categoryKey);
+        for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
+            if (invalidValues?.[datumIndex] === true) continue;
+
+            const xValue = xValues[datumIndex]?.valueOf();
+            if (categoryValue === xValue) return datumIndex;
+        }
     }
 
     // Workaround - it would be nice if this difference didn't exist

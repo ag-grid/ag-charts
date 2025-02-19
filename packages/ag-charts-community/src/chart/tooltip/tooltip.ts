@@ -1,4 +1,4 @@
-import type { InteractionRange, TextWrap, TooltipAffixment, TooltipGrouping, TooltipTether } from 'ag-charts-types';
+import type { InteractionRange, TextWrap, TooltipAffixment, TooltipMode, TooltipTether } from 'ag-charts-types';
 
 import { getWindow } from '../../core';
 import type { DOMManager } from '../../dom/domManager';
@@ -44,7 +44,9 @@ export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> =
 
 export interface TooltipMetaPosition {
     affixment?: TooltipAffixment;
+    defaultAffixment?: TooltipAffixment;
     tether?: TooltipTether | TooltipTether[];
+    defaultTether?: TooltipTether | TooltipTether[];
     xOffset?: number;
     yOffset?: number;
 }
@@ -303,14 +305,14 @@ const directionChecks: Record<TooltipTether, DirectionCheck> = {
     center: DirectionCheck.None,
 };
 
-const TOOLTIP_GROUPING = UNION(['none', 'category']);
+const TOOLTIP_MODE = UNION(['single', 'shared']);
 
 export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
-    @Validate(TOOLTIP_GROUPING)
-    grouping: TooltipGrouping = 'none';
+    @Validate(TOOLTIP_MODE)
+    mode: TooltipMode = 'single';
 
     @Validate(BOOLEAN, { optional: true })
     showArrow?: boolean;
@@ -346,8 +348,10 @@ export class Tooltip extends BaseProperties {
 
     private element?: HTMLElement;
 
-    private showTimeout: NodeJS.Timeout | number = 0;
-    private _arrowPosition: ArrowPosition | undefined = undefined;
+    // Reading the element size is expensive, so cache the result
+    private _elementSize: { width: number; height: number } | undefined = undefined;
+    private _showTimeout: NodeJS.Timeout | number = 0;
+    private arrowPosition: ArrowPosition | undefined = undefined;
     private _visible = false;
 
     private positionParams:
@@ -373,6 +377,8 @@ export class Tooltip extends BaseProperties {
             this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
             this.element.setAttribute('popover', 'manual');
             this.element.className = DEFAULT_TOOLTIP_CLASS;
+            // @ts-expect-error Typings need updating
+            this.element.style.positionAnchor = domManager.anchorName;
         }
     }
 
@@ -390,35 +396,43 @@ export class Tooltip extends BaseProperties {
     }
 
     private updateTooltipPosition() {
-        const { element, positionParams } = this;
-        if (element == null || positionParams == null) return;
+        const { element, _elementSize: elementSize, positionParams } = this;
+        if (element == null || elementSize == null || positionParams == null) return;
 
         const { canvasRect, relativeRect, meta } = positionParams;
         const { x: canvasX, y: canvasY } = this.springAnimation;
 
-        let tethers = meta.position?.tether ?? this.position.tether ?? this.position.defaultTether;
-        const affixment = meta.position?.affixment ?? this.position.affixment ?? this.position.defaultAffixment;
+        let tether =
+            meta.position?.tether ??
+            this.position.tether ??
+            meta.position?.defaultTether ??
+            this.position.defaultTether;
+        if (!Array.isArray(tether)) {
+            tether = [tether];
+        }
+        const affixment =
+            meta.position?.affixment ??
+            this.position.affixment ??
+            meta.position?.defaultAffixment ??
+            this.position.defaultAffixment;
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
 
         const minX = relativeRect.x;
         const minY = relativeRect.y;
-        const maxX = relativeRect.width - element.clientWidth - 1 + minX;
-        const maxY = relativeRect.height - element.clientHeight + minY;
+        const maxX = relativeRect.width - elementSize.width - 1 + minX;
+        const maxY = relativeRect.height - elementSize.height + minY;
 
-        if (!Array.isArray(tethers)) {
-            tethers = [tethers];
-        }
         let i = 0;
-        let tether: TooltipTether | undefined;
+        let activeTether: TooltipTether | undefined;
         let position: Placement | undefined;
         let constrained = false;
         do {
-            tether = tethers[i];
+            activeTether = tether[i];
             i += 1;
 
             const tooltipBounds = this.getTooltipBounds({
-                tether,
+                tether: activeTether,
                 affixment,
                 canvasX,
                 canvasY,
@@ -426,16 +440,16 @@ export class Tooltip extends BaseProperties {
                 xOffset,
                 canvasRect,
             });
-            position = calculatePlacement(element.clientWidth, element.clientHeight, relativeRect, tooltipBounds);
+            position = calculatePlacement(elementSize.width, elementSize.height, relativeRect, tooltipBounds);
 
             constrained = false;
-            if (directionChecks[tether] & DirectionCheck.Horizontal) {
+            if (directionChecks[activeTether] & DirectionCheck.Horizontal) {
                 constrained ||= position.x < minX || position.x > maxX;
             }
-            if (directionChecks[tether] & DirectionCheck.Vertical) {
+            if (directionChecks[activeTether] & DirectionCheck.Vertical) {
                 constrained ||= position.y < minY || position.y > maxY;
             }
-        } while (i < tethers.length && constrained);
+        } while (i < tether.length && constrained);
 
         const left = clamp(minX, position.x, maxX);
         const top = clamp(minY, position.y, maxY);
@@ -443,12 +457,10 @@ export class Tooltip extends BaseProperties {
         constrained ||= left !== position.x || top !== position.y;
         const defaultShowArrow = affixment !== 'chart' && !constrained && !xOffset && !yOffset;
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
-        const arrowPosition = showArrow ? arrowPositions[tether] : undefined;
-        this.updateArrowPosition(arrowPosition);
-
-        element.style.transform = `translate(${left}px, ${top}px)`;
-
+        this.arrowPosition = showArrow ? arrowPositions[activeTether] : undefined;
         this.updateClassModifiers();
+
+        element.style.translate = `${left}px ${top}px`;
     }
 
     /**
@@ -466,6 +478,7 @@ export class Tooltip extends BaseProperties {
 
         if (element != null && content != null && content.length !== 0) {
             element.innerHTML = aggregateTooltipContent(content).map(tooltipContentHtml).join('');
+            this._elementSize = { width: element.clientWidth, height: element.clientHeight };
         } else if (element == null || element.innerHTML === '') {
             this.toggle(false);
             return;
@@ -485,8 +498,6 @@ export class Tooltip extends BaseProperties {
         };
 
         this.springAnimation.update(meta.canvasX, meta.canvasY);
-        element.style.top = `${canvasRect.top}px`;
-        element.style.left = `${canvasRect.left}px`;
 
         if (meta.enableInteraction) {
             this.enableInteraction = true;
@@ -498,11 +509,13 @@ export class Tooltip extends BaseProperties {
             element.setAttribute('aria-hidden', 'true');
         }
 
+        element.style.setProperty('--top', `${canvasRect.top}px`);
+        element.style.setProperty('--left', `${canvasRect.left}px`);
         this.updateClassModifiers();
 
         if (this.delay > 0 && !instantly) {
             this.toggle(false);
-            this.showTimeout = setTimeout(() => {
+            this._showTimeout = setTimeout(() => {
                 this.toggle(true);
             }, this.delay);
         } else {
@@ -521,7 +534,7 @@ export class Tooltip extends BaseProperties {
         this._visible = visible;
 
         if (!visible) {
-            clearTimeout(this.showTimeout);
+            clearTimeout(this._showTimeout);
         }
 
         this.element.togglePopover(visible);
@@ -542,10 +555,10 @@ export class Tooltip extends BaseProperties {
             classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--${name}`, include);
 
         toggleClass('no-interaction', !this.enableInteraction); // Prevent interaction.
-        toggleClass('arrow-top', this._arrowPosition === ArrowPosition.Top);
-        toggleClass('arrow-right', this._arrowPosition === ArrowPosition.Right);
-        toggleClass('arrow-bottom', this._arrowPosition === ArrowPosition.Bottom);
-        toggleClass('arrow-left', this._arrowPosition === ArrowPosition.Left);
+        toggleClass('arrow-top', this.arrowPosition === ArrowPosition.Top);
+        toggleClass('arrow-right', this.arrowPosition === ArrowPosition.Right);
+        toggleClass('arrow-bottom', this.arrowPosition === ArrowPosition.Bottom);
+        toggleClass('arrow-left', this.arrowPosition === ArrowPosition.Left);
         toggleClass('compact', this.compact);
 
         classList.toggle(DEFAULT_TOOLTIP_DARK_CLASS, this.darkTheme);
@@ -553,10 +566,6 @@ export class Tooltip extends BaseProperties {
         for (const wrapType of this.wrapTypes) {
             classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--wrap-${wrapType}`, wrapType === this.wrapping);
         }
-    }
-
-    private updateArrowPosition(arrowPosition: ArrowPosition | undefined) {
-        this._arrowPosition = arrowPosition;
     }
 
     private getTooltipBounds(opts: {
@@ -568,11 +577,11 @@ export class Tooltip extends BaseProperties {
         xOffset: number;
         canvasRect: DOMRect;
     }): Bounds {
-        if (!this.element) return {};
+        if (!this.element || !this._elementSize) return {};
 
         const { affixment, tether, canvasX, canvasY, yOffset, xOffset, canvasRect } = opts;
 
-        const { clientWidth: tooltipWidth, clientHeight: tooltipHeight } = this.element;
+        const { width: tooltipWidth, height: tooltipHeight } = this._elementSize;
         const bounds: Bounds = { width: tooltipWidth, height: tooltipHeight };
 
         if (affixment === 'node' || affixment === 'pointer') {

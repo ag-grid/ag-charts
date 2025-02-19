@@ -96,6 +96,9 @@ export class LineSeries extends CartesianSeries<
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            directionValues: {
+                x: 'xValue',
+            },
             hasMarkers: true,
             pickModes: [
                 SeriesNodePickMode.AXIS_ALIGNED,
@@ -579,12 +582,6 @@ export class LineSeries extends CartesianSeries<
                 text.visible = false;
             }
         });
-    }
-
-    public override xValues(): any[] {
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return [];
-        return dataModel.resolveColumnById(this, `xValue`, processedData);
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {

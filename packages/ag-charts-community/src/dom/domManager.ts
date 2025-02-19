@@ -7,6 +7,7 @@ import STYLES from '../styles.css';
 import { setAttribute } from '../util/attributeUtil';
 import { BaseManager } from '../util/baseManager';
 import { GuardedElement } from '../util/guardedElement';
+import { createId } from '../util/id';
 import { stopPageScrolling } from '../util/keynavUtil';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
 import { StateTracker } from '../util/stateTracker';
@@ -86,6 +87,8 @@ function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 
 }
 
 export class DOMManager extends BaseManager<Events['type'], Events> {
+    readonly anchorName = `--${createId(this)}`;
+
     private readonly rootElements: Record<DOMElementClass, LiveDOMElement>;
     private readonly styles = new Map<string, string>();
     private readonly element: HTMLElement;
@@ -123,6 +126,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             },
             {} as typeof this.rootElements
         );
+
+        // @ts-expect-error Typings need updating
+        this.element.style.anchorName = this.anchorName;
 
         let hidden = false;
         this.observer = setupObserver(this.element, (intersectionRatio) => {

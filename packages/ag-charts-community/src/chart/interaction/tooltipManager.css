@@ -8,6 +8,13 @@
     padding: 0;
     overflow: visible;
 
+    /* Use CSS anchor positioning when available */
+    /* Otherwise, fallback to position of canvas via getBoundingClientRect */
+    top: var(--top, 0px);
+    top: anchor(top);
+    left: var(--left, 0px);
+    left: anchor(left);
+
     width: max-content;
     max-width: 100%;
     font-family: var(--ag-charts-chrome-font-family);
