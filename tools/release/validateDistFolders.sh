@@ -2,22 +2,6 @@
 
 excluded=("ag-charts-react" "ag-charts-vue3" "ag-charts-angular" "ag-charts-locale")
 frameworks=("ag-charts-react" "ag-charts-vue3" "ag-charts-angular")
-expected_package_files=(
-  "dist/packages/ag-charts-vue3.tgz"
-  "dist/packages/ag-charts-react.tgz"
-  "dist/packages/ag-charts-types.tgz"
-  "dist/packages/ag-charts-angular.tgz"
-  "dist/packages/ag-charts-locale.tgz"
-  "dist/packages/ag-charts-enterprise.tgz"
-  "dist/packages/ag-charts-community.tgz"
-  "dist/packages/contents/ag-charts-angular"
-  "dist/packages/contents/ag-charts-community"
-  "dist/packages/contents/ag-charts-react"
-  "dist/packages/contents/ag-charts-vue3"
-  "dist/packages/contents/ag-charts-types"
-  "dist/packages/contents/ag-charts-locale"
-  "dist/packages/contents/ag-charts-enterprise"
-)
 
 validatePackageJsonExists()
 {
@@ -27,25 +11,6 @@ validatePackageJsonExists()
   then
     echo "ERROR: $directory/package.json empty or does not exist"
     exit 1
-  fi
-}
-
-checkFilesExist() {
-  local -n expected_files=$1
-  local missing_files=()
-
-  for file in "${expected_files[@]}"; do
-    if [[ ! -e "$file" ]]; then
-      missing_files+=("$file")
-    fi
-  done
-
-  if [[ ${#missing_files[@]} -eq 0 ]]; then
-    return 0
-  else
-    echo "The following expected files or directories are missing:"
-    printf "%s\n" "${missing_files[@]}"
-    return 1
   fi
 }
 
@@ -179,7 +144,8 @@ validateLocale()
 }
 
 # check all expected modules & packages are there
-checkFilesExist expected_package_files # NOTE: Send expected as a reference, not by value
+node validatePackageFolderContents.js
+
 validateModules "dist/packages/contents"
 validateLocale "dist/packages/contents/ag-charts-locale/package"
 
