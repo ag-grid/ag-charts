@@ -121,7 +121,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
 
-    private restoreAnnotations = true;
+    private isRestoringAnnotations = true;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -696,7 +696,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.clear();
         this.annotationData.set(event.annotations);
 
-        this.restoreAnnotations = true;
+        this.isRestoringAnnotations = true;
         this.update();
     }
 
@@ -865,11 +865,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.toolbar.refreshButtonsEnabled(showAnnotations);
         this.toolbar.toggleClearButtonEnabled(annotationData.length > 0 && showAnnotations);
 
-        const shouldWarn = this.restoreAnnotations;
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
             .each((node, datum) => {
-                if (!showAnnotations || !this.validateDatum(datum, shouldWarn)) {
+                if (!showAnnotations || !this.validateDatum(datum)) {
                     node.visible = false;
                     if ('setAxisLabelVisible' in node) {
                         node.setAxisLabelVisible(false);
@@ -887,15 +886,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.postUpdateFns.forEach((fn) => fn());
         this.postUpdateFns = [];
 
-        this.restoreAnnotations = false;
+        this.isRestoringAnnotations = false;
     }
 
     private postUpdateFns: Array<() => void> = [];
 
     // Validation of the options beyond the scope of the @Validate decorator
-    private validateDatum(datum: AnnotationProperties, shouldWarn: boolean) {
+    private validateDatum(datum: AnnotationProperties) {
+        if (!this.isRestoringAnnotations) return true;
         const context = this.getAnnotationContext();
-        const warningPrefix = shouldWarn ? `Annotation [${datum.type}] ` : undefined;
+        const warningPrefix = `Annotation [${datum.type}] `;
         return context ? datum.isValidWithContext(context, warningPrefix) : true;
     }
 

@@ -3,7 +3,6 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { AnnotationContext } from '../annotationTypes';
 import type { PointProperties } from '../properties/pointProperties';
 import { getDragStartState, translate } from '../utils/coords';
-import { validateDatumPoint } from '../utils/validation';
 import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
@@ -42,14 +41,9 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
 
     public drag(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext) {
         const { dragState } = this;
-
         if (datum.locked || !dragState) return;
 
-        const coords = Vec2.add(dragState.handle, Vec2.sub(target, dragState.offset));
-        const point = invertCoords(coords, context);
-
-        if (!validateDatumPoint(context, point)) return;
-
+        const { point } = translate({ point: dragState.handle }, Vec2.sub(target, dragState.offset), context);
         datum.x = point.x;
         datum.y = point.y;
     }
@@ -58,7 +52,6 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         if (datum.locked) return;
 
         const { point } = translate({ point: convertPoint(datum, context) }, translation, context);
-
         datum.x = point.x;
         datum.y = point.y;
     }

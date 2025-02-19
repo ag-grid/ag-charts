@@ -115,7 +115,8 @@ function normalized(a: Vec2): Vec2 {
 /**
  * Find the angle between two vectors.
  */
-function angle(a: Vec2, b: Vec2 = origin()) {
+function angle(a: Vec2, b?: Vec2) {
+    if (b == null) return Math.atan2(a.y, a.x);
     return Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x);
 }
 
@@ -189,13 +190,13 @@ function equal(a: Vec2, b: Vec2): boolean {
  */
 function from(x: number, y: number): Vec2;
 /**
- * Create a vector from a html element's `offsetWidth` and `offsetHeight`.
- */
-function from(element: { offsetWidth: number; offsetHeight: number }): Vec2;
-/**
  * Create a vector from a widget event.
  */
 function from(event: { currentX: number; currentY: number }): Vec2;
+/**
+ * Create a vector from a html element's `offsetWidth` and `offsetHeight`.
+ */
+function from(element: { offsetWidth: number; offsetHeight: number }): Vec2;
 /**
  * Create a pair of vectors of the top left and bottom right of a bounding box.
  */
@@ -207,8 +208,8 @@ function from(vec4: Vec4): [Vec2, Vec2];
 function from(
     a:
         | number
-        | { offsetWidth: number; offsetHeight: number }
         | { currentX: number; currentY: number }
+        | { offsetWidth: number; offsetHeight: number }
         | { x: number; y: number; width: number; height: number }
         | Vec4,
     b?: number

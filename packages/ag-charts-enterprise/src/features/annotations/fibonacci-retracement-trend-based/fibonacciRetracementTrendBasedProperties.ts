@@ -14,7 +14,7 @@ export class FibonacciRetracementTrendBasedProperties extends FibonacciPropertie
     }
 
     override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
-        return validateDatumLine(context, this, { y: false }, warningPrefix);
+        return validateDatumLine(context, this, { overflowContinuous: true }, warningPrefix);
     }
 
     @Validate(STRING)

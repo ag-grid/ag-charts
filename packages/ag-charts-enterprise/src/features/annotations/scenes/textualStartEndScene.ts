@@ -3,11 +3,10 @@ import { type AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-communi
 import type { AnnotationContext } from '../annotationTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { getBBox, updateTextNode } from '../text/util';
-import { validateDatumPoint } from '../utils/validation';
-import { convertLine, invertCoords } from '../utils/values';
+import { convertLine } from '../utils/values';
 import { StartEndScene } from './startEndScene';
 
-const { Vec2, Vec4 } = _ModuleSupport;
+const { Vec4 } = _ModuleSupport;
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends StartEndScene<Datum> {
     override activeHandle?: 'start' | 'end';
@@ -41,25 +40,8 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.updateAnchor(datum, coords, context, bbox);
     }
 
-    override dragHandle(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
-        const { activeHandle, dragState } = this;
-
-        if (!activeHandle || !dragState) return;
-
-        this[activeHandle].toggleDragging(true);
-        const coords = Vec2.add(dragState.end, Vec2.sub(target, dragState.offset));
-        const point = snapping ? this.snapToAngle(datum, coords, context) : invertCoords(coords, context);
-
-        if (!point || !validateDatumPoint(context, point)) return;
-
-        datum[activeHandle].x = point.x;
-        datum[activeHandle].y = point.y;
-    }
-
     override containsPoint(x: number, y: number) {
-        const { label } = this;
-
-        return super.containsPoint(x, y) || label.containsPoint(x, y);
+        return super.containsPoint(x, y) || this.label.containsPoint(x, y);
     }
 
     public override getNodeAtCoords(x: number, y: number): string | undefined {
