@@ -35,6 +35,8 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     events: {
         // Buttons have no visible rendering change
         'interaction-ranges': { skipCanvasUpdateCheck: true },
+        // Buttons have no visible rendering change
+        'node-click-select': { skipCanvasUpdateCheck: true },
     },
     'financial-chart-types': {
         'toggle-financial-features': { clickOrder: 'reverse' },
