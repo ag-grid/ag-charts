@@ -8,7 +8,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
-import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
@@ -63,8 +62,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     private readonly sizeScale = new LinearScale();
 
-    private readonly colorScale = new ColorScale();
-
     override get pickModeAxis() {
         return 'main-category' as const;
     }
@@ -96,21 +93,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
-        const colorScaleType = this.colorScale.type;
         const sizeScaleType = this.sizeScale.type;
-        const {
-            xKey,
-            yKey,
-            sizeKey,
-            xFilterKey,
-            yFilterKey,
-            sizeFilterKey,
-            labelKey,
-            colorDomain,
-            colorRange,
-            colorKey,
-            marker,
-        } = this.properties;
+        const { xKey, yKey, sizeKey, xFilterKey, yFilterKey, sizeFilterKey, labelKey, marker } = this.properties;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 valueProperty(xKey, xScaleType, { id: `xValue` }),
@@ -121,21 +105,12 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                     ? [valueProperty(sizeFilterKey, sizeScaleType, { id: `sizeFilterValue` })]
                     : []),
                 valueProperty(sizeKey, sizeScaleType, { id: `sizeValue` }),
-                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(labelKey, 'band', { id: `labelValue` })] : []),
             ],
         });
 
         const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`);
-        const processedSize = processedData.domain.values[sizeKeyIdx] ?? [];
-        this.sizeScale.domain = marker.domain ? marker.domain : processedSize;
-
-        if (colorKey) {
-            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`);
-            this.colorScale.domain = colorDomain ?? processedData.domain.values[colorKeyIdx] ?? [];
-            this.colorScale.range = colorRange;
-            this.colorScale.update();
-        }
+        this.sizeScale.domain = marker.domain ?? processedData.domain.values[sizeKeyIdx] ?? [];
 
         this.animationState.transition('updateData');
     }
@@ -198,7 +173,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }
 
     override createNodeData() {
-        const { axes, dataModel, processedData, colorScale, sizeScale, visible } = this;
+        const { axes, dataModel, processedData, sizeScale, visible } = this;
         const {
             xKey,
             yKey,
@@ -212,7 +187,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             sizeName,
             labelName,
             label,
-            colorKey,
             marker,
         } = this.properties;
         const { placement } = label;
@@ -229,8 +203,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const yDataValues = dataModel.resolveColumnById(this, `yValue`, processedData);
         const sizeDataValues =
             sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
-        const colorDataValues =
-            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
         const labelDataValues =
             labelKey != null ? dataModel.resolveColumnById(this, `labelValue`, processedData) : undefined;
         const xFilterDataValues =
@@ -283,7 +255,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
             const size = textMeasurer.measureText(String(labelText));
             const markerSize = sizeValue != null ? sizeScale.convert(sizeValue) : marker.size;
-            const fill = colorDataValues != null ? colorScale.convert(colorDataValues[datumIndex]) : undefined;
 
             nodeData.push({
                 series: this,
@@ -297,7 +268,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 sizeValue,
                 point: { x, y, size: markerSize },
                 midPoint: { x, y },
-                fill,
                 label: { text: labelText, ...size },
                 anchor,
                 placement,
