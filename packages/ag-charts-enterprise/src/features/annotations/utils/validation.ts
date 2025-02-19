@@ -29,7 +29,7 @@ export function validateDatumValue(
     const valid = validateDatumPointDirection(datum.value, axis);
 
     if (!valid && warningPrefix) {
-        const { value } = getGroupingValue(datum.value);
+        const value = getGroupingValue(datum.value);
         Logger.warnOnce(`${warningPrefix}is outside the axis domain, ignoring. - value: [${value}]]`);
     }
 
@@ -63,8 +63,8 @@ export function validateDatumPoint(
         let text = 'x & y domains';
         if (validX) text = 'y domain';
         if (validY) text = 'x domain';
-        const { value: xValue } = getGroupingValue(point.x);
-        const { value: yValue } = getGroupingValue(point.y);
+        const xValue = getGroupingValue(point.x);
+        const yValue = getGroupingValue(point.y);
         Logger.warnOnce(`${warningPrefix}is outside the ${text}, ignoring. - x: [${xValue}], y: ${yValue}]`);
     }
 
@@ -73,7 +73,7 @@ export function validateDatumPoint(
 
 function validateDatumPointDirection(d: any, context: AnnotationAxisContext) {
     const { domain } = context.scale;
-    const { value } = getGroupingValue(d);
+    const value = getGroupingValue(d);
     if (domain && value != null && context.continuous) {
         return value >= domain[0] && value <= domain.at(-1);
     }

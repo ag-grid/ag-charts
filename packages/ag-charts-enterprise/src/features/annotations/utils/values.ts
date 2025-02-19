@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
-import { getGroupingValue } from './scale';
+import { getGrouping } from './scale';
 
 const { clampArray } = _ModuleSupport;
 
@@ -30,7 +30,7 @@ export function convertPoint(point: Point, context: AnnotationContext) {
 export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext, 'scale' | 'snapToGroup'>): number {
     if (p == null) return 0;
 
-    const { value, groupPercentage } = getGroupingValue(p);
+    const { value, groupPercentage } = getGrouping(p);
 
     const { scale, snapToGroup } = context;
     const width = scale.bandwidth === 0 ? scale.step ?? 0 : scale.bandwidth ?? 0;

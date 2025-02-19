@@ -279,9 +279,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.annotationData.splice(0, this.annotationData.length);
             },
 
-            validatePoint: (point: Point) => {
+            validatePoint: (point: Point, options?: { overflowContinuous: boolean }) => {
                 const context = this.getAnnotationContext();
-                return context ? validateDatumPoint(context, point) : true;
+                return context ? validateDatumPoint(context, point, options) : true;
             },
 
             getAnnotationType: (index: number) => {
@@ -628,8 +628,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private getDatumRangeVolume(fromPoint: Point['x'], toPoint: Point['x']) {
         const { dataModel, processedData } = this;
 
-        let from = getGroupingValue(fromPoint).value;
-        let to = getGroupingValue(toPoint).value;
+        let from = getGroupingValue(fromPoint);
+        let to = getGroupingValue(toPoint);
         if (!isValidDate(from) || !isValidDate(to) || !dataModel || !processedData || this.volumeKey == null) return;
 
         if (from > to) {
