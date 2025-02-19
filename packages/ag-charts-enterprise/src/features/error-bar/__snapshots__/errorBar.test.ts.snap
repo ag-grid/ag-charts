@@ -7,7 +7,7 @@ NodeList [
     class="ag-charts-tooltip ag-charts-tooltip--no-interaction ag-charts-tooltip--arrow-bottom ag-charts-tooltip--wrap-hyphenate"
     data-presented-as-popover=""
     popover="manual"
-    style="transform: translate(314px, 200px); top: 0px; left: 0px; pointer-events: none;"
+    style="pointer-events: none; top: 0px; left: 0px;"
   >
     <div
       class="ag-charts-tooltip-content"
@@ -39,7 +39,7 @@ NodeList [
     class="ag-charts-tooltip ag-charts-tooltip--no-interaction ag-charts-tooltip--arrow-bottom ag-charts-tooltip--wrap-hyphenate"
     data-presented-as-popover=""
     popover="manual"
-    style="transform: translate(413px, 380px); top: 0px; left: 0px; pointer-events: none;"
+    style="pointer-events: none; top: 0px; left: 0px;"
   >
     <div
       class="ag-charts-tooltip-content"
