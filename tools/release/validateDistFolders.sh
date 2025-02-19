@@ -144,7 +144,7 @@ validateLocale()
 }
 
 # check all expected modules & packages are there
-node checkFilesExist.js
+node validatePackageFolderContents.js
 
 validateModules "dist/packages/contents"
 validateLocale "dist/packages/contents/ag-charts-locale/package"
