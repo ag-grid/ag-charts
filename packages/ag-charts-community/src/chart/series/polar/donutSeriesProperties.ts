@@ -1,4 +1,3 @@
-import { Logger } from 'ag-charts-core';
 import type {
     AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
@@ -92,20 +91,6 @@ class DonutSeriesCalloutLine extends BaseProperties {
 }
 
 export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions> {
-    override isValid(): boolean {
-        const superIsValid = super.isValid();
-
-        if (this.innerRadiusRatio == null && this.innerRadiusOffset == null) {
-            Logger.warnOnce(
-                'Either an [innerRadiusRatio] or an [innerRadiusOffset] must be set to render a donut series.'
-            );
-
-            return false;
-        }
-
-        return superIsValid;
-    }
-
     @Validate(STRING)
     angleKey!: string;
 
