@@ -84,8 +84,8 @@ export class ParallelChannelStateMachine extends StateMachine<
             node?.toggleHandles({ bottomLeft: true, bottomRight: true });
 
             if (
-                !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) ||
-                !ctx.validatePoint({ x: datum.end.x, y: point.y })
+                !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }, { overflowContinuous: true }) ||
+                !ctx.validatePoint({ x: datum.end.x, y: point.y }, { overflowContinuous: true })
             ) {
                 return;
             }
@@ -110,8 +110,8 @@ export class ParallelChannelStateMachine extends StateMachine<
             node?.toggleHandles(true);
 
             if (
-                !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) ||
-                !ctx.validatePoint({ x: datum.end.x, y: point.y })
+                !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }, { overflowContinuous: true }) ||
+                !ctx.validatePoint({ x: datum.end.x, y: point.y }, { overflowContinuous: true })
             ) {
                 return;
             }

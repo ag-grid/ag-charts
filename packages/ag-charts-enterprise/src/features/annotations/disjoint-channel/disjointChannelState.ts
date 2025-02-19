@@ -77,7 +77,10 @@ export class DisjointChannelStateMachine extends StateMachine<
 
             node?.toggleHandles({ bottomLeft: true, bottomRight: true });
 
-            if (!ctx.validatePoint(bottomStart) || !ctx.validatePoint(bottomEnd)) {
+            if (
+                !ctx.validatePoint(bottomStart, { overflowContinuous: true }) ||
+                !ctx.validatePoint(bottomEnd, { overflowContinuous: true })
+            ) {
                 return;
             }
 
@@ -103,7 +106,10 @@ export class DisjointChannelStateMachine extends StateMachine<
 
             node?.toggleHandles(true);
 
-            if (!ctx.validatePoint(bottomStart) || !ctx.validatePoint(bottomEnd)) {
+            if (
+                !ctx.validatePoint(bottomStart, { overflowContinuous: true }) ||
+                !ctx.validatePoint(bottomEnd, { overflowContinuous: true })
+            ) {
                 return;
             }
 
