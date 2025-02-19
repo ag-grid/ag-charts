@@ -20,10 +20,10 @@ import { IGNORED_PROP, pickProps } from './presetUtils';
 function pickTooltipProps(tooltip: AgChartTooltipOptions | undefined): AgChartTooltipOptions | undefined {
     if (tooltip === undefined) return undefined;
 
-    const { enabled, grouping, showArrow, range, position, delay, wrapping } = tooltip;
+    const { enabled, mode, showArrow, range, position, delay, wrapping } = tooltip;
     const result: RequireOptional<AgChartTooltipOptions> = {
         enabled,
-        grouping,
+        mode,
         showArrow,
         range,
         position,

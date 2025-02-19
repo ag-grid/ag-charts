@@ -1,4 +1,4 @@
-import type { InteractionRange, TextWrap, TooltipAffixment, TooltipGrouping, TooltipTether } from 'ag-charts-types';
+import type { InteractionRange, TextWrap, TooltipAffixment, TooltipMode, TooltipTether } from 'ag-charts-types';
 
 import { getWindow } from '../../core';
 import type { DOMManager } from '../../dom/domManager';
@@ -44,7 +44,9 @@ export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> =
 
 export interface TooltipMetaPosition {
     affixment?: TooltipAffixment;
+    defaultAffixment?: TooltipAffixment;
     tether?: TooltipTether | TooltipTether[];
+    defaultTether?: TooltipTether | TooltipTether[];
     xOffset?: number;
     yOffset?: number;
 }
@@ -303,14 +305,14 @@ const directionChecks: Record<TooltipTether, DirectionCheck> = {
     center: DirectionCheck.None,
 };
 
-const TOOLTIP_GROUPING = UNION(['none', 'category']);
+const TOOLTIP_MODE = UNION(['single', 'shared']);
 
 export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
-    @Validate(TOOLTIP_GROUPING)
-    grouping: TooltipGrouping = 'none';
+    @Validate(TOOLTIP_MODE)
+    mode: TooltipMode = 'single';
 
     @Validate(BOOLEAN, { optional: true })
     showArrow?: boolean;
@@ -400,11 +402,19 @@ export class Tooltip extends BaseProperties {
         const { canvasRect, relativeRect, meta } = positionParams;
         const { x: canvasX, y: canvasY } = this.springAnimation;
 
-        let tether = meta.position?.tether ?? this.position.tether ?? this.position.defaultTether;
+        let tether =
+            meta.position?.tether ??
+            this.position.tether ??
+            meta.position?.defaultTether ??
+            this.position.defaultTether;
         if (!Array.isArray(tether)) {
             tether = [tether];
         }
-        const affixment = meta.position?.affixment ?? this.position.affixment ?? this.position.defaultAffixment;
+        const affixment =
+            meta.position?.affixment ??
+            this.position.affixment ??
+            meta.position?.defaultAffixment ??
+            this.position.defaultAffixment;
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
 

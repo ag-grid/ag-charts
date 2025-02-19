@@ -161,26 +161,19 @@ export class CartesianChart extends Chart {
         datumIndex: number,
         removeMeDatum: unknown
     ): TooltipContent[] {
-        if (this.tooltip.grouping !== 'category' || this.series.length === 1) {
+        if (this.tooltip.mode !== 'shared' || this.series.length === 1) {
             return super.getTooltipContent(series, datumIndex, removeMeDatum);
         }
 
-        const xValues = series instanceof CartesianSeries ? series.xValues() : undefined;
-        const xValue = xValues?.[datumIndex]?.valueOf();
-        // Series does not yet support multi-series tooltips
-        if (xValue == null) return super.getTooltipContent(series, datumIndex, removeMeDatum);
+        const categoryValue = series instanceof CartesianSeries ? series.categoryValue(datumIndex) : undefined;
+        if (categoryValue == null) return super.getTooltipContent(series, datumIndex, removeMeDatum);
 
         return this.series.flatMap((s): TooltipContent | [] => {
             if (!(s instanceof CartesianSeries)) return [];
             if (!s.isEnabled() || !s.properties.tooltip.enabled) return [];
-
-            let tooltipContent: TooltipContent | undefined;
-            if (s === series) {
-                tooltipContent = s.getTooltipContent(datumIndex, removeMeDatum);
-            } else {
-                const seriesDatumIndex = s.xValues().findIndex((x) => x.valueOf() === xValue);
-                tooltipContent = s.getTooltipContent(seriesDatumIndex, undefined);
-            }
+            const seriesDatumIndex = s.datumIndexForCategoryValue(categoryValue);
+            const tooltipContent =
+                seriesDatumIndex == null ? undefined : s.getTooltipContent(datumIndex, removeMeDatum);
             return tooltipContent ?? [];
         });
     }

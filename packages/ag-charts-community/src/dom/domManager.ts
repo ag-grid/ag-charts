@@ -2,12 +2,12 @@ import { entries } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
 import { createElement, getDocument, getWindow } from '../core';
-import { createId } from '../module-support';
 import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
 import { setAttribute } from '../util/attributeUtil';
 import { BaseManager } from '../util/baseManager';
 import { GuardedElement } from '../util/guardedElement';
+import { createId } from '../util/id';
 import { stopPageScrolling } from '../util/keynavUtil';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
 import { StateTracker } from '../util/stateTracker';

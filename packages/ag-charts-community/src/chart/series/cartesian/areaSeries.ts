@@ -109,6 +109,9 @@ export class AreaSeries extends CartesianSeries<
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            directionValues: {
+                x: 'xValue',
+            },
             pathsPerSeries: ['fill', 'stroke'],
             pathsZIndexSubOrderOffset: [0, 1000],
             hasMarkers: true,
@@ -773,12 +776,6 @@ export class AreaSeries extends CartesianSeries<
                 text.visible = false;
             }
         });
-    }
-
-    public override xValues(): any[] {
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return [];
-        return dataModel.resolveKeysById(this, `xValue`, processedData);
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {

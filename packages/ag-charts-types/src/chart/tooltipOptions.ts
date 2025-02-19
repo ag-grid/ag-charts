@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from './callbackOptions';
 import type { DurationMs, InteractionRange, PixelSize, TextWrap } from './types';
 
-export type TooltipGrouping = 'none' | 'category';
+export type TooltipMode = 'single' | 'shared';
 
 export type TooltipAffixment = 'pointer' | 'node' | 'chart';
 
@@ -20,7 +20,7 @@ export interface AgChartTooltipOptions {
     /** Set to `false` to disable tooltips for all series in the chart. */
     enabled?: boolean;
     /** Group multiple series into the same tooltip */
-    grouping?: TooltipGrouping;
+    mode?: TooltipMode;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */
     showArrow?: boolean;
     /** Range from a point that triggers the tooltip to show. This will be used unless overridden by the series `tooltip.range` option. */
