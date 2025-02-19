@@ -1,5 +1,5 @@
 import { type AgMapMarkerSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type SeriesModuleDefinition, ValidationError, validate } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
@@ -49,4 +49,15 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
     options: mapMarkerSeriesOptionsDef,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new MapMarkerSeries(ctx),
+    validate(options, optionsDefs, path) {
+        const result = validate(options, optionsDefs, path);
+
+        if (result.valid?.idKey == null && (result.valid?.latitudeKey == null || result.valid?.longitudeKey == null)) {
+            const extendPath = (key: string) => (path ? `${path}.${key}` : key);
+            const message = `Either \`${extendPath('idKey')}\` or both \`${extendPath('latitudeKey')}\` and \`${extendPath('longitudeKey')}\` are required.`;
+            result.errors.push(new ValidationError(message, true));
+        }
+
+        return result;
+    },
 };

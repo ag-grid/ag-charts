@@ -21,18 +21,21 @@ export interface Validator extends Function {
     [requiredSymbol]?: boolean;
 }
 
-interface ValidationError {
-    value?: any;
-    key?: string;
-    path: string;
-    message: string;
-    unknown?: boolean;
-    required?: boolean;
-    toString(): string;
+export interface ValidationResult<T> {
+    valid: Partial<T> | null;
+    errors: ValidationError[];
 }
 
-function toString(this: ValidationError) {
-    return this.message;
+export class ValidationError {
+    constructor(
+        public message: string,
+        public required?: boolean,
+        public unknown?: boolean
+    ) {}
+
+    toString() {
+        return this.message;
+    }
 }
 
 /**
@@ -42,16 +45,10 @@ function toString(this: ValidationError) {
  * @param path The current path in the options object, for nested properties.
  * @returns An object containing valid options and validation errors.
  */
-export function validate<T>(
-    options: unknown,
-    optionsDefs: OptionsDefs<T>,
-    path = ''
-): { valid: Partial<T> | null; errors: ValidationError[] } {
+export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = ''): ValidationResult<T> {
     if (!isObject(options)) {
-        return {
-            valid: null,
-            errors: [{ path, value: options, message: validateMessage(path, options, 'an object'), toString }],
-        };
+        const message = validateMessage(path, options, 'an object');
+        return { valid: null, errors: [new ValidationError(message)] };
     }
 
     const optionsKeys = new Set(Object.keys(options));
@@ -75,14 +72,8 @@ export function validate<T>(
             if (validatorOrDefs(value, options)) {
                 valid[key as keyof T] = value;
             } else {
-                errors.push({
-                    key,
-                    path,
-                    value,
-                    required,
-                    message: validateMessage(extendPath(key), value, validatorOrDefs),
-                    toString,
-                });
+                const message = validateMessage(extendPath(key), value, validatorOrDefs);
+                errors.push(new ValidationError(message, required));
             }
         } else {
             const nestedResult = validate(value, validatorOrDefs, extendPath(key));
@@ -94,14 +85,8 @@ export function validate<T>(
     for (const key of optionsKeys) {
         const value = options[key as keyof object];
         if (typeof value === 'undefined') continue;
-        errors.push({
-            key,
-            path,
-            value,
-            unknown: true,
-            message: `Unknown option \`${extendPath(key)}\`, ignoring.`,
-            toString,
-        });
+        const message = `Unknown option \`${extendPath(key)}\`, ignoring.`;
+        errors.push(new ValidationError(message, undefined, true));
     }
 
     return { valid, errors };

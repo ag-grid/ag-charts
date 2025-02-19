@@ -271,7 +271,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 return;
             }
 
-            const { valid, errors } = validate(seriesOptions, seriesDef.options, `series[${index}]`);
+            const { validate: validateSeries = validate } = seriesDef;
+            const { valid, errors } = validateSeries(seriesOptions, seriesDef.options, `series[${index}]`);
 
             errors.forEach((error) => Logger.warn(error));
 

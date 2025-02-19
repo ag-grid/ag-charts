@@ -8,7 +8,6 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
@@ -50,22 +49,6 @@ class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> 
 }
 
 export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSeriesOptions> {
-    override isValid(): boolean {
-        const superIsValid = super.isValid();
-
-        const hasTopology = this.idKey != null;
-        const hasLatLon = this.latitudeKey != null && this.longitudeKey != null;
-        if (!hasTopology && !hasLatLon) {
-            Logger.warnOnce(
-                'Either both [topology] and [idKey] or both [latitudeKey] and [longitudeKey] must be set to render a map marker series.'
-            );
-
-            return false;
-        }
-
-        return superIsValid;
-    }
-
     @Validate(GEOJSON_OBJECT, { optional: true })
     topology: _ModuleSupport.FeatureCollection | undefined = undefined;
 
