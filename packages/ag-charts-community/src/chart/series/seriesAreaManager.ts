@@ -490,23 +490,29 @@ export class SeriesAreaManager extends BaseManager {
             this.handleSoloSeriesFocus(otherIndexDelta, datumIndexDelta, refresh);
             return;
         }
-        const { focus, seriesRect } = this;
+        const { focus } = this;
         const visibleSeries = focus.sortedSeries.filter((s) => s.visible && s.focusable);
         if (visibleSeries.length === 0) return;
 
-        const oldPick = {
-            datumIndex: focus.datumIndex - datumIndexDelta,
-            otherIndex: focus.seriesIndex - otherIndexDelta,
-        };
+        const oldDatumIndex = focus.datumIndex - datumIndexDelta;
+        const oldOtherIndex = focus.seriesIndex - otherIndexDelta;
 
         // Update focused series:
         focus.seriesIndex = clamp(0, focus.seriesIndex, visibleSeries.length - 1);
         focus.series = visibleSeries[focus.seriesIndex];
 
         // Update focused datum:
-        const { datumIndex, seriesIndex: otherIndex } = focus;
-        const pick = focus.series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
-        this.updatePickedFocus(otherIndexDelta, datumIndexDelta, oldPick, pick, refresh);
+        const datumIndex = this.focus.datumIndex;
+        const otherIndex = this.focus.seriesIndex;
+        this.updatePickedFocus(
+            datumIndex,
+            datumIndexDelta,
+            oldDatumIndex,
+            otherIndex,
+            otherIndexDelta,
+            oldOtherIndex,
+            refresh
+        );
     }
 
     private handleSoloSeriesFocus(otherIndexDelta: number, datumIndexDelta: number, refresh: boolean) {
@@ -515,34 +521,41 @@ export class SeriesAreaManager extends BaseManager {
         // (bar/needle, targets). This allows the hierarchical and gauge charts to piggy-backon the base keyboard handling
         // implementation.
         this.focus.series = this.focus.sortedSeries[0];
-        const {
-            focus: { series, seriesIndex: otherIndex, datumIndex },
-            seriesRect,
-        } = this;
-        if (series == null) return;
-        const oldPick = {
-            datumIndex: this.focus.datumIndex - datumIndexDelta,
-            otherIndex: this.focus.seriesIndex - otherIndexDelta,
-        };
-        const pick = series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
-        this.updatePickedFocus(otherIndexDelta, datumIndexDelta, oldPick, pick, refresh);
+        const datumIndex = this.focus.datumIndex;
+        const otherIndex = this.focus.seriesIndex;
+        const oldDatumIndex = this.focus.datumIndex - datumIndexDelta;
+        const oldOtherIndex = this.focus.seriesIndex - otherIndexDelta;
+        this.updatePickedFocus(
+            datumIndex,
+            datumIndexDelta,
+            oldDatumIndex,
+            otherIndex,
+            otherIndexDelta,
+            oldOtherIndex,
+            refresh
+        );
     }
 
     private updatePickedFocus(
-        otherIndexDelta: number,
+        datumIndex: number,
         datumIndexDelta: number,
-        oldPick: Required<Pick<PickFocusOutputs, 'datumIndex' | 'otherIndex'>>,
-        pick: PickFocusOutputs | undefined,
+        oldDatumIndex: number,
+        otherIndex: number,
+        otherIndexDelta: number,
+        oldOtherIndex: number,
         refresh: boolean
     ) {
-        const { focus, hoverRect } = this;
-        if (pick === undefined || focus.series === undefined || hoverRect === undefined) return;
+        const { focus, hoverRect, seriesRect } = this;
+        if (focus.series === undefined || hoverRect === undefined) return;
 
-        const { datum, datumIndex, otherIndex } = pick;
-        if (otherIndex !== undefined) {
-            focus.seriesIndex = otherIndex;
+        const pick = focus?.series?.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
+        if (!pick) return;
+
+        const { datum } = pick;
+        if (pick.otherIndex !== undefined) {
+            focus.seriesIndex = pick.otherIndex;
         }
-        focus.datumIndex = datumIndex;
+        focus.datumIndex = pick.datumIndex;
         focus.datum = datum;
 
         if (this.focusIndicator.isFocusVisible()) {
@@ -589,8 +602,8 @@ export class SeriesAreaManager extends BaseManager {
                 // the datum pick only if the indices have changed.
                 const shouldAnnouncePick =
                     (datumIndexDelta === 0 && otherIndexDelta === 0) ||
-                    oldPick.datumIndex !== pick.datumIndex ||
-                    oldPick.otherIndex !== (pick.otherIndex ?? focus.seriesIndex);
+                    oldDatumIndex !== pick.datumIndex ||
+                    oldOtherIndex !== (pick.otherIndex ?? focus.seriesIndex);
                 if (shouldAnnouncePick) {
                     this.swapChain.update(this.getDatumAriaText(datum, tooltipContent));
                 }
