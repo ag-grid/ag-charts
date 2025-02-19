@@ -191,12 +191,19 @@ export interface AgChartThemeParams {
  * @param E leaf types to exclude and keep their original type
  */
 type ExtendLiteralLeaves<T, V, E> = {
-    [P in keyof T]: T[P] extends Array<infer U>
+    [P in keyof T]: NonNullable<T[P]> extends Array<infer U>
+        ? U extends E
+            ? Array<U> | V
+            : ExtendLiteralLeavesInner<T, V, E, P>
+        : ExtendLiteralLeavesInner<T, V, E, P>;
+};
+
+type ExtendLiteralLeavesInner<T, V, E, P extends keyof T> =
+    T[P] extends Array<infer U>
         ? Array<ExtendLiteralLeaves<U, V, E>>
         : T[P] extends E
           ? T[P] | V
           : ExtendLiteralLeaves<T[P], V, E>;
-};
 
 type ThemeParam = keyof AgChartThemeParams;
 type ThemeParamsOperation =
