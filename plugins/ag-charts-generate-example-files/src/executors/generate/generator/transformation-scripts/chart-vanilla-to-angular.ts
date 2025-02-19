@@ -161,6 +161,9 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
                 .join('\n\n')}
         }
         `;
+
+        // @todo(AG-14126) - handle listener events correctly
+        indexFile = indexFile.replace('toggleDatum(event, event.datum);', 'this.toggleDatum(event, event.datum);');
     } else {
         const components: Array<{ selector: string; className: string }> = [];
 
