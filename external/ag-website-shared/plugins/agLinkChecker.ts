@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 type Options = {
     include: boolean;
+    prefix?: string;
 };
 
 const IGNORED_PATHS = ['/archive'];
@@ -22,15 +23,20 @@ const filePathToUrl = (filePath: string) => {
     return `/${filePath.replace('index.html', '')}`;
 };
 
-const filePathsString = (filePaths: Set<string>): string => {
+const shiftablePatterns = [/.*-data-grid/, /javascript|react|angular|vue/];
+const filePathsString = (filePaths: Set<string>, options: Options): string => {
+    const { prefix } = options;
     const pageNames = Array.from(filePaths).map((filePath) => {
+        if (prefix != null && filePath.startsWith(prefix)) {
+            filePath = filePath.slice(prefix.length);
+        }
         const filePathParts = filePath.split('/');
         if (filePathParts.at(-1) === 'index.html') {
             filePathParts.pop();
         }
         // Take page name from path
         // eg, javascript-data-grid/grid-options/index.html
-        if (filePathParts.length > 1 && filePathParts[0].match(/.*-data-grid/)) {
+        if (filePathParts.length > 1 && shiftablePatterns.some((p) => filePathParts[0].match(p))) {
             filePathParts.shift();
         }
         return filePathParts.join('/');
@@ -39,9 +45,10 @@ const filePathsString = (filePaths: Set<string>): string => {
     return pageNames.join(', ');
 };
 
-const checkLinks = async (dir: string, files: string[]) => {
+const checkLinks = async (dir: string, files: string[], options: Options) => {
     const anchors = new Set<string>();
     const linksToValidate: Record<string, { filePaths: Set<string> }> = {};
+    const { prefix } = options;
 
     for (let i = 0; i < files.length; i++) {
         const filePath = files[i];
@@ -129,8 +136,13 @@ const checkLinks = async (dir: string, files: string[]) => {
         if (IGNORED_PATHS.includes(link)) return;
 
         const originalLink = link;
-        if (link.startsWith('/')) link = link.slice(1);
-
+        if (prefix != null && link.startsWith(prefix)) {
+            link = link.slice(prefix.length);
+        }
+        const linkWithoutPrefix = link;
+        if (link.startsWith('/')) {
+            link = link.slice(1);
+        }
         if (!link.includes('#')) {
             // if this is a file, do direct lookup in files list
             const fileExtRegex = /\.[a-zA-Z]+$/;
@@ -152,12 +164,14 @@ const checkLinks = async (dir: string, files: string[]) => {
                 return;
             }
 
-            errors.push(`Link to ${link} could not be resolved (${filePathsString(filePaths)}).`);
+            errors.push(`Link to ${link} could not be resolved (${filePathsString(filePaths, options)}).`);
             return;
         } else {
             // check if the hash exists in the file
-            if (!anchors.has(originalLink)) {
-                errors.push(`Link to ${originalLink} could not be resolved in (${filePathsString(filePaths)}).`);
+            if (!anchors.has(linkWithoutPrefix)) {
+                errors.push(
+                    `Link to ${originalLink} could not be resolved in (${filePathsString(filePaths, options)}).`
+                );
             }
         }
     });
@@ -185,7 +199,7 @@ export default function createPlugin(options: Options): AstroIntegration {
 
                 const destDir = fileURLToPath(dir.href);
                 const files = findAllFiles(destDir);
-                await checkLinks(destDir, files);
+                await checkLinks(destDir, files, options);
             },
         },
     };
