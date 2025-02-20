@@ -295,6 +295,8 @@ export class Animation<T extends AnimationValue> implements IAnimation {
                         return () => a;
                     }
                     break;
+                case 'object':
+                    return () => a;
             }
         } catch {
             // Error-case handled below.

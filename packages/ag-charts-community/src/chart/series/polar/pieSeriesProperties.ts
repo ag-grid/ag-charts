@@ -1,4 +1,5 @@
 import type {
+    AgFillType,
     AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesOptions,
@@ -10,12 +11,15 @@ import type {
 import { DropShadow } from '../../../scene/dropShadow';
 import { BaseProperties } from '../../../util/properties';
 import {
+    ARRAY_OF,
     BOOLEAN,
+    COLOR_GRADIENT,
     COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
     NUMBER,
     OBJECT,
+    OR,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -106,7 +110,10 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     legendItemKey?: string;
 
     @Validate(COLOR_STRING_ARRAY)
-    fills: string[] = Object.values(DEFAULT_FILLS);
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    fills: AgFillType[] = Object.values(DEFAULT_FILLS);
 
     @Validate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);
