@@ -392,8 +392,8 @@ type OperationFn<T, P> = (
 
 function getOperation(value: unknown) {
     if (!isPlainObject(value)) return {};
-    const [operation, ...otherKeys] = Object.keys(value) as Array<Operation>;
-    if (otherKeys.length !== 0 || !operationKeys.has(operation)) return {};
+    const [operation] = Object.keys(value) as Array<Operation>;
+    if (!operationKeys.has(operation)) return {};
     return { operation, values: value[operation] };
 }
 
