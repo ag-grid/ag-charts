@@ -8,11 +8,12 @@ import type { TooltipPointerEvent } from './tooltip/tooltip';
 type PickProperties = {
     bounds: Path | BBox | undefined;
     datum: Parameters<typeof getDatumRefPoint>[1];
+    movedBounds?: Parameters<typeof getDatumRefPoint>[2];
     clipFocusBox: boolean;
 };
 
 function computeCenter(series: ISeries<any, any, any>, hoverRect: BBox, pick: PickProperties) {
-    const refPoint = getDatumRefPoint(series, pick.datum);
+    const refPoint = getDatumRefPoint(series, pick.datum, pick.movedBounds);
     if (refPoint != null) return { x: refPoint.canvasX, y: refPoint.canvasY };
 
     const bboxOrPath = pick.bounds;

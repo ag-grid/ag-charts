@@ -582,28 +582,28 @@ export class SeriesAreaManager extends BaseManager {
             if (!(nw || ne || sw || se)) {
                 // Move the focus box, insuring that we keeping 2px padding on all sides (AG-13067)
                 const hoverBounds = Vec4.from(hoverRect);
-                pick.bounds = focusBBox.clone();
+                pick.movedBounds = focusBBox.clone();
 
                 if (x1 < hoverBounds.x1 && x2 < hoverBounds.x1) {
-                    pick.bounds.x = hoverBounds.x1 - 2;
-                    pick.bounds.width = 4;
+                    pick.movedBounds.x = hoverBounds.x1 - 2;
+                    pick.movedBounds.width = 4;
                 } else if (x1 > hoverBounds.x2 && x2 > hoverBounds.x2) {
-                    pick.bounds.x = hoverBounds.x2 - 2;
-                    pick.bounds.width = 4;
+                    pick.movedBounds.x = hoverBounds.x2 - 2;
+                    pick.movedBounds.width = 4;
                 }
 
                 if (y1 < hoverBounds.y1 && y2 < hoverBounds.y1) {
-                    pick.bounds.y = hoverBounds.y1 - 2;
-                    pick.bounds.height = 4;
+                    pick.movedBounds.y = hoverBounds.y1 - 2;
+                    pick.movedBounds.height = 4;
                 } else if (y1 > hoverBounds.y2 && y2 > hoverBounds.y2) {
-                    pick.bounds.y = hoverBounds.y2 - 2;
-                    pick.bounds.height = 4;
+                    pick.movedBounds.y = hoverBounds.y2 - 2;
+                    pick.movedBounds.height = 4;
                 }
             }
         }
 
         // Update the bounds of the focus indicator:
-        this.focusIndicator.update(pick.bounds, this.seriesRect, pick.clipFocusBox);
+        this.focusIndicator.update(pick.movedBounds ?? pick.bounds, this.seriesRect, pick.clipFocusBox);
 
         const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
 
@@ -617,7 +617,7 @@ export class SeriesAreaManager extends BaseManager {
             this.highlight.stashedHoverEvent = undefined;
 
             const tooltipContent = this.chart.getTooltipContent(focus.series, datum.datumIndex, datum);
-            const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum);
+            const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
             const tooltipEnabled = this.chart.tooltip.enabled && focus.series.tooltipEnabled;
             if (tooltipEnabled) {
@@ -745,7 +745,8 @@ export class SeriesAreaManager extends BaseManager {
             const meta = TooltipManager.makeTooltipMeta(
                 { type: 'pointermove', canvasX, canvasY },
                 pick.series,
-                pick.datum
+                pick.datum,
+                undefined
             );
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content);
         } else {
