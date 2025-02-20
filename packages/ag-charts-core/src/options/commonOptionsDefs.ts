@@ -1,19 +1,31 @@
-import type { FillOptions, FontOptions, LineDashOptions, StrokeOptions } from 'ag-charts-types';
+import type { AgGradientFill, FillOptions, FontOptions, LineDashOptions, StrokeOptions } from 'ag-charts-types';
 
 import {
     type OptionsDefs,
     arrayOf,
+    constant,
     number,
     object,
+    optionsDefs,
     or,
     positiveNumber,
     ratio,
+    required,
     string,
     union,
 } from '../utils/validation';
 
+const gradientOptionsDef: OptionsDefs<AgGradientFill> = {
+    type: required(constant('gradient')),
+    direction: union('horizontal', 'vertical'),
+    colorStops: object,
+    bounds: union('series', 'item', 'axes'),
+};
+
+const gradient = optionsDefs(gradientOptionsDef, 'a gradient');
+
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
-    fill: or(string, object),
+    fill: or(string, gradient),
     fillOpacity: ratio,
 };
 
