@@ -175,7 +175,7 @@ describe('Legend', () => {
             const { x, y } = computeLegendBBox(chart);
             await clickAction(x, y)(chart);
 
-            await compare(chart);
+            await compare(chart, 'clicks-1-hidden');
         });
 
         it('when clicked twice should hide and re-show the related series', async () => {
@@ -190,7 +190,7 @@ describe('Legend', () => {
             await waitForChartStability(chart);
             await clickAction(x, y)(chart);
 
-            await compare(chart);
+            await compare(chart, 'clicks-all-shown');
         });
     });
 
@@ -204,7 +204,7 @@ describe('Legend', () => {
             const { x, y } = computeLegendBBox(chart);
             await doubleClickAction(x, y)(chart);
 
-            await compare(chart);
+            await compare(chart, 'clicks-1-shown');
         });
 
         it('when double clicked twice should show all series', async () => {
@@ -224,7 +224,7 @@ describe('Legend', () => {
 
             await doubleClickAction(x, y)(chart);
 
-            await compare(chart);
+            await compare(chart, 'clicks-all-shown');
         });
     });
 
