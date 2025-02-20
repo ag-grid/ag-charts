@@ -113,7 +113,7 @@
     "build:package": {
       "executor": "@nx/esbuild:esbuild",
       "cache": true,
-      "dependsOn": ["^build:types"],
+      "dependsOn": ["^build:package"],
       "inputs": [
         "{projectRoot}/package.json",
         "{projectRoot}/src/**/*",
