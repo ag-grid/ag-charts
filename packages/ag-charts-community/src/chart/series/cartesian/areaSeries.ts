@@ -91,6 +91,8 @@ export class AreaSeries extends CartesianSeries<
     static readonly className = 'AreaSeries';
     static readonly type = 'area' as const;
 
+    protected override clipFocusBox = false;
+
     override properties = new AreaSeriesProperties();
 
     override connectsToYAxis = true;
