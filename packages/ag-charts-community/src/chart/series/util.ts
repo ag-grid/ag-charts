@@ -1,6 +1,7 @@
 import { findMaxIndex, findMinIndex } from 'ag-charts-core';
 
 import { Transformable } from '../../scene/transformable';
+import type { BBoxValues } from '../../util/bboxinterface';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from './seriesTypes';
 
 function datumBoundaryPoints(datum: any, domain: any[]) {
@@ -73,8 +74,13 @@ export function visibleRangeIndices(
 
 export function getDatumRefPoint(
     series: ISeries<any, any, any>,
-    datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
+    datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
+    movedBounds: BBoxValues | undefined
 ): { canvasX: number; canvasY: number } | undefined {
+    if (movedBounds) {
+        const { x, y, width, height } = movedBounds;
+        return { canvasX: x + width / 2, canvasY: y + height / 2 };
+    }
     // On `line` and `scatter` series, the tooltip covers the top of error-bars when using datum.midPoint.
     // Using datum.yBar.upperPoint renders the tooltip higher up.
     const refPoint = datum.yBar?.upperPoint ?? datum.midPoint ?? series.datumMidPoint?.(datum);

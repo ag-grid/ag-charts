@@ -124,12 +124,12 @@ function from(
     }
 
     if ('width' in a) {
-        return {
+        return normalise({
             x1: a.x,
             y1: a.y,
             x2: a.x + a.width,
             y2: a.y + a.height,
-        };
+        });
     }
 
     throw new Error(`Values can not be converted into a vector4: [${JSON.stringify(a)}] [${b}] [${c}] [${d}]`);
