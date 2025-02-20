@@ -5,7 +5,7 @@ import glob from 'glob';
 import { expect, test } from './fixture';
 
 const baseUrl = process.env.PUBLIC_SITE_URL;
-const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', /*'angular',*/ 'vue3'] as const;
+const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'] as const;
 
 export const SELECTORS = {
     wrapper: '.ag-charts-wrapper',
