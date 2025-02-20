@@ -113,7 +113,7 @@ export default defineConfig({
         markdoc(),
         sitemap(getSitemapConfig()),
         agHtaccessGen({ include: HTACCESS === 'true' }),
-        agLinkChecker({ include: CHECK_LINKS === 'true', prefix: '/charts' }),
+        agLinkChecker({ include: CHECK_LINKS === 'true', prefix: PUBLIC_BASE_URL }),
         agRedirectsChecker({
             skip: CHECK_REDIRECTS !== 'true',
         }),
