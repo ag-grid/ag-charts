@@ -9,7 +9,7 @@
         "highlights": [
             {
                 "text": "Y Axis Auto Scaling",
-                "path": "./zoom#auto-scaling"
+                "path": "./zoom/#auto-scaling"
             },
             {
                 "text": "Annotations on Cartesian Charts",
@@ -17,7 +17,7 @@
             },
             {
                 "text": "Theme Parameters",
-                "path": "./themes/#theme-parameters"
+                "path": "./themes/#parameters"
             },
             {
                 "text": "Touch Interactions",
@@ -40,7 +40,7 @@
         "highlights": [
             {
                 "text": "Fibonacci Tools",
-                "path": "./financial-charts-toolbar#fibonacci-tools"
+                "path": "./financial-charts-toolbar/#fibonacci-tools"
             },
             {
                 "text": "Grouped Category Axis",
@@ -79,7 +79,7 @@
             },
             {
                 "text": "Measuring Tools",
-                "path": "./financial-charts-toolbar#measuring-tools"
+                "path": "./financial-charts-toolbar/#measuring-tools"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-10-3"
@@ -98,19 +98,19 @@
             },
             {
                 "text": "Arrow Drawings",
-                "path": "./financial-charts-toolbar#arrows"
+                "path": "./financial-charts-toolbar/#arrows"
             },
             {
                 "text": "Trend Line Labels",
-                "path": "./financial-charts-toolbar#line-and-channel-labels"
+                "path": "./financial-charts-toolbar/#line-and-channel-labels"
             },
             {
                 "text": "Extending Trend Lines and Channels",
-                "path": "./financial-charts-toolbar#extending-lines-and-channels"
+                "path": "./financial-charts-toolbar/#extending-lines-and-channels"
             },
             {
                 "text": "Copy/Paste and Undo/Redo Support",
-                "path": "./financial-charts-toolbar#keyboard-shortcuts"
+                "path": "./financial-charts-toolbar/#keyboard-shortcuts"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-10-2"
@@ -121,23 +121,23 @@
         "highlights": [
             {
                 "text": "Financial Chart Type Selection",
-                "path": "./financial-charts-toolbar#chart-type-selection"
+                "path": "./financial-charts-toolbar/#chart-type-selection"
             },
             {
                 "text": "Text Annotation",
-                "path": "./financial-charts-toolbar#annotations"
+                "path": "./financial-charts-toolbar/#annotations"
             },
             {
                 "text": "Comment Annotation",
-                "path": "./financial-charts-toolbar#annotations"
+                "path": "./financial-charts-toolbar/#annotations"
             },
             {
                 "text": "Callout Annotation",
-                "path": "./financial-charts-toolbar#annotations"
+                "path": "./financial-charts-toolbar/#annotations"
             },
             {
                 "text": "Note Annotation",
-                "path": "./financial-charts-toolbar#annotations"
+                "path": "./financial-charts-toolbar/#annotations"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-10-1"
@@ -160,7 +160,7 @@
             },
             {
                 "text": "Annotations",
-                "path": "./financial-charts-toolbar#lines"
+                "path": "./financial-charts-toolbar/#lines"
             },
             {
                 "text": "Sankey Series",
@@ -172,7 +172,7 @@
             },
             {
                 "text": "Smooth and Step Line Style",
-                "path": "./line-series#interpolation"
+                "path": "./line-series/#interpolation"
             },
             {
                 "text": "Localisation",
@@ -203,11 +203,11 @@
             },
             {
                 "text": "Ordinal Time Axis",
-                "path": "./axes-types#ordinal-time"
+                "path": "./axes-types/#ordinal-time"
             },
             {
                 "text": "Zoom Buttons",
-                "path": "./zoom#buttons"
+                "path": "./zoom/#buttons"
             }
         ],
         "versionType": "Minor",
@@ -239,7 +239,7 @@
             },
             {
                 "text": "Rounded Corners for All Bar Series",
-                "path": "./bar-series#corner-radius"
+                "path": "./bar-series/#corner-radius"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-9-2"
@@ -259,11 +259,11 @@
             },
             {
                 "text": "Mini Chart in Navigator",
-                "path": "./navigator#mini-chart"
+                "path": "./navigator/#mini-chart"
             },
             {
                 "text": "Asynchronous Data Loading",
-                "path": "./zoom#asynchronous-loading"
+                "path": "./zoom/#asynchronous-loading"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-9-1"
