@@ -136,6 +136,6 @@
       }
     }
   },
-  "implicitDependencies": ["ag-charts-test", "ag-charts-locale"],
+  "implicitDependencies": ["ag-charts-test", "ag-charts-locale", "ag-charts-types", "ag-charts-core"],
   "tags": ["package"]
 }

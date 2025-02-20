@@ -105,5 +105,11 @@
     }
   },
   "tags": ["package"],
-  "implicitDependencies": ["ag-charts-community"]
+  "implicitDependencies": [
+    "ag-charts-community",
+    "ag-charts-test",
+    "ag-charts-locale",
+    "ag-charts-types",
+    "ag-charts-core"
+  ]
 }
