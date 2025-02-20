@@ -372,6 +372,7 @@ export class Tooltip extends BaseProperties {
         this.destroyFns.push(this.springAnimation.addListener('update', this.updateTooltipPosition.bind(this)));
     }
 
+    private domManager?: DOMManager = undefined;
     setup(domManager: DOMManager) {
         if ('togglePopover' in getWindow<any>().HTMLElement.prototype) {
             this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
@@ -380,6 +381,7 @@ export class Tooltip extends BaseProperties {
             // @ts-expect-error Typings need updating
             this.element.style.positionAnchor = domManager.anchorName;
         }
+        this.domManager = domManager;
     }
 
     destroy(domManager: DOMManager) {
@@ -402,13 +404,13 @@ export class Tooltip extends BaseProperties {
         const { canvasRect, relativeRect, meta } = positionParams;
         const { x: canvasX, y: canvasY } = this.springAnimation;
 
-        let anchorPoints =
+        let placements =
             meta.position?.placement ??
             this.position.placement ??
             meta.position?.defaultPlacement ??
             this.position.defaultPlacement;
-        if (!Array.isArray(anchorPoints)) {
-            anchorPoints = [anchorPoints];
+        if (!Array.isArray(placements)) {
+            placements = [placements];
         }
         const anchorTo =
             meta.position?.anchorTo ??
@@ -428,7 +430,7 @@ export class Tooltip extends BaseProperties {
         let position: Placement | undefined;
         let constrained = false;
         do {
-            placement = anchorPoints[i];
+            placement = placements[i];
             i += 1;
 
             const tooltipBounds = this.getTooltipBounds({
@@ -449,7 +451,7 @@ export class Tooltip extends BaseProperties {
             if (directionChecks[placement] & DirectionCheck.Vertical) {
                 constrained ||= position.y < minY || position.y > maxY;
             }
-        } while (i < anchorPoints.length && constrained);
+        } while (i < placements.length && constrained);
 
         const left = clamp(minX, position.x, maxX);
         const top = clamp(minY, position.y, maxY);
@@ -460,7 +462,7 @@ export class Tooltip extends BaseProperties {
         this.arrowPosition = showArrow ? arrowPositions[placement] : undefined;
         this.updateClassModifiers();
 
-        element.style.translate = `${left}px ${top}px`;
+        element.style.translate = `${top}px ${left}px`;
     }
 
     /**
