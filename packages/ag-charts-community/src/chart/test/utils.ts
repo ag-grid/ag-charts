@@ -572,6 +572,28 @@ export function touchAction(type: MockTouchTypes, touches: MockTouch[]): (chart:
     };
 }
 
+export function tapAction(clientX: number, clientY: number): (chart: ChartOrProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const testTarget = findChartTarget(chart, clientX, clientY);
+        let event: TouchEvent;
+
+        event = touchEvent('touchstart', testTarget, [{ identifier: 1, clientX, clientY, states: ['target'] }]);
+        dispatchEvent(testTarget, event);
+
+        event = touchEvent('touchend', testTarget, [{ identifier: 1, clientX, clientY, states: ['changed'] }]);
+        dispatchEvent(testTarget, event);
+
+        if (!event.defaultPrevented) {
+            dispatchEvent(testTarget, mouseDownEvent(testTarget, clientX, clientY));
+            dispatchEvent(testTarget, mouseUpEvent(testTarget, clientX, clientY));
+            dispatchEvent(testTarget, clickEvent(testTarget, clientX, clientY));
+        }
+
+        await delay(50);
+    };
+}
+
 export function doubleTapAction(clientX: number, clientY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);

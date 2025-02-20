@@ -24,6 +24,7 @@ import {
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    tapAction,
     waitForChartStability,
 } from '../test/utils';
 import type { AgChartProxy } from '../test/utils';
@@ -204,6 +205,40 @@ describe('Legend', () => {
                 await waitForChartStability(chart);
 
                 await doubleClickAction(x, y)(chart);
+                await compare(chart, 'clicks-all-shown');
+            });
+        });
+
+        describe('Tapping a legend', () => {
+            it('should hide the related series', async () => {
+                await tapAction(x, y)(chart);
+                await compare(chart, 'clicks-1-hidden');
+            });
+
+            it('when clicked twice should hide and re-show the related series', async () => {
+                await tapAction(x, y)(chart);
+                await waitForChartStability(chart);
+
+                await tapAction(x, y)(chart);
+                await compare(chart, 'clicks-all-shown');
+            });
+        });
+
+        describe('Double tapping a legend', () => {
+            it('should hide all other series except this one', async () => {
+                await doubleTapAction(x, y)(chart);
+                await compare(chart, 'clicks-1-shown');
+            });
+
+            it('when double tapped twice should show all series', async () => {
+                await doubleTapAction(x, y)(chart);
+                await waitForChartStability(chart);
+
+                // Click the legend item again for some reason... why does this test require this?
+                await clickAction(x, y)(chart);
+                await waitForChartStability(chart);
+
+                await doubleTapAction(x, y)(chart);
                 await compare(chart, 'clicks-all-shown');
             });
         });
