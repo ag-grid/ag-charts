@@ -1,6 +1,7 @@
 import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Point } from '../../../scene/point';
 import type { Sector } from '../../../scene/shape/sector';
+import type { FillType } from '../../../scene/util/fill';
 import { isBetweenAngles, toRadians } from '../../../util/angle';
 import type { Marker } from '../../marker/marker';
 import type { SeriesNodePickMatch } from '../series';
@@ -12,7 +13,7 @@ type AnimatableSectorDatum = {
     startAngle: number;
     endAngle: number;
     sectorFormat: {
-        fill?: string;
+        fill?: FillType;
         stroke?: string;
     };
 };
@@ -116,7 +117,6 @@ export function resetPieSelectionsFn(_node: Sector, datum: AnimatableSectorDatum
         endAngle: datum.endAngle,
         innerRadius: datum.innerRadius,
         outerRadius: datum.outerRadius,
-        fill: datum.sectorFormat.fill,
         stroke: datum.sectorFormat.stroke,
     };
 }

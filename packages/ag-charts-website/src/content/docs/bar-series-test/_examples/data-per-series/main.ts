@@ -13,7 +13,6 @@ const options: AgCartesianChartOptions = {
                 { product: 'Pro', value: 280 },
             ],
             stackGroup: 'ipad',
-            normalizedTo: 100,
         },
         {
             type: 'bar',
@@ -25,7 +24,6 @@ const options: AgCartesianChartOptions = {
                 { product: 'Pro', value: 90 },
             ],
             stackGroup: 'ipad',
-            normalizedTo: 100,
         },
         {
             type: 'bar',

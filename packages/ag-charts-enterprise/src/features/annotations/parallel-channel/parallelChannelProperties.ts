@@ -58,8 +58,8 @@ export class ParallelChannelProperties extends Annotation(
     override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
         return (
             super.isValid(warningPrefix) &&
-            validateDatumLine(context, this, { y: false }, warningPrefix) &&
-            validateDatumLine(context, this.bottom, { y: false }, warningPrefix)
+            validateDatumLine(context, this, { overflowContinuous: true }, warningPrefix) &&
+            validateDatumLine(context, this.bottom, { overflowContinuous: true }, warningPrefix)
         );
     }
 

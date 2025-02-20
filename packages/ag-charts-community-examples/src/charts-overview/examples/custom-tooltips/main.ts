@@ -9,9 +9,7 @@ function tooltipRenderer(params: AgBarSeriesTooltipRendererParams) {
 
   const tooltipHtml = [
     '<div class="my-tooltip">',
-    '<span class="my-tooltip__title" style="color: ' +
-      params.fill +
-      '">' +
+    '<span class="my-tooltip__title">' +
       params.yName,
     "(" +
       params.datum[params.xKey] +

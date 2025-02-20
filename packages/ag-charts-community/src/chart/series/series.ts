@@ -1,7 +1,6 @@
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
-    AgGradientFill,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesMarkerStylerParams,
@@ -17,7 +16,7 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
-import type { GradientOptions } from '../../scene/shape/shape';
+import { type FillType, isGradientFill } from '../../scene/util/fill';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
@@ -77,6 +76,7 @@ export type PickFocusOutputs = {
     datum: SeriesNodeDatum<unknown>;
     otherIndex?: number;
     bounds: BBox | Path;
+    movedBounds?: BBox;
     clipFocusBox: boolean;
 };
 
@@ -480,7 +480,17 @@ export abstract class Series<
     // Needed for auto-scaling zoom
     abstract getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [number, number]): any[];
 
-    protected getGradientFillOptions({ bounds }: AgGradientFill, defaultColorRange: string[]): GradientOptions {
+    protected getFillBBox(fill?: FillType): BBox | undefined {
+        if (!isGradientFill(fill)) {
+            return;
+        }
+
+        const { bounds = 'item', direction } = fill;
+
+        if (bounds === 'item') {
+            return;
+        }
+
         const { axes } = this;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -488,24 +498,28 @@ export abstract class Series<
         const xRange = xAxis?.range ?? [0, 1];
         const yRange = yAxis?.range ?? [0, 1];
 
-        const [x1, x2] = findMinMax(xRange);
-        const [y1, y2] = findMinMax(yRange);
+        const isHorizontal = direction === 'horizontal';
+        const axisDirection = isHorizontal ? ChartAxisDirection.Y : ChartAxisDirection.X;
+        const axis = axes[axisDirection];
+        const seriesDomain = this.getSeriesDomain(axisDirection);
+
+        const seriesRange = [axis?.scale.convert(seriesDomain.at(0)), axis?.scale.convert(seriesDomain.at(-1))];
+
+        let [x1, x2] = findMinMax(xRange);
+        let [y1, y2] = findMinMax(yRange);
+
+        if (bounds === 'series') {
+            if (isHorizontal) {
+                [y1, y2] = findMinMax(seriesRange);
+            } else {
+                [x1, x2] = findMinMax(seriesRange);
+            }
+        }
 
         const width = x2 - x1;
         const height = y2 - y1;
 
-        let domain: [number, number] = [0, 1];
-        if (bounds === 'series') {
-            domain = this.getSeriesDomain(ChartAxisDirection.Y) as [number, number];
-        } else if (bounds === 'axes') {
-            domain = (yAxis?.scale.domain ?? [0, 1]) as [number, number];
-        }
-
-        return {
-            bbox: new BBox(x1, y1, width, height),
-            domain,
-            defaultColorRange,
-        };
+        return new BBox(x1, y1, width, height);
     }
 
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
@@ -806,14 +820,24 @@ export abstract class Series<
         marker: ISeriesMarker<TParams>,
         params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
+        fillBBox?: BBox,
         { applyTranslation = true, selected = true } = {}
     ) {
         const { point } = params.datum;
         const activeStyle = this.getMarkerStyle(marker, params, defaultStyle);
         const visible = this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
+        markerNode.fillBBox = fillBBox;
+
         if (applyTranslation) {
-            markerNode.setProperties({ visible, ...activeStyle, translationX: point?.x, translationY: point?.y });
+            markerNode.setProperties({
+                visible,
+                ...activeStyle,
+                x: point?.x,
+                y: point?.y,
+                scalingCenterX: point?.x,
+                scalingCenterY: point?.y,
+            });
         } else {
             markerNode.setProperties({ visible, ...activeStyle });
         }

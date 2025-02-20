@@ -71,6 +71,203 @@ describe('ScatterSeries', () => {
         });
     });
 
+    describe('gradient fill', () => {
+        it('should render scatter series with a vertical gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        fill: {
+                            type: 'gradient',
+                        },
+                        size: 20,
+                        strokeWidth: 0,
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render scatter series with a horizontal gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        fill: {
+                            type: 'gradient',
+                            direction: 'horizontal',
+                        },
+                        size: 20,
+                        strokeWidth: 0,
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render scatter series with a series bound vertical gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        fill: {
+                            type: 'gradient',
+                            direction: 'vertical',
+                            bounds: 'series',
+                        },
+                        size: 20,
+                        strokeWidth: 0,
+                    },
+                ],
+                axes: [
+                    {
+                        position: 'left',
+                        type: 'number',
+                    },
+                    {
+                        position: 'bottom',
+                        type: 'number',
+                        min: 100,
+                        max: 500,
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render scatter series with a series bound horizontal gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        fill: {
+                            type: 'gradient',
+                            direction: 'horizontal',
+                            bounds: 'series',
+                        },
+                        size: 20,
+                        strokeWidth: 0,
+                    },
+                ],
+                axes: [
+                    {
+                        position: 'left',
+                        type: 'number',
+                        min: 60,
+                        max: 100,
+                    },
+                    {
+                        position: 'bottom',
+                        type: 'number',
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render scatter series with an axes bound vertical gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        fill: {
+                            type: 'gradient',
+                            direction: 'vertical',
+                            bounds: 'axes',
+                        },
+                        size: 20,
+                        strokeWidth: 0,
+                    },
+                ],
+                axes: [
+                    {
+                        position: 'left',
+                        type: 'number',
+                    },
+                    {
+                        position: 'bottom',
+                        type: 'number',
+                        min: 100,
+                        max: 500,
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render scatter series with an axes bound horizontal gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        fill: {
+                            type: 'gradient',
+                            direction: 'horizontal',
+                            bounds: 'axes',
+                        },
+                        size: 20,
+                        strokeWidth: 0,
+                    },
+                ],
+                axes: [
+                    {
+                        position: 'left',
+                        type: 'number',
+                        min: 60,
+                        max: 100,
+                    },
+                    {
+                        position: 'bottom',
+                        type: 'number',
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     it('should render scatter series with reversed axes', async () => {
         const options: AgChartOptions = {
             ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,

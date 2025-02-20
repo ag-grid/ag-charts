@@ -44,6 +44,7 @@ const {
     ContinuousScale,
     OrdinalTimeScale,
     findMinMax,
+    isGradientFill,
 } = _ModuleSupport;
 
 class RangeAreaSeriesNodeEvent<
@@ -80,6 +81,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     override properties = new RangeAreaProperties();
 
+    protected override clipFocusBox: boolean = false;
     protected override readonly NodeEvent = RangeAreaSeriesNodeEvent;
 
     private dataAggregationFilters: RangeAreaSeriesDataAggregationFilter[] | undefined = undefined;
@@ -435,7 +437,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             opacity,
             visible: visible || animationEnabled,
         });
+
+        const { fill: seriesFill } = this.properties;
+        let fillBBox;
+        if (isGradientFill(seriesFill)) {
+            seriesFill.bounds ??= 'series';
+            fillBBox = this.getFillBBox(seriesFill);
+        }
+
         fill.setProperties({
+            fillBBox,
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
@@ -555,8 +566,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeOpacity,
         });
 
+        const fillBBox = this.getFillBBox(baseStyle.fill);
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yHighKey, yLowKey }, baseStyle);
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yHighKey, yLowKey }, baseStyle, fillBBox);
         });
 
         if (!highlighted) {
@@ -820,7 +832,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return this.getMarkerStyle(this.properties.marker, { datum, xKey, yLowKey, yHighKey, highlighted: true });
     }
 
-    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         const hiBox = computeMarkerFocusBounds(this, opts);
         const loBox = computeMarkerFocusBounds(this, { ...opts, datumIndex: opts.datumIndex + 1 });
         if (hiBox && loBox) {

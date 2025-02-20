@@ -24,6 +24,8 @@ export abstract class LinearScene<
         end: _ModuleSupport.Vec2;
     };
 
+    protected overflowContinuous = 0;
+
     protected extendLine({ x1, y1, x2, y2 }: _ModuleSupport.Vec4, datum: Datum, context: AnnotationContext) {
         // Clone the points to prevent mutating the original
         const linePoints = { x1, y1, x2, y2 };
@@ -126,7 +128,7 @@ export abstract class LinearScene<
     ) {
         const vectors = this.getTranslatePointsVectors(start, end);
         const points = translate(vectors, translation, context, {
-            overflowContinuous: Math.max(0, Object.keys(vectors).length - 2),
+            overflowContinuous: this.overflowContinuous,
         });
 
         datum.start.x = points.start.x;

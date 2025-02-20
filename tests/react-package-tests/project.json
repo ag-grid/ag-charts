@@ -85,9 +85,18 @@
           "command": "{projectRoot}/run-next-js.sh -u 19"
         }
       }
+    },
+    "test:package:basic:editor": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-basic.sh -n -e 19"
+    },
+    "test:package:next-js:editor": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-next-js.sh -n -e 19"
     }
   },
   "implicitDependencies": [
+    "ag-charts-core",
     "ag-charts-community",
     "ag-charts-enterprise",
     "ag-charts-locale",

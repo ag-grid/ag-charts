@@ -145,6 +145,7 @@ export { Debug } from './util/debug';
 export { sanitizeHtml } from './util/sanitize';
 export { isContinuous } from './util/value';
 export type { PlacedLabel, PointLabelDatum, LabelPlacement } from './scene/util/labelPlacement';
+export { isGradientFill } from './scene/util/fill';
 export * from './util/bboxinterface';
 export { Padding } from './util/padding';
 export { lineDistanceSquared } from './util/distance';

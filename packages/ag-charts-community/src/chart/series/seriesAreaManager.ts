@@ -11,6 +11,7 @@ import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
+import { Vec4 } from '../../util/vector4';
 import type { Widget } from '../../widget/widget';
 import type {
     DragWidgetEvent,
@@ -33,7 +34,7 @@ import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipContent, tooltipContentAriaLabel } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { type PickFocusOutputs, type Series, type SeriesNodePickIntent } from './series';
+import { type Series, type SeriesNodePickIntent } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { ISeries, SeriesNodeDatum } from './seriesTypes';
 
@@ -490,23 +491,29 @@ export class SeriesAreaManager extends BaseManager {
             this.handleSoloSeriesFocus(otherIndexDelta, datumIndexDelta, refresh);
             return;
         }
-        const { focus, seriesRect } = this;
+        const { focus } = this;
         const visibleSeries = focus.sortedSeries.filter((s) => s.visible && s.focusable);
         if (visibleSeries.length === 0) return;
 
-        const oldPick = {
-            datumIndex: focus.datumIndex - datumIndexDelta,
-            otherIndex: focus.seriesIndex - otherIndexDelta,
-        };
+        const oldDatumIndex = focus.datumIndex - datumIndexDelta;
+        const oldOtherIndex = focus.seriesIndex - otherIndexDelta;
 
         // Update focused series:
         focus.seriesIndex = clamp(0, focus.seriesIndex, visibleSeries.length - 1);
         focus.series = visibleSeries[focus.seriesIndex];
 
         // Update focused datum:
-        const { datumIndex, seriesIndex: otherIndex } = focus;
-        const pick = focus.series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
-        this.updatePickedFocus(otherIndexDelta, datumIndexDelta, oldPick, pick, refresh);
+        const datumIndex = this.focus.datumIndex;
+        const otherIndex = this.focus.seriesIndex;
+        this.updatePickedFocus(
+            datumIndex,
+            datumIndexDelta,
+            oldDatumIndex,
+            otherIndex,
+            otherIndexDelta,
+            oldOtherIndex,
+            refresh
+        );
     }
 
     private handleSoloSeriesFocus(otherIndexDelta: number, datumIndexDelta: number, refresh: boolean) {
@@ -515,34 +522,41 @@ export class SeriesAreaManager extends BaseManager {
         // (bar/needle, targets). This allows the hierarchical and gauge charts to piggy-backon the base keyboard handling
         // implementation.
         this.focus.series = this.focus.sortedSeries[0];
-        const {
-            focus: { series, seriesIndex: otherIndex, datumIndex },
-            seriesRect,
-        } = this;
-        if (series == null) return;
-        const oldPick = {
-            datumIndex: this.focus.datumIndex - datumIndexDelta,
-            otherIndex: this.focus.seriesIndex - otherIndexDelta,
-        };
-        const pick = series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
-        this.updatePickedFocus(otherIndexDelta, datumIndexDelta, oldPick, pick, refresh);
+        const datumIndex = this.focus.datumIndex;
+        const otherIndex = this.focus.seriesIndex;
+        const oldDatumIndex = this.focus.datumIndex - datumIndexDelta;
+        const oldOtherIndex = this.focus.seriesIndex - otherIndexDelta;
+        this.updatePickedFocus(
+            datumIndex,
+            datumIndexDelta,
+            oldDatumIndex,
+            otherIndex,
+            otherIndexDelta,
+            oldOtherIndex,
+            refresh
+        );
     }
 
     private updatePickedFocus(
-        otherIndexDelta: number,
+        datumIndex: number,
         datumIndexDelta: number,
-        oldPick: Required<Pick<PickFocusOutputs, 'datumIndex' | 'otherIndex'>>,
-        pick: PickFocusOutputs | undefined,
+        oldDatumIndex: number,
+        otherIndex: number,
+        otherIndexDelta: number,
+        oldOtherIndex: number,
         refresh: boolean
     ) {
-        const { focus, hoverRect } = this;
-        if (pick === undefined || focus.series === undefined || hoverRect === undefined) return;
+        const { focus, hoverRect, seriesRect } = this;
+        if (focus.series === undefined || hoverRect === undefined) return;
 
-        const { datum, datumIndex, otherIndex } = pick;
-        if (otherIndex !== undefined) {
-            focus.seriesIndex = otherIndex;
+        const pick = focus?.series?.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
+        if (!pick) return;
+
+        const { datum } = pick;
+        if (pick.otherIndex !== undefined) {
+            focus.seriesIndex = pick.otherIndex;
         }
-        focus.datumIndex = datumIndex;
+        focus.datumIndex = pick.datumIndex;
         focus.datum = datum;
 
         if (this.focusIndicator.isFocusVisible()) {
@@ -558,10 +572,38 @@ export class SeriesAreaManager extends BaseManager {
                     return; // Wait for update to ensure that we show the tooltip/highlight correctly.
                 }
             }
+            // AG-14102 Check if focusBBox is still completely outside the viewport (e.g. panning is disabled), and
+            // move/clip it if needed.
+            const { x1, x2, y1, y2 } = Vec4.from(focusBBox);
+            const nw = hoverRect.containsPoint(x1, y1);
+            const ne = hoverRect.containsPoint(x2, y1);
+            const sw = hoverRect.containsPoint(x1, y2);
+            const se = hoverRect.containsPoint(x2, y2);
+            if (!(nw || ne || sw || se)) {
+                // Move the focus box, insuring that we keeping 2px padding on all sides (AG-13067)
+                const hoverBounds = Vec4.from(hoverRect);
+                pick.movedBounds = focusBBox.clone();
+
+                if (x1 < hoverBounds.x1 && x2 < hoverBounds.x1) {
+                    pick.movedBounds.x = hoverBounds.x1 - 2;
+                    pick.movedBounds.width = 4;
+                } else if (x1 > hoverBounds.x2 && x2 > hoverBounds.x2) {
+                    pick.movedBounds.x = hoverBounds.x2 - 2;
+                    pick.movedBounds.width = 4;
+                }
+
+                if (y1 < hoverBounds.y1 && y2 < hoverBounds.y1) {
+                    pick.movedBounds.y = hoverBounds.y1 - 2;
+                    pick.movedBounds.height = 4;
+                } else if (y1 > hoverBounds.y2 && y2 > hoverBounds.y2) {
+                    pick.movedBounds.y = hoverBounds.y2 - 2;
+                    pick.movedBounds.height = 4;
+                }
+            }
         }
 
         // Update the bounds of the focus indicator:
-        this.focusIndicator.update(pick.bounds, this.seriesRect, pick.clipFocusBox);
+        this.focusIndicator.update(pick.movedBounds ?? pick.bounds, this.seriesRect, pick.clipFocusBox);
 
         const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
 
@@ -575,7 +617,7 @@ export class SeriesAreaManager extends BaseManager {
             this.highlight.stashedHoverEvent = undefined;
 
             const tooltipContent = this.chart.getTooltipContent(focus.series, datum.datumIndex, datum);
-            const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum);
+            const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
             const tooltipEnabled = this.chart.tooltip.enabled && focus.series.tooltipEnabled;
             if (tooltipEnabled) {
@@ -589,8 +631,8 @@ export class SeriesAreaManager extends BaseManager {
                 // the datum pick only if the indices have changed.
                 const shouldAnnouncePick =
                     (datumIndexDelta === 0 && otherIndexDelta === 0) ||
-                    oldPick.datumIndex !== pick.datumIndex ||
-                    oldPick.otherIndex !== (pick.otherIndex ?? focus.seriesIndex);
+                    oldDatumIndex !== pick.datumIndex ||
+                    oldOtherIndex !== (pick.otherIndex ?? focus.seriesIndex);
                 if (shouldAnnouncePick) {
                     this.swapChain.update(this.getDatumAriaText(datum, tooltipContent));
                 }
@@ -703,7 +745,8 @@ export class SeriesAreaManager extends BaseManager {
             const meta = TooltipManager.makeTooltipMeta(
                 { type: 'pointermove', canvasX, canvasY },
                 pick.series,
-                pick.datum
+                pick.datum,
+                undefined
             );
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content);
         } else {

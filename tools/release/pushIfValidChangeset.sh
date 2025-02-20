@@ -9,7 +9,7 @@ fi
 RELEASE_VERSION=$1
 RELEASE_BRANCH=$2
 
-NON_PACKAGE_JSON_COUNT=`git status --porcelain | grep -Ev "package.json|yarn.lock|version.ts|packages/ag-charts-enterprise/src/license/licenseManager.ts|.env.*|README.md" | wc -l`
+NON_PACKAGE_JSON_COUNT=`git status --porcelain | grep -Ev "package.json|yarn.lock|version.ts|packages/ag-charts-enterprise/src/license/licenseManager.ts|.env.*|README.md|ag-charts-versions.json" | wc -l`
 
 if [ $NON_PACKAGE_JSON_COUNT -ne 0 ];
 then

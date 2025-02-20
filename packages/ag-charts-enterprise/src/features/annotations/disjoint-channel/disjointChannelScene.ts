@@ -1,14 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isNumber } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
+import { translate } from '../utils/coords';
 import { updateChannelText } from '../utils/lineWithText';
-import { getGroupingValue } from '../utils/scale';
-import { invertCoords } from '../utils/values';
+import { convertLine } from '../utils/values';
 import type { DisjointChannelProperties } from './disjointChannelProperties';
 
 const { Vec2, Vec4 } = _ModuleSupport;
@@ -47,84 +46,67 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         const { offset } = handles[activeHandle].drag(target);
         handles[activeHandle].toggleDragging(true);
 
-        const invert = (coords: _ModuleSupport.Vec2) => invertCoords(coords, context);
-        const prev = datum.toJson();
-        const angle = datum.snapToAngle;
+        if (activeHandle === 'bottomRight') {
+            offset.x = 0;
+        }
 
-        const { value: endY } = getGroupingValue(datum.end.y);
-        const { value: startY } = getGroupingValue(datum.start.y);
+        let translateVectors: Array<ChannelHandle> = [];
+        let invertYVectors: Array<ChannelHandle> = [];
+        let allowSnapping = snapping;
 
         switch (activeHandle) {
             case 'topLeft':
-            case 'bottomLeft': {
-                const direction = activeHandle === 'topLeft' ? 1 : -1;
-                const start = snapping
-                    ? this.snapToAngle(target, context, 'topLeft', 'topRight', angle, direction)
-                    : invert({
-                          x: handles.topLeft.handle.x + offset.x,
-                          y: handles.topLeft.handle.y + offset.y * direction,
-                      });
-
-                const bottomStart = snapping
-                    ? this.snapToAngle(target, context, 'bottomLeft', 'bottomRight', angle, -direction)
-                    : invert({
-                          x: handles.bottomLeft.handle.x + offset.x,
-                          y: handles.bottomLeft.handle.y + offset.y * -direction,
-                      });
-
-                if (start?.y == null || bottomStart?.y == null || startY == null || !isNumber(startY)) return;
-
-                const startHeight = datum.startHeight + (start.y - startY) * 2;
-
-                datum.start.x = start.x;
-                datum.start.y = start.y;
-                datum.startHeight = startHeight;
-
+                translateVectors = ['topLeft'];
+                invertYVectors = ['bottomLeft'];
                 break;
-            }
-
-            case 'topRight': {
-                const end = snapping
-                    ? this.snapToAngle(target, context, 'topRight', 'topLeft', angle)
-                    : invert({
-                          x: handles.topRight.handle.x + offset.x,
-                          y: handles.topRight.handle.y + offset.y,
-                      });
-
-                if (end?.y == null || endY == null || !isNumber(endY)) return;
-
-                const endHeight = datum.endHeight + (end.y - endY) * 2;
-
-                datum.end.x = end.x;
-                datum.end.y = end.y;
-                datum.endHeight = endHeight;
-
+            case 'bottomLeft':
+                translateVectors = ['bottomLeft'];
+                invertYVectors = ['topLeft'];
                 break;
-            }
-
-            case 'bottomRight': {
-                const bottomStart = invert({
-                    x: handles.bottomLeft.handle.x + offset.x,
-                    y: handles.bottomLeft.handle.y + offset.y,
-                });
-                const bottomEnd = invert({
-                    x: handles.bottomRight.handle.x + offset.x,
-                    y: handles.bottomRight.handle.y + offset.y,
-                });
-
-                if (!bottomStart || !bottomEnd || datum.start.y == null || endY == null || !isNumber(endY)) return;
-
-                const endHeight = endY - bottomEnd.y;
-                const startHeight = datum.startHeight - (datum.endHeight - endHeight);
-
-                datum.startHeight = startHeight;
-                datum.endHeight = endHeight;
-            }
+            case 'topRight':
+                translateVectors = ['topRight'];
+                invertYVectors = ['bottomRight'];
+                break;
+            case 'bottomRight':
+                translateVectors = ['bottomLeft', 'bottomRight'];
+                allowSnapping = false;
+                break;
         }
 
-        if (!datum.isValidWithContext(context)) {
-            datum.set(prev);
-        }
+        const top = convertLine(datum, context);
+        const bottom = convertLine(datum.bottom, context);
+        if (!top || !bottom) return;
+
+        const vectors = {
+            topLeft: Vec4.start(top),
+            topRight: Vec4.end(top),
+            bottomLeft: Vec4.start(bottom),
+            bottomRight: Vec4.end(bottom),
+        };
+
+        const snap = {
+            vectors: {
+                topLeft: vectors.topRight,
+                bottomLeft: vectors.bottomRight,
+                topRight: vectors.topLeft,
+                bottomRight: vectors.bottomLeft,
+            },
+            angle: datum.snapToAngle,
+        };
+
+        const points = translate(vectors, offset, context, {
+            overflowContinuous: this.overflowContinuous,
+            translateVectors,
+            invertYVectors,
+            snap: allowSnapping ? snap : undefined,
+        });
+
+        datum.start.x = points.topLeft.x;
+        datum.start.y = points.topLeft.y;
+        datum.end.x = points.topRight.x;
+        datum.end.y = points.topRight.y;
+        datum.startHeight = points.topLeft.y - points.bottomLeft.y;
+        datum.endHeight = points.topRight.y - points.bottomRight.y;
     }
 
     protected override getTranslatePointsVectors(start: _ModuleSupport.Vec2, end: _ModuleSupport.Vec2) {

@@ -378,8 +378,8 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     }
 
     private getDateRangeValue(datum: MeasurerTypeProperties) {
-        const { value: start } = getGroupingValue(datum.start.x);
-        const { value: end } = getGroupingValue(datum.end.x);
+        const start = getGroupingValue(datum.start.x);
+        const end = getGroupingValue(datum.end.x);
 
         if (!isDate(start) || !isDate(end)) {
             throw new Error('Can not create a date range measurement of non-date x-axis.');
@@ -393,8 +393,8 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             throw new Error('Can not create a price range measurement of a non-numeric y-axis');
         }
 
-        const { value: endY } = getGroupingValue(datum.end.y);
-        const { value: startY } = getGroupingValue(datum.start.y);
+        const endY = getGroupingValue(datum.end.y);
+        const startY = getGroupingValue(datum.start.y);
 
         if (!isNumber(endY) || !isNumber(startY)) {
             throw new Error('Can not create a price range measurement of a non-numeric y-axis');
@@ -407,8 +407,8 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             throw new Error('Can not create a price range measurement of a non-numeric y-axis');
         }
 
-        const { value: endY } = getGroupingValue(datum.end.y);
-        const { value: startY } = getGroupingValue(datum.start.y);
+        const endY = getGroupingValue(datum.end.y);
+        const startY = getGroupingValue(datum.start.y);
 
         if (!isNumber(endY) || !isNumber(startY)) {
             throw new Error('Can not create a price range measurement of a non-numeric y-axis');

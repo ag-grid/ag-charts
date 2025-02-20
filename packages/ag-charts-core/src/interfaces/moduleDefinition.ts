@@ -1,4 +1,4 @@
-import type { OptionsDefs } from '../utils/validation';
+import type { OptionsDefs, ValidationResult } from '../utils/validation';
 
 export enum ModuleType {
     Chart = 'chart',
@@ -13,11 +13,18 @@ export interface ModuleDefinition<TModule extends ModuleType = ModuleType, TOpti
     enterprise?: boolean;
     name: string;
 
-    options?: OptionsDefs<TOptions>; // options definitions validation
     style?: string; // css string to inject into a style element
     themeTemplate?: object; // module's default theme template
+    options?: OptionsDefs<TOptions>; // options definitions validation
 
-    create(...args: any[]): ModuleInstance;
+    // Utility Methods:
+    create(this: void, ...args: any[]): ModuleInstance;
+    validate?(
+        this: void,
+        options: unknown,
+        optionsDefs: OptionsDefs<TOptions>,
+        path: string
+    ): ValidationResult<TOptions>;
 }
 
 export interface ChartModuleDefinition<TOptions = any> extends ModuleDefinition<ModuleType.Chart, TOptions> {
@@ -29,5 +36,3 @@ export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<Modul
 
     options: OptionsDefs<TOptions>;
 }
-
-export interface FeatureModuleDefinition<TOptions = any> extends ModuleDefinition<ModuleType.Feature, TOptions> {}

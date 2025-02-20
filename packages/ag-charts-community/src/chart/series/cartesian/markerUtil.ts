@@ -74,8 +74,10 @@ export function resetMarkerFn(_node: NodeWithOpacity & Node) {
 
 export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node: Node, datum: T) {
     return {
-        translationX: datum.point?.x ?? NaN,
-        translationY: datum.point?.y ?? NaN,
+        x: datum.point?.x ?? NaN,
+        y: datum.point?.y ?? NaN,
+        scalingCenterX: datum.point?.x ?? NaN,
+        scalingCenterY: datum.point?.y ?? NaN,
     };
 }
 

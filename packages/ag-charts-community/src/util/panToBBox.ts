@@ -63,7 +63,7 @@ export function calcPanToBBoxRatios(
     const x = panAxesUnnormalized(world.x1, world.x2, viewport.x1, viewport.x2, target.x1, target.x2);
     const y = panAxesUnnormalized(world.y1, world.y2, viewport.y1, viewport.y2, target.y1, target.y2);
 
-    return {
+    const result: XYRatios = {
         x: {
             min: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, x),
             max: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, x + viewportBBox.width),
@@ -73,4 +73,14 @@ export function calcPanToBBoxRatios(
             max: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, y + viewportBBox.height),
         },
     };
+
+    // [min, max] are in the [0, 1] range while preserving the (max - min) difference.
+    const diffX = result.x.max - result.x.min;
+    const diffY = result.y.max - result.y.min;
+    result.x.min = clamp(0, result.x.min, 1 - diffX);
+    result.x.max = result.x.min + diffX;
+    result.y.min = clamp(0, result.y.min, 1 - diffY);
+    result.y.max = result.y.min + diffY;
+
+    return result;
 }

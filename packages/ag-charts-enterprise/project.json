@@ -23,7 +23,7 @@
     "build:package": {
       "options": {
         "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"],
-        "external": ["ag-charts-community"]
+        "external": ["ag-charts-core", "ag-charts-community"]
       }
     },
     "build:umd": {
@@ -105,5 +105,11 @@
     }
   },
   "tags": ["package"],
-  "implicitDependencies": ["ag-charts-community"]
+  "implicitDependencies": [
+    "ag-charts-community",
+    "ag-charts-test",
+    "ag-charts-locale",
+    "ag-charts-types",
+    "ag-charts-core"
+  ]
 }

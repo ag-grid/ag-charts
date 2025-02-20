@@ -4,16 +4,18 @@ import { Logger } from 'ag-charts-core';
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
 import { getGroupingValue } from './scale';
 
+const { ContinuousScale } = _ModuleSupport;
+
 export function validateDatumLine(
     context: AnnotationContext,
     datum: { start: Point; end: Point },
-    directions?: Partial<Record<_ModuleSupport.ChartAxisDirection, boolean>>,
+    options: { overflowContinuous: boolean } = { overflowContinuous: false },
     warningPrefix?: string
 ) {
     let valid = true;
 
-    valid &&= validateDatumPoint(context, datum.start, directions, warningPrefix && `${warningPrefix}[start] `);
-    valid &&= validateDatumPoint(context, datum.end, directions, warningPrefix && `${warningPrefix}[end] `);
+    valid &&= validateDatumPoint(context, datum.start, options, warningPrefix && `${warningPrefix}[start] `);
+    valid &&= validateDatumPoint(context, datum.end, options, warningPrefix && `${warningPrefix}[end] `);
 
     return valid;
 }
@@ -27,7 +29,7 @@ export function validateDatumValue(
     const valid = validateDatumPointDirection(datum.value, axis);
 
     if (!valid && warningPrefix) {
-        const { value } = getGroupingValue(datum.value);
+        const value = getGroupingValue(datum.value);
         Logger.warnOnce(`${warningPrefix}is outside the axis domain, ignoring. - value: [${value}]]`);
     }
 
@@ -37,7 +39,7 @@ export function validateDatumValue(
 export function validateDatumPoint(
     context: AnnotationContext,
     point: Point,
-    directions?: Partial<Record<_ModuleSupport.ChartAxisDirection, boolean>>,
+    options: { overflowContinuous: boolean } = { overflowContinuous: false },
     warningPrefix?: string
 ) {
     if (point.x == null || point.y == null) {
@@ -47,27 +49,31 @@ export function validateDatumPoint(
         return false;
     }
 
-    const validX = directions?.x === false ? true : validateDatumPointDirection(point.x, context.xAxis);
-    const validY = directions?.y === false ? true : validateDatumPointDirection(point.y, context.yAxis);
+    const { xAxis, yAxis } = context;
 
-    if (!validX || !validY) {
+    // Explicitly test the scales because ordinal time axes report as continuous
+    const continuousX = options.overflowContinuous && ContinuousScale.is(xAxis.scale);
+    const continuousY = options.overflowContinuous && ContinuousScale.is(yAxis.scale);
+    const validX = continuousX || validateDatumPointDirection(point.x, xAxis);
+    const validY = continuousY || validateDatumPointDirection(point.y, yAxis);
+
+    if (validX && validY) return true;
+
+    if (warningPrefix) {
         let text = 'x & y domains';
         if (validX) text = 'y domain';
         if (validY) text = 'x domain';
-        if (warningPrefix) {
-            const { value: xValue } = getGroupingValue(point.x);
-            const { value: yValue } = getGroupingValue(point.y);
-            Logger.warnOnce(`${warningPrefix}is outside the ${text}, ignoring. - x: [${xValue}], y: ${yValue}]`);
-        }
-        return false;
+        const xValue = getGroupingValue(point.x);
+        const yValue = getGroupingValue(point.y);
+        Logger.warnOnce(`${warningPrefix}is outside the ${text}, ignoring. - x: [${xValue}], y: ${yValue}]`);
     }
 
-    return true;
+    return false;
 }
 
 function validateDatumPointDirection(d: any, context: AnnotationAxisContext) {
     const { domain } = context.scale;
-    const { value } = getGroupingValue(d);
+    const value = getGroupingValue(d);
     if (domain && value != null && context.continuous) {
         return value >= domain[0] && value <= domain.at(-1);
     }

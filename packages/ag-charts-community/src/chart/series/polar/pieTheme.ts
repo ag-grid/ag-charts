@@ -34,6 +34,9 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         calloutLine: {
             length: 10,
             strokeWidth: 2,
+            colors: {
+                $if: [{ $eq: [{ $path: '../strokeWidth' }, 0] }, { $path: '../fills' }, { $path: '../strokes' }],
+            },
         },
         fillOpacity: 1,
         strokeOpacity: 1,

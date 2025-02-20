@@ -1,5 +1,6 @@
 import type { RequireOptional } from 'ag-charts-core';
 import type {
+    AgGradientFill,
     AgMarkerShape,
     AgSeriesMarkerStyle,
     AgSeriesMarkerStylerParams,
@@ -11,9 +12,12 @@ import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
 import {
     BOOLEAN,
+    COLOR_GRADIENT,
     COLOR_STRING,
+    COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
+    OR,
     POSITIVE_NUMBER,
     RATIO,
     Validate,
@@ -43,9 +47,12 @@ export class SeriesMarker<TParams = never>
     @SceneChangeDetection()
     size: number = 6;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @Validate(OR(COLOR_STRING, COLOR_GRADIENT), { optional: true })
     @SceneChangeDetection()
-    fill?: string;
+    fill?: string | AgGradientFill;
+
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
 
     @Validate(RATIO)
     @SceneChangeDetection()
@@ -73,9 +80,32 @@ export class SeriesMarker<TParams = never>
     @SceneChangeDetection()
     itemStyler?: Styler<AgSeriesMarkerStylerParams<unknown> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
 
-    getStyle(): AgSeriesMarkerStyle {
-        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
-        return { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset };
+    getStyle(): AgSeriesMarkerStyle & { defaultColorRange: string[] } {
+        const {
+            size,
+            shape,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            defaultColorRange,
+        } = this;
+
+        return {
+            size,
+            shape,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            defaultColorRange,
+        };
     }
 
     getDiameter(): number {

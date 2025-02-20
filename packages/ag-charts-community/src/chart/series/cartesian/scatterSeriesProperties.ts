@@ -12,7 +12,7 @@ import type {
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
-import { COLOR_STRING_ARRAY, LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, STRING, Validate } from '../../../util/validation';
+import { LABEL_PLACEMENT, OBJECT, STRING, Validate } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -24,7 +24,6 @@ export interface ScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSe
     readonly label: MeasuredLabel;
     readonly placement: LabelPlacement;
     readonly anchor: Point;
-    readonly fill: string | undefined;
     readonly selected: boolean | undefined;
 }
 
@@ -44,9 +43,6 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     labelKey?: string;
 
     @Validate(STRING, { optional: true })
-    colorKey?: string;
-
-    @Validate(STRING, { optional: true })
     xFilterKey: string | undefined;
 
     @Validate(STRING, { optional: true })
@@ -62,15 +58,6 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     labelName?: string;
 
     @Validate(STRING, { optional: true })
-    colorName?: string;
-
-    @Validate(NUMBER_ARRAY, { optional: true })
-    colorDomain?: number[];
-
-    @Validate(COLOR_STRING_ARRAY)
-    colorRange: string[] = ['#ffff00', '#00ff00', '#0000ff'];
-
-    @Validate(STRING, { optional: true })
     title?: string;
 
     @ProxyProperty('marker.shape')
@@ -81,6 +68,9 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
 
     @ProxyProperty('marker.fill')
     fill?: string;
+
+    @ProxyProperty('marker.defaultColorRange')
+    defaultColorRange?: string[];
 
     @ProxyProperty('marker.fillOpacity')
     fillOpacity!: number;

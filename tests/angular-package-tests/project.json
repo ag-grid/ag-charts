@@ -58,15 +58,20 @@
     },
     "test:package:local-latest": {
       "dependsOn": ["^pack"],
-      "command": "{projectRoot}/run.sh -u latest",
+      "command": "{projectRoot}/run.sh latest",
       "configurations": {
         "update": {
           "command": "{projectRoot}/run.sh -u latest"
         }
       }
+    },
+    "test:package:editor": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run.sh -n -e latest"
     }
   },
   "implicitDependencies": [
+    "ag-charts-core",
     "ag-charts-community",
     "ag-charts-enterprise",
     "ag-charts-locale",

@@ -1,4 +1,5 @@
 import type { DOMManager } from '../../dom/domManager';
+import type { BBoxValues } from '../../util/bboxinterface';
 import { StateTracker } from '../../util/stateTracker';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { SeriesTooltip } from '../series/seriesTooltip';
@@ -80,7 +81,8 @@ export class TooltipManager {
     public static makeTooltipMeta(
         event: TooltipPointerEvent,
         series: ISeries<any, any, any>,
-        datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
+        datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
+        movedBounds: BBoxValues | undefined
     ): TooltipMeta {
         const { canvasX, canvasY } = event;
         const tooltip = series.properties.tooltip as SeriesTooltip<any>;
@@ -101,7 +103,7 @@ export class TooltipManager {
             },
         };
 
-        const refPoint = getDatumRefPoint(series, datum);
+        const refPoint = getDatumRefPoint(series, datum, movedBounds);
         if (refPoint != null && (anchorTo ?? defaultAnchorTo) === 'node') {
             return { ...meta, canvasX: refPoint.canvasX, canvasY: refPoint.canvasY };
         }

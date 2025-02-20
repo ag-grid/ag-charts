@@ -3,8 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import type { ChannelTextProperties } from '../annotationProperties';
 import type { AnnotationContext, Point } from '../annotationTypes';
-import { snapToAngle } from '../utils/coords';
-import { convertLine, invertCoords } from '../utils/values';
+import { convertLine } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
 import type { CollidableText } from './collidableTextScene';
 import type { Handle } from './handle';
@@ -26,6 +25,7 @@ export abstract class ChannelScene<
     },
 > extends LinearScene<Datum> {
     protected handles: { [key: string]: Handle } = {};
+    protected override overflowContinuous = 2;
 
     protected topLine = new CollidableLine();
     protected bottomLine = new CollidableLine();
@@ -58,22 +58,6 @@ export abstract class ChannelScene<
         for (const handle of Object.values(this.handles)) {
             handle.toggleLocked(locked ?? false);
         }
-    }
-
-    snapToAngle(
-        target: _ModuleSupport.Vec2,
-        context: AnnotationContext,
-        handle: ChannelHandle,
-        originHandle: ChannelHandle,
-        angle: number,
-        direction?: number
-    ): Point | undefined {
-        const { handles } = this;
-
-        const fixed = handles[originHandle].handle;
-        const active = handles[handle].drag(target).point;
-
-        return invertCoords(snapToAngle(active, fixed, angle, direction), context);
     }
 
     override toggleHandles(show: boolean | Partial<Record<ChannelHandle, boolean>>) {

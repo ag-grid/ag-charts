@@ -71,8 +71,8 @@ export class ParallelChannelStateMachine extends StateMachine<
         const actionHeightUpdate = ({ point }: { point: Point }) => {
             const { datum, node } = this;
 
-            const { value: endY } = getGroupingValue(datum?.end.y);
-            const { value: startY } = getGroupingValue(datum?.start.y);
+            const endY = getGroupingValue(datum?.end.y);
+            const startY = getGroupingValue(datum?.start.y);
 
             const { y: pointY } = point;
 
@@ -84,8 +84,8 @@ export class ParallelChannelStateMachine extends StateMachine<
             node?.toggleHandles({ bottomLeft: true, bottomRight: true });
 
             if (
-                !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) ||
-                !ctx.validatePoint({ x: datum.end.x, y: point.y })
+                !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }, { overflowContinuous: true }) ||
+                !ctx.validatePoint({ x: datum.end.x, y: point.y }, { overflowContinuous: true })
             ) {
                 return;
             }
@@ -97,8 +97,8 @@ export class ParallelChannelStateMachine extends StateMachine<
         const actionHeightFinish = ({ point }: { point: Point }) => {
             const { datum, node } = this;
 
-            const { value: endY } = getGroupingValue(datum?.end.y);
-            const { value: startY } = getGroupingValue(datum?.start.y);
+            const endY = getGroupingValue(datum?.end.y);
+            const startY = getGroupingValue(datum?.start.y);
 
             const { y: pointY } = point;
 
@@ -110,8 +110,8 @@ export class ParallelChannelStateMachine extends StateMachine<
             node?.toggleHandles(true);
 
             if (
-                !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) ||
-                !ctx.validatePoint({ x: datum.end.x, y: point.y })
+                !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }, { overflowContinuous: true }) ||
+                !ctx.validatePoint({ x: datum.end.x, y: point.y }, { overflowContinuous: true })
             ) {
                 return;
             }

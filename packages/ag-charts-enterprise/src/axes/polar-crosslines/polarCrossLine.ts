@@ -1,4 +1,4 @@
-import type { AgBaseCrossLineLabelOptions, FontStyle, FontWeight } from 'ag-charts-community';
+import type { AgBaseCrossLineLabelOptions, AgGradientFill, FontStyle, FontWeight } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 const {
@@ -17,6 +17,9 @@ const {
     STRING,
     UNION,
     AND,
+    OR,
+    COLOR_GRADIENT,
+    COLOR_STRING_ARRAY,
     Validate,
     MATCHING_CROSSLINE_TYPE,
     createId,
@@ -75,8 +78,11 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     @Validate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
     value?: any;
 
-    @Validate(COLOR_STRING, { optional: true })
-    fill?: string;
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill?: string | AgGradientFill;
 
     @Validate(RATIO, { optional: true })
     fillOpacity?: number;
