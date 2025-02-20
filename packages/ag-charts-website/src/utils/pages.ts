@@ -44,6 +44,7 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
 
     'ag-charts-locale/dist/**': 'packages/ag-charts-locale/dist/**/*.{cjs,mjs,js,map}',
     'ag-charts-community/dist/**': 'packages/ag-charts-community/dist/**/*.{cjs,mjs,js,map}',
+    'ag-charts-core/dist/**': 'packages/ag-charts-core/dist/**/*.{cjs,mjs,js,map}',
     'ag-charts-enterprise/dist/**': 'packages/ag-charts-enterprise/dist/**/*.{cjs,mjs,js,map}',
     'ag-charts-react/dist/**': 'packages/ag-charts-react/dist/**/*.{cjs,mjs,js,map}',
     'ag-charts-vue3/dist/**': 'packages/ag-charts-vue3/dist/**/*.{cjs,mjs,js,map}',
