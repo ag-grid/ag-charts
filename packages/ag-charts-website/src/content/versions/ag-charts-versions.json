@@ -24,8 +24,7 @@
                 "path": "./touch"
             }
         ],
-        "notesPath": "./upgrade-to-ag-charts-11-1",
-        "noDocs": true
+        "notesPath": "./upgrade-to-ag-charts-11-1"
     },
     {
         "version": "11.0.4",
