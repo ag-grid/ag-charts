@@ -123,11 +123,11 @@ describe('Legend', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async (chartInstance: Chart) => {
+    const compare = async (chartInstance: Chart, customSnapshotIdentifier?: string) => {
         await waitForChartStability(chartInstance);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, customSnapshotIdentifier });
     };
 
     const compareSnapshot = async (options: AgChartOptions) => {
@@ -456,22 +456,22 @@ describe('Legend', () => {
                 ],
             });
             chart = deproxy(AgCharts.create(options));
-            await compare(chart);
+            await compare(chart, 'ag-12693-both-visible');
 
             const [x_ag, x_npm, y] = [357, 428, 575];
 
             // Hide AG Grid scatter
             await clickAction(x_ag, y)(chart);
-            await compare(chart);
+            await compare(chart, 'ag-12693-one-visible');
 
             // Hide NPM scatter
             await clickAction(x_npm, y)(chart);
-            await compare(chart);
+            await compare(chart, 'ag-12693-none-visible');
 
             // Show both scatters
             await clickAction(x_ag, y)(chart);
             await clickAction(x_npm, y)(chart);
-            await compare(chart);
+            await compare(chart, 'ag-12693-both-visible');
         });
     });
 
