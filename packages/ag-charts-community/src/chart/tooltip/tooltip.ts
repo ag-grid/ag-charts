@@ -372,7 +372,6 @@ export class Tooltip extends BaseProperties {
         this.destroyFns.push(this.springAnimation.addListener('update', this.updateTooltipPosition.bind(this)));
     }
 
-    private domManager?: DOMManager = undefined;
     setup(domManager: DOMManager) {
         if ('togglePopover' in getWindow<any>().HTMLElement.prototype) {
             this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
@@ -381,7 +380,6 @@ export class Tooltip extends BaseProperties {
             // @ts-expect-error Typings need updating
             this.element.style.positionAnchor = domManager.anchorName;
         }
-        this.domManager = domManager;
     }
 
     destroy(domManager: DOMManager) {
