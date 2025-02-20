@@ -11,6 +11,7 @@ import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
+import { Vec4 } from '../../util/vector4';
 import type { Widget } from '../../widget/widget';
 import type {
     DragWidgetEvent,
@@ -569,6 +570,34 @@ export class SeriesAreaManager extends BaseManager {
                 const panSuccess = this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
                 if (panSuccess) {
                     return; // Wait for update to ensure that we show the tooltip/highlight correctly.
+                }
+            }
+            // AG-14102 Check if focusBBox is still completely outside the viewport (e.g. panning is disabled), and
+            // move/clip it if needed.
+            const { x1, x2, y1, y2 } = Vec4.from(focusBBox);
+            const nw = hoverRect.containsPoint(x1, y1);
+            const ne = hoverRect.containsPoint(x2, y1);
+            const sw = hoverRect.containsPoint(x1, y2);
+            const se = hoverRect.containsPoint(x2, y2);
+            if (!(nw || ne || sw || se)) {
+                // Move the focus box, insuring that we keeping 2px padding on all sides (AG-13067)
+                const hoverBounds = Vec4.from(hoverRect);
+                pick.bounds = focusBBox.clone();
+
+                if (x1 < hoverBounds.x1 && x2 < hoverBounds.x1) {
+                    pick.bounds.x = hoverBounds.x1 - 2;
+                    pick.bounds.width = 4;
+                } else if (x1 > hoverBounds.x2 && x2 > hoverBounds.x2) {
+                    pick.bounds.x = hoverBounds.x2 - 2;
+                    pick.bounds.width = 4;
+                }
+
+                if (y1 < hoverBounds.y1 && y2 < hoverBounds.y1) {
+                    pick.bounds.y = hoverBounds.y1 - 2;
+                    pick.bounds.height = 4;
+                } else if (y1 > hoverBounds.y2 && y2 > hoverBounds.y2) {
+                    pick.bounds.y = hoverBounds.y2 - 2;
+                    pick.bounds.height = 4;
                 }
             }
         }
