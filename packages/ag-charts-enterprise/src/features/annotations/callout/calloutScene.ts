@@ -293,7 +293,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     }
 
     private calculateCalloutPlacement(
-        anchorPoint: _ModuleSupport.Vec2,
+        placement: _ModuleSupport.Vec2,
         bounds: { x: number; y: number; width: number; height: number }
     ) {
         // bounds x and y are bottom left corner
@@ -303,15 +303,15 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         let xPlacement;
         let yPlacement;
 
-        if (anchorPoint.x > right) {
+        if (placement.x > right) {
             xPlacement = 'right';
-        } else if (anchorPoint.x < bounds.x) {
+        } else if (placement.x < bounds.x) {
             xPlacement = 'left';
         }
 
-        if (anchorPoint.y > bounds.y) {
+        if (placement.y > bounds.y) {
             yPlacement = 'bottom';
-        } else if (anchorPoint.y < top) {
+        } else if (placement.y < top) {
             yPlacement = 'top';
         }
 

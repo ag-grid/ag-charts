@@ -1,4 +1,4 @@
-import type { InteractionRange, TextWrap, TooltipAffixment, TooltipMode, TooltipTether } from 'ag-charts-types';
+import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
 
 import { getWindow } from '../../core';
 import type { DOMManager } from '../../dom/domManager';
@@ -43,10 +43,10 @@ export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> =
 };
 
 export interface TooltipMetaPosition {
-    affixment?: TooltipAffixment;
-    defaultAffixment?: TooltipAffixment;
-    tether?: TooltipTether | TooltipTether[];
-    defaultTether?: TooltipTether | TooltipTether[];
+    anchorTo?: AgTooltipAnchorTo;
+    defaultAnchorTo?: AgTooltipAnchorTo;
+    placement?: AgTooltipPlacement | AgTooltipPlacement[];
+    defaultPlacement?: AgTooltipPlacement | AgTooltipPlacement[];
     xOffset?: number;
     yOffset?: number;
 }
@@ -197,11 +197,11 @@ const POSITION_TYPE = UNION(
     'a position type'
 );
 
-const AFFIXMENT = UNION(['pointer', 'node', 'chart'], 'an affixment');
+const AFFIXMENT = UNION(['pointer', 'node', 'chart'], 'an anchorTo');
 
 const TETHER_UNION = UNION(
     ['top', 'right', 'bottom', 'left', 'top-right', 'bottom-right', 'bottom-left', 'top-left', 'center'],
-    'a tether'
+    'a placement'
 );
 const TETHER = OR(TETHER_UNION, ARRAY_OF(TETHER_UNION));
 
@@ -219,12 +219,12 @@ export class TooltipPosition extends BaseProperties {
     yOffset: number = 0;
 
     @Validate(AFFIXMENT, { optional: true })
-    affixment?: TooltipAffixment;
+    anchorTo?: AgTooltipAnchorTo;
 
     @Validate(TETHER, { optional: true })
-    tether?: TooltipTether | TooltipTether[];
+    placement?: AgTooltipPlacement | AgTooltipPlacement[];
 
-    get defaultAffixment(): TooltipAffixment {
+    get defaultAnchorTo(): AgTooltipAnchorTo {
         const { type } = this;
         if (type === 'node' || type === 'pointer') {
             return type;
@@ -233,7 +233,7 @@ export class TooltipPosition extends BaseProperties {
         }
     }
 
-    get defaultTether(): TooltipTether {
+    get defaultPlacement(): AgTooltipPlacement {
         const { type } = this;
         if (type === 'node' || type === 'pointer') {
             return 'top';
@@ -243,7 +243,7 @@ export class TooltipPosition extends BaseProperties {
     }
 }
 
-const horizontalAlignments: Record<TooltipTether, -1 | 0 | 1> = {
+const horizontalAlignments: Record<AgTooltipPlacement, -1 | 0 | 1> = {
     left: -1,
     'top-left': -1,
     'bottom-left': -1,
@@ -255,7 +255,7 @@ const horizontalAlignments: Record<TooltipTether, -1 | 0 | 1> = {
     'bottom-right': 1,
 };
 
-const verticalAlignments: Record<TooltipTether, -1 | 0 | 1> = {
+const verticalAlignments: Record<AgTooltipPlacement, -1 | 0 | 1> = {
     'top-left': -1,
     top: -1,
     'top-right': -1,
@@ -274,7 +274,7 @@ enum ArrowPosition {
     Right,
 }
 
-const arrowPositions: Record<TooltipTether, ArrowPosition | undefined> = {
+const arrowPositions: Record<AgTooltipPlacement, ArrowPosition | undefined> = {
     left: ArrowPosition.Right,
     'top-left': undefined,
     'bottom-left': undefined,
@@ -293,7 +293,7 @@ enum DirectionCheck {
     None = 0b00,
 }
 
-const directionChecks: Record<TooltipTether, DirectionCheck> = {
+const directionChecks: Record<AgTooltipPlacement, DirectionCheck> = {
     top: DirectionCheck.Vertical,
     bottom: DirectionCheck.Vertical,
     left: DirectionCheck.Horizontal,
@@ -312,7 +312,7 @@ export class Tooltip extends BaseProperties {
     enabled: boolean = true;
 
     @Validate(TOOLTIP_MODE)
-    mode: TooltipMode = 'single';
+    mode: AgTooltipMode = 'single';
 
     @Validate(BOOLEAN, { optional: true })
     showArrow?: boolean;
@@ -402,19 +402,19 @@ export class Tooltip extends BaseProperties {
         const { canvasRect, relativeRect, meta } = positionParams;
         const { x: canvasX, y: canvasY } = this.springAnimation;
 
-        let tether =
-            meta.position?.tether ??
-            this.position.tether ??
-            meta.position?.defaultTether ??
-            this.position.defaultTether;
-        if (!Array.isArray(tether)) {
-            tether = [tether];
+        let anchorPoints =
+            meta.position?.placement ??
+            this.position.placement ??
+            meta.position?.defaultPlacement ??
+            this.position.defaultPlacement;
+        if (!Array.isArray(anchorPoints)) {
+            anchorPoints = [anchorPoints];
         }
-        const affixment =
-            meta.position?.affixment ??
-            this.position.affixment ??
-            meta.position?.defaultAffixment ??
-            this.position.defaultAffixment;
+        const anchorTo =
+            meta.position?.anchorTo ??
+            this.position.anchorTo ??
+            meta.position?.defaultAnchorTo ??
+            this.position.defaultAnchorTo;
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
 
@@ -424,16 +424,16 @@ export class Tooltip extends BaseProperties {
         const maxY = relativeRect.height - elementSize.height + minY;
 
         let i = 0;
-        let activeTether: TooltipTether | undefined;
+        let placement: AgTooltipPlacement | undefined;
         let position: Placement | undefined;
         let constrained = false;
         do {
-            activeTether = tether[i];
+            placement = anchorPoints[i];
             i += 1;
 
             const tooltipBounds = this.getTooltipBounds({
-                tether: activeTether,
-                affixment,
+                placement,
+                anchorTo,
                 canvasX,
                 canvasY,
                 yOffset,
@@ -443,21 +443,21 @@ export class Tooltip extends BaseProperties {
             position = calculatePlacement(elementSize.width, elementSize.height, relativeRect, tooltipBounds);
 
             constrained = false;
-            if (directionChecks[activeTether] & DirectionCheck.Horizontal) {
+            if (directionChecks[placement] & DirectionCheck.Horizontal) {
                 constrained ||= position.x < minX || position.x > maxX;
             }
-            if (directionChecks[activeTether] & DirectionCheck.Vertical) {
+            if (directionChecks[placement] & DirectionCheck.Vertical) {
                 constrained ||= position.y < minY || position.y > maxY;
             }
-        } while (i < tether.length && constrained);
+        } while (i < anchorPoints.length && constrained);
 
         const left = clamp(minX, position.x, maxX);
         const top = clamp(minY, position.y, maxY);
 
         constrained ||= left !== position.x || top !== position.y;
-        const defaultShowArrow = affixment !== 'chart' && !constrained && !xOffset && !yOffset;
+        const defaultShowArrow = anchorTo !== 'chart' && !constrained && !xOffset && !yOffset;
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
-        this.arrowPosition = showArrow ? arrowPositions[activeTether] : undefined;
+        this.arrowPosition = showArrow ? arrowPositions[placement] : undefined;
         this.updateClassModifiers();
 
         element.style.translate = `${left}px ${top}px`;
@@ -569,8 +569,8 @@ export class Tooltip extends BaseProperties {
     }
 
     private getTooltipBounds(opts: {
-        affixment: TooltipAffixment;
-        tether: TooltipTether;
+        anchorTo: AgTooltipAnchorTo;
+        placement: AgTooltipPlacement;
         canvasX: number;
         canvasY: number;
         yOffset: number;
@@ -579,20 +579,20 @@ export class Tooltip extends BaseProperties {
     }): Bounds {
         if (!this.element || !this._elementSize) return {};
 
-        const { affixment, tether, canvasX, canvasY, yOffset, xOffset, canvasRect } = opts;
+        const { anchorTo, placement, canvasX, canvasY, yOffset, xOffset, canvasRect } = opts;
 
         const { width: tooltipWidth, height: tooltipHeight } = this._elementSize;
         const bounds: Bounds = { width: tooltipWidth, height: tooltipHeight };
 
-        if (affixment === 'node' || affixment === 'pointer') {
-            const horizontalAlignment = horizontalAlignments[tether];
-            const verticalAlignment = verticalAlignments[tether];
+        if (anchorTo === 'node' || anchorTo === 'pointer') {
+            const horizontalAlignment = horizontalAlignments[placement];
+            const verticalAlignment = verticalAlignments[placement];
             bounds.top = canvasY + yOffset + (tooltipHeight * (verticalAlignment - 1)) / 2 + 8 * verticalAlignment;
             bounds.left = canvasX + xOffset + (tooltipWidth * (horizontalAlignment - 1)) / 2 + 8 * horizontalAlignment;
             return bounds;
         }
 
-        switch (tether) {
+        switch (placement) {
             case 'top': {
                 bounds.top = yOffset;
                 bounds.left = canvasRect.width / 2 - tooltipWidth / 2 + xOffset;

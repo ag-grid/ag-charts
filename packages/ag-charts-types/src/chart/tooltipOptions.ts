@@ -1,11 +1,11 @@
 import type { AgChartCallbackParams } from './callbackOptions';
 import type { DurationMs, InteractionRange, PixelSize, TextWrap } from './types';
 
-export type TooltipMode = 'single' | 'shared';
+export type AgTooltipMode = 'single' | 'shared';
 
-export type TooltipAffixment = 'pointer' | 'node' | 'chart';
+export type AgTooltipAnchorTo = 'pointer' | 'node' | 'chart';
 
-export type TooltipTether =
+export type AgTooltipPlacement =
     | 'top'
     | 'right'
     | 'bottom'
@@ -20,7 +20,7 @@ export interface AgChartTooltipOptions {
     /** Set to `false` to disable tooltips for all series in the chart. */
     enabled?: boolean;
     /** Group multiple series into the same tooltip */
-    mode?: TooltipMode;
+    mode?: AgTooltipMode;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */
     showArrow?: boolean;
     /** Range from a point that triggers the tooltip to show. This will be used unless overridden by the series `tooltip.range` option. */
@@ -55,12 +55,18 @@ export enum AgTooltipPositionType {
 }
 
 export interface AgTooltipPositionOptions {
-    /** The type of positioning for the tooltip. By default, the tooltip follows the mouse pointer for series without markers, and it is anchored to the highlighted marker node for series with markers. */
+    /**
+     * The type of positioning for the tooltip. By default, the tooltip follows the mouse pointer for series without markers, and it is anchored to the highlighted marker node for series with markers.
+     * @deprecated v11.2.0 use `anchorTo` and `placement` instead.
+     */
     type?: `${AgTooltipPositionType}`;
-    /** Fixme */
-    affixment?: TooltipAffixment;
-    /** Fixme */
-    tether?: TooltipTether | TooltipTether[];
+    /** The element or point to position the tooltip relative to. */
+    anchorTo?: AgTooltipAnchorTo;
+    /**
+     * The positioning of the tooltip in relation to the element it's anchored to.
+     * Multiple values can be provided as a fallback mechanism for the case the tooltip does not fit inside the chart.
+     */
+    placement?: AgTooltipPlacement | AgTooltipPlacement[];
     /** The horizontal offset in pixels for the position of the tooltip. */
     xOffset?: PixelSize;
     /** The vertical offset in pixels for the position of the tooltip. */
