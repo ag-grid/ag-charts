@@ -6,7 +6,7 @@ import { clamp } from '../../util/number';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
-import type { PickFocusInputs, PickFocusOutputs, SeriesNodeDataContext } from './series';
+import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
@@ -16,6 +16,10 @@ export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {}
 export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum>
     extends SeriesNodeDataContext<number, TDatum, TLabel> {}
 
+export type DataModelSeriesConstructorOpts<TProps extends SeriesProperties<any>> = SeriesConstructorOpts<TProps> & {
+    clipFocusBox?: boolean;
+};
+
 export abstract class DataModelSeries<
     TDatum extends SeriesNodeDatum<number>,
     TProps extends SeriesProperties<any>,
@@ -24,7 +28,13 @@ export abstract class DataModelSeries<
 > extends Series<number, TDatum, TProps, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
-    protected clipFocusBox: boolean = true;
+    private readonly clipFocusBox: boolean;
+
+    protected constructor({ clipFocusBox, ...seriesOpts }: DataModelSeriesConstructorOpts<TProps>) {
+        super(seriesOpts);
+
+        this.clipFocusBox = clipFocusBox ?? true;
+    }
 
     protected getScaleInformation({
         xScale,

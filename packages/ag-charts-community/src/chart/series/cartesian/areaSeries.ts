@@ -91,8 +91,6 @@ export class AreaSeries extends CartesianSeries<
     static readonly className = 'AreaSeries';
     static readonly type = 'area' as const;
 
-    protected override clipFocusBox = false;
-
     override properties = new AreaSeriesProperties();
 
     override connectsToYAxis = true;
@@ -124,6 +122,7 @@ export class AreaSeries extends CartesianSeries<
                 label: resetLabelFn,
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
+            clipFocusBox: false,
         });
     }
 

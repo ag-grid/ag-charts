@@ -26,15 +26,11 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import { Marker } from '../../marker/marker';
 import {
     DataModelSeries,
+    type DataModelSeriesConstructorOpts,
     type DataModelSeriesNodeDataContext,
     type DataModelSeriesNodeDatum,
 } from '../dataModelSeries';
-import type {
-    SeriesConstructorOpts,
-    SeriesDirectionKeysMapping,
-    SeriesNodeEventTypes,
-    SeriesNodePickMatch,
-} from '../series';
+import type { SeriesDirectionKeysMapping, SeriesNodeEventTypes, SeriesNodePickMatch } from '../series';
 import { SeriesNodeEvent } from '../series';
 import { SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
@@ -218,7 +214,7 @@ export abstract class CartesianSeries<
         ...otherOpts
     }: Partial<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>> &
         Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'directionKeys' | 'directionNames'> &
-        SeriesConstructorOpts<TProps>) {
+        DataModelSeriesConstructorOpts<TProps>) {
         super({
             directionKeys,
             directionNames,

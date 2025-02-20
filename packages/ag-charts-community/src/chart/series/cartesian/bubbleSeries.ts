@@ -56,8 +56,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     protected override readonly NodeEvent = BubbleSeriesNodeEvent;
 
-    protected override clipFocusBox = false;
-
     override properties = new BubbleSeriesProperties();
 
     private readonly sizeScale = new LinearScale();
@@ -84,6 +82,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 marker: resetMarkerFn,
             },
             usesPlacedLabels: true,
+            clipFocusBox: false,
         });
     }
 
