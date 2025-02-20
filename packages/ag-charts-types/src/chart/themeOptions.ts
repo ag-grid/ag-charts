@@ -217,6 +217,7 @@ type ThemeParamsOperation =
     | { $round: [ThemeParamsLeaf<number>] }
     | { $rem: [ThemeParamsLeaf] | [ThemeParamsLeaf, ThemeParamsLeaf] }
     | { $mix: [ThemeParamsLeaf, ThemeParamsLeaf, ThemeParamsLeaf<number>] }
+    | { $mixEach: [ThemeParamsLeaf, ThemeParamsLeaf, ThemeParamsLeaf<number>] }
     | { $foregroundBackgroundMix: [ThemeParamsLeaf<number>] }
     | { $foregroundBackgroundAccentMix: [ThemeParamsLeaf<number>, ThemeParamsLeaf<number>] };
 
