@@ -1,4 +1,11 @@
-import type { AgHeatmapSeriesStyle, FontStyle, FontWeight, TextAlign, VerticalAlign } from 'ag-charts-community';
+import type {
+    AgGradientFill,
+    AgHeatmapSeriesStyle,
+    FontStyle,
+    FontWeight,
+    TextAlign,
+    VerticalAlign,
+} from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
@@ -267,7 +274,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 width,
                 height,
                 midPoint: { x, y },
-                missing: colorValue == null,
+                missing: colorValues != null && colorValue == null,
             });
 
             if (labels?.label != null) {
@@ -365,8 +372,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                         xKey,
                         yKey,
                         highlighted,
-                        fill,
                         ...format,
+                        fill,
                     });
                 }
             );
@@ -465,7 +472,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        let fill: string;
+        let fill: AgGradientFill | string;
         if (colorValue == null) {
             fill = colorRange[0];
         } else {
@@ -477,6 +484,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue) },
             { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }
         );
+
+        const format = this.getItemBaseStyle(false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, colorValue, format, false));
+
+        if (format.fill != null) {
+            fill = format.fill;
+        }
 
         const symbol: _ModuleSupport.LegendSymbolOptions | undefined =
             fill != null
@@ -493,9 +507,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                       },
                   }
                 : undefined;
-
-        const format = this.getItemBaseStyle(false);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, colorValue, format, false));
 
         return tooltip.formatTooltip(
             { title: title ?? legendItemName, symbol, data },
