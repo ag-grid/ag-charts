@@ -165,66 +165,47 @@ describe('Legend', () => {
         });
     });
 
-    describe('Clicking a legend', () => {
-        it('should hide the related series', async () => {
-            const options = {
-                ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            };
-            chart = await createChart(options);
-
-            const { x, y } = computeLegendBBox(chart);
-            await clickAction(x, y)(chart);
-
-            await compare(chart, 'clicks-1-hidden');
+    describe('Clicks', () => {
+        let x: number, y: number;
+        beforeEach(async () => {
+            chart = await createChart({ ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS });
+            const box = computeLegendBBox(chart);
+            x = box.x;
+            y = box.y;
         });
 
-        it('when clicked twice should hide and re-show the related series', async () => {
-            const options = {
-                ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            };
-            chart = await createChart(options);
+        describe('Clicking a legend', () => {
+            it('should hide the related series', async () => {
+                await clickAction(x, y)(chart);
+                await compare(chart, 'clicks-1-hidden');
+            });
 
-            const { x, y } = computeLegendBBox(chart);
+            it('when clicked twice should hide and re-show the related series', async () => {
+                await clickAction(x, y)(chart);
+                await waitForChartStability(chart);
 
-            await clickAction(x, y)(chart);
-            await waitForChartStability(chart);
-            await clickAction(x, y)(chart);
-
-            await compare(chart, 'clicks-all-shown');
-        });
-    });
-
-    describe('Double clicking a legend', () => {
-        it('should hide all other series except this one', async () => {
-            const options = {
-                ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            };
-            chart = await createChart(options);
-
-            const { x, y } = computeLegendBBox(chart);
-            await doubleClickAction(x, y)(chart);
-
-            await compare(chart, 'clicks-1-shown');
+                await clickAction(x, y)(chart);
+                await compare(chart, 'clicks-all-shown');
+            });
         });
 
-        it('when double clicked twice should show all series', async () => {
-            const options = {
-                ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            };
-            chart = await createChart(options);
+        describe('Double clicking a legend', () => {
+            it('should hide all other series except this one', async () => {
+                await doubleClickAction(x, y)(chart);
+                await compare(chart, 'clicks-1-shown');
+            });
 
-            const { x, y } = computeLegendBBox(chart);
+            it('when double clicked twice should show all series', async () => {
+                await doubleClickAction(x, y)(chart);
+                await waitForChartStability(chart);
 
-            await doubleClickAction(x, y)(chart);
-            await waitForChartStability(chart);
+                // Click the legend item again for some reason... why does this test require this?
+                await clickAction(x, y)(chart);
+                await waitForChartStability(chart);
 
-            // Click the legend item again for some reason... why does this test require this?
-            await clickAction(x, y)(chart);
-            await waitForChartStability(chart);
-
-            await doubleClickAction(x, y)(chart);
-
-            await compare(chart, 'clicks-all-shown');
+                await doubleClickAction(x, y)(chart);
+                await compare(chart, 'clicks-all-shown');
+            });
         });
     });
 
