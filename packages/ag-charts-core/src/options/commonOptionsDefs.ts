@@ -1,7 +1,10 @@
 import type { AgGradientFill, FillOptions, FontOptions, LineDashOptions, StrokeOptions } from 'ag-charts-types';
 
+import { isObject } from '../utils/typeGuards';
 import {
     type OptionsDefs,
+    and,
+    array,
     arrayOf,
     constant,
     number,
@@ -15,22 +18,46 @@ import {
     union,
 } from '../utils/validation';
 
+export const operationsDef: OptionsDefs<any> = {
+    $ref: string,
+    $path: string,
+    $if: array,
+    $or: array,
+    $and: array,
+    $eq: array,
+    $mul: array,
+    $round: array,
+    $rem: array,
+    $mix: array,
+    $mixEach: array,
+    $foregroundBackgroundMix: array,
+    $foregroundBackgroundAccentMix: array,
+};
+
+const operationKeys = Object.keys(operationsDef);
+// TODO: AG-13892 Attach a description to this validator
+export const operation = and(
+    (value: unknown) => isObject(value) && operationKeys.includes(Object.keys(value)[0]),
+    optionsDefs(operationsDef)
+);
+
 const gradientOptionsDef: OptionsDefs<AgGradientFill> = {
     type: required(constant('gradient')),
     direction: union('horizontal', 'vertical'),
     colorStops: object,
     bounds: union('series', 'item', 'axes'),
+    angle: number,
 };
 
-const gradient = optionsDefs(gradientOptionsDef, 'a gradient');
+export const gradient = optionsDefs(gradientOptionsDef, 'a gradient');
 
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
-    fill: or(string, gradient),
+    fill: or(string, gradient, operation),
     fillOpacity: ratio,
 };
 
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
-    stroke: string,
+    stroke: or(string, operation),
     strokeWidth: positiveNumber,
     strokeOpacity: ratio,
 };
