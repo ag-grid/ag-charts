@@ -37,8 +37,6 @@ export interface DefaultStyles {
     defaultColorRange: string[];
 }
 
-const LINEAR_GRADIENT_REGEXP = /^linear-gradient\((-?[\d.]+)deg,(.*?)\)$/i;
-
 export abstract class Shape<D = any> extends Node<D> {
     /**
      * Defaults for style properties. Note that properties that affect the position
@@ -82,27 +80,8 @@ export abstract class Shape<D = any> extends Node<D> {
     fill?: FillType = Shape.defaultStyles.fill;
 
     private getGradient(pattern: FillType | undefined) {
-        let linearGradientMatch: RegExpMatchArray | null;
         if (pattern instanceof Gradient) {
             return pattern;
-        } else if (
-            typeof pattern === 'string' &&
-            pattern?.startsWith('linear-gradient') &&
-            (linearGradientMatch = LINEAR_GRADIENT_REGEXP.exec(pattern))
-        ) {
-            const angle = parseFloat(linearGradientMatch[1]);
-            const colors = [];
-            const colorsPart = linearGradientMatch[2];
-            const colorRegex = /(#[0-9a-f]+)|(rgba?\(.+?\))|([a-z]+)/gi;
-            let c: RegExpExecArray | null;
-            while ((c = colorRegex.exec(colorsPart))) {
-                colors.push(c[0]);
-            }
-            return new LinearGradient(
-                'rgb',
-                colors.map((color, index) => ({ color, offset: index / (colors.length - 1) })),
-                angle
-            );
         } else if (isGradientFill(pattern)) {
             return this.createLinearGradient(pattern);
         }
@@ -111,11 +90,11 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     private createLinearGradient(fill: AgGradientFill) {
-        const { colorStops = [], direction } = fill;
+        const { colorStops = [], direction, angle } = fill;
         const isHorizontal = direction === 'horizontal';
         const stops = getColorStops(colorStops, this.defaultColorRange, [0, 1]);
 
-        return new LinearGradient('rgb', stops, isHorizontal ? 0 : 90);
+        return new LinearGradient('rgb', stops, angle ?? (isHorizontal ? 90 : 0));
     }
 
     protected onFillChange() {

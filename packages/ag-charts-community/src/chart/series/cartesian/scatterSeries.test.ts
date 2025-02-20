@@ -82,6 +82,7 @@ describe('ScatterSeries', () => {
                         yKey: 'height',
                         fill: {
                             type: 'gradient',
+                            direction: 'vertical',
                         },
                         size: 20,
                         strokeWidth: 0,

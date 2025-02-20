@@ -2299,6 +2299,7 @@ export const AREA_SERIES_DEFAULT_GRADIENT_FILL: AgCartesianChartOptions = {
                 series: {
                     fill: {
                         type: 'gradient',
+                        direction: 'vertical',
                     },
                 },
             },
@@ -3052,7 +3053,7 @@ export const STACKED_COLUMN_GRADIENT_FILL: AgCartesianChartOptions = {
         overrides: {
             bar: {
                 series: {
-                    fill: { type: 'gradient' },
+                    fill: { type: 'gradient', direction: 'vertical' },
                 },
             },
         },
