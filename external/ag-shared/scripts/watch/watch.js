@@ -242,8 +242,11 @@ async function build() {
         info(timeManager.timeString(`${targetMsg} build`));
 
         if (beforeReloadableCount > 0 && afterReloadableCount === 0) {
+            success(`Reloading dev server...`);
             await touchBuildQueueEmptyFile();
+        }
 
+        if (buildBuffer.length === 0) {
             timeManager.stop('Total build time');
             info('Last build buffer times...');
             timeManager
