@@ -19,10 +19,12 @@ export interface AxisOptions {
  */
 export interface FillOptions {
     /** The colour for filling shapes. */
-    fill?: CssColor | AgGradientFill;
+    fill?: AgFillType;
     /** The opacity of the fill colour. */
     fillOpacity?: Opacity;
 }
+
+export type AgFillType = CssColor | AgGradientFill;
 
 export type AgGradientFillMode = 'continuous' | 'discrete';
 
