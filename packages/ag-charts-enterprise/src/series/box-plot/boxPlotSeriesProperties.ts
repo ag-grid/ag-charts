@@ -3,6 +3,7 @@ import type {
     AgBoxPlotSeriesOptions,
     AgBoxPlotSeriesStyle,
     AgBoxPlotSeriesTooltipRendererParams,
+    AgFillType,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -20,6 +21,9 @@ const {
     RATIO,
     STRING,
     mergeDefaults,
+    COLOR_STRING_ARRAY,
+    COLOR_GRADIENT,
+    OR,
 } = _ModuleSupport;
 
 class BoxPlotSeriesCap extends BaseProperties {
@@ -84,8 +88,11 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     @Validate(STRING, { optional: true })
     maxName?: string;
 
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string = '#c16068';
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill: AgFillType = '#c16068';
 
     @Validate(RATIO)
     fillOpacity = 1;

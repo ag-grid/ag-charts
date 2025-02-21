@@ -4,7 +4,7 @@ import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { createDatumId } = _ModuleSupport;
+const { createDatumId, isGradientFill } = _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, CandlestickSeriesProperties<any>> {
     static readonly className = 'CandleStickSeries';
@@ -60,6 +60,9 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
         } = down.wick;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
 
+        const upFillBBox = this.getFillBBox(upFill);
+        const downFillBBox = this.getFillBBox(downFill);
+
         datumSelection.each((node, datum) => {
             const { isRising, centerX, width, y, height, yOpen, yClose, crisp } = datum;
 
@@ -100,6 +103,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             node.yClose = yClose;
             node.crisp = crisp;
 
+            node.fillBBox = isRising ? upFillBBox : downFillBBox;
             node.fill = highlightStyle?.fill ?? style?.fill ?? (isRising ? upFill : downFill);
             node.fillOpacity =
                 highlightStyle?.fillOpacity ?? style?.fillOpacity ?? (isRising ? upFillOpacity : downFillOpacity);
@@ -141,12 +145,15 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { up, down } = this.properties.item;
 
+        const upFill = isGradientFill(up.fill) ? up.stroke : up.fill;
+        const downFill = isGradientFill(down.fill) ? down.stroke : down.fill;
+
         const fill = new _ModuleSupport.LinearGradient(
             'rgb',
             [
-                { color: up.fill, offset: 0 },
-                { color: up.fill, offset: 0.5 },
-                { color: down.fill, offset: 0.5 },
+                { color: upFill, offset: 0 },
+                { color: upFill, offset: 0.5 },
+                { color: downFill, offset: 0.5 },
             ],
             90
         );

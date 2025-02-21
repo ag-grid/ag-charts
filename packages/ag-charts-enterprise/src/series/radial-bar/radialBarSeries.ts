@@ -406,6 +406,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         }
 
         const style = this.getItemBaseStyle(highlighted);
+        const fillBBox = this.getFillBBox(style.fill);
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
@@ -415,7 +416,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
                 const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
 
-                applyShapeStyle(node, style, overrides);
+                applyShapeStyle(node, style, overrides, fillBBox);
 
                 node.lineJoin = 'round';
                 node.inset = node.stroke != null ? node.strokeWidth / 2 : 0;

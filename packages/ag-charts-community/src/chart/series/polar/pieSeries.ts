@@ -572,7 +572,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         let sectorFill: AgFillType | undefined = fill;
         if (isGradientFill(sectorFill) && sectorFill.angle == null && sectorFill.direction == null) {
             sectorFill = {
-                ...(fill as AgGradientFill),
+                ...sectorFill,
                 angle: toDegrees(angle + Math.PI / 2),
             };
         }

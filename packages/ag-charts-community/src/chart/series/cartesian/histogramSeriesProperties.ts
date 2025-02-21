@@ -1,4 +1,5 @@
 import type {
+    AgFillType,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesTooltipRendererParams,
@@ -9,9 +10,12 @@ import { DropShadow } from '../../../scene/dropShadow';
 import {
     ARRAY,
     BOOLEAN,
+    COLOR_GRADIENT,
     COLOR_STRING,
+    COLOR_STRING_ARRAY,
     LINE_DASH,
     OBJECT,
+    OR,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -58,8 +62,11 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
     @Validate(STRING, { optional: true })
     yName?: string;
 
-    @Validate(COLOR_STRING, { optional: true })
-    fill?: string;
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill?: AgFillType;
 
     @Validate(RATIO)
     fillOpacity = 1;

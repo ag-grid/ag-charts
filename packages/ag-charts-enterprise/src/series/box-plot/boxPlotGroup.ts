@@ -33,7 +33,8 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
         datum: BoxPlotNodeDatum,
         activeStyles: DeepRequired<AgBoxPlotSeriesStyle>,
         isVertical: boolean,
-        isReversedValueAxis: boolean | undefined
+        isReversedValueAxis: boolean | undefined,
+        fillBBox?: _ModuleSupport.BBox
     ) {
         const {
             bandwidth,
@@ -140,7 +141,7 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
 
         // fill only elements
         for (const element of boxes) {
-            element.setProperties({ fill, fillOpacity, strokeWidth: strokeWidth * 2, strokeOpacity: 0 });
+            element.setProperties({ fillBBox, fill, fillOpacity, strokeWidth: strokeWidth * 2, strokeOpacity: 0 });
         }
 
         median.setProperties({ fill: stroke, fillOpacity: strokeOpacity, strokeWidth: 0 });

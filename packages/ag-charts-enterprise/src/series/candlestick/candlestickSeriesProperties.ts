@@ -2,6 +2,7 @@ import type {
     AgCandlestickSeriesItemOptions,
     AgCandlestickSeriesItemStylerParams,
     AgCandlestickSeriesTooltipRendererParams,
+    AgFillType,
     AgOhlcSeriesBaseOptions,
     Styler,
 } from 'ag-charts-community';
@@ -9,8 +10,20 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcSeriesBaseProperties } from '../ohlc/ohlcSeriesProperties';
 
-const { BaseProperties, SeriesTooltip, Validate, COLOR_STRING, FUNCTION, LINE_DASH, OBJECT, POSITIVE_NUMBER, RATIO } =
-    _ModuleSupport;
+const {
+    BaseProperties,
+    SeriesTooltip,
+    Validate,
+    COLOR_STRING,
+    FUNCTION,
+    LINE_DASH,
+    OBJECT,
+    POSITIVE_NUMBER,
+    RATIO,
+    COLOR_GRADIENT,
+    COLOR_STRING_ARRAY,
+    OR,
+} = _ModuleSupport;
 
 class CandlestickSeriesWick extends BaseProperties {
     @Validate(COLOR_STRING, { optional: true })
@@ -30,8 +43,11 @@ class CandlestickSeriesWick extends BaseProperties {
 }
 
 class CandlestickSeriesItem extends BaseProperties {
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string = '#c16068';
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill: AgFillType = '#c16068';
 
     @Validate(RATIO)
     fillOpacity = 1;

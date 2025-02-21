@@ -1,11 +1,5 @@
-import {
-    type AgMarkerShape,
-    type FillOptions,
-    type LineDashOptions,
-    type StrokeOptions,
-    _ModuleSupport,
-} from 'ag-charts-community';
-import { isFiniteNumber } from 'ag-charts-core';
+import { type AgSeriesMarkerStyle, _ModuleSupport } from 'ag-charts-community';
+import { type RequireOptional, isFiniteNumber } from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
@@ -22,7 +16,6 @@ const {
     computeMarkerFocusBounds,
     extent,
     isNumberEqual,
-    createDatumId,
     BBox,
     Group,
     Path,
@@ -30,7 +23,7 @@ const {
     Selection,
     Text,
     Marker,
-    applyShapeStyle,
+    mergeDefaults,
 } = _ModuleSupport;
 
 export interface RadarPathPoint {
@@ -54,8 +47,6 @@ class RadarSeriesNodeEvent<
         this.radiusKey = series.properties.radiusKey;
     }
 }
-
-type ItemStyle = Required<FillOptions & StrokeOptions & LineDashOptions & { shape: AgMarkerShape; size: number }>;
 
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     RadarNodeDatum,
@@ -311,41 +302,16 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return highlightedStyle?.fill ?? this.properties.marker.fill;
     }
 
-    private getMarkerItemBaseStyle(highlighted: boolean): ItemStyle {
-        const { properties } = this;
-        const { marker } = properties;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+    protected getDatumStylerProperties(datum: any) {
+        const { id: seriesId, properties } = this;
+        const { angleKey, radiusKey } = properties;
 
         return {
-            shape: marker.shape,
-            size: marker.size,
-            fill: highlightStyle?.fill ?? marker.fill!,
-            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
-            stroke: highlightStyle?.stroke ?? marker.stroke!,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(marker.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? marker.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
+            seriesId,
+            datum,
+            angleKey,
+            radiusKey,
         };
-    }
-
-    protected getMarkerItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
-        const { id: seriesId, properties } = this;
-        const { angleKey, radiusKey, marker } = properties;
-        const { itemStyler } = marker;
-
-        if (itemStyler == null) return;
-
-        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return itemStyler({
-                seriesId,
-                datum,
-                angleKey,
-                radiusKey,
-                highlighted,
-                ...format,
-            });
-        });
     }
 
     protected updateMarkers(
@@ -353,7 +319,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         highlight: boolean
     ) {
         const { visible } = this;
-        const { marker } = this.properties;
+        const { marker, stroke, strokeWidth, strokeOpacity, highlightStyle } = this.properties;
 
         let selectionData: RadarNodeDatum[] = [];
 
@@ -368,21 +334,23 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             }
         }
 
-        const style = this.getMarkerItemBaseStyle(highlight);
+        const baseStyle = mergeDefaults(highlight && highlightStyle.item, marker.getStyle(), {
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+        });
 
-        selection.update(selectionData).each((node, nodeDatum) => {
-            const { datum, datumIndex, point } = nodeDatum;
-            const overrides = this.getMarkerItemStyleOverrides(String(datumIndex), datum, style, highlight);
+        const { fill } = baseStyle;
+        const fillBBox = this.getFillBBox(fill);
 
-            applyShapeStyle(node, style, overrides);
-
-            node.shape = overrides?.shape ?? style.shape;
-            node.size = overrides?.size ?? style.size;
-
-            const { x, y } = point;
-            node.x = x;
-            node.y = y;
-            node.visible = visible && node.size > 0 && !isNaN(x) && !isNaN(y);
+        selection.update(selectionData).each((node, datum) => {
+            this.updateMarkerStyle(
+                node,
+                marker,
+                { ...this.getDatumStylerProperties(datum), highlighted: highlight },
+                baseStyle,
+                fillBBox
+            );
         });
     }
 
@@ -412,7 +380,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
+        const { angleKey, angleName, radiusKey, radiusName, tooltip, marker } = properties;
         const angleAxis = axes[ChartAxisDirection.X];
         const radiusAxis = axes[ChartAxisDirection.Y];
 
@@ -424,8 +392,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         if (angleValue == null) return;
 
-        const format = this.getMarkerItemBaseStyle(false);
-        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format, false));
+        const style = marker.getStyle();
+        const activeStyle = this.getMarkerStyle(
+            marker,
+            { ...this.getDatumStylerProperties(datum), highlighted: false },
+            style
+        );
 
         return tooltip.formatTooltip(
             {
@@ -441,7 +413,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 radiusKey,
                 angleName,
                 radiusName,
-                ...format,
+                ...(activeStyle as RequireOptional<AgSeriesMarkerStyle>),
             }
         );
     }
