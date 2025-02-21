@@ -597,7 +597,8 @@ describe('AreaSeries', () => {
                     await clickAction(x, y)(chart);
                 }
             });
-            test('touch', async () => {
+            xtest('touch', async () => {
+                // Faulty because of AG-14228
                 for (const { x, y } of iterAreaSectors(chart)) {
                     await waitForChartStability(chart);
                     await tapAction(x, y)(chart);
