@@ -41,8 +41,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     static readonly className = 'ScatterSeries';
     static readonly type = 'scatter' as const;
 
-    protected override clipFocusBox = false;
-
     override properties = new ScatterSeriesProperties();
 
     override get pickModeAxis() {
@@ -67,6 +65,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 label: resetLabelFn,
             },
             usesPlacedLabels: true,
+            clipFocusBox: false,
         });
     }
 

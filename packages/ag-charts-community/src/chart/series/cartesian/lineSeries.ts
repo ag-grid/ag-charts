@@ -81,8 +81,6 @@ export class LineSeries extends CartesianSeries<
     static readonly className = 'LineSeries';
     static readonly type = 'line' as const;
 
-    protected override clipFocusBox = false;
-
     override properties = new LineSeriesProperties();
 
     private dataAggregationFilters: LineSeriesDataAggregationFilter[] | undefined = undefined;
@@ -111,6 +109,7 @@ export class LineSeries extends CartesianSeries<
                 label: resetLabelFn,
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
+            clipFocusBox: false,
         });
     }
 

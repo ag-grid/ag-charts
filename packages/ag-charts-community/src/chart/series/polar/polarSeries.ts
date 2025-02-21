@@ -10,7 +10,11 @@ import { Text } from '../../../scene/shape/text';
 import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { DataModelSeries, type DataModelSeriesNodeDatum } from '../dataModelSeries';
+import {
+    DataModelSeries,
+    type DataModelSeriesConstructorOpts,
+    type DataModelSeriesNodeDatum,
+} from '../dataModelSeries';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import type { SeriesProperties } from '../seriesProperties';
 import { PolarZIndexMap } from './polarZIndexMap';
@@ -105,7 +109,7 @@ export abstract class PolarSeries<
             item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
             label?: (node: Text, datum: TDatum) => AnimationValue & Partial<Text>;
         };
-    }) {
+    } & Partial<DataModelSeriesConstructorOpts<TProps>>) {
         super({
             ...opts,
             useLabelLayer,
