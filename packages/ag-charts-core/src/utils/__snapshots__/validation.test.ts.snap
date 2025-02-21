@@ -23,7 +23,7 @@ exports[`Validation utils Utility Functions attachDescription adds a description
 exports[`Validation utils Validate Method validate returns expected validated object and errors 1`] = `
 [
   ValidationError {
-    "message": "Option \`name\` cannot be set to \`undefined\`, ignoring.",
+    "message": "Option \`name\` is required and has not been provided, ignoring.",
     "required": true,
     "unknown": undefined,
   },

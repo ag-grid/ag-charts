@@ -47,7 +47,7 @@ import {
     isSeriesOptionType,
 } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
-import { setDocument, setWindow } from '../core';
+import { getDocument, getWindow, setDocument, setWindow } from '../core';
 import { Color } from '../util/color';
 import { Debug } from '../util/debug';
 import { deepClone, jsonDiff, jsonPropertyCompare, jsonResolveOperations, jsonWalk } from '../util/json';
@@ -256,7 +256,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const activeTheme = getChartTheme(options.theme);
 
         this.sanityCheck(options);
-        this.removeDisabledOptions(options);
 
         if (presetType != null) {
             activeTheme.templateTheme(options, false);
@@ -281,6 +280,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         });
         options.series = validatedSeriesOptions;
+
+        this.removeDisabledOptions(options);
 
         const seriesType = this.optionsType(options);
         const {
@@ -789,20 +790,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {
-        if (options.window != null) {
+        if (options.window == null) {
+            options.window = getWindow();
+        } else {
             setWindow(options.window);
-        } else if (typeof window !== 'undefined') {
-            options.window = window;
-        } else if (typeof global !== 'undefined') {
-            options.window = global.window;
         }
 
-        if (options.document != null) {
+        if (options.document == null) {
+            options.document = getDocument();
+        } else {
             setDocument(options.document);
-        } else if (typeof document !== 'undefined') {
-            options.document = document;
-        } else if (typeof global !== 'undefined') {
-            options.document = global.document;
         }
 
         if (options.window == null) {
