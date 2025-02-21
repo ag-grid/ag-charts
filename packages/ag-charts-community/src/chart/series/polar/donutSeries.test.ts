@@ -202,6 +202,50 @@ describe('DonutSeries', () => {
         });
     });
 
+    // AG-13953 - an invalid value shouldn't affect other segments or the legend
+    describe('with invalid values', () => {
+        it('should render correctly', async () => {
+            const invalidDataOptions: AgPolarChartOptions = {
+                data: [
+                    { asset: 'Stocks', amount: 60000 },
+                    { asset: 'Bonds', amount: 40000 },
+                    { asset: 'Cash', amount: 7000 },
+                    { asset: 'Real Estate', amount: null },
+                    { asset: 'Commodities', amount: 3000 },
+                ],
+                title: {
+                    text: 'Portfolio Composition',
+                },
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        calloutLabelKey: 'asset',
+                        sectorLabelKey: 'amount',
+                        outerRadiusRatio: 0.8,
+                        innerRadiusRatio: 0.6,
+                    },
+                ],
+            };
+
+            chart = await createChart(invalidDataOptions);
+            await compare();
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [DonutSeries-1 / angleRaw] ignored:",
+    "[null]",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [DonutSeries-1 / sectorLabelValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+        });
+    });
+
     afterEach(() => {
         jest.restoreAllMocks();
     });
