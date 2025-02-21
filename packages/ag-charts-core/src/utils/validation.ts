@@ -47,7 +47,7 @@ export class ValidationError {
  */
 export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = ''): ValidationResult<T> {
     if (!isObject(options)) {
-        const message = validateMessage(path, options, 'an object');
+        const message = validateMessage(path, options, 'an object', true);
         return { valid: null, errors: [new ValidationError(message)] };
     }
 
@@ -78,7 +78,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
             if (validatorOrDefs(value, options)) {
                 valid[key as keyof T] = value;
             } else {
-                const message = validateMessage(extendPath(key), value, validatorOrDefs);
+                const message = validateMessage(extendPath(key), value, validatorOrDefs, required);
                 errors.push(new ValidationError(message, required));
             }
         } else {
@@ -125,13 +125,21 @@ function findSuggestion(value: string, suggestions: string[], maxDistance: numbe
  * @param path The path to the option.
  * @param value The invalid value.
  * @param validatorOrDefs The expected type or validator.
+ * @param required
  * @returns A formatted error message.
  */
-function validateMessage(path: string, value: unknown, validatorOrDefs: Validator | OptionsDefs<any> | string): string {
+function validateMessage(
+    path: string,
+    value: unknown,
+    validatorOrDefs: Validator | OptionsDefs<any> | string,
+    required?: boolean
+): string {
     const description = isString(validatorOrDefs) ? validatorOrDefs : validatorOrDefs[descriptionSymbol];
     const expecting = description ? `; expecting ${description}` : '';
     const prefix = path ? `Option \`${path}\`` : 'Value';
-    return `${prefix} cannot be set to \`${stringifyValue(value, 50)}\`${expecting}, ignoring.`;
+    return required && value == null
+        ? `${prefix} is required and has not been provided${expecting}, ignoring.`
+        : `${prefix} cannot be set to \`${stringifyValue(value, 50)}\`${expecting}, ignoring.`;
 }
 
 /**
