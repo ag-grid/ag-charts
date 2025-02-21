@@ -25,8 +25,8 @@ import {
     validate,
 } from './validation';
 
-function isValid<T extends object>(options: unknown, optionsDefs: OptionsDefs<T>, path?: string): options is T {
-    const { errors } = validate(options, optionsDefs, path);
+function isValid<T extends object>(options: unknown, defs: OptionsDefs<T>, path?: string): options is T {
+    const { errors } = validate(options, defs, path);
     return errors.length === 0;
 }
 
