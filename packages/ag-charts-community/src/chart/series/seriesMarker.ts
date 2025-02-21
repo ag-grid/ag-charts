@@ -1,6 +1,6 @@
 import type { RequireOptional } from 'ag-charts-core';
 import type {
-    AgGradientFill,
+    AgFillType,
     AgMarkerShape,
     AgSeriesMarkerStyle,
     AgSeriesMarkerStylerParams,
@@ -49,7 +49,7 @@ export class SeriesMarker<TParams = never>
 
     @Validate(OR(COLOR_STRING, COLOR_GRADIENT), { optional: true })
     @SceneChangeDetection()
-    fill?: string | AgGradientFill;
+    fill?: AgFillType;
 
     @Validate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];

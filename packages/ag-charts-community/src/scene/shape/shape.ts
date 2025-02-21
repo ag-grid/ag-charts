@@ -1,4 +1,4 @@
-import type { AgGradientFill } from 'ag-charts-types';
+import type { AgFillType, AgGradientFill } from 'ag-charts-types';
 
 import { createSvgElement } from '../../core';
 import { generateUUID } from '../../util/id';
@@ -25,7 +25,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasState;
 
 export interface DefaultStyles {
-    fill?: string | AgGradientFill;
+    fill?: AgFillType;
     stroke?: string;
     strokeWidth: number;
     lineDash?: number[];

@@ -1,5 +1,5 @@
 import type {
-    AgGradientFill,
+    AgFillType,
     AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesOptions,
@@ -73,7 +73,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     defaultColorRange: string[] = [];
 
     @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
-    fill: string | AgGradientFill = '#99CCFF';
+    fill: AgFillType = '#99CCFF';
 
     @Validate(RATIO)
     fillOpacity: number = 1;

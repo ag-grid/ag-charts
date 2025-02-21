@@ -1,4 +1,4 @@
-import type { AgGradientFill } from 'ag-charts-types';
+import type { AgFillType } from 'ag-charts-types';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Point, SizedPoint } from '../../../scene/point';
@@ -32,7 +32,7 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
     readonly point: Readonly<SizedPoint>;
     readonly yKey: string;
-    readonly fill?: string | AgGradientFill;
+    readonly fill?: AgFillType;
     readonly stroke?: string;
     readonly strokeWidth: number;
     readonly cumulativeValue: number;
