@@ -127,7 +127,7 @@ export type PropertyDefinition<K, IsScoped = false> =
     | ReducerOutputPropertyDefinition<any>
     | ProcessorOutputPropertyDefinition<any>;
 
-export type ProcessorFn = (datum: any) => any;
+export type ProcessorFn = (datum: unknown, index: number) => unknown;
 export type PropertyId<K extends string> = K | { id: string };
 
 export type Scoped = {
@@ -1260,7 +1260,7 @@ export class DataModel<
                 if (!processorFns.has(def)) {
                     processorFns.set(def, def.processor());
                 }
-                value = processorFns.get(def)?.(value);
+                value = processorFns.get(def)?.(value, idx);
             }
 
             dataDomain.get(def)?.extend(value);
