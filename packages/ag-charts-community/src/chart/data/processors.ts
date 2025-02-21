@@ -84,9 +84,20 @@ export function rowCountProperty<K>(propName: K, opts: Partial<DatumPropertyDefi
     return result;
 }
 
+const noopProcessor: ProcessorFn = function (v: unknown) {
+    return v;
+};
+
 function processorChain(...chain: ((() => ProcessorFn) | undefined)[]): () => ProcessorFn {
+    const filteredChain = chain.filter((fn): fn is () => ProcessorFn => fn != null);
+    if (filteredChain.length === 0) {
+        return () => noopProcessor;
+    }
+    if (filteredChain.length === 1) {
+        return filteredChain[0];
+    }
     return () => {
-        const processorInstances = chain.filter((fn) => fn != null).map((fn) => fn!());
+        const processorInstances = filteredChain.map((fn) => fn());
         return (value, index) => {
             return processorInstances.reduce((r, p) => p(r, index), value);
         };
