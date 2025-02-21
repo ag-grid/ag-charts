@@ -482,6 +482,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { shadow } = properties;
 
         const style = this.getItemBaseStyle(isHighlight);
+        const fillBBox = this.getFillBBox(style.fill);
 
         datumSelection.each((connector, nodeDatum) => {
             const { datumIndex, datum, x, y, top, right, bottom, left } = nodeDatum;
@@ -497,7 +498,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             connector.y2 = y + right / 2;
             connector.y3 = y + left / 2;
 
-            applyShapeStyle(connector, style, overrides);
+            applyShapeStyle(connector, style, overrides, fillBBox);
 
             connector.fillShadow = shadow;
         });

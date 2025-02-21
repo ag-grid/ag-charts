@@ -1,4 +1,5 @@
 import type {
+    AgFillType,
     AgPyramidSeriesItemStylerParams,
     AgPyramidSeriesLabelFormatterParams,
     AgPyramidSeriesOptions,
@@ -14,6 +15,9 @@ const {
     SeriesTooltip,
     Validate,
     UNION,
+    OR,
+    COLOR_GRADIENT,
+    ARRAY_OF,
     COLOR_STRING_ARRAY,
     FUNCTION,
     DIRECTION,
@@ -46,7 +50,10 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
     valueKey!: string;
 
     @Validate(COLOR_STRING_ARRAY)
-    fills: string[] = [];
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    fills: AgFillType[] = [];
 
     @Validate(RATIO)
     fillOpacity: number = 1;

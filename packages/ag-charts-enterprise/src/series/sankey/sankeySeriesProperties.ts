@@ -1,4 +1,5 @@
 import {
+    type AgFillType,
     type AgSankeySeriesLabelFormatterParams,
     type AgSankeySeriesLinkItemStylerParams,
     type AgSankeySeriesLinkOptions,
@@ -19,12 +20,15 @@ const {
     SeriesTooltip,
     SeriesProperties,
     ARRAY,
+    ARRAY_OF,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
     OBJECT,
     POSITIVE_NUMBER,
+    OR,
+    COLOR_GRADIENT,
     RATIO,
     STRING,
     UNION,
@@ -153,7 +157,10 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     sizeName: string | undefined = undefined;
 
     @Validate(COLOR_STRING_ARRAY)
-    fills: string[] = [];
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    fills: AgFillType[] = [];
 
     @Validate(COLOR_STRING_ARRAY)
     strokes: string[] = [];

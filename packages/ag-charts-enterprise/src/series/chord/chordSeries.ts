@@ -566,6 +566,7 @@ export class ChordSeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const style = this.getBaseLinkStyle(isHighlight);
+        const fillBBox = this.getFillBBox(style.fill);
 
         datumSelection.each((link, datum) => {
             const { datumIndex } = datum;
@@ -586,7 +587,7 @@ export class ChordSeries extends FlowProportionSeries<
             link.startAngle2 = datum.startAngle2;
             link.endAngle2 = datum.endAngle2;
 
-            applyShapeStyle(link, style, overrides);
+            applyShapeStyle(link, style, overrides, fillBBox);
 
             link.tension = overrides?.tension ?? style.tension;
         });

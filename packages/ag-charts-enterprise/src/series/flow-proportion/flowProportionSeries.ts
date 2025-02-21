@@ -1,4 +1,4 @@
-import { type AgGradientFill, _ModuleSupport } from 'ag-charts-community';
+import { type AgFillType, _ModuleSupport } from 'ag-charts-community';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
@@ -533,7 +533,7 @@ export abstract class FlowProportionSeries<
         _type: FlowProportionDatumType,
         nodeIndex: number,
         format: {
-            fill?: string | AgGradientFill;
+            fill?: AgFillType;
             fillOpacity?: number;
             stroke?: string;
             strokeWidth?: number;

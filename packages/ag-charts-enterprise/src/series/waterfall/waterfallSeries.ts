@@ -559,8 +559,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const seriesItemType = datum.itemId;
 
             const style = this.getItemStyle(String(datum.datumIndex), datum.datum, seriesItemType, isHighlight);
+            const fillBBox = this.getFillBBox(style.fill);
 
-            applyShapeStyle(rect, style);
+            applyShapeStyle(rect, style, undefined, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

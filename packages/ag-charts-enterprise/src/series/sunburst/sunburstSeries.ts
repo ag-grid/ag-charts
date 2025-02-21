@@ -423,7 +423,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             nodeDatum: SunburstNode,
             sector: _ModuleSupport.Sector,
             style: ItemStyle,
-            highlighted: boolean
+            highlighted: boolean,
+            fillBBox?: _ModuleSupport.BBox
         ) => {
             const { datum, datumIndex, depth, colorValue, startAngle, endAngle } = nodeDatum;
             if (depth == null) {
@@ -437,7 +438,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             const strokeWidth = overrides.strokeWidth ?? style.strokeWidth;
 
-            applyShapeStyle(sector, style, overrides);
+            applyShapeStyle(sector, style, overrides, fillBBox);
 
             sector.centerX = 0;
             sector.centerY = 0;
@@ -450,12 +451,14 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         };
 
         const baseFormat = this.getItemBaseStyle(false);
+        const fillBBox = this.getFillBBox(baseFormat.fill);
+
         this.datumSelection.each((sector, datum) => {
-            updateSector(datum, sector, baseFormat, false);
+            updateSector(datum, sector, baseFormat, false, fillBBox);
         });
         const highlightFormat = this.getItemBaseStyle(true);
         this.highlightSelection.each((rect, datum) => {
-            updateSector(datum, rect, highlightFormat, true);
+            updateSector(datum, rect, highlightFormat, true, fillBBox);
         });
 
         const updateText = (

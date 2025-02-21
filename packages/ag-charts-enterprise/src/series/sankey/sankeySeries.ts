@@ -464,6 +464,7 @@ export class SankeySeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const style = this.getBaseNodeStyle(isHighlight);
+        const fillBBox = this.getFillBBox(style.fill);
 
         datumSelection.each((rect, datum) => {
             const { datumIndex, size, label } = datum;
@@ -482,7 +483,7 @@ export class SankeySeries extends FlowProportionSeries<
             rect.width = Math.max(datum.width, 0);
             rect.height = Math.max(datum.height, 0);
 
-            applyShapeStyle(rect, style, overrides);
+            applyShapeStyle(rect, style, overrides, fillBBox);
         });
     }
 

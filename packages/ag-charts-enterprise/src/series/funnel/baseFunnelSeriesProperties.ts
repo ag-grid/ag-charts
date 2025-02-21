@@ -1,4 +1,5 @@
 import type {
+    AgFillType,
     AgFunnelSeriesItemStylerParams,
     AgFunnelSeriesLabelFormatterParams,
     AgFunnelSeriesStyle,
@@ -14,7 +15,7 @@ export interface BaseFunnelProperties<SeriesOptions extends object>
     stageKey: string;
     valueKey: string;
     valueName?: string;
-    fills: string[];
+    fills: AgFillType[];
     strokes: string[];
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;
     label: FunnelSeriesLabel;

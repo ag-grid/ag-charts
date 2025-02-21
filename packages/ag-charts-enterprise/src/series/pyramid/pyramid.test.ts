@@ -296,4 +296,36 @@ describe('PyramidSeries', () => {
             },
         });
     });
+
+    describe('gradient fill', () => {
+        it('should render pyramid series with a gradient fill', async () => {
+            const options = {
+                ...PYRAMID_EXAMPLE,
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        fills: [
+                            {
+                                type: 'gradient',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
+    });
 });
