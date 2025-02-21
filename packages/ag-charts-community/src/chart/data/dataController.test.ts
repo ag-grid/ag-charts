@@ -415,7 +415,6 @@ describe('DataController', () => {
                         valueType: 'range',
                         groupId: 'valueProp1',
                         id: undefined,
-                        processor: () => (next: number, total?: number) => next + (total ?? 0),
                     },
                 ] satisfies DatumPropertyDefinition<any>[],
             };
