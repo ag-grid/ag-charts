@@ -112,23 +112,36 @@ describe('PieSeries', () => {
             },
         };
 
-        beforeEach(() => {
+        beforeEach(async () => {
+            chart = await createChart(nodeClickOptions);
             clicks.splice(0, clicks.length);
             doubleClicks.splice(0, doubleClicks.length);
             legendClicks.splice(0, legendClicks.length);
         });
 
-        it('should fire a nodeClick event for visible each sector', async () => {
-            chart = await createChart(nodeClickOptions);
-
+        function* iterPieSectors(chart: Chart) {
             const pieSeries = deproxy(chart).series[0] as PieSeries;
             for (const nodeData of pieSeries.getNodeData() ?? []) {
                 if (nodeData.angleValue < 1e-10) continue;
 
                 const { x = 0, y = 0 } = nodeData.midPoint ?? {};
-                const { x: clickX, y: clickY } = Transformable.toCanvasPoint(pieSeries.contentGroup, x, y);
+                yield Transformable.toCanvasPoint(pieSeries.contentGroup, x, y);
+            }
+        }
+
+        function* iterLegendMarkerLabels(chart: Chart) {
+            for (const { legend } of deproxy(chart).modulesManager.legends()) {
+                const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
+                for (const label of markerLabels) {
+                    yield Transformable.toCanvas(label).computeCenter();
+                }
+            }
+        }
+
+        it('should fire a nodeClick event for each visible sector', async () => {
+            for (const { x, y } of iterPieSectors(chart)) {
                 await waitForChartStability(chart);
-                await clickAction(clickX, clickY)(chart);
+                await clickAction(x, y)(chart);
             }
 
             expect(clicks).toEqual(['Stocks', 'Cash', 'Real Estate', 'Commodities']);
@@ -136,17 +149,10 @@ describe('PieSeries', () => {
             expect(legendClicks).toHaveLength(0);
         });
 
-        it('should fire a nodeDoubleClick event for visible each sector', async () => {
-            chart = await createChart(nodeClickOptions);
-
-            const pieSeries = deproxy(chart).series[0] as PieSeries;
-            for (const nodeData of pieSeries.getNodeData() ?? []) {
-                if (nodeData.angleValue < 1e-10) continue;
-
-                const { x = 0, y = 0 } = nodeData.midPoint ?? {};
-                const { x: clickX, y: clickY } = Transformable.toCanvasPoint(pieSeries.contentGroup, x, y);
+        it('should fire a nodeDoubleClick event for each visible sector', async () => {
+            for (const { x, y } of iterPieSectors(chart)) {
                 await waitForChartStability(chart);
-                await doubleClickAction(clickX, clickY)(chart);
+                await doubleClickAction(x, y)(chart);
             }
 
             expect(doubleClicks).toEqual(['Stocks', 'Cash', 'Real Estate', 'Commodities']);
@@ -155,19 +161,12 @@ describe('PieSeries', () => {
         });
 
         it('should not fire series events for legend clicks', async () => {
-            chart = await createChart(nodeClickOptions);
+            for (const { x, y } of iterLegendMarkerLabels(chart)) {
+                await clickAction(x, y)(chart);
+                await waitForChartStability(chart);
 
-            for (const { legend } of deproxy(chart).modulesManager.legends()) {
-                const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
-                for (const label of markerLabels) {
-                    const { x, y } = Transformable.toCanvas(label).computeCenter();
-
-                    await clickAction(x, y)(chart);
-                    await waitForChartStability(chart);
-
-                    await clickAction(x, y)(chart);
-                    await waitForChartStability(chart);
-                }
+                await clickAction(x, y)(chart);
+                await waitForChartStability(chart);
             }
 
             expect(doubleClicks).toHaveLength(0);
