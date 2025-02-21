@@ -213,11 +213,18 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             return;
         }
 
-        const { visible, id: seriesId } = this;
+        const {
+            visible,
+            id: seriesId,
+            ctx: { legendManager },
+        } = this;
         const { angleKey, angleFilterKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
 
-        const validSector = (_value: unknown, _datum: unknown, index: number) => {
-            return visible && this.ctx.legendManager.getItemEnabled({ seriesId, itemId: index });
+        const processor = () => (value: unknown, index: number) => {
+            if (visible && legendManager.getItemEnabled({ seriesId, itemId: index })) {
+                return value;
+            }
+            return 0;
         };
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -242,8 +249,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                     id: 'radiusValue',
                     min: this.properties.radiusMin ?? 0,
                     max: this.properties.radiusMax,
+                    processor,
                 }),
-                valueProperty(radiusKey, radiusScaleType, { id: `radiusRaw` }), // Raw value pass-through.
+                valueProperty(radiusKey, radiusScaleType, { id: `radiusRaw`, processor }), // Raw value pass-through.
                 normalisePropertyTo('radiusValue', [0, 1], 1, this.properties.radiusMin ?? 0, this.properties.radiusMax)
             );
         }
@@ -261,8 +269,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 accumulativeValueProperty(angleFilterKey, angleScaleType, {
                     id: `angleFilterValue`,
                     onlyPositive: true,
-                    validation: validSector,
                     invalidValue: 0,
+                    processor,
                 }),
                 valueProperty(angleFilterKey, angleScaleType, { id: `angleFilterRaw` }),
                 normalisePropertyTo('angleFilterValue', [0, 1], 0, 0)
@@ -279,8 +287,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 accumulativeValueProperty(angleKey, angleScaleType, {
                     id: `angleValue`,
                     onlyPositive: true,
-                    validation: validSector,
                     invalidValue: 0,
+                    processor,
                 }),
                 valueProperty(angleKey, angleScaleType, { id: `angleRaw` }), // Raw value pass-through.
                 normalisePropertyTo('angleValue', [0, 1], 0, 0),
