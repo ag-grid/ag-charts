@@ -1,4 +1,4 @@
-import { Logger, stringifyValue } from 'ag-charts-core';
+import { isArray } from 'ag-charts-core';
 import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition, AgGradientFill } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
@@ -30,48 +30,34 @@ export const MATCHING_CROSSLINE_TYPE = (property: 'value' | 'range') => {
           );
 };
 
-export const validateCrossLineValues = (
-    type: 'line' | 'range',
-    value: any,
-    range: any,
-    scale: Scale<any, number>,
-    visibilityCheck?: () => boolean
-): boolean => {
-    const lineCrossLine = type === 'line' && value !== undefined;
-    const rangeCrossLine = type === 'range' && range !== undefined;
+export function getCrossLineValue(crossLine: {
+    type: CrossLineType;
+    value?: unknown;
+    range?: [unknown, unknown];
+}): unknown {
+    switch (crossLine.type) {
+        case 'line':
+            return crossLine.value;
+        case 'range':
+            return crossLine.range;
+    }
+}
 
-    if (!lineCrossLine && !rangeCrossLine) {
-        return true;
+export function validateCrossLineValue(value: unknown, scale: Scale<any, number>): boolean {
+    if (value == null) {
+        return false;
     }
 
-    const [start, end] = range ?? [value, undefined];
     const isContinuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
-    const validStart = checkDatum(start, isContinuous) && !isNaN(scale.convert(start));
-    const validEnd = checkDatum(end, isContinuous) && !isNaN(scale.convert(end));
+    const validValue = (val: unknown) => checkDatum(val, isContinuous) && !isNaN(scale.convert(val));
 
-    if ((lineCrossLine && validStart) || (rangeCrossLine && validStart && validEnd)) {
-        return visibilityCheck?.() ?? true;
-    }
-
-    const message = [`Expecting crossLine`];
-
-    if (rangeCrossLine) {
-        if (!validStart) {
-            message.push(`range start ${stringifyValue(start)}`);
-        }
-        if (!validEnd) {
-            message.push(`${validStart ? '' : 'and '}range end ${stringifyValue(end)}`);
-        }
+    if (isArray(value)) {
+        const [start, end] = value;
+        return validValue(start) && validValue(end);
     } else {
-        message.push(`value ${stringifyValue(start)}`);
+        return validValue(value);
     }
-
-    message.push(`to match the axis scale domain.`);
-
-    Logger.warnOnce(message.join(' '));
-
-    return false;
-};
+}
 
 export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     calculateLayout?(visible: boolean, reversedAxis?: boolean): void;
@@ -97,7 +83,7 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     stroke?: string;
     strokeOpacity?: number;
     strokeWidth?: number;
-    type?: CrossLineType;
+    type: CrossLineType;
     update(visible: boolean): void;
     value?: any;
     set(properties: object): void;

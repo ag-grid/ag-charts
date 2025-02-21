@@ -40,7 +40,13 @@ import {
 } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
-import { type CrossLine, type CrossLineType, MATCHING_CROSSLINE_TYPE, validateCrossLineValues } from './crossLine';
+import {
+    type CrossLine,
+    type CrossLineType,
+    MATCHING_CROSSLINE_TYPE,
+    getCrossLineValue,
+    validateCrossLineValue,
+} from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
 import {
     POSITION_TOP_COORDINATES,
@@ -122,16 +128,16 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     @Validate(BOOLEAN, { optional: true })
     enabled?: boolean;
 
-    @Validate(UNION(['range', 'line'], 'a crossLine type'), { optional: true })
-    type?: CrossLineType;
+    @Validate(UNION(['range', 'line'], 'a crossLine type'))
+    type!: CrossLineType;
 
     @Validate(AND(MATCHING_CROSSLINE_TYPE('range'), ARRAY.restrict({ length: 2 })), {
         optional: true,
     })
-    range?: [any, any];
+    range?: [unknown, unknown];
 
     @Validate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
-    value?: any;
+    value?: unknown;
 
     @Validate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
@@ -188,13 +194,13 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     private _isRange: boolean | undefined = undefined;
     update(visible: boolean) {
-        const { enabled, data, type, value, range, scale } = this;
+        const { enabled, data, scale } = this;
         if (
-            !type ||
             !scale ||
             !enabled ||
             !visible ||
-            !validateCrossLineValues(type, value, range, scale) ||
+            !this.isValid() ||
+            !validateCrossLineValue(getCrossLineValue(this), scale) ||
             data.length === 0
         ) {
             this.rangeGroup.visible = false;
