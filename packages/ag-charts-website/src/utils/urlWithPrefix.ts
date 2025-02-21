@@ -21,9 +21,11 @@ export const urlWithPrefix = ({
     let path = url;
     const urlHasTrailingSlash = url.endsWith('/');
     const hasFileExt = Boolean(getFileExtension(url));
+    const frameworkPath = getFrameworkPath(framework!);
     if (url.startsWith('./')) {
-        const frameworkPath = getFrameworkPath(framework!);
         path = pathJoin('/', siteBaseUrl, frameworkPath, url.slice('./'.length));
+    } else if (url === '/') {
+        path = pathJoin('/', siteBaseUrl, frameworkPath);
     } else if (url.startsWith('/')) {
         path = pathJoin('/', siteBaseUrl, url);
     } else if (!url.startsWith('#') && !isExternalLink(url)) {

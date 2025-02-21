@@ -3,6 +3,7 @@ import { urlWithBaseUrl } from './urlWithBaseUrl';
 describe('urlWithBaseUrl', () => {
     test.each`
         url                       | expected
+        ${'/'}                    | ${'/'}
         ${'docs'}                 | ${'/docs'}
         ${'/docs'}                | ${'/docs'}
         ${'./docs'}               | ${'/docs'}
@@ -18,6 +19,7 @@ describe('urlWithBaseUrl', () => {
 
     test.each`
         url                       | expected
+        ${'/'}                    | ${'/ag-charts/'}
         ${'docs'}                 | ${'/ag-charts/docs'}
         ${'/docs'}                | ${'/ag-charts/docs'}
         ${'./docs'}               | ${'/ag-charts/docs'}
