@@ -27,12 +27,14 @@ import {
     clickAction,
     deproxy,
     doubleClickAction,
+    doubleTapAction,
     extractImageData,
     mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
     spyOnAnimationManager,
+    tapAction,
     waitForChartStability,
 } from '../../test/utils';
 import { AreaSeries } from './areaSeries';
@@ -595,6 +597,12 @@ describe('AreaSeries', () => {
                     await clickAction(x, y)(chart);
                 }
             });
+            test('touch', async () => {
+                for (const { x, y } of iterAreaSectors(chart)) {
+                    await waitForChartStability(chart);
+                    await tapAction(x, y)(chart);
+                }
+            });
 
             afterEach(() => {
                 expect(clicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
@@ -608,6 +616,12 @@ describe('AreaSeries', () => {
                 for (const { x, y } of iterAreaSectors(chart)) {
                     await waitForChartStability(chart);
                     await doubleClickAction(x, y)(chart);
+                }
+            });
+            test('touch', async () => {
+                for (const { x, y } of iterAreaSectors(chart)) {
+                    await waitForChartStability(chart);
+                    await doubleTapAction(x, y)(chart);
                 }
             });
 
@@ -625,6 +639,15 @@ describe('AreaSeries', () => {
                     await waitForChartStability(chart);
 
                     await clickAction(x, y)(chart);
+                    await waitForChartStability(chart);
+                }
+            });
+            test('touch', async () => {
+                for (const { x, y } of iterLegendMarkerLabels(chart)) {
+                    await tapAction(x, y)(chart);
+                    await waitForChartStability(chart);
+
+                    await tapAction(x, y)(chart);
                     await waitForChartStability(chart);
                 }
             });

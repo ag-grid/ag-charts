@@ -11,11 +11,13 @@ import {
     createChart,
     deproxy,
     doubleClickAction,
+    doubleTapAction,
     expectWarningsCalls,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    tapAction,
     waitForChartStability,
 } from '../../test/utils';
 import { PieSeries } from './pieSeries';
@@ -145,6 +147,12 @@ describe('PieSeries', () => {
                     await clickAction(x, y)(chart);
                 }
             });
+            test('touch', async () => {
+                for (const { x, y } of iterPieSectors(chart)) {
+                    await waitForChartStability(chart);
+                    await tapAction(x, y)(chart);
+                }
+            });
 
             afterEach(() => {
                 expect(clicks).toEqual(['Stocks', 'Cash', 'Real Estate', 'Commodities']);
@@ -158,6 +166,12 @@ describe('PieSeries', () => {
                 for (const { x, y } of iterPieSectors(chart)) {
                     await waitForChartStability(chart);
                     await doubleClickAction(x, y)(chart);
+                }
+            });
+            test('touch', async () => {
+                for (const { x, y } of iterPieSectors(chart)) {
+                    await waitForChartStability(chart);
+                    await doubleTapAction(x, y)(chart);
                 }
             });
 
@@ -175,6 +189,15 @@ describe('PieSeries', () => {
                     await waitForChartStability(chart);
 
                     await clickAction(x, y)(chart);
+                    await waitForChartStability(chart);
+                }
+            });
+            test('touch', async () => {
+                for (const { x, y } of iterLegendMarkerLabels(chart)) {
+                    await tapAction(x, y)(chart);
+                    await waitForChartStability(chart);
+
+                    await tapAction(x, y)(chart);
                     await waitForChartStability(chart);
                 }
             });
