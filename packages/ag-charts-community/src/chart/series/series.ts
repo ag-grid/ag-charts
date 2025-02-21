@@ -499,7 +499,7 @@ export abstract class Series<
         const yRange = yAxis?.range ?? [0, 1];
 
         const isHorizontal = direction === 'horizontal';
-        const axisDirection = isHorizontal ? ChartAxisDirection.Y : ChartAxisDirection.X;
+        const axisDirection = isHorizontal ? ChartAxisDirection.X : ChartAxisDirection.Y;
         const axis = axes[axisDirection];
         const seriesDomain = this.getSeriesDomain(axisDirection);
 
@@ -510,9 +510,9 @@ export abstract class Series<
 
         if (bounds === 'series') {
             if (isHorizontal) {
-                [y1, y2] = findMinMax(seriesRange);
-            } else {
                 [x1, x2] = findMinMax(seriesRange);
+            } else {
+                [y1, y2] = findMinMax(seriesRange);
             }
         }
 

@@ -1,6 +1,6 @@
 import type { Has } from 'ag-charts-core';
 import { Logger } from 'ag-charts-core';
-import type { AgPieSeriesStyle } from 'ag-charts-types';
+import type { AgFillType, AgGradientFill, AgPieSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -13,8 +13,9 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
+import { isGradientFill } from '../../../scene/util/fill';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
-import { normalizeAngle180, toRadians } from '../../../util/angle';
+import { normalizeAngle180, toDegrees, toRadians } from '../../../util/angle';
 import { formatValue } from '../../../util/format.util';
 import { jsonDiff } from '../../../util/json';
 import { mod } from '../../../util/number';
@@ -416,7 +417,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 sectorLabelValues?.[datumIndex],
                 legendItemValue
             );
-            const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
+            const sectorFormat = this.getSectorFormat(datum, datumIndex, false, midAngle);
 
             const node = {
                 itemId: datumIndex,
@@ -546,7 +547,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getSectorFormat(datum: any, datumIndex: number, highlighted: boolean) {
+    private getSectorFormat(datum: any, datumIndex: number, highlighted: boolean, angle: number) {
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
             this.properties;
 
@@ -563,6 +564,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 this.properties
             );
 
+        let sectorFill: AgFillType | undefined = fill;
+        if (isGradientFill(sectorFill) && sectorFill.angle == null && sectorFill.direction == null) {
+            sectorFill = {
+                ...(fill as AgGradientFill),
+                angle: toDegrees(angle + Math.PI / 2),
+            };
+        }
+
         let format: AgPieSeriesStyle | undefined;
         if (itemStyler) {
             format = this.cachedDatumCallback(
@@ -575,7 +584,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                         calloutLabelKey,
                         sectorLabelKey,
                         legendItemKey,
-                        fill: fill!,
+                        fill: sectorFill!,
                         strokeOpacity,
                         stroke,
                         strokeWidth,
@@ -590,7 +599,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         }
 
         return {
-            fill: format?.fill ?? fill,
+            fill: format?.fill ?? sectorFill,
             fillOpacity: format?.fillOpacity ?? fillOpacity,
             stroke: format?.stroke ?? stroke,
             strokeWidth: format?.strokeWidth ?? strokeWidth,
@@ -768,7 +777,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         const animationDisabled = this.ctx.animationManager.isSkipped();
         const updateSectorFn = (sector: Sector, datum: PieNodeDatum, _index: number, isDatumHighlighted: boolean) => {
-            const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted);
+            const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted, datum.midAngle);
 
             datum.sectorFormat.fill = format.fill;
             datum.sectorFormat.stroke = format.stroke;
@@ -1315,14 +1324,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 angleName,
                 radiusKey,
                 radiusName,
-                ...this.getSectorFormat(datum, datumIndex, false),
+                ...this.getSectorFormat(datum, datumIndex, false, 0),
             }
         );
     }
 
     private legendItemSymbol(datumIndex: number): LegendSymbolOptions {
         const datum = this.processedData?.dataSources.get(this.id)?.[datumIndex];
-        const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
+        const sectorFormat = this.getSectorFormat(datum, datumIndex, false, 0);
 
         return {
             marker: {

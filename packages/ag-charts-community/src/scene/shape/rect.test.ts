@@ -26,6 +26,16 @@ describe('Rect', () => {
             fill: 'cyan',
             strokeWidth: 1,
         };
+
+        const colorStops = [
+            {
+                color: 'white',
+            },
+            {
+                color: 'black',
+            },
+        ];
+
         const CLIP_BBOX_CASES = [
             { x: 0, y: 0, width: 60, height: 60, clipBBox: new BBox(0, 0, 50, 50) },
             { x: -10, y: 0, width: 60, height: 60, clipBBox: new BBox(0, 0, 50, 50) },
@@ -102,30 +112,176 @@ describe('Rect', () => {
                     width: 40,
                     height: 40,
                     crisp: true,
-                    fill: 'linear-gradient(180deg, #000000, #ff0000, #ffff00)',
+                    fill: {
+                        type: 'gradient',
+                        angle: 180,
+                        colorStops: [
+                            {
+                                color: '#000000',
+                            },
+                            {
+                                color: '#ff0000',
+                            },
+                            {
+                                color: '#ffff00',
+                            },
+                        ],
+                    },
                 },
                 {
                     width: 40,
                     height: 40,
                     crisp: true,
-                    fill: 'linear-gradient(90deg, #00FF00, white, rgb(255, 0, 0))',
+                    fill: {
+                        type: 'gradient',
+                        angle: 90,
+                        colorStops: [
+                            {
+                                color: '#00FF00',
+                            },
+
+                            {
+                                color: 'white',
+                            },
+                            {
+                                color: 'rgb(255, 0, 0)',
+                            },
+                        ],
+                    },
                 },
             ],
             [
                 // Gradient rotation
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(0deg, white, black)' },
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(45deg, white, black)' },
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(90deg, white, black)' },
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(135deg, white, black)' },
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(180deg, white, black)' },
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(225deg, white, black)' },
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(270deg, white, black)' },
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(315deg, white, black)' },
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(360deg, white, black)' },
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(-45deg, white, black)' },
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(-90deg, white, black)' },
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(-180deg, white, black)' },
-                { width: 40, height: 80, crisp: true, fill: 'linear-gradient(-270deg, white, black)' },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: 0,
+                        colorStops,
+                    },
+                },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: 45,
+                        colorStops,
+                    },
+                },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: 90,
+                        colorStops,
+                    },
+                },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: 135,
+                        colorStops,
+                    },
+                },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: 180,
+                        colorStops,
+                    },
+                },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: 225,
+                        colorStops,
+                    },
+                },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: 270,
+                        colorStops,
+                    },
+                },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: 315,
+                        colorStops,
+                    },
+                },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: 360,
+                        colorStops,
+                    },
+                },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: -45,
+                        colorStops,
+                    },
+                },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: -90,
+                        colorStops,
+                    },
+                },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: -180,
+                        colorStops,
+                    },
+                },
+                {
+                    width: 40,
+                    height: 80,
+                    crisp: true,
+                    fill: {
+                        type: 'gradient',
+                        angle: -270,
+                        colorStops,
+                    },
+                },
             ],
             // GO FOR IT!
             [{}, { lineDash: [5, 5] }, { opacity: 0.5 }].map((mixin) => ({

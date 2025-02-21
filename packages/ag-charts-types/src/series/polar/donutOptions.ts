@@ -4,7 +4,7 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, Degree, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type {
-    AgGradientFill,
+    AgFillType,
     FillOptions,
     FontOptions,
     LineDashOptions,
@@ -67,7 +67,7 @@ export interface AgDonutInnerLabelThemeOptions extends Omit<AgDonutInnerLabel, '
 
 export interface AgDonutInnerCircle {
     /** The colour of the fill for the inner circle. */
-    fill: CssColor | AgGradientFill;
+    fill: AgFillType;
     /** The opacity of the fill for the inner circle. */
     fillOpacity?: Opacity;
 }

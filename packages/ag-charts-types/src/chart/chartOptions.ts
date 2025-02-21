@@ -1,5 +1,5 @@
 import type { AgInitialStateOptions } from '../api/initialStateOptions';
-import type { AgGradientFill } from '../series/cartesian/commonOptions';
+import type { AgFillType } from '../series/cartesian/commonOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
@@ -108,7 +108,7 @@ export interface AgChartBackground {
     /** Whether the background should be visible. */
     visible?: boolean;
     /** Colour of the chart background. */
-    fill?: CssColor | AgGradientFill;
+    fill?: AgFillType;
     /** Background image. May be combined with fill colour. */
     image?: AgChartBackgroundImage;
 }

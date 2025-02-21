@@ -4,13 +4,16 @@ import type {
     AgDonutSeriesOptions,
     AgDonutSeriesStyle,
     AgDonutSeriesTooltipRendererParams,
+    AgFillType,
     Styler,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
 import { BaseProperties, PropertiesArray } from '../../../util/properties';
 import {
+    ARRAY_OF,
     BOOLEAN,
+    COLOR_GRADIENT,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
     FUNCTION,
@@ -18,6 +21,7 @@ import {
     NUMBER,
     OBJECT,
     OBJECT_ARRAY,
+    OR,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -47,8 +51,8 @@ export class DonutInnerLabel<T extends object = any> extends Label<AgDonutSeries
 }
 
 class DonutInnerCircle extends BaseProperties {
-    @Validate(COLOR_STRING)
-    fill: string = 'transparent';
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    fill: AgFillType = 'transparent';
 
     @Validate(RATIO)
     fillOpacity: number = 1;
@@ -128,7 +132,10 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     legendItemKey?: string;
 
     @Validate(COLOR_STRING_ARRAY)
-    fills: string[] = Object.values(DEFAULT_FILLS);
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    fills: AgFillType[] = Object.values(DEFAULT_FILLS);
 
     @Validate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);

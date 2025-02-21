@@ -107,6 +107,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    direction: 'vertical',
                                 },
                             },
                         },
