@@ -173,7 +173,7 @@ export class CartesianChart extends Chart {
             if (!s.isEnabled() || !s.properties.tooltip.enabled) return [];
             const seriesDatumIndex = s.datumIndexForCategoryValue(categoryValue);
             const tooltipContent =
-                seriesDatumIndex == null ? undefined : s.getTooltipContent(datumIndex, removeMeDatum);
+                seriesDatumIndex == null ? undefined : s.getTooltipContent(seriesDatumIndex, undefined);
             return tooltipContent ?? [];
         });
     }

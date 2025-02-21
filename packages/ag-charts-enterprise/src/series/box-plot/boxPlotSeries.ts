@@ -70,6 +70,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 x: ['xName'],
                 y: ['medianName', 'q1Name', 'q3Name', 'minName', 'maxName'],
             },
+            directionValues: {
+                x: 'xValue',
+            },
             pathsPerSeries: [],
             hasHighlightedLabels: true,
         });

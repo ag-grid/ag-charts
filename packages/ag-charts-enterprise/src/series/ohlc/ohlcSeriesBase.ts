@@ -96,6 +96,9 @@ export abstract class OhlcSeriesBase<
                 x: ['xName'],
                 y: ['lowName', 'highName', 'openName', 'closeName'],
             },
+            directionValues: {
+                x: 'xValue',
+            },
             pathsPerSeries: [],
         });
     }

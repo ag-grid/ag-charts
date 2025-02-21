@@ -54,6 +54,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            directionValues: {},
             pickModes: [
                 SeriesNodePickMode.AXIS_ALIGNED,
                 SeriesNodePickMode.NEAREST_NODE,

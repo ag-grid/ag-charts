@@ -135,7 +135,7 @@ However, we may wish to use this in the future
 
 .ag-charts-tooltip-symbol {
     grid-column: 1 / 2;
-    align-self: center;
+    place-self: center;
 }
 
 .ag-charts-tooltip-symbol svg {

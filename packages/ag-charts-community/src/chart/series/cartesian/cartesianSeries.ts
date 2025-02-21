@@ -60,7 +60,7 @@ type CartesianSeriesOpts<
     hasHighlightedLabels: boolean;
     directionKeys: SeriesDirectionKeysMapping<TProps>;
     directionNames: SeriesDirectionKeysMapping<TProps>;
-    directionValues?: { x?: string; y?: string };
+    directionValues: { x?: string };
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
@@ -217,7 +217,10 @@ export abstract class CartesianSeries<
         directionValues,
         ...otherOpts
     }: Partial<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>> &
-        Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'directionKeys' | 'directionNames'> &
+        Pick<
+            CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>,
+            'directionKeys' | 'directionNames' | 'directionValues'
+        > &
         SeriesConstructorOpts<TProps>) {
         super({
             directionKeys,
