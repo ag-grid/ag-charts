@@ -1,6 +1,6 @@
 import type { Has } from 'ag-charts-core';
 import { Logger } from 'ag-charts-core';
-import type { AgFillType, AgGradientFill, AgPieSeriesStyle } from 'ag-charts-types';
+import type { AgFillType, AgPieSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -13,7 +13,7 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
-import { isGradientFill } from '../../../scene/util/fill';
+import { isGradientFill, isStringFillArray } from '../../../scene/util/fill';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toDegrees, toRadians } from '../../../util/angle';
 import { formatValue } from '../../../util/format.util';
@@ -830,10 +830,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     updateCalloutLineNodes() {
-        const { calloutLine } = this.properties;
-        const calloutLength = calloutLine.length;
-        const calloutStrokeWidth = calloutLine.strokeWidth;
-        const calloutColors = calloutLine.colors ?? this.properties.strokes;
+        const {
+            calloutLine: { length, strokeWidth, colors },
+            strokes,
+        } = this.properties;
+        const calloutLength = length;
+        const calloutStrokeWidth = strokeWidth;
+        const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
         const { offset } = this.properties.calloutLabel;
 
         this.calloutLabelSelection.selectByTag<Line>(PieNodeTag.Callout).forEach((line, index) => {
