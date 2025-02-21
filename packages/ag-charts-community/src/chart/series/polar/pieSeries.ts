@@ -831,10 +831,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     updateCalloutLineNodes() {
         const {
-            calloutLine: { length, strokeWidth, colors },
+            calloutLine: { length: calloutLength, strokeWidth, colors },
             strokes,
         } = this.properties;
-        const calloutLength = length;
         const calloutStrokeWidth = strokeWidth;
         const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
         const { offset } = this.properties.calloutLabel;

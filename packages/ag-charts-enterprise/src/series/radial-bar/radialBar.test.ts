@@ -296,4 +296,34 @@ describe('RadialBarSeries', () => {
             });
         }
     });
+
+    describe('gradient fill', () => {
+        it('should render radial bar series with a gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        type: 'radial-bar',
+                        angleKey: 'Mountain air',
+                        radiusKey: 'quarter',
+                        fill: {
+                            type: 'gradient',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });

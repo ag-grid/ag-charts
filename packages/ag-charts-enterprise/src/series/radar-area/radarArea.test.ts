@@ -205,4 +205,34 @@ describe('RadarAreaSeries', () => {
             });
         }
     });
+
+    describe('gradient fill', () => {
+        it('should render radar area series with a gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        type: 'radar-area',
+                        angleKey: 'subject',
+                        radiusKey: 'gradeA',
+                        fill: {
+                            type: 'gradient',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });

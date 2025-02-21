@@ -96,6 +96,14 @@ describe('PieSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
                             },
                         ],
                     },

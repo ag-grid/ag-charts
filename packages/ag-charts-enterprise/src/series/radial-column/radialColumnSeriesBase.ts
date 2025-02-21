@@ -26,7 +26,6 @@ const {
     applyShapeStyle,
     isGradientFill,
     toDegrees,
-    mergeDefaults,
 } = _ModuleSupport;
 
 class RadialColumnSeriesNodeEvent<

@@ -157,6 +157,14 @@ describe('DonutSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
                             },
                         ],
                     },

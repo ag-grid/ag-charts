@@ -282,4 +282,34 @@ describe('NightingaleSeries', () => {
             });
         }
     });
+
+    describe('gradient fill', () => {
+        it('should render nightingale series with a gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        type: 'nightingale',
+                        angleKey: 'quarter',
+                        radiusKey: 'Mountain air',
+                        fill: {
+                            type: 'gradient',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });
