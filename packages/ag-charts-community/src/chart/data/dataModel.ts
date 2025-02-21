@@ -30,6 +30,8 @@ const DOMAIN_RANGES = Symbol('domain-ranges');
 
 type ScopeId = string;
 
+type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
+
 interface CommonMetadata<D> {
     input: { count: number };
     scopes: Set<ScopeId>;
@@ -779,7 +781,12 @@ export class DataModel<
     private extractKeys(
         keyDefs: InternalDatumPropertyDefinition<K>[],
         sources: Map<string, unknown[]>,
-        processValue: (def: InternalDatumPropertyDefinition<K>, datum: any, idx: number, scopes: string) => any
+        processValue: (
+            def: InternalDatumPropertyDefinition<K>,
+            datum: any,
+            idx: number,
+            scopes: string
+        ) => ProcessedValue
     ) {
         const invalidKeys = new Map<ScopeId, boolean[]>();
         const invalidData = new Map<ScopeId, boolean[]>();
@@ -819,9 +826,9 @@ export class DataModel<
                 let invalidScopeKeys;
                 let invalidScopeData;
                 for (let datumIndex = 0; datumIndex < data.length; datumIndex++) {
-                    const key = processValue(keyDef, data[datumIndex], datumIndex, scope);
+                    const { value: key, valid } = processValue(keyDef, data[datumIndex], datumIndex, scope);
 
-                    if (key !== INVALID_VALUE) {
+                    if (valid) {
                         keys.push(key);
                         continue;
                     }
@@ -868,7 +875,7 @@ export class DataModel<
             datum: any,
             idx: number,
             scopes: string | string[]
-        ) => any
+        ) => ProcessedValue
     ) {
         let partialValidDataCount = 0;
 
@@ -888,15 +895,16 @@ export class DataModel<
             const column = columnSource.map((valueDatum, datumIndex) => {
                 const invalidKey = invalidKeys.get(columnScope)?.[datumIndex];
 
-                let value = processValue(def, valueDatum, datumIndex, def.scopes);
+                const result = processValue(def, valueDatum, datumIndex, def.scopes);
+                let { value } = result;
 
-                if (invalidKey || value === INVALID_VALUE) {
+                if (invalidKey || !result.valid) {
                     this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData);
                 }
 
                 if (invalidKey) {
                     value = invalidValue;
-                } else if (value === INVALID_VALUE) {
+                } else if (!result.valid) {
                     partialValidDataCount += 1;
 
                     value = invalidValue;
@@ -973,8 +981,6 @@ export class DataModel<
                     }
                 }
 
-                if (outputGroup.validScopes.size === 0) continue;
-
                 for (const columnIdx of scopeColumnIndexes) {
                     outputGroup.datumIndices[columnIdx] ??= [];
                     outputGroup.datumIndices[columnIdx].push(datumIndex);
@@ -985,8 +991,6 @@ export class DataModel<
         const resultGroups = [];
         const resultData = [];
         for (const { keys, datumIndices, validScopes } of groups.values()) {
-            if (validScopes?.size === 0) continue;
-
             resultGroups.push(keys);
             resultData.push({
                 datumIndices,
@@ -1052,8 +1056,6 @@ export class DataModel<
             for (const group of processedData.groups) {
                 group.aggregation ??= [];
 
-                if (group.validScopes?.size === 0) continue;
-
                 const groupKeys = group.keys;
 
                 let groupAggValues = def.groupAggregateFunction?.() ?? [Infinity, -Infinity];
@@ -1083,13 +1085,12 @@ export class DataModel<
     private postProcessGroups(processedData: GroupedData<any>) {
         const { groupProcessors } = this;
 
-        const { columnScopes, columns, invalidData, scopes } = processedData;
+        const { columnScopes, columns, invalidData } = processedData;
         for (const processor of groupProcessors) {
             const valueIndexes = this.valueGroupIdxLookup(processor);
             const adjustFn = processor.adjust()();
 
             for (const dataGroup of processedData.groups) {
-                if (dataGroup.validScopes !== scopes) continue;
                 adjustFn(columns, valueIndexes, dataGroup);
             }
 
@@ -1185,12 +1186,17 @@ export class DataModel<
 
         const accessors = this.buildAccessors(iterate(keyDefs, valueDefs));
 
+        const reusableResult: ProcessedValue = {
+            value: INVALID_VALUE,
+            missing: false,
+            valid: false,
+        };
         const processValue = (
             def: InternalDatumPropertyDefinition<K>,
             datum: any,
             idx: number,
             valueScopes: string | string[]
-        ) => {
+        ): ProcessedValue => {
             let valueInDatum: boolean;
             let value;
             if (accessors.has(def.property)) {
@@ -1212,6 +1218,7 @@ export class DataModel<
                 value = valueNegative ? -1 * def.forceValue : def.forceValue;
                 valueInDatum = true;
             }
+            reusableResult.missing = !valueInDatum;
 
             const missingValueDef = 'missingValue' in def;
             if (!valueInDatum && !missingValueDef) {
@@ -1231,6 +1238,8 @@ export class DataModel<
             }
 
             if (valueInDatum && def.validation?.(value, datum, idx) === false) {
+                reusableResult.valid = false;
+
                 if ('invalidValue' in def) {
                     value = def.invalidValue;
                 } else {
@@ -1240,8 +1249,11 @@ export class DataModel<
                             `[${value}]`
                         );
                     }
-                    return INVALID_VALUE;
+                    reusableResult.value = INVALID_VALUE;
+                    return reusableResult;
                 }
+            } else {
+                reusableResult.valid = true;
             }
 
             if (def.processor) {
@@ -1252,7 +1264,8 @@ export class DataModel<
             }
 
             dataDomain.get(def)?.extend(value);
-            return value;
+            reusableResult.value = value;
+            return reusableResult;
         };
 
         return { dataDomain, processValue, initDataDomain, scopes, allScopesHaveSameDefs };
