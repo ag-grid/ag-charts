@@ -588,40 +588,52 @@ describe('AreaSeries', () => {
             }
         }
 
-        it('should fire a nodeClick event for each node', async () => {
-            for (const { x, y } of iterAreaSectors(chart)) {
-                await waitForChartStability(chart);
-                await clickAction(x, y)(chart);
-            }
+        describe('should fire a nodeClick event for each node', () => {
+            test('mouse', async () => {
+                for (const { x, y } of iterAreaSectors(chart)) {
+                    await waitForChartStability(chart);
+                    await clickAction(x, y)(chart);
+                }
+            });
 
-            expect(clicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
-            expect(doubleClicks).toHaveLength(0);
-            expect(legendClicks).toHaveLength(0);
+            afterEach(() => {
+                expect(clicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
+                expect(doubleClicks).toHaveLength(0);
+                expect(legendClicks).toHaveLength(0);
+            });
         });
 
-        it('should fire a nodeDoubleClick event for each node', async () => {
-            for (const { x, y } of iterAreaSectors(chart)) {
-                await waitForChartStability(chart);
-                await doubleClickAction(x, y)(chart);
-            }
+        describe('should fire a nodeDoubleClick event for each node', () => {
+            test('mouse', async () => {
+                for (const { x, y } of iterAreaSectors(chart)) {
+                    await waitForChartStability(chart);
+                    await doubleClickAction(x, y)(chart);
+                }
+            });
 
-            expect(doubleClicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
-            expect(clicks).toHaveLength(10);
-            expect(legendClicks).toHaveLength(0);
+            afterEach(() => {
+                expect(doubleClicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
+                expect(clicks).toHaveLength(10);
+                expect(legendClicks).toHaveLength(0);
+            });
         });
 
-        it('should not fire series events for legend clicks', async () => {
-            for (const { x, y } of iterLegendMarkerLabels(chart)) {
-                await clickAction(x, y)(chart);
-                await waitForChartStability(chart);
+        describe('should not fire series events for legend clicks', () => {
+            test('mouse', async () => {
+                for (const { x, y } of iterLegendMarkerLabels(chart)) {
+                    await clickAction(x, y)(chart);
+                    await waitForChartStability(chart);
 
-                await clickAction(x, y)(chart);
-                await waitForChartStability(chart);
-            }
+                    await clickAction(x, y)(chart);
+                    await waitForChartStability(chart);
+                }
+            });
 
-            expect(legendClicks).toEqual(['amount', 'amount']);
-            expect(doubleClicks).toHaveLength(0);
-            expect(clicks).toHaveLength(0);
+            afterEach(() => {
+                expect(legendClicks).toEqual(['amount', 'amount']);
+                expect(doubleClicks).toHaveLength(0);
+                expect(clicks).toHaveLength(0);
+            });
         });
     });
 });
