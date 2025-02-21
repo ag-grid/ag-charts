@@ -573,16 +573,16 @@ describe('AreaSeries', () => {
             legendClicks.splice(0, legendClicks.length);
         });
 
-        function* iterAreaSectors(chart: AgChartInstance) {
-            const areaSeries = deproxy(chart).series[0] as AreaSeries;
+        function* iterAreaSectors(myChart: AgChartInstance) {
+            const areaSeries = deproxy(myChart).series[0] as AreaSeries;
             for (const nodeData of areaSeries.getNodeData() ?? []) {
                 const { x = 0, y = 0 } = nodeData.point ?? {};
                 yield Transformable.toCanvasPoint(areaSeries.contentGroup, x, y);
             }
         }
 
-        function* iterLegendMarkerLabels(chart: AgChartInstance) {
-            for (const { legend } of deproxy(chart).modulesManager.legends()) {
+        function* iterLegendMarkerLabels(myChart: AgChartInstance) {
+            for (const { legend } of deproxy(myChart).modulesManager.legends()) {
                 const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
                 for (const label of markerLabels) {
                     yield Transformable.toCanvas(label).computeCenter();

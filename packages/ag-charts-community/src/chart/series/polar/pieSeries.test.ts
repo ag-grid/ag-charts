@@ -121,8 +121,8 @@ describe('PieSeries', () => {
             legendClicks.splice(0, legendClicks.length);
         });
 
-        function* iterPieSectors(chart: Chart) {
-            const pieSeries = deproxy(chart).series[0] as PieSeries;
+        function* iterPieSectors(myChart: Chart) {
+            const pieSeries = deproxy(myChart).series[0] as PieSeries;
             for (const nodeData of pieSeries.getNodeData() ?? []) {
                 if (nodeData.angleValue < 1e-10) continue;
 
@@ -131,8 +131,8 @@ describe('PieSeries', () => {
             }
         }
 
-        function* iterLegendMarkerLabels(chart: Chart) {
-            for (const { legend } of deproxy(chart).modulesManager.legends()) {
+        function* iterLegendMarkerLabels(myChart: Chart) {
+            for (const { legend } of deproxy(myChart).modulesManager.legends()) {
                 const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
                 for (const label of markerLabels) {
                     yield Transformable.toCanvas(label).computeCenter();
