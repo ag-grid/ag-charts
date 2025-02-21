@@ -131,9 +131,7 @@ export class BarSeries extends AbstractBarSeries<
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
-            directionValues: {
-                x: 'xValue',
-            },
+            categoryKey: 'xValue',
             pickModes: [
                 SeriesNodePickMode.AXIS_ALIGNED, // Only used in sparklineMode
                 SeriesNodePickMode.NEAREST_NODE,

@@ -35,6 +35,8 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     getLabelData(): (TLabel & PointLabelDatum)[];
     getTooltipContent(datumIndex: TDatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
+    getCategoryValue(datumIndex: TDatumIndex): any;
+    datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): any[];

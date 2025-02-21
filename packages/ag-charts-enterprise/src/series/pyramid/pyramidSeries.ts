@@ -84,6 +84,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
+            categoryKey: undefined,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
 

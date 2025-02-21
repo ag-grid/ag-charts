@@ -688,4 +688,12 @@ export abstract class FlowProportionSeries<
             clipFocusBox: true,
         };
     }
+
+    getCategoryValue(_datumIndex: FlowProportionNodeDatumIndex): any {
+        return;
+    }
+
+    datumIndexForCategoryValue(_categoryValue: any): FlowProportionNodeDatumIndex | undefined {
+        return;
+    }
 }

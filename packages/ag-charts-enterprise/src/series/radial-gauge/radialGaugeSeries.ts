@@ -1217,4 +1217,12 @@ export class RadialGaugeSeries
 
         return description.join('. ');
     }
+
+    getCategoryValue(_datumIndex: RadialGaugeNodeDatumIndex) {
+        return;
+    }
+
+    datumIndexForCategoryValue(_categoryValue: any): RadialGaugeNodeDatumIndex | undefined {
+        return;
+    }
 }

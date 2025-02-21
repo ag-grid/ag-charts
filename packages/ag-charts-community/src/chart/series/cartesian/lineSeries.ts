@@ -94,9 +94,7 @@ export class LineSeries extends CartesianSeries<
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
-            directionValues: {
-                x: 'xValue',
-            },
+            categoryKey: 'xValue',
             hasMarkers: true,
             pickModes: [
                 SeriesNodePickMode.AXIS_ALIGNED,

@@ -80,6 +80,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
+            categoryKey: 'radiusValue',
             useLabelLayer: true,
             canHaveAxes: true,
             animationResetFns: {

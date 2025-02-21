@@ -14,7 +14,6 @@ import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { Series } from './series/series';
-import type { TooltipContent } from './tooltip/tooltip';
 
 type Dimension = 'x' | 'y';
 type Direction = -1 | 1;
@@ -153,28 +152,6 @@ export class CartesianChart extends Chart {
                 paddedRect: seriesPaddedRect,
             },
             clipSeries,
-        });
-    }
-
-    public override getTooltipContent(
-        series: Series<number, any, any>,
-        datumIndex: number,
-        removeMeDatum: unknown
-    ): TooltipContent[] {
-        if (this.tooltip.mode !== 'shared' || this.series.length === 1) {
-            return super.getTooltipContent(series, datumIndex, removeMeDatum);
-        }
-
-        const categoryValue = series instanceof CartesianSeries ? series.categoryValue(datumIndex) : undefined;
-        if (categoryValue == null) return super.getTooltipContent(series, datumIndex, removeMeDatum);
-
-        return this.series.flatMap((s): TooltipContent | [] => {
-            if (!(s instanceof CartesianSeries)) return [];
-            if (!s.isEnabled() || !s.properties.tooltip.enabled) return [];
-            const seriesDatumIndex = s.datumIndexForCategoryValue(categoryValue);
-            const tooltipContent =
-                seriesDatumIndex == null ? undefined : s.getTooltipContent(seriesDatumIndex, undefined);
-            return tooltipContent ?? [];
         });
     }
 

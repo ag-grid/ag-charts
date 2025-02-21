@@ -1306,4 +1306,12 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     getCaptionText(): string {
         return this.formatLabel(this.properties.value);
     }
+
+    getCategoryValue(_datumIndex: LinearGaugeNodeDatumIndex) {
+        return;
+    }
+
+    datumIndexForCategoryValue(_categoryValue: any): LinearGaugeNodeDatumIndex | undefined {
+        return;
+    }
 }

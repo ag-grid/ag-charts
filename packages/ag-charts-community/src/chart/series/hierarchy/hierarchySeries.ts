@@ -374,4 +374,12 @@ export abstract class HierarchySeries<
             description,
         });
     }
+
+    getCategoryValue(_datumIndex: number[]) {
+        return;
+    }
+
+    datumIndexForCategoryValue(_categoryValue: any): number[] | undefined {
+        return;
+    }
 }

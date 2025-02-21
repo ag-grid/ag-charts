@@ -56,7 +56,6 @@ type CartesianSeriesOpts<
     hasHighlightedLabels: boolean;
     directionKeys: SeriesDirectionKeysMapping<TProps>;
     directionNames: SeriesDirectionKeysMapping<TProps>;
-    directionValues: { x?: string };
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
@@ -210,13 +209,9 @@ export abstract class CartesianSeries<
         animationResetFns,
         directionKeys,
         directionNames,
-        directionValues,
         ...otherOpts
     }: Partial<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>> &
-        Pick<
-            CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>,
-            'directionKeys' | 'directionNames' | 'directionValues'
-        > &
+        Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'directionKeys' | 'directionNames'> &
         DataModelSeriesConstructorOpts<TProps>) {
         super({
             directionKeys,
@@ -234,7 +229,6 @@ export abstract class CartesianSeries<
             pathsZIndexSubOrderOffset,
             directionKeys,
             directionNames,
-            directionValues,
             animationResetFns,
             animationAlwaysUpdateSelections,
             datumSelectionGarbageCollection,
@@ -739,36 +733,6 @@ export abstract class CartesianSeries<
 
     protected abstract xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number];
     protected abstract yCoordinateRange(yValues: any[], pixelSize: number, index: number): [number, number];
-
-    public categoryValue(datumIndex: number): any {
-        const { processedData, dataModel } = this;
-        const categoryKey = this.opts.directionValues?.x;
-        if (!processedData || !dataModel || !categoryKey) return;
-        const invalid = processedData.invalidData?.get(this.id)?.[datumIndex] ?? false;
-        return invalid ? undefined : this.keysOrValues(categoryKey)[datumIndex];
-    }
-
-    public datumIndexForCategoryValue(categoryValue: any): number | undefined {
-        const { processedData, dataModel } = this;
-        const categoryKey = this.opts.directionValues?.x;
-        if (!processedData || !dataModel || !categoryKey) return;
-
-        categoryValue = categoryValue.valueOf();
-        const invalidValues = processedData.invalidData?.get(this.id);
-        const xValues = this.keysOrValues(categoryKey);
-        for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
-            if (invalidValues?.[datumIndex] === true) continue;
-
-            const xValue = xValues[datumIndex]?.valueOf();
-            if (categoryValue === xValue) return datumIndex;
-        }
-    }
-
-    // Workaround - it would be nice if this difference didn't exist
-    private keysOrValues(xKey: string) {
-        const key = this.dataModel!.resolveProcessedDataIndexById(this, xKey);
-        return this.processedData?.keys[key]?.get(this.id) ?? this.processedData?.columns[key] ?? [];
-    }
 
     protected visibleRange(axisKey: string, visibleRange: [any, any], indices?: number[]) {
         const xValues = this.keysOrValues(axisKey);

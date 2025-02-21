@@ -69,7 +69,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
-            directionValues: {},
+            categoryKey: undefined,
             pickModes: [
                 SeriesNodePickMode.AXIS_ALIGNED,
                 SeriesNodePickMode.NEAREST_NODE,

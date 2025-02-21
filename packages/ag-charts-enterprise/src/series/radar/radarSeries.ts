@@ -84,6 +84,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
+            categoryKey: 'angleValue',
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             canHaveAxes: true,

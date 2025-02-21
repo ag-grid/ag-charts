@@ -122,9 +122,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 x: ['xName'],
                 y: ['yLowName', 'yHighName', 'yName'],
             },
-            directionValues: {
-                x: 'xValue',
-            },
+            categoryKey: 'xValue',
             datumSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,

@@ -99,9 +99,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 [ChartAxisDirection.X]: ['xName'],
                 [ChartAxisDirection.Y]: ['yLowName', 'yHighName', 'yName'],
             },
-            directionValues: {
-                x: 'xValue',
-            },
+            categoryKey: 'xValue',
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,

@@ -17,6 +17,7 @@ export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum>
     extends SeriesNodeDataContext<number, TDatum, TLabel> {}
 
 export type DataModelSeriesConstructorOpts<TProps extends SeriesProperties<any>> = SeriesConstructorOpts<TProps> & {
+    categoryKey: string | undefined;
     clipFocusBox?: boolean;
 };
 
@@ -28,11 +29,13 @@ export abstract class DataModelSeries<
 > extends Series<number, TDatum, TProps, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
+    private readonly categoryKey: string | undefined;
     private readonly clipFocusBox: boolean;
 
-    protected constructor({ clipFocusBox, ...seriesOpts }: DataModelSeriesConstructorOpts<TProps>) {
+    protected constructor({ clipFocusBox, categoryKey, ...seriesOpts }: DataModelSeriesConstructorOpts<TProps>) {
         super(seriesOpts);
 
+        this.categoryKey = categoryKey;
         this.clipFocusBox = clipFocusBox ?? true;
     }
 
@@ -154,6 +157,40 @@ export abstract class DataModelSeries<
             }
         } else {
             return datumIndex;
+        }
+    }
+
+    // Workaround - it would be nice if this difference didn't exist
+    protected keysOrValues(xKey: string) {
+        const key = this.dataModel!.resolveProcessedDataIndexById(this, xKey);
+        return this.processedData?.keys[key]?.get(this.id) ?? this.processedData?.columns[key] ?? [];
+    }
+
+    protected getCategoryKey() {
+        return this.categoryKey;
+    }
+
+    public getCategoryValue(datumIndex: number): any {
+        const { processedData, dataModel } = this;
+        const categoryKey = this.getCategoryKey();
+        if (!processedData || !dataModel || !categoryKey) return;
+        const invalid = processedData.invalidData?.get(this.id)?.[datumIndex] ?? false;
+        return invalid ? undefined : this.keysOrValues(categoryKey)[datumIndex];
+    }
+
+    public datumIndexForCategoryValue(categoryValue: any): number | undefined {
+        const { processedData, dataModel } = this;
+        const categoryKey = this.getCategoryKey();
+        if (!processedData || !dataModel || !categoryKey) return;
+
+        categoryValue = categoryValue.valueOf();
+        const invalidValues = processedData.invalidData?.get(this.id);
+        const xValues = this.keysOrValues(categoryKey);
+        for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
+            if (invalidValues?.[datumIndex] === true) continue;
+
+            const xValue = xValues[datumIndex]?.valueOf();
+            if (categoryValue === xValue) return datumIndex;
         }
     }
 }

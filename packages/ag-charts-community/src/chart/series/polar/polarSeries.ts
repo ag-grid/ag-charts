@@ -95,6 +95,7 @@ export abstract class PolarSeries<
     protected animationState: StateMachine<PolarAnimationState, PolarAnimationEvent>;
 
     constructor({
+        categoryKey,
         useLabelLayer = false,
         pickModes = [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         canHaveAxes = false,
@@ -102,6 +103,7 @@ export abstract class PolarSeries<
         ...opts
     }: {
         moduleCtx: ModuleContext;
+        categoryKey: string | undefined;
         useLabelLayer?: boolean;
         pickModes?: SeriesNodePickMode[];
         canHaveAxes?: boolean;
@@ -112,6 +114,7 @@ export abstract class PolarSeries<
     } & Partial<DataModelSeriesConstructorOpts<TProps>>) {
         super({
             ...opts,
+            categoryKey,
             useLabelLayer,
             pickModes,
             directionKeys: {
