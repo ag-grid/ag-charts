@@ -460,7 +460,7 @@ export class Tooltip extends BaseProperties {
         this.arrowPosition = showArrow ? arrowPositions[placement] : undefined;
         this.updateClassModifiers();
 
-        element.style.translate = `${top}px ${left}px`;
+        element.style.translate = `${left}px ${top}px`;
     }
 
     /**
