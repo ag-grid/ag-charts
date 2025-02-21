@@ -103,10 +103,10 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 /**
  * Finds the closest matching suggestion from a list based on Levenshtein distance.
  *
- * @param {string} value - The input string to compare against suggestions.
- * @param {string[]} suggestions - The list of possible suggestions.
- * @param {number} [maxDistance=2] - The maximum allowed Levenshtein distance for a match.
- * @returns {string | null} - The closest matching suggestion within the allowed distance, or null if none are found.
+ * @param value The input string to compare against suggestions.
+ * @param suggestions The list of possible suggestions.
+ * @param maxDistance The maximum allowed Levenshtein distance for a match.
+ * @returns The closest matching suggestion within the allowed distance, or null if none are found.
  */
 function findSuggestion(value: string, suggestions: string[], maxDistance: number = 2): string | null {
     let smallestDistance = Infinity;
@@ -124,8 +124,8 @@ function findSuggestion(value: string, suggestions: string[], maxDistance: numbe
  * Generates a validation error message based on the path, value, and expected type.
  * @param path The path to the option.
  * @param value The invalid value.
- * @param validatorOrDefs The expected type or validator.
- * @param required
+ * @param validatorOrDefs The expected type, validator, or description.
+ * @param required Whether the option is required.
  * @returns A formatted error message.
  */
 function validateMessage(
