@@ -21,7 +21,9 @@ const { series } = galleryData;
                     <div class="chart-type">
                         <div class="gallery-list">
                             {series.map(({ title, name, examples }) => {
-                                const threeColExamples = examples.toSpliced(0, examples.length % 3);
+                                const threeColExamples = examples
+                                    .filter(({ hidden }) => !hidden)
+                                    .toSpliced(0, examples.length % 3);
 
                                 return (
                                     <>
