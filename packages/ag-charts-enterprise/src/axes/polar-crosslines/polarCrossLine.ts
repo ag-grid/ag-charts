@@ -67,16 +67,16 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     @Validate(BOOLEAN, { optional: true })
     enabled?: boolean;
 
-    @Validate(UNION(['range', 'line'], 'a crossLine type'), { optional: true })
-    type?: _ModuleSupport.CrossLineType;
+    @Validate(UNION(['range', 'line'], 'a crossLine type'))
+    type!: _ModuleSupport.CrossLineType;
 
     @Validate(AND(MATCHING_CROSSLINE_TYPE('range'), ARRAY.restrict({ length: 2 })), {
         optional: true,
     })
-    range?: [any, any];
+    range?: [unknown, unknown];
 
     @Validate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
-    value?: any;
+    value?: unknown;
 
     @Validate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];

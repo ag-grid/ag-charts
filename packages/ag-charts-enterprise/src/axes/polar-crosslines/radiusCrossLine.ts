@@ -6,7 +6,8 @@ const {
     ChartAxisDirection,
     Validate,
     NUMBER,
-    validateCrossLineValues,
+    getCrossLineValue,
+    validateCrossLineValue,
     clamp,
     normalizeAngle360,
     toRadians,
@@ -14,6 +15,7 @@ const {
     Group,
     Path,
     Sector,
+    BandScale,
     RotatableText,
 } = _ModuleSupport;
 
@@ -47,15 +49,15 @@ export class RadiusCrossLine extends PolarCrossLine {
     }
 
     update(visible: boolean) {
-        const { scale, type, value, range } = this;
-        if (!scale || !type || !validateCrossLineValues(type, value, range, scale)) {
+        const { scale, value } = this;
+        if (!scale || !this.isValid() || !validateCrossLineValue(getCrossLineValue(this), scale)) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
             this.labelGroup.visible = false;
             return;
         }
 
-        if (type === 'line' && scale instanceof _ModuleSupport.BandScale) {
+        if (this.type === 'line' && BandScale.is(scale)) {
             this.type = 'range';
             this.range = [value, value];
         }

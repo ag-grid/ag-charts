@@ -1,10 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isArray } from 'ag-charts-core';
 
 import { PolarCrossLine } from './polarCrossLine';
 
 const {
     ChartAxisDirection,
-    validateCrossLineValues,
+    getCrossLineValue,
+    validateCrossLineValue,
     normalizeAngle360,
     isNumberEqual,
     Group,
@@ -37,21 +39,32 @@ export class AngleCrossLine extends PolarCrossLine {
         this.labelGroup.append(this.labelNode);
     }
 
+    visibilityCheck() {
+        if (!ContinuousScale.is(this.scale)) {
+            return true;
+        }
+
+        const [d0, d1] = this.scale.domain;
+        const value: any = getCrossLineValue(this);
+
+        if (isArray(value)) {
+            const [start, end] = value;
+            return start >= d0 && start <= d1 && end >= start && end <= d1;
+        } else {
+            return value >= d0 && value <= d1;
+        }
+    }
+
     update(visible: boolean) {
-        const { scale, shape, type, value, range } = this;
+        const { scale, shape, value } = this;
 
-        const visibilityCheck = () => {
-            if (!ContinuousScale.is(scale)) {
-                return true;
-            }
-
-            const [start, end] = range ?? [value, undefined];
-            const { domain } = scale;
-            // TODO support clipping if only end is out-of-bounds
-            return start >= domain[0] && start <= domain[1] && (type === 'line' || (end >= start && end <= domain[1]));
-        };
-
-        if (!scale || !type || !validateCrossLineValues(type, value, range, scale, visibilityCheck)) {
+        // TODO support clipping if only end is out-of-bounds
+        if (
+            !scale ||
+            !this.isValid() ||
+            !validateCrossLineValue(getCrossLineValue(this), scale) ||
+            !this.visibilityCheck()
+        ) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
             this.labelGroup.visible = false;
@@ -62,7 +75,7 @@ export class AngleCrossLine extends PolarCrossLine {
         this.lineGroup.visible = visible;
         this.labelGroup.visible = visible;
 
-        if (type === 'line' && shape === 'circle' && BandScale.is(scale)) {
+        if (this.type === 'line' && shape === 'circle' && BandScale.is(scale)) {
             this.type = 'range';
             this.range = [value, value];
         }

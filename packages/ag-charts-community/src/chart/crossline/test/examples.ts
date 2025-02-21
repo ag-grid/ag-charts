@@ -11,7 +11,7 @@ const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     loadExampleOptions('area-with-negative-values');
 
 type CrossLinesRangeConfig = Record<string, { vertical: [Date, Date]; horizontal: [number, number] }>;
-type InvalidCrossLineConfig = Record<string, AgCartesianCrossLineOptions>;
+type InvalidCrossLineConfig = Record<string, Partial<AgCartesianCrossLineOptions>>;
 
 const baseChartOptions: AgCartesianChartOptions = {
     data: DATA_OIL_PETROLEUM,
@@ -110,7 +110,7 @@ const createChartOptionsWithInvalidCrossLines = (
                 return axis.position === 'left'
                     ? {
                           ...axis,
-                          crossLines: [{ ...baseCrossLineOptions, type: undefined, ...invalidCrossLineOptions }],
+                          crossLines: [{ ...baseCrossLineOptions, type: undefined, ...invalidCrossLineOptions }] as any,
                       }
                     : axis;
             }),
