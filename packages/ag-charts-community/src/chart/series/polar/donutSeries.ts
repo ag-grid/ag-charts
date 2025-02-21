@@ -1472,11 +1472,12 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         const hideZeros = this.properties.hideZeroValueSectorsInLegend;
         const rawData = processedData.dataSources.get(this.id);
+        const invalidData = processedData.invalidData?.get(this.id);
         for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
             const datum = rawData?.[datumIndex] as any;
             const angleRawValue = angleRawValues[datumIndex];
 
-            if (hideZeros && angleRawValue === 0) {
+            if (invalidData?.[datumIndex] === true || (hideZeros && angleRawValue === 0)) {
                 continue;
             }
 
