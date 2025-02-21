@@ -42,5 +42,10 @@ exports[`Validation utils Validate Method validate returns expected validated ob
     "required": undefined,
     "unknown": true,
   },
+  ValidationError {
+    "message": "Unknown option \`typo\`; Did you mean \`type\`? Ignoring.",
+    "required": undefined,
+    "unknown": true,
+  },
 ]
 `;

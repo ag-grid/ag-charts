@@ -68,3 +68,35 @@ export function countLines(text: string): number {
     }
     return count;
 }
+
+/**
+ * Computes the Levenshtein distance between two strings.
+ * This function uses a space-optimized dynamic programming approach.
+ *
+ * @param {string} a - The first string.
+ * @param {string} b - The second string.
+ * @returns {number} - The Levenshtein distance between the two strings.
+ */
+export function levenshteinDistance(a: string, b: string): number {
+    const [shorter, longer] = a.length < b.length ? [a, b] : [b, a];
+    const m = shorter.length;
+    const n = longer.length;
+
+    let prevRow = new Array(m + 1).fill(0).map((_, i) => i);
+    let currRow = new Array(m + 1);
+
+    for (let i = 1; i <= n; i++) {
+        currRow[0] = i;
+        for (let j = 1; j <= m; j++) {
+            const cost = longer[i - 1] === shorter[j - 1] ? 0 : 1;
+            currRow[j] = Math.min(
+                prevRow[j] + 1, // Deletion
+                currRow[j - 1] + 1, // Insertion
+                prevRow[j - 1] + cost // Substitution
+            );
+        }
+        [prevRow, currRow] = [currRow, prevRow]; // Swap rows
+    }
+
+    return prevRow[m];
+}

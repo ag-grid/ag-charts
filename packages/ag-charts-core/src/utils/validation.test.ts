@@ -12,7 +12,6 @@ import {
     date,
     greaterThan,
     instanceOf,
-    isValid,
     lessThan,
     number,
     object,
@@ -25,6 +24,11 @@ import {
     union,
     validate,
 } from './validation';
+
+function isValid<T extends object>(options: unknown, optionsDefs: OptionsDefs<T>, path?: string): options is T {
+    const { errors } = validate(options, optionsDefs, path);
+    return errors.length === 0;
+}
 
 describe('Validation utils', () => {
     beforeEach(() => {
@@ -233,6 +237,7 @@ describe('Validation utils', () => {
     describe('Validate Method', () => {
         const userSchema: OptionsDefs<any> = {
             name: required(string),
+            type: string,
             age: positiveNumber,
             hobbies: arrayOf(string),
             address: {
@@ -261,6 +266,7 @@ describe('Validation utils', () => {
                     city: '',
                 },
                 extraField: 'should be ignored', // Unknown option
+                typo: 'should suggest fuzzy match', // Unknown option
             };
 
             const { valid: validatedValidUser, errors: errorsValidUser } = validate(validUser, userSchema);

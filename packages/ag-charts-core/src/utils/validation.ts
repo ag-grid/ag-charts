@@ -1,4 +1,4 @@
-import { joinFormatted, stringifyValue } from './strings';
+import { joinFormatted, levenshteinDistance, stringifyValue } from './strings';
 import { isArray, isBoolean, isDate, isFiniteNumber, isFunction, isObject, isString, isValidDate } from './typeGuards';
 
 const descriptionSymbol = Symbol('description');
@@ -51,6 +51,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
         return { valid: null, errors: [new ValidationError(message)] };
     }
 
+    const unusedKeys = [];
     const optionsKeys = new Set(Object.keys(options));
     const errors: ValidationError[] = [];
     const valid: Partial<T> = {};
@@ -64,10 +65,15 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 
     for (const key of Object.keys(optionsDefs)) {
         const validatorOrDefs: Validator | ObjectLikeDef<any> = (optionsDefs as any)[key];
-        optionsKeys.delete(key);
         const value = options[key as keyof object];
         const required = validatorOrDefs[requiredSymbol];
-        if (!required && typeof value === 'undefined') continue;
+
+        optionsKeys.delete(key);
+        if (!required && typeof value === 'undefined') {
+            unusedKeys.push(key);
+            continue;
+        }
+
         if (isFunction(validatorOrDefs)) {
             if (validatorOrDefs(value, options)) {
                 valid[key as keyof T] = value;
@@ -85,7 +91,9 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     for (const key of optionsKeys) {
         const value = options[key as keyof object];
         if (typeof value === 'undefined') continue;
-        const message = `Unknown option \`${extendPath(key)}\`, ignoring.`;
+        const match = findSuggestion(key, unusedKeys);
+        const postfix = match ? `; Did you mean \`${match}\`? Ignoring.` : ', ignoring.';
+        const message = `Unknown option \`${extendPath(key)}\`${postfix}`;
         errors.push(new ValidationError(message, undefined, true));
     }
 
@@ -93,15 +101,23 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 }
 
 /**
- * Validates the provided options object against the specified options definitions. Logs warnings for any invalid options encountered.
- * @param options The options object to validate.
- * @param optionsDefs The definitions against which to validate the options.
- * @param path (Optional) The current path in the options object, for nested properties.
- * @returns A boolean indicating whether the options are valid.
+ * Finds the closest matching suggestion from a list based on Levenshtein distance.
+ *
+ * @param {string} value - The input string to compare against suggestions.
+ * @param {string[]} suggestions - The list of possible suggestions.
+ * @param {number} [maxDistance=2] - The maximum allowed Levenshtein distance for a match.
+ * @returns {string | null} - The closest matching suggestion within the allowed distance, or null if none are found.
  */
-export function isValid<T extends object>(options: unknown, optionsDefs: OptionsDefs<T>, path?: string): options is T {
-    const { errors } = validate(options, optionsDefs, path);
-    return errors.length === 0;
+function findSuggestion(value: string, suggestions: string[], maxDistance: number = 2): string | null {
+    let smallestDistance = Infinity;
+    return suggestions.reduce<string | null>((res, item) => {
+        const d = levenshteinDistance(value, item);
+        if (smallestDistance > d && d <= maxDistance) {
+            smallestDistance = d;
+            return item;
+        }
+        return res;
+    }, null);
 }
 
 /**
