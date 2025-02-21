@@ -711,8 +711,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         const baseGroupFormat = this.getGroupBaseStyle(false);
         const baseTileFormat = this.getTileBaseStyle(false);
         const fillBBox = this.getFillBBox(baseTileFormat.fill);
-        this.datumSelection.each((rect, datum) => updateRectFn(datum, rect, baseGroupFormat, baseTileFormat, false)),
-            fillBBox;
+        this.datumSelection.each((rect, datum) =>
+            updateRectFn(datum, rect, baseGroupFormat, baseTileFormat, false, fillBBox)
+        );
 
         const highlightGroupFormat = this.getGroupBaseStyle(true);
         const highlightTileFormat = this.getTileBaseStyle(true);
