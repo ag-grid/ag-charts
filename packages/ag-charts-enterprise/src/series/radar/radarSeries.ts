@@ -64,8 +64,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 > {
     static readonly className: string = 'RadarSeries';
 
-    protected override clipFocusBox: boolean = false;
-
     override properties = new RadarSeriesProperties();
 
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
@@ -92,6 +90,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             animationResetFns: {
                 item: resetMarkerFn,
             },
+            clipFocusBox: false,
         });
     }
 

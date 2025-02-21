@@ -6,6 +6,8 @@ export const urlWithBaseUrl = (url: string = '', siteBaseUrl: string = SITE_BASE
     let path = url;
     if (url.startsWith('./')) {
         path = pathJoin('/', siteBaseUrl, url.slice('./'.length));
+    } else if (url === '/') {
+        path = siteBaseUrl;
     } else if (url.startsWith('/')) {
         path = pathJoin('/', siteBaseUrl, url);
     } else if (!url.startsWith('http')) {

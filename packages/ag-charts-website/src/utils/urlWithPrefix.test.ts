@@ -3,6 +3,7 @@ import { urlWithPrefix } from './urlWithPrefix';
 describe('urlWithPrefix', () => {
     test.each`
         url                      | framework       | expected
+        ${'/'}                   | ${'javascript'} | ${'/ag-charts/javascript/'}
         ${'./docs'}              | ${'javascript'} | ${'/ag-charts/javascript/docs/'}
         ${'./with-slash/'}       | ${'javascript'} | ${'/ag-charts/javascript/with-slash/'}
         ${'./docs'}              | ${'react'}      | ${'/ag-charts/react/docs/'}
@@ -19,6 +20,7 @@ describe('urlWithPrefix', () => {
 
     test.each`
         url                  | framework       | expected
+        ${'/'}               | ${'javascript'} | ${'/ag-charts/javascript/'}
         ${'./docs'}          | ${'javascript'} | ${'/ag-charts/javascript/docs'}
         ${'./with-slash/'}   | ${'javascript'} | ${'/ag-charts/javascript/with-slash/'}
         ${'./docs'}          | ${'react'}      | ${'/ag-charts/react/docs'}

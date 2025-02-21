@@ -81,7 +81,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     override properties = new RangeAreaProperties();
 
-    protected override clipFocusBox: boolean = false;
     protected override readonly NodeEvent = RangeAreaSeriesNodeEvent;
 
     private dataAggregationFilters: RangeAreaSeriesDataAggregationFilter[] | undefined = undefined;
@@ -108,6 +107,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 label: resetLabelFn,
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
+            clipFocusBox: false,
         });
     }
 
