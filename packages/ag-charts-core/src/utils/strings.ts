@@ -78,6 +78,8 @@ export function countLines(text: string): number {
  * @returns {number} - The Levenshtein distance between the two strings.
  */
 export function levenshteinDistance(a: string, b: string): number {
+    if (a === b) return 0; // Early return
+
     const [shorter, longer] = a.length < b.length ? [a, b] : [b, a];
     const m = shorter.length;
     const n = longer.length;

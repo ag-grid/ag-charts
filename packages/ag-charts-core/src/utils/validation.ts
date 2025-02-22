@@ -102,7 +102,6 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 
 /**
  * Finds the closest matching suggestion from a list based on Levenshtein distance.
- *
  * @param value The input string to compare against suggestions.
  * @param suggestions The list of possible suggestions.
  * @param maxDistance The maximum allowed Levenshtein distance for a match.
@@ -110,8 +109,9 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
  */
 function findSuggestion(value: string, suggestions: string[], maxDistance: number = 2): string | null {
     let smallestDistance = Infinity;
+    const lowerCaseValue = value.toLowerCase();
     return suggestions.reduce<string | null>((res, item) => {
-        const d = levenshteinDistance(value, item);
+        const d = levenshteinDistance(lowerCaseValue, item.toLowerCase());
         if (smallestDistance > d && d <= maxDistance) {
             smallestDistance = d;
             return item;
