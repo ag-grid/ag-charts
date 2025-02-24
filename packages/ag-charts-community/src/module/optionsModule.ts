@@ -170,6 +170,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 baseChartOptions
             ));
         } else {
+            ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
             ({ activeTheme, processedOptions, defaultAxes, themeParameters } = this.slowSetup(
                 processedOverrides,
                 deltaOptions,

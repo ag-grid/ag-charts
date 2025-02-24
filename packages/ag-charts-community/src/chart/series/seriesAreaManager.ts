@@ -202,7 +202,8 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private updateComplete() {
-        if (this.focusIndicator.isFocusVisible() && this.isState(InteractionState.Focusable)) {
+        // NOTE: Do the `isFocusVisible()` check last as its the most expensive part.
+        if (this.isState(InteractionState.Focusable) && this.focusIndicator.isFocusVisible()) {
             // This function is called when something in the scene is redrawn such as a resize, or zoompan change.
             // Therefore we need to update the bounds of the focus indicator, but not aria-label. Hence refresh=true.
             this.handleSeriesFocus(0, 0, true);
