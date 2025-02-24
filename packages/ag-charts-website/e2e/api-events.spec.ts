@@ -3,7 +3,10 @@ import { Page } from '@playwright/test';
 import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
-async function openExample(page: Page, exampleName: 'chart-click-event' | 'series-node-click-event' | 'node-click-event') {
+async function openExample(
+    page: Page,
+    exampleName: 'chart-click-event' | 'series-node-click-event' | 'node-click-event'
+) {
     await gotoExample(page, toExamplePageUrl('events', exampleName, 'vanilla').url);
 }
 
@@ -64,6 +67,74 @@ test.describe('api-events', () => {
                 await page.touchscreen.tap(west.x, west.y);
                 await page.touchscreen.tap(west.x, west.y);
                 await expect(page).toHaveScreenshot('doubleClick.png');
+            });
+        });
+    });
+
+    test.describe('chart seriesNode clicks', () => {
+        const aprMarker = { x: 413, y: 226 };
+        const mayBarTop = { x: 647, y: 381 };
+        const mayBarBot = { x: 646, y: 506 };
+
+        test.beforeEach(async ({ page }) => {
+            await openExample(page, 'series-node-click-event');
+        });
+        test.describe('mouse', () => {
+            test('seriesNodeClick', async ({ page }) => {
+                await page.mouse.click(aprMarker.x, aprMarker.y);
+                await expect(page).toHaveScreenshot('seriesNodeClick-marker.png');
+
+                await page.mouse.click(mayBarTop.x, mayBarTop.y);
+                await expect(page).toHaveScreenshot('seriesNodeClick-bar-top.png');
+
+                await page.mouse.click(mayBarBot.x, mayBarBot.y);
+                await expect(page).toHaveScreenshot('seriesNodeClick-bar-bot.png');
+            });
+            test('seriesNodeDoubleClick', async ({ page }) => {
+                await page.mouse.dblclick(aprMarker.x, aprMarker.y);
+                await expect(page).toHaveScreenshot('seriesNodeDoubleClick-marker.png');
+
+                await page.mouse.dblclick(mayBarTop.x, mayBarTop.y);
+                await expect(page).toHaveScreenshot('seriesNodeDoubleClick-bar-top.png');
+
+                await page.mouse.dblclick(mayBarBot.x, mayBarBot.y);
+                await expect(page).toHaveScreenshot('seriesNodeDoubleClick-bar-bot.png');
+            });
+        });
+        test.describe('touch', () => {
+            test('seriesNodeClick', async ({ page }) => {
+                await page.touchscreen.tap(aprMarker.x, aprMarker.y);
+                await expect(page).toHaveScreenshot('seriesNodeClick-marker.png');
+
+                await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
+                await expect(page).toHaveScreenshot('seriesNodeClick-bar-top.png');
+
+                await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
+                await expect(page).toHaveScreenshot('seriesNodeClick-bar-bot.png');
+            });
+            test('seriesNodeDoubleClick', async ({ page }) => {
+                await page.touchscreen.tap(aprMarker.x, aprMarker.y);
+                await page.touchscreen.tap(aprMarker.x, aprMarker.y);
+                await expect(page).toHaveScreenshot('seriesNodeDoubleClick-marker.png');
+
+                await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
+                await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
+                await expect(page).toHaveScreenshot('seriesNodeDoubleClick-bar-top.png');
+
+                await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
+                await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
+                await expect(page).toHaveScreenshot('seriesNodeDoubleClick-bar-bot.png');
+
+                await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
+                await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
+                await expect(page).toHaveScreenshot('seriesNodeClick-bar-bot.png');
+            });
+        });
+        test.describe('keyboard', () => {
+            test('seriesNodeClick', async ({ page }) => {
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Enter');
+                await expect(page).toHaveScreenshot('seriesNodeClick-keyboard.png');
             });
         });
     });
