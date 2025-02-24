@@ -20,6 +20,8 @@ export class CategoryAxis<
         super(moduleCtx, scale);
 
         this.includeInvisibleDomains = true;
+        // Has no effect and can speed up tick generation
+        this.nice = false;
     }
 
     @Validate(RATIO)
