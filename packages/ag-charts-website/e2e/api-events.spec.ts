@@ -30,8 +30,7 @@ test.describe('api-events', () => {
                 await page.mouse.click(east.x, east.y);
                 await expect(page).toHaveScreenshot('click.png');
 
-                await page.mouse.click(west.x, west.y);
-                await page.mouse.click(west.x, west.y);
+                await page.mouse.dblclick(west.x, west.y);
                 await expect(page).toHaveScreenshot('doubleClick.png');
             });
         });
