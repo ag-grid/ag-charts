@@ -344,27 +344,13 @@ export abstract class Node<D = any> {
      * Returns the first matching node or `undefined`.
      * Nodes that render later (show on top) are hit tested first.
      */
-    pickNode(x: number, y: number, _localCoords = false): Node | undefined {
+    pickNode(x: number, y: number): Node | undefined {
         if (!this.visible || this.pointerEvents === PointerEvents.None || !this.containsPoint(x, y)) {
             return;
         }
 
-        const children = [...this.children()];
-
-        if (children.length > 1_000) {
-            // Try to optimise which children to interrogate; BBox calculation is an approximation
-            // for more complex shapes, so discarding items based on this will save a lot of
-            // processing when the point is nowhere near the child.
-            for (let i = children.length - 1; i >= 0; i--) {
-                const child = children[i];
-                const containsPoint = child.containsPoint(x, y);
-                const hit = containsPoint ? child.pickNode(x, y) : undefined;
-
-                if (hit) {
-                    return hit;
-                }
-            }
-        } else if (children.length) {
+        if (this.childNodes != null && this.childNodes.size !== 0) {
+            const children = [...this.children()];
             // Nodes added later should be hit-tested first,
             // as they are rendered on top of the previously added nodes.
             for (let i = children.length - 1; i >= 0; i--) {
@@ -377,6 +363,22 @@ export abstract class Node<D = any> {
             // a leaf node, but not a container leaf
             return this;
         }
+    }
+
+    pickNodes(x: number, y: number, into: Node<any>[] = []): Node<any>[] {
+        if (!this.visible || this.pointerEvents === PointerEvents.None || !this.containsPoint(x, y)) {
+            return into;
+        }
+
+        if (!this.isContainerNode) {
+            into.push(this);
+        }
+
+        for (const child of this.children()) {
+            child.pickNodes(x, y, into);
+        }
+
+        return into;
     }
 
     private invalidateCachedBBox() {

@@ -80,7 +80,7 @@ export type PickFocusOutputs = {
     clipFocusBox: boolean;
 };
 
-export type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum<unknown>; distance: number };
+export type PickResult = { pickMode: SeriesNodePickMode; datums: SeriesNodeDatum<unknown>[]; distance: number };
 
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContextMenuAction' | 'groupingChanged';
 
@@ -603,7 +603,7 @@ export abstract class Series<
     abstract getTooltipContent(datumIndex: TDatumIndex, removeThisDatum: TDatum): TooltipContent | undefined;
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
-    pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
+    pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
         const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
         if (!visible || !contentGroup.visible) return;
@@ -632,38 +632,55 @@ export abstract class Series<
         }
 
         for (const pickMode of selectedPickModes) {
-            let match: SeriesNodePickMatch | undefined;
+            let result: { datums: SeriesNodeDatum<unknown>[]; distance: number } | undefined;
 
             switch (pickMode) {
-                case SeriesNodePickMode.EXACT_SHAPE_MATCH:
-                    match = this.pickNodeExactShape(point);
+                case SeriesNodePickMode.EXACT_SHAPE_MATCH: {
+                    const exact = this.pickNodesExactShape(point);
+                    result = exact.length === 0 ? undefined : { datums: exact, distance: 0 };
                     break;
+                }
 
-                case SeriesNodePickMode.NEAREST_NODE:
-                    match = this.pickNodeClosestDatum(point);
+                case SeriesNodePickMode.NEAREST_NODE: {
+                    const closest = this.pickNodeClosestDatum(point);
+                    const exact = closest?.distance === 0 ? this.pickNodesExactShape(point) : undefined;
+                    if (exact != null && exact.length !== 0) {
+                        result = { datums: exact, distance: 0 };
+                    } else if (closest) {
+                        result = { datums: [closest.datum], distance: closest.distance };
+                    } else {
+                        result = undefined;
+                    }
                     break;
+                }
 
-                case SeriesNodePickMode.AXIS_ALIGNED:
-                    match =
+                case SeriesNodePickMode.AXIS_ALIGNED: {
+                    const closest =
                         pickModeAxis != null
                             ? this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category')
                             : undefined;
+                    result = closest != null ? { datums: [closest.datum], distance: closest.distance } : undefined;
                     break;
+                }
             }
 
-            if (match && match.distance <= maxDistance) {
-                return this._pickNodeCache.set(key, { pickMode, match: match.datum, distance: match.distance });
+            if (result && result.distance <= maxDistance) {
+                return this._pickNodeCache.set(key, { pickMode, datums: result.datums, distance: result.distance });
             }
         }
 
         return this._pickNodeCache.set(key, undefined);
     }
 
-    protected pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
-        const datum = this.contentGroup.pickNode(point.x, point.y)?.closestDatum();
-        if (datum != null && datum.missing !== true) {
-            return { datum, distance: 0 };
+    protected pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
+        const datums: any[] = [];
+        for (const node of this.contentGroup.pickNodes(point.x, point.y)) {
+            const datum = node.closestDatum();
+            if (datum != null && datum.missing !== true) {
+                datums.push(datum);
+            }
         }
+        return datums;
     }
 
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
@@ -672,7 +689,10 @@ export abstract class Series<
         throw new Error('AG Charts - Series.pickNodeClosestDatum() not implemented');
     }
 
-    public pickNodeNearestDistantObject<T extends Node & DistantObject>(point: Point, items: Iterable<T>) {
+    public pickNodeNearestDistantObject<T extends Node & DistantObject>(
+        point: Point,
+        items: Iterable<T>
+    ): SeriesNodePickMatch | undefined {
         const match = nearestSquared(point.x, point.y, items);
         const datum = match.nearest?.closestDatum();
         if (datum != null && datum.missing !== true) {
