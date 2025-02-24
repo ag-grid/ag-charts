@@ -225,8 +225,6 @@ export type ProcessorOutputPropertyDefinition<P extends ReducerOutputKeys = Redu
     calculate: (data: ProcessedData<any>, previousValue: ReducerOutputTypes[P] | undefined) => ReducerOutputTypes[P];
 };
 
-const INVALID_VALUE = Symbol('invalid');
-
 function createArray<T>(length: number, value: T): T[] {
     const out: T[] = [];
     for (let i = 0; i < length; i += 1) {
@@ -1187,7 +1185,7 @@ export class DataModel<
         const accessors = this.buildAccessors(iterate(keyDefs, valueDefs));
 
         const reusableResult: ProcessedValue = {
-            value: INVALID_VALUE,
+            value: undefined,
             missing: false,
             valid: false,
         };
@@ -1249,7 +1247,7 @@ export class DataModel<
                             `[${value}]`
                         );
                     }
-                    reusableResult.value = INVALID_VALUE;
+                    reusableResult.value = undefined;
                     return reusableResult;
                 }
             } else {
@@ -1257,10 +1255,12 @@ export class DataModel<
             }
 
             if (def.processor) {
-                if (!processorFns.has(def)) {
-                    processorFns.set(def, def.processor());
+                let processor = processorFns.get(def);
+                if (processor == null) {
+                    processor = def.processor();
+                    processorFns.set(def, processor);
                 }
-                value = processorFns.get(def)?.(value, idx);
+                value = processor(value, idx);
             }
 
             dataDomain.get(def)?.extend(value);
