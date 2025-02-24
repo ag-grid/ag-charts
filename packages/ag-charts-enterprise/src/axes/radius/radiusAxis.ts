@@ -117,7 +117,6 @@ export abstract class RadiusAxis<
         tickDomain: D[];
         ticks: D[];
         fractionDigits: number;
-        bbox: undefined;
     } {
         const { parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
 
@@ -143,7 +142,7 @@ export abstract class RadiusAxis<
 
         this.generatedTicks = { ticks, labels };
 
-        return { ticks: rawTicks, tickDomain, niceDomain, primaryTickCount, fractionDigits, bbox: undefined };
+        return { ticks: rawTicks, tickDomain, niceDomain, primaryTickCount, fractionDigits };
     }
 
     protected abstract prepareGridPathTickData(tickData: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[];

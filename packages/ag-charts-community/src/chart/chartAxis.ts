@@ -51,7 +51,7 @@ export interface AxisGroups {
 
 export interface ChartAxis {
     attachAxis(opts: AxisGroups): void;
-    calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox | undefined };
+    calculateLayout(primaryTickCount?: number): { primaryTickCount?: number; bbox?: BBox };
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
     createAxisContext(): AxisContext;
