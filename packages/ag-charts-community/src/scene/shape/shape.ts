@@ -90,11 +90,11 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     private createLinearGradient(fill: AgGradientFill) {
-        const { colorStops = [], direction, angle } = fill;
+        const { colorStops = [], direction, rotation = 0 } = fill;
         const isHorizontal = direction === 'horizontal';
         const stops = getColorStops(colorStops, this.defaultColorRange, [0, 1]);
 
-        return new LinearGradient('rgb', stops, angle ?? (isHorizontal ? 90 : 0));
+        return new LinearGradient('rgb', stops, isHorizontal ? rotation + 90 : rotation);
     }
 
     protected onFillChange() {

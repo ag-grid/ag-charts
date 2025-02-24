@@ -54,7 +54,7 @@ const gradientOptionsDef: OptionsDefs<AgGradientFill> = {
     direction: union('horizontal', 'vertical'),
     colorStops: arrayOfDefs<AgGradientColorStop>({ color: string, stop: number }, 'color stops'),
     bounds: union('series', 'item', 'axes'),
-    angle: number,
+    rotation: number,
 };
 
 export const gradient = optionsDefs(gradientOptionsDef, 'a gradient');
