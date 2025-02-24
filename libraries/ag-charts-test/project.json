@@ -20,7 +20,8 @@
       // Alias target so dependents build:types can depend on ^build:types.
       "executor": "nx:noop",
       "dependsOn": ["build"],
-      "inputs": ["{projectRoot}/dist/**/*.d.ts"],
+      "cache": false,
+      "inputs": [],
       "outputs": []
     },
     "lint": {
