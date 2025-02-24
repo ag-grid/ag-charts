@@ -33,7 +33,13 @@ import { TooltipManager } from '../interaction/tooltipManager';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
-import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipContent, tooltipContentAriaLabel } from '../tooltip/tooltip';
+import {
+    DEFAULT_TOOLTIP_CLASS,
+    Tooltip,
+    type TooltipAssociatedContent,
+    type TooltipContent,
+    tooltipContentAriaLabel,
+} from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
 import { type Series, type SeriesNodePickIntent } from './series';
 import type { SeriesProperties } from './seriesProperties';
@@ -97,11 +103,12 @@ class NodeCandidateState {
     update(nextCandidates: NodeCandidate[], previousActive?: NodeCandidate) {
         this.candidates = nextCandidates;
 
-        const nextActive =
-            previousActive != null ? nextCandidates.find((c) => hoverNodesEqual(c, previousActive)) : undefined;
-        this.active = nextActive ?? nextCandidates[0];
+        let nextIndex =
+            previousActive != null ? nextCandidates.findIndex((c) => hoverNodesEqual(c, previousActive)) : -1;
+        if (nextIndex === -1) nextIndex = 0;
+        this.active = nextCandidates[nextIndex];
 
-        return this.active;
+        return { current: this.active, index: nextIndex, length: nextCandidates.length };
     }
 
     next() {
@@ -115,7 +122,7 @@ class NodeCandidateState {
         }
         this.active = candidates[nextIndex];
 
-        return this.active;
+        return { current: this.active, index: nextIndex, length: this.candidates.length };
     }
 }
 
@@ -415,8 +422,13 @@ export class SeriesAreaManager extends BaseManager {
             const { currentX, currentY } = event;
             const canvasX = currentX + (this.hoverRect?.x ?? 0);
             const canvasY = currentY + (this.hoverRect?.y ?? 0);
-            this.chart.ctx.highlightManager.updateHighlight(this.id, activeTooltip.datum);
-            this.showTooltip(activeTooltip, canvasX, canvasY);
+            this.chart.ctx.highlightManager.updateHighlight(this.id, activeTooltip.current.datum);
+            this.showTooltip(
+                activeTooltip.current,
+                { index: activeTooltip.index, length: activeTooltip.length },
+                canvasX,
+                canvasY
+            );
             return;
         }
 
@@ -745,7 +757,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private readonly hoverCandidates = new NodeCandidateState();
     private handleHoverHighlight(redisplay: boolean) {
-        const { current } = this.hoverCandidates;
+        const { current: previousHover } = this.hoverCandidates;
         this.hoverCandidates.reset();
 
         this.highlight.appliedHoverEvent = this.highlight.pendingHoverEvent;
@@ -770,14 +782,14 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        const active = this.hoverCandidates.update(pick.matches, current);
+        const { current } = this.hoverCandidates.update(pick.matches, previousHover);
 
-        this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum);
+        this.chart.ctx.highlightManager.updateHighlight(this.id, current.datum);
         this.hoverDevice = 'pointer';
     }
 
     private handleHoverTooltip(event: HoverLikeEvent, redisplay: boolean) {
-        const { current } = this.hoverCandidates;
+        const { current: previousHover } = this.hoverCandidates;
         this.hoverCandidates.reset();
         if (!this.isState(InteractionState.Clickable)) return;
 
@@ -810,13 +822,18 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        const active = this.hoverCandidates.update(pick.matches, current);
+        const { current, index, length } = this.hoverCandidates.update(pick.matches, previousHover);
 
         this.hoverDevice = 'pointer';
-        this.showTooltip(active, canvasX, canvasY);
+        this.showTooltip(current, { index, length }, canvasX, canvasY);
     }
 
-    private showTooltip({ series, datum, datumIndex }: NodeCandidate, canvasX: number, canvasY: number) {
+    private showTooltip(
+        { series, datum, datumIndex }: NodeCandidate,
+        { index, length }: TooltipAssociatedContent,
+        canvasX: number,
+        canvasY: number
+    ) {
         const content = this.chart.getTooltipContent(series, datumIndex, datum);
         const tooltipEnabled = this.chart.tooltip.enabled && series.tooltipEnabled;
         const shouldUpdateTooltip = tooltipEnabled && content != null;
@@ -827,7 +844,7 @@ export class SeriesAreaManager extends BaseManager {
                 datum,
                 undefined
             );
-            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content);
+            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content, { index, length });
         } else {
             this.chart.ctx.tooltipManager.removeTooltip(this.id);
         }

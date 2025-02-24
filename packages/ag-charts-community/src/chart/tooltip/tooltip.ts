@@ -72,6 +72,11 @@ export type TooltipContent =
     | ({ type: 'structured' } & TooltipStructuredContent)
     | { type: 'raw'; rawHtmlString: string };
 
+export interface TooltipAssociatedContent {
+    index: number;
+    length: number;
+}
+
 interface GroupedStructuredContent {
     heading?: string;
     items: Omit<TooltipStructuredContent, 'heading'>[];
@@ -471,13 +476,20 @@ export class Tooltip extends BaseProperties {
         boundingRect: DOMRect,
         canvasRect: DOMRect,
         meta: TooltipMeta,
-        content?: TooltipContent[] | null,
+        content: TooltipContent[] | null,
+        associated?: TooltipAssociatedContent,
         instantly = false
     ) {
         const { element } = this;
 
         if (element != null && content != null && content.length !== 0) {
-            element.innerHTML = aggregateTooltipContent(content).map(tooltipContentHtml).join('');
+            const contentHtml = aggregateTooltipContent(content).map(tooltipContentHtml);
+            if (associated != null) {
+                contentHtml.push(
+                    `<div class="${DEFAULT_TOOLTIP_CLASS}-footer">${associated.index + 1} of ${associated.length}</div>`
+                );
+            }
+            element.innerHTML = contentHtml.join('');
             this._elementSize = { width: element.clientWidth, height: element.clientHeight };
         } else if (element == null || element.innerHTML === '') {
             this.toggle(false);
