@@ -40,8 +40,8 @@ class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams
 }
 
 class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string | undefined = undefined;
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill: AgFillType | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity = 1;
@@ -75,8 +75,8 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
     @Validate(POSITIVE_NUMBER)
     width: number = 1;
 
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string | undefined = undefined;
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill: AgFillType | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity = 1;
