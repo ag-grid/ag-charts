@@ -72,6 +72,7 @@ test.describe('api-events', () => {
     });
 
     test.describe('chart seriesNode clicks', () => {
+        const center = { x: 400, y: 300 };
         const aprMarker = { x: 413, y: 226 };
         const mayBarTop = { x: 647, y: 381 };
         const mayBarBot = { x: 646, y: 506 };
@@ -81,6 +82,9 @@ test.describe('api-events', () => {
         });
         test.describe('mouse', () => {
             test('seriesNodeClick', async ({ page }) => {
+                await page.mouse.click(center.x, center.y);
+                await expect(page).toHaveScreenshot('no-seriesNodeClick.png');
+
                 await page.mouse.click(aprMarker.x, aprMarker.y);
                 await expect(page).toHaveScreenshot('seriesNodeClick-marker.png');
 
@@ -91,6 +95,9 @@ test.describe('api-events', () => {
                 await expect(page).toHaveScreenshot('seriesNodeClick-bar-bot.png');
             });
             test('seriesNodeDoubleClick', async ({ page }) => {
+                await page.mouse.dblclick(center.x, center.y);
+                await expect(page).toHaveScreenshot('no-seriesNodeClick.png');
+
                 await page.mouse.dblclick(aprMarker.x, aprMarker.y);
                 await expect(page).toHaveScreenshot('seriesNodeDoubleClick-marker.png');
 
@@ -103,6 +110,9 @@ test.describe('api-events', () => {
         });
         test.describe('touch', () => {
             test('seriesNodeClick', async ({ page }) => {
+                await page.touchscreen.tap(center.x, center.y);
+                await expect(page).toHaveScreenshot('no-seriesNodeClick.png');
+
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
                 await expect(page).toHaveScreenshot('seriesNodeClick-marker.png');
 
@@ -113,6 +123,10 @@ test.describe('api-events', () => {
                 await expect(page).toHaveScreenshot('seriesNodeClick-bar-bot.png');
             });
             test('seriesNodeDoubleClick', async ({ page }) => {
+                await page.touchscreen.tap(center.x, center.y);
+                await page.touchscreen.tap(center.x, center.y);
+                await expect(page).toHaveScreenshot('no-seriesNodeClick.png');
+
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
                 await expect(page).toHaveScreenshot('seriesNodeDoubleClick-marker.png');
