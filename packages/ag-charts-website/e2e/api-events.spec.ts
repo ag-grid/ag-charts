@@ -11,6 +11,7 @@ test.describe('api-events', () => {
     setupIntrinsicAssertions();
 
     test.describe('chart clicks', () => {
+        const node = { x: 400, y: 400 }; // position of 'April' bar
         const west = { x: 250, y: 160 };
         const east = { x: 500, y: 150 };
 
@@ -19,6 +20,9 @@ test.describe('api-events', () => {
         });
         test.describe('mouse', () => {
             test('click', async ({ page }) => {
+                await page.mouse.click(node.x, node.y);
+                await expect(page).toHaveScreenshot('no-click.png');
+
                 await page.mouse.click(west.x, west.y);
                 await expect(page).toHaveScreenshot('click.png');
 
@@ -26,6 +30,9 @@ test.describe('api-events', () => {
                 await expect(page).toHaveScreenshot('click.png');
             });
             test('doubleClick', async ({ page }) => {
+                await page.mouse.dblclick(node.x, node.y);
+                await expect(page).toHaveScreenshot('no-click.png');
+
                 await page.mouse.click(west.x, west.y);
                 await page.mouse.click(east.x, east.y);
                 await expect(page).toHaveScreenshot('click.png');
@@ -36,6 +43,9 @@ test.describe('api-events', () => {
         });
         test.describe('touch', () => {
             test('click', async ({ page }) => {
+                await page.touchscreen.tap(node.x, node.y);
+                await expect(page).toHaveScreenshot('no-click.png');
+
                 await page.touchscreen.tap(west.x, west.y);
                 await expect(page).toHaveScreenshot('click.png');
 
@@ -43,6 +53,10 @@ test.describe('api-events', () => {
                 await expect(page).toHaveScreenshot('click.png');
             });
             test('doubleClick', async ({ page }) => {
+                await page.touchscreen.tap(node.x, node.y);
+                await page.touchscreen.tap(node.x, node.y);
+                await expect(page).toHaveScreenshot('no-click.png');
+
                 await page.touchscreen.tap(west.x, west.y);
                 await page.touchscreen.tap(east.x, east.y);
                 await expect(page).toHaveScreenshot('click.png');
