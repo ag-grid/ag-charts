@@ -80,6 +80,7 @@ export class MapLineSeries extends TopologySeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
+            categoryKey: undefined,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
             usesPlacedLabels: true,

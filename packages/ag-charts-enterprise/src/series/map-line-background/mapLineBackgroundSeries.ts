@@ -72,6 +72,7 @@ export class MapLineBackgroundSeries
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
+            categoryKey: undefined,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });

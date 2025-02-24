@@ -900,4 +900,8 @@ export abstract class Series<
         datumCallbackCache.set(id, value);
         return value;
     }
+
+    abstract getCategoryValue(datumIndex: TDatumIndex): any;
+
+    abstract datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;
 }

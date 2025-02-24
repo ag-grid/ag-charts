@@ -56,8 +56,8 @@ const numericAxisProperties = {
 
 const seriesTooltipDefaults: AgChartTooltipOptions = {
     position: {
-        affixment: 'node',
-        tether: ['right', 'left'],
+        anchorTo: 'node',
+        placement: ['right', 'left'],
     },
 };
 

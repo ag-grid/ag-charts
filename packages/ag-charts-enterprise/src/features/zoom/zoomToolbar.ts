@@ -283,10 +283,10 @@ export class ZoomToolbar extends BaseProperties {
 
                 let scale = event.value === 'zoom-in' ? 1 - scrollingStep : 1 + scrollingStep;
                 if (!isScalingDirection) scale = 1;
-                const anchorPoint = isDirectionX ? this.getAnchorPointX(props) : this.getAnchorPointY(props);
+                const placement = isDirectionX ? this.getAnchorPointX(props) : this.getAnchorPointY(props);
 
                 newZoom.max = newZoom.min + (newZoom.max - newZoom.min) * scale;
-                newZoom = scaleZoomAxisWithAnchor(newZoom, zoom, anchorPoint);
+                newZoom = scaleZoomAxisWithAnchor(newZoom, zoom, placement);
                 break;
             }
         }

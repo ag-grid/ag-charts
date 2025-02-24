@@ -127,8 +127,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             {} as typeof this.rootElements
         );
 
-        // @ts-expect-error Typings need updating
-        this.element.style.anchorName = this.anchorName;
+        this.rootElements['canvas'].element.style.setProperty('anchor-name', this.anchorName);
 
         let hidden = false;
         this.observer = setupObserver(this.element, (intersectionRatio) => {

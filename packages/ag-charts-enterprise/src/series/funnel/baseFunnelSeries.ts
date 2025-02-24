@@ -154,6 +154,7 @@ export abstract class BaseFunnelSeries<
                 x: [],
                 y: [],
             },
+            categoryKey: 'xValue',
             datumSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: animationResetFns.datum,

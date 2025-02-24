@@ -96,7 +96,7 @@ export const errorBarOptionsDef: OptionsDefs<AgErrorBarOptions<any>> = {
     ...lineDashOptionsDef,
 };
 
-const tether = union(
+const placement = union(
     'top',
     'right',
     'bottom',
@@ -126,8 +126,8 @@ export const tooltipOptionsDef: OptionsDefs<AgSeriesTooltip<any>> = {
             'bottom-left',
             'bottom-right'
         ),
-        affixment: union('node', 'pointer', 'canvas'),
-        tether: or(tether, arrayOf(tether)),
+        anchorTo: union('node', 'pointer', 'canvas'),
+        placement: or(placement, arrayOf(placement)),
         xOffset: number,
         yOffset: number,
     },

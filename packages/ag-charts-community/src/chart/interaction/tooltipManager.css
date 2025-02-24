@@ -8,12 +8,8 @@
     padding: 0;
     overflow: visible;
 
-    /* Use CSS anchor positioning when available */
-    /* Otherwise, fallback to position of canvas via getBoundingClientRect */
     top: var(--top, 0px);
-    top: anchor(top);
     left: var(--left, 0px);
-    left: anchor(left);
 
     width: max-content;
     max-width: 100%;
@@ -26,6 +22,15 @@
     border-radius: var(--ag-charts-border-radius);
     box-shadow: var(--ag-charts-shadow);
 }
+
+/*
+This currently doesn't work in Chrome when the canvas moves (i.e. the window is resized)
+However, we may wish to use this in the future
+.ag-charts-tooltip--use-popover-api {
+    top: anchor(top);
+    left: anchor(left);
+}
+*/
 
 .ag-charts-tooltip--compact .ag-charts-tooltip-content {
     padding: 3px 6px;
@@ -130,7 +135,7 @@
 
 .ag-charts-tooltip-symbol {
     grid-column: 1 / 2;
-    align-self: center;
+    place-self: center;
 }
 
 .ag-charts-tooltip-symbol svg {

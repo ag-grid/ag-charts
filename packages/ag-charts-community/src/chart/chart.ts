@@ -395,12 +395,27 @@ export abstract class Chart extends Observable implements ModuleInstance {
     abstract getChartType(): ChartType;
 
     public getTooltipContent(
-        series: ISeries<unknown, unknown, unknown>,
+        series: ISeries<unknown, any, any>,
         datumIndex: unknown,
-        removeThisDatum: unknown
+        removeMeDatum: unknown
     ): TooltipContent[] {
-        const tooltipContent = series.getTooltipContent(datumIndex, removeThisDatum);
-        return tooltipContent == null ? [] : [tooltipContent];
+        const baseTooltipContent = series.getTooltipContent(datumIndex, removeMeDatum);
+        const tooltipContent = baseTooltipContent == null ? [] : [baseTooltipContent];
+        if (this.tooltip.mode !== 'shared' || this.series.length === 1) {
+            return tooltipContent;
+        }
+
+        const categoryValue = series.getCategoryValue(datumIndex);
+        if (categoryValue == null) return tooltipContent;
+
+        return this.series.flatMap<TooltipContent>((s) => {
+            if (s === series) return tooltipContent;
+            if (!s.isEnabled() || !s.properties.tooltip.enabled) return [];
+            const seriesDatumIndex = s.datumIndexForCategoryValue(categoryValue);
+            const seriesTooltipContent =
+                seriesDatumIndex == null ? undefined : s.getTooltipContent(seriesDatumIndex, undefined);
+            return seriesTooltipContent == null ? [] : [seriesTooltipContent];
+        });
     }
 
     protected getCaptionText(): string {
