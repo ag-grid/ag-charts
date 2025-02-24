@@ -152,4 +152,86 @@ test.describe('api-events', () => {
             });
         });
     });
+
+    test.describe('series nodeClicks', () => {
+        const noClick = { x: 294, y: 138 };
+        const march = { x: 178, y: 363 };
+        const mayTop = { x: 646, y: 211 };
+        const mayBot = { x: 648, y: 490 };
+
+        test.beforeEach(async ({ page }) => {
+            await openExample(page, 'node-click-event');
+        });
+        test.describe('mouse', () => {
+            test('nodeClick', async ({ page }) => {
+                await page.mouse.click(noClick.x, noClick.y);
+                await expect(page).toHaveScreenshot('no-nodeClick.png');
+
+                await page.mouse.click(march.x, march.y);
+                await expect(page).toHaveScreenshot('nodeClick-march.png');
+
+                await page.mouse.click(mayTop.x, mayTop.y);
+                await expect(page).toHaveScreenshot('nodeClick-may-top.png');
+
+                await page.mouse.click(mayBot.x, mayBot.y);
+                await expect(page).toHaveScreenshot('nodeClick-may-bot.png');
+            });
+            test('nodeDoubleClick', async ({ page }) => {
+                await page.mouse.dblclick(noClick.x, noClick.y);
+                await expect(page).toHaveScreenshot('no-nodeClick.png');
+
+                await page.mouse.dblclick(march.x, march.y);
+                await expect(page).toHaveScreenshot('nodeDoubleClick-march.png');
+
+                await page.mouse.dblclick(mayTop.x, mayTop.y);
+                await expect(page).toHaveScreenshot('nodeDoubleClick-may-top.png');
+
+                await page.mouse.dblclick(mayBot.x, mayBot.y);
+                await expect(page).toHaveScreenshot('nodeDoubleClick-may-bot.png');
+            });
+        });
+        test.describe('touch', () => {
+            test('nodeClick', async ({ page }) => {
+                await page.touchscreen.tap(noClick.x, noClick.y);
+                await expect(page).toHaveScreenshot('no-nodeClick.png');
+
+                await page.touchscreen.tap(march.x, march.y);
+                await expect(page).toHaveScreenshot('nodeClick-march.png');
+
+                await page.touchscreen.tap(mayTop.x, mayTop.y);
+                await expect(page).toHaveScreenshot('nodeClick-may-top.png');
+
+                await page.touchscreen.tap(mayBot.x, mayBot.y);
+                await expect(page).toHaveScreenshot('nodeClick-may-bot.png');
+            });
+            test('nodeDoubleClick', async ({ page }) => {
+                await page.touchscreen.tap(noClick.x, noClick.y);
+                await page.touchscreen.tap(noClick.x, noClick.y);
+                await expect(page).toHaveScreenshot('no-nodeClick.png');
+
+                await page.touchscreen.tap(march.x, march.y);
+                await page.touchscreen.tap(march.x, march.y);
+                await expect(page).toHaveScreenshot('nodeDoubleClick-march.png');
+
+                await page.touchscreen.tap(mayTop.x, mayTop.y);
+                await page.touchscreen.tap(mayTop.x, mayTop.y);
+                await expect(page).toHaveScreenshot('nodeDoubleClick-may-top.png');
+
+                await page.touchscreen.tap(mayBot.x, mayBot.y);
+                await page.touchscreen.tap(mayBot.x, mayBot.y);
+                await expect(page).toHaveScreenshot('nodeDoubleClick-may-bot.png');
+
+                await page.touchscreen.tap(mayTop.x, mayTop.y);
+                await page.touchscreen.tap(mayBot.x, mayBot.y);
+                await expect(page).toHaveScreenshot('nodeClick-may-bot.png');
+            });
+        });
+        test.describe('keyboard', () => {
+            test('nodeClick', async ({ page }) => {
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Enter');
+                await expect(page).toHaveScreenshot('nodeClick-keyboard.png');
+            });
+        });
+    });
 });
