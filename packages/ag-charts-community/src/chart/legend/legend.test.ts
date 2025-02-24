@@ -24,6 +24,7 @@ import {
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    tapAction,
     waitForChartStability,
 } from '../test/utils';
 import type { AgChartProxy } from '../test/utils';
@@ -123,11 +124,11 @@ describe('Legend', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async (chartInstance: Chart) => {
+    const compare = async (chartInstance: Chart, customSnapshotIdentifier?: string) => {
         await waitForChartStability(chartInstance);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, customSnapshotIdentifier });
     };
 
     const compareSnapshot = async (options: AgChartOptions) => {
@@ -165,66 +166,81 @@ describe('Legend', () => {
         });
     });
 
-    describe('Clicking a legend', () => {
-        it('should hide the related series', async () => {
-            const options = {
-                ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            };
-            chart = await createChart(options);
-
-            const { x, y } = computeLegendBBox(chart);
-            await clickAction(x, y)(chart);
-
-            await compare(chart);
+    describe('Clicks', () => {
+        let x: number, y: number;
+        beforeEach(async () => {
+            chart = await createChart({ ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS });
+            const box = computeLegendBBox(chart);
+            x = box.x;
+            y = box.y;
         });
 
-        it('when clicked twice should hide and re-show the related series', async () => {
-            const options = {
-                ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            };
-            chart = await createChart(options);
+        describe('Clicking a legend', () => {
+            it('should hide the related series', async () => {
+                await clickAction(x, y)(chart);
+                await compare(chart, 'clicks-1-hidden');
+            });
 
-            const { x, y } = computeLegendBBox(chart);
+            it('when clicked twice should hide and re-show the related series', async () => {
+                await clickAction(x, y)(chart);
+                await waitForChartStability(chart);
 
-            await clickAction(x, y)(chart);
-            await waitForChartStability(chart);
-            await clickAction(x, y)(chart);
-
-            await compare(chart);
-        });
-    });
-
-    describe('Double clicking a legend', () => {
-        it('should hide all other series except this one', async () => {
-            const options = {
-                ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            };
-            chart = await createChart(options);
-
-            const { x, y } = computeLegendBBox(chart);
-            await doubleClickAction(x, y)(chart);
-
-            await compare(chart);
+                await clickAction(x, y)(chart);
+                await compare(chart, 'clicks-all-shown');
+            });
         });
 
-        it('when double clicked twice should show all series', async () => {
-            const options = {
-                ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            };
-            chart = await createChart(options);
+        describe('Double clicking a legend', () => {
+            it('should hide all other series except this one', async () => {
+                await doubleClickAction(x, y)(chart);
+                await compare(chart, 'clicks-1-shown');
+            });
 
-            const { x, y } = computeLegendBBox(chart);
+            it('when double clicked twice should show all series', async () => {
+                await doubleClickAction(x, y)(chart);
+                await waitForChartStability(chart);
 
-            await doubleClickAction(x, y)(chart);
-            await waitForChartStability(chart);
+                // Click the legend item again for some reason... why does this test require this?
+                await clickAction(x, y)(chart);
+                await waitForChartStability(chart);
 
-            // Click the legend item again for some reason... why does this test require this?
-            await clickAction(x, y)(chart);
-            await waitForChartStability(chart);
+                await doubleClickAction(x, y)(chart);
+                await compare(chart, 'clicks-all-shown');
+            });
+        });
 
-            await doubleClickAction(x, y)(chart);
+        describe('Tapping a legend', () => {
+            it('should hide the related series', async () => {
+                await tapAction(x, y)(chart);
+                await compare(chart, 'clicks-1-hidden');
+            });
 
-            await compare(chart);
+            it('when clicked twice should hide and re-show the related series', async () => {
+                await tapAction(x, y)(chart);
+                await waitForChartStability(chart);
+
+                await tapAction(x, y)(chart);
+                await compare(chart, 'clicks-all-shown');
+            });
+        });
+
+        describe('Double tapping a legend', () => {
+            it('should hide all other series except this one', async () => {
+                await doubleTapAction(x, y)(chart);
+                await compare(chart, 'clicks-1-shown');
+            });
+
+            it('when double tapped twice should show all series', async () => {
+                await doubleTapAction(x, y)(chart);
+                await waitForChartStability(chart);
+
+                // Click the legend item again for some reason... why does this test require this?
+                await clickAction(x, y)(chart);
+                await waitForChartStability(chart);
+
+                await doubleTapAction(x, y)(chart);
+                await compare(chart, 'clicks-all-shown');
+            });
         });
     });
 
@@ -456,22 +472,22 @@ describe('Legend', () => {
                 ],
             });
             chart = deproxy(AgCharts.create(options));
-            await compare(chart);
+            await compare(chart, 'ag-12693-both-visible');
 
             const [x_ag, x_npm, y] = [357, 428, 575];
 
             // Hide AG Grid scatter
             await clickAction(x_ag, y)(chart);
-            await compare(chart);
+            await compare(chart, 'ag-12693-one-visible');
 
             // Hide NPM scatter
             await clickAction(x_npm, y)(chart);
-            await compare(chart);
+            await compare(chart, 'ag-12693-none-visible');
 
             // Show both scatters
             await clickAction(x_ag, y)(chart);
             await clickAction(x_npm, y)(chart);
-            await compare(chart);
+            await compare(chart, 'ag-12693-both-visible');
         });
     });
 
