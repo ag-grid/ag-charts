@@ -4,6 +4,7 @@ import type { DragWidgetEvent, MouseWidgetEvent, TouchWidgetEvent, WidgetEventMa
 
 const DRAG_THRESHOLD_PX = 3;
 const DOUBLE_TAP_TIMER_MS = 505;
+const DOUBLE_TAP_THRESHOLD_PX = 30;
 
 type TSythetic = 'click' | 'dblclick';
 type SytheticMap<T extends TSythetic> = {
@@ -37,10 +38,18 @@ function makeSynthetic(device: Device, type: TSythetic, event: DragWidgetEvent) 
     return { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
 }
 
-function checkDistanceSquared(dx: number, dy: number) {
+function checkDragDistance(dx: number, dy: number) {
     const distanceSquared = dx * dx + dy * dy;
     const thresholdSquared = DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX;
     return distanceSquared >= thresholdSquared;
+}
+
+function checkDoubleTapDistance(t1: { clientX: number; clientY: number }, t2: { clientX: number; clientY: number }) {
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
+    const distanceSquared = dx * dx + dy * dy;
+    const thresholdSquared = DOUBLE_TAP_THRESHOLD_PX * DOUBLE_TAP_THRESHOLD_PX;
+    return distanceSquared < thresholdSquared;
 }
 
 type Type = 'mousemove' | 'click' | 'dblclick' | 'drag-start' | 'drag-move' | 'drag-end';
@@ -67,7 +76,7 @@ export class DragInterpreter {
 
     private dragStartEvent?: DragWidgetEvent<'drag-start'>;
     private isDragging = false;
-    private lastClickTime?: number;
+    private lastClick?: { time: number; clientX: number; clientY: number };
     private readonly touch = { distanceTravelledX: 0, distanceTravelledY: 0, clientX: 0, clientY: 0 };
 
     constructor(widget: Widget) {
@@ -136,7 +145,7 @@ export class DragInterpreter {
 
     private onDragMove(event: DragWidgetEvent<'drag-move'>) {
         if (this.dragStartEvent != null) {
-            if (checkDistanceSquared(event.originDeltaX, event.originDeltaY)) {
+            if (checkDragDistance(event.originDeltaX, event.originDeltaY)) {
                 this.dispatch(this.dragStartEvent);
                 this.dispatch({ ...this.dragStartEvent, type: 'drag-move' });
                 this.dragStartEvent = undefined;
@@ -162,7 +171,7 @@ export class DragInterpreter {
         }
         // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
         else if (event.sourceEvent.type === 'touchend') {
-            if (checkDistanceSquared(this.touch.distanceTravelledX, this.touch.distanceTravelledY)) {
+            if (checkDragDistance(this.touch.distanceTravelledX, this.touch.distanceTravelledY)) {
                 return; // this is a drag not a click, do not dispatch a 'click' event.
             }
 
@@ -171,12 +180,16 @@ export class DragInterpreter {
 
             // Handle double-click logic
             const now = Date.now();
-            if (this.lastClickTime !== undefined && now - this.lastClickTime <= DOUBLE_TAP_TIMER_MS) {
+            if (
+                this.lastClick !== undefined &&
+                now - this.lastClick.time <= DOUBLE_TAP_TIMER_MS &&
+                checkDoubleTapDistance(this.lastClick, event)
+            ) {
                 const dblClick = makeSynthetic(event.device, 'dblclick', event);
                 this.dispatch(dblClick);
-                this.lastClickTime = undefined;
+                this.lastClick = undefined;
             } else {
-                this.lastClickTime = now;
+                this.lastClick = { time: now, clientX: event.clientX, clientY: event.clientY };
             }
         }
     }
