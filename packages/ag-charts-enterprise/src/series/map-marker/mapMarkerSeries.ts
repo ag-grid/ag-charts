@@ -628,6 +628,7 @@ export class MapMarkerSeries
         const { markerSelection, isHighlight, highlightedDatum } = opts;
 
         const style = this.getMarkerItemBaseStyle(isHighlight);
+        const fillBBox = this.getFillBBox(style.fill);
 
         markerSelection.each((marker, markerDatum) => {
             const { datumIndex, datum, point, colorValue, sizeValue } = markerDatum;
@@ -643,10 +644,13 @@ export class MapMarkerSeries
             marker.shape = overrides?.shape ?? style.shape;
             marker.size = overrides?.size ?? style.size;
 
-            applyShapeStyle(marker, style, overrides);
+            applyShapeStyle(marker, style, overrides, fillBBox);
 
-            marker.translationX = point.x;
-            marker.translationY = point.y;
+            marker.x = point.x;
+            marker.y = point.y;
+            marker.scalingCenterX = point.x;
+            marker.scalingCenterY = point.y;
+
             marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
         });
     }

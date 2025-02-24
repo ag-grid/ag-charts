@@ -496,6 +496,7 @@ export class MapShapeSeries
         const { datumSelection, isHighlight } = opts;
 
         const style = this.getItemBaseStyle(isHighlight);
+        const fillBBox = this.getFillBBox(style.fill);
 
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { datum, datumIndex, colorValue, projectedGeometry } = nodeDatum;
@@ -510,7 +511,7 @@ export class MapShapeSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            applyShapeStyle(geoGeometry, style, overrides);
+            applyShapeStyle(geoGeometry, style, overrides, fillBBox);
         });
     }
 

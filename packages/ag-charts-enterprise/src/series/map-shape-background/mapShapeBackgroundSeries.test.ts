@@ -52,4 +52,33 @@ describe('MapShapeBackgroundSeries', () => {
             await compare();
         });
     });
+
+    describe('gradient fill', () => {
+        it('should render map shape background series with a gradient fill', async () => {
+            const options: AgChartOptions = {
+                topology: ukTopology,
+                series: [
+                    {
+                        type: 'map-shape-background',
+                        fill: {
+                            type: 'gradient',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
 });
