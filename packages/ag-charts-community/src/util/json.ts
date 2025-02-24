@@ -377,6 +377,7 @@ enum Operation {
     Round = '$round',
     Rem = '$rem',
     Mix = '$mix',
+    MixEach = '$mixEach',
     ForegroundBackgroundMix = '$foregroundBackgroundMix',
     ForegroundBackgroundAccentMix = '$foregroundBackgroundAccentMix',
 }
@@ -391,8 +392,8 @@ type OperationFn<T, P> = (
 
 function getOperation(value: unknown) {
     if (!isPlainObject(value)) return {};
-    const [operation, ...otherKeys] = Object.keys(value) as Array<Operation>;
-    if (otherKeys.length !== 0 || !operationKeys.has(operation)) return {};
+    const [operation] = Object.keys(value) as Array<Operation>;
+    if (!operationKeys.has(operation)) return {};
     return { operation, values: value[operation] };
 }
 
@@ -506,6 +507,26 @@ const operations: Record<Operation, OperationFn<any, any>> = {
         }
         Logger.warnOnce(
             `\`$mix\` json operation failed on [${String(a)}, ${String(b)}, ${String(c)}] at [${path.join('.')}], expecting two colors and a number between 0 and 1.`
+        );
+    },
+    $mixEach: ([as, b, c], _params, _source, path) => {
+        if (!isArray(as)) {
+            Logger.warnOnce(
+                `\`$mixEach\` json operation failed at [${path.join('.')}], expecting an array of colors, a color and a number between 0 and 1.`
+            );
+            return;
+        }
+        try {
+            return as.map((a) => {
+                if (typeof a === 'string' && typeof b === 'string' && isRatio(c)) {
+                    return Color.mix(Color.fromString(a), Color.fromString(b), c).toString();
+                }
+            });
+        } catch {
+            // Discard and log below
+        }
+        Logger.warnOnce(
+            `\`$mixEach\` json operation failed on [[${String(as.join(','))}], ${String(b)}, ${String(c)}] at [${path.join('.')}], expecting an array of colors, a color and a number between 0 and 1.`
         );
     },
     $foregroundBackgroundMix: ([a], params, _source, path) => {
