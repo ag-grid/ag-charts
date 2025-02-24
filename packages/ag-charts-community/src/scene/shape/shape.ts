@@ -271,10 +271,10 @@ export abstract class Shape<D = any> extends Node<D> {
             const id = generateUUID();
             gradient.setAttribute('id', id);
 
-            const { direction } = fill;
-            const isHorizontal = direction === 'horizontal';
+            const { direction = 'vertical' } = fill;
+            const isVertical = direction === 'vertical';
 
-            if (isHorizontal) {
+            if (isVertical) {
                 gradient.setAttribute('x1', '0');
                 gradient.setAttribute('x2', '0');
                 gradient.setAttribute('y1', '1');
