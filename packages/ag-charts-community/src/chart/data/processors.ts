@@ -11,6 +11,7 @@ import {
     type GroupValueProcessorDefinition,
     type ProcessedData,
     type ProcessedOutputDiff,
+    type ProcessorFn,
     type ProcessorOutputPropertyDefinition,
     type PropertyValueProcessorDefinition,
     type ReducerOutputPropertyDefinition,
@@ -83,17 +84,37 @@ export function rowCountProperty<K>(propName: K, opts: Partial<DatumPropertyDefi
     return result;
 }
 
+const noopProcessor: ProcessorFn = function (v: unknown) {
+    return v;
+};
+
+function processorChain(...chain: ((() => ProcessorFn) | undefined)[]): () => ProcessorFn {
+    const filteredChain = chain.filter((fn): fn is () => ProcessorFn => fn != null);
+    if (filteredChain.length === 0) {
+        return () => noopProcessor;
+    }
+    if (filteredChain.length === 1) {
+        return filteredChain[0];
+    }
+    return () => {
+        const processorInstances = filteredChain.map((fn) => fn());
+        return (value, index) => {
+            return processorInstances.reduce((r, p) => p(r, index), value);
+        };
+    };
+}
+
 export function rangedValueProperty<K>(
     propName: K,
     opts: Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number } = {}
 ): DatumPropertyDefinition<K> {
-    const { min = -Infinity, max = Infinity, ...defOpts } = opts;
+    const { min = -Infinity, max = Infinity, processor, ...defOpts } = opts;
     return {
         type: 'value',
         property: propName,
         valueType: 'range',
         validation: basicContinuousCheckDatumValidation,
-        processor: () => (datum) => (isFiniteNumber(datum) ? clamp(min, datum, max) : datum),
+        processor: processorChain(processor, () => (datum) => (isFiniteNumber(datum) ? clamp(min, datum, max) : datum)),
         ...defOpts,
     };
 }
@@ -103,10 +124,10 @@ export function accumulativeValueProperty<K>(
     scaleType?: ScaleType,
     opts: Partial<DatumPropertyDefinition<K>> & { onlyPositive?: boolean } = {}
 ) {
-    const { onlyPositive, ...defOpts } = opts;
+    const { onlyPositive, processor, ...defOpts } = opts;
     const result: DatumPropertyDefinition<K> = {
         ...valueProperty(propName, scaleType, defOpts),
-        processor: accumulatedValue(onlyPositive),
+        processor: processorChain(processor, accumulatedValue(onlyPositive)),
     };
     return result;
 }

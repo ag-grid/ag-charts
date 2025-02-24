@@ -144,7 +144,7 @@ export class MapLineSeries extends TopologySeries<
                 valueProperty(idKey, mercatorScaleType, {
                     id: 'featureValue',
                     includeProperty: false,
-                    processor: () => (datum) => featureById.get(datum),
+                    processor: () => (datum) => featureById.get(datum as string),
                 }),
                 ...(labelKey != null ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
                 ...(sizeKey != null ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),

@@ -4992,7 +4992,21 @@ exports[`DataModel missing and invalid data processing should generated the expe
   "input": {
     "count": 11,
   },
-  "invalidData": Map {},
+  "invalidData": Map {
+    "test" => [
+      true,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      true,
+      false,
+    ],
+  },
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -5011,7 +5025,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
       ],
     },
   ],
-  "partialValidDataCount": 0,
+  "partialValidDataCount": 6,
   "scopes": Set {
     "test",
   },

@@ -163,7 +163,7 @@ export class MapShapeSeries
                 valueProperty(idKey, mercatorScaleType, {
                     id: 'featureValue',
                     includeProperty: false,
-                    processor: () => (datum) => featureById.get(datum),
+                    processor: () => (datum) => featureById.get(datum as string),
                 }),
                 ...(labelKey ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
                 ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
