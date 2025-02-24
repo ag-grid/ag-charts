@@ -42,7 +42,7 @@ class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
 
 class TreemapSeriesGroup extends BaseProperties {
     @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill?: AgFillType | undefined = undefined;
+    fill: AgFillType | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity: number = 1;
@@ -77,7 +77,7 @@ class TreemapSeriesGroup extends BaseProperties {
 
 class TreemapSeriesTile extends BaseProperties {
     @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill?: AgFillType | undefined = undefined;
+    fill: AgFillType | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity: number = 1;

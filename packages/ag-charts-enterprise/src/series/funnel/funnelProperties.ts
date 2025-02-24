@@ -46,7 +46,7 @@ class FunnelDropOff extends BaseProperties {
     enabled: boolean = true;
 
     @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill?: AgFillType | undefined = undefined;
+    fill: AgFillType | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity: number = 1;
