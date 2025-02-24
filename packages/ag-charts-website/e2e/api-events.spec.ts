@@ -24,7 +24,7 @@ test.describe('api-events', () => {
         test.describe('mouse', () => {
             test('click', async ({ page }) => {
                 await page.mouse.click(node.x, node.y);
-                await expect(page).toHaveScreenshot('no-click.png');
+                await expect(page).toHaveScreenshot('miss-click.png');
 
                 await page.mouse.click(west.x, west.y);
                 await expect(page).toHaveScreenshot('click.png');
@@ -34,7 +34,7 @@ test.describe('api-events', () => {
             });
             test('doubleClick', async ({ page }) => {
                 await page.mouse.dblclick(node.x, node.y);
-                await expect(page).toHaveScreenshot('no-click.png');
+                await expect(page).toHaveScreenshot('miss-click.png');
 
                 await page.mouse.click(west.x, west.y);
                 await page.mouse.click(east.x, east.y);
@@ -47,7 +47,7 @@ test.describe('api-events', () => {
         test.describe('touch', () => {
             test('click', async ({ page }) => {
                 await page.touchscreen.tap(node.x, node.y);
-                await expect(page).toHaveScreenshot('no-click.png');
+                await expect(page).toHaveScreenshot('miss-click.png');
 
                 await page.touchscreen.tap(west.x, west.y);
                 await expect(page).toHaveScreenshot('click.png');
@@ -58,7 +58,7 @@ test.describe('api-events', () => {
             test('doubleClick', async ({ page }) => {
                 await page.touchscreen.tap(node.x, node.y);
                 await page.touchscreen.tap(node.x, node.y);
-                await expect(page).toHaveScreenshot('no-click.png');
+                await expect(page).toHaveScreenshot('miss-click.png');
 
                 await page.touchscreen.tap(west.x, west.y);
                 await page.touchscreen.tap(east.x, east.y);
@@ -83,7 +83,7 @@ test.describe('api-events', () => {
         test.describe('mouse', () => {
             test('seriesNodeClick', async ({ page }) => {
                 await page.mouse.click(center.x, center.y);
-                await expect(page).toHaveScreenshot('no-seriesNodeClick.png');
+                await expect(page).toHaveScreenshot('miss-seriesNodeClick.png');
 
                 await page.mouse.click(aprMarker.x, aprMarker.y);
                 await expect(page).toHaveScreenshot('seriesNodeClick-marker.png');
@@ -96,7 +96,7 @@ test.describe('api-events', () => {
             });
             test('seriesNodeDoubleClick', async ({ page }) => {
                 await page.mouse.dblclick(center.x, center.y);
-                await expect(page).toHaveScreenshot('no-seriesNodeClick.png');
+                await expect(page).toHaveScreenshot('miss-seriesNodeClick.png');
 
                 await page.mouse.dblclick(aprMarker.x, aprMarker.y);
                 await expect(page).toHaveScreenshot('seriesNodeDoubleClick-marker.png');
@@ -111,7 +111,7 @@ test.describe('api-events', () => {
         test.describe('touch', () => {
             test('seriesNodeClick', async ({ page }) => {
                 await page.touchscreen.tap(center.x, center.y);
-                await expect(page).toHaveScreenshot('no-seriesNodeClick.png');
+                await expect(page).toHaveScreenshot('miss-seriesNodeClick.png');
 
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
                 await expect(page).toHaveScreenshot('seriesNodeClick-marker.png');
@@ -125,7 +125,7 @@ test.describe('api-events', () => {
             test('seriesNodeDoubleClick', async ({ page }) => {
                 await page.touchscreen.tap(center.x, center.y);
                 await page.touchscreen.tap(center.x, center.y);
-                await expect(page).toHaveScreenshot('no-seriesNodeClick.png');
+                await expect(page).toHaveScreenshot('miss-seriesNodeClick.png');
 
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
@@ -165,7 +165,7 @@ test.describe('api-events', () => {
         test.describe('mouse', () => {
             test('nodeClick', async ({ page }) => {
                 await page.mouse.click(noClick.x, noClick.y);
-                await expect(page).toHaveScreenshot('no-nodeClick.png');
+                await expect(page).toHaveScreenshot('miss-nodeClick.png');
 
                 await page.mouse.click(march.x, march.y);
                 await expect(page).toHaveScreenshot('nodeClick-march.png');
@@ -178,7 +178,7 @@ test.describe('api-events', () => {
             });
             test('nodeDoubleClick', async ({ page }) => {
                 await page.mouse.dblclick(noClick.x, noClick.y);
-                await expect(page).toHaveScreenshot('no-nodeClick.png');
+                await expect(page).toHaveScreenshot('miss-nodeClick.png');
 
                 await page.mouse.dblclick(march.x, march.y);
                 await expect(page).toHaveScreenshot('nodeDoubleClick-march.png');
@@ -193,7 +193,7 @@ test.describe('api-events', () => {
         test.describe('touch', () => {
             test('nodeClick', async ({ page }) => {
                 await page.touchscreen.tap(noClick.x, noClick.y);
-                await expect(page).toHaveScreenshot('no-nodeClick.png');
+                await expect(page).toHaveScreenshot('miss-nodeClick.png');
 
                 await page.touchscreen.tap(march.x, march.y);
                 await expect(page).toHaveScreenshot('nodeClick-march.png');
@@ -207,7 +207,7 @@ test.describe('api-events', () => {
             test('nodeDoubleClick', async ({ page }) => {
                 await page.touchscreen.tap(noClick.x, noClick.y);
                 await page.touchscreen.tap(noClick.x, noClick.y);
-                await expect(page).toHaveScreenshot('no-nodeClick.png');
+                await expect(page).toHaveScreenshot('miss-nodeClick.png');
 
                 await page.touchscreen.tap(march.x, march.y);
                 await page.touchscreen.tap(march.x, march.y);
