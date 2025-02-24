@@ -1,4 +1,4 @@
-import { joinFormatted, stringifyValue } from './strings';
+import { joinFormatted, levenshteinDistance, stringifyValue } from './strings';
 import { isArray, isBoolean, isDate, isFiniteNumber, isFunction, isObject, isString, isValidDate } from './typeGuards';
 
 const descriptionSymbol = Symbol('description');
@@ -47,10 +47,11 @@ export class ValidationError {
  */
 export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = ''): ValidationResult<T> {
     if (!isObject(options)) {
-        const message = validateMessage(path, options, 'an object');
+        const message = validateMessage(path, options, 'an object', true);
         return { valid: null, errors: [new ValidationError(message)] };
     }
 
+    const unusedKeys = [];
     const optionsKeys = new Set(Object.keys(options));
     const errors: ValidationError[] = [];
     const valid: Partial<T> = {};
@@ -64,15 +65,20 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 
     for (const key of Object.keys(optionsDefs)) {
         const validatorOrDefs: Validator | ObjectLikeDef<any> = (optionsDefs as any)[key];
-        optionsKeys.delete(key);
         const value = options[key as keyof object];
         const required = validatorOrDefs[requiredSymbol];
-        if (!required && typeof value === 'undefined') continue;
+
+        optionsKeys.delete(key);
+        if (!required && typeof value === 'undefined') {
+            unusedKeys.push(key);
+            continue;
+        }
+
         if (isFunction(validatorOrDefs)) {
             if (validatorOrDefs(value, options)) {
                 valid[key as keyof T] = value;
             } else {
-                const message = validateMessage(extendPath(key), value, validatorOrDefs);
+                const message = validateMessage(extendPath(key), value, validatorOrDefs, required);
                 errors.push(new ValidationError(message, required));
             }
         } else {
@@ -85,7 +91,9 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     for (const key of optionsKeys) {
         const value = options[key as keyof object];
         if (typeof value === 'undefined') continue;
-        const message = `Unknown option \`${extendPath(key)}\`, ignoring.`;
+        const match = findSuggestion(key, unusedKeys);
+        const postfix = match ? `; Did you mean \`${match}\`? Ignoring.` : ', ignoring.';
+        const message = `Unknown option \`${extendPath(key)}\`${postfix}`;
         errors.push(new ValidationError(message, undefined, true));
     }
 
@@ -93,29 +101,45 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 }
 
 /**
- * Validates the provided options object against the specified options definitions. Logs warnings for any invalid options encountered.
- * @param options The options object to validate.
- * @param optionsDefs The definitions against which to validate the options.
- * @param path (Optional) The current path in the options object, for nested properties.
- * @returns A boolean indicating whether the options are valid.
+ * Finds the closest matching suggestion from a list based on Levenshtein distance.
+ * @param value The input string to compare against suggestions.
+ * @param suggestions The list of possible suggestions.
+ * @param maxDistance The maximum allowed Levenshtein distance for a match.
+ * @returns The closest matching suggestion within the allowed distance, or null if none are found.
  */
-export function isValid<T extends object>(options: unknown, optionsDefs: OptionsDefs<T>, path?: string): options is T {
-    const { errors } = validate(options, optionsDefs, path);
-    return errors.length === 0;
+function findSuggestion(value: string, suggestions: string[], maxDistance: number = 2): string | null {
+    let smallestDistance = Infinity;
+    const lowerCaseValue = value.toLowerCase();
+    return suggestions.reduce<string | null>((res, item) => {
+        const d = levenshteinDistance(lowerCaseValue, item.toLowerCase());
+        if (smallestDistance > d && d <= maxDistance) {
+            smallestDistance = d;
+            return item;
+        }
+        return res;
+    }, null);
 }
 
 /**
  * Generates a validation error message based on the path, value, and expected type.
  * @param path The path to the option.
  * @param value The invalid value.
- * @param validatorOrDefs The expected type or validator.
+ * @param validatorOrDefs The expected type, validator, or description.
+ * @param required Whether the option is required.
  * @returns A formatted error message.
  */
-function validateMessage(path: string, value: unknown, validatorOrDefs: Validator | OptionsDefs<any> | string): string {
+function validateMessage(
+    path: string,
+    value: unknown,
+    validatorOrDefs: Validator | OptionsDefs<any> | string,
+    required?: boolean
+): string {
     const description = isString(validatorOrDefs) ? validatorOrDefs : validatorOrDefs[descriptionSymbol];
     const expecting = description ? `; expecting ${description}` : '';
     const prefix = path ? `Option \`${path}\`` : 'Value';
-    return `${prefix} cannot be set to \`${stringifyValue(value, 50)}\`${expecting}, ignoring.`;
+    return required && value == null
+        ? `${prefix} is required and has not been provided${expecting}, ignoring.`
+        : `${prefix} cannot be set to \`${stringifyValue(value, 50)}\`${expecting}, ignoring.`;
 }
 
 /**
