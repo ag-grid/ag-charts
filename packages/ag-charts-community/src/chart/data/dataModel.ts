@@ -824,10 +824,10 @@ export class DataModel<
                 let invalidScopeKeys;
                 let invalidScopeData;
                 for (let datumIndex = 0; datumIndex < data.length; datumIndex++) {
-                    const { value: key, valid } = processValue(keyDef, data[datumIndex], datumIndex, scope);
+                    const result = processValue(keyDef, data[datumIndex], datumIndex, scope);
 
-                    if (valid) {
-                        keys.push(key);
+                    if (result.valid) {
+                        keys.push(result.value);
                         continue;
                     }
 
@@ -894,7 +894,7 @@ export class DataModel<
                 const invalidKey = invalidKeys.get(columnScope)?.[datumIndex];
 
                 const result = processValue(def, valueDatum, datumIndex, def.scopes);
-                let { value } = result;
+                let value = result.value;
 
                 if (invalidKey || !result.valid) {
                     this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData);
