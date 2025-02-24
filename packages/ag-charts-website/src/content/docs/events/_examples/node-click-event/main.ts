@@ -21,17 +21,8 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'units',
             listeners: {
-                nodeClick: (event: any) => {
-                    var datum = event.datum;
-                    window.alert(
-                        'Cars sold in ' +
-                            datum[event.xKey] +
-                            ': ' +
-                            String(datum[event.yKey]) +
-                            '\n' +
-                            listUnitsSoldByBrand(datum['brands'])
-                    );
-                },
+                nodeClick: (event: any) => window.alert(makeMessage('[click]', event, event.datum)),
+                nodeDoubleClick: (event: any) => window.alert(makeMessage('[double click]', event, event.datum)),
             },
         },
     ],
@@ -49,10 +40,11 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function listUnitsSoldByBrand(brands: Record<string, number>) {
-    var result = '';
+function makeMessage(header: string, event: any, datum: any) {
+    const brands = datum['brands'];
+    const buffer: string[] = [header, '\nCars sold in ', datum[event.xKey], ': ', String(datum[event.yKey]), '\n'];
     for (var key in brands) {
-        result += key + ': ' + brands[key] + '\n';
+        buffer.push(key, ': ', String(brands[key]), '\n');
     }
-    return result;
+    return buffer.join('');
 }
