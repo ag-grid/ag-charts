@@ -1,4 +1,5 @@
 import type {
+    AgFillType,
     AgTreemapSeriesItemStylerParams,
     AgTreemapSeriesLabelFormatterParams,
     AgTreemapSeriesOptions,
@@ -29,6 +30,8 @@ const {
     STRING_ARRAY,
     TEXT_ALIGN,
     VERTICAL_ALIGN,
+    COLOR_GRADIENT,
+    OR,
     Label,
 } = _ModuleSupport;
 
@@ -38,8 +41,8 @@ class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
 }
 
 class TreemapSeriesGroup extends BaseProperties {
-    @Validate(STRING, { optional: true })
-    fill?: string;
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill?: AgFillType | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity: number = 1;
@@ -73,8 +76,8 @@ class TreemapSeriesGroup extends BaseProperties {
 }
 
 class TreemapSeriesTile extends BaseProperties {
-    @Validate(STRING, { optional: true })
-    fill?: string;
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill?: AgFillType | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity: number = 1;
