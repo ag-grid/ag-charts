@@ -35,7 +35,6 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
 
     public destroy() {
         this.destroyFns.forEach((cb) => cb());
-        this.domManager.removeStyles('overlays');
         this.domManager.removeChild('canvas-overlay', 'overlay');
     }
 

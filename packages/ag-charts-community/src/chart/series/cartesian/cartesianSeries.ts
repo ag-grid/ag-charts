@@ -565,10 +565,10 @@ export abstract class CartesianSeries<
         // Override point for subclasses
     }
 
-    protected override pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
-        const result = super.pickNodeExactShape(point);
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
+        const result = super.pickNodesExactShape(point);
 
-        if (result) {
+        if (result.length !== 0) {
             return result;
         }
 
@@ -577,16 +577,16 @@ export abstract class CartesianSeries<
             opts: { hasMarkers },
         } = this;
 
-        let match: Node | undefined;
         const { dataNodeGroup, markerGroup } = this;
-        match = dataNodeGroup.pickNode(x, y);
+        let matches = dataNodeGroup.pickNodes(x, y).filter((match) => match.datum.missing !== true);
 
-        if (!match && hasMarkers) {
-            match = markerGroup?.pickNode(x, y);
+        if (matches.length === 0 && hasMarkers) {
+            matches = markerGroup?.pickNodes(x, y).filter((match) => match.datum.missing !== true);
         }
 
-        if (match && match.datum.missing !== true) {
-            return { datum: match.datum, distance: 0 };
+        if (matches.length !== 0) {
+            const datums = matches.map((match) => match.datum);
+            return datums;
         }
 
         for (const mod of this.moduleMap.modules()) {
@@ -594,8 +594,10 @@ export abstract class CartesianSeries<
             if (datum == null) continue;
             if (datum?.missing === true) continue;
 
-            return { datum, distance: 0 };
+            return [datum];
         }
+
+        return [];
     }
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
@@ -640,7 +642,7 @@ export abstract class CartesianSeries<
         }
 
         if (closestDatum) {
-            const distance = Math.max(Math.sqrt(minDistance) - (closestDatum.point?.size ?? 0), 0);
+            const distance = Math.max(Math.sqrt(minDistance) - (closestDatum.point?.size ?? 0) / 2, 0);
             return { datum: closestDatum, distance };
         }
     }

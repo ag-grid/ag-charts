@@ -171,3 +171,9 @@ However, we may wish to use this in the future
 .ag-charts-tooltip-value {
     min-width: 0;
 }
+
+.ag-charts-tooltip-footer {
+    grid-column: 1 / -1;
+    color: var(--ag-charts-chrome-subtle-text-color);
+    text-align: center;
+}

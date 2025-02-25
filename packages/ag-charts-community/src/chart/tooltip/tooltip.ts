@@ -2,10 +2,10 @@ import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionR
 
 import { getWindow } from '../../core';
 import type { DOMManager } from '../../dom/domManager';
+import type { LocaleManager } from '../../locale/localeManager';
 import { clamp } from '../../util/number';
 import { type Bounds, type Placement, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
-import { sanitizeHtml } from '../../util/sanitize';
 import {
     ARRAY_OF,
     BOOLEAN,
@@ -18,11 +18,25 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
 import { SpringAnimation } from './springAnimation';
+import {
+    DEFAULT_TOOLTIP_CLASS,
+    DEFAULT_TOOLTIP_DARK_CLASS,
+    type TooltipContent,
+    type TooltipPaginationState,
+    tooltipHtml,
+} from './tooltipContent';
 
-export const DEFAULT_TOOLTIP_CLASS = 'ag-charts-tooltip';
-export const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-charts-tooltip--dark';
+export {
+    DEFAULT_TOOLTIP_CLASS,
+    DEFAULT_TOOLTIP_DARK_CLASS,
+    tooltipHtml,
+    tooltipContentAriaLabel,
+    type TooltipContent,
+    type TooltipPaginationState,
+    type TooltipContentDataRow,
+    type TooltipStructuredContent,
+} from './tooltipContent';
 
 type TooltipPositionType =
     | 'pointer'
@@ -55,191 +69,6 @@ export interface TooltipMeta extends TooltipOffsets {
     showArrow?: boolean;
     position?: TooltipMetaPosition;
     enableInteraction?: boolean;
-}
-
-export type TooltipContentDataRow =
-    | { label: string; fallbackLabel?: string; value: string }
-    | { label: undefined; fallbackLabel: string; value: string };
-
-export type TooltipStructuredContent = {
-    heading?: string;
-    title?: string;
-    symbol?: LegendSymbolOptions;
-    data?: TooltipContentDataRow[];
-};
-export type TooltipContent =
-    | ({ type: 'structured' } & TooltipStructuredContent)
-    | { type: 'raw'; rawHtmlString: string };
-
-interface GroupedStructuredContent {
-    heading?: string;
-    items: Omit<TooltipStructuredContent, 'heading'>[];
-}
-
-type GroupedTooltipContent =
-    | ({ type: 'structured' } & GroupedStructuredContent)
-    | { type: 'raw'; rawHtmlString: string };
-
-function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipContent[] {
-    const out: GroupedTooltipContent[] = [];
-    const groupedContents = new Map<string, GroupedStructuredContent>();
-    for (const item of content) {
-        if (item.type === 'structured') {
-            const { heading } = item;
-            const insertionTarget = heading != null ? groupedContents.get(heading) : undefined;
-            const groupedItem: GroupedTooltipContent = { type: 'structured', heading, items: [item] };
-            if (insertionTarget == null) {
-                groupedContents.set(heading!, groupedItem);
-                out.push(groupedItem);
-            } else {
-                insertionTarget.items.push(item);
-            }
-        } else {
-            out.push(item);
-        }
-    }
-    return out;
-}
-
-export function tooltipContentAriaLabel(content: TooltipContent) {
-    const ariaLabel: string[] = [];
-
-    if (content.type === 'raw') return '';
-    if (content.heading != null) ariaLabel.push(content.heading);
-    if (content.title != null) ariaLabel.push(content.title);
-    content.data?.forEach((datum) => {
-        ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
-    });
-
-    return ariaLabel.join('; ');
-}
-
-function dataHtml(label: string | undefined, value: string, inline: boolean) {
-    let rowHtml = '';
-
-    if (label == null) {
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(value)}</span>`;
-    } else {
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(label)}</span>`;
-        rowHtml += ' ';
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-value">${sanitizeHtml(value)}</span>`;
-    }
-
-    const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}-row`];
-    if (inline) rowClassNames.push(`${DEFAULT_TOOLTIP_CLASS}-row--inline`);
-    rowHtml = `<div class="${rowClassNames.join(' ')}">${rowHtml}</div>`;
-
-    return rowHtml;
-}
-
-function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
-    let html = '';
-
-    const dataInline = content.title == null && content.data?.length === 1;
-
-    const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
-    if (symbol != null && (content.title != null || content.data?.length)) {
-        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-symbol">${symbol}</span>`;
-    }
-
-    if (content.title != null) {
-        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(content.title)}</span>`;
-        html += ' ';
-    }
-
-    content.data?.forEach((datum) => {
-        html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
-        html += ' ';
-    });
-
-    return html;
-}
-
-function tooltipContentHtml(content: GroupedTooltipContent) {
-    if (content.type === 'raw') return content.rawHtmlString;
-
-    let html = '';
-
-    const singleItem = content.items.length === 1 ? content.items[0] : undefined;
-
-    if (
-        singleItem != null &&
-        (content.heading == null || singleItem.title == null) &&
-        singleItem.data?.length === 1 &&
-        singleItem.data[0].label == null &&
-        singleItem.data[0].value != null
-    ) {
-        // Compact rendering
-        const datum = singleItem.data[0];
-
-        html += dataHtml(content.heading ?? singleItem.title, datum.value, false);
-    } else {
-        // Full rendering
-
-        if (content.heading != null) {
-            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-heading">${sanitizeHtml(content.heading)}</span>`;
-            html += ' ';
-        }
-
-        content.items.forEach((item) => {
-            html += tooltipRowContentHtml(item);
-        });
-    }
-
-    html = `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${html.trimEnd()}</div>`;
-
-    return html;
-}
-
-const POSITION_TYPE = UNION(
-    ['pointer', 'node', 'top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-right', 'bottom-left'],
-    'a position type'
-);
-
-const AFFIXMENT = UNION(['pointer', 'node', 'chart'], 'an anchorTo');
-
-const TETHER_UNION = UNION(
-    ['top', 'right', 'bottom', 'left', 'top-right', 'bottom-right', 'bottom-left', 'top-left', 'center'],
-    'a placement'
-);
-const TETHER = OR(TETHER_UNION, ARRAY_OF(TETHER_UNION));
-
-export class TooltipPosition extends BaseProperties {
-    @Validate(POSITION_TYPE)
-    /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
-    type: TooltipPositionType = 'pointer';
-
-    @Validate(NUMBER)
-    /** The horizontal offset in pixels for the position of the tooltip. */
-    xOffset: number = 0;
-
-    @Validate(NUMBER)
-    /** The vertical offset in pixels for the position of the tooltip. */
-    yOffset: number = 0;
-
-    @Validate(AFFIXMENT, { optional: true })
-    anchorTo?: AgTooltipAnchorTo;
-
-    @Validate(TETHER, { optional: true })
-    placement?: AgTooltipPlacement | AgTooltipPlacement[];
-
-    get defaultAnchorTo(): AgTooltipAnchorTo {
-        const { type } = this;
-        if (type === 'node' || type === 'pointer') {
-            return type;
-        } else {
-            return 'chart';
-        }
-    }
-
-    get defaultPlacement(): AgTooltipPlacement {
-        const { type } = this;
-        if (type === 'node' || type === 'pointer') {
-            return 'top';
-        } else {
-            return type;
-        }
-    }
 }
 
 const horizontalAlignments: Record<AgTooltipPlacement, -1 | 0 | 1> = {
@@ -306,6 +135,62 @@ const directionChecks: Record<AgTooltipPlacement, DirectionCheck> = {
 
 const TOOLTIP_MODE = UNION(['single', 'shared']);
 
+const POSITION_TYPE = UNION(
+    ['pointer', 'node', 'top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-right', 'bottom-left'],
+    'a position type'
+);
+
+const ANCHOR_TO = UNION(['pointer', 'node', 'chart'], 'an anchorTo');
+
+const PLACEMENT_UNION = UNION(
+    ['top', 'right', 'bottom', 'left', 'top-right', 'bottom-right', 'bottom-left', 'top-left', 'center'],
+    'a placement'
+);
+const PLACEMENT = OR(PLACEMENT_UNION, ARRAY_OF(PLACEMENT_UNION));
+
+export class TooltipPosition extends BaseProperties {
+    @Validate(POSITION_TYPE)
+    /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
+    type: TooltipPositionType = 'pointer';
+
+    @Validate(NUMBER)
+    /** The horizontal offset in pixels for the position of the tooltip. */
+    xOffset: number = 0;
+
+    @Validate(NUMBER)
+    /** The vertical offset in pixels for the position of the tooltip. */
+    yOffset: number = 0;
+
+    @Validate(ANCHOR_TO, { optional: true })
+    anchorTo?: AgTooltipAnchorTo;
+
+    @Validate(PLACEMENT, { optional: true })
+    placement?: AgTooltipPlacement | AgTooltipPlacement[];
+
+    get defaultAnchorTo(): AgTooltipAnchorTo {
+        const { type } = this;
+        if (type === 'node' || type === 'pointer') {
+            return type;
+        } else {
+            return 'chart';
+        }
+    }
+
+    get defaultPlacement(): AgTooltipPlacement {
+        const { type } = this;
+        if (type === 'node' || type === 'pointer') {
+            return 'top';
+        } else {
+            return type;
+        }
+    }
+}
+
+class TooltipPagination extends BaseProperties {
+    @Validate(BOOLEAN)
+    enabled: boolean = false;
+}
+
 export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
@@ -327,6 +212,9 @@ export class Tooltip extends BaseProperties {
 
     @Validate(OBJECT)
     readonly position = new TooltipPosition();
+
+    @Validate(OBJECT)
+    readonly pagination = new TooltipPagination();
 
     @Validate(BOOLEAN)
     darkTheme = false;
@@ -371,7 +259,8 @@ export class Tooltip extends BaseProperties {
         this.destroyFns.push(this.springAnimation.addListener('update', this.updateTooltipPosition.bind(this)));
     }
 
-    setup(domManager: DOMManager) {
+    private localeManager: LocaleManager | undefined = undefined;
+    setup(localeManager: LocaleManager, domManager: DOMManager) {
         if ('togglePopover' in getWindow<any>().HTMLElement.prototype) {
             this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
             this.element.setAttribute('popover', 'manual');
@@ -379,11 +268,12 @@ export class Tooltip extends BaseProperties {
             // @ts-expect-error Typings need updating
             this.element.style.positionAnchor = domManager.anchorName;
         }
-    }
+        this.localeManager = localeManager;
 
-    destroy(domManager: DOMManager) {
-        domManager.removeChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
-        this.destroyFns.forEach((f) => f());
+        return () => {
+            domManager.removeChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
+            this.destroyFns.forEach((f) => f());
+        };
     }
 
     isVisible(): boolean {
@@ -470,13 +360,18 @@ export class Tooltip extends BaseProperties {
         boundingRect: DOMRect,
         canvasRect: DOMRect,
         meta: TooltipMeta,
-        content?: TooltipContent[] | null,
+        content: TooltipContent[] | null,
+        pagination?: TooltipPaginationState,
         instantly = false
     ) {
         const { element } = this;
 
         if (element != null && content != null && content.length !== 0) {
-            element.innerHTML = aggregateTooltipContent(content).map(tooltipContentHtml).join('');
+            element.innerHTML = tooltipHtml(
+                this.localeManager,
+                content,
+                this.pagination.enabled ? pagination : undefined
+            );
             this._elementSize = { width: element.clientWidth, height: element.clientHeight };
         } else if (element == null || element.innerHTML === '') {
             this.toggle(false);

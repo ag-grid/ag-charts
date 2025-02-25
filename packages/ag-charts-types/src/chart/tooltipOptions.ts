@@ -73,6 +73,11 @@ export interface AgTooltipPositionOptions {
     yOffset?: PixelSize;
 }
 
+export interface AgTooltipPaginationOptions {
+    /** Set to `true` to enable tooltip pagination when hovering multiple data. */
+    enabled?: boolean;
+}
+
 export interface AgTooltipRendererDataRow {
     label: string;
     value: string;

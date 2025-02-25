@@ -266,6 +266,9 @@ export class ChartTheme {
                 enabled: true,
                 darkTheme: IS_DARK_THEME,
                 delay: 0,
+                pagination: {
+                    enabled: false,
+                },
             },
             overlays: { darkTheme: IS_DARK_THEME },
             listeners: {},

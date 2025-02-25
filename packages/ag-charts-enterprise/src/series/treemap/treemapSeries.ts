@@ -764,12 +764,18 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         });
     }
 
+    override pickNodesExactShape(point: _ModuleSupport.Point): TreemapNode[] {
+        const nodes = super.pickNodesExactShape(point) as TreemapNode[];
+        nodes.sort((a, b) => b.datumIndex.length - a.datumIndex.length);
+        return nodes;
+    }
+
     protected override pickNodeClosestDatum(
         point: _ModuleSupport.Point
     ): _ModuleSupport.SeriesNodePickMatch | undefined {
-        const exactMatch = this.pickNodeExactShape(point);
-        if (exactMatch !== undefined) {
-            return exactMatch;
+        const exactMatch = this.pickNodesExactShape(point);
+        if (exactMatch.length !== 0) {
+            return { datum: exactMatch[0], distance: 0 };
         }
 
         // We don't need to recurse on the tree because the root's nodes bounding-box contain all bounding boxes

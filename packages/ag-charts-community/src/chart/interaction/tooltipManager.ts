@@ -1,15 +1,23 @@
 import type { DOMManager } from '../../dom/domManager';
+import type { LocaleManager } from '../../locale/localeManager';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { StateTracker } from '../../util/stateTracker';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { SeriesTooltip } from '../series/seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 import { getDatumRefPoint } from '../series/util';
-import type { Tooltip, TooltipContent, TooltipMeta, TooltipPointerEvent } from '../tooltip/tooltip';
+import type {
+    Tooltip,
+    TooltipContent,
+    TooltipMeta,
+    TooltipPaginationState,
+    TooltipPointerEvent,
+} from '../tooltip/tooltip';
 
 interface TooltipState {
-    content?: TooltipContent[];
-    meta?: TooltipMeta;
+    content: TooltipContent[] | undefined;
+    meta: TooltipMeta | undefined;
+    pagination: TooltipPaginationState | undefined;
 }
 
 /**
@@ -21,19 +29,32 @@ export class TooltipManager {
     private readonly suppressState = new StateTracker(false);
     private appliedState: TooltipState | null = null;
 
+    private readonly destroyFns: Array<() => void> = [];
+
     public constructor(
+        localeManager: LocaleManager,
         private readonly domManager: DOMManager,
         private readonly tooltip: Tooltip
     ) {
-        tooltip.setup(domManager);
-
-        domManager.addListener('hidden', () => this.tooltip.hide());
+        this.destroyFns.push(
+            tooltip.setup(localeManager, domManager),
+            domManager.addListener('hidden', () => this.tooltip.hide())
+        );
     }
 
-    public updateTooltip(callerId: string, meta?: TooltipMeta, content?: TooltipContent[]) {
+    public destroy() {
+        this.destroyFns.forEach((fn) => fn());
+    }
+
+    public updateTooltip(
+        callerId: string,
+        meta?: TooltipMeta,
+        content?: TooltipContent[],
+        pagination?: TooltipPaginationState
+    ) {
         if (!this.tooltip.enabled) return;
         content ??= this.stateTracker.get(callerId)?.content;
-        this.stateTracker.set(callerId, { content, meta });
+        this.stateTracker.set(callerId, { meta, content, pagination });
         this.applyStates();
     }
 
@@ -51,13 +72,9 @@ export class TooltipManager {
         this.suppressState.delete(callerId);
     }
 
-    public destroy() {
-        this.domManager.removeStyles('tooltip');
-    }
-
     private applyStates() {
         const id = this.stateTracker.stateId();
-        const state = id ? this.stateTracker.get(id) : null;
+        const state = id ? this.stateTracker.get(id) : undefined;
 
         if (this.suppressState.stateValue() || state?.meta == null || state?.content == null) {
             this.appliedState = null;
@@ -70,9 +87,9 @@ export class TooltipManager {
 
         if (this.appliedState?.content === state?.content) {
             const renderInstantly = this.tooltip.isVisible();
-            this.tooltip.show(boundingRect, canvasRect, state?.meta, null, renderInstantly);
+            this.tooltip.show(boundingRect, canvasRect, state?.meta, null, undefined, renderInstantly);
         } else {
-            this.tooltip.show(boundingRect, canvasRect, state?.meta, state?.content);
+            this.tooltip.show(boundingRect, canvasRect, state?.meta, state?.content, state?.pagination);
         }
 
         this.appliedState = state;

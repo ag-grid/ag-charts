@@ -9,6 +9,7 @@ import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
 import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
+import { objectsEqual } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
 import { Vec4 } from '../../util/vector4';
@@ -32,7 +33,13 @@ import { TooltipManager } from '../interaction/tooltipManager';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
-import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipContent, tooltipContentAriaLabel } from '../tooltip/tooltip';
+import {
+    DEFAULT_TOOLTIP_CLASS,
+    Tooltip,
+    type TooltipContent,
+    type TooltipPaginationState,
+    tooltipContentAriaLabel,
+} from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
 import { type Series, type SeriesNodePickIntent } from './series';
 import type { SeriesProperties } from './seriesProperties';
@@ -65,11 +72,59 @@ type HoverLikeEvent =
     | (MouseWidgetEvent<'mousemove'> & { device?: void })
     | DragWidgetEvent<'drag-move'>;
 
-type PickedNode = {
-    series: Series<unknown, any, any>;
-    datum: SeriesNodeDatum<unknown>;
+type PickedNodes = {
+    matches: PickedNode[];
     distance: number;
 };
+
+interface PickedNode {
+    series: Series<unknown, any, any>;
+    datum: SeriesNodeDatum<any>;
+    datumIndex: unknown;
+}
+
+function pickedNodesEqual(a: PickedNode, b: PickedNode) {
+    return a.series === b.series && objectsEqual(a.datumIndex, b.datumIndex);
+}
+
+class PickedNodeState {
+    private candidates: PickedNode[] = [];
+    private active: PickedNode | undefined;
+
+    get current(): PickedNode | undefined {
+        return this.active;
+    }
+
+    reset() {
+        this.candidates.length = 0;
+        this.active = undefined;
+    }
+
+    update(nextCandidates: PickedNode[], previousActive?: PickedNode) {
+        this.candidates = nextCandidates;
+
+        let nextIndex =
+            previousActive != null ? nextCandidates.findIndex((c) => pickedNodesEqual(c, previousActive)) : -1;
+        if (nextIndex === -1) nextIndex = 0;
+        this.active = nextCandidates[nextIndex];
+
+        return { current: this.active, index: nextIndex, length: nextCandidates.length };
+    }
+
+    next() {
+        const { candidates, active } = this;
+        const hoverIndex = active == null ? -1 : candidates.findIndex((c) => pickedNodesEqual(c, active));
+        if (hoverIndex === -1) return undefined;
+
+        let nextIndex = hoverIndex + 1;
+        if (nextIndex >= candidates.length) {
+            nextIndex = 0;
+        }
+        this.active = candidates[nextIndex];
+
+        return { current: this.active, index: nextIndex, length: this.candidates.length };
+    }
+}
 
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
@@ -262,10 +317,10 @@ export class SeriesAreaManager extends BaseManager {
                 );
             }
         } else if (this.isState(InteractionState.ContextMenuable)) {
-            const match = this.pickNode({ x: event.currentX, y: event.currentY }, 'context-menu');
-            if (match) {
+            const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'context-menu');
+            if (pick) {
                 this.chart.ctx.highlightManager.updateHighlight(this.id);
-                pickedNode = match.datum;
+                pickedNode = pick.matches[0].datum;
             }
         }
 
@@ -333,7 +388,7 @@ export class SeriesAreaManager extends BaseManager {
 
         if (this.isState(InteractionState.Default)) {
             const { currentX: x, currentY: y } = event;
-            const found = this.pickNode({ x, y }, 'event');
+            const found = this.pickNodes({ x, y }, 'event')?.matches[0];
             if (found?.series.hasEventListener('nodeClick') || found?.series.hasEventListener('nodeDoubleClick')) {
                 this.chart.ctx.domManager.updateCursor(this.id, 'pointer');
             } else {
@@ -358,6 +413,23 @@ export class SeriesAreaManager extends BaseManager {
                 return;
             }
         } else if (event.sourceEvent.target != current.getElement()) {
+            return;
+        }
+
+        const nextTooltipCandidate = this.chart.tooltip.pagination.enabled ? this.tooltipCandidates.next() : undefined;
+        if (nextTooltipCandidate != null) {
+            event.sourceEvent.preventDefault();
+            const { currentX, currentY } = event;
+            const canvasX = currentX + (this.hoverRect?.x ?? 0);
+            const canvasY = currentY + (this.hoverRect?.y ?? 0);
+            this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
+            this.handleHoverHighlight(false);
+            this.showTooltip(
+                nextTooltipCandidate.current,
+                { index: nextTooltipCandidate.index, length: nextTooltipCandidate.length },
+                canvasX,
+                canvasY
+            );
             return;
         }
 
@@ -451,11 +523,12 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }) {
-        const result = this.pickNode({ x: event.currentX, y: event.currentY }, 'event');
+        const result = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         if (result == null) return false;
+        const { series, datum } = result.matches[0];
 
         if (event.type === 'click') {
-            result.series.fireNodeClickEvent(event.sourceEvent, result.datum);
+            series.fireNodeClickEvent(event.sourceEvent, datum);
             return true;
         }
 
@@ -470,7 +543,7 @@ export class SeriesAreaManager extends BaseManager {
             // a node.
             event.preventZoomDblClick = result.distance === 0;
 
-            result.series.fireNodeDoubleClickEvent(event.sourceEvent, result.datum);
+            series.fireNodeDoubleClickEvent(event.sourceEvent, datum);
             return true;
         }
 
@@ -700,17 +773,26 @@ export class SeriesAreaManager extends BaseManager {
 
         const { range } = this.chart.highlight;
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
-        const found = this.pickNode({ x: currentX, y: currentY }, intent);
-        if (found) {
-            this.chart.ctx.highlightManager.updateHighlight(this.id, found.datum);
-            this.hoverDevice = 'pointer';
+        const pick = this.pickNodes({ x: currentX, y: currentY }, intent);
+        if (!pick || pick.matches.length === 0) {
+            this.chart.ctx.highlightManager.updateHighlight(this.id); // FIXME: clearHighlight?
             return;
         }
 
-        this.chart.ctx.highlightManager.updateHighlight(this.id); // FIXME: clearHighlight?
+        const { current: tooltipPick } = this.tooltipCandidates;
+        const tooltipMatch =
+            tooltipPick == null ? undefined : pick.matches.find((m) => pickedNodesEqual(m, tooltipPick));
+
+        const datum = tooltipMatch?.datum ?? pick.matches[0].datum;
+
+        this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
+        this.hoverDevice = 'pointer';
     }
 
+    private readonly tooltipCandidates = new PickedNodeState();
     private handleHoverTooltip(event: HoverLikeEvent, redisplay: boolean) {
+        const { current: previousHover } = this.tooltipCandidates;
+        this.tooltipCandidates.reset();
         if (!this.isState(InteractionState.Clickable)) return;
 
         const { currentX, currentY } = event;
@@ -731,24 +813,38 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        const pick = this.pickNode({ x: event.currentX, y: event.currentY }, 'tooltip');
-        if (!pick) {
+        const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'tooltip');
+        if (!pick || pick.matches.length === 0) {
             if (this.hoverDevice == 'pointer') this.clearTooltip();
             return;
         }
 
+        const { current, index, length } = this.tooltipCandidates.update(
+            pick.matches,
+            this.chart.tooltip.pagination.enabled ? previousHover : undefined
+        );
+
         this.hoverDevice = 'pointer';
-        const content = this.chart.getTooltipContent(pick.series, pick.datum.datumIndex, pick.datum);
-        const tooltipEnabled = this.chart.tooltip.enabled && pick.series.tooltipEnabled;
+        this.showTooltip(current, { index, length }, canvasX, canvasY);
+    }
+
+    private showTooltip(
+        { series, datum, datumIndex }: PickedNode,
+        { index, length }: TooltipPaginationState,
+        canvasX: number,
+        canvasY: number
+    ) {
+        const content = this.chart.getTooltipContent(series, datumIndex, datum);
+        const tooltipEnabled = this.chart.tooltip.enabled && series.tooltipEnabled;
         const shouldUpdateTooltip = tooltipEnabled && content != null;
         if (shouldUpdateTooltip) {
             const meta = TooltipManager.makeTooltipMeta(
                 { type: 'pointermove', canvasX, canvasY },
-                pick.series,
-                pick.datum,
+                series,
+                datum,
                 undefined
             );
-            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content);
+            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content, { index, length });
         } else {
             this.chart.ctx.tooltipManager.removeTooltip(this.id);
         }
@@ -783,27 +879,36 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly?: boolean): PickedNode | undefined {
+    private pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly?: boolean): PickedNodes | undefined {
         // Iterate through series in reverse, as later declared series appears on top of earlier
         // declared series.
         const reverseSeries = [...this.series].reverse();
 
-        let result:
-            | { series: Series<unknown, any, any>; datum: SeriesNodeDatum<unknown>; distance: number }
-            | undefined;
+        let result: PickedNodes | undefined;
         for (const series of reverseSeries) {
-            if (!series.visible || !series.contentGroup.visible) {
-                continue;
-            }
-            const { match, distance } = series.pickNode(point, intent, exactMatchOnly) ?? {};
-            if (!match || distance == null) {
-                continue;
-            }
-            if (!result || result.distance > distance) {
-                result = { series, distance, datum: match };
-            }
+            if (!series.visible || !series.contentGroup.visible) continue;
+            const pick = series.pickNodes(point, intent, exactMatchOnly);
+            if (pick == null || pick.datums.length === 0) continue;
+
+            const { datums, distance } = pick;
+            if (pick.datums.length === 0) continue;
+
             if (distance === 0) {
-                break;
+                // Accumulate multiple series when the nodes are under the cursor
+                // I.e. the distance is 0
+                if (result?.distance !== 0) {
+                    result = { matches: [], distance: 0 };
+                }
+
+                for (const datum of datums) {
+                    const { datumIndex } = datum;
+                    result.matches.push({ series, datum, datumIndex });
+                }
+            } else if (result == null || result.distance > distance) {
+                // Don't accumulate multiple datums when matching by nearest distance
+                const [datum] = datums;
+                const { datumIndex } = datum;
+                result = { matches: [{ series, datum, datumIndex }], distance };
             }
         }
 

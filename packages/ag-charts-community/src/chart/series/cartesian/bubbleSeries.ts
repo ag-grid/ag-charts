@@ -306,7 +306,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
         const data = this.properties.marker.enabled ? nodeData : [];
         return markerSelection.update(data, undefined, (datum) =>
-            createDatumId([datum.xValue, datum.yValue, datum.label.text])
+            createDatumId([datum.xValue, datum.yValue, datum.sizeValue, datum.label.text])
         );
     }
 
