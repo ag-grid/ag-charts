@@ -466,7 +466,6 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
         this._destroyFns.forEach((fn) => fn());
         this.processors.forEach((p) => p.destroy());
-        this.tooltip.destroy(this.ctx.domManager);
         this.overlays.destroy();
         this.modulesManager.destroy();
 

@@ -36,8 +36,8 @@ import type { ChartOverlays } from '../overlay/chartOverlays';
 import {
     DEFAULT_TOOLTIP_CLASS,
     Tooltip,
-    type TooltipAssociatedContent,
     type TooltipContent,
+    type TooltipPaginationState,
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
@@ -73,25 +73,25 @@ type HoverLikeEvent =
     | DragWidgetEvent<'drag-move'>;
 
 type PickedNodes = {
-    matches: NodeCandidate[];
+    matches: PickedNode[];
     distance: number;
 };
 
-interface NodeCandidate {
+interface PickedNode {
     series: Series<unknown, any, any>;
     datum: SeriesNodeDatum<any>;
     datumIndex: unknown;
 }
 
-function hoverNodesEqual(a: NodeCandidate, b: NodeCandidate) {
+function pickedNodesEqual(a: PickedNode, b: PickedNode) {
     return a.series === b.series && objectsEqual(a.datumIndex, b.datumIndex);
 }
 
-class NodeCandidateState {
-    private candidates: NodeCandidate[] = [];
-    private active: NodeCandidate | undefined;
+class PickedNodeState {
+    private candidates: PickedNode[] = [];
+    private active: PickedNode | undefined;
 
-    get current(): NodeCandidate | undefined {
+    get current(): PickedNode | undefined {
         return this.active;
     }
 
@@ -100,11 +100,11 @@ class NodeCandidateState {
         this.active = undefined;
     }
 
-    update(nextCandidates: NodeCandidate[], previousActive?: NodeCandidate) {
+    update(nextCandidates: PickedNode[], previousActive?: PickedNode) {
         this.candidates = nextCandidates;
 
         let nextIndex =
-            previousActive != null ? nextCandidates.findIndex((c) => hoverNodesEqual(c, previousActive)) : -1;
+            previousActive != null ? nextCandidates.findIndex((c) => pickedNodesEqual(c, previousActive)) : -1;
         if (nextIndex === -1) nextIndex = 0;
         this.active = nextCandidates[nextIndex];
 
@@ -113,7 +113,7 @@ class NodeCandidateState {
 
     next() {
         const { candidates, active } = this;
-        const hoverIndex = active == null ? -1 : candidates.findIndex((c) => hoverNodesEqual(c, active));
+        const hoverIndex = active == null ? -1 : candidates.findIndex((c) => pickedNodesEqual(c, active));
         if (hoverIndex === -1) return undefined;
 
         let nextIndex = hoverIndex + 1;
@@ -416,7 +416,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        const activeTooltip = this.hoverCandidates.next();
+        const activeTooltip = this.tooltipCandidates.next();
         if (activeTooltip != null) {
             event.sourceEvent.preventDefault();
             const { currentX, currentY } = event;
@@ -755,11 +755,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     });
 
-    private readonly hoverCandidates = new NodeCandidateState();
     private handleHoverHighlight(redisplay: boolean) {
-        const { current: previousHover } = this.hoverCandidates;
-        this.hoverCandidates.reset();
-
         this.highlight.appliedHoverEvent = this.highlight.pendingHoverEvent;
         this.highlight.pendingHoverEvent = undefined;
 
@@ -777,20 +773,25 @@ export class SeriesAreaManager extends BaseManager {
         const { range } = this.chart.highlight;
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
         const pick = this.pickNodes({ x: currentX, y: currentY }, intent);
-        if (!pick) {
+        if (!pick || pick.matches.length === 0) {
             this.chart.ctx.highlightManager.updateHighlight(this.id); // FIXME: clearHighlight?
             return;
         }
 
-        const { current } = this.hoverCandidates.update(pick.matches, previousHover);
+        const { current: tooltipPick } = this.tooltipCandidates;
+        const tooltipMatch =
+            tooltipPick == null ? undefined : pick.matches.find((m) => pickedNodesEqual(m, tooltipPick));
 
-        this.chart.ctx.highlightManager.updateHighlight(this.id, current.datum);
+        const datum = tooltipMatch?.datum ?? pick.matches[0].datum;
+
+        this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
         this.hoverDevice = 'pointer';
     }
 
+    private readonly tooltipCandidates = new PickedNodeState();
     private handleHoverTooltip(event: HoverLikeEvent, redisplay: boolean) {
-        const { current: previousHover } = this.hoverCandidates;
-        this.hoverCandidates.reset();
+        const { current: previousHover } = this.tooltipCandidates;
+        this.tooltipCandidates.reset();
         if (!this.isState(InteractionState.Clickable)) return;
 
         const { currentX, currentY } = event;
@@ -812,25 +813,20 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'tooltip');
-        if (!pick) {
+        if (!pick || pick.matches.length === 0) {
             if (this.hoverDevice == 'pointer') this.clearTooltip();
             return;
         }
 
-        if (pick.matches.length === 0) {
-            if (this.hoverDevice == 'pointer') this.clearTooltip();
-            return;
-        }
-
-        const { current, index, length } = this.hoverCandidates.update(pick.matches, previousHover);
+        const { current, index, length } = this.tooltipCandidates.update(pick.matches, previousHover);
 
         this.hoverDevice = 'pointer';
         this.showTooltip(current, { index, length }, canvasX, canvasY);
     }
 
     private showTooltip(
-        { series, datum, datumIndex }: NodeCandidate,
-        { index, length }: TooltipAssociatedContent,
+        { series, datum, datumIndex }: PickedNode,
+        { index, length }: TooltipPaginationState,
         canvasX: number,
         canvasY: number
     ) {

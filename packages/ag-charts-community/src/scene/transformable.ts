@@ -107,12 +107,14 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             return super.computeBBox();
         }
 
-        override pickNode(x: number, y: number, localCoords = false) {
-            if (!localCoords) {
-                ({ x, y } = this.fromParentPoint(x, y));
-            }
-
+        override pickNode(x: number, y: number) {
+            ({ x, y } = this.fromParentPoint(x, y));
             return super.pickNode(x, y);
+        }
+
+        override pickNodes(x: number, y: number, into?: Node<any>[]): Node<any>[] {
+            ({ x, y } = this.fromParentPoint(x, y));
+            return super.pickNodes(x, y, into);
         }
 
         override render(renderCtx: RenderContext): void {

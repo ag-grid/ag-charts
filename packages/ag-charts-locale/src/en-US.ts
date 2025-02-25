@@ -295,4 +295,6 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     measurerPriceRangePercent: '${value}[percent]',
     // Text for the measurer statistics volume value
     measurerVolume: 'Vol ${value}',
+    // Status when multiple data are under the cursor, and the user can click to cycle through which one appears in the tooltip
+    tooltipPaginationStatus: '${index}[number] of ${count}[number]',
 };
