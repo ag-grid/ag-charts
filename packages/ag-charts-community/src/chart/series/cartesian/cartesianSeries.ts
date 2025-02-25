@@ -642,7 +642,7 @@ export abstract class CartesianSeries<
         }
 
         if (closestDatum) {
-            const distance = Math.max(Math.sqrt(minDistance) - (closestDatum.point?.size ?? 0), 0);
+            const distance = Math.max(Math.sqrt(minDistance) - (closestDatum.point?.size ?? 0) / 2, 0);
             return { datum: closestDatum, distance };
         }
     }

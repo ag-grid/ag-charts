@@ -819,7 +819,10 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        const { current, index, length } = this.tooltipCandidates.update(pick.matches, previousHover);
+        const { current, index, length } = this.tooltipCandidates.update(
+            pick.matches,
+            this.chart.tooltip.pagination.enabled ? previousHover : undefined
+        );
 
         this.hoverDevice = 'pointer';
         this.showTooltip(current, { index, length }, canvasX, canvasY);

@@ -764,6 +764,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         });
     }
 
+    override pickNodesExactShape(point: _ModuleSupport.Point): TreemapNode[] {
+        const nodes = super.pickNodesExactShape(point) as TreemapNode[];
+        nodes.sort((a, b) => b.datumIndex.length - a.datumIndex.length);
+        return nodes;
+    }
+
     protected override pickNodeClosestDatum(
         point: _ModuleSupport.Point
     ): _ModuleSupport.SeriesNodePickMatch | undefined {
