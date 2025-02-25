@@ -305,11 +305,11 @@ function classify(value: any): Classification | null {
  *
  * @returns An object of modified paths.
  */
-export function jsonResolveOperations<T, P>(source: T, params: P, skip?: Set<string>) {
+export function jsonResolveOperations<T extends object, P extends object>(source: T, params: P, skip?: Set<string>) {
     return jsonResolveInner(source, params, source, skip);
 }
 
-function jsonResolveInner<T, P>(
+function jsonResolveInner<T extends object, P extends object>(
     json: T,
     params: P,
     source: T,
@@ -338,7 +338,13 @@ function jsonResolveInner<T, P>(
     return modifiedPaths;
 }
 
-function jsonResolveVisitor<T, P>(node: any, params: P, source: T, path: string[], modifiedPaths: Record<string, any>) {
+function jsonResolveVisitor<T extends object, P extends object>(
+    node: any,
+    params: P,
+    source: T,
+    path: string[],
+    modifiedPaths: Record<string, any>
+) {
     if (isArray(node)) {
         for (let i = 0; i < node.length; i++) {
             node[i] = jsonResolveVisitorValue(node[i], params, source, [...path, `${i}`], modifiedPaths);
@@ -351,53 +357,70 @@ function jsonResolveVisitor<T, P>(node: any, params: P, source: T, path: string[
     }
 }
 
-function jsonResolveVisitorValue<T, P>(
+function jsonResolveVisitorValue<T extends object, P extends object>(
     value: unknown,
     params: P,
     source: T,
     path: string[],
     modifiedPaths: Record<string, any>
 ) {
-    const { operation, values } = getOperation(value);
+    const operation = getOperation(value);
     if (!operation) return value;
     modifiedPaths[path.join('.')] = value;
 
-    return resolveOperation(operation, values, params, source, path, new Set());
+    return resolveOperation(operation.operation, operation.values, params, source, path, new Set());
 }
 
-enum Operation {
+enum LocationOperation {
     Ref = '$ref',
     Path = '$path',
+}
+
+enum LogicOperation {
     If = '$if',
     Eq = '$eq',
     Not = '$not',
     Or = '$or',
     And = '$and',
+    Switch = '$switch',
+}
+
+enum NumericOperation {
     Mul = '$mul',
     Round = '$round',
+}
+
+enum TransformOperation {
+    Map = '$map',
+    Merge = '$merge',
+}
+
+enum FontOperation {
     Rem = '$rem',
+}
+
+enum ColorOperation {
     Mix = '$mix',
-    MixEach = '$mixEach',
     ForegroundBackgroundMix = '$foregroundBackgroundMix',
     ForegroundBackgroundAccentMix = '$foregroundBackgroundAccentMix',
 }
-const operationKeys = new Set(Object.values(Operation));
-type OperationFn<T, P> = (
-    value: string | Array<unknown>,
-    params: P,
-    source: T,
-    path: string[],
-    referencedParams?: Set<keyof P>
-) => any;
+
+type Operation =
+    | LocationOperation
+    | LogicOperation
+    | NumericOperation
+    | TransformOperation
+    | FontOperation
+    | ColorOperation;
 
 function getOperation(value: unknown) {
-    if (!isPlainObject(value)) return {};
+    if (!isPlainObject(value)) return;
     const [operation] = Object.keys(value) as Array<Operation>;
-    if (!operationKeys.has(operation)) return {};
+    if (!isKey(operation, operations)) return;
     return { operation, values: value[operation] };
 }
 
-function resolveOperation<T, P>(
+function resolveOperation<T extends object, P extends object>(
     operation: Operation,
     value: string | Array<unknown>,
     params: P,
@@ -407,154 +430,239 @@ function resolveOperation<T, P>(
 ): any {
     if (isArray(value)) {
         value = value.map((v) => {
-            const { operation: nestedOperation, values } = getOperation(v);
+            const nestedOperation = getOperation(v);
             if (!nestedOperation) return v;
-            return resolveOperation(nestedOperation, values, params, source, path, referencedParams);
+            return resolveOperation(
+                nestedOperation.operation,
+                nestedOperation.values,
+                params,
+                source,
+                path,
+                referencedParams
+            );
         });
     }
 
-    return operations[operation](value, params, source, path, referencedParams);
+    const fn = operations[operation];
+    return fn(value, path, params, source, referencedParams);
+}
+
+function isKey<T extends object>(key: unknown, obj: T): key is keyof T & string {
+    return isString(key) && key in obj;
 }
 
 function isRatio(value: unknown): value is number {
     return isNumber(value) && value >= 0 && value <= 1;
 }
 
-const operations: Record<Operation, OperationFn<any, any>> = {
-    $ref: (key, params, source, path, referencedParams) => {
-        if (isString(key) && key in params) {
-            const { operation, values } = getOperation(params[key]);
-            if (operation !== Operation.Ref) {
-                return params[key];
-            }
+type OperationFn<T extends object = object, P extends object = object> = (
+    value: string | Array<unknown>,
+    path: string[],
+    params: P,
+    source: T,
+    referencedParams?: Set<keyof P>
+) => any;
 
-            if (referencedParams?.has(values)) {
-                Logger.warnOnce(
-                    `\`$ref\` json operation failed on [${String(key)}] at [${path.join('.')}], circular reference detected with [${[...referencedParams].join(', ')}].`
-                );
-                return;
-            }
+const locationOperations: Record<LocationOperation, OperationFn> = {
+    $ref: ref,
+    $path: path,
+};
 
-            referencedParams?.add(values);
-            return operations.$ref(values, params, source, path, referencedParams);
-        }
-        Logger.warnOnce(
-            `\`$ref\` json operation failed on [${String(key)}] at [${path.join('.')}], expecting one of [${Object.keys(params).join(', ')}].`
-        );
-    },
-    $path: (relativePath, _params, source, currentPath) => {
-        if (!isString(relativePath)) {
-            Logger.warnOnce(
-                `\`$path\` json operation failed on [${String(relativePath)}] at [${currentPath.join('.')}], expecting a string.`
-            );
-            return;
-        }
-
-        // Apply the relative path to the current path
-        const relativePathParts = relativePath.split('/');
-        const resolvedPath = [...currentPath];
-        for (const part of relativePathParts) {
-            if (part === '..') {
-                resolvedPath.pop();
-                resolvedPath.pop();
-            } else if (part === '.') {
-                resolvedPath.pop();
-            } else {
-                resolvedPath.push(part);
-            }
-        }
-
-        let resolvedValue = source;
-        for (const part of resolvedPath) {
-            if (!(part in resolvedValue)) {
-                Logger.warnOnce(
-                    `\`$path\` json operation failed on [${String(relativePath)}] at [${currentPath.join('.')}], could not find path in object.`
-                );
-                return;
-            }
-            resolvedValue = resolvedValue[part];
-        }
-
-        return resolvedValue;
-    },
+const logicOperations: Record<LogicOperation, OperationFn> = {
     $if: ([condition, thenValue, elseValue]) => (condition ? thenValue : elseValue),
     $eq: ([a, b]) => a === b,
     $not: ([a, b]) => a !== b,
     $or: ([a, b]) => a || b,
     $and: ([a, b]) => a && b,
-    $mul: ([a, b], _params, _source, path) => {
-        if (typeof a === 'number' && typeof b === 'number') return a * b;
-        Logger.warnOnce(
-            `\`$mul\` json operation failed on [${String(a)}] and [${String(b)}] at [${path.join('.')}], expecting two numbers.`
-        );
+    $switch: () => {
+        // TODO
     },
-    $round: ([a], _params, _source, path) => {
-        if (typeof a === 'number') return Math.round(a);
-        Logger.warnOnce(
-            `\`$round\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`
-        );
+};
+
+const numericOperations: Record<NumericOperation, OperationFn> = {
+    $mul: mul,
+    $round: round,
+};
+
+const transformOperations: Record<TransformOperation, OperationFn> = {
+    $map: ([a]) => {
+        // TODO
+        console.log(a);
+        return a;
     },
-    $rem: ([a], params) => {
-        if (typeof a === 'number') return Math.round(a * params.fontSize);
+    $merge: () => {
+        // TODO
     },
-    $mix: ([a, b, c], _params, _source, path) => {
-        if (typeof a === 'string' && typeof b === 'string' && isRatio(c)) {
-            try {
-                return Color.mix(Color.fromString(a), Color.fromString(b), c).toString();
-            } catch {
-                // Discard and log below
-            }
+};
+
+const fontOperations: Record<FontOperation, OperationFn> = {
+    $rem: rem,
+};
+
+const colorOperations: Record<ColorOperation, OperationFn> = {
+    $mix: mix,
+    $foregroundBackgroundMix: foregroundBackgroundMix,
+    $foregroundBackgroundAccentMix: foregroundBackgroundAccentMix,
+};
+
+const operations: Record<Operation, OperationFn<any, any>> = {
+    ...locationOperations,
+    ...logicOperations,
+    ...numericOperations,
+    ...transformOperations,
+    ...fontOperations,
+    ...colorOperations,
+};
+
+function ref<T extends object, P extends object>(
+    value: string | Array<unknown>,
+    path: string[],
+    params: P,
+    source: T,
+    referencedParams?: Set<keyof P>
+) {
+    if (isKey(value, params)) {
+        const operation = getOperation(params[value]);
+        if (operation?.operation !== '$ref') {
+            return params[value];
         }
-        Logger.warnOnce(
-            `\`$mix\` json operation failed on [${String(a)}, ${String(b)}, ${String(c)}] at [${path.join('.')}], expecting two colors and a number between 0 and 1.`
-        );
-    },
-    $mixEach: ([as, b, c], _params, _source, path) => {
-        if (!isArray(as)) {
+
+        if (referencedParams?.has(operation.values)) {
             Logger.warnOnce(
-                `\`$mixEach\` json operation failed at [${path.join('.')}], expecting an array of colors, a color and a number between 0 and 1.`
+                `\`$ref\` json operation failed on [${String(value)}] at [${path.join('.')}], circular reference detected with [${[...referencedParams].join(', ')}].`
             );
             return;
         }
+
+        referencedParams?.add(operation.values);
+        return ref(operation.values, path, params, source, referencedParams);
+    }
+
+    Logger.warnOnce(
+        `\`$ref\` json operation failed on [${String(value)}] at [${path.join('.')}], expecting one of [${Object.keys(params).join(', ')}].`
+    );
+}
+
+function path<T extends object, P extends object>(
+    value: string | Array<unknown>,
+    path: string[],
+    _params: P,
+    source: T
+) {
+    if (!isString(value)) {
+        Logger.warnOnce(
+            `\`$path\` json operation failed on [${String(value)}] at [${path.join('.')}], expecting a string.`
+        );
+        return;
+    }
+
+    // Apply the relative path to the current path
+    const relativePathParts = value.split('/');
+    const resolvedPath = [...path];
+    for (const part of relativePathParts) {
+        if (part === '..') {
+            resolvedPath.pop();
+            resolvedPath.pop();
+        } else if (part === '.') {
+            resolvedPath.pop();
+        } else {
+            resolvedPath.push(part);
+        }
+    }
+
+    let resolvedValue: any = source;
+    for (const part of resolvedPath) {
+        if (!isKey(part, resolvedValue)) {
+            Logger.warnOnce(
+                `\`$path\` json operation failed on [${String(value)}] at [${path.join('.')}], could not find path in object.`
+            );
+            return;
+        }
+        resolvedValue = resolvedValue[part];
+    }
+
+    return resolvedValue;
+}
+
+function mul([a, b]: string | Array<unknown>, path: string[]) {
+    if (typeof a === 'number' && typeof b === 'number') return a * b;
+    Logger.warnOnce(
+        `\`$mul\` json operation failed on [${String(a)}] and [${String(b)}] at [${path.join('.')}], expecting two numbers.`
+    );
+}
+
+function round([a]: string | Array<unknown>, path: string[]) {
+    if (typeof a === 'number') return Math.round(a);
+    Logger.warnOnce(`\`$round\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`);
+}
+
+function rem<P extends object>([a]: string | Array<unknown>, path: string[], params: P) {
+    const fontSize = 'fontSize';
+    if (isKey(fontSize, params) && typeof params[fontSize] === 'number' && typeof a === 'number') {
+        return Math.round(a * params[fontSize]);
+    }
+    Logger.warnOnce(`\`$rem\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`);
+}
+
+function mix([a, b, c]: string | Array<unknown>, path: string[]) {
+    if (typeof a === 'string' && typeof b === 'string' && isRatio(c)) {
         try {
-            return as.map((a) => {
-                if (typeof a === 'string' && typeof b === 'string' && isRatio(c)) {
-                    return Color.mix(Color.fromString(a), Color.fromString(b), c).toString();
-                }
-            });
+            return Color.mix(Color.fromString(a), Color.fromString(b), c).toString();
         } catch {
             // Discard and log below
         }
-        Logger.warnOnce(
-            `\`$mixEach\` json operation failed on [[${String(as.join(','))}], ${String(b)}, ${String(c)}] at [${path.join('.')}], expecting an array of colors, a color and a number between 0 and 1.`
-        );
-    },
-    $foregroundBackgroundMix: ([a], params, _source, path) => {
-        if (isRatio(a)) {
-            return Color.mix(
-                Color.fromString(params.foregroundColor),
-                Color.fromString(params.backgroundColor),
-                a
-            ).toString();
-        }
-        Logger.warnOnce(
-            `\`$foregroundBackgroundMix\` json operation failed on [${String(a)}}}] at [${path.join('.')}], expecting a number between 0 and 1.`
-        );
-    },
-    $foregroundBackgroundAccentMix: ([background, accent], params, _source, path) => {
-        if (isRatio(background) && isRatio(accent)) {
-            return Color.mix(
-                Color.mix(
-                    Color.fromString(params.foregroundColor),
-                    Color.fromString(params.backgroundColor),
-                    background
-                ),
-                Color.fromString(params.accentColor),
-                accent
-            ).toString();
-        }
-        Logger.warnOnce(
-            `\`$foregroundBackgroundAccentMix\` json operation failed on [${String(background)}, ${String(accent)}}] at [${path.join('.')}], expecting two numbers between 0 and 1.`
-        );
-    },
-};
+    }
+    Logger.warnOnce(
+        `\`$mix\` json operation failed on [${String(a)}, ${String(b)}, ${String(c)}] at [${path.join('.')}], expecting two colors and a number between 0 and 1.`
+    );
+}
+
+function foregroundBackgroundMix<P extends object>([background]: string | Array<unknown>, path: string[], params: P) {
+    const foregroundColor = 'foregroundColor';
+    const backgroundColor = 'backgroundColor';
+    if (
+        isKey(foregroundColor, params) &&
+        isKey(backgroundColor, params) &&
+        typeof params[foregroundColor] === 'string' &&
+        typeof params[backgroundColor] === 'string' &&
+        isRatio(background)
+    ) {
+        return Color.mix(
+            Color.fromString(params[foregroundColor]),
+            Color.fromString(params[backgroundColor]),
+            background
+        ).toString();
+    }
+    Logger.warnOnce(
+        `\`$foregroundBackgroundMix\` json operation failed on [${String(background)}}}] at [${path.join('.')}], expecting a number between 0 and 1.`
+    );
+}
+
+function foregroundBackgroundAccentMix<P extends object>(
+    [background, accent]: string | Array<unknown>,
+    path: string[],
+    params: P
+) {
+    const foregroundColor = 'foregroundColor';
+    const backgroundColor = 'backgroundColor';
+    const accentColor = 'accentColor';
+    if (
+        isKey(foregroundColor, params) &&
+        isKey(backgroundColor, params) &&
+        isKey(accentColor, params) &&
+        typeof params[foregroundColor] === 'string' &&
+        typeof params[backgroundColor] === 'string' &&
+        typeof params[accentColor] === 'string' &&
+        isRatio(background) &&
+        isRatio(accent)
+    ) {
+        return Color.mix(
+            Color.mix(Color.fromString(params[foregroundColor]), Color.fromString(params[backgroundColor]), background),
+            Color.fromString(params[accentColor]),
+            accent
+        ).toString();
+    }
+    Logger.warnOnce(
+        `\`$foregroundBackgroundAccentMix\` json operation failed on [${String(background)}, ${String(accent)}}] at [${path.join('.')}], expecting two numbers between 0 and 1.`
+    );
+}
