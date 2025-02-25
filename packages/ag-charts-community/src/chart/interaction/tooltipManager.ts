@@ -87,11 +87,13 @@ export class TooltipManager {
         const { canvasX, canvasY } = event;
         const tooltip = series.properties.tooltip as SeriesTooltip<any>;
         const { placement, defaultPlacement, anchorTo, defaultAnchorTo, xOffset, yOffset } = tooltip.position;
+        const refPoint = getDatumRefPoint(series, datum, movedBounds);
         const meta: TooltipMeta = {
             canvasX,
             canvasY,
+            nodeCanvasX: refPoint?.canvasX ?? canvasX,
+            nodeCanvasY: refPoint?.canvasY ?? canvasY,
             enableInteraction: tooltip.interaction?.enabled ?? false,
-            lastPointerEvent: { type: event.type, canvasX, canvasY },
             showArrow: tooltip.showArrow,
             position: {
                 placement,
@@ -102,11 +104,6 @@ export class TooltipManager {
                 yOffset,
             },
         };
-
-        const refPoint = getDatumRefPoint(series, datum, movedBounds);
-        if (refPoint != null && (anchorTo ?? defaultAnchorTo) === 'node') {
-            return { ...meta, canvasX: refPoint.canvasX, canvasY: refPoint.canvasY };
-        }
 
         return meta;
     }
