@@ -36,7 +36,7 @@ type TooltipPositionType =
     | 'bottom-right'
     | 'bottom-left';
 
-type TooltipOffsets = { canvasX: number; canvasY: number };
+type TooltipOffsets = { canvasX: number; canvasY: number; nodeCanvasX?: number; nodeCanvasY?: number };
 export type TooltipEventType = 'pointermove' | 'click' | 'dblclick' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = Readonly<TooltipOffsets> & {
     readonly type: T;
@@ -497,7 +497,21 @@ export class Tooltip extends BaseProperties {
             meta,
         };
 
-        this.springAnimation.update(meta.canvasX, meta.canvasY);
+        const anchorTo =
+            meta.position?.anchorTo ??
+            this.position.anchorTo ??
+            meta.position?.defaultAnchorTo ??
+            this.position.defaultAnchorTo;
+        switch (anchorTo) {
+            case 'node':
+                this.springAnimation.update(meta.nodeCanvasX ?? meta.canvasX, meta.nodeCanvasY ?? meta.canvasY);
+                break;
+            case 'pointer':
+                this.springAnimation.update(meta.canvasX, meta.canvasY);
+                break;
+            case 'chart':
+                this.springAnimation.reset();
+        }
 
         if (meta.enableInteraction) {
             this.enableInteraction = true;

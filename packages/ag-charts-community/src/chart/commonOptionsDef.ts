@@ -126,7 +126,7 @@ export const tooltipOptionsDef: OptionsDefs<AgSeriesTooltip<any>> = {
             'bottom-left',
             'bottom-right'
         ),
-        anchorTo: union('node', 'pointer', 'canvas'),
+        anchorTo: union('node', 'pointer', 'chart'),
         placement: or(placement, arrayOf(placement)),
         xOffset: number,
         yOffset: number,
