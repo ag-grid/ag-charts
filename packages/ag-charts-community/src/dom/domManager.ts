@@ -93,6 +93,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly styles = new Map<string, string>();
     private readonly element: HTMLElement;
     private readonly styleRootElement?: HTMLElement;
+    private newContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
     containerSize?: Size = undefined;
     private readonly tabGuards: GuardedElement;
@@ -162,6 +163,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (this.container) {
             this.sizeMonitor.unobserve(this.container);
         }
+        this.newContainer = undefined;
 
         Object.values(this.rootElements).forEach((el) => {
             el.children.forEach((c) => c.remove());
@@ -169,6 +171,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         });
 
         this.element.remove();
+    }
+
+    public postRenderUpdate() {
+        this.updateContainer();
     }
 
     setSizeOptions(minWidth: number = 300, minHeight: number = 300, optionsWidth?: number, optionsHeight?: number) {
@@ -205,6 +211,13 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     setContainer(newContainer: HTMLElement) {
         if (newContainer === this.container) return;
 
+        this.newContainer = newContainer;
+    }
+
+    updateContainer() {
+        const { newContainer } = this;
+        if (newContainer == null || newContainer === this.container) return;
+
         if (this.container) {
             this.container.removeChild(this.element);
             this.sizeMonitor.unobserve(this.container);
@@ -229,6 +242,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         }
 
         this.container = newContainer;
+        this.newContainer = undefined;
 
         // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
         // Or if the container is added lazily, we need to ensure styles are added before the container
