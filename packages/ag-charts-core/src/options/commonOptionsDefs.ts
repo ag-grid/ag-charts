@@ -41,6 +41,14 @@ export const operationsDef: OptionsDefs<any> = {
 
 export const operation = optionsDefs(operationsDef, 'a theme operation');
 
+export const colorStop = optionsDefs<AgGradientColorStop>(
+    {
+        color: string,
+        stop: number,
+    },
+    'a color stop object'
+);
+
 const gradientOptionsDef: OptionsDefs<AgGradientFill> = {
     type: required(constant('gradient')),
     direction: union('horizontal', 'vertical'),
