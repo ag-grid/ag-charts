@@ -1,5 +1,6 @@
 import {
     type OptionsDefs,
+    and,
     arrayOf,
     boolean,
     callback,
@@ -11,6 +12,7 @@ import {
     object,
     optionsDefs,
     or,
+    partialDefs,
     positiveNumber,
     ratio,
     required,
@@ -23,6 +25,7 @@ import type {
     AgChartLabelOptions,
     AgDropShadowOptions,
     AgErrorBarOptions,
+    AgInterpolationType,
     AgLineLinearType,
     AgLineSmoothType,
     AgLineStepType,
@@ -144,25 +147,28 @@ export const shadowOptionsDef: OptionsDefs<AgDropShadowOptions> = {
     color: string,
 };
 
-export const interpolationValidator = or(
-    optionsDefs<AgLineLinearType>(
-        {
-            type: required(constant('linear')),
-        },
-        'linear interpolation line options'
-    ),
-    optionsDefs<AgLineSmoothType>(
-        {
-            type: required(constant('smooth')),
-            tension: ratio,
-        },
-        'smooth interpolation line options'
-    ),
-    optionsDefs<AgLineStepType>(
-        {
-            type: required(constant('step')),
-            position: union('start', 'middle', 'end'),
-        },
-        'step interpolation line options'
+export const interpolationValidator = and(
+    partialDefs<Pick<AgInterpolationType, 'type'>>({ type: required(union('linear', 'smooth', 'step')) }),
+    or(
+        optionsDefs<AgLineLinearType>(
+            {
+                type: required(constant('linear')),
+            },
+            'linear interpolation line options'
+        ),
+        optionsDefs<AgLineSmoothType>(
+            {
+                type: required(constant('smooth')),
+                tension: ratio,
+            },
+            'smooth interpolation line options'
+        ),
+        optionsDefs<AgLineStepType>(
+            {
+                type: required(constant('step')),
+                position: union('start', 'middle', 'end'),
+            },
+            'step interpolation line options'
+        )
     )
 );

@@ -1,14 +1,18 @@
-import type { AgGradientFill, FillOptions, FontOptions, LineDashOptions, StrokeOptions } from 'ag-charts-types';
+import type {
+    AgGradientColorStop,
+    AgGradientFill,
+    FillOptions,
+    FontOptions,
+    LineDashOptions,
+    StrokeOptions,
+} from 'ag-charts-types';
 
-import { isObject } from '../utils/typeGuards';
 import {
     type OptionsDefs,
-    and,
     array,
     arrayOf,
     constant,
     number,
-    object,
     optionsDefs,
     or,
     positiveNumber,
@@ -34,17 +38,20 @@ export const operationsDef: OptionsDefs<any> = {
     $foregroundBackgroundAccentMix: array,
 };
 
-const operationKeys = Object.keys(operationsDef);
-// TODO: AG-13892 Attach a description to this validator
-export const operation = and(
-    (value: unknown) => isObject(value) && operationKeys.includes(Object.keys(value)[0]),
-    optionsDefs(operationsDef)
-);
+export const operation = optionsDefs(operationsDef, 'a theme operation');
 
 const gradientOptionsDef: OptionsDefs<AgGradientFill> = {
     type: required(constant('gradient')),
     direction: union('horizontal', 'vertical'),
-    colorStops: object,
+    colorStops: arrayOf(
+        optionsDefs<AgGradientColorStop>(
+            {
+                color: string,
+                stop: number,
+            },
+            'color stops'
+        )
+    ),
     bounds: union('series', 'item', 'axes'),
     angle: number,
 };

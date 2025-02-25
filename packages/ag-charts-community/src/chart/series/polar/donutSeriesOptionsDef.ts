@@ -24,7 +24,7 @@ export const donutSeriesOptionsDef: OptionsDefs<AgDonutSeriesOptions> = {
     innerLabels: arrayOf(
         optionsDefs<AgDonutInnerLabel>(
             {
-                text: string,
+                text: required(string),
                 spacing: positiveNumber,
                 ...fontOptionsDef,
             },

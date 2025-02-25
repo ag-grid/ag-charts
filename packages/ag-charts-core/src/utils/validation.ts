@@ -14,9 +14,15 @@ export type OptionsDefs<T> = { [K in keyof Singular<T>]-?: Validator | ObjectLik
     [requiredSymbol]?: boolean;
 };
 
+interface ValidatorContext {
+    path: string;
+    options: any;
+    result?: ValidationResult<any>;
+}
+
 // Validator interface with optional description and required flag for better error messages.
 export interface Validator extends Function {
-    (value: unknown, context?: any): boolean;
+    (value: unknown, context: ValidatorContext): boolean;
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
 }
@@ -29,6 +35,7 @@ export interface ValidationResult<T> {
 export class ValidationError {
     constructor(
         public message: string,
+        public path: string,
         public required?: boolean,
         public unknown?: boolean
     ) {}
@@ -48,7 +55,7 @@ export class ValidationError {
 export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = ''): ValidationResult<T> {
     if (!isObject(options)) {
         const message = validateMessage(path, options, 'an object', true);
-        return { valid: null, errors: [new ValidationError(message)] };
+        return { valid: null, errors: [new ValidationError(message, path)] };
     }
 
     const unusedKeys = [];
@@ -69,20 +76,27 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
         const required = validatorOrDefs[requiredSymbol];
 
         optionsKeys.delete(key);
-        if (!required && typeof value === 'undefined') {
+        if (typeof value === 'undefined') {
             unusedKeys.push(key);
-            continue;
+            if (!required) {
+                continue;
+            }
         }
 
+        const keyPath = extendPath(key);
         if (isFunction(validatorOrDefs)) {
-            if (validatorOrDefs(value, options)) {
-                valid[key as keyof T] = value;
-            } else {
-                const message = validateMessage(extendPath(key), value, validatorOrDefs, required);
-                errors.push(new ValidationError(message, required));
+            const context: ValidatorContext = { options, path: keyPath };
+            if (validatorOrDefs(value, context)) {
+                valid[key as keyof T] = context.result?.valid ?? value;
+            } else if (!context.result) {
+                const message = validateMessage(keyPath, value, validatorOrDefs, required);
+                errors.push(new ValidationError(message, path, required));
+            }
+            if (context.result) {
+                errors.push(...context.result.errors);
             }
         } else {
-            const nestedResult = validate(value, validatorOrDefs, extendPath(key));
+            const nestedResult = validate(value, validatorOrDefs, keyPath);
             valid[key as keyof T] = nestedResult.valid as any;
             errors.push(...nestedResult.errors);
         }
@@ -94,7 +108,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
         const match = findSuggestion(key, unusedKeys);
         const postfix = match ? `; Did you mean \`${match}\`? Ignoring.` : ', ignoring.';
         const message = `Unknown option \`${extendPath(key)}\`${postfix}`;
-        errors.push(new ValidationError(message, undefined, true));
+        errors.push(new ValidationError(message, path, undefined, true));
     }
 
     return { valid, errors };
@@ -162,12 +176,12 @@ export function attachDescription(validator: Validator, description: string): Va
 export function required<T extends OptionsDefs<any>>(validatorOrDefs: T): T;
 export function required<T extends OptionsDefs<any>[]>(validatorOrDefs: T): T;
 export function required(validatorOrDefs: Validator): Validator;
-export function required<T>(validatorOrDefs: T): T {
+export function required<T extends Validator | OptionsDefs<any>>(validatorOrDefs: T): T {
     return Object.assign(
         isFunction(validatorOrDefs)
             ? (value: unknown, context: any) => validatorOrDefs(value, context)
-            : optionsDefs(validatorOrDefs as OptionsDefs<any>),
-        { [requiredSymbol]: true }
+            : optionsDefs(validatorOrDefs),
+        { [requiredSymbol]: true, [descriptionSymbol]: validatorOrDefs[descriptionSymbol] }
     ) as T;
 }
 
@@ -178,17 +192,23 @@ export function required<T>(validatorOrDefs: T): T {
  * @returns A validator function for the given option definitions.
  */
 export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
-    attachDescription(
-        (value) =>
-            isObject(value) &&
-            Object.keys(defs).every((key) => {
-                const validatorOrDefs: Validator | ObjectLikeDef<any> = (defs as any)[key];
-                if (!validatorOrDefs[requiredSymbol] && typeof value[key] === 'undefined') return true;
-                const validator = isFunction(validatorOrDefs) ? validatorOrDefs : optionsDefs(validatorOrDefs);
-                return validator(value[key], value);
-            }),
-        description
-    );
+    attachDescription((value, context) => {
+        context.result = validate(value, defs, context.path);
+        return !context.result.errors.some((error) => error.required);
+    }, description);
+
+/**
+ * Creates a validator for ensuring an object matches the provided option definitions. Ignores unknown properties.
+ * @param defs The option definitions against which to validate an object.
+ * @param description (Optional) A description for the validator, defaulting to 'an object'.
+ * @returns A validator function for the given option definitions.
+ */
+export const partialDefs = <T>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
+    attachDescription((value, context) => {
+        context.result = validate(value, defs, context.path);
+        context.result.errors = context.result.errors.filter((error) => !error.unknown);
+        return !context.result.errors.some((error) => error.required);
+    }, description);
 
 /**
  * Combines multiple validators, requiring all to pass.
@@ -251,13 +271,15 @@ const isComparable = (value: unknown): value is number | Date => isFiniteNumber(
 
 export const lessThan = (otherField: string) =>
     attachDescription(
-        (value, context) => !isComparable(value) || !isComparable(context[otherField]) || value < context[otherField],
+        (value, { options }) =>
+            !isComparable(value) || !isComparable(options[otherField]) || value < options[otherField],
         `to be less than ${otherField}`
     );
 
 export const greaterThan = (otherField: string) =>
     attachDescription(
-        (value, context) => !isComparable(value) || !isComparable(context[otherField]) || value > context[otherField],
+        (value, { options }) =>
+            !isComparable(value) || !isComparable(options[otherField]) || value > options[otherField],
         `to be greater than ${otherField}`
     );
 
@@ -301,6 +323,24 @@ export const instanceOf = (instanceType: Function, description?: string) =>
  */
 export const arrayOf = (validator: Validator, description?: string) =>
     attachDescription(
-        (value, context) => isArray(value) && value.every((v) => validator(v, context)),
+        (value, context) => {
+            if (!isArray(value)) return false;
+
+            const valid: unknown[] = [];
+            const errors: ValidationError[] = [];
+            for (let i = 0; i < value.length; i++) {
+                const localContext = { ...context, path: `${context.path}[${i}]` };
+                const result = validator(value[i], localContext);
+                if (localContext.result) {
+                    valid.push(result ? localContext.result.valid : null);
+                    errors.push(...localContext.result.errors);
+                } else {
+                    valid.push(value[i]);
+                }
+            }
+
+            context.result = { valid, errors };
+            return true;
+        },
         description ?? `${validator[descriptionSymbol]} array`
     );

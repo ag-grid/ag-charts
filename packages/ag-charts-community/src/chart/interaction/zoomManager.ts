@@ -91,10 +91,10 @@ class ZoomManagerAutoScaleAxis {
 }
 
 const rangeValidator = (axis?: ChartAxisLike) =>
-    attachDescription((value, context) => {
+    attachDescription((value, { options }) => {
         if (!ContinuousScale.is(axis?.scale) && !OrdinalTimeScale.is(axis?.scale)) return true;
-        if (value == null || context.end == null) return true;
-        return value <= context.end;
+        if (value == null || options.end == null) return true;
+        return value <= options.end;
     }, `to be less than end`);
 
 /**
