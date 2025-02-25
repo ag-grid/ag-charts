@@ -151,8 +151,6 @@ function findNavigatorTarget(navigatorModule: unknown, clientX: number, clientY:
         .castProperty('maxHandle', CAST_INFO.Node)
         .findProperty('mask')
         .castProperty('mask', CAST_INFO.Node).value;
-    if (!navigator.enabled) return undefined;
-
     const domProxy = caster
         .accessProperty('domProxy')
         .findProperty('toolbar')

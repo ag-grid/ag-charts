@@ -52,7 +52,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
     private readonly rangeSelector = new RangeSelector([this.mask, this.minHandle, this.maxHandle]);
 
     private panStart?: number;
-    private domProxy?: NavigatorDOMProxy = undefined;
+    private readonly domProxy: NavigatorDOMProxy;
 
     public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -67,16 +67,10 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 
+        this.domProxy = new NavigatorDOMProxy(ctx, this);
         this.updateGroupVisibility();
 
         this.miniChart = new MiniChart(ctx);
-    }
-
-    public override destroy(): void {
-        super.destroy();
-
-        this.domProxy?.destroy();
-        this.domProxy = undefined;
     }
 
     public updateBackground(oldGroup?: _ModuleSupport.Group, newGroup?: _ModuleSupport.Group) {
@@ -86,13 +80,9 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
     private updateGroupVisibility() {
         const { enabled } = this;
 
-        if (enabled) {
-            this.domProxy ??= new NavigatorDOMProxy(this.ctx, this);
-        }
-
         if (this.rangeSelector == null || enabled === this.rangeSelector.visible) return;
         this.rangeSelector.visible = enabled;
-        this.domProxy?.updateVisibility(enabled);
+        this.domProxy.updateVisibility(enabled);
 
         if (enabled) {
             this.updateZoom();
@@ -103,8 +93,6 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
 
     protected onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
         if (this.enabled) {
-            this.domProxy ??= new NavigatorDOMProxy(this.ctx, this);
-
             const { layoutBox } = ctx;
             const navigatorTotalHeight = this.height + this.spacing;
             layoutBox.shrink(navigatorTotalHeight, 'bottom');
@@ -127,11 +115,11 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         const { x, width } = opts.series.rect;
         const { y, height } = this;
 
-        this.domProxy?.updateVisibility(this.enabled);
-        if (this.enabled && this.domProxy) {
+        this.domProxy.updateVisibility(this.enabled);
+        if (this.enabled) {
             const { _min: min, _max: max } = this.domProxy;
             this.layoutNodes(x, y, width, height, min, max);
-            this.domProxy?.updateBounds({ x, y, width, height });
+            this.domProxy.updateBounds({ x, y, width, height });
         }
 
         this.x = x;
@@ -146,7 +134,6 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
 
     onDragStart(dragging: NavigatorButtonType, { offsetX }: { offsetX: number }) {
         if (!this.canDrag()) return;
-        if (!this.domProxy) return;
 
         if (dragging === 'pan') {
             this.panStart = (offsetX - this.x) / this.width - this.domProxy._min;
@@ -157,7 +144,6 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
 
     onDrag(dragging: NavigatorButtonType, { offsetX }: { offsetX: number }) {
         if (!this.canDrag()) return;
-        if (!this.domProxy) return;
 
         const { panStart, x, width } = this;
         const { minRange } = this.domProxy;
@@ -188,7 +174,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         const { x, y, width, height } = this;
         const { min, max } = xZoom;
 
-        this.domProxy?.updateMinMax(min, max);
+        this.domProxy.updateMinMax(min, max);
         this.layoutNodes(x, y, width, height, min, max);
     }
 
@@ -211,13 +197,13 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         [minHandle, this.maskVisibleRange, maxHandle].forEach((node, index) => {
             const bbox = node.getBBox();
             const tbox = { x: bbox.x - x, y: bbox.y - y, height: bbox.height, width: bbox.width };
-            this.domProxy?.updateSliderBounds(index, tbox);
+            this.domProxy.updateSliderBounds(index, tbox);
         });
     }
 
     private updateZoom() {
         if (!this.enabled) return;
-        this.domProxy?.updateZoom();
+        this.domProxy.updateZoom();
     }
 
     updateData(data: any) {
