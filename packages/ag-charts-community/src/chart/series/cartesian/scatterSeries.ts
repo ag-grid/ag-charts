@@ -311,7 +311,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        const nodeDatum = this.contextNodeData?.nodeData[datumIndex]!;
+        const nodeDatum = this.contextNodeData?.nodeData[datumIndex];
         if (xValue == null || nodeDatum == null) return;
 
         const style = marker.getStyle();
