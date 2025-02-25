@@ -31,26 +31,26 @@ type ExtendLiteralLeaves<T, V, E> = {
 };
 
 type ExtendLiteralLeavesInner<T, V, E, P extends keyof T> =
-    T[P] extends Array<infer U>
-        ? Array<ExtendLiteralLeaves<U, V, E>>
+    NonNullable<T[P]> extends Array<infer U>
+        ? Array<ExtendLiteralLeaves<U, V, E>> | V
         : T[P] extends E
           ? T[P] | V
           : ExtendLiteralLeaves<T[P], V, E>;
 
 type ThemeParam = keyof AgChartThemeParams;
 
-type PathOperation = { $ref: ThemeParam } | { $path: string };
+type PathOperation = { $ref: ThemeParam } | { $path: string | [string, Leaf] };
 
 type LogicOperation =
     | { $if: [Leaf, Leaf, Leaf] }
-    | { $or: [Leaf, Leaf] }
-    | { $and: [Leaf, Leaf] }
+    | { $or: Leaf[] }
+    | { $and: Leaf[] }
     | { $eq: [Leaf, Leaf] }
     | { $switch: [Leaf] };
 
 type NumericOperation = { $mul: [Leaf<number>, Leaf<number>] } | { $round: [Leaf<number>] };
 
-type TransformOperation = { $map: [Leaf] } | { $merge: Leaf[] };
+type TransformOperation = { $map: [Leaf, Leaf] } | { $merge: Leaf<object>[] } | { $value: '$1' };
 
 type FontOperation = { $rem: [Leaf] | [Leaf, Leaf] };
 

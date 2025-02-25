@@ -23,23 +23,31 @@ import {
     union,
 } from '../utils/validation';
 
-// TODO: AG-13892 Attach a description to this validator
-export const operation = or(
-    optionsDefs<{ $ref: string }>({ $ref: string }),
-    optionsDefs<{ $path: [] }>({ $path: string }),
-    optionsDefs<{ $if: [] }>({ $if: array }),
-    optionsDefs<{ $or: [] }>({ $or: array }),
-    optionsDefs<{ $and: [] }>({ $and: array }),
-    optionsDefs<{ $eq: [] }>({ $eq: array }),
-    optionsDefs<{ $mul: [] }>({ $mul: array }),
-    optionsDefs<{ $round: [] }>({ $round: array }),
-    optionsDefs<{ $rem: [] }>({ $rem: array }),
-    optionsDefs<{ $map: [] }>({ $map: array }),
-    optionsDefs<{ $merge: [] }>({ $merge: array }),
-    optionsDefs<{ $mix: [] }>({ $mix: array }),
-    optionsDefs<{ $foregroundBackgroundMix: [] }>({ $foregroundBackgroundMix: array }),
-    optionsDefs<{ $foregroundBackgroundAccentMix: [] }>({ $foregroundBackgroundAccentMix: array })
-);
+export const operationsDef: OptionsDefs<any> = {
+    // Location operations
+    $ref: string,
+    $path: string,
+    // Logic operations
+    $if: array,
+    $or: array,
+    $and: array,
+    $eq: array,
+    // Numeric operations
+    $mul: array,
+    $round: array,
+    // Transform operations
+    $map: array,
+    $merge: array,
+    $value: string,
+    // Font operations
+    $rem: array,
+    // Color operations
+    $mix: array,
+    $foregroundBackgroundMix: array,
+    $foregroundBackgroundAccentMix: array,
+};
+
+export const operation = optionsDefs(operationsDef, 'a theme operation');
 
 const gradientOptionsDef: OptionsDefs<AgGradientFill> = {
     type: required(constant('gradient')),

@@ -526,69 +526,7 @@ describe('json module', () => {
     describe('#jsonResolveOperations', () => {
         setupMockConsole();
 
-        it('should resolve `$eq` operation with strict equality', () => {
-            const source = { a: { $eq: [1, 1] }, b: { $eq: [1, '1'] }, c: { $eq: ['hello', 'hello'] } };
-            jsonResolveOperations(source, {});
-            expect(source).toEqual({ a: true, b: false, c: true });
-        });
-
-        it('should resolve `$not` operation with strict equality', () => {
-            const source = { a: { $not: [1, 1] }, b: { $not: [1, '1'] }, c: { $not: ['hello', 'hello'] } };
-            jsonResolveOperations(source, {});
-            expect(source).toEqual({ a: false, b: true, c: false });
-        });
-
-        it('should resolve `$or` operation', () => {
-            const source = { a: { $or: [true, true] }, b: { $or: [true, false] }, c: { $or: [false, false] } };
-            jsonResolveOperations(source, {});
-            expect(source).toEqual({ a: true, b: true, c: false });
-        });
-
-        it('should resolve `$and` operation', () => {
-            const source = { a: { $and: [true, true] }, b: { $and: [true, false] }, c: { $and: [false, false] } };
-            jsonResolveOperations(source, {});
-            expect(source).toEqual({ a: true, b: false, c: false });
-        });
-
-        it('should resolve `$if` operation', () => {
-            const source = { a: { $if: [true, 'yes', 'no'] }, b: { $if: [false, 'yes', 'no'] } };
-            jsonResolveOperations(source, {});
-            expect(source).toEqual({ a: 'yes', b: 'no' });
-        });
-
-        it('should resolve `$mul` operation', () => {
-            const source = { a: { $mul: [2, 4] } };
-            jsonResolveOperations(source, {});
-            expect(source).toEqual({ a: 8 });
-        });
-
-        it('should warn on invalid `$mul` operation', () => {
-            const source = { a: { $mul: [2, 'hello'] } };
-            jsonResolveOperations(source, {});
-            expect(source).toEqual({ a: undefined });
-            expectWarningMessages([
-                'AG Charts - `$mul` json operation failed on [2] and [hello] at [a], expecting two numbers.',
-            ]);
-        });
-
-        it('should resolve `$round` operation', () => {
-            const source = { a: { $round: [1.234] }, b: { $round: [1.987] } };
-            jsonResolveOperations(source, {});
-            expect(source).toEqual({ a: 1, b: 2 });
-        });
-
-        it('should resolve `$rem` operation', () => {
-            const source = { a: { $rem: [1.5] } };
-            jsonResolveOperations(source, { fontSize: 12 });
-            expect(source).toEqual({ a: 18 });
-        });
-
-        it('should resolve `$mix` operation', () => {
-            const source = { a: { $mix: ['#ffffff', '#000000', 0.5] } };
-            jsonResolveOperations(source, {});
-            expect(source).toEqual({ a: '#808080' });
-        });
-
+        // Location operations
         it('should resolve `$ref` operation with params', () => {
             const source = { a: { $ref: 'key' } };
             jsonResolveOperations(source, { key: 'hello' });
@@ -634,13 +572,14 @@ describe('json module', () => {
                     f: { $path: './e' },
                     g: { $path: '../a' },
                     h: { $path: '../b/c' },
+                    i: { $path: '/a' },
                 },
             };
             jsonResolveOperations(source, {});
             expect(source).toEqual({
                 a: 'parent',
                 b: { c: 'cousin' },
-                d: { e: 'sibling', f: 'sibling', g: 'parent', h: 'cousin' },
+                d: { e: 'sibling', f: 'sibling', g: 'parent', h: 'cousin', i: 'parent' },
             });
         });
 
@@ -662,8 +601,103 @@ describe('json module', () => {
                 d: { e: 'sibling', f: undefined },
             });
             expectWarningMessages([
-                'AG Charts - `$path` json operation failed on [../e] at [d.f], could not find path in object.',
+                'AG Charts - `$path` json operation failed on [../e] at [d.f] resolved to [e], could not find path in object.',
             ]);
+        });
+
+        // Logical operations
+        it('should resolve `$eq` operation with strict equality', () => {
+            const source = { a: { $eq: [1, 1] }, b: { $eq: [1, '1'] }, c: { $eq: ['hello', 'hello'] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: true, b: false, c: true });
+        });
+
+        it('should resolve `$not` operation with strict equality', () => {
+            const source = { a: { $not: [1, 1] }, b: { $not: [1, '1'] }, c: { $not: ['hello', 'hello'] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: false, b: true, c: false });
+        });
+
+        it('should resolve `$or` operation', () => {
+            const source = { a: { $or: [true, true] }, b: { $or: [true, false] }, c: { $or: [false, false] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: true, b: true, c: false });
+        });
+
+        it('should resolve `$and` operation', () => {
+            const source = { a: { $and: [true, true] }, b: { $and: [true, false] }, c: { $and: [false, false] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: true, b: false, c: false });
+        });
+
+        it('should resolve `$if` operation', () => {
+            const source = { a: { $if: [true, 'yes', 'no'] }, b: { $if: [false, 'yes', 'no'] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: 'yes', b: 'no' });
+        });
+
+        // Numeric operations
+        it('should resolve `$mul` operation', () => {
+            const source = { a: { $mul: [2, 4] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: 8 });
+        });
+
+        it('should warn on invalid `$mul` operation', () => {
+            const source = { a: { $mul: [2, 'hello'] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: undefined });
+            expectWarningMessages([
+                'AG Charts - `$mul` json operation failed on [2] and [hello] at [a], expecting two numbers.',
+            ]);
+        });
+
+        it('should resolve `$round` operation', () => {
+            const source = { a: { $round: [1.234] }, b: { $round: [1.987] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: 1, b: 2 });
+        });
+
+        // Transform operations
+        it('should resolve `$map` and `$value` operations', () => {
+            const source = { a: ['hello', 'bonjour'], b: { $map: [{ $value: '$1' }, { $path: '/a' }] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: ['hello', 'bonjour'], b: ['hello', 'bonjour'] });
+        });
+
+        it('should resolve `$map` and `$path` operations with `$index`', () => {
+            const source = {
+                a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
+                b: { $map: [{ $path: '/a/$index/greeting' }, { $path: '/a' }] },
+            };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: [{ greeting: 'hello' }, { greeting: 'bonjour' }], b: ['hello', 'bonjour'] });
+        });
+
+        it('should resolve `$merge` operation', () => {
+            const source = {
+                a: { hello: 'world', bonjour: 'monde' },
+                b: { $merge: [{ hello: 'test', goodbye: 'test' }, { $path: '/a' }] },
+            };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({
+                a: { hello: 'world', bonjour: 'monde' },
+                b: { hello: 'test', goodbye: 'test', bonjour: 'monde' },
+            });
+        });
+
+        // Font operations
+        it('should resolve `$rem` operation', () => {
+            const source = { a: { $rem: [1.5] } };
+            jsonResolveOperations(source, { fontSize: 12 });
+            expect(source).toEqual({ a: 18 });
+        });
+
+        // Color operations
+        it('should resolve `$mix` operation', () => {
+            const source = { a: { $mix: ['#ffffff', '#000000', 0.5] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: '#808080' });
         });
 
         it('should resolve nested operations', () => {

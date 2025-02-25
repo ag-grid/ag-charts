@@ -407,6 +407,7 @@ export function formatNode(node: ts.Node) {
         case ts.SyntaxKind.LiteralType:
         case ts.SyntaxKind.NeverKeyword:
         case ts.SyntaxKind.NumberKeyword:
+        case ts.SyntaxKind.ObjectKeyword:
         case ts.SyntaxKind.StringKeyword:
         case ts.SyntaxKind.StringLiteral:
         case ts.SyntaxKind.SymbolKeyword:

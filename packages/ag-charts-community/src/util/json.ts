@@ -13,7 +13,7 @@ import {
 import type { DeepPartial, PlainObject } from 'ag-charts-core';
 
 import { Color } from './color';
-import { SKIP_JS_BUILTINS } from './object';
+import { SKIP_JS_BUILTINS, mergeDefaults } from './object';
 import { isProperties } from './properties';
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
@@ -306,32 +306,35 @@ function classify(value: any): Classification | null {
  * @returns An object of modified paths.
  */
 export function jsonResolveOperations<T extends object, P extends object>(source: T, params: P, skip?: Set<string>) {
-    return jsonResolveInner(source, params, source, skip);
+    return jsonResolveInner(source, params, source, { matches: new Map() }, skip);
 }
+
+type OperationMeta = { referencedParams?: Set<string>; matches: Map<string, any> };
 
 function jsonResolveInner<T extends object, P extends object>(
     json: T,
     params: P,
     source: T,
+    meta: OperationMeta,
     skip?: Set<string>,
     path: string[] = [],
     modifiedPaths: Record<string, any> = {}
 ) {
     if (isArray(json)) {
-        jsonResolveVisitor(json, params, source, path, modifiedPaths);
+        jsonResolveVisitor(json, params, source, meta, path, modifiedPaths);
         let index = 0;
         for (const node of json) {
-            jsonResolveInner(node, params, source, skip, [...path, `${index}`], modifiedPaths);
+            jsonResolveInner(node, params, source, meta, skip, [...path, `${index}`], modifiedPaths);
             index++;
         }
     } else if (isPlainObject(json)) {
-        jsonResolveVisitor(json, params, source, path, modifiedPaths);
+        jsonResolveVisitor(json, params, source, meta, path, modifiedPaths);
         for (const key of Object.keys(json)) {
             if (skip?.has(key)) {
                 continue;
             }
             const value = json[key as keyof T] as T;
-            jsonResolveInner(value, params, source, skip, [...path, key], modifiedPaths);
+            jsonResolveInner(value, params, source, meta, skip, [...path, key], modifiedPaths);
         }
     }
 
@@ -342,17 +345,18 @@ function jsonResolveVisitor<T extends object, P extends object>(
     node: any,
     params: P,
     source: T,
+    meta: OperationMeta,
     path: string[],
     modifiedPaths: Record<string, any>
 ) {
     if (isArray(node)) {
         for (let i = 0; i < node.length; i++) {
-            node[i] = jsonResolveVisitorValue(node[i], params, source, [...path, `${i}`], modifiedPaths);
+            node[i] = jsonResolveVisitorValue(node[i], params, source, meta, [...path, `${i}`], modifiedPaths);
         }
     } else {
         for (const name of Object.keys(node)) {
             const value = node[name];
-            node[name] = jsonResolveVisitorValue(value, params, source, [...path, name], modifiedPaths);
+            node[name] = jsonResolveVisitorValue(value, params, source, meta, [...path, name], modifiedPaths);
         }
     }
 }
@@ -361,14 +365,15 @@ function jsonResolveVisitorValue<T extends object, P extends object>(
     value: unknown,
     params: P,
     source: T,
+    meta: OperationMeta,
     path: string[],
     modifiedPaths: Record<string, any>
 ) {
     const operation = getOperation(value);
-    if (!operation) return value;
+    if (!operation || !isKey(operation.operation, operations)) return value;
     modifiedPaths[path.join('.')] = value;
 
-    return resolveOperation(operation.operation, operation.values, params, source, path, new Set());
+    return resolveOperation(operation.operation, operation.values, params, source, path, meta);
 }
 
 enum LocationOperation {
@@ -393,6 +398,7 @@ enum NumericOperation {
 enum TransformOperation {
     Map = '$map',
     Merge = '$merge',
+    Value = '$value',
 }
 
 enum FontOperation {
@@ -426,25 +432,21 @@ function resolveOperation<T extends object, P extends object>(
     params: P,
     source: T,
     path: string[],
-    referencedParams?: Set<keyof P>
+    meta: OperationMeta
 ): any {
-    if (isArray(value)) {
+    meta.referencedParams ??= new Set();
+
+    // Resolve operations nested within an array first, unless this is a map operation, in which case resolve that first.
+    if (isArray(value) && operation !== TransformOperation.Map) {
         value = value.map((v) => {
             const nestedOperation = getOperation(v);
             if (!nestedOperation) return v;
-            return resolveOperation(
-                nestedOperation.operation,
-                nestedOperation.values,
-                params,
-                source,
-                path,
-                referencedParams
-            );
+            return resolveOperation(nestedOperation.operation, nestedOperation.values, params, source, path, meta);
         });
     }
 
     const fn = operations[operation];
-    return fn(value, path, params, source, referencedParams);
+    return fn(value, path, params, source, meta);
 }
 
 function isKey<T extends object>(key: unknown, obj: T): key is keyof T & string {
@@ -460,20 +462,20 @@ type OperationFn<T extends object = object, P extends object = object> = (
     path: string[],
     params: P,
     source: T,
-    referencedParams?: Set<keyof P>
+    meta: OperationMeta
 ) => any;
 
 const locationOperations: Record<LocationOperation, OperationFn> = {
     $ref: ref,
-    $path: path,
+    $path: pathOperation,
 };
 
 const logicOperations: Record<LogicOperation, OperationFn> = {
     $if: ([condition, thenValue, elseValue]) => (condition ? thenValue : elseValue),
     $eq: ([a, b]) => a === b,
     $not: ([a, b]) => a !== b,
-    $or: ([a, b]) => a || b,
-    $and: ([a, b]) => a && b,
+    $or: (values) => isArray(values) && values.some(Boolean),
+    $and: (values) => isArray(values) && values.every(Boolean),
     $switch: () => {
         // TODO
     },
@@ -485,14 +487,9 @@ const numericOperations: Record<NumericOperation, OperationFn> = {
 };
 
 const transformOperations: Record<TransformOperation, OperationFn> = {
-    $map: ([a]) => {
-        // TODO
-        console.log(a);
-        return a;
-    },
-    $merge: () => {
-        // TODO
-    },
+    $map: map,
+    $merge: merge,
+    $value: valueOperation,
 };
 
 const fontOperations: Record<FontOperation, OperationFn> = {
@@ -519,23 +516,23 @@ function ref<T extends object, P extends object>(
     path: string[],
     params: P,
     source: T,
-    referencedParams?: Set<keyof P>
+    meta: OperationMeta
 ) {
     if (isKey(value, params)) {
         const operation = getOperation(params[value]);
-        if (operation?.operation !== '$ref') {
+        if (operation?.operation !== LocationOperation.Ref) {
             return params[value];
         }
 
-        if (referencedParams?.has(operation.values)) {
+        if (meta.referencedParams?.has(operation.values)) {
             Logger.warnOnce(
-                `\`$ref\` json operation failed on [${String(value)}] at [${path.join('.')}], circular reference detected with [${[...referencedParams].join(', ')}].`
+                `\`$ref\` json operation failed on [${String(value)}] at [${path.join('.')}], circular reference detected with [${[...meta.referencedParams].join(', ')}].`
             );
             return;
         }
 
-        referencedParams?.add(operation.values);
-        return ref(operation.values, path, params, source, referencedParams);
+        meta.referencedParams?.add(operation.values);
+        return ref(operation.values, path, params, source, meta);
     }
 
     Logger.warnOnce(
@@ -543,28 +540,41 @@ function ref<T extends object, P extends object>(
     );
 }
 
-function path<T extends object, P extends object>(
+function pathOperation<T extends object, P extends object>(
     value: string | Array<unknown>,
     path: string[],
     _params: P,
     source: T
 ) {
+    let defaultValue;
     if (!isString(value)) {
-        Logger.warnOnce(
-            `\`$path\` json operation failed on [${String(value)}] at [${path.join('.')}], expecting a string.`
-        );
-        return;
+        if (isArray(value)) {
+            defaultValue = value[1];
+            value = value[0] as string;
+        } else {
+            Logger.warnOnce(
+                `\`$path\` json operation failed on [${String(value)}] at [${path.join('.')}], expecting a string.`
+            );
+            return;
+        }
     }
 
     // Apply the relative path to the current path
     const relativePathParts = value.split('/');
-    const resolvedPath = [...path];
+    let resolvedPath = [...path];
+    if (value.startsWith('/')) {
+        resolvedPath = [];
+        relativePathParts.shift();
+    }
     for (const part of relativePathParts) {
         if (part === '..') {
             resolvedPath.pop();
             resolvedPath.pop();
         } else if (part === '.') {
             resolvedPath.pop();
+        } else if (part === '$index') {
+            const index = path.findLast((v) => !isNaN(Number(v)));
+            if (index != null) resolvedPath.push(index);
         } else {
             resolvedPath.push(part);
         }
@@ -573,10 +583,14 @@ function path<T extends object, P extends object>(
     let resolvedValue: any = source;
     for (const part of resolvedPath) {
         if (!isKey(part, resolvedValue)) {
-            Logger.warnOnce(
-                `\`$path\` json operation failed on [${String(value)}] at [${path.join('.')}], could not find path in object.`
-            );
-            return;
+            if (defaultValue == null) {
+                Logger.warnOnce(
+                    `\`$path\` json operation failed on [${String(value)}] at [${path.join('.')}] resolved to [${resolvedPath.join('.')}], could not find path in object.`
+                );
+                return;
+            } else {
+                return defaultValue;
+            }
         }
         resolvedValue = resolvedValue[part];
     }
@@ -594,6 +608,51 @@ function mul([a, b]: string | Array<unknown>, path: string[]) {
 function round([a]: string | Array<unknown>, path: string[]) {
     if (typeof a === 'number') return Math.round(a);
     Logger.warnOnce(`\`$round\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`);
+}
+
+function map<T extends object, P extends object>(
+    [mapOperation, mapValues]: string | Array<unknown>,
+    path: string[],
+    params: P,
+    source: T,
+    meta: OperationMeta
+) {
+    const valuesOperation = getOperation(mapValues);
+    if (valuesOperation) {
+        mapValues = resolveOperation(valuesOperation.operation, valuesOperation.values, params, source, path, meta);
+    }
+    if (!isArray(mapValues)) return [];
+
+    const mappedOperation = getOperation(mapOperation);
+    if (!mappedOperation) return [];
+    meta.matches.set(path.join('.'), mapValues);
+
+    return mapValues.map(() => ({ [mappedOperation.operation]: mappedOperation.values }));
+}
+
+function merge(values: string | Array<unknown>) {
+    if (!isArray(values)) return;
+    for (const value of values) {
+        if (!isPlainObject(value)) return;
+    }
+    return mergeDefaults(...(values as any));
+}
+
+function valueOperation(
+    value: string | Array<unknown>,
+    path: string[],
+    _params: any,
+    _source: any,
+    meta: OperationMeta
+) {
+    if (value !== '$1') return value;
+
+    const indexIndex = path.findLastIndex((v) => !isNaN(Number(v)));
+    if (indexIndex === -1) return value;
+
+    const index = Number(path[indexIndex]);
+    const key = path.slice(0, indexIndex).join('.');
+    return meta.matches.get(key)?.at(index);
 }
 
 function rem<P extends object>([a]: string | Array<unknown>, path: string[], params: P) {
