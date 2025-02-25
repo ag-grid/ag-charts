@@ -55,7 +55,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
         if (result.valid?.idKey == null && (result.valid?.latitudeKey == null || result.valid?.longitudeKey == null)) {
             const extendPath = (key: string) => (path ? `${path}.${key}` : key);
             const message = `Either \`${extendPath('idKey')}\` or both \`${extendPath('latitudeKey')}\` and \`${extendPath('longitudeKey')}\` are required.`;
-            result.errors.push(new ValidationError(message, true));
+            result.errors.push(new ValidationError(message, path, true));
         }
 
         return result;

@@ -270,12 +270,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 return;
             }
 
+            const keyPath = `series[${index}]`;
             const { validate: validateSeries = validate } = seriesDef;
-            const { valid, errors } = validateSeries(seriesOptions, seriesDef.options, `series[${index}]`);
+            const { valid, errors } = validateSeries(seriesOptions, seriesDef.options, keyPath);
 
             errors.forEach((error) => Logger.warn(error));
 
-            if (!errors.some((e) => e.required)) {
+            if (!errors.some((e) => e.required && e.path === keyPath)) {
                 validatedSeriesOptions.push(valid);
             }
         });
