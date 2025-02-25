@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-test",
-  "version": "11.1.1-beta.20250224",
+  "version": "11.1.1-beta.20250225",
   "dependencies": {
     "canvas": "^2.10.2",
     "tslib": "^2.3.0"
