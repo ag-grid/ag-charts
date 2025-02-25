@@ -27,12 +27,14 @@ import {
     clickAction,
     deproxy,
     doubleClickAction,
+    doubleTapAction,
     extractImageData,
     mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
     spyOnAnimationManager,
+    tapAction,
     waitForChartStability,
 } from '../../test/utils';
 import { AreaSeries } from './areaSeries';
@@ -560,72 +562,102 @@ describe('AreaSeries', () => {
             },
         };
 
-        beforeEach(() => {
+        beforeEach(async () => {
+            const options = { ...nodeClickOptions };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
             clicks.splice(0, clicks.length);
             doubleClicks.splice(0, doubleClicks.length);
             legendClicks.splice(0, legendClicks.length);
         });
 
-        it('should fire a nodeClick event for each node', async () => {
-            const options = { ...nodeClickOptions };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const areaSeries = deproxy(chart).series[0] as AreaSeries;
+        function* iterAreaSectors(myChart: AgChartInstance) {
+            const areaSeries = deproxy(myChart).series[0] as AreaSeries;
             for (const nodeData of areaSeries.getNodeData() ?? []) {
                 const { x = 0, y = 0 } = nodeData.point ?? {};
-                const { x: clickX, y: clickY } = Transformable.toCanvasPoint(areaSeries.contentGroup, x, y);
-                await waitForChartStability(chart);
-                await clickAction(clickX, clickY)(chart);
+                yield Transformable.toCanvasPoint(areaSeries.contentGroup, x, y);
             }
+        }
 
-            expect(clicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
-            expect(doubleClicks).toHaveLength(0);
-            expect(legendClicks).toHaveLength(0);
-        });
-
-        it('should fire a nodeDoubleClick event for each node', async () => {
-            const options = { ...nodeClickOptions };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const areaSeries = deproxy(chart).series[0] as AreaSeries;
-            for (const nodeData of areaSeries.getNodeData() ?? []) {
-                const { x = 0, y = 0 } = nodeData.point ?? {};
-                const { x: clickX, y: clickY } = Transformable.toCanvasPoint(areaSeries.contentGroup, x, y);
-                await waitForChartStability(chart);
-                await doubleClickAction(clickX, clickY)(chart);
-            }
-
-            expect(doubleClicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
-            expect(clicks).toHaveLength(10);
-            expect(legendClicks).toHaveLength(0);
-        });
-
-        it('should not fire series events for legend clicks', async () => {
-            const options = { ...nodeClickOptions };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            for (const { legend } of deproxy(chart).modulesManager.legends()) {
+        function* iterLegendMarkerLabels(myChart: AgChartInstance) {
+            for (const { legend } of deproxy(myChart).modulesManager.legends()) {
                 const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
                 for (const label of markerLabels) {
-                    const { x, y } = Transformable.toCanvas(label).computeCenter();
+                    yield Transformable.toCanvas(label).computeCenter();
+                }
+            }
+        }
 
+        describe('should fire a nodeClick event for each node', () => {
+            test('mouse', async () => {
+                for (const { x, y } of iterAreaSectors(chart)) {
+                    await waitForChartStability(chart);
+                    await clickAction(x, y)(chart);
+                }
+            });
+            xtest('touch', async () => {
+                // Faulty because of AG-14228
+                for (const { x, y } of iterAreaSectors(chart)) {
+                    await waitForChartStability(chart);
+                    await tapAction(x, y)(chart);
+                }
+            });
+
+            afterEach(() => {
+                expect(clicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
+                expect(doubleClicks).toHaveLength(0);
+                expect(legendClicks).toHaveLength(0);
+            });
+        });
+
+        describe('should fire a nodeDoubleClick event for each node', () => {
+            test('mouse', async () => {
+                for (const { x, y } of iterAreaSectors(chart)) {
+                    await waitForChartStability(chart);
+                    await doubleClickAction(x, y)(chart);
+                }
+            });
+            test('touch', async () => {
+                for (const { x, y } of iterAreaSectors(chart)) {
+                    await waitForChartStability(chart);
+                    await doubleTapAction(x, y)(chart);
+                }
+            });
+
+            afterEach(() => {
+                expect(doubleClicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
+                expect(clicks).toHaveLength(10);
+                expect(legendClicks).toHaveLength(0);
+            });
+        });
+
+        describe('should not fire series events for legend clicks', () => {
+            test('mouse', async () => {
+                for (const { x, y } of iterLegendMarkerLabels(chart)) {
                     await clickAction(x, y)(chart);
                     await waitForChartStability(chart);
 
                     await clickAction(x, y)(chart);
                     await waitForChartStability(chart);
                 }
-            }
+            });
+            test('touch', async () => {
+                for (const { x, y } of iterLegendMarkerLabels(chart)) {
+                    await tapAction(x, y)(chart);
+                    await waitForChartStability(chart);
 
-            expect(legendClicks).toEqual(['amount', 'amount']);
-            expect(doubleClicks).toHaveLength(0);
-            expect(clicks).toHaveLength(0);
+                    await tapAction(x, y)(chart);
+                    await waitForChartStability(chart);
+                }
+            });
+
+            afterEach(() => {
+                expect(legendClicks).toEqual(['amount', 'amount']);
+                expect(doubleClicks).toHaveLength(0);
+                expect(clicks).toHaveLength(0);
+            });
         });
     });
 });

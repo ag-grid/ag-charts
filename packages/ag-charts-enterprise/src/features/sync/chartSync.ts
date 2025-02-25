@@ -136,7 +136,6 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                                 nodeDatum,
                                 undefined
                             );
-                            delete tooltipMeta.lastPointerEvent; // remove to prevent triggering TOOLTIP_RECALCULATION
 
                             chart.ctx.tooltipManager.updateTooltip(
                                 chart.id,

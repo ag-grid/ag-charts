@@ -749,7 +749,7 @@ export class AreaSeries extends CartesianSeries<
         const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
             xDomain: this.getSeriesDomain(ChartAxisDirection.X),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
-        }));
+        }))!;
 
         if (xValue == null) return;
 

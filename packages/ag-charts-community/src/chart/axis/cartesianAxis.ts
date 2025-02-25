@@ -17,7 +17,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum, TranslatableLine } from './axis';
 import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
-import type { AxisLabelDatum, NiceMode, TickDatum } from './axisUtil';
+import { type AxisLabelDatum, NiceMode, type TickDatum } from './axisUtil';
 import {
     prepareAxisAnimationContext,
     prepareAxisAnimationFunctions,
@@ -174,6 +174,24 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const sideFlag = this.label.getSideFlag();
         const { parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
+
+        if (
+            niceMode === NiceMode.Off &&
+            this.label.enabled === false &&
+            this.tick.enabled === false &&
+            this.gridLine.enabled === false
+        ) {
+            // Performance optimization: if ticks have no effect, don't generate them
+            this.generatedTicks = { ticks: [], labels: [] };
+            return {
+                ticks: [],
+                tickDomain: domain,
+                niceDomain: domain,
+                primaryTickCount: initialPrimaryTickCount,
+                fractionDigits: 0,
+                bbox: this.tickBBox([], []),
+            };
+        }
 
         const tickGenerationResult = this.tickGenerator.generateTicks({
             domain,

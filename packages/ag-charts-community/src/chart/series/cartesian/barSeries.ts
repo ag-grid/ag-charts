@@ -677,7 +677,7 @@ export class BarSeries extends AbstractBarSeries<
         const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
             xDomain: this.getSeriesDomain(ChartAxisDirection.X),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
-        }));
+        }))!;
         return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
             return itemStyler({
                 seriesId,

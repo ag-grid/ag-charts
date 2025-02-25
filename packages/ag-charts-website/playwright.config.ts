@@ -67,6 +67,7 @@ export default defineConfig({
                     width: 800,
                     height: 600,
                 },
+                hasTouch: true,
             },
         },
 

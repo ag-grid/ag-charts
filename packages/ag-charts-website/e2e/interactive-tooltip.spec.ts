@@ -54,4 +54,19 @@ test.describe('interactive-tooltip', () => {
         await page.mouse.move(20, 20);
         await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
     });
+
+    test('tap', async ({ page }) => {
+        // There is limited support for touch input in playwright, so just test that the tooltips are shown and hidden
+        // correctly from taps.
+
+        await gotoExample(page, toExamplePageUrl('tooltips', 'tooltip-interaction', 'vanilla').url);
+
+        await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
+
+        await page.touchscreen.tap(400, 150);
+        await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+
+        await page.touchscreen.tap(20, 20);
+        await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
+    });
 });

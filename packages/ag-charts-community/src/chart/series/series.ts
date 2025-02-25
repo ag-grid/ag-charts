@@ -1,3 +1,4 @@
+import { Logger } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -911,14 +912,18 @@ export abstract class Series<
         this.datumCallbackCache.clear();
     }
 
-    public cachedDatumCallback<T>(id: any, fn: () => T): T {
+    public cachedDatumCallback<T>(id: any, fn: () => T): T | undefined {
         const { datumCallbackCache } = this;
         const existing = datumCallbackCache.get(id) as T;
         if (existing != null) return existing;
 
-        const value = fn();
-        datumCallbackCache.set(id, value);
-        return value;
+        try {
+            const value = fn();
+            datumCallbackCache.set(id, value);
+            return value;
+        } catch (error) {
+            Logger.error(String(error));
+        }
     }
 
     abstract getCategoryValue(datumIndex: TDatumIndex): any;
