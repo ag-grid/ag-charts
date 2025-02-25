@@ -501,7 +501,7 @@ export abstract class Axis<
     _scaleNiceDomainRangeExtent: number = NaN;
     calculateLayout(initialPrimaryTickCount?: number): {
         primaryTickCount?: number;
-        bbox: BBox;
+        bbox?: BBox;
         niceDomain?: unknown[];
     } {
         const { scale, label, visibleRange, nice } = this;
@@ -530,14 +530,12 @@ export abstract class Axis<
         } else {
             niceMode = NiceMode.TicksOnly;
         }
-        const {
-            niceDomain,
-            primaryTickCount,
-            ticks,
-            tickDomain,
-            fractionDigits,
-            bbox = BBox.zero,
-        } = this.calculateTickLayout(tickLayoutDomain ?? domain, niceMode, visibleRange, initialPrimaryTickCount);
+        const { niceDomain, primaryTickCount, ticks, tickDomain, fractionDigits, bbox } = this.calculateTickLayout(
+            tickLayoutDomain ?? domain,
+            niceMode,
+            visibleRange,
+            initialPrimaryTickCount
+        );
 
         this.scale.domain = niceDomain;
 
