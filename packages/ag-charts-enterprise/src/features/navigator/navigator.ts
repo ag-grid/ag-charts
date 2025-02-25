@@ -52,7 +52,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
     private readonly rangeSelector = new RangeSelector([this.mask, this.minHandle, this.maxHandle]);
 
     private panStart?: number;
-    private domProxy?: NavigatorDOMProxy;
+    private domProxy?: NavigatorDOMProxy = undefined;
 
     public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
