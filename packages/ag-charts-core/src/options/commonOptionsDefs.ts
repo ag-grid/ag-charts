@@ -11,6 +11,7 @@ import {
     type OptionsDefs,
     array,
     arrayOf,
+    arrayOfDefs,
     constant,
     number,
     optionsDefs,
@@ -43,15 +44,7 @@ export const operation = optionsDefs(operationsDef, 'a theme operation');
 const gradientOptionsDef: OptionsDefs<AgGradientFill> = {
     type: required(constant('gradient')),
     direction: union('horizontal', 'vertical'),
-    colorStops: arrayOf(
-        optionsDefs<AgGradientColorStop>(
-            {
-                color: string,
-                stop: number,
-            },
-            'color stops'
-        )
-    ),
+    colorStops: arrayOfDefs<AgGradientColorStop>({ color: string, stop: number }, 'color stops'),
     bounds: union('series', 'item', 'axes'),
     angle: number,
 };

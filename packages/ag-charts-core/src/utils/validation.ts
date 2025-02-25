@@ -14,7 +14,7 @@ export type OptionsDefs<T> = { [K in keyof Singular<T>]-?: Validator | ObjectLik
     [requiredSymbol]?: boolean;
 };
 
-interface ValidatorContext {
+export interface ValidatorContext {
     path: string;
     options: any;
     result?: ValidationResult<any>;
@@ -323,24 +323,32 @@ export const instanceOf = (instanceType: Function, description?: string) =>
  */
 export const arrayOf = (validator: Validator, description?: string) =>
     attachDescription(
+        (value, context) => isArray(value) && value.every((v) => validator(v, context)),
+        description ?? `${validator[descriptionSymbol]} array`
+    );
+
+/**
+ * Creates a validator for arrays where each element is validated against a given set of definitions.
+ * Allows capturing both valid and invalid values while providing detailed validation errors.
+ * @param defs The validation definitions to apply to each array element.
+ * @param description An optional description string.
+ * @returns A validator function for arrays, storing valid elements and collecting errors for invalid ones.
+ */
+export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description?: string) =>
+    attachDescription(
         (value, context) => {
             if (!isArray(value)) return false;
 
             const valid: unknown[] = [];
             const errors: ValidationError[] = [];
             for (let i = 0; i < value.length; i++) {
-                const localContext = { ...context, path: `${context.path}[${i}]` };
-                const result = validator(value[i], localContext);
-                if (localContext.result) {
-                    valid.push(result ? localContext.result.valid : null);
-                    errors.push(...localContext.result.errors);
-                } else {
-                    valid.push(value[i]);
-                }
+                const result = validate(value[i], defs, `${context.path}[${i}]`);
+                errors.push(...result.errors);
+                valid.push(result.valid);
             }
 
             context.result = { valid, errors };
             return true;
         },
-        description ?? `${validator[descriptionSymbol]} array`
+        description ?? `${defs[descriptionSymbol]} array`
     );

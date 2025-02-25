@@ -6,13 +6,12 @@ import {
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
-    arrayOf,
+    arrayOfDefs,
     boolean,
     callback,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
-    optionsDefs,
     positiveNumber,
     required,
     string,
@@ -45,15 +44,13 @@ export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = 
     xName: string,
     yName: string,
     direction: union('horizontal', 'vertical'),
-    totals: arrayOf(
-        optionsDefs<WaterfallSeriesTotalMeta>(
-            {
-                totalType: required(union('total', 'subtotal')),
-                index: required(positiveNumber),
-                axisLabel: required(string),
-            },
-            'a total definition object'
-        )
+    totals: arrayOfDefs<WaterfallSeriesTotalMeta>(
+        {
+            totalType: required(union('total', 'subtotal')),
+            index: required(positiveNumber),
+            axisLabel: required(string),
+        },
+        'a total definition object'
     ),
     showInMiniChart: boolean,
     item: {

@@ -1,11 +1,10 @@
 import {
     type OptionsDefs,
-    arrayOf,
+    arrayOfDefs,
     constant,
     fillOptionsDef,
     fontOptionsDef,
     number,
-    optionsDefs,
     positiveNumber,
     ratio,
     required,
@@ -21,14 +20,12 @@ export const donutSeriesOptionsDef: OptionsDefs<AgDonutSeriesOptions> = {
     innerRadiusOffset: number,
     innerRadiusRatio: ratio,
     innerCircle: fillOptionsDef,
-    innerLabels: arrayOf(
-        optionsDefs<AgDonutInnerLabel>(
-            {
-                text: required(string),
-                spacing: positiveNumber,
-                ...fontOptionsDef,
-            },
-            'inner label options'
-        )
+    innerLabels: arrayOfDefs<AgDonutInnerLabel>(
+        {
+            text: required(string),
+            spacing: positiveNumber,
+            ...fontOptionsDef,
+        },
+        'inner label options array'
     ),
 };

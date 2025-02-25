@@ -4,6 +4,7 @@ exports[`Validation utils Conditional Validators validates axis schema with opti
 [
   ValidationError {
     "message": "Option \`max\` cannot be set to \`"100"\`; expecting a number and to be greater than min, ignoring.",
+    "path": "",
     "required": undefined,
     "unknown": undefined,
   },
@@ -14,6 +15,7 @@ exports[`Validation utils Utility Functions attachDescription adds a description
 [
   ValidationError {
     "message": "Option \`str\` cannot be set to \`""\`; expecting a non-empty string, ignoring.",
+    "path": "",
     "required": undefined,
     "unknown": undefined,
   },
@@ -23,27 +25,32 @@ exports[`Validation utils Utility Functions attachDescription adds a description
 exports[`Validation utils Validate Method validate returns expected validated object and errors 1`] = `
 [
   ValidationError {
-    "message": "Option \`name\` is required and has not been provided, ignoring.",
+    "message": "Option \`name\` is required and has not been provided; expecting a string, ignoring.",
+    "path": "",
     "required": true,
     "unknown": undefined,
   },
   ValidationError {
     "message": "Option \`age\` cannot be set to \`-5\`; expecting a number greater than or equal to 0, ignoring.",
+    "path": "",
     "required": undefined,
     "unknown": undefined,
   },
   ValidationError {
     "message": "Option \`hobbies\` cannot be set to \`["reading",123]\`; expecting a string array, ignoring.",
+    "path": "",
     "required": undefined,
     "unknown": undefined,
   },
   ValidationError {
     "message": "Unknown option \`extraField\`, ignoring.",
+    "path": "",
     "required": undefined,
     "unknown": true,
   },
   ValidationError {
     "message": "Unknown option \`typo\`; Did you mean \`type\`? Ignoring.",
+    "path": "",
     "required": undefined,
     "unknown": true,
   },

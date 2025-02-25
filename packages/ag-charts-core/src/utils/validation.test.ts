@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, jest } from '@jest/globals';
 
 import {
     type OptionsDefs,
+    type ValidatorContext,
     and,
     array,
     arrayOf,
@@ -31,6 +32,8 @@ function isValid<T extends object>(options: unknown, defs: OptionsDefs<T>, path?
 }
 
 describe('Validation utils', () => {
+    const mockContext = (): ValidatorContext => ({ options: {}, path: 'pathTo' });
+
     beforeEach(() => {
         console.warn = jest.fn();
     });
@@ -53,7 +56,7 @@ describe('Validation utils', () => {
                 [callback, () => {}, true],
                 [callback, 'not a function', false],
             ])('%p validates %p as %p', (validator, input, expected) => {
-                expect(validator(input)).toBe(expected);
+                expect(validator(input, mockContext())).toBe(expected);
             });
         });
 
@@ -67,7 +70,7 @@ describe('Validation utils', () => {
                 [lessThan('contextKey'), 4.2, true],
                 [lessThan('contextKey'), 420, false],
             ])('%p validates %p as %p', (validator, input, expected) => {
-                expect(validator(input, { contextKey: 42 })).toBe(expected);
+                expect(validator(input, { options: { contextKey: 42 }, path: '' })).toBe(expected);
             });
         });
     });
@@ -77,15 +80,15 @@ describe('Validation utils', () => {
         const isStringOrNumber = or(string, number);
 
         test('and combines validators correctly', () => {
-            expect(isNonEmptyString('hello')).toBe(true);
-            expect(isNonEmptyString('')).toBe(false);
-            expect(isNonEmptyString(42)).toBe(false);
+            expect(isNonEmptyString('hello', mockContext())).toBe(true);
+            expect(isNonEmptyString('', mockContext())).toBe(false);
+            expect(isNonEmptyString(42, mockContext())).toBe(false);
         });
 
         test('or combines validators correctly', () => {
-            expect(isStringOrNumber('hello')).toBe(true);
-            expect(isStringOrNumber(42)).toBe(true);
-            expect(isStringOrNumber(true)).toBe(false);
+            expect(isStringOrNumber('hello', mockContext())).toBe(true);
+            expect(isStringOrNumber(42, mockContext())).toBe(true);
+            expect(isStringOrNumber(true, mockContext())).toBe(false);
         });
     });
 
@@ -115,7 +118,7 @@ describe('Validation utils', () => {
         // should check the description in the logger
         test('attachDescription adds a description to a validator', () => {
             const describedValidator = attachDescription(
-                (value: unknown) => string(value) && value !== '',
+                (value: unknown, context) => string(value, context) && value !== '',
                 'a non-empty string'
             );
             expect(validate<{ str: string }>({ str: '' }, { str: describedValidator }).errors).toMatchSnapshot();
@@ -126,9 +129,9 @@ describe('Validation utils', () => {
         const isRedOrBlue = union('red', 'blue');
 
         test('validates correctly against multiple allowed values', () => {
-            expect(isRedOrBlue('red')).toBe(true);
-            expect(isRedOrBlue('blue')).toBe(true);
-            expect(isRedOrBlue('green')).toBe(false);
+            expect(isRedOrBlue('red', mockContext())).toBe(true);
+            expect(isRedOrBlue('blue', mockContext())).toBe(true);
+            expect(isRedOrBlue('green', mockContext())).toBe(false);
         });
     });
 
@@ -136,9 +139,9 @@ describe('Validation utils', () => {
         const isTrue = constant(true);
 
         test('validates only the exact value', () => {
-            expect(isTrue(true)).toBe(true);
-            expect(isTrue(false)).toBe(false);
-            expect(isTrue('true')).toBe(false);
+            expect(isTrue(true, mockContext())).toBe(true);
+            expect(isTrue(false, mockContext())).toBe(false);
+            expect(isTrue('true', mockContext())).toBe(false);
         });
     });
 
@@ -148,8 +151,8 @@ describe('Validation utils', () => {
         const isInstanceOfTestClass = instanceOf(TestClass);
 
         test('validates instances of the specified class', () => {
-            expect(isInstanceOfTestClass(new TestClass())).toBe(true);
-            expect(isInstanceOfTestClass({})).toBe(false);
+            expect(isInstanceOfTestClass(new TestClass(), mockContext())).toBe(true);
+            expect(isInstanceOfTestClass({}, mockContext())).toBe(false);
         });
     });
 
@@ -157,21 +160,21 @@ describe('Validation utils', () => {
         const isArrayOfStrings = arrayOf(string);
 
         test('validates arrays where every element passes the given validator', () => {
-            expect(isArrayOfStrings(['a', 'b', 'c'])).toBe(true);
-            expect(isArrayOfStrings(['a', 1, 'c'])).toBe(false);
-            expect(isArrayOfStrings('not an array')).toBe(false);
+            expect(isArrayOfStrings(['a', 'b', 'c'], mockContext())).toBe(true);
+            expect(isArrayOfStrings(['a', 1, 'c'], mockContext())).toBe(false);
+            expect(isArrayOfStrings('not an array', mockContext())).toBe(false);
         });
     });
 
     describe('OptionsDefs Validator', () => {
         const optionDefsValidator = optionsDefs<{ key1?: string; key2?: number }>({
             key1: string,
-            key2: number,
+            key2: required(number),
         });
 
         test('validates objects against provided definitions', () => {
-            expect(optionDefsValidator({ key1: 'value', key2: 42 })).toBe(true);
-            expect(optionDefsValidator({ key1: 'value', key2: 'not a number' })).toBe(false);
+            expect(optionDefsValidator({ key1: 'value', key2: 42 }, mockContext())).toBe(true);
+            expect(optionDefsValidator({ key1: 'value', key2: 'not a number' }, mockContext())).toBe(false);
         });
     });
 
