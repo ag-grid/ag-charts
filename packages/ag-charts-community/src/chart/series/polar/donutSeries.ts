@@ -571,8 +571,17 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     private getSectorFormat(datum: any, datumIndex: number, highlighted: boolean, angle: number) {
-        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
-            this.properties;
+        const {
+            angleKey,
+            radiusKey,
+            calloutLabelKey,
+            sectorLabelKey,
+            legendItemKey,
+            fills,
+            strokes,
+            itemStyler,
+            defaultColorRange,
+        } = this.properties;
 
         const defaultStroke: string | undefined = strokes[datumIndex % strokes.length];
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
@@ -630,6 +639,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             lineDash: format?.lineDash ?? lineDash,
             lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
             cornerRadius: format?.cornerRadius ?? cornerRadius,
+            defaultColorRange,
         };
     }
 
@@ -867,6 +877,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             sector.lineDashOffset = format.lineDashOffset;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
+            sector.defaultColorRange = this.properties.defaultColorRange;
             const inset = Math.max(
                 (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth : 0)) / 2,
                 0
@@ -1446,6 +1457,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 strokeWidth: this.properties.strokeWidth,
                 lineDash: this.properties.lineDash,
                 lineDashOffset: this.properties.lineDashOffset,
+                defaultColorRange: this.properties.defaultColorRange,
             },
         };
     }

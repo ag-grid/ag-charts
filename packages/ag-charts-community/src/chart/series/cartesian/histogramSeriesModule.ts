@@ -5,6 +5,7 @@ import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
+import { singleSeriesPaletteFactory } from '../../themes/util';
 import { HistogramSeries } from './histogramSeries';
 import { histogramSeriesOptionsDef } from './histogramSeriesOptionsDef';
 
@@ -50,13 +51,7 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
             },
         },
     },
-    paletteFactory: ({ takeColors }) => {
-        const {
-            fills: [fill],
-            strokes: [stroke],
-        } = takeColors(1);
-        return { fill, stroke };
-    },
+    paletteFactory: singleSeriesPaletteFactory,
 };
 
 export const NewHistogramSeriesModule: SeriesModuleDefinition<AgHistogramSeriesOptions> = {

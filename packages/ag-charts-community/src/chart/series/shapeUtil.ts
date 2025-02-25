@@ -2,11 +2,22 @@ import type { BBox } from '../../scene/bbox';
 import type { Shape } from '../../scene/shape/shape';
 
 export type ShapeStyle = Partial<
-    Pick<Shape, 'fill' | 'fillOpacity' | 'stroke' | 'strokeOpacity' | 'strokeWidth' | 'lineDash' | 'lineDashOffset'>
+    Pick<
+        Shape,
+        | 'fill'
+        | 'fillOpacity'
+        | 'stroke'
+        | 'strokeOpacity'
+        | 'strokeWidth'
+        | 'lineDash'
+        | 'lineDashOffset'
+        | 'defaultColorRange'
+    >
 >;
 
 export function applyShapeStyle(shape: Shape, style: ShapeStyle, overrides?: ShapeStyle, fillBBox?: BBox) {
     shape.fillBBox = fillBBox;
+    shape.defaultColorRange = overrides?.defaultColorRange ?? style.defaultColorRange ?? [];
     shape.fill = overrides?.fill ?? style.fill;
     shape.fillOpacity = overrides?.fillOpacity ?? style.fillOpacity ?? 1;
     shape.stroke = overrides?.stroke ?? style.stroke;

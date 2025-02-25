@@ -30,6 +30,7 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
         return {
             fill: marker.fill,
             stroke: marker.stroke,
+            defaultColorRange: marker.defaultColorRange,
             marker,
         };
     },

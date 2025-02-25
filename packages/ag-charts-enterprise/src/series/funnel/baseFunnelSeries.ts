@@ -98,6 +98,7 @@ class FunnelSeriesNodeEvent<
 
 export interface FunnelSeriesShapeStyle {
     fill?: AgFillType;
+    defaultColorRange: string[];
     fillOpacity: number;
     stroke?: string;
     strokeWidth: number;
@@ -482,7 +483,7 @@ export abstract class BaseFunnelSeries<
         connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
         const { fills, strokes } = this.properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
+        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
             this.connectorStyle();
 
         opts.connectorSelection.each((connector, datum) => {
@@ -491,6 +492,7 @@ export abstract class BaseFunnelSeries<
 
             connector.fill = fill ?? fills[datumIndex % fills.length];
             connector.fillOpacity = fillOpacity;
+            connector.defaultColorRange = defaultColorRange;
             connector.stroke = stroke ?? strokes[datumIndex % strokes.length];
             connector.strokeOpacity = strokeOpacity;
             connector.strokeWidth = strokeWidth;
@@ -588,12 +590,24 @@ export abstract class BaseFunnelSeries<
     }
 
     private legendItemSymbol(datumIndex: number): _ModuleSupport.LegendSymbolOptions {
-        const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.barStyle();
+        const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
+            this.barStyle();
         const { fills, strokes } = this.properties;
         const fill = fills[datumIndex % fills.length] ?? 'black';
         const stroke = strokes[datumIndex % strokes.length] ?? 'black';
 
-        return { marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } };
+        return {
+            marker: {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                defaultColorRange,
+            },
+        };
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

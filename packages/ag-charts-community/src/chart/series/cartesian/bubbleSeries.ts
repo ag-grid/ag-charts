@@ -310,70 +310,13 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         );
     }
 
-    private getMarkerItemBaseStyle(
-        highlighted: boolean
-    ): RequireOptional<FillOptions & StrokeOptions & LineDashOptions> {
-        const { properties } = this;
-
-        const { marker } = properties;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-        return {
-            fill: highlightStyle?.fill ?? marker.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
-            stroke: highlightStyle?.stroke ?? marker.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
-            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? marker.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
-        };
-    }
-
-    private getMarkerItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        format: RequireOptional<FillOptions & StrokeOptions>,
-        highlighted: boolean
-    ) {
-        const { id: seriesId, properties } = this;
-
-        const { xKey, yKey, sizeKey, labelKey, marker } = properties;
-        const { itemStyler } = marker;
-
-        if (itemStyler == null) return;
-
-        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return itemStyler({
-                seriesId,
-                datum,
-                xKey,
-                yKey,
-                sizeKey,
-                labelKey,
-                highlighted,
-                ...format,
-            });
-        });
-    }
-
     protected override updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, BubbleNodeDatum>;
         isHighlight: boolean;
     }) {
         const { markerSelection, isHighlight: highlighted } = opts;
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
-            mergeDefaults(highlighted && this.properties.highlightStyle.item, marker.getStyle());
-        const baseStyle = {
-            size,
-            shape,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-        };
+        const baseStyle = mergeDefaults(highlighted && this.properties.highlightStyle.item, marker.getStyle());
 
         this.sizeScale.range = [marker.size, marker.maxSize];
         const fillBBox = this.getFillBBox(baseStyle.fill);
@@ -432,7 +375,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName, title, tooltip } = properties;
+        const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName, title, tooltip, marker } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -441,6 +384,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
+
+        const nodeDatum = this.contextNodeData?.nodeData[datumIndex]!;
 
         if (xValue == null) return;
 
@@ -454,8 +399,19 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: String(sizeValue) });
         }
 
-        const format = this.getMarkerItemBaseStyle(false);
-        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format, false));
+        const style = marker.getStyle();
+        const activeStyle = this.getMarkerStyle(
+            marker,
+            {
+                datum: nodeDatum,
+                xKey,
+                yKey,
+                sizeKey,
+                labelKey,
+                highlighted: true,
+            },
+            style
+        );
 
         return tooltip.formatTooltip(
             {
@@ -475,7 +431,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 sizeName,
                 labelKey,
                 labelName,
-                ...format,
+                ...(activeStyle as RequireOptional<FillOptions & StrokeOptions & LineDashOptions>),
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
@@ -483,7 +439,17 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     private legendItemSymbol(): LegendSymbolOptions {
         const { marker } = this.properties;
-        const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = marker;
+        const {
+            shape,
+            fill,
+            stroke,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            defaultColorRange,
+        } = marker;
 
         return {
             marker: {
@@ -495,6 +461,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 strokeWidth,
                 lineDash,
                 lineDashOffset,
+                defaultColorRange,
             },
         };
     }

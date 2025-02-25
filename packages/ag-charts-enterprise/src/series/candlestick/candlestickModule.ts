@@ -6,6 +6,7 @@ import { candlestickSeriesOptionsDef } from './candlestickSeriesOptionsDef';
 import { CANDLESTICK_SERIES_THEME } from './candlestickThemes';
 
 const { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } = _ModuleSupport.ThemeConstants;
+const { DEFAULT_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
 export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
     type: 'series',
@@ -28,7 +29,8 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
     ],
     themeTemplate: CANDLESTICK_SERIES_THEME,
     groupable: false,
-    paletteFactory: ({ takeColors, colorsCount, userPalette, palette }) => {
+    paletteFactory: ({ takeColors, colorsCount, userPalette, palette, themeTemplateParameters }) => {
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
         if (userPalette === 'user-indexed') {
             const { fills, strokes } = takeColors(colorsCount);
             return {
@@ -36,10 +38,12 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
                     up: {
                         fill: 'transparent',
                         stroke: strokes[0],
+                        defaultColorRange,
                     },
                     down: {
                         fill: fills[0],
                         stroke: strokes[0],
+                        defaultColorRange,
                     },
                 },
             };
@@ -47,8 +51,8 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
 
         return {
             item: {
-                up: palette.up,
-                down: palette.down,
+                up: { ...palette.up, defaultColorRange },
+                down: { ...palette.down, defaultColorRange },
             },
         };
     },

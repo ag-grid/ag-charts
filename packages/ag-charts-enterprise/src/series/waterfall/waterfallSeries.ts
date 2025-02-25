@@ -523,6 +523,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             lineDash: highlightStyle?.lineDash ?? item.lineDash ?? [],
             lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
             cornerRadius: item.cornerRadius,
+            defaultColorRange: item.defaultColorRange,
         };
 
         if (itemStyler != null) {
@@ -648,9 +649,20 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(item: AgWaterfallSeriesItemType): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
             this.getItemConfig(item);
-        return { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } };
+        return {
+            marker: {
+                fill,
+                stroke,
+                fillOpacity,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+                defaultColorRange,
+            },
+        };
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType) {

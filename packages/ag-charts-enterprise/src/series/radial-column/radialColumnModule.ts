@@ -6,6 +6,7 @@ import { radialColumnSeriesOptionsDef } from './radialColumnSeriesOptionsDef';
 import { RADIAL_COLUMN_SERIES_THEME } from './radialColumnThemes';
 
 const { POLAR_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
+const { DEFAULT_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
 export const RadialColumnModule: _ModuleSupport.SeriesModule<'radial-column'> = {
     type: 'series',
@@ -18,12 +19,13 @@ export const RadialColumnModule: _ModuleSupport.SeriesModule<'radial-column'> = 
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
     themeTemplate: RADIAL_COLUMN_SERIES_THEME,
-    paletteFactory: ({ takeColors }) => {
+    paletteFactory: ({ takeColors, themeTemplateParameters }) => {
         const {
             fills: [fill],
             strokes: [stroke],
         } = takeColors(1);
-        return { fill, stroke };
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
+        return { fill, stroke, defaultColorRange };
     },
     stackable: true,
     groupable: true,

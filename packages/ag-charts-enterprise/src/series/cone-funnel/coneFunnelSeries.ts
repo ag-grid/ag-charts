@@ -54,17 +54,20 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
             strokeWidth: 0,
             lineDash: [],
             lineDashOffset: 0,
+            defaultColorRange: this.properties.defaultColorRange,
         };
     }
 
     protected override connectorStyle(): FunnelSeriesShapeStyle {
-        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
+        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
+            this.properties;
         return {
             fillOpacity,
             strokeOpacity,
             strokeWidth,
             lineDash,
             lineDashOffset,
+            defaultColorRange,
         };
     }
 

@@ -432,6 +432,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 lineDash: marker.lineDash,
                 lineDashOffset: marker.lineDashOffset,
                 enabled: marker.enabled || strokeWidth <= 0,
+                defaultColorRange: marker.defaultColorRange,
             },
             line: {
                 stroke,

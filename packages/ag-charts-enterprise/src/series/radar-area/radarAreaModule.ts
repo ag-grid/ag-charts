@@ -26,6 +26,7 @@ export const RadarAreaModule: _ModuleSupport.SeriesModule<'radar-area'> = {
         return {
             stroke: marker.stroke,
             fill: marker.fill,
+            defaultColorRange: marker.defaultColorRange,
             marker,
         };
     },

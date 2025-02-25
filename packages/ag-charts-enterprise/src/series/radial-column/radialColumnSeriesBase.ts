@@ -66,7 +66,7 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNod
     readonly index: number;
 }
 
-type ItemStyle = Required<AgRadialSeriesStyle>;
+type ItemStyle = Required<AgRadialSeriesStyle> & _ModuleSupport.DefaultFillStyle;
 
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends _ModuleSupport.Sector | _ModuleSupport.RadialColumnShape,
@@ -401,6 +401,7 @@ export abstract class RadialColumnSeriesBase<
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             cornerRadius: properties.cornerRadius,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -554,7 +555,8 @@ export abstract class RadialColumnSeriesBase<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
+            this.properties;
 
         return {
             marker: {
@@ -565,6 +567,7 @@ export abstract class RadialColumnSeriesBase<
                 strokeWidth,
                 lineDash,
                 lineDashOffset,
+                defaultColorRange,
             },
         };
     }

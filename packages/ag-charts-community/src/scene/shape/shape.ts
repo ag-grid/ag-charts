@@ -56,7 +56,7 @@ export abstract class Shape<D = any> extends Node<D> {
         lineJoin: undefined,
         opacity: 1,
         fillShadow: undefined,
-        defaultColorRange: ['#5090dc', '#ef5452'],
+        defaultColorRange: [],
     };
 
     /**
@@ -73,8 +73,8 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection()
     strokeOpacity: number = 1;
 
-    @SceneChangeDetection()
-    defaultColorRange: string[] = Shape.defaultStyles.defaultColorRange;
+    @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
+    defaultColorRange?: string[] = Shape.defaultStyles.defaultColorRange;
 
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fill?: FillType = Shape.defaultStyles.fill;
@@ -90,6 +90,10 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     private createLinearGradient(fill: AgGradientFill) {
+        if (!this.defaultColorRange) {
+            return;
+        }
+
         const { colorStops = [], direction, rotation = 0 } = fill;
         const isHorizontal = direction === 'horizontal';
         const stops = getColorStops(colorStops, this.defaultColorRange, [0, 1]);
@@ -186,10 +190,8 @@ export abstract class Shape<D = any> extends Node<D> {
 
     protected applyFill(ctx: CanvasContext) {
         const bbox = this.fillBBox ?? this.getBBox();
-        ctx.fillStyle =
-            this.fillGradient?.createGradient(ctx as any, bbox) ??
-            (typeof this.fill === 'string' ? this.fill : undefined) ??
-            'black';
+        const gradientFill = bbox ? this.fillGradient?.createGradient(ctx as any, bbox) : undefined;
+        ctx.fillStyle = gradientFill ?? (typeof this.fill === 'string' ? this.fill : undefined) ?? 'black';
     }
 
     protected applyStroke(ctx: CanvasContext) {

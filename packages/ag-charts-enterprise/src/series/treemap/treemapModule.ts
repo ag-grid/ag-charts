@@ -6,7 +6,12 @@ import { treemapSeriesOptionsDef } from './treemapSeriesOptionsDef';
 
 const {
     FONT_SIZE_RATIO,
-    ThemeSymbols: { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_HIERARCHY_FILLS, DEFAULT_HIERARCHY_STROKES },
+    ThemeSymbols: {
+        DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
+        DEFAULT_COLOR_RANGE,
+        DEFAULT_HIERARCHY_FILLS,
+        DEFAULT_HIERARCHY_STROKES,
+    },
 } = _ModuleSupport;
 
 export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
@@ -96,15 +101,17 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     },
     paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
         const { fills, strokes } = takeColors(colorsCount);
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
+        const colorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
         const groupFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
         const groupStrokes = themeTemplateParameters.get(DEFAULT_HIERARCHY_STROKES);
         return {
             fills,
             strokes,
-            colorRange: defaultColorRange,
+            colorRange,
             undocumentedGroupFills: groupFills,
             undocumentedGroupStrokes: groupStrokes,
+            defaultColorRange,
         };
     },
 };

@@ -42,7 +42,7 @@ export class RadarAreaSeries extends RadarSeries {
         const areaNode = this.getAreaNode();
 
         let fillBBox: _ModuleSupport.BBox | undefined;
-        const { fill } = this.properties;
+        const { fill, defaultColorRange, fillOpacity } = this.properties;
         if (isGradientFill(fill)) {
             fill.bounds ??= 'series';
             fillBBox = this.getFillBBox(fill);
@@ -50,7 +50,8 @@ export class RadarAreaSeries extends RadarSeries {
 
         areaNode.fillBBox = fillBBox;
         areaNode.fill = fill;
-        areaNode.fillOpacity = this.properties.fillOpacity;
+        areaNode.defaultColorRange = defaultColorRange;
+        areaNode.fillOpacity = fillOpacity;
         areaNode.pointerEvents = PointerEvents.None;
         areaNode.stroke = undefined;
     }

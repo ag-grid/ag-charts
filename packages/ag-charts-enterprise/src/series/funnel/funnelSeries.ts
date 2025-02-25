@@ -22,7 +22,9 @@ const {
     applyShapeStyle,
 } = _ModuleSupport;
 
-type ItemStyle = Pick<AgFunnelSeriesStyle, 'fill' | 'stroke'> & Required<Omit<AgFunnelSeriesStyle, 'fill' | 'stroke'>>;
+type ItemStyle = Pick<AgFunnelSeriesStyle, 'fill' | 'stroke'> &
+    Required<Omit<AgFunnelSeriesStyle, 'fill' | 'stroke'>> &
+    _ModuleSupport.DefaultFillStyle;
 
 export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>> {
     static readonly className = 'FunnelSeries';
@@ -48,20 +50,31 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
     }
 
     protected override barStyle(): FunnelSeriesShapeStyle {
-        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
+        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
+            this.properties;
         return {
             fillOpacity,
             strokeOpacity,
             strokeWidth,
             lineDash,
             lineDashOffset,
+            defaultColorRange,
         };
     }
 
     protected override connectorStyle(): FunnelSeriesShapeStyle {
         const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
             this.properties.dropOff;
-        return { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset };
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            defaultColorRange: this.properties.defaultColorRange,
+        };
     }
 
     protected override nodeFactory(): _ModuleSupport.Rect {
@@ -112,6 +125,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 

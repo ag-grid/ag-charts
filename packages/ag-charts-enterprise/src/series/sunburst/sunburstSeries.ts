@@ -74,7 +74,8 @@ enum TextNodeTag {
 }
 
 type ItemStyle = Pick<AgSunburstSeriesStyle, 'fill' | 'stroke'> &
-    Omit<Required<AgSunburstSeriesStyle>, 'fill' | 'stroke'>;
+    Omit<Required<AgSunburstSeriesStyle>, 'fill' | 'stroke'> &
+    _ModuleSupport.DefaultFillStyle;
 
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     _ModuleSupport.Sector,
@@ -147,6 +148,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             stroke: highlightStyle?.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -537,8 +539,17 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     override getTooltipContent(datumIndex: number[]): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
-        const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
-            properties;
+        const {
+            labelKey,
+            secondaryLabelKey,
+            childrenKey,
+            sizeKey,
+            sizeName,
+            colorKey,
+            colorName,
+            tooltip,
+            defaultColorRange,
+        } = properties;
         const nodeDatum = datumIndex.reduce((n, i) => n?.children[i], this.rootNode);
         if (nodeDatum == null) return;
         const { datum, depth } = nodeDatum;
@@ -574,6 +585,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                         strokeOpacity: 1,
                         lineDash: [0],
                         lineDashOffset: 0,
+                        defaultColorRange,
                     },
                 },
                 data,

@@ -253,7 +253,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.properties;
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
+            this.properties;
 
         return {
             marker: {
@@ -264,6 +265,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 strokeWidth,
                 lineDash,
                 lineDashOffset,
+                defaultColorRange,
             },
         };
     }
@@ -393,9 +395,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return opts.datumSelection.update(data);
     }
 
-    private getItemBaseStyle(highlighted: boolean): Required<AgBoxPlotSeriesStyle> {
+    private getItemBaseStyle(highlighted: boolean): Required<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle {
         const { properties } = this;
-        const { cornerRadius, cap, whisker } = properties;
+        const { cornerRadius, cap, whisker, defaultColorRange } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
@@ -410,6 +412,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             cornerRadius,
             cap,
             whisker,
+            defaultColorRange,
         };
     }
 
@@ -470,7 +473,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
-                activeStyles as DeepRequired<AgBoxPlotSeriesStyle>,
+                activeStyles as DeepRequired<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle,
                 isVertical,
                 isReversedValueAxis,
                 fillBBox
@@ -497,7 +500,18 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     getFormattedStyles(nodeDatum: BoxPlotNodeDatum, scope: 'tooltip' | 'node' | 'highlight'): AgBoxPlotSeriesStyle {
         const { id: seriesId, properties } = this;
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler, backgroundFill, cornerRadius } = properties;
+        const {
+            xKey,
+            minKey,
+            q1Key,
+            medianKey,
+            q3Key,
+            maxKey,
+            itemStyler,
+            backgroundFill,
+            cornerRadius,
+            defaultColorRange,
+        } = properties;
         const { datum, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
         let fill;
         let fillOpacity: number | undefined;
@@ -523,7 +537,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             fillOpacity = undefined;
         }
 
-        const activeStyles: Required<AgBoxPlotSeriesStyle> = {
+        const activeStyles: Required<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle = {
             fill,
             fillOpacity: fillOpacity!,
             stroke,
@@ -534,6 +548,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             cornerRadius,
             cap: extractDecoratedProperties(cap),
             whisker: extractDecoratedProperties(whisker),
+            defaultColorRange,
         };
 
         if (itemStyler) {

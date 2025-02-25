@@ -5,6 +5,8 @@ import type { Gradient } from '../gradient/gradient';
 
 export type FillType = AgFillType | Gradient;
 
+export type DefaultFillStyle = { defaultColorRange: string[] };
+
 export function isGradientFill(fill: any): fill is AgGradientFill {
     return fill !== null && isObject(fill) && fill.type == 'gradient';
 }

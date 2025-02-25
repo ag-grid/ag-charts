@@ -34,6 +34,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             strokeOpacity: upStrokeOpacity,
             lineDash: upLineDash,
             lineDashOffset: upLineDashOffset,
+            defaultColorRange: upDefaultColorRange,
         } = up;
         const {
             stroke: upWickStroke,
@@ -50,6 +51,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             strokeOpacity: downStrokeOpacity,
             lineDash: downLineDash,
             lineDashOffset: downLineDashOffset,
+            defaultColorRange: downDefaultColorRange,
         } = down;
         const {
             stroke: downWickStroke,
@@ -104,6 +106,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             node.crisp = crisp;
 
             node.fillBBox = isRising ? upFillBBox : downFillBBox;
+            node.defaultColorRange = isRising ? upDefaultColorRange : downDefaultColorRange;
             node.fill = highlightStyle?.fill ?? style?.fill ?? (isRising ? upFill : downFill);
             node.fillOpacity =
                 highlightStyle?.fillOpacity ?? style?.fillOpacity ?? (isRising ? upFillOpacity : downFillOpacity);
@@ -177,6 +180,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                 strokeOpacity: up.strokeOpacity ?? 1,
                 lineDash: up.lineDash,
                 lineDashOffset: up.lineDashOffset,
+                defaultColorRange: up.defaultColorRange,
             },
         };
     }

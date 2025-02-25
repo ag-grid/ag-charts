@@ -439,7 +439,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible: visible || animationEnabled,
         });
 
-        const { fill: seriesFill } = this.properties;
+        const { fill: seriesFill, defaultColorRange } = this.properties;
         let fillBBox;
         if (isGradientFill(seriesFill)) {
             seriesFill.bounds ??= 'series';
@@ -448,6 +448,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         fill.setProperties({
             fillBBox,
+            defaultColorRange,
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
@@ -670,6 +671,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 strokeWidth: marker.strokeWidth,
                 lineDash: marker.lineDash,
                 lineDashOffset: marker.lineDashOffset,
+                defaultColorRange: marker.defaultColorRange,
             },
             line: {
                 stroke,

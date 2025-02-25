@@ -10,6 +10,7 @@ import type {
 
 import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
+import type { DefaultFillStyle } from '../../scene/util/fill';
 import {
     BOOLEAN,
     COLOR_GRADIENT,
@@ -80,7 +81,7 @@ export class SeriesMarker<TParams = never>
     @SceneChangeDetection()
     itemStyler?: Styler<AgSeriesMarkerStylerParams<unknown> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
 
-    getStyle(): AgSeriesMarkerStyle & { defaultColorRange: string[] } {
+    getStyle(): AgSeriesMarkerStyle & DefaultFillStyle {
         const {
             size,
             shape,

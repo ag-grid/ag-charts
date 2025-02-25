@@ -47,7 +47,7 @@ type MapMarkerAnimationEvent = {
     skip: undefined;
 };
 
-type ItemStyle = Required<AgMapMarkerSeriesStyle>;
+type ItemStyle = Required<AgMapMarkerSeriesStyle> & _ModuleSupport.DefaultFillStyle;
 
 export class MapMarkerSeries
     extends TopologySeries<
@@ -571,6 +571,7 @@ export class MapMarkerSeries
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -710,7 +711,8 @@ export class MapMarkerSeries
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
         const { dataModel, processedData, properties } = this;
-        const { shape, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = properties;
+        const { shape, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
+            properties;
 
         let { fill } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
@@ -729,6 +731,7 @@ export class MapMarkerSeries
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
+                defaultColorRange,
             },
         };
     }

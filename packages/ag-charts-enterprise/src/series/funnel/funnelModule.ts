@@ -1,9 +1,11 @@
-import type { AgFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { FunnelSeries } from './funnelSeries';
 import { funnelSeriesOptionsDef } from './funnelSeriesOptionsDef';
 import { FUNNEL_SERIES_THEME, funnelSeriesAxes } from './funnelThemes';
+
+const { DEFAULT_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
 export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
     type: 'series',
@@ -18,9 +20,11 @@ export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
     defaultAxes: funnelSeriesAxes,
     themeTemplate: FUNNEL_SERIES_THEME,
 
-    paletteFactory: ({ takeColors }) => {
+    paletteFactory: ({ takeColors, themeTemplateParameters }) => {
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
+
         const { fills, strokes } = takeColors(1);
-        return { fills, strokes };
+        return { fills, strokes, defaultColorRange };
     },
 };
 

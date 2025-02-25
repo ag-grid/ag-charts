@@ -56,9 +56,10 @@ interface ChordNodeLabelDatum {
 }
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
-    Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
+    Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'> &
+    _ModuleSupport.DefaultFillStyle;
 
-type LinkStyle = NodeStyle & { tension: number };
+type LinkStyle = NodeStyle & { tension: number } & _ModuleSupport.DefaultFillStyle;
 
 interface ChordNodeDataContext
     extends FlowProportionSeriesContext<ChordNodeDatum, ChordLinkDatum, ChordNodeLabelDatum> {}
@@ -379,6 +380,7 @@ export class ChordSeries extends FlowProportionSeries<
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.node.strokeWidth),
             lineDash: highlightStyle?.lineDash ?? lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -467,6 +469,7 @@ export class ChordSeries extends FlowProportionSeries<
             sector.startAngle = datum.startAngle;
             sector.endAngle = datum.endAngle;
             sector.fill = overrides.fill ?? format?.fill;
+            sector.defaultColorRange = format?.defaultColorRange;
             sector.fillOpacity = overrides.fillOpacity ?? format?.fillOpacity;
             sector.stroke = overrides.stroke ?? format?.stroke;
             sector.strokeOpacity = overrides.strokeOpacity ?? format?.strokeOpacity;
@@ -500,6 +503,7 @@ export class ChordSeries extends FlowProportionSeries<
             lineDash: highlightStyle?.lineDash ?? lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
             tension,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 

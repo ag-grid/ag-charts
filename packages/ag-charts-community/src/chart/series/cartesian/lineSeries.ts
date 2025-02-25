@@ -635,6 +635,7 @@ export class LineSeries extends CartesianSeries<
                 lineDash: marker.lineDash,
                 lineDashOffset: marker.lineDashOffset,
                 enabled: marker.enabled,
+                defaultColorRange: marker.defaultColorRange,
             },
             line: {
                 stroke: stroke ?? color0,
