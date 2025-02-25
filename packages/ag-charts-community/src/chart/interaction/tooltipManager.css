@@ -1,5 +1,6 @@
 .ag-charts-tooltip {
     --tooltip-arrow-size: 8px;
+    --tooltip-row-spacing: 16px;
 
     /* Popover attribute resets */
     position: fixed;
@@ -33,6 +34,7 @@ However, we may wish to use this in the future
 */
 
 .ag-charts-tooltip--compact .ag-charts-tooltip-content {
+    --tooltip-row-spacing: 8px;
     padding: 3px 6px;
 }
 
@@ -150,7 +152,7 @@ However, we may wish to use this in the future
 .ag-charts-tooltip-row {
     grid-column: 1 / -1;
     display: flex;
-    gap: 16px;
+    gap: var(--tooltip-row-spacing);
     align-items: baseline;
     justify-content: space-between;
     /* Ensure row doesn't grow beyond grid cell */

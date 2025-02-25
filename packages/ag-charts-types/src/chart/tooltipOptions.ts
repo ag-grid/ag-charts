@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from './callbackOptions';
 import type { DurationMs, InteractionRange, PixelSize, TextWrap } from './types';
 
-export type AgTooltipMode = 'single' | 'shared';
+export type AgTooltipMode = 'single' | 'shared' | 'compact';
 
 export type AgTooltipAnchorTo = 'pointer' | 'node' | 'chart';
 

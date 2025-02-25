@@ -169,16 +169,27 @@ function tooltipPaginationHtml(localeManager: LocaleManager | undefined, paginat
     return `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${paginationContent}</div>`;
 }
 
+function compactTooltipHtml(content: GroupedStructuredContent) {
+    const data = content.items?.[0].data;
+    if (data == null || data.length === 0) return '';
+
+    const { label, value } = data[0];
+    return `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${dataHtml(label, value, false)}</div>`;
+}
+
 export function tooltipHtml(
     localeManager: LocaleManager | undefined,
     content: TooltipContent[],
+    compact: boolean,
     pagination: TooltipPaginationState | undefined
 ) {
     const aggregatedContent = aggregateTooltipContent(content);
-    if (aggregatedContent.length === 0) {
-        return '';
-    } else if (aggregatedContent.length === 1 && aggregatedContent[0].type === 'structured') {
-        return tooltipContentHtml(localeManager, aggregatedContent[0], pagination);
+    if (aggregatedContent.length === 0) return '';
+
+    if (aggregatedContent.length === 1 && aggregatedContent[0].type === 'structured') {
+        return compact
+            ? compactTooltipHtml(aggregatedContent[0])
+            : tooltipContentHtml(localeManager, aggregatedContent[0], pagination);
     } else {
         const htmlRows = aggregatedContent.map((c) => {
             return c.type === 'structured' ? tooltipContentHtml(localeManager, c) : c.rawHtmlString;
