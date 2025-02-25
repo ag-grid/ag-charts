@@ -15,10 +15,12 @@ import type {
     AgLineSeriesOptions,
     AgLineSeriesTooltipRendererParams,
     AgNumberAxisOptions,
+    AgSeriesTooltip,
     AgSparklineAxisOptions,
     AgSparklineOptions,
     AgSparklineTooltip,
     AgTimeAxisOptions,
+    AgTooltipRendererResult,
     WithThemeParams,
 } from 'ag-charts-types';
 
@@ -54,7 +56,7 @@ const numericAxisProperties = {
     nice: false,
 };
 
-const seriesTooltipDefaults: AgChartTooltipOptions = {
+const seriesTooltipDefaults: AgSeriesTooltip<any> = {
     position: {
         anchorTo: 'node',
         placement: ['right', 'left'],
@@ -62,9 +64,8 @@ const seriesTooltipDefaults: AgChartTooltipOptions = {
 };
 
 const chartTooltipDefaults: AgChartTooltipOptions = {
+    mode: 'compact',
     showArrow: false,
-    // @ts-expect-error Undocumented.
-    compact: true,
 };
 
 const barGridLineDefaults: WithThemeParams<AgAxisGridLineOptions> = {
@@ -279,7 +280,7 @@ function gridLinePreset(
 const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineTooltip<any>, datumKey?: string) => {
     return (
         params: AgBarSeriesTooltipRendererParams | AgLineSeriesTooltipRendererParams | AgAreaSeriesTooltipRendererParams
-    ) => {
+    ): AgTooltipRendererResult | string => {
         const xValue = params.datum[params.xKey];
         const yValue = params.datum[params.yKey];
         const datum = datumKey != null ? params.datum[datumKey] : params.datum;
@@ -287,20 +288,15 @@ const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineToo
         const userContent = tooltip?.renderer?.({ context, datum, xValue, yValue });
         if (typeof userContent === 'string') return userContent;
 
-        const title = userContent?.title;
-        const content = userContent?.content;
-        return title != null && content != null
-            ? {
-                  heading: title,
-                  title: undefined,
-                  // Undocumented 'compact' tooltip mode
-                  data: [{ label: undefined!, value: content }],
-              }
-            : {
-                  heading: title ?? content ?? yValue.toFixed(2),
-                  title: undefined,
-                  data: [],
-              };
+        return {
+            data: [
+                {
+                    // @ts-expect-error This is safe for compact tooltips
+                    label: userContent?.title,
+                    value: userContent?.content ?? yValue.toFixed(2),
+                },
+            ],
+        };
     };
 });
 

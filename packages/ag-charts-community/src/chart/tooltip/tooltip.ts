@@ -134,7 +134,7 @@ const directionChecks: Record<AgTooltipPlacement, DirectionCheck> = {
     center: DirectionCheck.None,
 };
 
-const TOOLTIP_MODE = UNION(['single', 'shared']);
+const TOOLTIP_MODE = UNION(['single', 'shared', 'compact']);
 
 const POSITION_TYPE = UNION(
     ['pointer', 'node', 'top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-right', 'bottom-left'],
@@ -223,10 +223,6 @@ export class Tooltip extends BaseProperties {
     /** Escape-hatch for changes in AG-11645. */
     @Validate(UNION(['extended', 'canvas']))
     bounds: 'extended' | 'canvas' = 'extended';
-
-    /** Undocumented sparkline option */
-    @Validate(BOOLEAN)
-    compact = false;
 
     private readonly destroyFns: Array<() => void> = [];
     private readonly springAnimation = new SpringAnimation();
@@ -371,6 +367,7 @@ export class Tooltip extends BaseProperties {
             element.innerHTML = tooltipHtml(
                 this.localeManager,
                 content,
+                this.mode === 'compact',
                 this.pagination.enabled ? pagination : undefined
             );
             this._elementSize = { width: element.clientWidth, height: element.clientHeight };
@@ -454,7 +451,7 @@ export class Tooltip extends BaseProperties {
         toggleClass('arrow-right', this.arrowPosition === ArrowPosition.Right);
         toggleClass('arrow-bottom', this.arrowPosition === ArrowPosition.Bottom);
         toggleClass('arrow-left', this.arrowPosition === ArrowPosition.Left);
-        toggleClass('compact', this.compact);
+        toggleClass('compact', this.mode === 'compact');
 
         classList.toggle(DEFAULT_TOOLTIP_DARK_CLASS, this.darkTheme);
 
