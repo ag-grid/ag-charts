@@ -142,7 +142,6 @@ export { isDenseInterval, range } from './util/ticks';
 export { Color } from './util/color';
 export { setAttribute, setAttributes, setElementStyle } from './util/attributeUtil';
 export { Debug } from './util/debug';
-export { sanitizeHtml } from './util/sanitize';
 export { isContinuous } from './util/value';
 export type { PlacedLabel, PointLabelDatum, LabelPlacement } from './scene/util/labelPlacement';
 export { isGradientFill } from './scene/util/fill';
