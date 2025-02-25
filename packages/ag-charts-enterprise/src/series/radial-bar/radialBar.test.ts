@@ -298,6 +298,26 @@ describe('RadialBarSeries', () => {
     });
 
     describe('gradient fill', () => {
+        it('should render radial bar series with a default gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        type: 'radial-bar',
+                        angleKey: 'Mountain air',
+                        radiusKey: 'quarter',
+                        fill: {
+                            type: 'gradient',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
         it('should render radial bar series with a gradient fill', async () => {
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,

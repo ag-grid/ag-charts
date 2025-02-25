@@ -392,6 +392,33 @@ describe('WaterfallSeries', () => {
     });
 
     describe('gradient fill', () => {
+        it('should render waterfall series with a default gradient fill', async () => {
+            const options = {
+                ...WATERFALL_COLUMN_OPTIONS,
+                series: [
+                    {
+                        ...WATERFALL_COLUMN_OPTIONS.series![0],
+                        item: {
+                            positive: {
+                                fill: {
+                                    type: 'gradient',
+                                },
+                            },
+                            negative: {
+                                fill: {
+                                    type: 'gradient',
+                                },
+                            },
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options as any);
+            await compare();
+        });
+
         it('should render waterfall series with a gradient fill', async () => {
             const options = {
                 ...WATERFALL_COLUMN_OPTIONS,

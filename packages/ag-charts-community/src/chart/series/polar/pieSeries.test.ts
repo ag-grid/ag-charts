@@ -78,6 +78,32 @@ describe('PieSeries', () => {
     });
 
     describe('gradient fill', () => {
+        it('should render pie series with a default gradient fill', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { cat: 1, fox: 20, dog: 37 },
+                    { cat: 3, fox: 10, dog: 32 },
+                    { cat: 7, fox: 15, dog: 35 },
+                    { cat: 8, fox: 17, dog: 36 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        radiusKey: 'dog',
+                        angleKey: 'fox',
+                        sectorLabelKey: 'fox',
+                        fills: [
+                            {
+                                type: 'gradient',
+                            },
+                        ],
+                    },
+                ],
+            });
+            await compare();
+        });
+
         it('should render pie series with a gradient fill', async () => {
             chart = await createChart({
                 ...options,

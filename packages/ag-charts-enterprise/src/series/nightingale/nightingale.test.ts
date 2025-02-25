@@ -284,6 +284,26 @@ describe('NightingaleSeries', () => {
     });
 
     describe('gradient fill', () => {
+        it('should render nightingale series with a default gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        type: 'nightingale',
+                        angleKey: 'quarter',
+                        radiusKey: 'Mountain air',
+                        fill: {
+                            type: 'gradient',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
         it('should render nightingale series with a gradient fill', async () => {
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,

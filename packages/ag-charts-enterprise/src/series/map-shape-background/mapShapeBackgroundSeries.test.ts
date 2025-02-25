@@ -54,6 +54,25 @@ describe('MapShapeBackgroundSeries', () => {
     });
 
     describe('gradient fill', () => {
+        it('should render map shape background series with a default gradient fill', async () => {
+            const options: AgChartOptions = {
+                topology: ukTopology,
+                series: [
+                    {
+                        type: 'map-shape-background',
+                        fill: {
+                            type: 'gradient',
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
         it('should render map shape background series with a gradient fill', async () => {
             const options: AgChartOptions = {
                 topology: ukTopology,

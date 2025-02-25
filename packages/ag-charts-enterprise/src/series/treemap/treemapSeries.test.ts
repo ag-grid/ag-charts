@@ -337,6 +337,30 @@ describe('TreemapSeries', () => {
     });
 
     describe('gradient fill', () => {
+        it('should render treemap series with a default gradient fill', async () => {
+            const options = {
+                ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        secondaryLabelKey: 'change',
+                        sizeName: 'Valuation',
+                        sizeKey: 'valuation',
+                        fills: [
+                            {
+                                type: 'gradient',
+                            },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
+
         it('should render treemap series with a gradient fill', async () => {
             const options = {
                 ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,

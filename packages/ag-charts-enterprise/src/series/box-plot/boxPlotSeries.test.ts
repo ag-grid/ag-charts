@@ -212,6 +212,22 @@ describe('BoxPlotSeries', () => {
     });
 
     describe('gradient fill', () => {
+        it('should render box plot series with a default gradient fill', async () => {
+            const options = {
+                ...BOX_PLOT_BAR_OPTIONS,
+                series: [
+                    {
+                        ...BOX_PLOT_BAR_OPTIONS.series![0],
+                        fill: {
+                            type: 'gradient',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+            await compareSnapshot(AgCharts.create(options as AgChartOptions));
+        });
+
         it('should render box plot series with a gradient fill', async () => {
             const options = {
                 ...BOX_PLOT_BAR_OPTIONS,

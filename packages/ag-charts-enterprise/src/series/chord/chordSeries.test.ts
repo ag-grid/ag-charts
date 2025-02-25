@@ -314,6 +314,30 @@ describe('ChordSeries', () => {
     });
 
     describe('gradient fill', () => {
+        it('should render chord series with a default gradient fill', async () => {
+            const options = {
+                ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,
+                series: [
+                    {
+                        type: 'chord',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'sales',
+                        sizeName: 'Sales',
+                        fills: [
+                            {
+                                type: 'gradient',
+                            },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
+
         it('should render chord series with a gradient fill', async () => {
             const options = {
                 ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,

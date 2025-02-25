@@ -323,6 +323,28 @@ describe('SunburstSeries', () => {
     });
 
     describe('gradient fill', () => {
+        it('should render sunburst series with a default gradient fill', async () => {
+            const options = {
+                ...GALLERY_EXAMPLES.SIMPLE_SUNBURST_EXAMPLE.options,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        secondaryLabelKey: 'capacity',
+                        fills: [
+                            {
+                                type: 'gradient',
+                            },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
+
         it('should render sunburst series with a gradient fill', async () => {
             const options = {
                 ...GALLERY_EXAMPLES.SIMPLE_SUNBURST_EXAMPLE.options,

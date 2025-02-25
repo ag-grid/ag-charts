@@ -292,6 +292,28 @@ describe('ConeFunnelSeries', () => {
     });
 
     describe('gradient fill', () => {
+        it('should render cone funnel series with a default gradient fill', async () => {
+            const options = {
+                ...CONE_FUNNEL_EXAMPLE,
+                series: [
+                    {
+                        type: 'cone-funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        fills: [
+                            {
+                                type: 'gradient',
+                            },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
+
         it('should render cone funnel series with a gradient fill', async () => {
             const options = {
                 ...CONE_FUNNEL_EXAMPLE,

@@ -356,6 +356,27 @@ describe('HistogramSeries', () => {
     });
 
     describe('gradient fill', () => {
+        it('should render histogram series with default gradient fill', async () => {
+            const options = {
+                ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options,
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'engine-size',
+                        fill: {
+                            type: 'gradient',
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options as AgChartOptions);
+
+            chart = AgCharts.create(options as AgChartOptions);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
         it('should render histogram series with a gradient fill', async () => {
             const options = {
                 ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options,

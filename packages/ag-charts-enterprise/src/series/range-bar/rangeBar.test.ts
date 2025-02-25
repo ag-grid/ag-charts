@@ -589,6 +589,55 @@ describe('RangeBarSeries', () => {
     });
 
     describe('gradient fill', () => {
+        it('should render range column series with a default gradient fill', async () => {
+            const options = {
+                ...RANGE_COLUMN_OPTIONS,
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'date',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        fill: {
+                            type: 'gradient',
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = AgCharts.create(options as AgChartOptions);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('should render range bar series with a default gradient fill', async () => {
+            const options = {
+                ...RANGE_COLUMN_OPTIONS,
+                series: [
+                    {
+                        type: 'range-bar',
+                        direction: 'horizontal',
+                        xKey: 'date',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        fill: {
+                            type: 'gradient',
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = AgCharts.create(options as AgChartOptions);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
         it('should render range column series with a gradient fill', async () => {
             const options = {
                 ...RANGE_COLUMN_OPTIONS,
