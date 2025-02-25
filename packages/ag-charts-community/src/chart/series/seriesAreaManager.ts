@@ -416,16 +416,17 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        const activeTooltip = this.tooltipCandidates.next();
-        if (activeTooltip != null) {
+        const nextTooltipCandidate = this.chart.tooltip.pagination.enabled ? this.tooltipCandidates.next() : undefined;
+        if (nextTooltipCandidate != null) {
             event.sourceEvent.preventDefault();
             const { currentX, currentY } = event;
             const canvasX = currentX + (this.hoverRect?.x ?? 0);
             const canvasY = currentY + (this.hoverRect?.y ?? 0);
-            this.chart.ctx.highlightManager.updateHighlight(this.id, activeTooltip.current.datum);
+            this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
+            this.handleHoverHighlight(false);
             this.showTooltip(
-                activeTooltip.current,
-                { index: activeTooltip.index, length: activeTooltip.length },
+                nextTooltipCandidate.current,
+                { index: nextTooltipCandidate.index, length: nextTooltipCandidate.length },
                 canvasX,
                 canvasY
             );
