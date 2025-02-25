@@ -3,6 +3,7 @@ import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import type { Path } from '../../scene/shape/path';
 import { clamp } from '../../util/number';
+import { objectsEqual } from '../../util/object';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
@@ -190,7 +191,8 @@ export abstract class DataModelSeries<
             if (invalidValues?.[datumIndex] === true) continue;
 
             const xValue = xValues[datumIndex]?.valueOf();
-            if (categoryValue === xValue) return datumIndex;
+            // Handle grouped category values
+            if (objectsEqual(categoryValue, xValue)) return datumIndex;
         }
     }
 }
