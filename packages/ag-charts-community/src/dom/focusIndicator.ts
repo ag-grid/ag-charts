@@ -11,6 +11,7 @@ export class FocusIndicator {
     private readonly outerPath: SVGPathElement;
     private readonly innerPath: SVGPathElement;
     private readonly div: HTMLDivElement;
+    private hasBeenActivated = false;
 
     constructor(private readonly swapChain: FocusSwapChain) {
         this.div = createElement('div');
@@ -71,6 +72,7 @@ export class FocusIndicator {
     }
 
     private show(child: Element) {
+        this.hasBeenActivated = true;
         this.element.innerHTML = '';
         this.element.append(child);
     }
@@ -85,7 +87,11 @@ export class FocusIndicator {
     }
 
     // Get the `:focus-visible` CSS state.
-    public isFocusVisible(): boolean {
+    public isFocusVisible(force = false): boolean {
+        // Short-circuit from an expensive call to `getComputedStyle()` if focus has
+        // never been activated.
+        if (!force && !this.hasBeenActivated) return false;
+
         const parent = this.element.parentElement;
         return parent != null && getWindow().getComputedStyle(parent).opacity === '1';
     }

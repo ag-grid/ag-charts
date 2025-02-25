@@ -91,6 +91,9 @@ const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
             contextMenu: { enabled: false },
             keyboard: { enabled: false },
             background: { visible: false },
+            navigator: {
+                enabled: false,
+            },
             padding: {
                 top: 0,
                 right: 0,

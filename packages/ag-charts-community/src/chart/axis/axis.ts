@@ -499,7 +499,11 @@ export abstract class Axis<
 
     _scaleNiceDomainInputDomain: D[] | undefined = undefined;
     _scaleNiceDomainRangeExtent: number = NaN;
-    calculateLayout(initialPrimaryTickCount?: number) {
+    calculateLayout(initialPrimaryTickCount?: number): {
+        primaryTickCount?: number;
+        bbox?: BBox;
+        niceDomain?: unknown[];
+    } {
         const { scale, label, visibleRange, nice } = this;
 
         this.updateScale();
@@ -578,11 +582,11 @@ export abstract class Axis<
         primaryTickCount?: number
     ): {
         niceDomain: D[];
-        primaryTickCount: number | undefined;
+        primaryTickCount?: number;
         tickDomain: D[];
         ticks: D[];
         fractionDigits: number;
-        bbox: BBox | undefined;
+        bbox?: BBox;
     };
 
     protected getTransformBox(bbox: BBox) {

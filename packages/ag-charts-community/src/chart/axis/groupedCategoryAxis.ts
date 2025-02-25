@@ -426,7 +426,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
     override calculateLayout() {
         const { separatorLayout, tickLabelLayout, bbox } = this.computeLayout();
         this.computedLayout = { separatorLayout, tickLabelLayout };
-        return { bbox, primaryTickCount: undefined, niceDomain: this.scale.domain };
+        return { bbox, niceDomain: this.scale.domain };
     }
 
     /**
