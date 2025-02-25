@@ -93,7 +93,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly styles = new Map<string, string>();
     private readonly element: HTMLElement;
     private readonly styleRootElement?: HTMLElement;
-    private newContainer?: HTMLElement = undefined;
+    private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
     containerSize?: Size = undefined;
     private readonly tabGuards: GuardedElement;
@@ -163,7 +163,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (this.container) {
             this.sizeMonitor.unobserve(this.container);
         }
-        this.newContainer = undefined;
+        this.pendingContainer = undefined;
 
         Object.values(this.rootElements).forEach((el) => {
             el.children.forEach((c) => c.remove());
@@ -211,7 +211,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     setContainer(newContainer: HTMLElement) {
         if (newContainer === this.container) return;
 
-        this.newContainer = newContainer;
+        this.pendingContainer = newContainer;
 
         // If not currently attached to the DOM, eagerly attach.
         if (this.container == null) {
@@ -220,15 +220,15 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     updateContainer() {
-        const { newContainer } = this;
-        if (newContainer == null || newContainer === this.container) return;
+        const { pendingContainer } = this;
+        if (pendingContainer == null || pendingContainer === this.container) return;
 
         if (this.container) {
             this.container.removeChild(this.element);
             this.sizeMonitor.unobserve(this.container);
         }
 
-        const isShadowDom = this.getShadowDocumentRoot(newContainer) != null;
+        const isShadowDom = this.getShadowDocumentRoot(pendingContainer) != null;
 
         // If the container was inside a shadow DOM, the styles are added to the container rather than the head
         //
@@ -246,8 +246,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             }
         }
 
-        this.container = newContainer;
-        this.newContainer = undefined;
+        this.container = pendingContainer;
+        this.pendingContainer = undefined;
 
         // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
         // Or if the container is added lazily, we need to ensure styles are added before the container
@@ -256,8 +256,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             this.addStyles(id, styles);
         }
 
-        newContainer.appendChild(this.element);
-        this.sizeMonitor.observe(newContainer, (size) => {
+        pendingContainer.appendChild(this.element);
+        this.sizeMonitor.observe(pendingContainer, (size) => {
             this.containerSize = size;
             this.updateContainerSize();
             this.listeners.dispatch('resize', { type: 'resize' });
