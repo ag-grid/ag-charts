@@ -34,10 +34,10 @@ const options: AgChartOptions = {
     ],
     listeners: {
         click: (_event: AgChartClickEvent) => {
-            window.alert('click');
+            window.alert('[click]');
         },
         doubleClick: (_event: AgChartDoubleClickEvent) => {
-            window.alert('double click');
+            window.alert('[double click]');
         },
     },
 };

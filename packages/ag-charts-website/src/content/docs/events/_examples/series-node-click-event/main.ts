@@ -42,8 +42,13 @@ const options: AgChartOptions = {
     },
     listeners: {
         seriesNodeClick: ({ datum, xKey, yKey, seriesId }) => {
+            window.alert(`[click]\nTemperature in ${datum[xKey!]}: ${String(datum[yKey!])}°C\nSeries: ${seriesId}`);
+        },
+        seriesNodeDoubleClick: ({ datum, xKey, yKey, seriesId }) => {
+            const celsius = Number(datum[yKey!]);
+            const fahrenheit = (celsius * 9) / 5 + 32;
             window.alert(
-                'Temperature in ' + datum[xKey!] + ': ' + String(datum[yKey!]) + '°C' + '\nSeries: ' + seriesId
+                `[double click]\nTemperature in ${datum[xKey!]}: ${fahrenheit.toFixed(2)}°F\nSeries: ${seriesId}`
             );
         },
     },
