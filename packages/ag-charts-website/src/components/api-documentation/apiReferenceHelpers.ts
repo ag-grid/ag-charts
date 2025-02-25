@@ -193,22 +193,37 @@ export function formatTypeToCode(
                 ),
             });
             nodeType = '\n    ' + nodeType.replaceAll('|', '\n  |');
-            return [`type ${apiNode.name} = ${nodeType};`]
-                .concat(
-                    apiNode.type.type
-                        .map((type) => {
-                            if (
-                                typeof type === 'string' &&
-                                reference.has(type) &&
-                                !hiddenInterfaces.includes(type) &&
-                                !('deprecated' in reference.get(type)!)
-                            ) {
-                                return formatTypeToCode(reference.get(type), member, reference);
-                            }
-                        })
-                        .filter(<T>(x: T | undefined): x is T => Boolean(x))
-                )
-                .join('\n\n');
+
+            const result = [`type ${apiNode.name} = ${nodeType};`];
+            const additionalTypes = new Set(apiNode.type.type);
+
+            for (const type of additionalTypes) {
+                if (
+                    typeof type === 'string' &&
+                    reference.has(type) &&
+                    !hiddenInterfaces.includes(type) &&
+                    !('deprecated' in reference.get(type)!)
+                ) {
+                    const subType = reference.get(type)!;
+                    const codeResult = formatTypeToCode(subType, member, reference);
+                    if (codeResult) {
+                        result.push(codeResult);
+                    }
+                    if (subType.kind === 'interface' && subType.members.length) {
+                        for (const subMember of subType.members) {
+                            additionalTypes.add(
+                                normalizeType(
+                                    typeof subMember.type === 'object' && subMember.type.kind === 'array'
+                                        ? subMember.type.type
+                                        : subMember.type
+                                )
+                            );
+                        }
+                    }
+                }
+            }
+
+            return result.join('\n\n');
         }
         return `type ${apiNode.name} = ${normalizeType(apiNode.type)};`;
     }
