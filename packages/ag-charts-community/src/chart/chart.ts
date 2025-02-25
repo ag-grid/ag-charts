@@ -672,6 +672,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
                 }
 
                 this.ctx.domManager.incrementDataCounter('sceneRenders');
+
+                // Deferred update to avoid DOM changes mid-update.
                 this.ctx.domManager.postRenderUpdate();
             // fallthrough
 

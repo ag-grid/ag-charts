@@ -212,6 +212,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (newContainer === this.container) return;
 
         this.newContainer = newContainer;
+
+        // If not currently attached to the DOM, eagerly attach.
+        if (this.container == null) {
+            this.updateContainer();
+        }
     }
 
     updateContainer() {
