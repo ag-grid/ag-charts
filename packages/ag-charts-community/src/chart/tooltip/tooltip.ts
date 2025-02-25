@@ -53,7 +53,6 @@ export interface TooltipMetaPosition {
 
 export interface TooltipMeta extends TooltipOffsets {
     showArrow?: boolean;
-    lastPointerEvent?: TooltipPointerEvent;
     position?: TooltipMetaPosition;
     enableInteraction?: boolean;
 }

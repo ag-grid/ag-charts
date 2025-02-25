@@ -52,7 +52,7 @@ import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
 import { MARKER_SHAPE } from '../series/seriesMarker';
 import { applyShapeStyle } from '../series/shapeUtil';
-import { type TooltipMeta, type TooltipPointerEvent } from '../tooltip/tooltip';
+import { type TooltipMeta } from '../tooltip/tooltip';
 import { ZIndexMap } from '../zIndexMap';
 import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum } from './legendDatum';
@@ -999,18 +999,15 @@ export class Legend extends BaseProperties {
     }
 
     private toTooltipMeta(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): TooltipMeta {
-        let lastPointerEvent: TooltipPointerEvent<'pointermove' | 'keyboard'>;
+        let point: { x: number; y: number };
         if (event instanceof FocusEvent) {
-            const { x, y } = Transformable.toCanvas(node).computeCenter();
-            lastPointerEvent = { type: 'keyboard', canvasX: x, canvasY: y } as const;
+            point = Transformable.toCanvas(node).computeCenter();
         } else {
             event.preventDefault();
-            const { x, y } = Transformable.toCanvasPoint(node, event.offsetX, event.offsetY);
-            lastPointerEvent = { type: 'pointermove', canvasX: x, canvasY: y };
+            point = Transformable.toCanvasPoint(node, event.offsetX, event.offsetY);
         }
 
-        const { canvasX, canvasY } = lastPointerEvent;
-        return { canvasX, canvasY, lastPointerEvent, showArrow: false };
+        return { canvasX: point.x, canvasY: point.y, showArrow: false };
     }
 
     onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {

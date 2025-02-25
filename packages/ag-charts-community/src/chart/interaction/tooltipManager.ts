@@ -94,13 +94,6 @@ export class TooltipManager {
             nodeCanvasX: refPoint?.canvasX ?? canvasX,
             nodeCanvasY: refPoint?.canvasY ?? canvasY,
             enableInteraction: tooltip.interaction?.enabled ?? false,
-            lastPointerEvent: {
-                type: event.type,
-                canvasX,
-                canvasY,
-                nodeCanvasX: NaN,
-                nodeCanvasY: NaN,
-            },
             showArrow: tooltip.showArrow,
             position: {
                 placement,
