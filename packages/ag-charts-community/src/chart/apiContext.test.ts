@@ -1,3 +1,4 @@
+import { Caster } from 'ag-charts-test';
 import { AgBarSeriesThemeableOptions, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { Chart, createChart, setupMockCanvas, setupMockConsole } from './test/utils';
@@ -17,7 +18,15 @@ function initMock<F extends ItemStyler | LabelFormatter | TooltipRenderer>(mockI
 
     const mock: jest.Mock<Rtn, Arg[], unknown> = jest.fn<any, any>(mockImp);
     const frozen = Object.freeze((params: Arg): Rtn => mock(params));
-    return { mock, frozen };
+    const context = {};
+    const assertContext = () => {
+        for (const args of mock.mock.calls) {
+            const callContext = new Caster(args[0]).findProperty('context').accessProperty('context').value;
+            expect(callContext).toBe(context);
+        }
+        expect(Object.isFrozen(context)).toBe(false);
+    };
+    return { mock, frozen, context, assertContext };
 }
 
 describe('Chart', () => {
@@ -78,9 +87,16 @@ describe('Chart', () => {
         }
     });
 
-    test('TODO', () => {
-        expect(itemStyler.mock).not.toHaveBeenCalled();
-        expect(labelFormatter.mock).not.toHaveBeenCalled();
+    test('itemStyler', () => {
+        itemStyler.assertContext();
+        expect(itemStyler.mock).toHaveBeenCalledTimes(12);
+    });
+    test('labelFormatter', () => {
+        labelFormatter.assertContext();
+        expect(labelFormatter.mock).toHaveBeenCalledTimes(12);
+    });
+    test('tooltipRenderer', () => {
+        tooltipRenderer.assertContext();
         expect(tooltipRenderer.mock).not.toHaveBeenCalled();
     });
 });
