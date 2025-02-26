@@ -389,8 +389,13 @@ export class SeriesAreaManager extends BaseManager {
 
         if (this.isState(InteractionState.Default)) {
             const { currentX: x, currentY: y } = event;
-            const found = this.pickNodes({ x, y }, 'event')?.matches[0];
-            if (found?.series.hasEventListener('nodeClick') || found?.series.hasEventListener('nodeDoubleClick')) {
+            const matches = this.pickNodes({ x, y }, 'event')?.matches;
+            const found = matches?.[0];
+            if (
+                found?.series.hasEventListener('nodeClick') ||
+                found?.series.hasEventListener('nodeDoubleClick') ||
+                (matches != null && matches.length > 1 && this.chart.tooltip.pagination)
+            ) {
                 this.chart.ctx.domManager.updateCursor(this.id, 'pointer');
             } else {
                 this.chart.ctx.domManager.updateCursor(this.id);
