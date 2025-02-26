@@ -1,4 +1,4 @@
-import { AgBarSeriesStyle, AgCartesianChartOptions, AgTooltipRendererResult } from 'ag-charts-types';
+import { AgBarSeriesThemeableOptions, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { Chart, createChart, setupMockCanvas, setupMockConsole } from './test/utils';
 
@@ -6,29 +6,42 @@ type UndocumentedOptions = Omit<AgCartesianChartOptions, 'series' | 'axes'> & {
     series?: (NonNullable<AgCartesianChartOptions['series']>[number] & { context?: unknown })[];
     axes?: (NonNullable<AgCartesianChartOptions['axes']>[number] & { context?: unknown })[];
 };
+type ItemStyler = NonNullable<AgBarSeriesThemeableOptions['itemStyler']>;
+type LabelFormatter = NonNullable<NonNullable<AgBarSeriesThemeableOptions['label']>['formatter']>;
+type TooltipRenderer = NonNullable<NonNullable<AgBarSeriesThemeableOptions['tooltip']>['renderer']>;
+
+// AG Charts calls Object.freeze on theme options, so we can
+function initMock<F extends ItemStyler | LabelFormatter | TooltipRenderer>(mockImp: F) {
+    type Rtn = ReturnType<F>;
+    type Arg = Parameters<F>[0];
+
+    const mock: jest.Mock<Rtn, Arg[], unknown> = jest.fn<any, any>(mockImp);
+    const frozen = Object.freeze((params: Arg): Rtn => mock(params));
+    return { mock, frozen };
+}
 
 describe('Chart', () => {
-    setupMockConsole();
+    setupMockConsole({ debugShowOutput: true });
     setupMockCanvas();
 
     let chart: Chart;
     let options: UndocumentedOptions;
-    let itemStyler: jest.Mock<AgBarSeriesStyle | undefined, unknown[], unknown>;
-    let labelFormatter: jest.Mock<string, unknown[], unknown>;
-    let tooltipRenderer: jest.Mock<string | AgTooltipRendererResult, unknown[], unknown>;
+    let itemStyler = initMock<ItemStyler>((_params) => undefined);
+    let labelFormatter = initMock<LabelFormatter>((_params) => undefined);
+    let tooltipRenderer = initMock<TooltipRenderer>((_params) => '');
 
     beforeEach(async () => {
-        itemStyler = jest.fn<AgBarSeriesStyle | undefined, unknown[], unknown>();
-        labelFormatter = jest.fn<string, unknown[], unknown>();
-        tooltipRenderer = jest.fn<string | AgTooltipRendererResult, unknown[], unknown>();
+        itemStyler.mock.mockClear();
+        labelFormatter.mock.mockClear();
+        tooltipRenderer.mock.mockClear();
         options = {
             theme: {
                 overrides: {
                     bar: {
                         series: {
-                            itemStyler,
-                            label: { formatter: labelFormatter },
-                            tooltip: { renderer: tooltipRenderer },
+                            itemStyler: itemStyler.frozen,
+                            label: { formatter: labelFormatter.frozen },
+                            tooltip: { renderer: tooltipRenderer.frozen },
                         },
                     },
                 },
@@ -66,8 +79,8 @@ describe('Chart', () => {
     });
 
     test('TODO', () => {
-        expect(itemStyler).not.toHaveBeenCalled();
-        expect(labelFormatter).not.toHaveBeenCalled();
-        expect(tooltipRenderer).not.toHaveBeenCalled();
+        expect(itemStyler.mock).not.toHaveBeenCalled();
+        expect(labelFormatter.mock).not.toHaveBeenCalled();
+        expect(tooltipRenderer.mock).not.toHaveBeenCalled();
     });
 });
