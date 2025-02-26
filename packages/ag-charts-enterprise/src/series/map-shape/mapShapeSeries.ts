@@ -36,7 +36,7 @@ const {
 interface MapShapeNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
 
-type ItemStyle = Required<AgMapShapeSeriesStyle>;
+type ItemStyle = Required<AgMapShapeSeriesStyle> & _ModuleSupport.DefaultFillStyle;
 
 const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
@@ -446,6 +446,7 @@ export class MapShapeSeries
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -496,6 +497,7 @@ export class MapShapeSeries
         const { datumSelection, isHighlight } = opts;
 
         const style = this.getItemBaseStyle(isHighlight);
+        const fillBBox = this.getFillBBox(style.fill);
 
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { datum, datumIndex, colorValue, projectedGeometry } = nodeDatum;
@@ -510,7 +512,7 @@ export class MapShapeSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            applyShapeStyle(geoGeometry, style, overrides);
+            applyShapeStyle(geoGeometry, style, overrides, fillBBox);
         });
     }
 
@@ -584,7 +586,8 @@ export class MapShapeSeries
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
         const { dataModel, processedData, properties } = this;
-        const { fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = properties;
+        const { fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
+            properties;
 
         let { fill } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
@@ -602,6 +605,7 @@ export class MapShapeSeries
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
+                defaultColorRange,
             },
         };
     }

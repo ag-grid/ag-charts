@@ -5,6 +5,8 @@ import { NightingaleSeries } from './nightingaleSeries';
 import { nightingaleSeriesOptionsDef } from './nightingaleSeriesOptionsDef';
 import { NIGHTINGALE_SERIES_THEME } from './nightingaleThemes';
 
+const { DEFAULT_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
+
 const {
     ThemeSymbols: { DEFAULT_POLAR_SERIES_STROKE },
     ThemeConstants: { POLAR_AXIS_TYPE },
@@ -21,7 +23,8 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
     themeTemplate: NIGHTINGALE_SERIES_THEME,
-    paletteFactory({ takeColors, userPalette }) {
+    paletteFactory({ takeColors, userPalette, themeTemplateParameters }) {
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
         const {
             fills: [fill],
             strokes: [stroke],
@@ -29,6 +32,7 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
         return {
             fill,
             stroke: userPalette !== 'inbuilt' ? stroke : DEFAULT_POLAR_SERIES_STROKE,
+            defaultColorRange,
         };
     },
     stackable: true,

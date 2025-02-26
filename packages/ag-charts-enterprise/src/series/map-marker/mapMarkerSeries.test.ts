@@ -280,4 +280,63 @@ describe('MapMarkerSeries', () => {
             getHighlightNode: (_, series) => series.highlightNode.children().next().value,
         });
     });
+
+    describe('gradient fill', () => {
+        it('should render map marker series with a default gradient fill', async () => {
+            const options: AgChartOptions = {
+                data: ukData,
+                topology: ukTopology,
+                series: [
+                    {
+                        type: 'map-shape-background',
+                    },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        sizeKey: 'population',
+                        fill: {
+                            type: 'gradient',
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+        it('should render map marker series with a gradient fill', async () => {
+            const options: AgChartOptions = {
+                data: ukData,
+                topology: ukTopology,
+                series: [
+                    {
+                        type: 'map-shape-background',
+                    },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        sizeKey: 'population',
+                        fill: {
+                            type: 'gradient',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
 });

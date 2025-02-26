@@ -1,10 +1,21 @@
-import type { AgMapShapeBackgroundOptions } from 'ag-charts-community';
+import type { AgFillType, AgMapShapeBackgroundOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
-const { COLOR_STRING, LINE_DASH, OBJECT, POSITIVE_NUMBER, RATIO, Validate, SeriesProperties, SeriesTooltip } =
-    _ModuleSupport;
+const {
+    COLOR_STRING,
+    COLOR_STRING_ARRAY,
+    COLOR_GRADIENT,
+    OR,
+    LINE_DASH,
+    OBJECT,
+    POSITIVE_NUMBER,
+    RATIO,
+    Validate,
+    SeriesProperties,
+    SeriesTooltip,
+} = _ModuleSupport;
 
 export interface MapShapeBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
@@ -15,8 +26,11 @@ export class MapShapeBackgroundSeriesProperties extends SeriesProperties<AgMapSh
     @Validate(GEOJSON_OBJECT, { optional: true })
     topology?: _ModuleSupport.FeatureCollection = undefined;
 
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    fill: AgFillType = 'black';
 
     @Validate(RATIO)
     fillOpacity: number = 1;

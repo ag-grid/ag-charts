@@ -61,7 +61,7 @@ interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
 }
 
-type ItemStyle = Required<AgRadialSeriesStyle>;
+type ItemStyle = Required<AgRadialSeriesStyle> & _ModuleSupport.DefaultFillStyle;
 
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
@@ -370,6 +370,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             cornerRadius: properties.cornerRadius,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -406,6 +407,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         }
 
         const style = this.getItemBaseStyle(highlighted);
+        const fillBBox = this.getFillBBox(style.fill);
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
@@ -415,7 +417,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
                 const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
 
-                applyShapeStyle(node, style, overrides);
+                applyShapeStyle(node, style, overrides, fillBBox);
 
                 node.lineJoin = 'round';
                 node.inset = node.stroke != null ? node.strokeWidth / 2 : 0;
@@ -536,7 +538,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     private legendItemSymbol() {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
+            this.properties;
 
         return {
             marker: {
@@ -547,6 +550,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 strokeWidth,
                 lineDash,
                 lineDashOffset,
+                defaultColorRange,
             },
         };
     }

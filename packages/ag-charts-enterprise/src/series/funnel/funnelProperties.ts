@@ -1,4 +1,5 @@
 import type {
+    AgFillType,
     AgFunnelSeriesItemStylerParams,
     AgFunnelSeriesLabelFormatterParams,
     AgFunnelSeriesOptions,
@@ -20,6 +21,9 @@ const {
     Validate,
     UNION,
     BOOLEAN,
+    OR,
+    ARRAY_OF,
+    COLOR_GRADIENT,
     COLOR_STRING_ARRAY,
     COLOR_STRING,
     FUNCTION,
@@ -41,8 +45,8 @@ class FunnelDropOff extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string | undefined;
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill: AgFillType | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity: number = 1;
@@ -74,7 +78,10 @@ export class FunnelProperties
     valueKey!: string;
 
     @Validate(COLOR_STRING_ARRAY)
-    fills: string[] = [];
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    fills: AgFillType[] = [];
 
     @Validate(RATIO)
     fillOpacity: number = 1;

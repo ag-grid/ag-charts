@@ -1,4 +1,5 @@
 import type {
+    AgFillType,
     AgMapShapeSeriesItemStylerParams,
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
@@ -16,8 +17,10 @@ const {
     ARRAY,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
+    COLOR_GRADIENT,
     FUNCTION,
     LINE_DASH,
+    OR,
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
@@ -76,8 +79,11 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
     colorRange: string[] | undefined = undefined;
 
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    fill: AgFillType = 'black';
 
     @Validate(RATIO)
     fillOpacity: number = 1;

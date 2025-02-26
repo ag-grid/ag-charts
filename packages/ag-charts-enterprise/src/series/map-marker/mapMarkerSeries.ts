@@ -47,7 +47,7 @@ type MapMarkerAnimationEvent = {
     skip: undefined;
 };
 
-type ItemStyle = Required<AgMapMarkerSeriesStyle>;
+type ItemStyle = Required<AgMapMarkerSeriesStyle> & _ModuleSupport.DefaultFillStyle;
 
 export class MapMarkerSeries
     extends TopologySeries<
@@ -571,6 +571,7 @@ export class MapMarkerSeries
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -628,6 +629,7 @@ export class MapMarkerSeries
         const { markerSelection, isHighlight, highlightedDatum } = opts;
 
         const style = this.getMarkerItemBaseStyle(isHighlight);
+        const fillBBox = this.getFillBBox(style.fill);
 
         markerSelection.each((marker, markerDatum) => {
             const { datumIndex, datum, point, colorValue, sizeValue } = markerDatum;
@@ -643,10 +645,13 @@ export class MapMarkerSeries
             marker.shape = overrides?.shape ?? style.shape;
             marker.size = overrides?.size ?? style.size;
 
-            applyShapeStyle(marker, style, overrides);
+            applyShapeStyle(marker, style, overrides, fillBBox);
 
-            marker.translationX = point.x;
-            marker.translationY = point.y;
+            marker.x = point.x;
+            marker.y = point.y;
+            marker.scalingCenterX = point.x;
+            marker.scalingCenterY = point.y;
+
             marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
         });
     }
@@ -706,7 +711,8 @@ export class MapMarkerSeries
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
         const { dataModel, processedData, properties } = this;
-        const { shape, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = properties;
+        const { shape, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
+            properties;
 
         let { fill } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
@@ -725,6 +731,7 @@ export class MapMarkerSeries
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
+                defaultColorRange,
             },
         };
     }

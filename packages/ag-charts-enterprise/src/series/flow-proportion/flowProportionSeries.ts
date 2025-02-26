@@ -1,4 +1,4 @@
-import { type AgGradientFill, _ModuleSupport } from 'ag-charts-community';
+import { type AgFillType, _ModuleSupport } from 'ag-charts-community';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
@@ -533,13 +533,14 @@ export abstract class FlowProportionSeries<
         _type: FlowProportionDatumType,
         nodeIndex: number,
         format: {
-            fill?: string | AgGradientFill;
+            fill?: AgFillType;
             fillOpacity?: number;
             stroke?: string;
             strokeWidth?: number;
             strokeOpacity?: number;
             lineDash?: number[];
             lineDashOffset?: number;
+            defaultColorRange?: string[];
         } = {}
     ): _ModuleSupport.LegendSymbolOptions {
         const { fills, strokes } = this.properties;
@@ -552,6 +553,7 @@ export abstract class FlowProportionSeries<
             strokeOpacity = 1,
             lineDash = [0],
             lineDashOffset = 0,
+            defaultColorRange = [],
         } = format;
 
         return {
@@ -563,6 +565,7 @@ export abstract class FlowProportionSeries<
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
+                defaultColorRange,
             },
         };
     }

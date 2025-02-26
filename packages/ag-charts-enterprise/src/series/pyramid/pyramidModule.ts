@@ -1,9 +1,13 @@
-import { type AgPyramidSeriesOptions, type _ModuleSupport } from 'ag-charts-community';
+import { type AgPyramidSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { PyramidSeries } from './pyramidSeries';
 import { pyramidSeriesOptionsDef } from './pyramidSeriesOptionsDef';
 import { PYRAMID_SERIES_THEME } from './pyramidThemes';
+
+const {
+    ThemeSymbols: { DEFAULT_COLOR_RANGE },
+} = _ModuleSupport;
 
 export const PyramidModule: _ModuleSupport.SeriesModule<'pyramid'> = {
     type: 'series',
@@ -17,9 +21,10 @@ export const PyramidModule: _ModuleSupport.SeriesModule<'pyramid'> = {
     tooltipDefaults: { range: 'exact' },
     themeTemplate: PYRAMID_SERIES_THEME,
 
-    paletteFactory: ({ takeColors, colorsCount }) => {
+    paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
         const { fills, strokes } = takeColors(colorsCount);
-        return { fills, strokes };
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
+        return { fills, strokes, defaultColorRange };
     },
 };
 

@@ -1,4 +1,6 @@
-import { COLOR_STRING_ARRAY, STRING, Validate } from '../../../util/validation';
+import type { AgFillType } from 'ag-charts-types';
+
+import { ARRAY_OF, COLOR_GRADIENT, COLOR_STRING_ARRAY, OR, STRING, Validate } from '../../../util/validation';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
 
@@ -16,7 +18,10 @@ export abstract class HierarchySeriesProperties<T extends object> extends Series
     colorName?: string;
 
     @Validate(COLOR_STRING_ARRAY)
-    fills: string[] = Object.values(DEFAULT_FILLS);
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    fills: AgFillType[] = Object.values(DEFAULT_FILLS);
 
     @Validate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);

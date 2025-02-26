@@ -63,7 +63,8 @@ enum TextNodeTag {
 }
 
 type ItemStyle = Pick<AgTreemapSeriesStyle, 'fill' | 'stroke'> &
-    Omit<Required<AgTreemapSeriesStyle>, 'fill' | 'stroke'>;
+    Omit<Required<AgTreemapSeriesStyle>, 'fill' | 'stroke'> &
+    _ModuleSupport.DefaultFillStyle;
 
 const tempText = new Text();
 
@@ -337,6 +338,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             stroke: highlightStyle?.stroke ?? group.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? group.strokeWidth,
             strokeOpacity: highlightStyle?.strokeOpacity ?? group.strokeOpacity,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -393,6 +395,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             stroke: highlightStyle?.stroke ?? tile.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? tile.strokeWidth,
             strokeOpacity: highlightStyle?.strokeOpacity ?? tile.strokeOpacity,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -664,7 +667,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             rect: _ModuleSupport.Rect,
             groupStyle: ItemStyle,
             tileStyle: ItemStyle,
-            highlighted: boolean
+            highlighted: boolean,
+            fillBBox?: _ModuleSupport.BBox
         ) => {
             const { bbox } = node;
             if (bbox == null) {
@@ -682,7 +686,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
             rect.crisp = true;
 
-            applyShapeStyle(rect, style, overrides);
+            applyShapeStyle(rect, style, overrides, fillBBox);
 
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, highlighted ? 1 : 0];
@@ -709,12 +713,17 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
         const baseGroupFormat = this.getGroupBaseStyle(false);
         const baseTileFormat = this.getTileBaseStyle(false);
-        this.datumSelection.each((rect, datum) => updateRectFn(datum, rect, baseGroupFormat, baseTileFormat, false));
+        const fillBBox = this.getFillBBox(baseTileFormat.fill);
+        this.datumSelection.each((rect, datum) =>
+            updateRectFn(datum, rect, baseGroupFormat, baseTileFormat, false, fillBBox)
+        );
 
         const highlightGroupFormat = this.getGroupBaseStyle(true);
         const highlightTileFormat = this.getTileBaseStyle(true);
+        const highlightFillBBox = this.getFillBBox(highlightTileFormat.fill);
+
         this.highlightSelection.each((rect, datum) => {
-            updateRectFn(datum, rect, highlightGroupFormat, highlightTileFormat, true);
+            updateRectFn(datum, rect, highlightGroupFormat, highlightTileFormat, true, highlightFillBBox);
         });
 
         const updateLabelFn = (
@@ -786,8 +795,17 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
     override getTooltipContent(datumIndex: number[]): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
-        const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
-            properties;
+        const {
+            labelKey,
+            secondaryLabelKey,
+            childrenKey,
+            sizeKey,
+            sizeName,
+            colorKey,
+            colorName,
+            tooltip,
+            defaultColorRange,
+        } = properties;
 
         const nodeDatum = datumIndex.reduce((n, i) => n?.children[i], this.rootNode);
         if (nodeDatum == null) return;
@@ -830,6 +848,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
                       strokeOpacity: 1,
                       lineDash: [0],
                       lineDashOffset: 0,
+                      defaultColorRange,
                   },
               }
             : undefined;

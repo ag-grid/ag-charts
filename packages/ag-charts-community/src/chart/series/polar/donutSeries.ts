@@ -1,6 +1,6 @@
 import type { Has } from 'ag-charts-core';
 import { Logger } from 'ag-charts-core';
-import type { AgDonutSeriesStyle, AgFillType, AgGradientFill } from 'ag-charts-types';
+import type { AgDonutSeriesStyle, AgFillType } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -13,7 +13,7 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
-import { isGradientFill } from '../../../scene/util/fill';
+import { isGradientFill, isStringFillArray } from '../../../scene/util/fill';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toDegrees, toRadians } from '../../../util/angle';
 import { formatValue } from '../../../util/format.util';
@@ -571,8 +571,17 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     private getSectorFormat(datum: any, datumIndex: number, highlighted: boolean, angle: number) {
-        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
-            this.properties;
+        const {
+            angleKey,
+            radiusKey,
+            calloutLabelKey,
+            sectorLabelKey,
+            legendItemKey,
+            fills,
+            strokes,
+            itemStyler,
+            defaultColorRange,
+        } = this.properties;
 
         const defaultStroke: string | undefined = strokes[datumIndex % strokes.length];
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
@@ -588,10 +597,10 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             );
 
         let sectorFill: AgFillType | undefined = fill;
-        if (isGradientFill(sectorFill) && sectorFill.angle == null && sectorFill.direction == null) {
+        if (isGradientFill(sectorFill) && sectorFill.rotation == null && sectorFill.direction == null) {
             sectorFill = {
-                ...(fill as AgGradientFill),
-                angle: toDegrees(angle + Math.PI / 2),
+                ...sectorFill,
+                rotation: toDegrees(angle + Math.PI / 2),
             };
         }
 
@@ -630,6 +639,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             lineDash: format?.lineDash ?? lineDash,
             lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
             cornerRadius: format?.cornerRadius ?? cornerRadius,
+            defaultColorRange,
         };
     }
 
@@ -867,6 +877,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             sector.lineDashOffset = format.lineDashOffset;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
+            sector.defaultColorRange = this.properties.defaultColorRange;
             const inset = Math.max(
                 (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth : 0)) / 2,
                 0
@@ -893,10 +904,12 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     updateCalloutLineNodes() {
-        const { calloutLine } = this.properties;
-        const calloutLength = calloutLine.length;
-        const calloutStrokeWidth = calloutLine.strokeWidth;
-        const calloutColors = calloutLine.colors ?? this.properties.strokes;
+        const {
+            calloutLine: { length: calloutLength, strokeWidth, colors },
+            strokes,
+        } = this.properties;
+        const calloutStrokeWidth = strokeWidth;
+        const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
         const { offset } = this.properties.calloutLabel;
 
         this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.Callout).forEach((line, index) => {
@@ -1444,6 +1457,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 strokeWidth: this.properties.strokeWidth,
                 lineDash: this.properties.lineDash,
                 lineDashOffset: this.properties.lineDashOffset,
+                defaultColorRange: this.properties.defaultColorRange,
             },
         };
     }

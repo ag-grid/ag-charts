@@ -11,7 +11,7 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
-import { isGradientFill } from '../../../scene/util/fill';
+import { type DefaultFillStyle, isGradientFill } from '../../../scene/util/fill';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -642,7 +642,7 @@ export class BarSeries extends AbstractBarSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemBaseStyle(highlighted: boolean): Required<AgBarSeriesStyle> & { defaultColorRange: string[] } {
+    private getItemBaseStyle(highlighted: boolean): Required<AgBarSeriesStyle> & DefaultFillStyle {
         const { properties } = this;
         const { cornerRadius } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -790,17 +790,19 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
+            this.properties;
 
         return {
             marker: {
-                fill,
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
                 fillOpacity,
-                stroke,
-                strokeWidth,
                 strokeOpacity,
+                strokeWidth,
                 lineDash,
                 lineDashOffset,
+                defaultColorRange,
             },
         };
     }

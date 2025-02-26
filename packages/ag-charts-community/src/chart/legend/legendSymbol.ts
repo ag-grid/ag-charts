@@ -9,6 +9,7 @@ import { Marker } from '../marker/marker';
 export interface LegendMarker {
     shape?: AgMarkerShape;
     fill?: FillType;
+    defaultColorRange?: string[];
     fillOpacity: number;
     stroke?: string | Gradient;
     strokeOpacity: number;
@@ -54,11 +55,13 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
     }
 
     if (symbol.marker.enabled !== false) {
-        const { shape, fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = symbol.marker;
+        const { shape, fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
+            symbol.marker;
         const marker = new Marker();
         marker.shape = shape ?? 'square';
         marker.size = size;
         marker.fill = fill;
+        marker.defaultColorRange = defaultColorRange;
         marker.fillOpacity = fillOpacity;
         marker.stroke = stroke;
         marker.strokeOpacity = strokeOpacity;

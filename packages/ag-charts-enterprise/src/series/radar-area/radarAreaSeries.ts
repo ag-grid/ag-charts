@@ -3,7 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { type RadarPathPoint, RadarSeries } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
-const { Group, Path, PointerEvents, Selection, ChartAxisDirection } = _ModuleSupport;
+const { Group, Path, PointerEvents, Selection, ChartAxisDirection, isGradientFill } = _ModuleSupport;
 
 export class RadarAreaSeries extends RadarSeries {
     static override readonly className = 'RadarAreaSeries';
@@ -40,8 +40,18 @@ export class RadarAreaSeries extends RadarSeries {
         super.beforePathAnimation();
 
         const areaNode = this.getAreaNode();
-        areaNode.fill = this.properties.fill;
-        areaNode.fillOpacity = this.properties.fillOpacity;
+
+        let fillBBox: _ModuleSupport.BBox | undefined;
+        const { fill, defaultColorRange, fillOpacity } = this.properties;
+        if (isGradientFill(fill)) {
+            fill.bounds ??= 'series';
+            fillBBox = this.getFillBBox(fill);
+        }
+
+        areaNode.fillBBox = fillBBox;
+        areaNode.fill = fill;
+        areaNode.defaultColorRange = defaultColorRange;
+        areaNode.fillOpacity = fillOpacity;
         areaNode.pointerEvents = PointerEvents.None;
         areaNode.stroke = undefined;
     }

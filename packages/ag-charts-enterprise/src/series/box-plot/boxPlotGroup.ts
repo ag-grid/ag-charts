@@ -31,9 +31,10 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
 
     updateDatumStyles(
         datum: BoxPlotNodeDatum,
-        activeStyles: DeepRequired<AgBoxPlotSeriesStyle>,
+        activeStyles: DeepRequired<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle,
         isVertical: boolean,
-        isReversedValueAxis: boolean | undefined
+        isReversedValueAxis: boolean | undefined,
+        fillBBox?: _ModuleSupport.BBox
     ) {
         const {
             bandwidth,
@@ -67,6 +68,7 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
             cornerRadius,
             cap,
             whisker: whiskerStyles,
+            defaultColorRange,
         } = activeStyles;
 
         const selection = Selection.select(this, Rect);
@@ -140,10 +142,17 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
 
         // fill only elements
         for (const element of boxes) {
-            element.setProperties({ fill, fillOpacity, strokeWidth: strokeWidth * 2, strokeOpacity: 0 });
+            element.setProperties({
+                fillBBox,
+                fill,
+                fillOpacity,
+                defaultColorRange,
+                strokeWidth: strokeWidth * 2,
+                strokeOpacity: 0,
+            });
         }
 
-        median.setProperties({ fill: stroke, fillOpacity: strokeOpacity, strokeWidth: 0 });
+        median.setProperties({ fill: stroke, defaultColorRange, fillOpacity: strokeOpacity, strokeWidth: 0 });
 
         // stroke only elements
         for (const element of [...whiskers, ...caps]) {

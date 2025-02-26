@@ -107,4 +107,72 @@ describe('CandlestickSeries', () => {
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
     });
+
+    describe('gradient fill', () => {
+        it('should render candlestick series with a default gradient fill', async () => {
+            const options = {
+                ...CANDLESTICK_OPTIONS,
+                series: [
+                    {
+                        ...CANDLESTICK_OPTIONS.series![0],
+                        item: {
+                            up: {
+                                fill: {
+                                    type: 'gradient',
+                                },
+                            },
+                            down: {
+                                fill: {
+                                    type: 'gradient',
+                                },
+                            },
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+            await compareSnapshot(AgCharts.create(options as AgChartOptions));
+        });
+
+        it('should render candlestick series with a gradient fill', async () => {
+            const options = {
+                ...CANDLESTICK_OPTIONS,
+                series: [
+                    {
+                        ...CANDLESTICK_OPTIONS.series![0],
+                        item: {
+                            up: {
+                                fill: {
+                                    type: 'gradient',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                            },
+                            down: {
+                                fill: {
+                                    type: 'gradient',
+                                    colorStops: [
+                                        {
+                                            color: 'red',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+            await compareSnapshot(AgCharts.create(options as AgChartOptions));
+        });
+    });
 });

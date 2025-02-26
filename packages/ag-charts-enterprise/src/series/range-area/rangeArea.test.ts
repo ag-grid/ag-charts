@@ -411,4 +411,62 @@ describe('RangeAreaSeries', () => {
             });
         }
     });
+
+    describe('gradient fill', () => {
+        it('should render range area series with a default gradient fill', async () => {
+            const options = {
+                ...RANGE_AREA_OPTIONS,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'month',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        fill: {
+                            type: 'gradient',
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = AgCharts.create(options as AgChartOptions);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('should render range area series with a gradient fill', async () => {
+            const options = {
+                ...RANGE_AREA_OPTIONS,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'month',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        fill: {
+                            type: 'gradient',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = AgCharts.create(options as AgChartOptions);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+    });
 });

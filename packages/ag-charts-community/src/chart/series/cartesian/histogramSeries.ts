@@ -410,6 +410,7 @@ export class HistogramSeries extends CartesianSeries<
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             cornerRadius: properties.cornerRadius,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -562,7 +563,8 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.properties;
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
+            this.properties;
 
         return {
             marker: {
@@ -573,6 +575,7 @@ export class HistogramSeries extends CartesianSeries<
                 strokeWidth,
                 lineDash,
                 lineDashOffset,
+                defaultColorRange,
             },
         };
     }

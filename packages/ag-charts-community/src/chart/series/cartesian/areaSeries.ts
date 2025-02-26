@@ -797,6 +797,7 @@ export class AreaSeries extends CartesianSeries<
             marker: {
                 shape: marker.shape,
                 fill: legendMarkerFill,
+                defaultColorRange: marker.defaultColorRange,
                 fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
                 stroke: marker.stroke ?? stroke,
                 strokeOpacity: marker.strokeOpacity,

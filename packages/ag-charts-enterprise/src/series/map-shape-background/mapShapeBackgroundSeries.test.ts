@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
+import { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
@@ -36,11 +37,11 @@ describe('MapShapeBackgroundSeries', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async () => {
+    const compare = async (options?: MatchImageSnapshotOptions) => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
     };
 
     describe('Simple Chart', () => {
@@ -50,6 +51,58 @@ describe('MapShapeBackgroundSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+        });
+    });
+
+    describe('gradient fill', () => {
+        it('should render map shape background series with a default gradient fill', async () => {
+            const options: AgChartOptions = {
+                topology: ukTopology,
+                series: [
+                    {
+                        type: 'map-shape-background',
+                        fill: {
+                            type: 'gradient',
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare({
+                failureThreshold: 1,
+            });
+        });
+
+        it('should render map shape background series with a gradient fill', async () => {
+            const options: AgChartOptions = {
+                topology: ukTopology,
+                series: [
+                    {
+                        type: 'map-shape-background',
+                        fill: {
+                            type: 'gradient',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare({
+                failureThreshold: 1,
+            });
         });
     });
 });

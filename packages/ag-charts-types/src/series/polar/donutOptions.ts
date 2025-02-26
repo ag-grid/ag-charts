@@ -84,7 +84,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgDonutSeriesCalloutOptions;
     /** The colours to cycle through for the fills of the sectors. */
-    fills?: CssColor[];
+    fills?: AgFillType[];
     /** The colours to cycle through for the strokes of the sectors. */
     strokes?: CssColor[];
     /** The opacity of the fill for the sectors. */

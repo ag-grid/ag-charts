@@ -8,7 +8,7 @@ import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 const {
     Color,
     swapAxisCondition,
-    ThemeSymbols: { DEFAULT_BACKGROUND_COLOUR },
+    ThemeSymbols: { DEFAULT_BACKGROUND_COLOUR, DEFAULT_COLOR_RANGE },
     ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
 } = _ModuleSupport;
 
@@ -32,6 +32,7 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     groupable: true,
 
     paletteFactory: ({ takeColors, themeTemplateParameters }) => {
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
         const themeBackgroundColor = themeTemplateParameters.get(DEFAULT_BACKGROUND_COLOUR);
         const backgroundFill =
             (Array.isArray(themeBackgroundColor) ? themeBackgroundColor[0] : themeBackgroundColor) ?? 'white';
@@ -53,6 +54,7 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
             fill: fakeFill,
             stroke,
             backgroundFill,
+            defaultColorRange,
         };
     },
 };

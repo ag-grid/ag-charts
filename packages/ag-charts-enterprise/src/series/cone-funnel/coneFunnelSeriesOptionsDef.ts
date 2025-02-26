@@ -8,6 +8,8 @@ import {
     fillOptionsDef,
     lineDashOptionsDef,
     number,
+    object,
+    or,
     positiveNumber,
     required,
     string,
@@ -22,7 +24,7 @@ export const coneFunnelSeriesOptionsDef: OptionsDefs<AgConeFunnelSeriesOptions> 
     stageKey: required(string),
     valueKey: required(string),
     direction: union('horizontal', 'vertical'),
-    fills: arrayOf(string),
+    fills: arrayOf(or(string, object)),
     strokes: arrayOf(string),
     showInMiniChart: boolean,
     label: {

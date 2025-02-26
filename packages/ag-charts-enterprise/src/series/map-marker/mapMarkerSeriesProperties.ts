@@ -1,4 +1,5 @@
 import type {
+    AgFillType,
     AgMapMarkerSeriesItemStylerParams,
     AgMapMarkerSeriesLabelFormatterParams,
     AgMapMarkerSeriesOptions,
@@ -19,6 +20,8 @@ const {
     FUNCTION,
     NUMBER_ARRAY,
     OBJECT,
+    OR,
+    COLOR_GRADIENT,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -113,8 +116,11 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     @Validate(NUMBER_ARRAY, { optional: true })
     sizeDomain?: [number, number];
 
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    fill: AgFillType = 'black';
 
     @Validate(RATIO)
     fillOpacity: number = 1;

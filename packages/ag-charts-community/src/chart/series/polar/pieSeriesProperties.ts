@@ -62,8 +62,8 @@ class PieSeriesSectorLabel extends Label<AgPieSeriesLabelFormatterParams> {
 }
 
 class PieSeriesCalloutLine extends BaseProperties {
-    @Validate(COLOR_STRING_ARRAY, { optional: true })
-    colors?: string[];
+    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY), { optional: true })
+    colors?: AgFillType[];
 
     @Validate(POSITIVE_NUMBER)
     length: number = 10;

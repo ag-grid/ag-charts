@@ -3,7 +3,14 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, Degree, Opacity, PixelSize, Ratio } from '../../chart/types';
-import type { FillOptions, FontOptions, LineDashOptions, StrokeOptions, Toggleable } from '../cartesian/commonOptions';
+import type {
+    AgFillType,
+    FillOptions,
+    FontOptions,
+    LineDashOptions,
+    StrokeOptions,
+    Toggleable,
+} from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgPieSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
@@ -61,7 +68,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = any>
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgPieSeriesCalloutOptions;
     /** The colours to cycle through for the fills of the sectors. */
-    fills?: CssColor[];
+    fills?: AgFillType[];
     /** The colours to cycle through for the strokes of the sectors. */
     strokes?: CssColor[];
     /** The opacity of the fill for the sectors. */

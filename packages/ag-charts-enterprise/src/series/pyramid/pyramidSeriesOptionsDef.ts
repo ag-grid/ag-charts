@@ -7,6 +7,8 @@ import {
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
+    object,
+    or,
     positiveNumber,
     required,
     string,
@@ -25,7 +27,7 @@ export const pyramidSeriesOptionsDef: OptionsDefs<AgPyramidSeriesOptions> = {
     spacing: positiveNumber,
     reverse: boolean,
     itemStyler: callback,
-    fills: arrayOf(string),
+    fills: arrayOf(or(string, object)),
     strokes: arrayOf(string),
     label: seriesLabelOptionsDef,
     stageLabel: {

@@ -8917,6 +8917,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
         "length": 10,
         "strokeWidth": 2,
       },
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fillOpacity": 0.9,
       "fills": [
         "#fb7451",
@@ -9433,6 +9437,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
         "length": 10,
         "strokeWidth": 2,
       },
+      "defaultColorRange": [
+        "#5090dc",
+        "#ef5452",
+      ],
       "fillOpacity": 1,
       "fills": [
         "#49afda",

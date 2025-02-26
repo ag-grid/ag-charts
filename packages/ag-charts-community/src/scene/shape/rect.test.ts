@@ -114,7 +114,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: 180,
+                        rotation: 180,
                         colorStops: [
                             {
                                 color: '#000000',
@@ -134,7 +134,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: 90,
+                        rotation: 90,
                         colorStops: [
                             {
                                 color: '#00FF00',
@@ -158,7 +158,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: 0,
+                        rotation: 0,
                         colorStops,
                     },
                 },
@@ -168,7 +168,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: 45,
+                        rotation: 45,
                         colorStops,
                     },
                 },
@@ -178,7 +178,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: 90,
+                        rotation: 90,
                         colorStops,
                     },
                 },
@@ -188,7 +188,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: 135,
+                        rotation: 135,
                         colorStops,
                     },
                 },
@@ -198,7 +198,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: 180,
+                        rotation: 180,
                         colorStops,
                     },
                 },
@@ -208,7 +208,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: 225,
+                        rotation: 225,
                         colorStops,
                     },
                 },
@@ -218,7 +218,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: 270,
+                        rotation: 270,
                         colorStops,
                     },
                 },
@@ -228,7 +228,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: 315,
+                        rotation: 315,
                         colorStops,
                     },
                 },
@@ -238,7 +238,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: 360,
+                        rotation: 360,
                         colorStops,
                     },
                 },
@@ -248,7 +248,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: -45,
+                        rotation: -45,
                         colorStops,
                     },
                 },
@@ -258,7 +258,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: -90,
+                        rotation: -90,
                         colorStops,
                     },
                 },
@@ -268,7 +268,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: -180,
+                        rotation: -180,
                         colorStops,
                     },
                 },
@@ -278,7 +278,7 @@ describe('Rect', () => {
                     crisp: true,
                     fill: {
                         type: 'gradient',
-                        angle: -270,
+                        rotation: -270,
                         colorStops,
                     },
                 },

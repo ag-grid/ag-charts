@@ -334,4 +334,64 @@ describe('MapShapeSeries', () => {
             getHighlightNode: (_, series) => series.highlightNode.children().next().value,
         });
     });
+
+    describe('gradient fill', () => {
+        it('should render map shape series with a default gradient fill', async () => {
+            const options: AgChartOptions = {
+                data: usData,
+                topology: usTopology,
+                series: [
+                    {
+                        type: 'map-shape',
+                        idKey: 'name',
+                        labelKey: 'code',
+                        fill: {
+                            type: 'gradient',
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            await compare({
+                failureThreshold: 1,
+            });
+        });
+
+        it('should render map shape series with a gradient fill', async () => {
+            const options: AgChartOptions = {
+                data: usData,
+                topology: usTopology,
+                series: [
+                    {
+                        type: 'map-shape',
+                        idKey: 'name',
+                        labelKey: 'code',
+                        fill: {
+                            type: 'gradient',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            await compare({
+                failureThreshold: 1,
+            });
+        });
+    });
 });

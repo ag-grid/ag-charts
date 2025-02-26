@@ -2,6 +2,7 @@ import type {
     AgConeFunnelSeriesLabelFormatterParams,
     AgConeFunnelSeriesOptions,
     AgConeFunnelSeriesTooltipRendererParams,
+    AgFillType,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
@@ -14,6 +15,9 @@ const {
     AxisLabel,
     Validate,
     UNION,
+    ARRAY_OF,
+    OR,
+    COLOR_GRADIENT,
     COLOR_STRING_ARRAY,
     LINE_DASH,
     OBJECT,
@@ -46,7 +50,10 @@ export class ConeFunnelProperties
     valueKey!: string;
 
     @Validate(COLOR_STRING_ARRAY)
-    fills: string[] = [];
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    fills: AgFillType[] = [];
 
     @Validate(RATIO)
     fillOpacity: number = 1;

@@ -24,6 +24,8 @@ const {
     CategoryScale,
     motion,
     applyShapeStyle,
+    isGradientFill,
+    toDegrees,
 } = _ModuleSupport;
 
 class RadialColumnSeriesNodeEvent<
@@ -57,13 +59,14 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNod
     readonly stackOuterRadius: number;
     readonly startAngle: number;
     readonly endAngle: number;
+    readonly midAngle: number;
     readonly axisInnerRadius: number;
     readonly axisOuterRadius: number;
     readonly columnWidth: number;
     readonly index: number;
 }
 
-type ItemStyle = Required<AgRadialSeriesStyle>;
+type ItemStyle = Required<AgRadialSeriesStyle> & _ModuleSupport.DefaultFillStyle;
 
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends _ModuleSupport.Sector | _ModuleSupport.RadialColumnShape,
@@ -345,6 +348,7 @@ export abstract class RadialColumnSeriesBase<
                 stackOuterRadius,
                 startAngle,
                 endAngle,
+                midAngle: angle,
                 axisInnerRadius,
                 axisOuterRadius,
                 columnWidth,
@@ -397,6 +401,7 @@ export abstract class RadialColumnSeriesBase<
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             cornerRadius: properties.cornerRadius,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -433,16 +438,27 @@ export abstract class RadialColumnSeriesBase<
         }
 
         const style = this.getItemBaseStyle(highlighted);
+        const fillBBox = this.getFillBBox(style.fill);
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
-                const { datum, datumIndex } = nodeDatum;
-                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, highlighted);
+                const { datum, datumIndex, midAngle } = nodeDatum;
+
+                let nodeFill = style.fill;
+                if (isGradientFill(nodeFill) && nodeFill.rotation == null && nodeFill.direction == null) {
+                    nodeFill = {
+                        ...nodeFill,
+                        rotation: toDegrees(midAngle - Math.PI / 2),
+                    };
+                }
+
+                const nodeStyle = { ...style, fill: nodeFill };
+                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, nodeStyle, highlighted);
 
                 this.updateItemPath(node, nodeDatum, highlighted);
 
-                applyShapeStyle(node, style, overrides);
+                applyShapeStyle(node, nodeStyle, overrides, fillBBox);
 
                 node.cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
                 node.lineJoin = 'round';
@@ -539,7 +555,8 @@ export abstract class RadialColumnSeriesBase<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
+            this.properties;
 
         return {
             marker: {
@@ -550,6 +567,7 @@ export abstract class RadialColumnSeriesBase<
                 strokeWidth,
                 lineDash,
                 lineDashOffset,
+                defaultColorRange,
             },
         };
     }

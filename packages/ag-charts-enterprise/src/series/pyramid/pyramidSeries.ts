@@ -47,7 +47,8 @@ interface PyramidNodeDataContext
 }
 
 type ItemStyle = Pick<AgPyramidSeriesStyle, 'fill' | 'stroke'> &
-    Required<Omit<AgPyramidSeriesStyle, 'fill' | 'stroke'>>;
+    Required<Omit<AgPyramidSeriesStyle, 'fill' | 'stroke'>> &
+    _ModuleSupport.DefaultFillStyle;
 
 export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     PyramidNodeDatum,
@@ -428,6 +429,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -482,6 +484,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { shadow } = properties;
 
         const style = this.getItemBaseStyle(isHighlight);
+        const fillBBox = this.getFillBBox(style.fill);
 
         datumSelection.each((connector, nodeDatum) => {
             const { datumIndex, datum, x, y, top, right, bottom, left } = nodeDatum;
@@ -497,7 +500,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             connector.y2 = y + right / 2;
             connector.y3 = y + left / 2;
 
-            applyShapeStyle(connector, style, overrides);
+            applyShapeStyle(connector, style, overrides, fillBBox);
 
             connector.fillShadow = shadow;
         });
@@ -626,10 +629,22 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     private legendItemSymbol(datumIndex: number) {
-        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
+        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
+            this.properties;
         const fill = fills[datumIndex % fills.length] ?? 'black';
         const stroke = strokes[datumIndex % strokes.length] ?? 'black';
-        return { marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } };
+        return {
+            marker: {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                defaultColorRange,
+            },
+        };
     }
 
     override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

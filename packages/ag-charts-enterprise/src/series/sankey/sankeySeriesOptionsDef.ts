@@ -6,6 +6,8 @@ import {
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
+    object,
+    or,
     positiveNumber,
     required,
     string,
@@ -21,7 +23,7 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     toKey: required(string),
     sizeKey: string,
     sizeName: string,
-    fills: arrayOf(string),
+    fills: arrayOf(or(string, object)),
     strokes: arrayOf(string),
     label: {
         ...seriesLabelOptionsDef,

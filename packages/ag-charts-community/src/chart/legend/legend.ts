@@ -815,6 +815,7 @@ export class Legend extends BaseProperties {
             strokeWidth,
             lineDash,
             lineDashOffset,
+            defaultColorRange,
         } = datum.marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
 
@@ -826,6 +827,7 @@ export class Legend extends BaseProperties {
             strokeWidth: this.item.marker.strokeWidth ?? defaultLineStrokeWidth,
             lineDash,
             lineDashOffset,
+            defaultColorRange,
         };
     }
 

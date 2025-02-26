@@ -1,7 +1,7 @@
 import type {
     AgCartesianCrossLineLabelOptions,
     AgCrossLineLabelPosition,
-    AgGradientFill,
+    AgFillType,
     FontStyle,
     FontWeight,
 } from 'ag-charts-types';
@@ -143,7 +143,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     defaultColorRange: string[] = [];
 
     @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
-    fill: string | AgGradientFill = '#c16068';
+    fill: AgFillType = '#c16068';
 
     @Validate(RATIO, { optional: true })
     fillOpacity?: number;

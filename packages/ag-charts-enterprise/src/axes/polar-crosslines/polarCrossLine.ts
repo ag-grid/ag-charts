@@ -1,4 +1,4 @@
-import type { AgBaseCrossLineLabelOptions, AgGradientFill, FontStyle, FontWeight } from 'ag-charts-community';
+import type { AgBaseCrossLineLabelOptions, AgFillType, FontStyle, FontWeight } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 const {
@@ -82,7 +82,7 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     defaultColorRange: string[] = [];
 
     @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill?: string | AgGradientFill;
+    fill?: AgFillType;
 
     @Validate(RATIO, { optional: true })
     fillOpacity?: number;

@@ -1,4 +1,4 @@
-import type { AgGradientFill } from 'ag-charts-types';
+import type { AgFillType, AgGradientFill } from 'ag-charts-types';
 
 import { createSvgElement } from '../../core';
 import { generateUUID } from '../../util/id';
@@ -25,7 +25,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasState;
 
 export interface DefaultStyles {
-    fill?: string | AgGradientFill;
+    fill?: AgFillType;
     stroke?: string;
     strokeWidth: number;
     lineDash?: number[];
@@ -56,7 +56,7 @@ export abstract class Shape<D = any> extends Node<D> {
         lineJoin: undefined,
         opacity: 1,
         fillShadow: undefined,
-        defaultColorRange: ['#5090dc', '#ef5452'],
+        defaultColorRange: [],
     };
 
     /**
@@ -73,8 +73,8 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection()
     strokeOpacity: number = 1;
 
-    @SceneChangeDetection()
-    defaultColorRange: string[] = Shape.defaultStyles.defaultColorRange;
+    @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
+    defaultColorRange?: string[] = Shape.defaultStyles.defaultColorRange;
 
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fill?: FillType = Shape.defaultStyles.fill;
@@ -90,11 +90,15 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     private createLinearGradient(fill: AgGradientFill) {
-        const { colorStops = [], direction, angle } = fill;
+        if (!this.defaultColorRange) {
+            return;
+        }
+
+        const { colorStops = [], direction, rotation = 0 } = fill;
         const isHorizontal = direction === 'horizontal';
         const stops = getColorStops(colorStops, this.defaultColorRange, [0, 1]);
 
-        return new LinearGradient('rgb', stops, angle ?? (isHorizontal ? 90 : 0));
+        return new LinearGradient('rgb', stops, isHorizontal ? rotation + 90 : rotation);
     }
 
     protected onFillChange() {
@@ -186,10 +190,8 @@ export abstract class Shape<D = any> extends Node<D> {
 
     protected applyFill(ctx: CanvasContext) {
         const bbox = this.fillBBox ?? this.getBBox();
-        ctx.fillStyle =
-            this.fillGradient?.createGradient(ctx as any, bbox) ??
-            (typeof this.fill === 'string' ? this.fill : undefined) ??
-            'black';
+        const gradientFill = bbox ? this.fillGradient?.createGradient(ctx as any, bbox) : undefined;
+        ctx.fillStyle = gradientFill ?? (typeof this.fill === 'string' ? this.fill : undefined) ?? 'black';
     }
 
     protected applyStroke(ctx: CanvasContext) {
@@ -271,10 +273,10 @@ export abstract class Shape<D = any> extends Node<D> {
             const id = generateUUID();
             gradient.setAttribute('id', id);
 
-            const { direction } = fill;
-            const isHorizontal = direction === 'horizontal';
+            const { direction = 'vertical' } = fill;
+            const isVertical = direction === 'vertical';
 
-            if (isHorizontal) {
+            if (isVertical) {
                 gradient.setAttribute('x1', '0');
                 gradient.setAttribute('x2', '0');
                 gradient.setAttribute('y1', '1');

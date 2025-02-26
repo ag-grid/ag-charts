@@ -4,7 +4,7 @@ import type {
     AgBubbleSeriesOptionsKeys,
     AgBubbleSeriesStyle,
     AgBubbleSeriesTooltipRendererParams,
-    AgGradientFill,
+    AgFillType,
     AgMarkerShape,
     BubbleSeriesItemStylerParams,
     LabelPlacement,
@@ -15,15 +15,7 @@ import { SceneChangeDetection } from '../../../scene/changeDetectable';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
-import {
-    COLOR_STRING_ARRAY,
-    LABEL_PLACEMENT,
-    NUMBER_ARRAY,
-    OBJECT,
-    POSITIVE_NUMBER,
-    STRING,
-    Validate,
-} from '../../../util/validation';
+import { LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, POSITIVE_NUMBER, STRING, Validate } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -108,11 +100,11 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     @ProxyProperty('marker.domain', { optional: true })
     domain?: [number, number];
 
-    @Validate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
+    @ProxyProperty('marker.defaultColorRange')
+    defaultColorRange?: string[];
 
     @ProxyProperty('marker.fill', { optional: true })
-    fill?: string | AgGradientFill;
+    fill?: AgFillType;
 
     @ProxyProperty('marker.fillOpacity')
     fillOpacity!: number;

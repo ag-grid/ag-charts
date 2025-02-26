@@ -1,6 +1,6 @@
 import type { RequireOptional } from 'ag-charts-core';
 import type {
-    AgGradientFill,
+    AgFillType,
     AgMarkerShape,
     AgSeriesMarkerStyle,
     AgSeriesMarkerStylerParams,
@@ -10,6 +10,7 @@ import type {
 
 import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
+import type { DefaultFillStyle } from '../../scene/util/fill';
 import {
     BOOLEAN,
     COLOR_GRADIENT,
@@ -49,7 +50,7 @@ export class SeriesMarker<TParams = never>
 
     @Validate(OR(COLOR_STRING, COLOR_GRADIENT), { optional: true })
     @SceneChangeDetection()
-    fill?: string | AgGradientFill;
+    fill?: AgFillType;
 
     @Validate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
@@ -80,7 +81,7 @@ export class SeriesMarker<TParams = never>
     @SceneChangeDetection()
     itemStyler?: Styler<AgSeriesMarkerStylerParams<unknown> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
 
-    getStyle(): AgSeriesMarkerStyle & { defaultColorRange: string[] } {
+    getStyle(): AgSeriesMarkerStyle & DefaultFillStyle {
         const {
             size,
             shape,

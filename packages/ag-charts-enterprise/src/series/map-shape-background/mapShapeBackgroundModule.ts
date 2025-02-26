@@ -5,7 +5,7 @@ import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeBackgroundSeries } from './mapShapeBackgroundSeries';
 import { mapShapeBackgroundSeriesOptionsDef } from './mapShapeBackgroundSeriesOptionsDef';
 
-const { DEFAULT_HIERARCHY_FILLS } = _ModuleSupport.ThemeSymbols;
+const { DEFAULT_HIERARCHY_FILLS, DEFAULT_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
 export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-background'> = {
     type: 'series',
@@ -24,7 +24,8 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
         },
     },
     paletteFactory: ({ themeTemplateParameters }) => {
-        return { fill: themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS)?.[1] };
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
+        return { fill: themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS)?.[1], defaultColorRange };
     },
 };
 

@@ -6,6 +6,7 @@ import { rangeBarSeriesOptionsDef } from './rangeBarSeriesOptionsDef';
 import { RANGE_BAR_SERIES_THEME } from './rangeBarThemes';
 
 const { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } = _ModuleSupport.ThemeConstants;
+const { DEFAULT_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
 export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
     type: 'series',
@@ -25,14 +26,16 @@ export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
     ),
     themeTemplate: RANGE_BAR_SERIES_THEME,
 
-    paletteFactory: ({ takeColors }) => {
+    paletteFactory: ({ takeColors, themeTemplateParameters }) => {
         const {
             fills: [fill],
             strokes: [stroke],
         } = takeColors(1);
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
         return {
             fill,
             stroke,
+            defaultColorRange,
         };
     },
 

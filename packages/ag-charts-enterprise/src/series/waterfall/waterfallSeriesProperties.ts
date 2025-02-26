@@ -1,4 +1,5 @@
 import type {
+    AgFillType,
     AgTooltipRendererResult,
     AgWaterfallSeriesItemStylerParams,
     AgWaterfallSeriesLabelFormatterParams,
@@ -24,6 +25,9 @@ const {
     OBJECT,
     OBJECT_ARRAY,
     POSITIVE_NUMBER,
+    OR,
+    COLOR_GRADIENT,
+    COLOR_STRING_ARRAY,
     RATIO,
     STRING,
     UNION,
@@ -59,8 +63,11 @@ export class WaterfallSeriesItem extends BaseProperties {
     @Validate(STRING, { optional: true })
     name?: string;
 
-    @Validate(COLOR_STRING)
-    fill: string = '#c16068';
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    fill: AgFillType = '#c16068';
 
     @Validate(COLOR_STRING)
     stroke: string = '#c16068';

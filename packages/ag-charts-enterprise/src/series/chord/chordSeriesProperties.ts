@@ -6,6 +6,7 @@ import {
     type AgChordSeriesNodeStyle,
     type AgChordSeriesOptions,
     type AgChordSeriesTooltipRendererParams,
+    type AgFillType,
     type Styler,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -15,6 +16,7 @@ const {
     SeriesTooltip,
     SeriesProperties,
     ARRAY,
+    ARRAY_OF,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
     FUNCTION,
@@ -23,6 +25,8 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    OR,
+    COLOR_GRADIENT,
     Validate,
     Label,
 } = _ModuleSupport;
@@ -36,8 +40,8 @@ class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams
 }
 
 class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string | undefined = undefined;
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill: AgFillType | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity = 1;
@@ -71,8 +75,8 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
     @Validate(POSITIVE_NUMBER)
     width: number = 1;
 
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string | undefined = undefined;
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill: AgFillType | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity = 1;
@@ -125,7 +129,10 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     nodes: any[] | undefined = undefined;
 
     @Validate(COLOR_STRING_ARRAY)
-    fills: string[] = [];
+    defaultColorRange: string[] = [];
+
+    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    fills: AgFillType[] = [];
 
     @Validate(COLOR_STRING_ARRAY)
     strokes: string[] = [];
