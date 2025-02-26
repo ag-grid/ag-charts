@@ -27,7 +27,7 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
-    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum<unknown>): void;
+    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum<unknown>): boolean;
     fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum<unknown>): void;
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): NodeContextMenuActionEvent;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];

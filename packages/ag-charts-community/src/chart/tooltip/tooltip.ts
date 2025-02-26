@@ -194,11 +194,6 @@ export class TooltipPosition extends BaseProperties {
     }
 }
 
-class TooltipPagination extends BaseProperties {
-    @Validate(BOOLEAN)
-    enabled: boolean = false;
-}
-
 export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
@@ -221,8 +216,8 @@ export class Tooltip extends BaseProperties {
     @Validate(OBJECT)
     readonly position = new TooltipPosition();
 
-    @Validate(OBJECT)
-    readonly pagination = new TooltipPagination();
+    @Validate(BOOLEAN)
+    readonly pagination = false;
 
     @Validate(BOOLEAN)
     darkTheme = false;
@@ -371,12 +366,7 @@ export class Tooltip extends BaseProperties {
         const { element } = this;
 
         if (element != null && content != null && content.length !== 0) {
-            const html = tooltipHtml(
-                this.localeManager,
-                content,
-                this.mode,
-                this.pagination.enabled ? pagination : undefined
-            );
+            const html = tooltipHtml(this.localeManager, content, this.mode, this.pagination ? pagination : undefined);
             if (html == null) {
                 this.toggle(false);
                 return;

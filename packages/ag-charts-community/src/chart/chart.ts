@@ -54,7 +54,7 @@ import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/ty
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
-import { type Series, SeriesGroupingChangedEvent } from './series/series';
+import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
@@ -1078,12 +1078,12 @@ export abstract class Chart extends Observable implements ModuleInstance {
         );
     }
 
-    private readonly onSeriesNodeClick = (event: TypedEvent) => {
-        this.fireEvent({ ...event, type: 'seriesNodeClick' });
+    private readonly onSeriesNodeClick = (event: SeriesNodeEvent<any>) => {
+        this.fireEvent(event.clone('seriesNodeClick'));
     };
 
-    private readonly onSeriesNodeDoubleClick = (event: TypedEvent) => {
-        this.fireEvent({ ...event, type: 'seriesNodeDoubleClick' });
+    private readonly onSeriesNodeDoubleClick = (event: SeriesNodeEvent<any>) => {
+        this.fireEvent(event.clone('seriesNodeDoubleClick'));
     };
 
     private readonly onSeriesVisibilityChange = (event: TypedEvent) => {

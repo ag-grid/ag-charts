@@ -83,7 +83,13 @@ export type PickFocusOutputs = {
 
 export type PickResult = { pickMode: SeriesNodePickMode; datums: SeriesNodeDatum<unknown>[]; distance: number };
 
-export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContextMenuAction' | 'groupingChanged';
+export type SeriesNodeEventTypes =
+    | 'nodeClick'
+    | 'nodeDoubleClick'
+    | 'nodeContextMenuAction'
+    | 'groupingChanged'
+    | 'seriesNodeClick'
+    | 'seriesNodeDoubleClick';
 
 interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
@@ -91,6 +97,7 @@ interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends Typed
     readonly event: Event;
     readonly datum: unknown;
     readonly seriesId: string;
+    readonly defaultPrevented: boolean;
 }
 
 export type INodeEventConstructor<
@@ -102,20 +109,35 @@ export type INodeEventConstructor<
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 
+const originEvents = new WeakMap<SeriesNodeEvent<any, any>, SeriesNodeEvent<any, any>>();
+
 export class SeriesNodeEvent<TDatum extends SeriesNodeDatum<unknown>, TEvent extends string = SeriesNodeEventTypes>
     implements INodeEvent<TEvent>
 {
     readonly datum: unknown;
     readonly seriesId: string;
+    defaultPrevented = false;
 
     constructor(
         readonly type: TEvent,
         readonly event: Event,
-        { datum }: TDatum,
-        series: ISeries<unknown, TDatum, unknown, unknown>
+        private readonly nodeDatum: TDatum,
+        private readonly series: ISeries<unknown, TDatum, unknown, unknown>
     ) {
-        this.datum = datum;
+        this.datum = nodeDatum.datum;
         this.seriesId = series.id;
+    }
+
+    clone(type: TEvent = this.type) {
+        const constructor = this.constructor as any;
+        const out = new constructor(type, this.event, this.nodeDatum, this.series);
+        originEvents.set(out, this);
+        return out;
+    }
+
+    public preventDefault() {
+        originEvents.get(this)?.preventDefault();
+        this.defaultPrevented = true;
     }
 }
 
@@ -384,9 +406,19 @@ export abstract class Series<
     private readonly seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
 
     override addEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
+    override addEventListener(type: 'nodeClick', listener: (e: SeriesNodeEvent<any>) => void): void;
+    override addEventListener(type: 'nodeDoubleClick', listener: (e: SeriesNodeEvent<any>) => void): void;
     override addEventListener(type: string, listener: TypedEventListener): void;
     override addEventListener(type: string, listener: TypedEventListener | ((e: unknown) => void)): void {
         return super.addEventListener(type, listener);
+    }
+
+    override removeEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
+    override removeEventListener(type: 'nodeClick', listener: (e: SeriesNodeEvent<any>) => void): void;
+    override removeEventListener(type: 'nodeDoubleClick', listener: (e: SeriesNodeEvent<any>) => void): void;
+    override removeEventListener(type: string, listener: TypedEventListener): void;
+    override removeEventListener(type: string, listener: TypedEventListener | ((e: unknown) => void)): void {
+        return super.removeEventListener(type, listener);
     }
 
     public addListener<T extends SeriesEventType, E>(type: T, listener: (event: E) => void) {
@@ -714,12 +746,16 @@ export abstract class Series<
         return;
     }
 
-    fireNodeClickEvent(event: Event, datum: TDatum): void {
-        this.fireEvent(new this.NodeEvent('nodeClick', event, datum, this));
+    fireNodeClickEvent(event: Event, datum: TDatum): boolean {
+        const clickEvent = new this.NodeEvent('nodeClick', event, datum, this);
+        this.fireEvent(clickEvent);
+        return !clickEvent.defaultPrevented;
     }
 
-    fireNodeDoubleClickEvent(event: Event, datum: TDatum): void {
-        this.fireEvent(new this.NodeEvent('nodeDoubleClick', event, datum, this));
+    fireNodeDoubleClickEvent(event: Event, datum: TDatum): boolean {
+        const clickEvent = new this.NodeEvent('nodeDoubleClick', event, datum, this);
+        this.fireEvent(clickEvent);
+        return !clickEvent.defaultPrevented;
     }
 
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'> {
