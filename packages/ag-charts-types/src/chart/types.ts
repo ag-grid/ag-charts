@@ -26,13 +26,13 @@ export interface AgPath {
     readonly clear: (trackChanges?: boolean) => void;
 }
 
-export type AgMarkerShapeFnParams = {
+export interface AgMarkerShapeFnParams {
     path: AgPath;
     x: number;
     y: number;
     size: number;
     pixelRatio: number;
-};
+}
 
 export type AgMarkerShapeFn = (params: AgMarkerShapeFnParams) => void;
 
