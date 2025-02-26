@@ -131,21 +131,29 @@ function tooltipContentHtml(
 
     const singleItem = content.items.length === 1 ? content.items[0] : undefined;
 
-    if (
-        mode !== 'shared' &&
-        singleItem != null &&
-        (content.heading == null || singleItem.title == null) &&
-        singleItem.data?.length === 1 &&
-        singleItem.data[0].label == null &&
-        singleItem.data[0].value != null
-    ) {
-        // Compact rendering
-        const datum = singleItem.data[0];
+    let compact: boolean;
+    switch (mode) {
+        case 'compact':
+            compact = true;
+            break;
+        case 'single':
+            compact =
+                singleItem != null &&
+                (content.heading == null || singleItem.title == null) &&
+                singleItem.data?.length === 1 &&
+                singleItem.data[0].label == null &&
+                singleItem.data[0].value != null;
+            break;
+        case 'shared':
+            compact = false;
+    }
 
-        html += dataHtml(content.heading ?? singleItem.title, datum.value, false);
+    if (compact && singleItem?.data != null && singleItem.data.length > 0) {
+        const { label, value } = singleItem.data[0];
+
+        html += dataHtml(label ?? content.heading ?? singleItem.title, value, false);
     } else {
         // Full rendering
-
         if (content.heading != null) {
             html += `<span class="${DEFAULT_TOOLTIP_CLASS}-heading">${sanitizeHtml(content.heading)}</span>`;
             html += ' ';
@@ -156,7 +164,8 @@ function tooltipContentHtml(
         });
     }
 
-    const paginationContent = pagination == null ? undefined : tooltipPaginationContentHtml(localeManager, pagination);
+    const paginationContent =
+        mode !== 'compact' && pagination != null ? tooltipPaginationContentHtml(localeManager, pagination) : undefined;
     if (paginationContent! + null) {
         html += paginationContent;
     }
