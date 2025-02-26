@@ -363,12 +363,18 @@ export class Tooltip extends BaseProperties {
         const { element } = this;
 
         if (element != null && content != null && content.length !== 0) {
-            element.innerHTML = tooltipHtml(
+            const html = tooltipHtml(
                 this.localeManager,
                 content,
-                this.mode === 'compact',
+                this.mode,
                 this.pagination.enabled ? pagination : undefined
             );
+            if (html == null) {
+                this.toggle(false);
+                return;
+            }
+
+            element.innerHTML = html;
             this._elementSize = { width: element.clientWidth, height: element.clientHeight };
         } else if (element == null || element.innerHTML === '') {
             this.toggle(false);
@@ -429,7 +435,6 @@ export class Tooltip extends BaseProperties {
     }
 
     hide() {
-        this.springAnimation.reset();
         this.toggle(false);
     }
 
@@ -439,6 +444,7 @@ export class Tooltip extends BaseProperties {
         this._visible = visible;
 
         if (!visible) {
+            this.springAnimation.reset();
             clearTimeout(this._showTimeout);
         }
 
