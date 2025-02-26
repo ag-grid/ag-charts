@@ -23,6 +23,7 @@ export class Pool<T, P> {
     private readonly freePool: T[] = [];
     private readonly busyPool = new Set<T>();
     private cleanPoolTimer?: NodeJS.Timeout;
+    private cleanPoolDue?: number;
 
     public constructor(
         private readonly name: string,
@@ -97,12 +98,18 @@ export class Pool<T, P> {
             item
         );
 
-        if (this.cleanPoolTimer) {
+        const now = Date.now();
+        const earliestClean = now + this.cleanupTimeMs * 0.5;
+        if (this.cleanPoolTimer && (this.cleanPoolDue ?? Infinity) < earliestClean) {
+            // Avoid clearing the timeout repeatedly (e.g. when many items are returned successively)
+            // as this can be an expensive operation based upon Chrome profiling.
             clearTimeout(this.cleanPoolTimer);
+            this.cleanPoolTimer = undefined;
         }
-        this.cleanPoolTimer = setTimeout(() => {
-            this.cleanPool();
-        }, this.cleanupTimeMs);
+        if (!this.cleanPoolTimer) {
+            this.cleanPoolDue = now + this.cleanupTimeMs;
+            this.cleanPoolTimer = setTimeout(this.cleanPool.bind(this), this.cleanupTimeMs);
+        }
     }
 
     private cleanPool() {
