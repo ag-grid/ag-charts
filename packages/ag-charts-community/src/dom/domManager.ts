@@ -179,7 +179,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     public postRenderUpdate() {
         if (DOMManager.batchedUpdateContainer.length === 0) {
-            requestAnimationFrame(this.applyBatchedUpdateContainer.bind(this));
+            getWindow().requestAnimationFrame(this.applyBatchedUpdateContainer.bind(this));
         }
         DOMManager.batchedUpdateContainer.push(this);
     }
