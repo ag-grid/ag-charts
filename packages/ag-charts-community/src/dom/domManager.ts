@@ -495,8 +495,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             styleElement = addStyleElement(getDocument('head'));
             DOMManager.headStyles.add(id);
         } else if (this.documentRoot != null) {
-                // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
-                styleElement = this.addChild('styles', id);
+            // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
+            styleElement = this.addChild('styles', id);
         }
 
         // Avoid setting innerHTML on elements we've already configured to avoid style recalculations
