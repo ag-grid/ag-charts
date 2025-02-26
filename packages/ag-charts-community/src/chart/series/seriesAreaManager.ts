@@ -417,24 +417,8 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        const nextTooltipCandidate = this.chart.tooltip.pagination.enabled ? this.tooltipCandidates.next() : undefined;
-        if (nextTooltipCandidate != null) {
-            event.sourceEvent.preventDefault();
-            const { currentX, currentY } = event;
-            const canvasX = currentX + (this.hoverRect?.x ?? 0);
-            const canvasY = currentY + (this.hoverRect?.y ?? 0);
-            this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
-            this.handleHoverHighlight(false);
-            this.showTooltip(
-                nextTooltipCandidate.current,
-                { index: nextTooltipCandidate.index, length: nextTooltipCandidate.length },
-                canvasX,
-                canvasY
-            );
-            return;
-        }
-
         this.focusIndicator.overrideFocusVisible(false);
+
         this.onHoverLikeEvent(event);
 
         // Do not run chartOptions click handlers if an annotation is selected.
@@ -524,12 +508,39 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }) {
-        const result = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
-        if (result == null) return false;
-        const { series, datum } = result.matches[0];
+        let series: Series<unknown, any, any, any>;
+        let datum: any;
+        let distance: number;
+
+        const { current } = this.tooltipCandidates;
+        if (current == null) {
+            const result = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
+            if (result == null) return;
+            ({ series, datum } = result.matches[0]);
+            ({ distance } = result);
+        } else {
+            ({ series, datum } = current);
+            distance = 0;
+        }
 
         if (event.type === 'click') {
-            series.fireNodeClickEvent(event.sourceEvent, datum);
+            const defaultBehavior = series.fireNodeClickEvent(event.sourceEvent, datum);
+
+            const nextTooltipCandidate =
+                defaultBehavior && this.chart.tooltip.pagination ? this.tooltipCandidates.next() : undefined;
+            if (nextTooltipCandidate != null) {
+                event.sourceEvent.preventDefault();
+                const { currentX, currentY } = event;
+                const canvasX = currentX + (this.hoverRect?.x ?? 0);
+                const canvasY = currentY + (this.hoverRect?.y ?? 0);
+                this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
+                this.handleHoverHighlight(false);
+                this.showTooltip(nextTooltipCandidate.current, canvasX, canvasY, {
+                    index: nextTooltipCandidate.index,
+                    length: nextTooltipCandidate.length,
+                });
+            }
+
             return true;
         }
 
@@ -542,7 +553,7 @@ export class SeriesAreaManager extends BaseManager {
             // series-rect double-clicks. As a workaround, we'll set this boolean to tell the Zoom
             // double-click handler to ignore the event whenever we are double-clicking exactly on
             // a node.
-            event.preventZoomDblClick = result.distance === 0;
+            event.preventZoomDblClick = distance === 0;
 
             series.fireNodeDoubleClickEvent(event.sourceEvent, datum);
             return true;
@@ -820,20 +831,25 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        const { current, index, length } = this.tooltipCandidates.update(
-            pick.matches,
-            this.chart.tooltip.pagination.enabled ? previousHover : undefined
-        );
-
         this.hoverDevice = 'pointer';
-        this.showTooltip(current, { index, length }, canvasX, canvasY);
+
+        if (pick.distance === 0) {
+            const { current, index, length } = this.tooltipCandidates.update(
+                pick.matches,
+                this.chart.tooltip.pagination ? previousHover : undefined
+            );
+
+            this.showTooltip(current, canvasX, canvasY, { index, length });
+        } else {
+            this.showTooltip(pick.matches[0], canvasX, canvasY);
+        }
     }
 
     private showTooltip(
         { series, datum, datumIndex }: PickedNode,
-        { index, length }: TooltipPaginationState,
         canvasX: number,
-        canvasY: number
+        canvasY: number,
+        pagination?: TooltipPaginationState
     ) {
         const content = this.chart.getTooltipContent(series, datumIndex, datum);
         const tooltipEnabled = this.chart.tooltip.enabled && series.tooltipEnabled;
@@ -845,7 +861,7 @@ export class SeriesAreaManager extends BaseManager {
                 datum,
                 undefined
             );
-            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content, { index, length });
+            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content, pagination);
         } else {
             this.chart.ctx.tooltipManager.removeTooltip(this.id);
         }

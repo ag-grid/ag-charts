@@ -186,11 +186,6 @@ export class TooltipPosition extends BaseProperties {
     }
 }
 
-class TooltipPagination extends BaseProperties {
-    @Validate(BOOLEAN)
-    enabled: boolean = false;
-}
-
 export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
@@ -213,8 +208,8 @@ export class Tooltip extends BaseProperties {
     @Validate(OBJECT)
     readonly position = new TooltipPosition();
 
-    @Validate(OBJECT)
-    readonly pagination = new TooltipPagination();
+    @Validate(BOOLEAN)
+    readonly pagination = false;
 
     @Validate(BOOLEAN)
     darkTheme = false;
@@ -367,7 +362,7 @@ export class Tooltip extends BaseProperties {
                 this.localeManager,
                 content,
                 this.mode === 'compact',
-                this.pagination.enabled ? pagination : undefined
+                this.pagination ? pagination : undefined
             );
             this._elementSize = { width: element.clientWidth, height: element.clientHeight };
         } else if (element == null || element.innerHTML === '') {

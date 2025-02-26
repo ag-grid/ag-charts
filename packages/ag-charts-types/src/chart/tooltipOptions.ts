@@ -28,7 +28,7 @@ export interface AgChartTooltipOptions {
     /** The position of the tooltip. This will be used unless overridden by the series `tooltip.range` option. */
     position?: AgTooltipPositionOptions;
     /** The configuration for tooltip pagination. */
-    pagination?: AgTooltipPaginationOptions;
+    pagination?: boolean;
     /** The time interval (in milliseconds) after which the tooltip is shown. */
     delay?: DurationMs;
     /**
@@ -73,11 +73,6 @@ export interface AgTooltipPositionOptions {
     xOffset?: PixelSize;
     /** The vertical offset in pixels for the position of the tooltip. */
     yOffset?: PixelSize;
-}
-
-export interface AgTooltipPaginationOptions {
-    /** Set to `true` to enable tooltip pagination when hovering multiple data. */
-    enabled?: boolean;
 }
 
 export interface AgTooltipRendererDataRow {
