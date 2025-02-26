@@ -126,15 +126,16 @@ function tooltipContentHtml(
     content: GroupedStructuredContent,
     mode: AgTooltipMode,
     pagination?: TooltipPaginationState
-) {
-    let html = '';
-
+): string | undefined {
     const singleItem = content.items.length === 1 ? content.items[0] : undefined;
 
     let compact: boolean;
+    let compactTitle: string | undefined;
+    let compactFallbackLabel: string | undefined;
     switch (mode) {
         case 'compact':
             compact = true;
+            compactTitle = singleItem?.title;
             break;
         case 'single':
             compact =
@@ -143,15 +144,22 @@ function tooltipContentHtml(
                 singleItem.data?.length === 1 &&
                 singleItem.data[0].label == null &&
                 singleItem.data[0].value != null;
+            compactFallbackLabel = content.heading ?? singleItem?.title;
             break;
         case 'shared':
             compact = false;
     }
 
-    if (compact && singleItem?.data != null && singleItem.data.length > 0) {
-        const { label, value } = singleItem.data[0];
+    let html = '';
+    if (compact && singleItem != null) {
+        if (compactTitle != null) {
+            html += dataHtml(undefined, compactTitle, false);
+        }
 
-        html += dataHtml(label ?? content.heading ?? singleItem.title, value, false);
+        singleItem.data?.forEach((datum) => {
+            html += dataHtml(datum.label ?? compactFallbackLabel, datum.value, false);
+            html += ' ';
+        });
     } else {
         // Full rendering
         if (content.heading != null) {
@@ -163,6 +171,8 @@ function tooltipContentHtml(
             html += tooltipRowContentHtml(item);
         });
     }
+
+    if (html.length === 0) return;
 
     const paginationContent =
         mode !== 'compact' && pagination != null ? tooltipPaginationContentHtml(localeManager, pagination) : undefined;
@@ -182,27 +192,17 @@ function tooltipPaginationHtml(localeManager: LocaleManager | undefined, paginat
     return `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${paginationContent}</div>`;
 }
 
-function compactTooltipHtml(content: GroupedStructuredContent) {
-    const data = content.items?.[0].data;
-    if (data == null || data.length === 0) return '';
-
-    const { label, value } = data[0];
-    return `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${dataHtml(label, value, false)}</div>`;
-}
-
 export function tooltipHtml(
     localeManager: LocaleManager | undefined,
     content: TooltipContent[],
     mode: AgTooltipMode,
     pagination: TooltipPaginationState | undefined
-) {
+): string | undefined {
     const aggregatedContent = aggregateTooltipContent(content);
-    if (aggregatedContent.length === 0) return '';
+    if (aggregatedContent.length === 0) return;
 
     if (aggregatedContent.length === 1 && aggregatedContent[0].type === 'structured') {
-        return mode === 'compact'
-            ? compactTooltipHtml(aggregatedContent[0])
-            : tooltipContentHtml(localeManager, aggregatedContent[0], mode, pagination);
+        return tooltipContentHtml(localeManager, aggregatedContent[0], mode, pagination);
     } else {
         const htmlRows = aggregatedContent.map((c) => {
             return c.type === 'structured' ? tooltipContentHtml(localeManager, c, mode) : c.rawHtmlString;
