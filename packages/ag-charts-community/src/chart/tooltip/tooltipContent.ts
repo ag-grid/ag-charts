@@ -1,3 +1,5 @@
+import type { AgTooltipMode } from 'ag-charts-types';
+
 import type { LocaleManager } from '../../locale/localeManager';
 import { sanitizeHtml } from '../../util/sanitize';
 import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
@@ -122,26 +124,44 @@ function tooltipPaginationContentHtml(localeManager: LocaleManager | undefined, 
 function tooltipContentHtml(
     localeManager: LocaleManager | undefined,
     content: GroupedStructuredContent,
+    mode: AgTooltipMode,
     pagination?: TooltipPaginationState
-) {
-    let html = '';
-
+): string | undefined {
     const singleItem = content.items.length === 1 ? content.items[0] : undefined;
 
-    if (
-        singleItem != null &&
-        (content.heading == null || singleItem.title == null) &&
-        singleItem.data?.length === 1 &&
-        singleItem.data[0].label == null &&
-        singleItem.data[0].value != null
-    ) {
-        // Compact rendering
-        const datum = singleItem.data[0];
+    let compact: boolean;
+    let compactTitle: string | undefined;
+    let compactFallbackLabel: string | undefined;
+    switch (mode) {
+        case 'compact':
+            compact = true;
+            compactTitle = singleItem?.title;
+            break;
+        case 'single':
+            compact =
+                singleItem != null &&
+                (content.heading == null || singleItem.title == null) &&
+                singleItem.data?.length === 1 &&
+                singleItem.data[0].label == null &&
+                singleItem.data[0].value != null;
+            compactFallbackLabel = content.heading ?? singleItem?.title;
+            break;
+        case 'shared':
+            compact = false;
+    }
 
-        html += dataHtml(content.heading ?? singleItem.title, datum.value, false);
+    let html = '';
+    if (compact && singleItem != null) {
+        if (compactTitle != null) {
+            html += dataHtml(undefined, compactTitle, false);
+        }
+
+        singleItem.data?.forEach((datum) => {
+            html += dataHtml(datum.label ?? compactFallbackLabel, datum.value, false);
+            html += ' ';
+        });
     } else {
         // Full rendering
-
         if (content.heading != null) {
             html += `<span class="${DEFAULT_TOOLTIP_CLASS}-heading">${sanitizeHtml(content.heading)}</span>`;
             html += ' ';
@@ -152,7 +172,10 @@ function tooltipContentHtml(
         });
     }
 
-    const paginationContent = pagination == null ? undefined : tooltipPaginationContentHtml(localeManager, pagination);
+    if (html.length === 0) return;
+
+    const paginationContent =
+        mode !== 'compact' && pagination != null ? tooltipPaginationContentHtml(localeManager, pagination) : undefined;
     if (paginationContent! + null) {
         html += paginationContent;
     }
@@ -169,30 +192,20 @@ function tooltipPaginationHtml(localeManager: LocaleManager | undefined, paginat
     return `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${paginationContent}</div>`;
 }
 
-function compactTooltipHtml(content: GroupedStructuredContent) {
-    const data = content.items?.[0].data;
-    if (data == null || data.length === 0) return '';
-
-    const { label, value } = data[0];
-    return `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${dataHtml(label, value, false)}</div>`;
-}
-
 export function tooltipHtml(
     localeManager: LocaleManager | undefined,
     content: TooltipContent[],
-    compact: boolean,
+    mode: AgTooltipMode,
     pagination: TooltipPaginationState | undefined
-) {
+): string | undefined {
     const aggregatedContent = aggregateTooltipContent(content);
-    if (aggregatedContent.length === 0) return '';
+    if (aggregatedContent.length === 0) return;
 
     if (aggregatedContent.length === 1 && aggregatedContent[0].type === 'structured') {
-        return compact
-            ? compactTooltipHtml(aggregatedContent[0])
-            : tooltipContentHtml(localeManager, aggregatedContent[0], pagination);
+        return tooltipContentHtml(localeManager, aggregatedContent[0], mode, pagination);
     } else {
         const htmlRows = aggregatedContent.map((c) => {
-            return c.type === 'structured' ? tooltipContentHtml(localeManager, c) : c.rawHtmlString;
+            return c.type === 'structured' ? tooltipContentHtml(localeManager, c, mode) : c.rawHtmlString;
         });
         if (pagination != null) {
             htmlRows.push(tooltipPaginationHtml(localeManager, pagination) ?? '');
