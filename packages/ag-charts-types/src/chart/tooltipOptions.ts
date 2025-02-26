@@ -25,8 +25,10 @@ export interface AgChartTooltipOptions {
     showArrow?: boolean;
     /** Range from a point that triggers the tooltip to show. This will be used unless overridden by the series `tooltip.range` option. */
     range?: InteractionRange;
-    /** The position of the tooltip. This will be used unless overridden by the series `tooltip.range` option.*/
+    /** The position of the tooltip. This will be used unless overridden by the series `tooltip.range` option. */
     position?: AgTooltipPositionOptions;
+    /** The configuration for tooltip pagination. */
+    pagination?: AgTooltipPaginationOptions;
     /** The time interval (in milliseconds) after which the tooltip is shown. */
     delay?: DurationMs;
     /**
