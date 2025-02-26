@@ -149,9 +149,17 @@ const PLACEMENT_UNION = UNION(
 const PLACEMENT = OR(PLACEMENT_UNION, ARRAY_OF(PLACEMENT_UNION));
 
 export class TooltipPosition extends BaseProperties {
-    @Validate(POSITION_TYPE)
+    /**
+     * @todo(AG-10870) - this should never be undefined, but there's something odd going on with
+     * theming that doesn't look so easy to fix. This property will be removed in the next major,
+     * so for now we'll just work around. It's marked as protected no code outside of this class
+     * can use it, and all code will use the newer `placement` and `anchorTo` properties, which
+     * derive their defaults from this property. Eventually those properties will be set via the
+     * theme, and we'll make sure they are applied normally.
+     */
+    @Validate(POSITION_TYPE, { optional: true })
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
-    type: TooltipPositionType = 'pointer';
+    protected type?: TooltipPositionType;
 
     @Validate(NUMBER)
     /** The horizontal offset in pixels for the position of the tooltip. */
@@ -168,7 +176,7 @@ export class TooltipPosition extends BaseProperties {
     placement?: AgTooltipPlacement | AgTooltipPlacement[];
 
     get defaultAnchorTo(): AgTooltipAnchorTo {
-        const { type } = this;
+        const { type = 'pointer' } = this;
         if (type === 'node' || type === 'pointer') {
             return type;
         } else {
@@ -177,7 +185,7 @@ export class TooltipPosition extends BaseProperties {
     }
 
     get defaultPlacement(): AgTooltipPlacement {
-        const { type } = this;
+        const { type = 'pointer' } = this;
         if (type === 'node' || type === 'pointer') {
             return 'top';
         } else {
