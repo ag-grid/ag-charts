@@ -1093,7 +1093,15 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }) {
         const { gaugeRect, properties } = this;
         const { x, y, width, height } = gaugeRect;
-        const { color, fontFamily, fontSize, fontStyle, fontWeight, spacing } = properties.scale.label;
+        const defaultScale = properties.defaultScale;
+        const {
+            color,
+            fontFamily = defaultScale.label.fontFamily,
+            fontSize = defaultScale.label.fontSize,
+            fontStyle,
+            fontWeight = defaultScale.label.fontWeight,
+            spacing,
+        } = properties.scale.label;
         let { placement } = properties.scale.label;
 
         let textAlign: CanvasTextAlign;

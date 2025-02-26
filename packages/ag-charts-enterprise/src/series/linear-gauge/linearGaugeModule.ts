@@ -54,6 +54,14 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                     spacing: 5,
                 },
             },
+            defaultScale: {
+                label: {
+                    fontWeight: { $ref: 'fontWeight' },
+                    fontSize: { $ref: 'fontSize' },
+                    fontFamily: { $ref: 'fontFamily' },
+                    color: { $ref: 'textColor' },
+                },
+            },
             label: {
                 enabled: false,
                 placement: 'inside-start',

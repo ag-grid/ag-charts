@@ -43,6 +43,9 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
             },
             altNeutral: {
                 color: 'gray',
+                fontFamily: { $ref: 'fontFamily' },
+                fontSize: { $ref: 'fontSize' },
+                fontWeight: { $ref: 'fontWeight' },
             },
         },
     },

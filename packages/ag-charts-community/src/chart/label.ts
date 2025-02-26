@@ -42,10 +42,10 @@ export class Label<TParams = never, TDatum = any>
     fontWeight?: FontWeight;
 
     @Validate(POSITIVE_NUMBER)
-    fontSize: number = 12;
+    fontSize!: number;
 
     @Validate(STRING)
-    fontFamily: string = 'Verdana, sans-serif';
+    fontFamily!: string;
 
     @Validate(FUNCTION, { optional: true })
     formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
