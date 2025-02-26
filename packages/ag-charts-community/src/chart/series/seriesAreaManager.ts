@@ -513,20 +513,14 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }) {
-        let series: Series<unknown, any, any, any>;
-        let datum: any;
-        let distance: number;
+        const result = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
+        if (result == null || result.matches.length === 0) return;
 
-        const { current } = this.tooltipCandidates;
-        if (current == null) {
-            const result = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
-            if (result == null) return;
-            ({ series, datum } = result.matches[0]);
-            ({ distance } = result);
-        } else {
-            ({ series, datum } = current);
-            distance = 0;
-        }
+        const paginationUpdate = this.chart.tooltip.pagination
+            ? this.tooltipCandidates.update(result.matches, this.tooltipCandidates.current)?.current
+            : undefined;
+        const { series, datum } = paginationUpdate ?? result.matches[0];
+        const distance = paginationUpdate == null ? result.distance : 0;
 
         if (event.type === 'click') {
             const defaultBehavior = series.fireNodeClickEvent(event.sourceEvent, datum);
