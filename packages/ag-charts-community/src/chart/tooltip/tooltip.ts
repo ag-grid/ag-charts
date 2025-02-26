@@ -366,7 +366,7 @@ export class Tooltip extends BaseProperties {
             element.innerHTML = tooltipHtml(
                 this.localeManager,
                 content,
-                this.mode === 'compact',
+                this.mode,
                 this.pagination.enabled ? pagination : undefined
             );
             this._elementSize = { width: element.clientWidth, height: element.clientHeight };

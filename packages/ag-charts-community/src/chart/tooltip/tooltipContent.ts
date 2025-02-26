@@ -1,3 +1,5 @@
+import type { AgTooltipMode } from 'ag-charts-types';
+
 import type { LocaleManager } from '../../locale/localeManager';
 import { sanitizeHtml } from '../../util/sanitize';
 import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
@@ -122,6 +124,7 @@ function tooltipPaginationContentHtml(localeManager: LocaleManager | undefined, 
 function tooltipContentHtml(
     localeManager: LocaleManager | undefined,
     content: GroupedStructuredContent,
+    mode: AgTooltipMode,
     pagination?: TooltipPaginationState
 ) {
     let html = '';
@@ -129,6 +132,7 @@ function tooltipContentHtml(
     const singleItem = content.items.length === 1 ? content.items[0] : undefined;
 
     if (
+        mode !== 'shared' &&
         singleItem != null &&
         (content.heading == null || singleItem.title == null) &&
         singleItem.data?.length === 1 &&
@@ -180,19 +184,19 @@ function compactTooltipHtml(content: GroupedStructuredContent) {
 export function tooltipHtml(
     localeManager: LocaleManager | undefined,
     content: TooltipContent[],
-    compact: boolean,
+    mode: AgTooltipMode,
     pagination: TooltipPaginationState | undefined
 ) {
     const aggregatedContent = aggregateTooltipContent(content);
     if (aggregatedContent.length === 0) return '';
 
     if (aggregatedContent.length === 1 && aggregatedContent[0].type === 'structured') {
-        return compact
+        return mode === 'compact'
             ? compactTooltipHtml(aggregatedContent[0])
-            : tooltipContentHtml(localeManager, aggregatedContent[0], pagination);
+            : tooltipContentHtml(localeManager, aggregatedContent[0], mode, pagination);
     } else {
         const htmlRows = aggregatedContent.map((c) => {
-            return c.type === 'structured' ? tooltipContentHtml(localeManager, c) : c.rawHtmlString;
+            return c.type === 'structured' ? tooltipContentHtml(localeManager, c, mode) : c.rawHtmlString;
         });
         if (pagination != null) {
             htmlRows.push(tooltipPaginationHtml(localeManager, pagination) ?? '');
