@@ -10,7 +10,7 @@ type ItemStyler = NonNullable<AgBarSeriesThemeableOptions['itemStyler']>;
 type LabelFormatter = NonNullable<NonNullable<AgBarSeriesThemeableOptions['label']>['formatter']>;
 type TooltipRenderer = NonNullable<NonNullable<AgBarSeriesThemeableOptions['tooltip']>['renderer']>;
 
-// AG Charts calls Object.freeze on theme options, so we can
+// AG Charts calls Object.freeze on theme options, so we must create intermediate functions to circumvent that.
 function initMock<F extends ItemStyler | LabelFormatter | TooltipRenderer>(mockImp: F) {
     type Rtn = ReturnType<F>;
     type Arg = Parameters<F>[0];
