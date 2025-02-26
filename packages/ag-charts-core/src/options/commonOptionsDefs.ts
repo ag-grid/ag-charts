@@ -58,6 +58,7 @@ const gradientOptionsDef: OptionsDefs<AgGradientFill> = {
 };
 
 export const gradient = optionsDefs(gradientOptionsDef, 'a gradient');
+export const arrayOfGradient = arrayOfDefs<AgGradientFill>(gradientOptionsDef);
 
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
     fill: or(string, gradient, operation),
