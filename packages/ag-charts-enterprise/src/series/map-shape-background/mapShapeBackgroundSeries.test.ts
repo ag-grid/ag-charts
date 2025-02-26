@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
+import { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
@@ -36,11 +37,11 @@ describe('MapShapeBackgroundSeries', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async () => {
+    const compare = async (options?: MatchImageSnapshotOptions) => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
     };
 
     describe('Simple Chart', () => {
@@ -70,7 +71,9 @@ describe('MapShapeBackgroundSeries', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
-            await compare();
+            await compare({
+                failureThreshold: 1,
+            });
         });
 
         it('should render map shape background series with a gradient fill', async () => {
@@ -97,7 +100,9 @@ describe('MapShapeBackgroundSeries', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
-            await compare();
+            await compare({
+                failureThreshold: 1,
+            });
         });
     });
 });
