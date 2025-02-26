@@ -87,6 +87,8 @@ function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 
 }
 
 export class DOMManager extends BaseManager<Events['type'], Events> {
+    private static readonly batchedUpdateContainer: DOMManager[] = [];
+
     readonly anchorName = `--${createId(this)}`;
 
     private readonly rootElements: Record<DOMElementClass, LiveDOMElement>;
@@ -174,7 +176,19 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     public postRenderUpdate() {
-        this.updateContainer();
+        if (DOMManager.batchedUpdateContainer.length === 0) {
+            requestAnimationFrame(this.applyBatchedUpdateContainer.bind(this));
+        }
+        DOMManager.batchedUpdateContainer.push(this);
+    }
+
+    private applyBatchedUpdateContainer() {
+        for (const manager of DOMManager.batchedUpdateContainer) {
+            if (!manager.destroyed) {
+                manager.updateContainer();
+            }
+        }
+        DOMManager.batchedUpdateContainer.splice(0);
     }
 
     setSizeOptions(minWidth: number = 300, minHeight: number = 300, optionsWidth?: number, optionsHeight?: number) {
