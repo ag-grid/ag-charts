@@ -15,7 +15,6 @@ import type {
     AgLineSeriesOptions,
     AgLineSeriesTooltipRendererParams,
     AgNumberAxisOptions,
-    AgSeriesTooltip,
     AgSparklineAxisOptions,
     AgSparklineOptions,
     AgSparklineTooltip,
@@ -56,15 +55,12 @@ const numericAxisProperties = {
     nice: false,
 };
 
-const seriesTooltipDefaults: AgSeriesTooltip<any> = {
+const chartTooltipDefaults: AgChartTooltipOptions = {
+    mode: 'compact',
     position: {
         anchorTo: 'node',
         placement: ['right', 'left'],
     },
-};
-
-const chartTooltipDefaults: AgChartTooltipOptions = {
-    mode: 'compact',
     showArrow: false,
 };
 
@@ -127,7 +123,9 @@ const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
                     padding: 4,
                 },
                 tooltip: {
-                    ...seriesTooltipDefaults,
+                    position: {
+                        anchorTo: 'pointer',
+                    },
                     range: 'nearest',
                 },
                 // @ts-expect-error undocumented option
@@ -153,7 +151,6 @@ const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
                     enabled: false,
                     size: 3,
                 },
-                tooltip: seriesTooltipDefaults,
             },
             tooltip: chartTooltipDefaults,
         },
@@ -169,7 +166,6 @@ const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
             series: {
                 strokeWidth: 1,
                 fillOpacity: 0.4,
-                tooltip: seriesTooltipDefaults,
             },
             tooltip: chartTooltipDefaults,
         },
