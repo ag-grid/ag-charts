@@ -263,12 +263,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         const validatedSeriesOptions: any[] = [];
-        options.series?.forEach((seriesOptions, index) => {
+        let index = -1;
+        for (const seriesOptions of options.series ?? []) {
+            index++;
             const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type ?? 'line');
 
             if (seriesDef?.options == null) {
                 validatedSeriesOptions.push(seriesOptions);
-                return;
+                continue;
             }
 
             const keyPath = `series[${index}]`;
@@ -280,7 +282,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (!errors.some((e) => e.required && e.path === keyPath)) {
                 validatedSeriesOptions.push(valid);
             }
-        });
+        }
         options.series = validatedSeriesOptions;
 
         this.removeDisabledOptions(options);

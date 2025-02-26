@@ -449,6 +449,10 @@ export class Tooltip extends BaseProperties {
     private toggle(visible: boolean) {
         if (!this.element?.isConnected) return;
 
+        // Avoid touching the DOM if invisible and visibility status hasn't changed.
+        if (!this._visible && !visible) return;
+
+        const changed = this._visible !== visible;
         this._visible = visible;
 
         if (!visible) {
@@ -456,7 +460,9 @@ export class Tooltip extends BaseProperties {
             clearTimeout(this._showTimeout);
         }
 
-        this.element.togglePopover(visible);
+        if (changed) {
+            this.element.togglePopover(visible);
+        }
 
         if (visible) {
             // We can only measure the element when it's actually visible
