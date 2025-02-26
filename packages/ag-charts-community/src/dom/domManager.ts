@@ -88,6 +88,7 @@ function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 
 
 export class DOMManager extends BaseManager<Events['type'], Events> {
     private static readonly batchedUpdateContainer: DOMManager[] = [];
+    private static readonly headStyles = new Set<string>();
 
     readonly anchorName = `--${createId(this)}`;
 
@@ -97,6 +98,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly styleRootElement?: HTMLElement;
     private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
+    private documentRoot?: HTMLElement = undefined;
     containerSize?: Size = undefined;
     private readonly tabGuards: GuardedElement;
 
@@ -151,7 +153,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         this.destroyFns.push(stopPageScrolling(this.element));
 
-        const guardedElement = this.element.querySelector<HTMLElement>('.ag-charts-canvas-center');
+        const guardedElement = this.rootElements['canvas-center'].element;
         if (guardedElement == null) throw new Error('Error initializing tab guards');
         const topGuard = createTabGuardElement(guardedElement, 'beforebegin');
         const botGuard = createTabGuardElement(guardedElement, 'afterend');
@@ -242,8 +244,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             this.sizeMonitor.unobserve(this.container);
         }
 
-        const isShadowDom = this.getShadowDocumentRoot(pendingContainer) != null;
-
         // If the container was inside a shadow DOM, the styles are added to the container rather than the head
         //
         // If we change the container from inside a shadow DOM to outside, we need to remove these styles, because they
@@ -254,7 +254,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         //
         // Note we do this before relocating the new container to avoid temporarily adding new styles to the page,
         // which may cause a style recalculation
-        if (!isShadowDom) {
+        if (this.documentRoot != null) {
             for (const id of this.rootElements['styles'].children.keys()) {
                 this.removeChild('styles', id);
             }
@@ -262,6 +262,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         this.container = pendingContainer;
         this.pendingContainer = undefined;
+        this.documentRoot = this.getShadowDocumentRoot(pendingContainer);
 
         // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
         // Or if the container is added lazily, we need to ensure styles are added before the container
@@ -392,14 +393,13 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
         // viewport.
-        const docRoot = this.getShadowDocumentRoot();
-        if (docRoot != null) return BBox.fromDOMRect(docRoot.getBoundingClientRect());
+        if (this.documentRoot != null) return BBox.fromDOMRect(this.documentRoot.getBoundingClientRect());
 
         const { innerWidth, innerHeight } = getWindow();
         return new BBox(0, 0, innerWidth, innerHeight);
     }
 
-    getShadowDocumentRoot(current = this.container) {
+    private getShadowDocumentRoot(current = this.container) {
         const docRoot = current?.ownerDocument?.body ?? getDocument('body');
 
         // For shadow-DOM cases, the root node of the shadow-DOM has no parent - we need
@@ -478,10 +478,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             }
 
             const styleEl = createElement('style');
-            if (insertAfterEl != null) {
-                el.insertBefore(styleEl, insertAfterEl.nextSibling);
-            } else {
+            if (insertAfterEl == null) {
                 el.prepend(styleEl);
+            } else {
+                el.insertBefore(styleEl, insertAfterEl.nextSibling);
             }
             return styleEl;
         };
@@ -490,16 +490,13 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (this.styleRootElement) {
             // AG-13233 - User supplied root element, don't use heuristics.
             styleElement = addStyleElement(this.styleRootElement);
-        } else {
-            // Heuristic detection of enclosing shadow DOM root.
-            const documentRoot = this.getShadowDocumentRoot(this.container);
-            if (documentRoot != null) {
+        } else if (this.documentRoot == null && !DOMManager.headStyles.has(id)) {
+            // Add to document head as failsafe fallback.
+            styleElement = addStyleElement(getDocument('head'));
+            DOMManager.headStyles.add(id);
+        } else if (this.documentRoot != null) {
                 // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
                 styleElement = this.addChild('styles', id);
-            } else {
-                // Add to document head as failsafe fallback.
-                styleElement = addStyleElement(getDocument('head'));
-            }
         }
 
         // Avoid setting innerHTML on elements we've already configured to avoid style recalculations
