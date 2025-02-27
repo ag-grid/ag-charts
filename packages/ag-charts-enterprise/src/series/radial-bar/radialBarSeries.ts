@@ -381,7 +381,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         if (itemStyler == null) return;
 
         return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return itemStyler({
+            return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
                 highlighted,

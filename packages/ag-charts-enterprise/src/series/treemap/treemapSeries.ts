@@ -367,7 +367,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             const itemStyle = this.cachedDatumCallback(
                 createDatumId(datumId.join(':'), highlighted ? 'highlight' : 'node'),
                 () => {
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         depth,
@@ -426,7 +426,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             const itemStyle = this.cachedDatumCallback(
                 createDatumId(datumId.join(':'), highlighted ? 'highlight' : 'node'),
                 () => {
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         depth,

@@ -419,7 +419,7 @@ export class ChordSeries extends FlowProportionSeries<
                         lineDashOffset = 0,
                     } = format;
 
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted,
@@ -541,7 +541,7 @@ export class ChordSeries extends FlowProportionSeries<
                         tension,
                     } = format;
 
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted,

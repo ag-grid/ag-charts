@@ -1,4 +1,4 @@
-import { type AgOhlcSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgOhlcSeriesItemOptions, AgOhlcSeriesItemStylerParams, _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcNode } from './ohlcNode';
 import { OhlcSeriesBase } from './ohlcSeriesBase';
@@ -52,7 +52,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
                 style = this.cachedDatumCallback(
                     createDatumId(this.getDatumId(datum), isHighlight ? 'highlight' : 'node'),
                     () =>
-                        itemStyler({
+                        this.callWithContext(itemStyler, {
                             seriesId,
                             itemId: datum.itemId,
                             xKey,

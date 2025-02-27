@@ -179,7 +179,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             const itemStyle = this.cachedDatumCallback(
                 createDatumId(datumId.join(':'), highlighted ? 'highlight' : 'node'),
                 () => {
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         depth,

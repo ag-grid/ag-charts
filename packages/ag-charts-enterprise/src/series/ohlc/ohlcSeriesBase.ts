@@ -447,7 +447,7 @@ export abstract class OhlcSeriesBase<
 
         const { xKey, openKey, closeKey, highKey, lowKey } = properties;
         return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return itemStyler({
+            return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
                 itemId,
