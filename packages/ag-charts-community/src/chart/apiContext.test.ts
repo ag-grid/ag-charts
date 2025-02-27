@@ -1,5 +1,3 @@
-import { AgCartesianChartOptions } from 'ag-charts-types';
-
 import type { MockItemStyler, MockLabelFormatter, MockTooltipRenderer } from './test/freezableMock';
 import { newFreezableMock } from './test/freezableMock';
 import {
