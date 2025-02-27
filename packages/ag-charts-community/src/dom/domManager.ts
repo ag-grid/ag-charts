@@ -11,8 +11,7 @@ import { createId } from '../util/id';
 import { stopPageScrolling } from '../util/keynavUtil';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
 import { StateTracker } from '../util/stateTracker';
-// TODO move to utils
-import BASE_DOM from './domLayout.html';
+import NORMAL_DOM from './domLayout.html';
 
 const DOM_ELEMENT_CLASSES = [
     'styles',
@@ -22,6 +21,7 @@ const DOM_ELEMENT_CLASSES = [
     'canvas-overlay',
     'canvas-proxy',
     'series-area',
+    'tooltip-container',
 ] as const;
 const CONTAINER_MODIFIERS = {
     safeHorizontal: 'ag-charts-wrapper--safe-horizontal',
@@ -38,6 +38,7 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['canvas-overlay', { childElementType: 'div' }],
     ['canvas-center', { childElementType: 'div' }],
     ['series-area', { childElementType: 'div' }],
+    ['tooltip-container', { childElementType: 'div' }],
 ]);
 
 function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => void) {
@@ -95,12 +96,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly rootElements: Record<DOMElementClass, LiveDOMElement>;
     private readonly styles = new Map<string, string>();
     private readonly element: HTMLElement;
-    private readonly styleRootElement?: HTMLElement;
     private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
     private documentRoot?: HTMLElement = undefined;
     containerSize?: Size = undefined;
-    private readonly tabGuards: GuardedElement;
+    private readonly tabGuards?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
     private readonly sizeMonitor = new SizeMonitor();
@@ -109,28 +109,15 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private minWidth: number = 0;
     private minHeight: number = 0;
 
-    constructor(container?: HTMLElement, styleContainer?: HTMLElement) {
+    constructor(
+        initialContainer?: HTMLElement,
+        private readonly styleContainer?: HTMLElement,
+        readonly mode: 'normal' | 'minimal' = 'normal'
+    ) {
         super();
 
-        const templateEl = createElement('div');
-        templateEl.innerHTML = BASE_DOM;
-        this.element = templateEl.children.item(0) as HTMLElement;
-        this.styleRootElement = styleContainer;
-
-        this.rootElements = DOM_ELEMENT_CLASSES.reduce(
-            (r, c) => {
-                const cssClass = `ag-charts-${c}`;
-                const el = this.element.classList.contains(cssClass)
-                    ? this.element
-                    : this.element.querySelector<HTMLElement>(`.${cssClass}`);
-
-                if (!el) throw new Error(`AG Charts - unable to find DOM element ${cssClass}`);
-
-                r[c] = { element: el, children: new Map<string, HTMLElement>(), listeners: [] };
-                return r;
-            },
-            {} as typeof this.rootElements
-        );
+        this.element = this.initDOM();
+        this.rootElements = this.initRootElements();
 
         this.rootElements['canvas'].element.style.setProperty('anchor-name', this.anchorName);
 
@@ -147,17 +134,55 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         this.addStyles('ag-charts-community', STYLES);
 
-        if (container) {
-            this.setContainer(container);
-        }
+        this.setContainer(initialContainer);
 
         this.destroyFns.push(stopPageScrolling(this.element));
 
-        const guardedElement = this.rootElements['canvas-center'].element;
-        if (guardedElement == null) throw new Error('Error initializing tab guards');
-        const topGuard = createTabGuardElement(guardedElement, 'beforebegin');
-        const botGuard = createTabGuardElement(guardedElement, 'afterend');
-        this.tabGuards = new GuardedElement(guardedElement, topGuard, botGuard);
+        if (this.mode === 'normal') {
+            const guardedElement = this.rootElements['canvas-center'].element;
+            if (guardedElement == null) throw new Error('Error initializing tab guards');
+            const topGuard = createTabGuardElement(guardedElement, 'beforebegin');
+            const botGuard = createTabGuardElement(guardedElement, 'afterend');
+            this.tabGuards = new GuardedElement(guardedElement, topGuard, botGuard);
+        }
+    }
+
+    private initDOM(): HTMLElement {
+        if (this.mode === 'normal') {
+            const templateEl = createElement('div');
+            templateEl.innerHTML = NORMAL_DOM;
+            return templateEl.firstChild as HTMLElement;
+        }
+
+        const element = createElement('div');
+        element.role = 'presentation';
+        element.classList.add(
+            'ag-charts-canvas-container',
+            'ag-charts-canvas',
+            'ag-charts-series-area',
+            'ag-charts-tooltip-container'
+        );
+        return element;
+    }
+
+    private initRootElements(): Record<DOMElementClass, LiveDOMElement> {
+        return DOM_ELEMENT_CLASSES.reduce(
+            (r, c) => {
+                const cssClass = `ag-charts-${c}`;
+                let el = this.element.classList.contains(cssClass)
+                    ? this.element
+                    : this.element.querySelector<HTMLElement>(`.${cssClass}`);
+
+                if (!el && this.mode === 'normal') {
+                    throw new Error(`AG Charts - unable to find DOM element ${cssClass}`);
+                }
+                el ??= createElement('div');
+
+                r[c] = { element: el, children: new Map<string, HTMLElement>(), listeners: [] };
+                return r;
+            },
+            {} as typeof this.rootElements
+        );
     }
 
     override destroy() {
@@ -178,8 +203,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     public postRenderUpdate() {
+        if (this.mode === 'minimal') return;
+
         if (DOMManager.batchedUpdateContainer.length === 0) {
-            getWindow().requestAnimationFrame(this.applyBatchedUpdateContainer.bind(this));
+            getWindow().setTimeout(this.applyBatchedUpdateContainer.bind(this), 0);
         }
         DOMManager.batchedUpdateContainer.push(this);
     }
@@ -221,16 +248,18 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     setTabGuardIndex(tabIndex: number) {
+        if (!this.tabGuards) return;
+
         this.tabGuards.tabIndex = tabIndex;
     }
 
-    setContainer(newContainer: HTMLElement) {
+    setContainer(newContainer?: HTMLElement) {
         if (newContainer === this.container) return;
 
         this.pendingContainer = newContainer;
 
         // If not currently attached to the DOM, eagerly attach.
-        if (this.container == null) {
+        if (this.mode === 'minimal' || this.container == null) {
             this.updateContainer();
         }
     }
@@ -415,9 +444,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
             current = current.parentNode as HTMLElement;
         }
-
-        // Container is disconnected from the DOM, default to the container.
-        return this.container;
     }
 
     getParent(domElementClass: DOMElementClass): HTMLElement {
@@ -487,9 +513,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         };
 
         let styleElement: HTMLElement | undefined;
-        if (this.styleRootElement) {
+        if (this.styleContainer) {
             // AG-13233 - User supplied root element, don't use heuristics.
-            styleElement = addStyleElement(this.styleRootElement);
+            styleElement = addStyleElement(this.styleContainer);
         } else if (this.documentRoot == null && !DOMManager.headStyles.has(id)) {
             // Add to document head as failsafe fallback.
             styleElement = addStyleElement(getDocument('head'));

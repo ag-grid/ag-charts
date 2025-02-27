@@ -45,8 +45,8 @@
     -webkit-user-select: none;
 }
 
-.ag-charts-canvas-container > *,
-.ag-charts-canvas > * {
+.ag-charts-canvas-container > *:not([popover]),
+.ag-charts-canvas > *:not([popover]) {
     display: block;
     pointer-events: none;
 }

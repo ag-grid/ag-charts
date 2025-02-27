@@ -98,7 +98,11 @@ export abstract class AgCharts {
     public static __createSparkline(options: AgSparklineOptions): AgChartInstance<AgSparklineOptions> {
         return debug.group('AgCharts.__createSparkline()', () => {
             const { pool, ...normalOptions } = options as any;
-            return this.create(normalOptions as AgChartOptions, { presetType: 'sparkline', pool: pool ?? true }) as any;
+            return this.create(normalOptions as AgChartOptions, {
+                presetType: 'sparkline',
+                pool: pool ?? true,
+                domMode: 'minimal',
+            }) as any;
         });
     }
 }

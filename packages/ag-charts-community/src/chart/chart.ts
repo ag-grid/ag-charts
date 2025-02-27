@@ -292,6 +292,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
             root,
             container,
             styleContainer,
+            domMode: options.optionMetadata.domMode,
             syncManager: new SyncManager(this),
             fireEvent: (event) => this.fireEvent(event),
             updateCallback: (type, opts) => this.update(type, opts),
@@ -361,7 +362,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
     }
 
     overrideFocusVisible(visible: boolean | undefined): void {
-        this.seriesAreaManager.focusIndicator.overrideFocusVisible(visible);
+        this.seriesAreaManager.focusIndicator?.overrideFocusVisible(visible);
     }
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {

@@ -132,8 +132,8 @@ export class SeriesAreaManager extends BaseManager {
     private series: Series<unknown, any, any>[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
-    public readonly focusIndicator: FocusIndicator;
-    private readonly swapChain: FocusSwapChain;
+    public readonly focusIndicator?: FocusIndicator;
+    private readonly swapChain?: FocusSwapChain;
 
     private readonly highlight = {
         /** Last received event that still needs to be applied. */
@@ -185,20 +185,22 @@ export class SeriesAreaManager extends BaseManager {
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
 
-        const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
-        const label2 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label2');
-        this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
-        this.swapChain.addListener('blur', () => this.onBlur());
-        this.swapChain.addListener('focus', () => this.onFocus());
-        this.focusIndicator = new FocusIndicator(this.swapChain);
-        this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
+        if (chart.ctx.domManager.mode === 'normal') {
+            const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
+            const label2 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label2');
+            this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
+            this.swapChain.addListener('blur', () => this.onBlur());
+            this.swapChain.addListener('focus', () => this.onFocus());
+            this.focusIndicator = new FocusIndicator(this.swapChain);
+            this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
+        }
 
         const { seriesDragInterpreter, seriesWidget, containerWidget } = chart.ctx.widgets;
         seriesWidget.setTabIndex(-1);
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
-            seriesWidget.addListener('focus', () => this.swapChain.focus()),
+            seriesWidget.addListener('focus', () => this.swapChain?.focus()),
             seriesWidget.addListener('mousemove', (event) => this.onHover(event)),
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
@@ -240,7 +242,7 @@ export class SeriesAreaManager extends BaseManager {
     public dataChanged() {
         this.highlight.stashedHoverEvent ??= this.highlight.appliedHoverEvent;
         this.chart.ctx.tooltipManager.removeTooltip(this.id);
-        this.focusIndicator.clear();
+        this.focusIndicator?.clear();
         this.clearHighlight();
     }
 
@@ -258,7 +260,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private updateComplete() {
         // NOTE: Do the `isFocusVisible()` check last as its the most expensive part.
-        if (this.isState(InteractionState.Focusable) && this.focusIndicator.isFocusVisible()) {
+        if (this.isState(InteractionState.Focusable) && this.focusIndicator?.isFocusVisible()) {
             // This function is called when something in the scene is redrawn such as a resize, or zoompan change.
             // Therefore we need to update the bounds of the focus indicator, but not aria-label. Hence refresh=true.
             this.handleSeriesFocus(0, 0, true);
@@ -308,7 +310,7 @@ export class SeriesAreaManager extends BaseManager {
 
         let pickedNode: SeriesNodeDatum<unknown> | undefined;
         let position: { x: number; y: number } | undefined;
-        if (this.focusIndicator.isFocusVisible()) {
+        if (this.focusIndicator?.isFocusVisible()) {
             pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
             if (pickedNode && this.seriesRect && pickedNode.midPoint) {
                 position = Transformable.toCanvasPoint(
@@ -405,7 +407,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onClick(event: ClickLikeEvent, current: Widget) {
         if (event.device === 'touch' && current === this.chart.ctx.widgets.seriesWidget) {
-            this.swapChain.focus({ preventScroll: true });
+            this.swapChain?.focus({ preventScroll: true });
         }
         if (!this.isState(InteractionState.Clickable)) return;
 
@@ -422,7 +424,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        this.focusIndicator.overrideFocusVisible(false);
+        this.focusIndicator?.overrideFocusVisible(false);
 
         this.onHoverLikeEvent(event);
 
@@ -444,7 +446,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onFocus(): void {
         if (!this.isState(InteractionState.Focusable)) return;
-        this.hoverDevice = this.focusIndicator.isFocusVisible(true) ? 'keyboard' : 'pointer';
+        this.hoverDevice = this.focusIndicator?.isFocusVisible(true) ? 'keyboard' : 'pointer';
         this.handleFocus(0, 0);
     }
 
@@ -452,7 +454,7 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = 'pointer';
         this.clearAll();
-        this.focusIndicator.overrideFocusVisible(undefined);
+        this.focusIndicator?.overrideFocusVisible(undefined);
     }
 
     private onKeyDown(widgetEvent: KeyboardWidgetEvent<'keydown'>) {
@@ -460,7 +462,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const action = mapKeyboardEventToAction(widgetEvent.sourceEvent);
         if (action?.activatesFocusIndicator === false) {
-            this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
+            this.focusIndicator?.overrideFocusVisible(this.previousInputDevice === 'keyboard');
         }
 
         switch (action?.name) {
@@ -489,7 +491,7 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = 'keyboard';
         this.previousInputDevice = 'keyboard';
-        this.focusIndicator.overrideFocusVisible(true);
+        this.focusIndicator?.overrideFocusVisible(true);
         this.focus.seriesIndex += seriesIndexDelta;
         this.focus.datumIndex += datumIndexDelta;
         this.handleFocus(seriesIndexDelta, datumIndexDelta);
@@ -566,7 +568,7 @@ export class SeriesAreaManager extends BaseManager {
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
-            this.focusIndicator.update(overlayFocus.rect, this.seriesRect, false);
+            this.focusIndicator?.update(overlayFocus.rect, this.seriesRect, false);
         }
     }
 
@@ -643,11 +645,11 @@ export class SeriesAreaManager extends BaseManager {
         focus.datumIndex = pick.datumIndex;
         focus.datum = datum;
 
-        if (this.focusIndicator.isFocusVisible()) {
+        if (this.focusIndicator?.isFocusVisible()) {
             this.chart.ctx.animationManager.reset();
         }
 
-        if (this.focusIndicator.isFocusVisible()) {
+        if (this.focusIndicator?.isFocusVisible()) {
             const focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
             const { x, y } = focusBBox.computeCenter();
             if (!hoverRect.containsPoint(x, y)) {
@@ -687,7 +689,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Update the bounds of the focus indicator:
-        this.focusIndicator.update(pick.movedBounds ?? pick.bounds, this.seriesRect, pick.clipFocusBox);
+        this.focusIndicator?.update(pick.movedBounds ?? pick.bounds, this.seriesRect, pick.clipFocusBox);
 
         const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
 
@@ -718,7 +720,7 @@ export class SeriesAreaManager extends BaseManager {
                     oldDatumIndex !== pick.datumIndex ||
                     oldOtherIndex !== (pick.otherIndex ?? focus.seriesIndex);
                 if (shouldAnnouncePick) {
-                    this.swapChain.update(this.getDatumAriaText(datum, tooltipContent));
+                    this.swapChain?.update(this.getDatumAriaText(datum, tooltipContent));
                 }
             }
         }
@@ -746,7 +748,7 @@ export class SeriesAreaManager extends BaseManager {
     private clearAll() {
         this.clearHighlight();
         this.clearTooltip();
-        this.focusIndicator.clear();
+        this.focusIndicator?.clear();
     }
 
     private readonly hoverScheduler = debouncedAnimationFrame(() => {
