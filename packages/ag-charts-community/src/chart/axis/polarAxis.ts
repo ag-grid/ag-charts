@@ -30,7 +30,7 @@ export abstract class PolarAxis<
     innerRadiusRatio: number = 0;
 
     // user pass-through option: no validation required.
-    context: unknown;
+    context?: unknown;
 
     override defaultTickMinSpacing = 20;
 
