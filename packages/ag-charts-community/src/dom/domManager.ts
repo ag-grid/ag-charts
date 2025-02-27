@@ -149,11 +149,14 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     private initDOM(): HTMLElement {
         if (this.mode === 'normal') {
+            // Normal mode with complex DOM, use the external template.
             const templateEl = createElement('div');
             templateEl.innerHTML = NORMAL_DOM;
             return templateEl.firstChild as HTMLElement;
         }
 
+        // Minimal mode - avoid HTML parsing and use a single element. This essentially deactivates
+        // many features that rely on the complex DOM (e.g. keyboard navigation, A11y).
         const element = createElement('div');
         element.role = 'presentation';
         element.classList.add(
@@ -258,8 +261,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         this.pendingContainer = newContainer;
 
-        // If not currently attached to the DOM, eagerly attach.
         if (this.mode === 'minimal' || this.container == null) {
+            // If not currently attached to the DOM, eagerly attach.
+            // If in minimal mode, also eagerly attach to allow synchronization with Grid DOM updates.
             this.updateContainer();
         }
     }
