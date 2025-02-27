@@ -112,6 +112,8 @@ export const GALLERY_IMAGE_DPR_ENHANCEMENT = import.meta.env?.PUBLIC_GALLERY_IMA
 export const PRODUCTION_CHARTS_SITE_URL = 'https://www.ag-grid.com/charts';
 export const LEGACY_CHARTS_SITE_URL = 'https://charts.ag-grid.com';
 
+export const LIBRARY = 'charts';
+
 /*
  * Charts URL
  */

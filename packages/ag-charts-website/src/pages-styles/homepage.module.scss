@@ -218,6 +218,8 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     padding-bottom: $spacing-size-12;
     border-bottom: 1px solid transparent;
 
+    background: var(--color-brand-500);
+
     @media screen and (min-width: 640px) {
         padding-top: $spacing-size-12;
     }
