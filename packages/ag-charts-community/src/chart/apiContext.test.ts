@@ -1,7 +1,14 @@
 import { Caster } from 'ag-charts-test';
 import { AgBarSeriesThemeableOptions, AgCartesianChartOptions } from 'ag-charts-types';
 
-import { Chart, createChart, setupMockCanvas, setupMockConsole } from './test/utils';
+import {
+    Chart,
+    createChart,
+    hoverAction,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from './test/utils';
 
 type UndocumentedOptions = Omit<AgCartesianChartOptions, 'series' | 'axes'> & {
     series?: (NonNullable<AgCartesianChartOptions['series']>[number] & { context?: unknown })[];
@@ -95,8 +102,20 @@ describe('Chart', () => {
         labelFormatter.assertContext();
         expect(labelFormatter.mock).toHaveBeenCalledTimes(12);
     });
-    test('tooltipRenderer', () => {
+    test('tooltipRenderer', async () => {
         tooltipRenderer.assertContext();
         expect(tooltipRenderer.mock).not.toHaveBeenCalled();
+
+        await hoverAction(53, 363)(chart); // datum 1, series 1
+        await waitForChartStability(chart);
+
+        await hoverAction(87, 369)(chart); // datum 2, series 1
+        await waitForChartStability(chart);
+
+        await hoverAction(128, 370)(chart); // datum 3, series 1
+        await waitForChartStability(chart);
+
+        tooltipRenderer.assertContext();
+        expect(tooltipRenderer.mock).toHaveBeenCalledTimes(3);
     });
 });
