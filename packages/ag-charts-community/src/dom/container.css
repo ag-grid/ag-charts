@@ -45,10 +45,13 @@
     -webkit-user-select: none;
 }
 
-.ag-charts-canvas-container > *:not([popover]),
-.ag-charts-canvas > *:not([popover]) {
-    display: block;
+.ag-charts-canvas-container > *,
+.ag-charts-canvas > * {
     pointer-events: none;
+}
+
+.ag-charts-canvas canvas {
+    display: block;
 }
 
 .ag-charts-series-area {
