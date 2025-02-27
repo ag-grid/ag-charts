@@ -22,7 +22,7 @@ export class ChartCaptions {
         const maxHeight = ctx.layoutBox.height / 10; // Limit to 10% of layout initial height
 
         if (title.enabled) {
-            const { spacing = subtitle.enabled ? Caption.SMALL_PADDING : Caption.LARGE_PADDING } = title;
+            const { spacing } = title;
             this.positionCaption('top', title, ctx.layoutBox, maxHeight);
             this.shrinkLayoutByCaption('top', title, ctx.layoutBox, spacing);
         }

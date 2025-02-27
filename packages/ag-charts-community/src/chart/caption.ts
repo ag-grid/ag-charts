@@ -26,7 +26,6 @@ import type { CaptionLike } from './captionLike';
 
 export class Caption extends BaseProperties implements CaptionLike {
     static readonly SMALL_PADDING = 10;
-    static readonly LARGE_PADDING = 20;
 
     readonly id = createId(this);
     readonly node = new RotatableText({ zIndex: 1 }).setProperties({

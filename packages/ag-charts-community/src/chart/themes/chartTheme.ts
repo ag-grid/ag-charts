@@ -204,6 +204,7 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Title',
+                spacing: { $if: [{ $path: '../subtitle/enabled' }, 10, 20] },
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: { $rem: [FONT_SIZE_RATIO.LARGEST] },
                 fontFamily: { $ref: 'fontFamily' },
