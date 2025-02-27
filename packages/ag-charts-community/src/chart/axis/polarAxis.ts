@@ -29,6 +29,9 @@ export abstract class PolarAxis<
     @Validate(RATIO)
     innerRadiusRatio: number = 0;
 
+    // user pass-through option: no validation required.
+    context: unknown;
+
     override defaultTickMinSpacing = 20;
 
     override updatePosition(): void {

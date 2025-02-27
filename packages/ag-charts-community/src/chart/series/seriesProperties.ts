@@ -97,4 +97,7 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     readonly highlightStyle = new HighlightStyle();
 
     abstract tooltip: SeriesTooltip<never>;
+
+    // user pass-through option: no validation required.
+    context: unknown;
 }

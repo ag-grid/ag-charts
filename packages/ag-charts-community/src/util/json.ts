@@ -231,7 +231,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             const currentValueType = classify(currentValue);
             const newValueType = classify(newValue);
 
-            if (targetType === CLASS_INSTANCE_TYPE && !(property in target)) {
+            if (targetType === CLASS_INSTANCE_TYPE && !(property in target || property === 'context')) {
                 if (newValue === undefined) continue;
 
                 Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
@@ -252,7 +252,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
 
             if (isProperties(currentValue)) {
                 targetAny[property].set(newValue);
-            } else if (newValueType === 'object') {
+            } else if (newValueType === 'object' && property !== 'context') {
                 if (currentValue == null) {
                     Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
                     continue;

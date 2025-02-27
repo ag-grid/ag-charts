@@ -52,6 +52,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     @Validate(POSITION)
     position!: AgCartesianAxisPosition;
 
+    // user pass-through option: no validation required.
+    context: unknown;
+
     protected animationManager: AnimationManager;
 
     protected readonly lineNode = this.axisGroup.appendChild(
