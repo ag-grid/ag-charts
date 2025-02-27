@@ -35,10 +35,10 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     fontWeight?: FontWeight;
 
     @Validate(NUMBER.restrict({ min: 1 }))
-    fontSize: number = 12;
+    fontSize!: number;
 
     @Validate(STRING)
-    fontFamily: string = 'Verdana, sans-serif';
+    fontFamily!: string;
 
     /**
      * The padding between the labels and the ticks.

@@ -322,6 +322,9 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeO
     @Validate(OBJECT)
     defaultTarget = new LinearGaugeTargetProperties();
 
+    @Validate(OBJECT)
+    defaultScale = new LinearGaugeScaleProperties();
+
     @Validate(DIRECTION)
     direction: 'horizontal' | 'vertical' = 'vertical';
 
