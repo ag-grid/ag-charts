@@ -27,6 +27,7 @@ export const DEFAULT_STROKES = {
 export type DefaultColors = {
     fills: { [key: string]: string };
     strokes: { [key: string]: string };
+    sequentialColors: { [key: string]: string[] };
     up: { stroke: string; fill: string };
     down: { stroke: string; fill: string };
     neutral: { stroke: string; fill: string };

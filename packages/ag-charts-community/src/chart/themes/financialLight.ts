@@ -10,6 +10,7 @@ import {
     DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_TOOLBAR_POSITION,
 } from './symbols';
+import { getSequentialColors } from './util';
 
 const FINANCIAL_LIGHT_FILLS = {
     GREEN: '#089981',
@@ -30,6 +31,7 @@ export class FinancialLight extends ChartTheme {
         return {
             fills: { ...FINANCIAL_LIGHT_FILLS },
             strokes: { ...FINANCIAL_LIGHT_STROKES },
+            sequentialColors: getSequentialColors(FINANCIAL_LIGHT_FILLS),
             up: { fill: FINANCIAL_LIGHT_FILLS.GREEN, stroke: FINANCIAL_LIGHT_STROKES.GREEN },
             down: { fill: FINANCIAL_LIGHT_FILLS.RED, stroke: FINANCIAL_LIGHT_STROKES.RED },
             neutral: { fill: FINANCIAL_LIGHT_FILLS.BLUE, stroke: FINANCIAL_LIGHT_STROKES.BLUE },

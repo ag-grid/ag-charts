@@ -5,6 +5,7 @@ import {
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
     DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
+import { getSequentialColors } from './util';
 
 const SHEETS_LIGHT_FILLS = {
     BLUE: '#5281d5',
@@ -37,6 +38,7 @@ export class SheetsLight extends ChartTheme {
         return {
             fills: { ...SHEETS_LIGHT_FILLS, RED: SHEETS_LIGHT_FILLS.ORANGE },
             strokes: { ...SHEETS_LIGHT_STROKES, RED: SHEETS_LIGHT_STROKES.ORANGE },
+            sequentialColors: getSequentialColors({ ...SHEETS_LIGHT_FILLS, RED: SHEETS_LIGHT_FILLS.ORANGE }),
             up: { fill: SHEETS_LIGHT_FILLS.GREEN, stroke: SHEETS_LIGHT_STROKES.GREEN },
             down: { fill: SHEETS_LIGHT_FILLS.ORANGE, stroke: SHEETS_LIGHT_STROKES.ORANGE },
             neutral: { fill: SHEETS_LIGHT_STROKES.GRAY, stroke: SHEETS_LIGHT_STROKES.GRAY },

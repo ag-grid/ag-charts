@@ -23,7 +23,6 @@ export const DEFAULT_POLAR_SERIES_STROKE = Symbol('default-polar-series-stroke')
 export const DEFAULT_DIVERGING_SERIES_COLOR_RANGE = Symbol(
     'default-diverging-series-colour-range'
 ) as unknown as string;
-export const DEFAULT_COLOR_RANGE = Symbol('default-colour-range') as unknown as string;
 export const DEFAULT_SPARKLINE_CROSSHAIR_STROKE = Symbol('default-sparkline-crosshair-stroke') as unknown as string;
 export const DEFAULT_GAUGE_SERIES_COLOR_RANGE = Symbol('default-gauge-series-colour-range') as unknown as string;
 export const DEFAULT_FUNNEL_SERIES_COLOR_RANGE = Symbol('default-funnel-series-colour-range') as unknown as string;

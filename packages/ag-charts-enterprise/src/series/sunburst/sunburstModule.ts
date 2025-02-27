@@ -6,7 +6,7 @@ import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
 
 const {
     FONT_SIZE_RATIO,
-    ThemeSymbols: { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_COLOR_RANGE },
+    ThemeSymbols: { DEFAULT_DIVERGING_SERIES_COLOR_RANGE },
 } = _ModuleSupport;
 
 export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
@@ -59,9 +59,12 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
         },
     },
     paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
-        const { fills, strokes } = takeColors(colorsCount);
+        const {
+            fills,
+            strokes,
+            sequentialColors: [defaultColorRange],
+        } = takeColors(colorsCount);
         const colorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
         return { fills, strokes, colorRange, defaultColorRange };
     },
 };

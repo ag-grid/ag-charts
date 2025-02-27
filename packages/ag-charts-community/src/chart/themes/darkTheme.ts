@@ -24,6 +24,7 @@ import {
     DEFAULT_TEXT_ANNOTATION_COLOR,
     IS_DARK_THEME,
 } from './symbols';
+import { getSequentialColors } from './util';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_DARK_BACKGROUND_FILL = '#192232';
@@ -59,6 +60,7 @@ export class DarkTheme extends ChartTheme {
         return {
             fills: DEFAULT_DARK_FILLS,
             strokes: DEFAULT_DARK_STROKES,
+            sequentialColors: getSequentialColors(DEFAULT_DARK_FILLS),
             up: { fill: DEFAULT_DARK_FILLS.GREEN, stroke: DEFAULT_DARK_STROKES.GREEN },
             down: { fill: DEFAULT_DARK_FILLS.RED, stroke: DEFAULT_DARK_STROKES.RED },
             neutral: { fill: DEFAULT_DARK_FILLS.GRAY, stroke: DEFAULT_DARK_STROKES.GRAY },

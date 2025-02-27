@@ -432,8 +432,9 @@ describe('ChartOptions', () => {
 [
   {
     "defaultColorRange": [
+      "#2162aa",
       "#5090dc",
-      "#ef5452",
+      "#7ec0ff",
     ],
     "direction": "vertical",
     "fill": "pink",
@@ -478,8 +479,9 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#5090dc",
-      "#ef5452",
+      "#076f29",
+      "#459d55",
+      "#75cd82",
     ],
     "direction": "vertical",
     "fill": "red",
@@ -524,8 +526,9 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#5090dc",
-      "#ef5452",
+      "#b19c00",
+      "#e1cc00",
+      "#fffe5d",
     ],
     "direction": "vertical",
     "fill": "#e1cc00",
@@ -570,8 +573,9 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#5090dc",
-      "#ef5452",
+      "#6a3c9a",
+      "#9669cb",
+      "#c597fe",
     ],
     "direction": "vertical",
     "fill": "#9669cb",
@@ -633,8 +637,9 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "marker": {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "fill": "#ffa03a",
       "shape": "circle",
@@ -676,8 +681,9 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "marker": {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
       ],
       "fill": "#34bfe1",
       "shape": "circle",
@@ -713,8 +719,9 @@ describe('ChartOptions', () => {
 [
   {
     "defaultColorRange": [
+      "#2162aa",
       "#5090dc",
-      "#ef5452",
+      "#7ec0ff",
     ],
     "direction": "vertical",
     "fill": "pink",
@@ -759,8 +766,9 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#5090dc",
-      "#ef5452",
+      "#076f29",
+      "#459d55",
+      "#75cd82",
     ],
     "direction": "vertical",
     "fill": "red",
@@ -805,8 +813,9 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#5090dc",
-      "#ef5452",
+      "#b19c00",
+      "#e1cc00",
+      "#fffe5d",
     ],
     "direction": "vertical",
     "fill": "#e1cc00",
@@ -851,8 +860,9 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#5090dc",
-      "#ef5452",
+      "#6a3c9a",
+      "#9669cb",
+      "#c597fe",
     ],
     "direction": "vertical",
     "fill": "#9669cb",
@@ -914,8 +924,9 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "marker": {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "fill": "#ffa03a",
       "shape": "circle",
@@ -957,8 +968,9 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "marker": {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
       ],
       "fill": "#34bfe1",
       "shape": "circle",
@@ -994,8 +1006,9 @@ describe('ChartOptions', () => {
 [
   {
     "defaultColorRange": [
+      "#2162aa",
       "#5090dc",
-      "#ef5452",
+      "#7ec0ff",
     ],
     "direction": "vertical",
     "fill": "pink",
@@ -1040,8 +1053,9 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#5090dc",
-      "#ef5452",
+      "#076f29",
+      "#459d55",
+      "#75cd82",
     ],
     "direction": "vertical",
     "fill": "red",
@@ -1086,8 +1100,9 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#5090dc",
-      "#ef5452",
+      "#b19c00",
+      "#e1cc00",
+      "#fffe5d",
     ],
     "direction": "vertical",
     "fill": "#e1cc00",
@@ -1132,8 +1147,9 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#5090dc",
-      "#ef5452",
+      "#6a3c9a",
+      "#9669cb",
+      "#c597fe",
     ],
     "direction": "vertical",
     "fill": "#9669cb",
@@ -1195,8 +1211,9 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "marker": {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "fill": "#ffa03a",
       "shape": "circle",
@@ -1238,8 +1255,9 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "marker": {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
       ],
       "fill": "#34bfe1",
       "shape": "circle",

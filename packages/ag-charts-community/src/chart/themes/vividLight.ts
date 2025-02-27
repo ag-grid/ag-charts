@@ -6,6 +6,7 @@ import {
     DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
     DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
+import { getSequentialColors } from './util';
 
 const VIVID_FILLS = {
     BLUE: '#0083ff',
@@ -38,6 +39,7 @@ export class VividLight extends ChartTheme {
         return {
             fills: VIVID_FILLS,
             strokes: VIVID_STROKES,
+            sequentialColors: getSequentialColors(VIVID_FILLS),
             up: { fill: VIVID_FILLS.GREEN, stroke: VIVID_STROKES.GREEN },
             down: { fill: VIVID_FILLS.RED, stroke: VIVID_STROKES.RED },
             neutral: { fill: VIVID_FILLS.GRAY, stroke: VIVID_STROKES.GRAY },

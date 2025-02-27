@@ -6,8 +6,6 @@ import { ConeFunnelSeries } from './coneFunnelSeries';
 import { coneFunnelSeriesOptionsDef } from './coneFunnelSeriesOptionsDef';
 import { CONE_FUNNEL_SERIES_THEME } from './coneFunnelThemes';
 
-const { DEFAULT_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
-
 export const ConeFunnelModule: _ModuleSupport.SeriesModule<'cone-funnel'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -22,11 +20,13 @@ export const ConeFunnelModule: _ModuleSupport.SeriesModule<'cone-funnel'> = {
     themeTemplate: CONE_FUNNEL_SERIES_THEME,
 
     paletteFactory: ({ userPalette, themeTemplateParameters, takeColors, colorsCount }) => {
-        const { fills: userFills } = takeColors(colorsCount);
+        const {
+            fills: userFills,
+            sequentialColors: [defaultColorRange],
+        } = takeColors(colorsCount);
         const defaultFills = themeTemplateParameters.get(
             _ModuleSupport.ThemeSymbols.DEFAULT_FUNNEL_SERIES_COLOR_RANGE
         ) as string[];
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
 
         const fills = userPalette === 'inbuilt' ? defaultFills : [userFills[0], userFills[1]];
         return { fills, strokes: fills.slice(0), defaultColorRange };

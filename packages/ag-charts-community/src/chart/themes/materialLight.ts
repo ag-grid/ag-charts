@@ -6,6 +6,7 @@ import {
     DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
     DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
+import { getSequentialColors } from './util';
 
 const MATERIAL_LIGHT_FILLS = {
     BLUE: '#2196F3',
@@ -38,6 +39,7 @@ export class MaterialLight extends ChartTheme {
         return {
             fills: MATERIAL_LIGHT_FILLS,
             strokes: MATERIAL_LIGHT_STROKES,
+            sequentialColors: getSequentialColors(MATERIAL_LIGHT_FILLS),
             up: { fill: MATERIAL_LIGHT_FILLS.GREEN, stroke: MATERIAL_LIGHT_STROKES.GREEN },
             down: { fill: MATERIAL_LIGHT_FILLS.RED, stroke: MATERIAL_LIGHT_STROKES.RED },
             neutral: { fill: MATERIAL_LIGHT_FILLS.GRAY, stroke: MATERIAL_LIGHT_STROKES.GRAY },

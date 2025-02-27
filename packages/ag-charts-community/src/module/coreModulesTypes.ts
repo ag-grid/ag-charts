@@ -16,7 +16,7 @@ export function paletteType(partial?: AgChartThemePalette): PaletteType {
 }
 
 export interface SeriesPaletteFactoryParams {
-    takeColors: (count: number) => { fills: string[]; strokes: string[] };
+    takeColors: (count: number) => { fills: string[]; strokes: string[]; sequentialColors: string[][] };
     colorsCount: number;
     userPalette: PaletteType;
     palette: Required<AgChartThemePalette & { altUp: AgPaletteColors; altDown: AgPaletteColors }>;
@@ -27,7 +27,7 @@ export type SeriesPaletteFactory<SeriesOpts> = (params: SeriesPaletteFactoryPara
 
 type SeriesPaletteOptions<
     SeriesOpts,
-    ColourKeys = 'stroke' | 'fill' | 'fills' | 'strokes' | 'colors',
+    ColourKeys = 'stroke' | 'fill' | 'fills' | 'strokes' | 'colors' | 'defaultColorRange',
     NestedKeys = 'marker' | 'calloutLine',
 > = {
     [K in keyof SeriesOpts & ColourKeys]?: NonNullable<SeriesOpts[K]>;

@@ -462,6 +462,16 @@ export class Color implements IColor {
         return new Color(lerp(c0.r, c1.r, t), lerp(c0.g, c1.g, t), lerp(c0.b, c1.b, t), lerp(c0.a, c1.a, t));
     }
 
+    static lighten(c: Color, t: number) {
+        const oklch = Color.RGBtoOKLCH(c.r, c.g, c.b);
+        return Color.fromOKLCH(clamp(0, oklch[0] + t, 1), oklch[1], oklch[2]);
+    }
+
+    static darken(c: Color, t: number) {
+        const oklch = Color.RGBtoOKLCH(c.r, c.g, c.b);
+        return Color.fromOKLCH(clamp(0, oklch[0] - t, 1), oklch[1], oklch[2]);
+    }
+
     /**
      * CSS Color Module Level 4:
      * https://drafts.csswg.org/css-color/#named-colors

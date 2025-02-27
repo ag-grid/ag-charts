@@ -202,8 +202,9 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
+          "#2162aa",
           "#5090dc",
-          "#ef5452",
+          "#7ec0ff",
         ],
         "enabled": false,
         "fill": "#3d7ab0",
@@ -246,8 +247,9 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#cc7100",
+          "#ffa03a",
+          "#ffd171",
         ],
         "enabled": false,
         "fill": "#b03d65",
@@ -290,8 +292,9 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#076f29",
+          "#459d55",
+          "#75cd82",
         ],
         "enabled": false,
         "fill": "#80b03d",
@@ -594,8 +597,9 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "direction": "vertical",
       "fill": "#c16068",
@@ -639,8 +643,9 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "direction": "vertical",
       "fill": "#a2bf8a",
@@ -701,8 +706,9 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#076f29",
+          "#459d55",
+          "#75cd82",
         ],
         "enabled": false,
         "fill": "#80a0c3",
@@ -984,8 +990,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
+          "#2162aa",
           "#5090dc",
-          "#ef5452",
+          "#7ec0ff",
         ],
         "fill": "#f3622d",
         "shape": "circle",
@@ -1033,8 +1040,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#cc7100",
+          "#ffa03a",
+          "#ffd171",
         ],
         "fill": "#fba71b",
         "shape": "cross",
@@ -1082,8 +1090,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#076f29",
+          "#459d55",
+          "#75cd82",
         ],
         "fill": "#57b757",
         "shape": "diamond",
@@ -1131,8 +1140,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#008fb0",
+          "#34bfe1",
+          "#70f1ff",
         ],
         "fill": "#41a9c9",
         "shape": "plus",
@@ -1180,8 +1190,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#b19c00",
+          "#e1cc00",
+          "#fffe5d",
         ],
         "fill": "#4258c9",
         "shape": "square",
@@ -1229,8 +1240,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#6a3c9a",
+          "#9669cb",
+          "#c597fe",
         ],
         "fill": "#9a42c8",
         "shape": "triangle",
@@ -1278,8 +1290,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#878787",
+          "#b5b5b5",
+          "#e5e5e5",
         ],
         "fill": "#c84164",
         "shape": [Function],
@@ -1543,8 +1556,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "direction": "vertical",
       "fill": "#5090dc",
@@ -1589,8 +1603,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "direction": "vertical",
       "fill": "#ffa03a",
@@ -1635,8 +1650,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#076f29",
+        "#459d55",
+        "#75cd82",
       ],
       "direction": "vertical",
       "fill": "#459d55",
@@ -1681,8 +1697,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
       ],
       "direction": "vertical",
       "fill": "#34bfe1",
@@ -1727,8 +1744,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#b19c00",
+        "#e1cc00",
+        "#fffe5d",
       ],
       "direction": "vertical",
       "fill": "#e1cc00",
@@ -1773,8 +1791,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#6a3c9a",
+        "#9669cb",
+        "#c597fe",
       ],
       "direction": "vertical",
       "fill": "#9669cb",
@@ -1819,8 +1838,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#878787",
+        "#b5b5b5",
+        "#e5e5e5",
       ],
       "direction": "vertical",
       "fill": "#b5b5b5",
@@ -1865,8 +1885,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#8c2c79",
+        "#bd5aa7",
+        "#f088d7",
       ],
       "direction": "vertical",
       "fill": "#bd5aa7",
@@ -2083,8 +2104,9 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "fill": "#5090dc",
       "fillOpacity": 0.7,
@@ -2337,8 +2359,9 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
+          "#2162aa",
           "#5090dc",
-          "#ef5452",
+          "#7ec0ff",
         ],
         "enabled": false,
         "fill": "#5BC0EB",
@@ -2381,8 +2404,9 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#cc7100",
+          "#ffa03a",
+          "#ffd171",
         ],
         "enabled": false,
         "fill": "#FDE74C",
@@ -2425,8 +2449,9 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#076f29",
+          "#459d55",
+          "#75cd82",
         ],
         "enabled": false,
         "fill": "#9BC53D",
@@ -2469,8 +2494,9 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#008fb0",
+          "#34bfe1",
+          "#70f1ff",
         ],
         "enabled": false,
         "fill": "#E55934",
@@ -2728,8 +2754,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "fill": "#FA7921",
       "fillOpacity": 0.6,
@@ -2757,8 +2784,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
+          "#2162aa",
           "#5090dc",
-          "#ef5452",
+          "#7ec0ff",
         ],
         "enabled": false,
         "fill": "#FA7921",
@@ -2792,8 +2820,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "fill": "#5BC0EB",
       "fillOpacity": 0.6,
@@ -2821,8 +2850,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#cc7100",
+          "#ffa03a",
+          "#ffd171",
         ],
         "enabled": false,
         "fill": "#5BC0EB",
@@ -2856,8 +2886,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#076f29",
+        "#459d55",
+        "#75cd82",
       ],
       "fill": "#9BC53D",
       "fillOpacity": 0.6,
@@ -2885,8 +2916,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#076f29",
+          "#459d55",
+          "#75cd82",
         ],
         "enabled": false,
         "fill": "#9BC53D",
@@ -2920,8 +2952,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
       ],
       "fill": "#E55934",
       "fillOpacity": 0.6,
@@ -2949,8 +2982,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#008fb0",
+          "#34bfe1",
+          "#70f1ff",
         ],
         "enabled": false,
         "fill": "#E55934",
@@ -2984,8 +3018,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#b19c00",
+        "#e1cc00",
+        "#fffe5d",
       ],
       "fill": "#FDE74C",
       "fillOpacity": 0.6,
@@ -3013,8 +3048,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#b19c00",
+          "#e1cc00",
+          "#fffe5d",
         ],
         "enabled": false,
         "fill": "#FDE74C",
@@ -3241,8 +3277,9 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "direction": "horizontal",
       "fill": "#5090dc",
@@ -3457,8 +3494,9 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "direction": "horizontal",
       "fill": "rgba(0, 117, 163, 0.9)",
@@ -3675,8 +3713,9 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "fill": "#cc5b58",
       "fillOpacity": 0.85,
@@ -3875,8 +3914,9 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "fill": "#5090dc",
       "fillOpacity": 0.5,
@@ -4114,8 +4154,9 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "direction": "vertical",
       "fill": "#19A0AA",
@@ -4164,8 +4205,9 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "direction": "vertical",
       "fill": "#F15F36",
@@ -4439,8 +4481,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "direction": "horizontal",
       "fill": "rgba(0, 117, 163, 0.9)",
@@ -4490,8 +4533,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "direction": "horizontal",
       "fill": "rgba(226, 188, 34, 0.9)",
@@ -4769,8 +4813,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "direction": "vertical",
       "fill": "#5090dc",
@@ -4822,8 +4867,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "direction": "vertical",
       "fill": "#ffa03a",
@@ -4875,8 +4921,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#076f29",
+        "#459d55",
+        "#75cd82",
       ],
       "direction": "vertical",
       "fill": "#459d55",
@@ -4928,8 +4975,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
       ],
       "direction": "vertical",
       "fill": "#34bfe1",
@@ -4981,8 +5029,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#b19c00",
+        "#e1cc00",
+        "#fffe5d",
       ],
       "direction": "vertical",
       "fill": "#e1cc00",
@@ -5034,8 +5083,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#6a3c9a",
+        "#9669cb",
+        "#c597fe",
       ],
       "direction": "vertical",
       "fill": "#9669cb",
@@ -5087,8 +5137,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#878787",
+        "#b5b5b5",
+        "#e5e5e5",
       ],
       "direction": "vertical",
       "fill": "#b5b5b5",
@@ -5387,8 +5438,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
+          "#2162aa",
           "#5090dc",
-          "#ef5452",
+          "#7ec0ff",
         ],
         "enabled": true,
         "fill": "#0b1791",
@@ -5437,8 +5489,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#cc7100",
+          "#ffa03a",
+          "#ffd171",
         ],
         "enabled": true,
         "fill": "#be2a2c",
@@ -5487,8 +5540,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#076f29",
+          "#459d55",
+          "#75cd82",
         ],
         "enabled": true,
         "fill": "#f6d24a",
@@ -5537,8 +5591,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#008fb0",
+          "#34bfe1",
+          "#70f1ff",
         ],
         "enabled": true,
         "fill": "#ce1126",
@@ -5587,8 +5642,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#b19c00",
+          "#e1cc00",
+          "#fffe5d",
         ],
         "enabled": true,
         "fill": "#002d62",
@@ -5637,8 +5693,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#6a3c9a",
+          "#9669cb",
+          "#c597fe",
         ],
         "enabled": true,
         "fill": "#1b4e9e",
@@ -5687,8 +5744,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#878787",
+          "#b5b5b5",
+          "#e5e5e5",
         ],
         "enabled": true,
         "fill": "#f6d24a",
@@ -5737,8 +5795,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#8c2c79",
+          "#bd5aa7",
+          "#f088d7",
         ],
         "enabled": true,
         "fill": "#0073cf",
@@ -5787,8 +5846,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#5d3800",
+          "#8a6224",
+          "#b98f53",
         ],
         "enabled": true,
         "fill": "#e88532",
@@ -5837,8 +5897,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
+          "#b91926",
           "#ef5452",
+          "#ff867f",
         ],
         "enabled": true,
         "fill": "#000000",
@@ -5887,8 +5948,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
+          "#2162aa",
           "#5090dc",
-          "#ef5452",
+          "#7ec0ff",
         ],
         "enabled": true,
         "fill": "#006847",
@@ -5937,8 +5999,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#cc7100",
+          "#ffa03a",
+          "#ffd171",
         ],
         "enabled": true,
         "fill": "#c22b38",
@@ -5987,8 +6050,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#076f29",
+          "#459d55",
+          "#75cd82",
         ],
         "enabled": true,
         "fill": "#042279",
@@ -6037,8 +6101,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#008fb0",
+          "#34bfe1",
+          "#70f1ff",
         ],
         "enabled": true,
         "fill": "#4997d0",
@@ -6087,8 +6152,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#b19c00",
+          "#e1cc00",
+          "#fffe5d",
         ],
         "enabled": true,
         "fill": "#ffffff",
@@ -6137,8 +6203,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#6a3c9a",
+          "#9669cb",
+          "#c597fe",
         ],
         "enabled": true,
         "fill": "#459945",
@@ -6401,8 +6468,9 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
+          "#2162aa",
           "#5090dc",
-          "#ef5452",
+          "#7ec0ff",
         ],
         "fill": "#5090dc",
         "shape": "circle",
@@ -6628,8 +6696,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "fill": "#5090dc",
       "fillOpacity": 0.8,
@@ -6657,8 +6726,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
+          "#2162aa",
           "#5090dc",
-          "#ef5452",
+          "#7ec0ff",
         ],
         "enabled": false,
         "fill": "#5090dc",
@@ -6700,8 +6770,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "fill": "#ffa03a",
       "fillOpacity": 0.8,
@@ -6729,8 +6800,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#cc7100",
+          "#ffa03a",
+          "#ffd171",
         ],
         "enabled": false,
         "fill": "#ffa03a",
@@ -6772,8 +6844,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#076f29",
+        "#459d55",
+        "#75cd82",
       ],
       "fill": "#459d55",
       "fillOpacity": 0.8,
@@ -6801,8 +6874,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#076f29",
+          "#459d55",
+          "#75cd82",
         ],
         "enabled": false,
         "fill": "#459d55",
@@ -6844,8 +6918,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
       ],
       "fill": "#34bfe1",
       "fillOpacity": 0.8,
@@ -6873,8 +6948,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#008fb0",
+          "#34bfe1",
+          "#70f1ff",
         ],
         "enabled": false,
         "fill": "#34bfe1",
@@ -6916,8 +6992,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#b19c00",
+        "#e1cc00",
+        "#fffe5d",
       ],
       "fill": "#e1cc00",
       "fillOpacity": 0.8,
@@ -6945,8 +7022,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#b19c00",
+          "#e1cc00",
+          "#fffe5d",
         ],
         "enabled": false,
         "fill": "#e1cc00",
@@ -6988,8 +7066,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#6a3c9a",
+        "#9669cb",
+        "#c597fe",
       ],
       "fill": "#9669cb",
       "fillOpacity": 0.8,
@@ -7017,8 +7096,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#6a3c9a",
+          "#9669cb",
+          "#c597fe",
         ],
         "enabled": false,
         "fill": "#9669cb",
@@ -7060,8 +7140,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#878787",
+        "#b5b5b5",
+        "#e5e5e5",
       ],
       "fill": "#b5b5b5",
       "fillOpacity": 0.8,
@@ -7089,8 +7170,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#878787",
+          "#b5b5b5",
+          "#e5e5e5",
         ],
         "enabled": false,
         "fill": "#b5b5b5",
@@ -7350,8 +7432,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "direction": "horizontal",
       "fill": "#00c851",
@@ -7402,8 +7485,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "direction": "horizontal",
       "fill": "#ffbb33",
@@ -7454,8 +7538,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#076f29",
+        "#459d55",
+        "#75cd82",
       ],
       "direction": "horizontal",
       "fill": "#ff4444",
@@ -7736,8 +7821,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "direction": "vertical",
       "fill": "#f1c40f",
@@ -7787,8 +7873,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "direction": "vertical",
       "fill": "#e67e22",
@@ -7838,8 +7925,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#076f29",
+        "#459d55",
+        "#75cd82",
       ],
       "direction": "vertical",
       "fill": "#2ecc71",
@@ -7889,8 +7977,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
       ],
       "direction": "vertical",
       "fill": "#3498db",
@@ -7940,8 +8029,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#b19c00",
+        "#e1cc00",
+        "#fffe5d",
       ],
       "direction": "vertical",
       "fill": "#9b59b6",
@@ -7991,8 +8081,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#6a3c9a",
+        "#9669cb",
+        "#c597fe",
       ],
       "direction": "vertical",
       "fill": "#34495e",
@@ -8282,8 +8373,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "fill": "#c16068",
       "fillOpacity": 0.8,
@@ -8305,8 +8397,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
+          "#2162aa",
           "#5090dc",
-          "#ef5452",
+          "#7ec0ff",
         ],
         "enabled": false,
         "fill": "#5090dc",
@@ -8340,8 +8433,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "fill": "#a2bf8a",
       "fillOpacity": 0.8,
@@ -8363,8 +8457,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#cc7100",
+          "#ffa03a",
+          "#ffd171",
         ],
         "enabled": false,
         "fill": "#ffa03a",
@@ -8398,8 +8493,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#076f29",
+        "#459d55",
+        "#75cd82",
       ],
       "fill": "#ebcc87",
       "fillOpacity": 0.8,
@@ -8421,8 +8517,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#076f29",
+          "#459d55",
+          "#75cd82",
         ],
         "enabled": false,
         "fill": "#459d55",
@@ -8456,8 +8553,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
       ],
       "fill": "#80a0c3",
       "fillOpacity": 0.8,
@@ -8479,8 +8577,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#008fb0",
+          "#34bfe1",
+          "#70f1ff",
         ],
         "enabled": false,
         "fill": "#34bfe1",
@@ -8686,8 +8785,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "direction": "vertical",
       "fill": "#0084e7",
@@ -8876,8 +8976,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
         "strokeWidth": 2,
       },
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "fillOpacity": 0.9,
       "fills": [
@@ -9203,8 +9304,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
+          "#2162aa",
           "#5090dc",
-          "#ef5452",
+          "#7ec0ff",
         ],
         "fill": "#01c185",
         "shape": "circle",
@@ -9251,8 +9353,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#cc7100",
+          "#ffa03a",
+          "#ffd171",
         ],
         "fill": "#000000",
         "shape": "circle",
@@ -9392,8 +9495,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
         "strokeWidth": 2,
       },
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "fillOpacity": 1,
       "fills": [
@@ -9627,8 +9731,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "fill": "#002D72",
       "fillOpacity": 0.5,
@@ -9866,8 +9971,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "fill": "#5BC0EB",
       "fillOpacity": 0.8,
@@ -9894,8 +10000,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
+          "#2162aa",
           "#5090dc",
-          "#ef5452",
+          "#7ec0ff",
         ],
         "enabled": true,
         "fill": "#5BC0EB",
@@ -9936,8 +10043,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "fill": "#FDE74C",
       "fillOpacity": 0.8,
@@ -9964,8 +10072,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#cc7100",
+          "#ffa03a",
+          "#ffd171",
         ],
         "enabled": true,
         "fill": "#FDE74C",
@@ -10006,8 +10115,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#076f29",
+        "#459d55",
+        "#75cd82",
       ],
       "fill": "#9BC53D",
       "fillOpacity": 0.8,
@@ -10034,8 +10144,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#076f29",
+          "#459d55",
+          "#75cd82",
         ],
         "enabled": true,
         "fill": "#9BC53D",
@@ -10076,8 +10187,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
       ],
       "fill": "#E55934",
       "fillOpacity": 0.8,
@@ -10104,8 +10216,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#008fb0",
+          "#34bfe1",
+          "#70f1ff",
         ],
         "enabled": true,
         "fill": "#E55934",
@@ -10146,8 +10259,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#b19c00",
+        "#e1cc00",
+        "#fffe5d",
       ],
       "fill": "#FA7921",
       "fillOpacity": 0.8,
@@ -10174,8 +10288,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#b19c00",
+          "#e1cc00",
+          "#fffe5d",
         ],
         "enabled": true,
         "fill": "#FA7921",
@@ -10216,8 +10331,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#6a3c9a",
+        "#9669cb",
+        "#c597fe",
       ],
       "fill": "#fa3081",
       "fillOpacity": 0.8,
@@ -10244,8 +10360,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "lineDashOffset": 0,
       "marker": {
         "defaultColorRange": [
-          "#5090dc",
-          "#ef5452",
+          "#6a3c9a",
+          "#9669cb",
+          "#c597fe",
         ],
         "enabled": true,
         "fill": "#fa3081",
@@ -10523,8 +10640,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "direction": "horizontal",
       "fill": "#5090dc",
@@ -10574,8 +10692,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "direction": "horizontal",
       "fill": "#ffa03a",
@@ -10625,8 +10744,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#076f29",
+        "#459d55",
+        "#75cd82",
       ],
       "direction": "horizontal",
       "fill": "#459d55",
@@ -10676,8 +10796,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
       ],
       "direction": "horizontal",
       "fill": "#34bfe1",
@@ -10944,8 +11065,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
   "series": [
     {
       "defaultColorRange": [
+        "#2162aa",
         "#5090dc",
-        "#ef5452",
+        "#7ec0ff",
       ],
       "direction": "vertical",
       "fill": "#5BC0EB",
@@ -10995,8 +11117,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
       ],
       "direction": "vertical",
       "fill": "#FDE74C",
@@ -11046,8 +11169,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#076f29",
+        "#459d55",
+        "#75cd82",
       ],
       "direction": "vertical",
       "fill": "#9BC53D",
@@ -11097,8 +11221,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
       ],
       "direction": "vertical",
       "fill": "#E55934",
@@ -11148,8 +11273,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     },
     {
       "defaultColorRange": [
-        "#5090dc",
-        "#ef5452",
+        "#b19c00",
+        "#e1cc00",
+        "#fffe5d",
       ],
       "direction": "vertical",
       "fill": "#FA7921",

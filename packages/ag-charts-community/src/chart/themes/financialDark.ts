@@ -10,6 +10,7 @@ import {
     DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_TOOLBAR_POSITION,
 } from './symbols';
+import { getSequentialColors } from './util';
 
 const FINANCIAL_DARK_FILLS = {
     GREEN: '#089981',
@@ -30,6 +31,7 @@ export class FinancialDark extends DarkTheme {
         return {
             fills: { ...FINANCIAL_DARK_FILLS },
             strokes: { ...FINANCIAL_DARK_STROKES },
+            sequentialColors: getSequentialColors(FINANCIAL_DARK_FILLS),
             up: { fill: FINANCIAL_DARK_FILLS.GREEN, stroke: FINANCIAL_DARK_STROKES.GREEN },
             down: { fill: FINANCIAL_DARK_FILLS.RED, stroke: FINANCIAL_DARK_STROKES.RED },
             neutral: { fill: FINANCIAL_DARK_FILLS.BLUE, stroke: FINANCIAL_DARK_STROKES.BLUE },

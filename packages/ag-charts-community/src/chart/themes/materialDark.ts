@@ -6,6 +6,7 @@ import {
     DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
     DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
+import { getSequentialColors } from './util';
 
 const MATERIAL_DARK_FILLS = {
     BLUE: '#2196F3',
@@ -38,6 +39,7 @@ export class MaterialDark extends DarkTheme {
         return {
             fills: MATERIAL_DARK_FILLS,
             strokes: MATERIAL_DARK_STROKES,
+            sequentialColors: getSequentialColors(MATERIAL_DARK_FILLS),
             up: { fill: MATERIAL_DARK_FILLS.GREEN, stroke: MATERIAL_DARK_STROKES.GREEN },
             down: { fill: MATERIAL_DARK_FILLS.RED, stroke: MATERIAL_DARK_STROKES.RED },
             neutral: { fill: MATERIAL_DARK_FILLS.GRAY, stroke: MATERIAL_DARK_STROKES.GRAY },

@@ -9,6 +9,7 @@ import type {
     AgPaletteColors,
     AgPresetOverrides,
     AgThemeOverrides,
+    CssColor,
     WithThemeParams,
 } from 'ag-charts-types';
 
@@ -33,7 +34,6 @@ import {
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
-    DEFAULT_COLOR_RANGE,
     DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FIBONACCI_STROKES,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
@@ -68,6 +68,7 @@ import {
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
 } from './symbols';
+import { getSequentialColors } from './util';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';
@@ -118,6 +119,7 @@ const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).redu
 
 export class ChartTheme {
     readonly palette: Required<AgChartThemePalette> & {
+        sequentialColors: CssColor[][]; // TODO: AG-14186 make public
         altUp: AgPaletteColors;
         altDown: AgPaletteColors;
         altNeutral: AgPaletteColors;
@@ -326,11 +328,12 @@ export class ChartTheme {
             this.mergeOverrides(defaults, presets, overrides);
         }
 
-        const { fills, strokes, ...otherColors } = this.getDefaultColors();
+        const { fills, strokes, sequentialColors, ...otherColors } = this.getDefaultColors();
         this.palette = deepFreeze(
             mergeDefaults(palette, {
                 fills: Object.values(fills),
                 strokes: Object.values(strokes),
+                sequentialColors: Object.values(sequentialColors),
                 ...otherColors,
             })
         );
@@ -451,6 +454,7 @@ export class ChartTheme {
         return {
             fills: DEFAULT_FILLS,
             strokes: DEFAULT_STROKES,
+            sequentialColors: getSequentialColors(DEFAULT_FILLS),
             up: { fill: DEFAULT_FILLS.GREEN, stroke: DEFAULT_STROKES.GREEN },
             down: { fill: DEFAULT_FILLS.RED, stroke: DEFAULT_STROKES.RED },
             neutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
@@ -506,7 +510,6 @@ export class ChartTheme {
             DEFAULT_FILLS.YELLOW,
             DEFAULT_FILLS.GREEN,
         ]);
-        params.set(DEFAULT_COLOR_RANGE, [DEFAULT_FILLS.BLUE, DEFAULT_FILLS.RED]);
         params.set(DEFAULT_SPARKLINE_CROSSHAIR_STROKE, '#aaa');
         params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [DEFAULT_FILLS.GREEN, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.RED]);
         params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
