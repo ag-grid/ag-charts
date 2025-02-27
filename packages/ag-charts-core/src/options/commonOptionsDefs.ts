@@ -24,17 +24,25 @@ import {
 } from '../utils/validation';
 
 export const operationsDef: OptionsDefs<any> = {
+    // Location operations
     $ref: string,
     $path: string,
+    // Logic operations
     $if: array,
     $or: array,
     $and: array,
     $eq: array,
+    // Numeric operations
     $mul: array,
     $round: array,
+    // Transform operations
+    $map: array,
+    $merge: array,
+    $value: string,
+    // Font operations
     $rem: array,
+    // Color operations
     $mix: array,
-    $mixEach: array,
     $foregroundBackgroundMix: array,
     $foregroundBackgroundAccentMix: array,
 };

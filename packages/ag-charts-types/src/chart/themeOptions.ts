@@ -8,7 +8,6 @@ import type { AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleO
 import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/candlestickOptions';
 import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
-import type { AgGradientFill } from '../series/cartesian/commonOptions';
 import type { AgConeFunnelSeriesThemeableOptions } from '../series/cartesian/coneFunnelOptions';
 import type { AgFunnelSeriesThemeableOptions } from '../series/cartesian/funnelOptions';
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
@@ -45,7 +44,8 @@ import type { AgAnnotationsThemeableOptions } from './annotationsOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 import type { AgChartToolbarThemeableOptions } from './chartToolbarOptions';
 import type { AgLocaleThemeableOptions } from './localeOptions';
-import type { CssColor, FontFamily, FontSize, FontWeight, PixelSize } from './types';
+import type { AgChartThemeParams } from './themeParamsOptions';
+import type { CssColor } from './types';
 
 export type AgChartThemeName =
     | 'ag-default'
@@ -78,156 +78,6 @@ export interface AgChartThemePalette {
     down?: AgPaletteColors;
     neutral?: AgPaletteColors;
 }
-
-interface AgBaseChartThemeParams {
-    /**
-     * The 'brand colour' for the chart, used wherever a non-neutral colour is required. Selections, focus outlines and
-     * checkboxes use the accent colour by default.
-     */
-    accentColor?: CssColor;
-    /**
-     * Background colour of the chart. Most text, borders and backgrounds are defined as a blend between the background
-     * and foreground colors.
-     */
-    backgroundColor?: CssColor;
-    /** Default colour for borders. */
-    borderColor?: CssColor;
-    /**
-     * Default colour for neutral UI elements. Most text, borders and backgrounds are defined as a blend between the
-     * background and foreground colors.
-     */
-    foregroundColor?: CssColor;
-    /** Default font size used for all text. Titles and some other text are scaled to this font size. */
-    fontSize?: FontSize;
-    /**
-     * Background colour for text inputs.
-     *
-     * Default: `backgroundColor`
-     */
-    inputBackgroundColor?: CssColor;
-    /**
-     * Colour of text within text inputs.
-     *
-     * Default: `textColor`
-     */
-    inputTextColor?: CssColor;
-    /**
-     * Colour of text that should stand out less than the default.
-     *
-     * Default: `foregroundColor + backgroundColor`
-     */
-    subtleTextColor?: CssColor;
-    /**
-     * Default colour for all text.
-     *
-     * Default: `foregroundColor`
-     */
-    textColor?: CssColor;
-}
-
-export interface AgChartThemeParams extends AgBaseChartThemeParams {
-    /** Default colour for axis lines and ticks. */
-    axisColor?: CssColor;
-    /**
-     * Background colour of tooltips, menus, dialogs, toolbars and buttons.
-     *
-     * Default: `foregroundColor + backgroundColor`
-     */
-    chromeBackgroundColor?: CssColor;
-    /**
-     * Font family used for text in tooltips, menus, dialogs, toolbars, buttons and text inputs.
-     *
-     * Default: `fontFamily`
-     */
-    chromeFontFamily?: FontFamily;
-    /**
-     * Font size used for text in tooltips, menus, dialogs, toolbars, buttons and text inputs.
-     *
-     * Default: `fontSize`
-     */
-    chromeFontSize?: FontSize;
-    /**
-     * Font weight used for text in tooltips, menus, dialogs, toolbars, buttons and text inputs.
-     *
-     * Default: `fontWeight`
-     */
-    chromeFontWeight?: FontWeight;
-    /**
-     * Default colour for text in tooltips, menus, dialogs, toolbars, buttons and text inputs.
-     *
-     * Default: `textColor`
-     */
-    chromeTextColor?: CssColor;
-    /**
-     * Colour of text that should stand out less than the default in tooltips, menus, dialogs, toolbars and buttons.
-     *
-     * Default: `subtleTextColor`
-     */
-    chromeSubtleTextColor?: CssColor;
-    /**
-     * Background colour of crosshair labels.
-     *
-     * Default: `foregroundColor`
-     */
-    crosshairLabelBackgroundColor?: CssColor;
-    /**
-     * Colour for text in crosshair labels.
-     *
-     * Default: `backgroundColor`
-     */
-    crosshairLabelTextColor?: CssColor;
-    /** Font family used for all text. */
-    fontFamily?: FontFamily;
-    /** Default font weight used for all text. */
-    fontWeight?: FontWeight;
-    /** Default colour for grid lines. */
-    gridLineColor?: CssColor;
-    /** The outer chart padding. */
-    padding?: PixelSize;
-}
-
-/**
- * Modify a type T by extending it's leaves with the type V, excluding any leaf that extends E.
- *
- * @param T type to extend
- * @param V value to union with the leaves
- * @param E leaf types to exclude and keep their original type
- */
-type ExtendLiteralLeaves<T, V, E> = {
-    [P in keyof T]: NonNullable<T[P]> extends Array<infer U>
-        ? U extends E
-            ? Array<U> | V
-            : ExtendLiteralLeavesInner<T, V, E, P>
-        : ExtendLiteralLeavesInner<T, V, E, P>;
-};
-
-type ExtendLiteralLeavesInner<T, V, E, P extends keyof T> =
-    T[P] extends Array<infer U>
-        ? Array<ExtendLiteralLeaves<U, V, E>>
-        : T[P] extends E
-          ? T[P] | V
-          : ExtendLiteralLeaves<T[P], V, E>;
-
-type ThemeParam = keyof AgChartThemeParams;
-type ThemeParamsOperation =
-    | { $ref: ThemeParam }
-    | { $path: string }
-    | { $if: [ThemeParamsLeaf, ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { $or: [ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { $and: [ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { $eq: [ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { $mul: [ThemeParamsLeaf<number>, ThemeParamsLeaf<number>] }
-    | { $round: [ThemeParamsLeaf<number>] }
-    | { $rem: [ThemeParamsLeaf] | [ThemeParamsLeaf, ThemeParamsLeaf] }
-    | { $mix: [ThemeParamsLeaf, ThemeParamsLeaf, ThemeParamsLeaf<number>] }
-    | { $mixEach: [ThemeParamsLeaf, ThemeParamsLeaf, ThemeParamsLeaf<number>] }
-    | { $foregroundBackgroundMix: [ThemeParamsLeaf<number>] }
-    | { $foregroundBackgroundAccentMix: [ThemeParamsLeaf<number>, ThemeParamsLeaf<number>] };
-
-type ThemeParamsLeaf<T = ExcludeLeaves> = ThemeParamsOperation | T;
-
-export type WithThemeParams<T> = ExtendLiteralLeaves<T, ThemeParamsOperation, ExcludeLeaves>;
-type ExcludeLeaves = string | symbol | number | undefined | AgGradientFill;
 
 export interface AgBaseChartThemeOptions {
     /** The palette to use. If specified, this replaces the palette from the base theme. */

@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { Navigator } from './navigator';
+import { NAVIGATOR_THEME } from './navigatorTheme';
 
 export const NavigatorModule: _ModuleSupport.RootModule = {
     type: 'root',
@@ -10,46 +11,6 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
     moduleFactory: (ctx) => new Navigator(ctx),
     removable: false, // Toggling this module causes zoom state flakiness.
     themeTemplate: {
-        navigator: {
-            enabled: false,
-            height: 18,
-            cornerRadius: 4,
-            mask: {
-                fill: { $ref: 'foregroundColor' },
-                fillOpacity: 0.1,
-                stroke: { $ref: 'borderColor' },
-                strokeWidth: 1,
-            },
-            minHandle: {
-                fill: { $ref: 'backgroundColor' },
-                stroke: { $ref: 'borderColor' },
-                strokeWidth: 1,
-                width: 12,
-                height: 24,
-                cornerRadius: 4,
-            },
-            maxHandle: {
-                fill: { $ref: 'backgroundColor' },
-                stroke: { $ref: 'borderColor' },
-                strokeWidth: 1,
-                width: 12,
-                height: 24,
-                cornerRadius: 4,
-            },
-            miniChart: {
-                enabled: false,
-                label: {
-                    color: { $ref: 'textColor' },
-                    fontSize: { $rem: [_ModuleSupport.FONT_SIZE_RATIO.SMALLER] },
-                    fontFamily: { $ref: 'fontFamily' },
-                    fontWeight: { $ref: 'fontWeight' },
-                    spacing: 5,
-                },
-                padding: {
-                    top: 0,
-                    bottom: 0,
-                },
-            },
-        },
+        navigator: NAVIGATOR_THEME,
     },
 };

@@ -308,16 +308,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         );
         this.processAxesOptions(processedOptions, axesThemes);
         this.processSeriesOptions(processedOptions, activeTheme);
-        this.processMiniChartSeriesOptions(processedOptions, activeTheme);
 
         // Create isolated copy of options before we start mutations - this is performance sensitive,
         // so we aim to only do this once in the processing flow.
         processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
-
-        const themeParameters = this.getThemeParameters(activeTheme, processedOptions) as AgChartThemeParams;
-        this.resolveThemeOperations(themeParameters, themeParameters);
-        this.resolveThemeOperations(themeParameters, processedOptions);
-        this.resolveThemeOperations(themeParameters, this.annotationThemes);
 
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
         if (
@@ -331,7 +325,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         this.enableConfiguredOptions(processedOptions, this.userOptions as T);
+
+        const themeParameters = this.getThemeParameters(activeTheme, processedOptions) as AgChartThemeParams;
+        this.resolveThemeOperations(themeParameters, themeParameters);
+        this.resolveThemeOperations(themeParameters, processedOptions);
+        this.resolveThemeOperations(themeParameters, this.annotationThemes);
+
+        this.processMiniChartSeriesOptions(processedOptions, activeTheme);
+
         activeTheme.templateTheme(processedOptions, false);
+
         this.removeDisabledOptions(options);
         removeUnusedEnterpriseOptions(processedOptions);
         if (!enterpriseModule.isEnterprise) {
@@ -465,14 +468,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         miniChartSeries = miniChartSeries.map((series) => {
             series.type ??= 'line';
-            const { innerLabels: _, ...seriesTheme } = this.getSeriesThemeConfig(series.type, activeTheme).series ?? {};
-            return mergeDefaults(
-                this.getSeriesGroupingOptions(series),
-                series,
-                seriesTheme,
-                this.getSeriesPalette(series.type, paletteOptions, activeTheme)
-            );
+            return mergeDefaults(series, this.getSeriesPalette(series.type, paletteOptions, activeTheme));
         });
+
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
     }
 
