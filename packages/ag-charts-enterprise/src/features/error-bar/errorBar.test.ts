@@ -9,13 +9,16 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    AgCartesianChartOptionsWithContext,
     Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MockErrorBarStyler,
     clickAction,
     computeLegendBBox,
     extractImageData,
     getCursor,
     hoverAction,
+    newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -802,5 +805,39 @@ describe('ErrorBars', () => {
         await hoverAction(x, y - 100)(chart);
         await waitForChartStability(chart);
         expect(getCursor(chart)).toBe('default');
+    });
+
+    describe('context', () => {
+        let options: AgCartesianChartOptionsWithContext;
+        let itemStyler = newFreezableMock<MockErrorBarStyler>();
+        let seriesContext: object;
+
+        beforeEach(async () => {
+            seriesContext = {};
+            itemStyler.mock.mockClear();
+            options = {
+                title: { text: 'Quarterly Car Sales (USD)' },
+                data: [
+                    { quarter: 'q1', sales: 120000, salesLower: 115000, salesUpper: 125000 },
+                    { quarter: 'q2', sales: 150000, salesLower: 145000, salesUpper: 155000 },
+                    { quarter: 'q3', sales: 170000, salesLower: 165000, salesUpper: 175000 },
+                    { quarter: 'q4', sales: 160000, salesLower: 155000, salesUpper: 165000 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'sales',
+                        errorBar: { yLowerKey: 'salesLower', yUpperKey: 'salesUpper', itemStyler: itemStyler.frozen },
+                        context: seriesContext,
+                    },
+                ],
+            };
+            chart = await createEnterpriseChart(options);
+        });
+
+        test('itemStyler', () => {
+            itemStyler.expect().toHaveBeenCalledTimes(4).withContext(seriesContext);
+        });
     });
 });
