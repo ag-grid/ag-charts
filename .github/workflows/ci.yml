@@ -536,7 +536,7 @@ jobs:
             - uses: actions/checkout@v4
               with:
                   # Disabling shallow clones is recommended for improving the relevancy of reporting
-                  fetch-depth: 1
+                  fetch-depth: 0
 
             - name: Fetch Refs
               run: |
