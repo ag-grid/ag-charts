@@ -41,6 +41,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         lineDashOffset: 0,
         rotation: 0,
         sectorSpacing: 1,
+        innerRadiusRatio: { $if: [{ $eq: [{ $path: './innerRadiusOffset' }, undefined] }, 0.7, undefined] },
         shadow: {
             enabled: false,
             color: DEFAULT_SHADOW_COLOUR,
