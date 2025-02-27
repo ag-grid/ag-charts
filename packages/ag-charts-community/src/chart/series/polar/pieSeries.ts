@@ -37,7 +37,7 @@ import {
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
-import { type TooltipContent } from '../../tooltip/tooltip';
+import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
@@ -1300,15 +1300,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             radiusName,
             tooltip,
         } = properties;
-        const title = this.properties.title.text;
-
         if (!dataModel || !processedData) return;
 
+        const title = this.properties.title.text;
+        const symbol = this.legendItemSymbol(datumIndex);
+
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
-        const { angleRawValues, legendItemValues, calloutLabelValues, sectorLabelValues } = this.getProcessedDataValues(
-            dataModel,
-            processedData
-        );
+        const { angleRawValues, radiusRawValues, legendItemValues, calloutLabelValues, sectorLabelValues } =
+            this.getProcessedDataValues(dataModel, processedData);
         const angleRawValue = angleRawValues[datumIndex];
 
         const label =
@@ -1317,18 +1316,24 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             (sectorLabelKey === angleKey ? undefined : sectorLabelValues?.[datumIndex]) ??
             angleName;
 
-        return tooltip.formatTooltip(
+        const data: TooltipContentDataRow[] = [
             {
-                title,
-                symbol: this.legendItemSymbol(datumIndex),
-                data: [
-                    {
-                        label,
-                        fallbackLabel: angleKey,
-                        value: formatValue(angleRawValue, 3),
-                    },
-                ],
+                label: title ?? angleName,
+                fallbackLabel: angleKey,
+                value: formatValue(angleRawValue, 3),
             },
+        ];
+
+        if (radiusKey != null && radiusRawValues != null) {
+            data.push({
+                label: radiusName,
+                fallbackLabel: radiusKey,
+                value: formatValue(radiusRawValues?.[datumIndex], 3),
+            });
+        }
+
+        return tooltip.formatTooltip(
+            { heading: label, symbol, data },
             {
                 seriesId,
                 datum,

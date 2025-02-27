@@ -15,7 +15,9 @@ const options: AgChartOptions = {
         {
             type: 'pie',
             angleKey: 'amount',
+            angleName: 'Amount',
             radiusKey: 'yield',
+            radiusName: 'Yield',
             legendItemKey: 'asset',
         },
     ],
