@@ -24,16 +24,26 @@ function initMock<F extends ItemStyler | LabelFormatter | TooltipRenderer>(mockI
     type Arg = Parameters<F>[0];
 
     const mock: jest.Mock<Rtn, Arg[], unknown> = jest.fn<any, any>(mockImp);
-    const frozen = Object.freeze((params: Arg): Rtn => mock(params));
-    const context = {};
-    const assertContext = () => {
-        for (const args of mock.mock.calls) {
-            const callContext = new Caster(args[0]).findProperty('context').accessProperty('context').value;
-            expect(callContext).toBe(context);
-        }
-        expect(Object.isFrozen(context)).toBe(false);
+    return {
+        mock,
+        frozen: Object.freeze((params: Arg): Rtn => mock(params)),
+        expect() {
+            return {
+                toHaveBeenCalledTimes(expected: number) {
+                    expect(mock).toHaveBeenCalledTimes(expected);
+                    return this;
+                },
+                withContext(expected: unknown) {
+                    for (const args of mock.mock.calls) {
+                        const callContext = new Caster(args[0]).findProperty('context').accessProperty('context').value;
+                        expect(callContext).toBe(expected);
+                    }
+                    expect(Object.isFrozen(expected)).toBe(false);
+                    return this;
+                },
+            };
+        },
     };
-    return { mock, frozen, context, assertContext };
 }
 
 describe('Chart', () => {
@@ -45,8 +55,12 @@ describe('Chart', () => {
     let itemStyler = initMock<ItemStyler>((_params) => undefined);
     let labelFormatter = initMock<LabelFormatter>((_params) => undefined);
     let tooltipRenderer = initMock<TooltipRenderer>((_params) => '');
+    let seriesContext: object;
+    let axisContext: object;
 
     beforeEach(async () => {
+        seriesContext = {};
+        axisContext = {};
         itemStyler.mock.mockClear();
         labelFormatter.mock.mockClear();
         tooltipRenderer.mock.mockClear();
@@ -63,10 +77,10 @@ describe('Chart', () => {
                 },
             },
             data: [
-                { quarter: 'q1', Toyota: 120000, Ford: 95000, BMW: 80000 },
-                { quarter: 'q2', Toyota: 150000, Ford: 110000, BMW: 90000 },
-                { quarter: 'q3', Toyota: 170000, Ford: 120000, BMW: 95000 },
-                { quarter: 'q4', Toyota: 160000, Ford: 115000, BMW: 92000 },
+                { quarter: 'q1', Toyota: 120000, Ford: 95000, BMW: 80000, context: seriesContext },
+                { quarter: 'q2', Toyota: 150000, Ford: 110000, BMW: 90000, context: seriesContext },
+                { quarter: 'q3', Toyota: 170000, Ford: 120000, BMW: 95000, context: seriesContext },
+                { quarter: 'q4', Toyota: 160000, Ford: 115000, BMW: 92000, context: seriesContext },
             ],
             series: [
                 { type: 'bar', xKey: 'quarter', yKey: 'Toyota' },
@@ -80,6 +94,7 @@ describe('Chart', () => {
                     label: {
                         formatter: (params) => `Quarter ${params.value.toUpperCase()}`,
                     },
+                    context: axisContext,
                 },
                 { type: 'number', position: 'left' },
             ],
@@ -95,16 +110,13 @@ describe('Chart', () => {
     });
 
     test('itemStyler', () => {
-        itemStyler.assertContext();
-        expect(itemStyler.mock).toHaveBeenCalledTimes(12);
+        itemStyler.expect().toHaveBeenCalledTimes(12).withContext(seriesContext);
     });
     test('labelFormatter', () => {
-        labelFormatter.assertContext();
-        expect(labelFormatter.mock).toHaveBeenCalledTimes(12);
+        labelFormatter.expect().toHaveBeenCalledTimes(12).withContext(axisContext);
     });
     test('tooltipRenderer', async () => {
-        tooltipRenderer.assertContext();
-        expect(tooltipRenderer.mock).not.toHaveBeenCalled();
+        tooltipRenderer.expect().toHaveBeenCalledTimes(0);
 
         await hoverAction(53, 363)(chart); // datum 1, series 1
         await waitForChartStability(chart);
@@ -115,7 +127,6 @@ describe('Chart', () => {
         await hoverAction(128, 370)(chart); // datum 3, series 1
         await waitForChartStability(chart);
 
-        tooltipRenderer.assertContext();
-        expect(tooltipRenderer.mock).toHaveBeenCalledTimes(3);
+        tooltipRenderer.expect().toHaveBeenCalledTimes(3).withContext(seriesContext);
     });
 });
