@@ -43,15 +43,15 @@ describe('Chart', () => {
                 },
             },
             data: [
-                { quarter: 'q1', Toyota: 120000, Ford: 95000, BMW: 80000, context: seriesContext },
-                { quarter: 'q2', Toyota: 150000, Ford: 110000, BMW: 90000, context: seriesContext },
-                { quarter: 'q3', Toyota: 170000, Ford: 120000, BMW: 95000, context: seriesContext },
-                { quarter: 'q4', Toyota: 160000, Ford: 115000, BMW: 92000, context: seriesContext },
+                { quarter: 'q1', Toyota: 120000, Ford: 95000, BMW: 80000 },
+                { quarter: 'q2', Toyota: 150000, Ford: 110000, BMW: 90000 },
+                { quarter: 'q3', Toyota: 170000, Ford: 120000, BMW: 95000 },
+                { quarter: 'q4', Toyota: 160000, Ford: 115000, BMW: 92000 },
             ],
             series: [
-                { type: 'bar', xKey: 'quarter', yKey: 'Toyota' },
-                { type: 'bar', xKey: 'quarter', yKey: 'Ford' },
-                { type: 'bar', xKey: 'quarter', yKey: 'BMW' },
+                { type: 'bar', xKey: 'quarter', yKey: 'Toyota', context: seriesContext },
+                { type: 'bar', xKey: 'quarter', yKey: 'Ford', context: seriesContext },
+                { type: 'bar', xKey: 'quarter', yKey: 'BMW', context: seriesContext },
             ],
             axes: [
                 {
