@@ -3,6 +3,7 @@ import { AgCartesianChartOptions } from 'ag-charts-types';
 import type { MockItemStyler, MockLabelFormatter, MockTooltipRenderer } from './test/freezableMock';
 import { newFreezableMock } from './test/freezableMock';
 import {
+    AgCartesianChartOptionsWithContext,
     Chart,
     createChart,
     hoverAction,
@@ -11,17 +12,12 @@ import {
     waitForChartStability,
 } from './test/utils';
 
-type UndocumentedOptions = Omit<AgCartesianChartOptions, 'series' | 'axes'> & {
-    series?: (NonNullable<AgCartesianChartOptions['series']>[number] & { context?: unknown })[];
-    axes?: (NonNullable<AgCartesianChartOptions['axes']>[number] & { context?: unknown })[];
-};
-
 describe('Chart', () => {
     setupMockConsole({ debugShowOutput: true });
     setupMockCanvas();
 
     let chart: Chart;
-    let options: UndocumentedOptions;
+    let options: AgCartesianChartOptionsWithContext;
     let itemStyler = newFreezableMock<MockItemStyler>((_params) => undefined);
     let labelFormatter = newFreezableMock<MockLabelFormatter>((_params) => undefined);
     let tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
