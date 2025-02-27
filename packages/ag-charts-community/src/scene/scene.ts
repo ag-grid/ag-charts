@@ -135,7 +135,9 @@ export class Scene {
         }
 
         const renderStartTime = performance.now();
+        let resized = false;
         if (pendingSize) {
+            resized = true;
             this.layersManager.resize(...pendingSize);
             this.pendingSize = null;
         }
@@ -178,7 +180,10 @@ export class Scene {
         prepareSceneNodeHighlight(renderCtx);
 
         let canvasCleared = false;
-        if (root?.dirty !== false) {
+        // Groups are considered dirty when the layer is resized,
+        // but this doesn't actually get propagated to the scene graph,
+        // so the root isn't marked as dirty on the resize case
+        if (root?.dirty !== false || resized) {
             // start with a blank canvas, clear previous drawing
             canvasCleared = true;
             canvas.clear();
