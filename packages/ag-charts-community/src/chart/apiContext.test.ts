@@ -1,6 +1,7 @@
-import { Caster } from 'ag-charts-test';
-import { AgBarSeriesThemeableOptions, AgCartesianChartOptions } from 'ag-charts-types';
+import { AgCartesianChartOptions } from 'ag-charts-types';
 
+import type { MockItemStyler, MockLabelFormatter, MockTooltipRenderer } from './test/freezableMock';
+import { newFreezableMock } from './test/freezableMock';
 import {
     Chart,
     createChart,
@@ -14,37 +15,6 @@ type UndocumentedOptions = Omit<AgCartesianChartOptions, 'series' | 'axes'> & {
     series?: (NonNullable<AgCartesianChartOptions['series']>[number] & { context?: unknown })[];
     axes?: (NonNullable<AgCartesianChartOptions['axes']>[number] & { context?: unknown })[];
 };
-type ItemStyler = NonNullable<AgBarSeriesThemeableOptions['itemStyler']>;
-type LabelFormatter = NonNullable<NonNullable<AgBarSeriesThemeableOptions['label']>['formatter']>;
-type TooltipRenderer = NonNullable<NonNullable<AgBarSeriesThemeableOptions['tooltip']>['renderer']>;
-
-// AG Charts calls Object.freeze on theme options, so we must create intermediate functions to circumvent that.
-function initMock<F extends ItemStyler | LabelFormatter | TooltipRenderer>(mockImp: F) {
-    type Rtn = ReturnType<F>;
-    type Arg = Parameters<F>[0];
-
-    const mock: jest.Mock<Rtn, Arg[], unknown> = jest.fn<any, any>(mockImp);
-    return {
-        mock,
-        frozen: Object.freeze((params: Arg): Rtn => mock(params)),
-        expect() {
-            return {
-                toHaveBeenCalledTimes(expected: number) {
-                    expect(mock).toHaveBeenCalledTimes(expected);
-                    return this;
-                },
-                withContext(expected: unknown) {
-                    for (const args of mock.mock.calls) {
-                        const callContext = new Caster(args[0]).findProperty('context').accessProperty('context').value;
-                        expect(callContext).toBe(expected);
-                    }
-                    expect(Object.isFrozen(expected)).toBe(false);
-                    return this;
-                },
-            };
-        },
-    };
-}
 
 describe('Chart', () => {
     setupMockConsole({ debugShowOutput: true });
@@ -52,9 +22,9 @@ describe('Chart', () => {
 
     let chart: Chart;
     let options: UndocumentedOptions;
-    let itemStyler = initMock<ItemStyler>((_params) => undefined);
-    let labelFormatter = initMock<LabelFormatter>((_params) => undefined);
-    let tooltipRenderer = initMock<TooltipRenderer>((_params) => '');
+    let itemStyler = newFreezableMock<MockItemStyler>((_params) => undefined);
+    let labelFormatter = newFreezableMock<MockLabelFormatter>((_params) => undefined);
+    let tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
     let seriesContext: object;
     let axisContext: object;
 
