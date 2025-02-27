@@ -26,7 +26,7 @@ export function newFreezableMock<F extends APICallback>(mockImp?: F) {
                 withContext(expected: unknown) {
                     for (const args of mock.mock.calls) {
                         const callContext = new Caster(args[0]).findProperty('context').accessProperty('context').value;
-                        expect(callContext).toBe(expected);
+                        expect(callContext).toBe(expected); // `toBe` is intentional. The `context` must not be cloned
                     }
                     expect(Object.isFrozen(expected)).toBe(false);
                     return this;
