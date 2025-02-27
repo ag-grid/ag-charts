@@ -1,4 +1,5 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
+import { LIBRARY } from '@constants';
 import React, { useEffect, useRef, useState } from 'react';
 import { useHits, useSearchBox } from 'react-instantsearch';
 
@@ -53,7 +54,7 @@ export default ({ selectedHit }) => {
                 {!searchValue && (
                     <div className={styles.gettingStarted}>
                         <span>Suggested</span>
-                        <GettingStarted library="grid" />
+                        <GettingStarted library={LIBRARY} />
                     </div>
                 )}
             </div>
