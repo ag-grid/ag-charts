@@ -42,6 +42,7 @@ const {
     Selection,
     Rect,
     Text,
+    TransformableText,
     LinearGradient,
     Marker,
     LinearScale,
@@ -218,10 +219,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     );
     private highlightTargetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> =
         Selection.select(this.highlightTargetGroup, () => this.markerFactory());
-    private tickSelection: _ModuleSupport.Selection<_ModuleSupport.Text, _ModuleSupport.TickDatum> = Selection.select(
-        this.tickGroup,
-        Text
-    );
+    private tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, _ModuleSupport.TickDatum> =
+        Selection.select(this.tickGroup, TransformableText);
 
     public datumUnion: DatumUnion<_ModuleSupport.Rect, LinearGaugeNodeDatum> = new DatumUnion();
     private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
@@ -1083,16 +1082,15 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateTickSelection(opts: {
         tickData: _ModuleSupport.TickDatum[];
-        tickSelection: _ModuleSupport.Selection<_ModuleSupport.Text, _ModuleSupport.TickDatum>;
+        tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, _ModuleSupport.TickDatum>;
     }) {
         return opts.tickSelection.update(opts.tickData, undefined, (datum) => datum.tickId);
     }
 
     private updateTickNodes(opts: {
-        tickSelection: _ModuleSupport.Selection<_ModuleSupport.Text, _ModuleSupport.TickDatum>;
+        tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, _ModuleSupport.TickDatum>;
     }) {
         const { gaugeRect, properties } = this;
-        const { x, y, width, height } = gaugeRect;
         const defaultScale = properties.defaultScale;
         const {
             color,
@@ -1103,6 +1101,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             spacing,
         } = properties.scale.label;
         let { placement } = properties.scale.label;
+        const rotation = toRadians(properties.scale.label.rotation ?? 0);
 
         let textAlign: CanvasTextAlign;
         let textBaseline: CanvasTextBaseline;
@@ -1112,15 +1111,17 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             placement ??= 'after';
             textAlign = 'center';
             textBaseline = placement === 'before' ? 'bottom' : 'top';
-            textY = this.originY + y + (placement === 'before' ? -spacing : height + spacing);
+            textY = this.originY + gaugeRect.y + (placement === 'before' ? -spacing : gaugeRect.height + spacing);
         } else {
             placement ??= 'before';
             textAlign = placement === 'before' ? 'end' : 'start';
             textBaseline = 'middle';
-            textX = this.originX + x + (placement === 'before' ? -spacing : width + spacing);
+            textX = this.originX + gaugeRect.x + (placement === 'before' ? -spacing : gaugeRect.width + spacing);
         }
 
         opts.tickSelection.each((label, datum) => {
+            const x = textX ?? datum.translationY;
+            const y = textY ?? datum.translationY;
             label.text = datum.tickLabel;
             label.fill = color;
             label.fontFamily = fontFamily;
@@ -1129,8 +1130,11 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             label.fontWeight = fontWeight;
             label.textBaseline = textBaseline;
             label.textAlign = textAlign;
-            label.x = textX ?? datum.translationY;
-            label.y = textY ?? datum.translationY;
+            label.x = x;
+            label.y = y;
+            label.rotationCenterX = x;
+            label.rotationCenterY = y;
+            label.rotation = rotation;
         });
     }
 
