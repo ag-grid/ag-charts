@@ -10,6 +10,8 @@ const EVENT_NAME = {
     buyButton: 'Buy Button',
     downloadDS: 'Download Figma Design System',
     page404: '404',
+    trialLicenseFormSuccess: 'Trial License Form - Success',
+    trialLicenseFormError: 'Trial License Form - Error',
 };
 
 const trackPlausible = ({ eventName, props }: { eventName: string; props?: object }) => {
@@ -130,3 +132,27 @@ const trackDownloadDS = (props: object) => {
 };
 
 export const trackOnceDownloadDS = createTrackPlausibleOnce(EVENT_NAME.downloadDS, trackDownloadDS);
+
+export const trackTrialLicenseFormSuccess = (props: object) => {
+    trackPlausible({
+        eventName: EVENT_NAME.trialLicenseFormSuccess,
+        props,
+    });
+};
+
+export const trackOnceTrialLicenseFormSuccess = createTrackPlausibleOnce(
+    EVENT_NAME.trialLicenseFormSuccess,
+    trackTrialLicenseFormSuccess
+);
+
+export const trackTrialLicenseFormError = (props: object) => {
+    trackPlausible({
+        eventName: EVENT_NAME.trialLicenseFormError,
+        props,
+    });
+};
+
+export const trackOnceTrialLicenseFormError = createTrackPlausibleOnce(
+    EVENT_NAME.trialLicenseFormError,
+    trackTrialLicenseFormError
+);
