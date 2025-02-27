@@ -99,13 +99,9 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     outerRadiusOffset?: PixelSize;
     /** The ratio of the outer radius of the series. Used to adjust the outer radius proportionally to the automatically calculated value. */
     outerRadiusRatio?: Ratio;
-    /** The offset in pixels of the inner radius of the series.
-     *
-     * __Note:__ An `innerRadiusRatio` or an `innerRadiusOffset` must be provided in order to render a Donut series. */
+    /** The offset in pixels of the inner radius of the series. */
     innerRadiusOffset?: PixelSize;
-    /** The ratio of the inner radius of the series.
-     *
-     *  __Note:__ An `innerRadiusRatio` or an `innerRadiusOffset` must be provided in order to render a Donut series. */
+    /** The ratio of the inner radius of the series. */
     innerRadiusRatio?: Ratio;
     /** Override of the automatically determined minimum radiusKey value from the data. */
     radiusMin?: number;

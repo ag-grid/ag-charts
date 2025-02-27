@@ -1,4 +1,4 @@
-import { type SeriesModuleDefinition, ValidationError, validate } from 'ag-charts-core';
+import { type SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgDonutSeriesOptions } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
@@ -29,15 +29,4 @@ export const NewDonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions> 
     options: donutSeriesOptionsDef,
 
     create: (ctx: ModuleContext) => new DonutSeries(ctx),
-    validate(options, optionsDefs, path) {
-        const result = validate(options, optionsDefs, path);
-
-        if (result.valid?.innerRadiusRatio == null && result.valid?.innerRadiusOffset == null) {
-            const extendPath = (key: string) => (path ? `${path}.${key}` : key);
-            const message = `Either \`${extendPath('innerRadiusRatio')}\` or \`${extendPath('innerRadiusOffset')}\` is required.`;
-            result.errors.push(new ValidationError(message, path, true));
-        }
-
-        return result;
-    },
 };
