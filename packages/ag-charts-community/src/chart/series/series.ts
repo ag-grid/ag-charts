@@ -966,9 +966,9 @@ export abstract class Series<
         return 'context' in this.properties;
     }
 
-    public callWithContext<I, O, F extends (params: I) => O>(callback: F, params: I): O;
-    public callWithContext<I, O, F extends (params: I) => O | undefined>(callback: F, params: I): O | undefined;
-    public callWithContext<I, O, F extends (params: I) => O | undefined>(callback: F, params: I): O | undefined {
+    public callWithContext<I, O>(callback: (params: I) => O, params: I): O;
+    public callWithContext<I, O>(callback: (params: I) => O | undefined, params: I): O | undefined;
+    public callWithContext<I, O>(callback: (params: I) => O | undefined, params: I): O | undefined {
         if (this.needsContext(params)) {
             params.context = this.properties.context;
         }

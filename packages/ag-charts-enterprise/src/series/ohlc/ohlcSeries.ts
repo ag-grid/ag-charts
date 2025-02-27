@@ -1,4 +1,4 @@
-import { type AgOhlcSeriesItemOptions, AgOhlcSeriesItemStylerParams, _ModuleSupport } from 'ag-charts-community';
+import { type AgOhlcSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcNode } from './ohlcNode';
 import { OhlcSeriesBase } from './ohlcSeriesBase';

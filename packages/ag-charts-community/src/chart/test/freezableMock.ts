@@ -1,5 +1,5 @@
 import { Caster } from 'ag-charts-test';
-import { AgBarSeriesThemeableOptions } from 'ag-charts-types';
+import type { AgBarSeriesThemeableOptions } from 'ag-charts-types';
 
 export type MockItemStyler = NonNullable<AgBarSeriesThemeableOptions['itemStyler']>;
 export type MockLabelFormatter = NonNullable<NonNullable<AgBarSeriesThemeableOptions['label']>['formatter']>;
@@ -10,7 +10,7 @@ export function newFreezableMock<F extends MockItemStyler | MockLabelFormatter |
     type Rtn = ReturnType<F>;
     type Arg = Parameters<F>[0];
 
-    const mock: jest.Mock<Rtn, Arg[], unknown> = jest.fn<any, any>(mockImp);
+    const mock: jest.Mock<Rtn, Arg[]> = jest.fn<any, any>(mockImp);
     return {
         mock,
         frozen: Object.freeze((params: Arg): Rtn => mock(params)),
