@@ -311,13 +311,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // so we aim to only do this once in the processing flow.
         processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
-        const themeParameters = this.getThemeParameters(activeTheme, processedOptions) as AgChartThemeParams;
-        this.resolveThemeOperations(themeParameters, themeParameters);
-        this.resolveThemeOperations(themeParameters, processedOptions);
-        this.resolveThemeOperations(themeParameters, this.annotationThemes);
-
-        this.processMiniChartSeriesOptions(processedOptions, activeTheme);
-
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
         if (
             (isAgCartesianChartOptions(processedOptions) ||
@@ -330,7 +323,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         this.enableConfiguredOptions(processedOptions, this.userOptions as T);
+
+        const themeParameters = this.getThemeParameters(activeTheme, processedOptions) as AgChartThemeParams;
+        this.resolveThemeOperations(themeParameters, themeParameters);
+        this.resolveThemeOperations(themeParameters, processedOptions);
+        this.resolveThemeOperations(themeParameters, this.annotationThemes);
+
+        this.processMiniChartSeriesOptions(processedOptions, activeTheme);
+
         activeTheme.templateTheme(processedOptions, false);
+
         this.removeDisabledOptions(options);
         removeUnusedEnterpriseOptions(processedOptions);
         if (!enterpriseModule.isEnterprise) {
