@@ -61,7 +61,12 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     const unusedKeys = [];
     const optionsKeys = new Set(Object.keys(options));
     const errors: ValidationError[] = [];
-    const valid: Partial<T> = {};
+    const valid: Partial<T> & { context?: unknown } = {};
+
+    if ('context' in options) {
+        optionsKeys.delete('context');
+        valid.context = options.context;
+    }
 
     function extendPath(key: string) {
         if (isArray(optionsDefs)) {
