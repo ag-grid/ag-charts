@@ -104,7 +104,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 
     for (const key of optionsKeys) {
         const value = options[key as keyof object];
-        if (typeof value === 'undefined') continue;
+        if (typeof value === 'undefined' || key === 'context') continue;
         const match = findSuggestion(key, unusedKeys);
         const postfix = match ? `; Did you mean \`${match}\`? Ignoring.` : ', ignoring.';
         const message = `Unknown option \`${extendPath(key)}\`${postfix}`;
