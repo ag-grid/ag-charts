@@ -47,8 +47,11 @@
 
 .ag-charts-canvas-container > *,
 .ag-charts-canvas > * {
-    display: block;
     pointer-events: none;
+}
+
+.ag-charts-canvas canvas {
+    display: block;
 }
 
 .ag-charts-series-area {
