@@ -14,14 +14,18 @@ describe('Chart', () => {
 
     let chart: Chart;
     let options: AgCartesianChartOptionsWithContext;
-    let seriesContext: object;
+    let seriesContext0: object;
+    let seriesContext1: object;
+    let seriesContext2: object;
     let axisContext: object;
     const itemStyler = newFreezableMock<MockItemStyler>((_params) => undefined);
     const labelFormatter = newFreezableMock<MockLabelFormatter>((_params) => undefined);
     const tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
 
     beforeEach(async () => {
-        seriesContext = {};
+        seriesContext0 = { name: '[0]: toyota' };
+        seriesContext1 = { name: '[1]: ford' };
+        seriesContext2 = { name: '[2]: bmw' };
         axisContext = {};
         itemStyler.mock.mockClear();
         labelFormatter.mock.mockClear();
@@ -45,9 +49,9 @@ describe('Chart', () => {
                 { quarter: 'q4', Toyota: 160000, Ford: 115000, BMW: 92000 },
             ],
             series: [
-                { type: 'bar', xKey: 'quarter', yKey: 'Toyota', context: seriesContext },
-                { type: 'bar', xKey: 'quarter', yKey: 'Ford', context: seriesContext },
-                { type: 'bar', xKey: 'quarter', yKey: 'BMW', context: seriesContext },
+                { type: 'bar', xKey: 'quarter', yKey: 'Toyota', context: seriesContext0 },
+                { type: 'bar', xKey: 'quarter', yKey: 'Ford', context: seriesContext1 },
+                { type: 'bar', xKey: 'quarter', yKey: 'BMW', context: seriesContext2 },
             ],
             axes: [
                 {
@@ -65,6 +69,9 @@ describe('Chart', () => {
     });
 
     afterEach(() => {
+        expect(Object.isFrozen(seriesContext0)).toBe(false);
+        expect(Object.isFrozen(seriesContext1)).toBe(false);
+        expect(Object.isFrozen(seriesContext2)).toBe(false);
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
@@ -72,7 +79,19 @@ describe('Chart', () => {
     });
 
     test('itemStyler', () => {
-        itemStyler.expect().toHaveBeenCalledTimes(12).withContext(seriesContext);
+        itemStyler.expect().toHaveBeenCalledTimes(12);
+        itemStyler.expect().nthCalledWithContext(0, seriesContext0);
+        itemStyler.expect().nthCalledWithContext(1, seriesContext0);
+        itemStyler.expect().nthCalledWithContext(2, seriesContext0);
+        itemStyler.expect().nthCalledWithContext(3, seriesContext0);
+        itemStyler.expect().nthCalledWithContext(4, seriesContext1);
+        itemStyler.expect().nthCalledWithContext(5, seriesContext1);
+        itemStyler.expect().nthCalledWithContext(6, seriesContext1);
+        itemStyler.expect().nthCalledWithContext(7, seriesContext1);
+        itemStyler.expect().nthCalledWithContext(8, seriesContext2);
+        itemStyler.expect().nthCalledWithContext(9, seriesContext2);
+        itemStyler.expect().nthCalledWithContext(10, seriesContext2);
+        itemStyler.expect().nthCalledWithContext(11, seriesContext2);
     });
     /*
     // TODO: Skip these tests (`xtest` triggers a sonarjs/no-skipped-test lint error in the CI)

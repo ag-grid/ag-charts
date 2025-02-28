@@ -14,6 +14,11 @@ export function newFreezableMock<F extends APICallback>(mockImp?: F) {
     type Arg = Parameters<F>[0];
 
     const mock: jest.Mock<Rtn, Arg[]> = jest.fn<any, any>(mockImp);
+    function getCallContext(args: (typeof mock.mock.calls)[number]) {
+        expect(args).toBeDefined();
+        expect(args[0]).toBeDefined();
+        return new Caster(args[0]).findProperty('context').accessProperty('context').value;
+    }
     return {
         mock,
         frozen: Object.freeze((params: Arg): Rtn => mock(params)),
@@ -23,12 +28,16 @@ export function newFreezableMock<F extends APICallback>(mockImp?: F) {
                     expect(mock).toHaveBeenCalledTimes(expected);
                     return this;
                 },
+                nthCalledWithContext(nthCall: number, expected: unknown) {
+                    const actual = getCallContext(mock.mock.calls[nthCall]);
+                    expect(actual).toBe(expected); // `toBe` is intentional. The `context` must not be cloned
+                    return this;
+                },
                 withContext(expected: unknown) {
                     for (const args of mock.mock.calls) {
-                        const callContext = new Caster(args[0]).findProperty('context').accessProperty('context').value;
-                        expect(callContext).toBe(expected); // `toBe` is intentional. The `context` must not be cloned
+                        const actual = getCallContext(args);
+                        expect(actual).toBe(expected); // `toBe` is intentional. The `context` must not be cloned
                     }
-                    expect(Object.isFrozen(expected)).toBe(false);
                     return this;
                 },
             };

@@ -837,6 +837,7 @@ describe('ErrorBars', () => {
         });
 
         test('itemStyler', () => {
+            expect(Object.isFrozen(seriesContext)).toBe(false);
             itemStyler.expect().toHaveBeenCalledTimes(4).withContext(seriesContext);
         });
     });
