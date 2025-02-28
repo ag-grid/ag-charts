@@ -3435,6 +3435,66 @@ export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCar
     series: GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES.series?.map((s) => ({ ...s, stacked: true })),
 };
 
+export const STACKED_NORMALIZED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCartesianChartOptions = {
+    title: {
+        text: "Apple's Revenue by Product Category",
+    },
+    subtitle: {
+        text: 'In Billion U.S. Dollars',
+    },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'product',
+            yKey: 'value',
+            yName: 'iPad - Retail',
+            data: [
+                { product: 'Air', value: 400 },
+                { product: 'Pro', value: 280 },
+            ],
+            stackGroup: 'ipad',
+            normalizedTo: 100,
+        },
+        {
+            type: 'bar',
+            xKey: 'product',
+            yKey: 'value',
+            yName: 'iPad - Student',
+            data: [
+                { product: 'Air', value: 140 },
+                { product: 'Pro', value: 90 },
+            ],
+            stackGroup: 'ipad',
+            normalizedTo: 100,
+        },
+        {
+            type: 'bar',
+            xKey: 'product',
+            yKey: 'value',
+            yName: 'MacBook - Retail',
+            data: [
+                { product: 'Air', value: 205 },
+                { product: 'Pro 15"', value: 195 },
+                { product: 'Pro 16"', value: 500 },
+            ],
+            stackGroup: 'macbook',
+            normalizedTo: 100,
+        },
+        {
+            type: 'bar',
+            xKey: 'product',
+            yKey: 'value',
+            yName: 'MacBook - Student',
+            data: [
+                { product: 'Air', value: 20 },
+                { product: 'Pro 16"', value: 50 },
+            ],
+            stackGroup: 'macbook',
+            normalizedTo: 100,
+        },
+    ],
+};
+
 export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = {
     title: {
         text: "Apple's revenue by product category",
