@@ -5,8 +5,6 @@ import { FunnelSeries } from './funnelSeries';
 import { funnelSeriesOptionsDef } from './funnelSeriesOptionsDef';
 import { FUNNEL_SERIES_THEME, funnelSeriesAxes } from './funnelThemes';
 
-const { DEFAULT_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
-
 export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -20,10 +18,12 @@ export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
     defaultAxes: funnelSeriesAxes,
     themeTemplate: FUNNEL_SERIES_THEME,
 
-    paletteFactory: ({ takeColors, themeTemplateParameters }) => {
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
-
-        const { fills, strokes } = takeColors(1);
+    paletteFactory: ({ takeColors }) => {
+        const {
+            fills,
+            strokes,
+            sequentialColors: [defaultColorRange],
+        } = takeColors(1);
         return { fills, strokes, defaultColorRange };
     },
 };

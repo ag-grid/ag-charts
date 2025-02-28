@@ -5,7 +5,7 @@ import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
 import { mapMarkerSeriesOptionsDef } from './mapMarkerSeriesOptionsDef';
 
-const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
+const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
 export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
     type: 'series',
@@ -29,9 +29,8 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
     },
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
-        const { fill, stroke } = _ModuleSupport.singleSeriesPaletteFactory(opts);
+        const { fill, stroke, defaultColorRange } = _ModuleSupport.singleSeriesPaletteFactory(opts);
         const colorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
         const { fills } = takeColors(colorsCount);
         return {
             fill,

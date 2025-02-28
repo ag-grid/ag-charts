@@ -534,7 +534,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     ) {
         const paletteFactory = seriesRegistry.getPaletteFactory(seriesType);
         const { colourIndex: colourOffset, userPalette } = options;
-        const { fills = [], strokes = [] } = activeTheme.palette;
+        const { fills = [], strokes = [], sequentialColors = [] } = activeTheme.palette;
 
         return paletteFactory?.({
             userPalette,
@@ -546,6 +546,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 return {
                     fills: circularSliceArray(fills, count, colourOffset),
                     strokes: circularSliceArray(strokes, count, colourOffset),
+                    sequentialColors: circularSliceArray(sequentialColors, count, colourOffset),
                 };
             },
         });

@@ -5,6 +5,7 @@ import {
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
     DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
+import { getSequentialColors } from './util';
 
 const SHEETS_DARK_FILLS = {
     BLUE: '#4472C4',
@@ -37,6 +38,7 @@ export class SheetsDark extends DarkTheme {
         return {
             fills: { ...SHEETS_DARK_FILLS, RED: SHEETS_DARK_FILLS.ORANGE },
             strokes: { ...SHEETS_DARK_STROKES, RED: SHEETS_DARK_STROKES.ORANGE },
+            sequentialColors: getSequentialColors({ ...SHEETS_DARK_FILLS, RED: SHEETS_DARK_FILLS.ORANGE }),
             up: { fill: SHEETS_DARK_FILLS.GREEN, stroke: SHEETS_DARK_STROKES.GREEN },
             down: { fill: SHEETS_DARK_FILLS.ORANGE, stroke: SHEETS_DARK_STROKES.ORANGE },
             neutral: { fill: SHEETS_DARK_FILLS.GRAY, stroke: SHEETS_DARK_STROKES.GRAY },

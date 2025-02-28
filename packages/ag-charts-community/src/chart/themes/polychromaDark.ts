@@ -6,6 +6,7 @@ import {
     DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
     DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
+import { getSequentialColors } from './util';
 
 const POLYCHROMA_DARK_FILLS = {
     BLUE: '#436ff4',
@@ -40,6 +41,7 @@ export class PolychromaDark extends DarkTheme {
         return {
             fills: POLYCHROMA_DARK_FILLS,
             strokes: POLYCHROMA_DARK_STROKES,
+            sequentialColors: getSequentialColors(POLYCHROMA_DARK_FILLS),
             up: { fill: POLYCHROMA_DARK_FILLS.GREEN, stroke: POLYCHROMA_DARK_STROKES.GREEN },
             down: { fill: POLYCHROMA_DARK_FILLS.RED, stroke: POLYCHROMA_DARK_STROKES.RED },
             neutral: { fill: POLYCHROMA_DARK_FILLS.GRAY, stroke: POLYCHROMA_DARK_STROKES.GRAY },

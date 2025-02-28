@@ -5,8 +5,7 @@ import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeSeries } from './mapShapeSeries';
 import { mapShapeSeriesOptionsDef } from './mapShapeSeriesOptionsDef';
 
-const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_BACKGROUND_COLOUR, DEFAULT_COLOR_RANGE } =
-    _ModuleSupport.ThemeSymbols;
+const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_BACKGROUND_COLOUR } = _ModuleSupport.ThemeSymbols;
 
 export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     type: 'series',
@@ -36,9 +35,8 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     },
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
-        const { fill } = _ModuleSupport.singleSeriesPaletteFactory(opts);
+        const { fill, defaultColorRange } = _ModuleSupport.singleSeriesPaletteFactory(opts);
         const colorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
         const { fills } = takeColors(colorsCount);
         return {
             fill,

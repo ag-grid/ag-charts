@@ -6,6 +6,7 @@ import {
     DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
     DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
+import { getSequentialColors } from './util';
 
 const POLYCHROMA_LIGHT_FILLS = {
     BLUE: '#436ff4',
@@ -40,6 +41,7 @@ export class PolychromaLight extends ChartTheme {
         return {
             fills: POLYCHROMA_LIGHT_FILLS,
             strokes: POLYCHROMA_LIGHT_STROKES,
+            sequentialColors: getSequentialColors(POLYCHROMA_LIGHT_FILLS),
             up: { fill: POLYCHROMA_LIGHT_FILLS.GREEN, stroke: POLYCHROMA_LIGHT_STROKES.GREEN },
             down: { fill: POLYCHROMA_LIGHT_FILLS.RED, stroke: POLYCHROMA_LIGHT_STROKES.RED },
             neutral: { fill: POLYCHROMA_LIGHT_FILLS.GRAY, stroke: POLYCHROMA_LIGHT_STROKES.GRAY },

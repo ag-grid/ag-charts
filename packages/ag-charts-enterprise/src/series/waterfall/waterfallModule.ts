@@ -5,10 +5,7 @@ import { WaterfallSeries } from './waterfallSeries';
 import { waterfallSeriesOptionsDef } from './waterfallSeriesOptionsDef';
 import { WATERFALL_SERIES_THEME } from './waterfallThemes';
 
-const {
-    ThemeConstants,
-    ThemeSymbols: { DEFAULT_COLOR_RANGE },
-} = _ModuleSupport;
+const { ThemeConstants } = _ModuleSupport;
 
 export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     type: 'series',
@@ -28,38 +25,39 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
         (series) => series?.direction === 'horizontal'
     ),
     themeTemplate: WATERFALL_SERIES_THEME,
-    paletteFactory: ({ takeColors, colorsCount, userPalette, palette, themeTemplateParameters }) => {
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
+    paletteFactory: ({ takeColors, colorsCount, userPalette, palette }) => {
+        const { fills, strokes, sequentialColors } = takeColors(colorsCount);
+
         if (userPalette === 'user-indexed') {
-            const { fills, strokes } = takeColors(colorsCount);
             return {
                 line: { stroke: palette.neutral.stroke },
                 item: {
                     positive: {
                         fill: fills[0],
                         stroke: strokes[0],
-                        defaultColorRange,
+                        defaultColorRange: sequentialColors[0],
                     },
                     negative: {
                         fill: fills[1],
                         stroke: strokes[1],
-                        defaultColorRange,
+                        defaultColorRange: sequentialColors[1],
                     },
                     total: {
                         fill: fills[2],
                         stroke: strokes[2],
-                        defaultColorRange,
+                        defaultColorRange: sequentialColors[2],
                     },
                 },
             };
         }
+
         return {
             line: { stroke: palette.neutral.stroke },
             item: {
                 positive: {
                     fill: palette.altUp.fill,
                     stroke: palette.altUp.stroke,
-                    defaultColorRange,
+                    defaultColorRange: sequentialColors[0],
                     label: {
                         color: { $ref: 'textColor' },
                     },
@@ -67,7 +65,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
                 negative: {
                     fill: palette.altDown.fill,
                     stroke: palette.altDown.stroke,
-                    defaultColorRange,
+                    defaultColorRange: sequentialColors[1],
                     label: {
                         color: { $ref: 'textColor' },
                     },
@@ -75,7 +73,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
                 total: {
                     fill: palette.neutral.fill,
                     stroke: palette.neutral.stroke,
-                    defaultColorRange,
+                    defaultColorRange: sequentialColors[2],
                     label: {
                         color: { $ref: 'textColor' },
                     },

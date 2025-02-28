@@ -4,10 +4,6 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 import { ChordSeries } from './chordSeries';
 import { chordSeriesOptionsDef } from './chordSeriesOptionsDef';
 
-const {
-    ThemeSymbols: { DEFAULT_COLOR_RANGE },
-} = _ModuleSupport;
-
 export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -50,9 +46,12 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
             toggleSeries: false,
         },
     },
-    paletteFactory({ takeColors, colorsCount, themeTemplateParameters }) {
-        const { fills, strokes } = takeColors(colorsCount);
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
+    paletteFactory({ takeColors, colorsCount }) {
+        const {
+            fills,
+            strokes,
+            sequentialColors: [defaultColorRange],
+        } = takeColors(colorsCount);
         return {
             fills,
             strokes,

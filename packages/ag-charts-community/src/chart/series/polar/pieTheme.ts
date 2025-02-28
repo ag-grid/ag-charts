@@ -1,7 +1,7 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../../module/coreModulesTypes';
 import { FONT_SIZE_RATIO } from '../../themes/constants';
-import { DEFAULT_COLOR_RANGE, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
+import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 
 export const pieTheme: ExtensibleTheme<'pie'> = {
     series: {
@@ -56,12 +56,11 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
     legend: { enabled: true },
 };
 
-export const piePaletteFactory: SeriesPaletteFactory<'pie'> = ({
-    takeColors,
-    colorsCount,
-    themeTemplateParameters,
-}) => {
-    const { fills, strokes } = takeColors(colorsCount);
-    const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
+export const piePaletteFactory: SeriesPaletteFactory<'pie'> = ({ takeColors, colorsCount }) => {
+    const {
+        fills,
+        strokes,
+        sequentialColors: [defaultColorRange],
+    } = takeColors(colorsCount);
     return { fills, strokes, defaultColorRange, calloutLine: { colors: strokes } };
 };

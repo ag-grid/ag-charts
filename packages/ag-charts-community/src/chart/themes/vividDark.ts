@@ -6,6 +6,7 @@ import {
     DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
     DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
+import { getSequentialColors } from './util';
 
 const VIVID_DARK_FILLS = {
     BLUE: '#0083ff',
@@ -38,6 +39,7 @@ export class VividDark extends DarkTheme {
         return {
             fills: VIVID_DARK_FILLS,
             strokes: VIVID_DARK_STROKES,
+            sequentialColors: getSequentialColors(VIVID_DARK_FILLS),
             up: { fill: VIVID_DARK_FILLS.GREEN, stroke: VIVID_DARK_STROKES.GREEN },
             down: { fill: VIVID_DARK_FILLS.RED, stroke: VIVID_DARK_STROKES.RED },
             neutral: { fill: VIVID_DARK_FILLS.GRAY, stroke: VIVID_DARK_STROKES.GRAY },

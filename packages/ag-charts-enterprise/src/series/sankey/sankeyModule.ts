@@ -4,8 +4,6 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 import { SankeySeries } from './sankeySeries';
 import { sankeySeriesOptionsDef } from './sankeySeriesOptionsDef';
 
-const { DEFAULT_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
-
 export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -52,9 +50,12 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
             toggleSeries: false,
         },
     },
-    paletteFactory({ takeColors, colorsCount, themeTemplateParameters }) {
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
-        return { ...takeColors(colorsCount), defaultColorRange };
+    paletteFactory({ takeColors, colorsCount }) {
+        const {
+            sequentialColors: [defaultColorRange],
+            ...colors
+        } = takeColors(colorsCount);
+        return { ...colors, defaultColorRange };
     },
 };
 

@@ -6,7 +6,6 @@ import { radialBarSeriesOptionsDef } from './radialBarSeriesOptionsDef';
 import { RADIAL_BAR_SERIES_THEME } from './radialBarThemes';
 
 const { POLAR_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
-const { DEFAULT_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
 export const RadialBarModule: _ModuleSupport.SeriesModule<'radial-bar'> = {
     type: 'series',
@@ -19,12 +18,12 @@ export const RadialBarModule: _ModuleSupport.SeriesModule<'radial-bar'> = {
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_NUMBER }, { type: POLAR_AXIS_TYPE.RADIUS_CATEGORY }],
     themeTemplate: RADIAL_BAR_SERIES_THEME,
-    paletteFactory: ({ takeColors, themeTemplateParameters }) => {
+    paletteFactory: ({ takeColors }) => {
         const {
             fills: [fill],
             strokes: [stroke],
+            sequentialColors: [defaultColorRange],
         } = takeColors(1);
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
         return { fill, stroke, defaultColorRange };
     },
     stackable: true,

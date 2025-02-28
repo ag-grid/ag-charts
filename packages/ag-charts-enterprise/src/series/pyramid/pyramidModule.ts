@@ -5,10 +5,6 @@ import { PyramidSeries } from './pyramidSeries';
 import { pyramidSeriesOptionsDef } from './pyramidSeriesOptionsDef';
 import { PYRAMID_SERIES_THEME } from './pyramidThemes';
 
-const {
-    ThemeSymbols: { DEFAULT_COLOR_RANGE },
-} = _ModuleSupport;
-
 export const PyramidModule: _ModuleSupport.SeriesModule<'pyramid'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -21,9 +17,12 @@ export const PyramidModule: _ModuleSupport.SeriesModule<'pyramid'> = {
     tooltipDefaults: { range: 'exact' },
     themeTemplate: PYRAMID_SERIES_THEME,
 
-    paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
-        const { fills, strokes } = takeColors(colorsCount);
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_COLOR_RANGE);
+    paletteFactory: ({ takeColors, colorsCount }) => {
+        const {
+            fills,
+            strokes,
+            sequentialColors: [defaultColorRange],
+        } = takeColors(colorsCount);
         return { fills, strokes, defaultColorRange };
     },
 };
