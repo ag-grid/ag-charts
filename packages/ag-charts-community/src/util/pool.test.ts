@@ -65,7 +65,7 @@ describe('Pool', () => {
             expect(reobtained).toContain(testItems[1].item);
         });
 
-        it('should destroy freed items after 100ms', async () => {
+        it('should destroy freed items after 1000ms', async () => {
             const results = [];
             for (let i = 0; i < testPoolSize; i++) {
                 results.push(pool.obtain('create test ' + i));
@@ -76,10 +76,10 @@ describe('Pool', () => {
                 expect(released).toHaveBeenCalledWith(r.item);
             }
             expect(destroy).not.toHaveBeenCalled();
-            await new Promise((r) => setTimeout(r, 50));
+            await new Promise((r) => setTimeout(r, 900));
             expect(destroy).not.toHaveBeenCalled();
 
-            await new Promise((r) => setTimeout(r, 50));
+            await new Promise((r) => setTimeout(r, 150));
 
             results.forEach((r) => {
                 expect(destroy).toHaveBeenCalledWith(r.item);
@@ -106,7 +106,7 @@ describe('Pool', () => {
             }
         });
 
-        it('should destroy freed items after 100ms', async () => {
+        it('should destroy freed items after 1000ms', async () => {
             const results = [];
             for (let i = 0; i < 100; i++) {
                 results.push(pool.obtain('create test ' + i));
@@ -118,10 +118,10 @@ describe('Pool', () => {
             }
             expect(destroy).not.toHaveBeenCalled();
 
-            await new Promise((r) => setTimeout(r, 50));
+            await new Promise((r) => setTimeout(r, 900));
             expect(destroy).not.toHaveBeenCalled();
 
-            await new Promise((r) => setTimeout(r, 50));
+            await new Promise((r) => setTimeout(r, 150));
 
             results.forEach((r) => {
                 expect(destroy).toHaveBeenCalledWith(r.item);
