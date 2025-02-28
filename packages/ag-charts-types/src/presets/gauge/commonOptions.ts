@@ -1,4 +1,4 @@
-import type { AgAxisLabelFormatterParams } from '../../chart/axisOptions';
+import type { AgAxisLabelFormatterParams, AgBaseAxisLabelOptions } from '../../chart/axisOptions';
 import type { Formatter } from '../../chart/callbackOptions';
 import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type {
@@ -48,7 +48,7 @@ export interface AgGaugeScaleLabel {
     /** The font family to use for the labels */
     fontFamily?: FontFamily;
     /** Padding in pixels between the scale label and the tick. */
-    padding?: PixelSize;
+    spacing?: PixelSize;
     /** The colour to use for the labels */
     color?: CssColor;
     /** The rotation of the scale labels in degrees. */
@@ -66,7 +66,7 @@ export interface AgGaugeScaleLabel {
 // Verification checks for completeness/correctness.
 const __AXIS_LABEL_OPTIONS = undefined as any as Required<AgGaugeScaleLabel>;
 // @ts-expect-error TS6133 - this is used to validate completeness by the compiler, but is deliberately unused.
-let __VERIFY_AXIS_LABEL_OPTIONS: Required<AgGaugeScaleLabel> = undefined as any;
+let __VERIFY_AXIS_LABEL_OPTIONS: AgBaseAxisLabelOptions = undefined as any;
 __VERIFY_AXIS_LABEL_OPTIONS = __AXIS_LABEL_OPTIONS;
 
 export interface AgGaugeSegmentationInterval {
