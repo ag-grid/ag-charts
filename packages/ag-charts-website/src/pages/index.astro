@@ -2,7 +2,7 @@
 import Layout from '@layouts/Layout.astro';
 import styles from '@pages-styles/homepage.module.scss';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
-import { getEntry } from 'astro:content';
+import { getEntry, type CollectionEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import { AutomatedIntegratedChartsWithPackages } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWithPackages';
@@ -20,9 +20,9 @@ import { FrameworkTextAnimation } from '@ag-website-shared/components/framework-
 const { blogPrefix } = whatsNewData['charts'];
 
 // All Gallery Examples
-const galleryEntry = await getEntry('gallery', 'data');
-const { data: FAQData } = await getEntry('homepage', 'homepageFAQs');
-const { data: versionsData } = await getEntry('versions', 'ag-charts-versions');
+const galleryEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
+const { data: FAQData } = (await getEntry('faqs', 'homepage')) as CollectionEntry<'faqs'>;
+const { data: versionsData } = (await getEntry('versions', 'ag-charts-versions')) as CollectionEntry<'versions'>;
 
 // Extract Specific Community Examples from Gallery
 const seriesExampleMap = {

@@ -1,10 +1,10 @@
 ---
-import { getEntry } from 'astro:content';
+import { getEntry, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { getGalleryExamplePages } from '@components/gallery/utils/pageData';
 import { getExampleUrl } from '@components/gallery/utils/urlPaths';
 
-const galleryDataEntry = await getEntry('gallery', 'data');
+const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
 const examples = getGalleryExamplePages({ galleryData: galleryDataEntry.data });
 ---
 

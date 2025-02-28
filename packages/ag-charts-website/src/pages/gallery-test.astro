@@ -1,5 +1,5 @@
 ---
-import { getEntry } from 'astro:content';
+import { getEntry, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
 import { GalleryExampleLink } from '@components/gallery/components/GalleryExampleLink';
@@ -8,7 +8,7 @@ import { GalleryExampleLink } from '@components/gallery/components/GalleryExampl
  * Test gallery page to create images for homepage scrolling hero
  */
 
-const galleryDataEntry = await getEntry('gallery', 'data');
+const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
 const galleryData: GalleryData = galleryDataEntry?.data;
 const { series } = galleryData;
 ---

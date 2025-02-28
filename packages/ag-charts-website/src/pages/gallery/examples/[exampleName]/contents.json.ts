@@ -1,11 +1,11 @@
 import { getGalleryExamplePages } from '@components/gallery/utils/pageData';
 import type { APIContext } from 'astro';
-import { getEntry } from 'astro:content';
+import { type CollectionEntry, getEntry } from 'astro:content';
 
 import { getGeneratedContents } from '../../../../components/example-generator';
 
 export async function getStaticPaths() {
-    const galleryDataEntry = await getEntry('gallery', 'data');
+    const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
     const pages = getGalleryExamplePages({ galleryData: galleryDataEntry?.data });
     return pages;
 }

@@ -1,5 +1,5 @@
 ---
-import { getEntry } from 'astro:content';
+import { getEntry, type CollectionEntry } from 'astro:content';
 import { getFavIconsData, getAppleTouchIconsData } from '@utils/favicons';
 import SiteHeader from '@ag-website-shared/components/site-header/SiteHeader.astro';
 import '@design-system/design-system.scss';
@@ -22,8 +22,8 @@ export interface Props {
     hideFooter?: boolean;
 }
 
-const { data: metadata } = await getEntry('metadata', 'metadata');
-const { data: footerItems } = await getEntry('footer', 'data');
+const { data: metadata } = await getEntry('metadata', 'metadata') as CollectionEntry<'metadata'>;
+const { data: footerItems } = await getEntry('footer', 'footer') as CollectionEntry<'footer'>;
 
 const {
     title = metadata.title,
@@ -40,9 +40,9 @@ const path = Astro.url.pathname;
 const isProduction = getIsProduction();
 const isArchive = getIsArchive();
 const isStaging = getIsStaging();
-const apiMenuData = await getEntry('api-menu', 'apiMenu');
-const apiMenuItems = apiMenuData.data.api.items as ApiMenuItem[];
-const apiPaths = apiMenuData.data.api.items.flatMap(({ path }) => {
+const { data: apiMenuData } = await getEntry('apiMenu', 'menu') as CollectionEntry<'apiMenu'>;;
+const apiMenuItems = apiMenuData.items as ApiMenuItem[];
+const apiPaths = apiMenuData.items.flatMap(({ path }) => {
     const pathWithBaseUrl = urlWithBaseUrl(path);
 
     if (isDynamicFrameworkPath(pathWithBaseUrl)) {

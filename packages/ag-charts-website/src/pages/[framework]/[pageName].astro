@@ -1,5 +1,5 @@
 ---
-import { getCollection, getEntry } from 'astro:content';
+import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { Header } from '@components/docs/components/Header';
 import { getFrameworkDisplayText } from '@utils/framework';
@@ -55,11 +55,11 @@ const headings =
         },
     });
 
-const { data: docsNavData } = await getEntry('docs-nav', 'docsNav');
-const { data: siteHeaderData } = await getEntry('site-header', 'siteHeader');
+const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEntry<'docsNav'>;
+const { data: siteHeaderData } = (await getEntry('siteHeader', 'header')) as CollectionEntry<'siteHeader'>;
 const siteHeaderItems = Object.values(siteHeaderData);
 
-const { data: versionsData } = await getEntry('versions', 'ag-charts-versions');
+const { data: versionsData } = (await getEntry('versions', 'ag-charts-versions')) as CollectionEntry<'versions'>;
 const version = versionsData[0]?.version;
 const frameworkDisplayText = getFrameworkDisplayText(currentFramework);
 const seoTagline = `Download AG Charts v${version} today: The best ${frameworkDisplayText} Charts and ${frameworkDisplayText} Graphs, in the world.`;

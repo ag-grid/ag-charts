@@ -1,5 +1,5 @@
 ---
-import { getEntry } from 'astro:content';
+import { getEntry, type CollectionEntry } from 'astro:content';
 import { getExampleUrl } from '../utils/urlPaths';
 import FrameworkTemplate from '@components/example-runner/components/FrameworkTemplate.astro';
 import { GALLERY_INTERNAL_FRAMEWORK } from '../constants';
@@ -46,7 +46,7 @@ const exampleUrl = getExampleUrl({
     exampleName,
 });
 
-const galleryDataEntry = await getEntry('gallery', 'data');
+const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
 const pageName = getSeriesTypeSlug({
     galleryData: galleryDataEntry.data,
     exampleName,
