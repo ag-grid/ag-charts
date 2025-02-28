@@ -9,7 +9,7 @@ function needsContext<I>(caller: Caller, _params: I[]): _params is (I & { contex
 
 export function callWithContext<F extends AnyFn>(caller: Caller, fn: F, params: Parameters<F>): ReturnType<F> {
     if (needsContext(caller, params)) {
-        if (params[0] != null) {
+        if (params[0] != null && typeof params[0] === 'object') {
             params[0].context = caller.context;
         }
     }
@@ -19,7 +19,7 @@ export function callWithContext<F extends AnyFn>(caller: Caller, fn: F, params: 
 export class CallbackCache {
     private cache: WeakMap<Function, Map<string, any>> = new WeakMap();
 
-    call<F extends (...args: any[]) => any>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+    call<F extends AnyFn>(caller: Caller, fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         let serialisedParams: string;
         let paramCache = this.cache.get(fn);
 
@@ -29,7 +29,7 @@ export class CallbackCache {
             // Unable to serialise params!
             // No caching possible.
 
-            return this.invoke(fn, params, paramCache);
+            return this.invoke(caller, fn, params, paramCache);
         }
 
         if (paramCache == null) {
@@ -38,15 +38,21 @@ export class CallbackCache {
         }
 
         if (!paramCache.has(serialisedParams)) {
-            return this.invoke(fn, params, paramCache, serialisedParams);
+            return this.invoke(caller, fn, params, paramCache, serialisedParams);
         }
 
         return paramCache.get(serialisedParams);
     }
 
-    private invoke(fn: Function, params: any[], paramCache?: Map<string, any>, serialisedParams?: string) {
+    private invoke<F extends AnyFn>(
+        caller: Caller,
+        fn: F,
+        params: Parameters<F>,
+        paramCache?: Map<string, any>,
+        serialisedParams?: string
+    ) {
         try {
-            const result = fn(...params);
+            const result = callWithContext(caller, fn, params);
             if (paramCache && serialisedParams != null) {
                 paramCache.set(serialisedParams, result);
             }

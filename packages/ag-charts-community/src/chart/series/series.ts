@@ -847,11 +847,11 @@ export abstract class Series<
     ) {
         if (label.formatter) {
             return (
-                this.ctx.callbackCache.call(label.formatter, { seriesId: this.id, ...params }) ??
-                defaultFormatter(params.value)
+                this.ctx.callbackCache.call(this.properties, label.formatter, { seriesId: this.id, ...params }) ??
+                this.callWithContext(defaultFormatter, params.value)
             );
         }
-        return defaultFormatter(params.value);
+        return this.callWithContext(defaultFormatter, params.value);
     }
 
     public getMarkerStyle<TParams>(
@@ -862,7 +862,7 @@ export abstract class Series<
         const defaultSize = { size: params.datum.point?.size ?? 0 };
         const markerStyle = mergeDefaults(defaultSize, defaultStyle);
         if (marker.itemStyler) {
-            const style = this.ctx.callbackCache.call(marker.itemStyler, {
+            const style = this.ctx.callbackCache.call(this.properties, marker.itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,

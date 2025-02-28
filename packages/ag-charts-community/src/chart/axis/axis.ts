@@ -412,7 +412,7 @@ export abstract class Axis<
         };
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
-            stylerOutput = this.moduleCtx.callbackCache.call(label.itemStyler, {
+            stylerOutput = this.moduleCtx.callbackCache.call(this, label.itemStyler, {
                 ...params,
                 ...defaultStyle,
             });
@@ -465,7 +465,7 @@ export abstract class Axis<
 
         const { callbackCache } = this.moduleCtx;
         const { formatter = (p) => p.defaultValue } = title;
-        const text = callbackCache.call(formatter, this.getTitleFormatterParams());
+        const text = callbackCache.call(this, formatter, this.getTitleFormatterParams());
         caption.text = text;
 
         titleNode.setProperties({ visible: true, text, textBaseline, x, y, rotation });
@@ -695,7 +695,7 @@ export abstract class Axis<
 
         let result: string | undefined;
         if (formatter) {
-            result = callbackCache.call(formatter, { value: value, index, fractionDigits });
+            result = callbackCache.call(this, formatter, { value: value, index, fractionDigits });
         } else if (defaultFormatter) {
             result = defaultFormatter(value);
         } else if (labelFormatter) {
@@ -714,9 +714,9 @@ export abstract class Axis<
 
         let result: string | undefined;
         if (formatter) {
-            result = callbackCache.call(formatter, { value: value, index: NaN });
+            result = callbackCache.call(this, formatter, { value: value, index: NaN });
         } else if (valueFormatter) {
-            result = callbackCache.call(valueFormatter, value);
+            result = callbackCache.call(this, valueFormatter, value);
         } else if (isArray(value)) {
             // Handle grouped categories value.
             result = value.filter(Boolean).join(' - ');
