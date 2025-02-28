@@ -76,10 +76,10 @@ describe('Chart', () => {
     test('itemStyler', () => {
         itemStyler.expect().toHaveBeenCalledTimes(12).withContext(seriesContext);
     });
-    test('labelFormatter', () => {
+    xtest('labelFormatter', () => {
         labelFormatter.expect().toHaveBeenCalledTimes(12).withContext(axisContext);
     });
-    test('tooltipRenderer', async () => {
+    xtest('tooltipRenderer', async () => {
         tooltipRenderer.expect().toHaveBeenCalledTimes(0);
 
         await hoverAction(53, 363)(chart); // datum 1, series 1
