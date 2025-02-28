@@ -16,11 +16,11 @@ describe('Chart', () => {
 
     let chart: Chart;
     let options: AgCartesianChartOptionsWithContext;
-    let itemStyler = newFreezableMock<MockItemStyler>((_params) => undefined);
-    let labelFormatter = newFreezableMock<MockLabelFormatter>((_params) => undefined);
-    let tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
     let seriesContext: object;
     let axisContext: object;
+    const itemStyler = newFreezableMock<MockItemStyler>((_params) => undefined);
+    const labelFormatter = newFreezableMock<MockLabelFormatter>((_params) => undefined);
+    const tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
 
     beforeEach(async () => {
         seriesContext = {};

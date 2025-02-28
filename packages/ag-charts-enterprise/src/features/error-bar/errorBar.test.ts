@@ -809,8 +809,8 @@ describe('ErrorBars', () => {
 
     describe('context', () => {
         let options: AgCartesianChartOptionsWithContext;
-        let itemStyler = newFreezableMock<MockErrorBarStyler>();
         let seriesContext: object;
+        const itemStyler = newFreezableMock<MockErrorBarStyler>();
 
         beforeEach(async () => {
             seriesContext = {};
