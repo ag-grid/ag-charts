@@ -1,5 +1,21 @@
 import { Logger } from 'ag-charts-core';
 
+type Caller = { context?: unknown };
+type AnyFn = (...args: any[]) => any;
+
+function needsContext<I>(caller: Caller, _params: I[]): _params is (I & { context: unknown })[] {
+    return 'context' in caller;
+}
+
+export function callWithContext<F extends AnyFn>(caller: Caller, fn: F, params: Parameters<F>): ReturnType<F> {
+    if (needsContext(caller, params)) {
+        if (params[0] != null) {
+            params[0].context = caller.context;
+        }
+    }
+    return fn(...params);
+}
+
 export class CallbackCache {
     private cache: WeakMap<Function, Map<string, any>> = new WeakMap();
 
