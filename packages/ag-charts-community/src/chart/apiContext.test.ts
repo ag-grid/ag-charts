@@ -4,10 +4,8 @@ import {
     AgCartesianChartOptionsWithContext,
     Chart,
     createChart,
-    hoverAction,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from './test/utils';
 
 describe('Chart', () => {
