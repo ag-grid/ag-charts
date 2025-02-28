@@ -546,9 +546,11 @@ function pathOperation<T extends object, P extends object>(
     _params: P,
     source: T
 ) {
+    let hasDefaultValue = false;
     let defaultValue;
     if (!isString(value)) {
         if (isArray(value)) {
+            hasDefaultValue = true;
             defaultValue = value[1];
             value = value[0] as string;
         } else {
@@ -583,7 +585,7 @@ function pathOperation<T extends object, P extends object>(
     let resolvedValue: any = source;
     for (const part of resolvedPath) {
         if (!isKey(part, resolvedValue)) {
-            if (defaultValue == null) {
+            if (!hasDefaultValue) {
                 Logger.warnOnce(
                     `\`$path\` json operation failed on [${String(value)}] at [${path.join('.')}] resolved to [${resolvedPath.join('.')}], could not find path in object.`
                 );
