@@ -112,7 +112,13 @@ export function deepClone<T>(source: T, shallow?: Set<string>): T {
 function clonePlainObject(source: PlainObject, shallow?: Set<string>) {
     const target: PlainObject = {};
     for (const key of Object.keys(source)) {
-        target[key] = shallow?.has(key) ? shallowClone(source[key]) : deepClone(source[key], shallow);
+        if (key === 'context') {
+            target[key] = source[key];
+        } else if (shallow?.has(key)) {
+            target[key] = shallowClone(source[key]);
+        } else {
+            target[key] = deepClone(source[key], shallow);
+        }
     }
     return target;
 }
