@@ -162,7 +162,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         },
         STACKED_NORMALIZED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: {
             options: examples.STACKED_NORMALIZED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('bar', 2) }),
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('bar', 4) }),
         },
         STACKED_COLUMN_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_GRADIENT_FILL,
