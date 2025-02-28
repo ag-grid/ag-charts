@@ -4,8 +4,10 @@ import {
     AgCartesianChartOptionsWithContext,
     Chart,
     createChart,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
+    waitForChartStability,
 } from './test/utils';
 
 describe('Chart', () => {
@@ -93,8 +95,6 @@ describe('Chart', () => {
         itemStyler.expect().nthCalledWithContext(10, seriesContext2);
         itemStyler.expect().nthCalledWithContext(11, seriesContext2);
     });
-    /*
-    // TODO: Skip these tests (`xtest` triggers a sonarjs/no-skipped-test lint error in the CI)
     test('labelFormatter', () => {
         labelFormatter.expect().toHaveBeenCalledTimes(12).withContext(axisContext);
     });
@@ -112,5 +112,4 @@ describe('Chart', () => {
 
         tooltipRenderer.expect().toHaveBeenCalledTimes(3).withContext(seriesContext);
     });
-    //*/
 });
