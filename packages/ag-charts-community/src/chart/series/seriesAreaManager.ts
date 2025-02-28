@@ -133,7 +133,7 @@ export class SeriesAreaManager extends BaseManager {
     private seriesRect?: BBox;
     private hoverRect?: BBox;
     public readonly focusIndicator?: FocusIndicator;
-    private readonly swapChain?: FocusSwapChain;
+    private readonly swapChain: FocusSwapChain;
 
     private readonly highlight = {
         /** Last received event that still needs to be applied. */
@@ -185,12 +185,12 @@ export class SeriesAreaManager extends BaseManager {
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
 
+        const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
+        const label2 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label2');
+        this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
+        this.swapChain.addListener('blur', () => this.onBlur());
+        this.swapChain.addListener('focus', () => this.onFocus());
         if (chart.ctx.domManager.mode === 'normal') {
-            const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
-            const label2 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label2');
-            this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
-            this.swapChain.addListener('blur', () => this.onBlur());
-            this.swapChain.addListener('focus', () => this.onFocus());
             this.focusIndicator = new FocusIndicator(this.swapChain);
             this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
         }
@@ -200,7 +200,7 @@ export class SeriesAreaManager extends BaseManager {
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
-            seriesWidget.addListener('focus', () => this.swapChain?.focus()),
+            seriesWidget.addListener('focus', () => this.swapChain.focus()),
             seriesWidget.addListener('mousemove', (event) => this.onHover(event)),
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
@@ -407,7 +407,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onClick(event: ClickLikeEvent, current: Widget) {
         if (event.device === 'touch' && current === this.chart.ctx.widgets.seriesWidget) {
-            this.swapChain?.focus({ preventScroll: true });
+            this.swapChain.focus({ preventScroll: true });
         }
         if (!this.isState(InteractionState.Clickable)) return;
 
@@ -720,7 +720,7 @@ export class SeriesAreaManager extends BaseManager {
                     oldDatumIndex !== pick.datumIndex ||
                     oldOtherIndex !== (pick.otherIndex ?? focus.seriesIndex);
                 if (shouldAnnouncePick) {
-                    this.swapChain?.update(this.getDatumAriaText(datum, tooltipContent));
+                    this.swapChain.update(this.getDatumAriaText(datum, tooltipContent));
                 }
             }
         }
