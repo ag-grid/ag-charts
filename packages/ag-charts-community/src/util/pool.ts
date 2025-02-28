@@ -1,6 +1,6 @@
 import { Debug } from './debug';
 
-const CLEANUP_TIMEOUT_MS = 100;
+const CLEANUP_TIMEOUT_MS = 1_000;
 
 export class Pool<T, P> {
     private static readonly pools = new Map<string, Pool<any, any>>();
@@ -50,15 +50,15 @@ export class Pool<T, P> {
         let nextFree = this.freePool.pop();
         if (nextFree == null) {
             nextFree = this.buildItem(params);
-            Pool.debug(
+            Pool.debug(() => [
                 `Pool[name=${this.name}]: Created instance (${this.freePool.length} / ${this.busyPool.size + 1} / ${this.maxPoolSize})`,
-                nextFree
-            );
+                nextFree,
+            ]);
         } else {
-            Pool.debug(
+            Pool.debug(() => [
                 `Pool[name=${this.name}]: Re-used instance (${this.freePool.length} / ${this.busyPool.size + 1} / ${this.maxPoolSize})`,
-                nextFree
-            );
+                nextFree,
+            ]);
         }
 
         this.busyPool.add(nextFree);
@@ -70,10 +70,10 @@ export class Pool<T, P> {
         if (nextFree == null) {
             throw new Error('AG Charts - pool has no free instances');
         }
-        Pool.debug(
+        Pool.debug(() => [
             `Pool[name=${this.name}]: Re-used instance (${this.freePool.length} / ${this.busyPool.size + 1} / ${this.maxPoolSize})`,
-            nextFree
-        );
+            nextFree,
+        ]);
 
         this.busyPool.add(nextFree);
         return { item: nextFree, release: () => this.release(nextFree) };
@@ -84,19 +84,19 @@ export class Pool<T, P> {
             throw new Error('AG Charts - cannot free item from pool which is not tracked as busy.');
         }
 
-        Pool.debug(
+        Pool.debug(() => [
             `Pool[name=${this.name}]: Releasing instance (${this.freePool.length} / ${this.busyPool.size} / ${this.maxPoolSize})`,
-            item
-        );
+            item,
+        ]);
 
         this.releaseItem(item);
         this.busyPool.delete(item);
         this.freePool.push(item);
 
-        Pool.debug(
+        Pool.debug(() => [
             `Pool[name=${this.name}]: Returned instance to free pool (${this.freePool.length} / ${this.busyPool.size} / ${this.maxPoolSize})`,
-            item
-        );
+            item,
+        ]);
 
         const now = Date.now();
         const earliestClean = now + this.cleanupTimeMs * 0.5;
@@ -118,9 +118,9 @@ export class Pool<T, P> {
             this.destroyItem(item);
         }
 
-        Pool.debug(
-            `Pool[name=${this.name}]: Cleaned pool of ${itemsToFree.length} items (${this.freePool.length} / ${this.busyPool.size} / ${this.maxPoolSize})`
-        );
+        Pool.debug(() => [
+            `Pool[name=${this.name}]: Cleaned pool of ${itemsToFree.length} items (${this.freePool.length} / ${this.busyPool.size} / ${this.maxPoolSize})`,
+        ]);
     }
 
     destroy() {
