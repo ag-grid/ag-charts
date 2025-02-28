@@ -27,33 +27,40 @@ The name keys mirror the data keys and differ between series types. See the seri
 
 ## Tooltip Position
 
-The tooltip position can be changed using the `tooltip.position.type` property, and further modified using `xOffset` and `yOffset`.
+The point the tooltip connects is set with the `tooltip.position.anchorTo` property, and the placement around that point is set with the `tooltip.position.placement` property.
 
 {% chartExampleRunner title="Tooltip Position" name="tooltip-position" type="generated" /%}
-
-Use the buttons to switch between position types `top-right`, `pointer` and `node`.
 
 ```js
 tooltip: {
     position: {
-        type: 'pointer',
-        xOffset: 80,
-        yOffset: 80,
+        anchorTo: 'node',
+        placement: 'top',
     },
 },
 ```
 
 In this configuration:
 
--   Instead of the tooltip being anchored to the highlighted marker node, it can be anchored to a fixed position or to the mouse pointer.
--   The `xOffset` and `yOffset` options define the distance in pixels from the bottom centre of the tooltip to the anchor point.
--   By default, when `tooltip.position.xOffset` or `tooltip.position.yOffset` are configured, the [tooltip arrow](#tooltip-arrow) is removed.
+-   Instead of the tooltip being anchored to the highlighted marker node, it can be anchored to the chart or to the mouse pointer.
+-   The tooltip is set to be placed above the node
 
-Options for `tooltip.position.type` include:
+The placement alternatively accepts an array of placement values, and the tooltip will be placed in the first position that has sufficient space.
 
--   `node` - Anchors the tooltip to the highlighted node. This is the default for marker-based series such as `line` and `scatter`.
--   `pointer` - Anchors the tooltip to the mouse pointer. This is the default for shape-based series such as `bar` and `pie`.
--   Specific canvas positions such as `top`, `right`, `top-right`.
+```js
+tooltip: {
+    position: {
+        anchorTo: 'node',
+        placement: ['left', 'right'],
+    },
+},
+```
+
+In this configuration:
+
+-   The tooltip will prefer to be placed to the left of the node, unless there is no space, in which case it will be placed to the right.
+
+The tooltip position can be further customised by setting the `tooltip.position.xOffset` and `tooltip.position.yOffset` properties, which will move the tooltip by the specified number of pixels in the x and y directions, respectively.
 
 ## Tooltip Arrow
 
@@ -67,6 +74,38 @@ Use the `tooltip.showArrow` option to change this behaviour.
 tooltip: {
     showArrow: false,
 },
+```
+
+## Tooltip Mode
+
+By default, the tooltip will show a single value. The `mode` property can be set to `'shared'` to show values every series at the same x-value; or `'compact'` to show a single value with less information.
+
+{% chartExampleRunner title="Tooltip Mode" name="tooltip mode" type="generated" /%}
+
+```js
+tooltip: {
+    mode: 'shared',
+}
+```
+
+The options for mode are:
+
+-   `compact`, which will show both the the series name and the highlighted data's y value
+-   `single`, which will show both the the series name, a symbol for the series, and both the highlighted data's x- and y- values
+-   `shared`, which will show the highlighted data's x-value, every series' name along with their symbols, and the y value for the corresponding x value in each series
+
+## Tooltip Pagination
+
+Some series configurations may result in data values overlapping, making it difficult or sometimes impossible to highlight specific data values. Pagination provides a method to cycle through the data values by clicking on the mouse.
+
+Pagination will only become available when two or more data points are under the cursor. When available, the cursor will turn into a hand and the tooltip will display the number of data points under the cursor. Clicking in the current position will cycle through the data points.
+
+{% chartExampleRunner title="Tooltip Pagination" name="tooltip-pagination" type="generated" /%}
+
+```js
+tooltip: {
+    pagination: true,
+}
 ```
 
 ## Customisation

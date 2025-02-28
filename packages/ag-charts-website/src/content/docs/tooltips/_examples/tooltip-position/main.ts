@@ -1,5 +1,9 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
+import {
+    AgTooltipAnchorTo,
+    AgTooltipPlacement,
+} from '../../../../../../../ag-charts-types/dist/types/src/chart/tooltipOptions';
 import { getData } from './data';
 
 const options: AgCartesianChartOptions = {
@@ -20,35 +24,12 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function fixTooltipToTopRight() {
-    options.tooltip = {
-        position: {
-            type: 'top-right',
-            xOffset: -20,
-            yOffset: 0,
-        },
-    };
+function setAnchorTo(anchorTo: AgTooltipAnchorTo) {
+    options.tooltip!.position!.anchorTo = anchorTo;
     chart.update(options);
 }
 
-function fixTooltipToPointer() {
-    options.tooltip = {
-        position: {
-            type: 'pointer',
-            xOffset: 80,
-            yOffset: 8,
-        },
-    };
-    chart.update(options);
-}
-
-function reset() {
-    options.tooltip = {
-        position: {
-            type: 'node',
-            xOffset: 0,
-            yOffset: 0,
-        },
-    };
+function setPlacement(placement: AgTooltipPlacement[]) {
+    options.tooltip!.position!.placement = placement;
     chart.update(options);
 }
