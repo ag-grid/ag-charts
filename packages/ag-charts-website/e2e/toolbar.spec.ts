@@ -24,12 +24,12 @@ test.describe('toolbar', () => {
         await page.getByText('Trend Line').click();
         await expect(page).toHaveScreenshot('line-2-button-active.png', { animations: 'disabled' });
 
-        await page.hover(SELECTORS.canvas, { position: { x: 100, y: 100 } });
-        await page.click(SELECTORS.canvas, { position: { x: 100, y: 100 } });
-        await page.hover(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: 100 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 100, y: 100 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('line-3-drawing.png', { animations: 'disabled' });
 
-        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('line-4-complete.png', { animations: 'disabled' });
 
         // Click like a human, on the page, not a very specific DOM element.
@@ -63,8 +63,8 @@ test.describe('toolbar', () => {
         await page.getByText('Text').click();
         await expect(page).toHaveScreenshot('text-3-button-active.png', { animations: 'disabled' });
 
-        await page.hover(SELECTORS.canvas, { position: { x: 200, y: 200 } });
-        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('text-4-start.png', { animations: 'disabled' });
 
         await page.keyboard.type('@Hello, world!?');
@@ -77,18 +77,18 @@ test.describe('toolbar', () => {
         await expect(page).toHaveScreenshot('text-6-save.png', { animations: 'disabled' });
 
         // Select text annotation
-        await page.hover(SELECTORS.canvas, { position: { x: 210, y: 190 } });
-        await page.click(SELECTORS.canvas, { position: { x: 210, y: 190 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 210, y: 190 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 210, y: 190 } });
 
-        await page.click(SELECTORS.canvas, { position: { x: 210, y: 190 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 210, y: 190 } });
         await page.keyboard.type(' Editing!');
         await expect(page).toHaveScreenshot('text-7-editing.png', { animations: 'disabled' });
 
         await page.keyboard.down('Enter');
 
         // Select text annotation
-        await page.hover(SELECTORS.canvas, { position: { x: 210, y: 190 } });
-        await page.click(SELECTORS.canvas, { position: { x: 210, y: 190 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 210, y: 190 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 210, y: 190 } });
 
         await page.getByTitle('Text Size').click();
         await expect(page).toHaveScreenshot('text-8-font-size-popover.png', { animations: 'disabled' });
@@ -106,12 +106,12 @@ test.describe('toolbar', () => {
         await page.getByTitle('Text Annotations').click();
         await page.getByText('Callout').click();
 
-        await page.hover(SELECTORS.canvas, { position: { x: 200, y: 200 } });
-        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('callout-1-start.png', { animations: 'disabled' });
 
-        await page.hover(SELECTORS.canvas, { position: { x: 250, y: 150 } });
-        await page.click(SELECTORS.canvas, { position: { x: 250, y: 150 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 250, y: 150 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 250, y: 150 } });
         await expect(page).toHaveScreenshot('callout-2-end.png', { animations: 'disabled' });
 
         await page.keyboard.type('Hello, world!');
@@ -120,8 +120,8 @@ test.describe('toolbar', () => {
         await page.keyboard.down('Enter');
         await expect(page).toHaveScreenshot('callout-4-save.png', { animations: 'disabled' });
 
-        await page.hover(SELECTORS.canvas, { position: { x: 270, y: 140 } });
-        await page.click(SELECTORS.canvas, { position: { x: 270, y: 140 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 270, y: 140 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 270, y: 140 } });
         await page.getByTitle('Fill Color').click();
         await expect(page).toHaveScreenshot('callout-5-fill-color-popover.png', { animations: 'disabled' });
 
@@ -131,8 +131,8 @@ test.describe('toolbar', () => {
                 y: 5,
             },
         });
-        await page.hover(SELECTORS.canvas, { position: { x: 100, y: 100 } });
-        await page.click(SELECTORS.canvas, { position: { x: 100, y: 100 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: 100 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 100, y: 100 } });
         await expect(page).toHaveScreenshot('callout-6-change-fill-color.png', { animations: 'disabled' });
     });
 
