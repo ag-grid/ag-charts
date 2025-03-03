@@ -10,7 +10,7 @@ test.describe('text-navigation', () => {
 
         await page.getByTitle('Text Annotations').click();
         await page.getByText('Text').click();
-        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
 
         await page.keyboard.type('Line 1');
         await page.keyboard.down('Shift');
@@ -42,7 +42,7 @@ test.describe('text-navigation', () => {
 
         await page.getByTitle('Trend Lines').click();
         await page.getByText('Horizontal Line').click();
-        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
         await page.getByTitle('Settings').click();
         await page.getByRole('tab').getByText('Text').click();
 

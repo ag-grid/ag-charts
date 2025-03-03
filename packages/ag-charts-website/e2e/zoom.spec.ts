@@ -31,7 +31,7 @@ test.describe('zoom', () => {
         const withNavigatorXAxisRight = { x: width / 4, y: height - 70 };
 
         // 1. Click the zoom-in button the floating zoom buttons
-        await page.hover(SELECTORS.canvas, { position: { x: 100, y: height - 100 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: height - 100 } });
         const zoomIn = page.getByTitle('Zoom in');
         await zoomIn.click();
         await zoomIn.click();

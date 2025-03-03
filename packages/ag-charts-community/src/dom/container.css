@@ -47,8 +47,11 @@
 
 .ag-charts-canvas-container > *,
 .ag-charts-canvas > * {
-    display: block;
     pointer-events: none;
+}
+
+.ag-charts-canvas canvas {
+    display: block;
 }
 
 .ag-charts-series-area {
@@ -58,6 +61,8 @@
 }
 
 .ag-charts-swapchain {
+    top: 0;
+    left: 0;
     outline: none;
     opacity: 0;
     pointer-events: none;

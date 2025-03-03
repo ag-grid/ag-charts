@@ -261,7 +261,7 @@ export class Tooltip extends BaseProperties {
     private localeManager: LocaleManager | undefined = undefined;
     setup(localeManager: LocaleManager, domManager: DOMManager) {
         if ('togglePopover' in getWindow<any>().HTMLElement.prototype) {
-            this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
+            this.element = domManager.addChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
             this.element.setAttribute('popover', 'manual');
             this.element.className = DEFAULT_TOOLTIP_CLASS;
             // @ts-expect-error Typings need updating
@@ -270,7 +270,7 @@ export class Tooltip extends BaseProperties {
         this.localeManager = localeManager;
 
         return () => {
-            domManager.removeChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
+            domManager.removeChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
             this.destroyFns.forEach((f) => f());
         };
     }

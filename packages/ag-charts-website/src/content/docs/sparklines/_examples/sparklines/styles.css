@@ -22,6 +22,7 @@ tbody th abbr {
 }
 
 td {
+    position: relative;
     padding: 0;
     border: none;
 }

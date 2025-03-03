@@ -66,6 +66,7 @@ export interface ChartSpecialOverrides {
 export interface ChartInternalOptionMetadata {
     presetType?: keyof typeof PRESETS;
     pool?: boolean;
+    domMode?: 'normal' | 'minimal';
 }
 
 type GroupingOptions = {
