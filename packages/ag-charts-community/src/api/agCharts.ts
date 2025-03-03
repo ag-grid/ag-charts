@@ -265,7 +265,7 @@ class AgChartsInternal {
     }
 
     static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
-        deltaOptions = deepClone(deltaOptions, new Set(['data']));
+        deltaOptions = deepClone(deltaOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
         const stripSymbols = jsonWalk(
             deltaOptions,

@@ -50,7 +50,14 @@ import { type ChartTheme } from '../chart/themes/chartTheme';
 import { getDocument, getWindow, setDocument, setWindow } from '../core';
 import { Color } from '../util/color';
 import { Debug } from '../util/debug';
-import { deepClone, jsonDiff, jsonPropertyCompare, jsonResolveOperations, jsonWalk } from '../util/json';
+import {
+    type CloneOptions,
+    deepClone,
+    jsonDiff,
+    jsonPropertyCompare,
+    jsonResolveOperations,
+    jsonWalk,
+} from '../util/json';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
@@ -91,7 +98,10 @@ enum GroupingType {
 const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-background']);
 
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
-    private static readonly OPTIONS_CLONE_OPTS = new Set(['data', 'container']);
+    public static readonly OPTIONS_CLONE_OPTS: CloneOptions = {
+        shallow: new Set(['data', 'container']),
+        assign: new Set('context'),
+    };
 
     private static readonly perfDebug = Debug.create(true, 'perf');
 
