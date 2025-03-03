@@ -29,7 +29,7 @@ function setAnchorTo(anchorTo: AgTooltipAnchorTo) {
     chart.update(options);
 }
 
-function setPlacement(placement: AgTooltipPlacement[]) {
-    options.tooltip!.position!.placement = placement;
+function setPlacement(placement: string) {
+    options.tooltip!.position!.placement = placement.split(/,\s+/g) as AgTooltipPlacement[];
     chart.update(options);
 }
