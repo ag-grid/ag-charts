@@ -1,4 +1,9 @@
-import type { MockItemStyler, MockLabelFormatter, MockTooltipRenderer } from './test/freezableMock';
+import type {
+    MockAxisLabelFormatter,
+    MockItemStyler,
+    MockSeriesLabelFormatter,
+    MockTooltipRenderer,
+} from './test/freezableMock';
 import { newFreezableMock } from './test/freezableMock';
 import {
     AgCartesianChartOptionsWithContext,
@@ -10,7 +15,7 @@ import {
     waitForChartStability,
 } from './test/utils';
 
-describe('Chart', () => {
+describe('API context', () => {
     setupMockConsole({ debugShowOutput: true });
     setupMockCanvas();
 
@@ -21,7 +26,8 @@ describe('Chart', () => {
     let seriesContext2: object;
     let axisContext: object;
     const itemStyler = newFreezableMock<MockItemStyler>((_params) => undefined);
-    const labelFormatter = newFreezableMock<MockLabelFormatter>((_params) => undefined);
+    const axisLabelFormatter = newFreezableMock<MockAxisLabelFormatter>((_params) => undefined);
+    const seriesLabelFormatter = newFreezableMock<MockSeriesLabelFormatter>((_params) => undefined);
     const tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
 
     beforeEach(async () => {
@@ -30,7 +36,8 @@ describe('Chart', () => {
         seriesContext2 = { name: '[2]: bmw' };
         axisContext = { name: 'X axis context' };
         itemStyler.mock.mockClear();
-        labelFormatter.mock.mockClear();
+        axisLabelFormatter.mock.mockClear();
+        seriesLabelFormatter.mock.mockClear();
         tooltipRenderer.mock.mockClear();
         options = {
             theme: {
@@ -38,7 +45,7 @@ describe('Chart', () => {
                     bar: {
                         series: {
                             itemStyler: itemStyler.frozen,
-                            label: { formatter: labelFormatter.frozen },
+                            label: { formatter: seriesLabelFormatter.frozen },
                             tooltip: { renderer: tooltipRenderer.frozen },
                         },
                     },
@@ -59,9 +66,7 @@ describe('Chart', () => {
                 {
                     type: 'category',
                     position: 'bottom',
-                    label: {
-                        formatter: (params) => `Quarter ${params.value.toUpperCase()}`,
-                    },
+                    label: { formatter: axisLabelFormatter.frozen },
                     context: axisContext,
                 },
                 { type: 'number', position: 'left' },
@@ -96,8 +101,23 @@ describe('Chart', () => {
         itemStyler.expect().nthCalledWithContext(10, seriesContext2);
         itemStyler.expect().nthCalledWithContext(11, seriesContext2);
     });
-    test('labelFormatter', () => {
-        labelFormatter.expect().toHaveBeenCalledTimes(12).withContext(axisContext);
+    test('seriesLabelFormatter', () => {
+        seriesLabelFormatter.expect().toHaveBeenCalledTimes(12);
+        seriesLabelFormatter.expect().nthCalledWithContext(0, seriesContext0);
+        seriesLabelFormatter.expect().nthCalledWithContext(1, seriesContext0);
+        seriesLabelFormatter.expect().nthCalledWithContext(2, seriesContext0);
+        seriesLabelFormatter.expect().nthCalledWithContext(3, seriesContext0);
+        seriesLabelFormatter.expect().nthCalledWithContext(4, seriesContext1);
+        seriesLabelFormatter.expect().nthCalledWithContext(5, seriesContext1);
+        seriesLabelFormatter.expect().nthCalledWithContext(6, seriesContext1);
+        seriesLabelFormatter.expect().nthCalledWithContext(7, seriesContext1);
+        seriesLabelFormatter.expect().nthCalledWithContext(8, seriesContext2);
+        seriesLabelFormatter.expect().nthCalledWithContext(9, seriesContext2);
+        seriesLabelFormatter.expect().nthCalledWithContext(10, seriesContext2);
+        seriesLabelFormatter.expect().nthCalledWithContext(11, seriesContext2);
+    });
+    test('axisLabelFormatter', () => {
+        axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(axisContext);
     });
     test('tooltipRenderer', async () => {
         tooltipRenderer.expect().toHaveBeenCalledTimes(0);
