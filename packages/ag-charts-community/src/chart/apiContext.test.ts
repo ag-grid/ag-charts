@@ -28,7 +28,7 @@ describe('Chart', () => {
         seriesContext0 = { name: '[0]: toyota' };
         seriesContext1 = { name: '[1]: ford' };
         seriesContext2 = { name: '[2]: bmw' };
-        axisContext = {};
+        axisContext = { name: 'X axis context' };
         itemStyler.mock.mockClear();
         labelFormatter.mock.mockClear();
         tooltipRenderer.mock.mockClear();
@@ -74,6 +74,7 @@ describe('Chart', () => {
         expect(Object.isFrozen(seriesContext0)).toBe(false);
         expect(Object.isFrozen(seriesContext1)).toBe(false);
         expect(Object.isFrozen(seriesContext2)).toBe(false);
+        expect(Object.isFrozen(axisContext)).toBe(false);
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
@@ -101,15 +102,19 @@ describe('Chart', () => {
     test('tooltipRenderer', async () => {
         tooltipRenderer.expect().toHaveBeenCalledTimes(0);
 
-        await hoverAction(53, 363)(chart); // datum 1, series 1
+        await hoverAction(130, 363)(chart); // datum 1, series 1
+        await waitForChartStability(chart);
+        await hoverAction(163, 369)(chart); // datum 2, series 1
+        await waitForChartStability(chart);
+        await hoverAction(205, 370)(chart); // datum 3, series 1
         await waitForChartStability(chart);
 
-        await hoverAction(87, 369)(chart); // datum 2, series 1
-        await waitForChartStability(chart);
-
-        await hoverAction(128, 370)(chart); // datum 3, series 1
-        await waitForChartStability(chart);
-
-        tooltipRenderer.expect().toHaveBeenCalledTimes(3).withContext(seriesContext);
+        tooltipRenderer.expect().toHaveBeenCalledTimes(6);
+        tooltipRenderer.expect().nthCalledWithContext(0, seriesContext0);
+        tooltipRenderer.expect().nthCalledWithContext(1, seriesContext0);
+        tooltipRenderer.expect().nthCalledWithContext(2, seriesContext1);
+        tooltipRenderer.expect().nthCalledWithContext(3, seriesContext1);
+        tooltipRenderer.expect().nthCalledWithContext(4, seriesContext2);
+        tooltipRenderer.expect().nthCalledWithContext(5, seriesContext2);
     });
 });
