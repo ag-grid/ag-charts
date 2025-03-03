@@ -259,6 +259,29 @@ export const Changelog = () => {
         };
     }, []);
 
+    const [filterBreakingChanges, setFilterBreakingChanges] = useState(false);
+
+    const toggleFilterBreakingChanges = () => {
+        setFilterBreakingChanges((prev) => !prev);
+    };
+
+    const isExternalFilterPresent = useCallback(() => {
+        return !!filterBreakingChanges;
+    }, [filterBreakingChanges]);
+
+    const doesExternalFilterPass = useCallback(
+        (node) => {
+            if (filterBreakingChanges && node.data.breakingChangesNotes) {
+                return true;
+            } else if (filterBreakingChanges) {
+                return false;
+            }
+
+            return true;
+        },
+        [filterBreakingChanges]
+    );
+
     const COLUMN_DEFS = useMemo(
         () => [
             {
@@ -371,8 +394,17 @@ export const Changelog = () => {
                             onChange={onQuickFilterChange}
                         />
                         <span className={classnames(styles.searchExplainer, 'text-secondary')}>
-                            Find changelog items by issue number, summary content, or version
+                            Find by issue number, summary content, or version
                         </span>
+
+                        <label className={classnames(styles.searchBreakingText, 'text-secondary')}>
+                            Breaking changes:
+                            <input
+                                type="checkbox"
+                                checked={filterBreakingChanges}
+                                onChange={toggleFilterBreakingChanges}
+                            />
+                        </label>
                     </div>
 
                     <Grid
@@ -393,6 +425,8 @@ export const Changelog = () => {
                             applyFixVersionFilter();
                         }}
                         theme={darkMode ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'}
+                        doesExternalFilterPass={doesExternalFilterPass}
+                        isExternalFilterPresent={isExternalFilterPresent}
                     />
                 </div>
             )}
