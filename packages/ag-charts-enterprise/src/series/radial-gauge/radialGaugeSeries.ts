@@ -538,8 +538,6 @@ export class RadialGaugeSeries
 
         const {
             value,
-            startAngle,
-            endAngle,
             innerRadiusRatio,
             outerRadiusRatio,
             segmentation,
@@ -610,8 +608,8 @@ export class RadialGaugeSeries
                 centerY,
                 outerRadius,
                 innerRadius,
-                startAngle: startAngle - angleInset,
-                endAngle: endAngle + angleInset,
+                startAngle: scale.range[0] - angleInset,
+                endAngle: scale.range[1] + angleInset,
                 clipStartAngle: undefined,
                 clipEndAngle: undefined,
                 startCornerRadius: cornerRadius,
