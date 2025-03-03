@@ -16,7 +16,7 @@ import {
 } from './test/utils';
 
 describe('API context', () => {
-    setupMockConsole({ debugShowOutput: true });
+    setupMockConsole();
     setupMockCanvas();
 
     let chart: Chart;
