@@ -57,10 +57,6 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
 };
 
 export const piePaletteFactory: SeriesPaletteFactory<'pie'> = ({ takeColors, colorsCount }) => {
-    const {
-        fills,
-        strokes,
-        sequentialColors: [defaultColorRange],
-    } = takeColors(colorsCount);
-    return { fills, strokes, defaultColorRange, calloutLine: { colors: strokes } };
+    const { fills, strokes, sequentialColors } = takeColors(colorsCount);
+    return { fills, strokes, defaultColorRange: sequentialColors, calloutLine: { colors: strokes } };
 };

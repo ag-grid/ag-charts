@@ -109,8 +109,8 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     @Validate(STRING, { optional: true })
     legendItemKey?: string;
 
-    @Validate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
+    @Validate(ARRAY_OF(COLOR_STRING_ARRAY))
+    defaultColorRange: string[][] = [];
 
     @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
     fills: AgFillType[] = Object.values(DEFAULT_FILLS);
