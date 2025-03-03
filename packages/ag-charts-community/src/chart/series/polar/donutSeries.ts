@@ -639,7 +639,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             lineDash: format?.lineDash ?? lineDash,
             lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
             cornerRadius: format?.cornerRadius ?? cornerRadius,
-            defaultColorRange,
+            defaultColorRange: defaultColorRange[datumIndex],
         };
     }
 
@@ -877,7 +877,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             sector.lineDashOffset = format.lineDashOffset;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
-            sector.defaultColorRange = this.properties.defaultColorRange;
+            sector.defaultColorRange = format.defaultColorRange;
             const inset = Math.max(
                 (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth : 0)) / 2,
                 0
@@ -1457,7 +1457,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 strokeWidth: this.properties.strokeWidth,
                 lineDash: this.properties.lineDash,
                 lineDashOffset: this.properties.lineDashOffset,
-                defaultColorRange: this.properties.defaultColorRange,
+                defaultColorRange: sectorFormat.defaultColorRange,
             },
         };
     }

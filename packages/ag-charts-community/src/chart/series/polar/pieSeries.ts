@@ -621,7 +621,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             lineDash: format?.lineDash ?? lineDash,
             lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
             cornerRadius: format?.cornerRadius ?? cornerRadius,
-            defaultColorRange,
+            defaultColorRange: defaultColorRange[datumIndex],
         };
     }
 
@@ -815,7 +815,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             sector.lineDashOffset = format.lineDashOffset;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
-            sector.defaultColorRange = this.properties.defaultColorRange;
+            sector.defaultColorRange = format.defaultColorRange;
             const inset = Math.max(
                 (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth : 0)) / 2,
                 0
@@ -1360,7 +1360,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 strokeWidth: this.properties.strokeWidth,
                 lineDash: this.properties.lineDash,
                 lineDashOffset: this.properties.lineDashOffset,
-                defaultColorRange: this.properties.defaultColorRange,
+                defaultColorRange: sectorFormat.defaultColorRange,
             },
         };
     }
