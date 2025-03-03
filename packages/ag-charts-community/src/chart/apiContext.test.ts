@@ -1,5 +1,3 @@
-import { AgCartesianChartOptions } from 'ag-charts-types';
-
 import type {
     MockAxisLabelFormatter,
     MockItemStyler,
@@ -11,7 +9,6 @@ import {
     AgCartesianChartOptionsWithContext,
     Chart,
     createChart,
-    expectWarningsCalls,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
