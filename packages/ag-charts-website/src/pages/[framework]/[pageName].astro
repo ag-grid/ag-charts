@@ -1,5 +1,5 @@
 ---
-import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
+import { getCollection, getEntry, render, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { Header } from '@components/docs/components/Header';
 import { getFrameworkDisplayText } from '@utils/framework';
@@ -33,7 +33,7 @@ const {
     migrationVersion,
 } = page.data;
 
-const { Content } = await page.render();
+const { Content } = await render(page);
 const headings =
     pageHeadings ||
     getHeadings({
