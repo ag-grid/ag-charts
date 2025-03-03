@@ -1,3 +1,5 @@
+import { AgCartesianChartOptions } from 'ag-charts-types';
+
 import type {
     MockAxisLabelFormatter,
     MockItemStyler,
@@ -9,6 +11,7 @@ import {
     AgCartesianChartOptionsWithContext,
     Chart,
     createChart,
+    expectWarningsCalls,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -136,5 +139,30 @@ describe('API context', () => {
         tooltipRenderer.expect().nthCalledWithContext(3, seriesContext1);
         tooltipRenderer.expect().nthCalledWithContext(4, seriesContext2);
         tooltipRenderer.expect().nthCalledWithContext(5, seriesContext2);
+    });
+});
+
+describe('options validation', () => {
+    let chart: Chart;
+    setupMockConsole();
+    setupMockCanvas();
+    afterEach(() => chart?.destroy());
+    test('tooltip.context error', async () => {
+        const opts: AgCartesianChartOptions & { tooltip: { context: unknown } } = {
+            data: [{ x: 0, y: 0 }],
+            series: [{ xKey: 'x', yKey: 'y' }],
+            tooltip: { context: {} },
+        };
+        chart = await createChart(opts);
+        expectWarningsCalls().toMatchSnapshot();
+    });
+    test('legend.context error', async () => {
+        const opts: AgCartesianChartOptions & { legend: { context: unknown } } = {
+            data: [{ x: 0, y: 0 }],
+            series: [{ xKey: 'x', yKey: 'y' }],
+            legend: { context: {} },
+        };
+        chart = await createChart(opts);
+        expectWarningsCalls().toMatchSnapshot();
     });
 });
