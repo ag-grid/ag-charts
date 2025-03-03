@@ -2,6 +2,7 @@ import { type AgMapMarkerSeriesOptions, type AgSeriesHighlightStyle, _ModuleSupp
 import {
     type OptionsDefs,
     arrayOf,
+    color,
     constant,
     fillOptionsDef,
     object,
@@ -32,7 +33,7 @@ export const mapMarkerSeriesOptionsDef: OptionsDefs<AgMapMarkerSeriesOptions> = 
     topology: object,
     topologyIdKey: string,
     legendItemName: string,
-    colorRange: arrayOf(string),
+    colorRange: arrayOf(color),
     title: string,
     maxSize: positiveNumber,
     sizeDomain: arrayOf(positiveNumber),

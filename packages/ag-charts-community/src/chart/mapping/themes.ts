@@ -1,4 +1,4 @@
-import { Logger, type OptionsDefs, arrayOf, object, or, string, validate } from 'ag-charts-core';
+import { Logger, type OptionsDefs, arrayOf, color, object, or, string, validate } from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeName,
@@ -111,10 +111,10 @@ const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     overrides: object,
     params: object,
     palette: {
-        fills: arrayOf(string),
-        strokes: arrayOf(string),
-        up: { fill: string, stroke: string },
-        down: { fill: string, stroke: string },
-        neutral: { fill: string, stroke: string },
+        fills: arrayOf(color),
+        strokes: arrayOf(color),
+        up: { fill: color, stroke: color },
+        down: { fill: color, stroke: color },
+        neutral: { fill: color, stroke: color },
     },
 };

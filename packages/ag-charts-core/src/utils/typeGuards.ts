@@ -1,3 +1,5 @@
+import type { CssColor } from 'ag-charts-types';
+
 import type { PlainObject } from '../interfaces/globalTypes';
 
 export function isDefined<T>(val: T | undefined | null): val is T {
@@ -66,4 +68,13 @@ export function isEnumValue<T extends object>(enumObject: T, enumValue: unknown)
 
 export function isSymbol(value: unknown): value is symbol {
     return typeof value === 'symbol';
+}
+
+export function isColor(value: unknown): value is CssColor {
+    if (!isString(value) || value === '') {
+        return false;
+    }
+    const { style } = new Option();
+    style.color = value;
+    return style.color !== '';
 }

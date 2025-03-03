@@ -1,5 +1,15 @@
 import { joinFormatted, levenshteinDistance, stringifyValue } from './strings';
-import { isArray, isBoolean, isDate, isFiniteNumber, isFunction, isObject, isString, isValidDate } from './typeGuards';
+import {
+    isArray,
+    isBoolean,
+    isColor,
+    isDate,
+    isFiniteNumber,
+    isFunction,
+    isObject,
+    isString,
+    isValidDate,
+} from './typeGuards';
 
 const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
@@ -55,7 +65,7 @@ export class ValidationError {
 export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = ''): ValidationResult<T> {
     if (!isObject(options)) {
         const message = validateMessage(path, options, 'an object', true);
-        return { valid: null, errors: [new ValidationError(message, path)] };
+        return { valid: null, errors: [new ValidationError(message, path, true)] };
     }
 
     const unusedKeys = [];
@@ -78,9 +88,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
         optionsKeys.delete(key);
         if (typeof value === 'undefined') {
             unusedKeys.push(key);
-            if (!required) {
-                continue;
-            }
+            if (!required) continue;
         }
 
         const keyPath = extendPath(key);
@@ -97,7 +105,9 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
             }
         } else {
             const nestedResult = validate(value, validatorOrDefs, keyPath);
-            valid[key as keyof T] = nestedResult.valid as any;
+            if (nestedResult.valid != null) {
+                valid[key as keyof T] = nestedResult.valid as any;
+            }
             errors.push(...nestedResult.errors);
         }
     }
@@ -105,33 +115,11 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     for (const key of optionsKeys) {
         const value = options[key as keyof object];
         if (typeof value === 'undefined') continue;
-        const match = findSuggestion(key, unusedKeys);
-        const postfix = match ? `; Did you mean \`${match}\`? Ignoring.` : ', ignoring.';
-        const message = `Unknown option \`${extendPath(key)}\`${postfix}`;
+        const message = unknownMessage(key, extendPath(key), unusedKeys);
         errors.push(new ValidationError(message, path, undefined, true));
     }
 
     return { valid, errors };
-}
-
-/**
- * Finds the closest matching suggestion from a list based on Levenshtein distance.
- * @param value The input string to compare against suggestions.
- * @param suggestions The list of possible suggestions.
- * @param maxDistance The maximum allowed Levenshtein distance for a match.
- * @returns The closest matching suggestion within the allowed distance, or null if none are found.
- */
-function findSuggestion(value: string, suggestions: string[], maxDistance: number = 2): string | null {
-    let smallestDistance = Infinity;
-    const lowerCaseValue = value.toLowerCase();
-    return suggestions.reduce<string | null>((res, item) => {
-        const d = levenshteinDistance(lowerCaseValue, item.toLowerCase());
-        if (smallestDistance > d && d <= maxDistance) {
-            smallestDistance = d;
-            return item;
-        }
-        return res;
-    }, null);
 }
 
 /**
@@ -156,6 +144,32 @@ function validateMessage(
         : `${prefix} cannot be set to \`${stringifyValue(value, 50)}\`${expecting}, ignoring.`;
 }
 
+function unknownMessage(key: string, keyPath: string, unusedKeys: string[]): string {
+    const match = findSuggestion(key, unusedKeys);
+    const postfix = match ? `; Did you mean \`${match}\`? Ignoring.` : ', ignoring.';
+    return `Unknown option \`${keyPath}\`${postfix}`;
+}
+
+/**
+ * Finds the closest matching suggestion from a list based on Levenshtein distance.
+ * @param value The input string to compare against suggestions.
+ * @param suggestions The list of possible suggestions.
+ * @param maxDistance The maximum allowed Levenshtein distance for a match.
+ * @returns The closest matching suggestion within the allowed distance, or null if none are found.
+ */
+function findSuggestion(value: string, suggestions: string[], maxDistance: number = 2): string | null {
+    let smallestDistance = Infinity;
+    const lowerCaseValue = value.toLowerCase();
+    return suggestions.reduce<string | null>((res, item) => {
+        const d = levenshteinDistance(lowerCaseValue, item.toLowerCase());
+        if (smallestDistance > d && d <= maxDistance) {
+            smallestDistance = d;
+            return item;
+        }
+        return res;
+    }, null);
+}
+
 /**
  * Attaches a descriptive message to a validator function.
  * @param validator The validator function to which to attach a description.
@@ -163,7 +177,7 @@ function validateMessage(
  * @returns A new validator function with the attached description.
  */
 export function attachDescription(validator: Validator, description: string): Validator {
-    return Object.assign((value: unknown, context: any) => validator(value, context), {
+    return Object.assign((value: unknown, context: ValidatorContext) => validator(value, context), {
         [descriptionSymbol]: description,
     });
 }
@@ -194,7 +208,7 @@ export function required<T extends Validator | OptionsDefs<any>>(validatorOrDefs
 export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
     attachDescription((value, context) => {
         context.result = validate(value, defs, context.path);
-        return !context.result.errors.some((error) => error.required);
+        return !context.result.errors.some((error) => error.required && error.path === context.path);
     }, description);
 
 /**
@@ -207,7 +221,7 @@ export const partialDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
     attachDescription((value, context) => {
         context.result = validate(value, defs, context.path);
         context.result.errors = context.result.errors.filter((error) => !error.unknown);
-        return !context.result.errors.some((error) => error.required);
+        return !context.result.errors.some((error) => error.required && error.path === context.path);
     }, description);
 
 /**
@@ -217,7 +231,12 @@ export const partialDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
  */
 export const and = (...validators: Validator[]) =>
     attachDescription(
-        (value, context) => validators.every((validator) => validator(value, context)),
+        (value, context) =>
+            validators.every((validator) => {
+                const result = validator(value, context);
+                delete context.result;
+                return result;
+            }),
         validators
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
@@ -231,7 +250,12 @@ export const and = (...validators: Validator[]) =>
  */
 export const or = (...validators: Validator[]) =>
     attachDescription(
-        (value, context) => validators.some((validator) => validator(value, context)),
+        (value, context) =>
+            validators.some((validator) => {
+                const result = validator(value, context);
+                delete context.result;
+                return result;
+            }),
         validators
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
@@ -245,13 +269,14 @@ export const callback = attachDescription(isFunction, 'a function');
 export const number = attachDescription(isFiniteNumber, 'a number');
 export const object = attachDescription(isObject, 'an object');
 export const string = attachDescription(isString, 'a string');
+export const color = attachDescription(isColor, 'a color');
 export const date = attachDescription(
     (value) => isDate(value) || ((isFiniteNumber(value) || isString(value)) && isValidDate(new Date(value))),
     'a date'
 );
 
 // Numeric type validators with specific conditions.
-const numberMin = (min: number, inclusive = true) =>
+export const numberMin = (min: number, inclusive = true) =>
     attachDescription(
         (value) => isFiniteNumber(value) && (value > min || (inclusive && value === min)),
         `a number greater than ${inclusive ? 'or equal to ' : ''}${min}`
@@ -294,7 +319,7 @@ export function union(...allowed: any[]) {
     if (isObject(allowed[0])) {
         allowed = Object.values(allowed[0]);
     }
-    const keywords = joinFormatted(allowed, 'or', (value) => `'${value}'`, 6);
+    const keywords = joinFormatted(allowed, 'or', (value) => `'${value}'`);
     return attachDescription((value) => allowed.includes(value), `a keyword such as ${keywords}`);
 }
 
@@ -323,7 +348,13 @@ export const instanceOf = (instanceType: Function, description?: string) =>
  */
 export const arrayOf = (validator: Validator, description?: string) =>
     attachDescription(
-        (value, context) => isArray(value) && value.every((v) => validator(v, context)),
+        (value, context) =>
+            isArray(value) &&
+            value.every((v) => {
+                const result = validator(v, context);
+                delete context.result;
+                return result;
+            }),
         description ?? `${validator[descriptionSymbol]} array`
     );
 
@@ -352,3 +383,24 @@ export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description?: string) =>
         },
         description ?? `${defs[descriptionSymbol]} array`
     );
+
+export const typeUnion = <T extends { type: string }>(
+    defs: { [K in T['type']]: OptionsDefs<Omit<Extract<T, { type: K }>, 'type'>> },
+    description = 'an object'
+) => {
+    const typeValidator = partialDefs<{ type: string }>({ type: required(union(...Object.keys(defs))) });
+    return attachDescription((value: any, context) => {
+        if (typeValidator(value, context)) {
+            const type: T['type'] = value.type;
+            const typeDefs = { type: required(constant(type)), ...defs[type] };
+            const result = optionsDefs(typeDefs)(value, context);
+            if (context.result) {
+                for (const error of context.result.errors) {
+                    error.message += ` (type="${type}")`;
+                }
+            }
+            return result;
+        }
+        return false;
+    }, description);
+};

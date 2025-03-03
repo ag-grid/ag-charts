@@ -12,18 +12,18 @@ import {
     array,
     arrayOf,
     arrayOfDefs,
-    constant,
+    color,
     number,
     optionsDefs,
     or,
     positiveNumber,
     ratio,
-    required,
     string,
+    typeUnion,
     union,
 } from '../utils/validation';
 
-export const operationsDef: OptionsDefs<any> = {
+const operationsDef: OptionsDefs<any> = {
     // Location operations
     $ref: string,
     $path: string,
@@ -49,32 +49,25 @@ export const operationsDef: OptionsDefs<any> = {
 
 export const operation = optionsDefs(operationsDef, 'a theme operation');
 
-export const colorStop = optionsDefs<AgGradientColorStop>(
+export const gradient = typeUnion<AgGradientFill>(
     {
-        color: string,
-        stop: number,
+        gradient: {
+            direction: union('horizontal', 'vertical'),
+            colorStops: arrayOfDefs<AgGradientColorStop>({ color: color, stop: number }, 'color stops'),
+            bounds: union('series', 'item', 'axes'),
+            rotation: number,
+        },
     },
-    'a color stop object'
+    'a gradient object'
 );
 
-const gradientOptionsDef: OptionsDefs<AgGradientFill> = {
-    type: required(constant('gradient')),
-    direction: union('horizontal', 'vertical'),
-    colorStops: arrayOfDefs<AgGradientColorStop>({ color: string, stop: number }, 'color stops'),
-    bounds: union('series', 'item', 'axes'),
-    rotation: number,
-};
-
-export const gradient = optionsDefs(gradientOptionsDef, 'a gradient');
-export const arrayOfGradient = arrayOfDefs<AgGradientFill>(gradientOptionsDef);
-
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
-    fill: or(string, gradient, operation),
+    fill: or(color, gradient, operation),
     fillOpacity: ratio,
 };
 
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
-    stroke: or(string, operation),
+    stroke: or(color, operation),
     strokeWidth: positiveNumber,
     strokeOpacity: ratio,
 };
@@ -85,7 +78,7 @@ export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
 };
 
 export const fontOptionsDef: OptionsDefs<FontOptions> = {
-    color: string,
+    color: color,
     fontFamily: string,
     fontSize: positiveNumber,
     fontStyle: union('normal', 'italic', 'oblique'),
