@@ -363,7 +363,7 @@ export class RadialGaugeSeries
         const maxHeight = tickData.reduce((m, t) => Math.max(m, t.height), 0);
 
         const radiusBounds = Math.max(
-            0.5 * unitBoxSize - Math.max(maxWidth, maxHeight),
+            0.5 * unitBoxSize - (Math.max(maxWidth, maxHeight) + label.spacing),
             // seriesRect may have negative size
             0
         );
@@ -1166,10 +1166,19 @@ export class RadialGaugeSeries
 
             const angle = scale.convert(datum.value);
 
-            const dR = Math.max(datum.width, datum.height) / 2;
+            const { width, height } = datum;
 
-            label.x = centerX + (radius + spacing + dR) * Math.cos(angle);
-            label.y = centerY + (radius + spacing + dR) * Math.sin(angle);
+            const originX = Math.abs(radius * Math.cos(angle));
+            const originY = Math.abs(radius * Math.sin(angle));
+            const x = Math.min(Math.max(Math.abs(radius / Math.tan(angle)), originX - width / 2), originX + width / 2);
+            const y = Math.min(
+                Math.max(Math.abs(radius * Math.tan(angle)), originY - height / 2),
+                originY + height / 2
+            );
+            const outerR = Math.hypot(x, y);
+
+            label.x = centerX + (outerR + spacing) * Math.cos(angle);
+            label.y = centerY + (outerR + spacing) * Math.sin(angle);
         });
     }
 
