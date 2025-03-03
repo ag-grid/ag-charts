@@ -13,7 +13,9 @@ export function isUnsupportedBrowser() {
     const { userAgent } = getWindow('navigator');
 
     if (isSafariRegexp.test(userAgent)) {
-        const version = parseFloat(safariVersionRegexp.exec(userAgent)?.[1] ?? '0');
+        const versionExec = safariVersionRegexp.exec(userAgent);
+        if (versionExec == null) return false;
+        const version = parseFloat(versionExec[1]);
 
         const supported = Math.floor(version) > 16;
         if (!supported) {
@@ -22,7 +24,9 @@ export function isUnsupportedBrowser() {
 
         return !supported;
     } else if (isChromeRegexp.test(userAgent) && !isEdge.test(userAgent) && !isOpera.test(userAgent)) {
-        const version = parseInt(chromeVersionRegexp.exec(userAgent)?.[1] ?? '0', 10);
+        const versionExec = chromeVersionRegexp.exec(userAgent);
+        if (versionExec == null) return false;
+        const version = parseInt(versionExec[1], 10);
 
         // 127 as that is the minimum version for Playwright e2e tests.
         const supported = version > 126;
