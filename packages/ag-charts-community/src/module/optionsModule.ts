@@ -100,7 +100,7 @@ const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-ba
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     public static readonly OPTIONS_CLONE_OPTS: CloneOptions = {
         shallow: new Set(['data', 'container']),
-        assign: new Set('context'),
+        assign: new Set(['context']),
     };
 
     private static readonly perfDebug = Debug.create(true, 'perf');
