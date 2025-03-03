@@ -61,7 +61,7 @@
     "commander": "2.20.3",
     "prettier": "^3.2.5",
     "puppeteer-core": "7.1.0",
-    "sass": "^1.77.8",
+    "sass": "1.83.4",
     "vitest": "2.1.6"
   },
   "devDependencies": {
