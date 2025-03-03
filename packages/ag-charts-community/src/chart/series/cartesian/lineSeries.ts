@@ -601,6 +601,7 @@ export class LineSeries extends CartesianSeries<
         Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format, false));
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),

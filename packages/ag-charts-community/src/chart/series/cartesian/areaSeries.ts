@@ -762,6 +762,7 @@ export class AreaSeries extends CartesianSeries<
         );
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),

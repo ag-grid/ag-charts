@@ -582,6 +582,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, datumIndex, format, false));
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 symbol: this.legendItemSymbol(datumIndex),
                 data: [

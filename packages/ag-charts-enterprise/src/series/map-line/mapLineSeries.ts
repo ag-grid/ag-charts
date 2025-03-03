@@ -649,6 +649,7 @@ export class MapLineSeries extends TopologySeries<
         );
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: idValues[datumIndex],
                 title: title ?? legendItemName,

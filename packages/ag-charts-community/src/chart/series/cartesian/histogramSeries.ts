@@ -543,6 +543,7 @@ export class HistogramSeries extends CartesianSeries<
         }
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 symbol: this.legendItemSymbol(),
                 data,

@@ -1318,6 +1318,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             angleName;
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 title,
                 symbol: this.legendItemSymbol(datumIndex),
