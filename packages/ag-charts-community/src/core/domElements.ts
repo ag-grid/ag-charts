@@ -1,4 +1,4 @@
-import { getDocument } from './globalsProxy';
+import { getDocument } from 'ag-charts-core';
 
 /**
  * Creates an HTML element with optional class names and inline styles.

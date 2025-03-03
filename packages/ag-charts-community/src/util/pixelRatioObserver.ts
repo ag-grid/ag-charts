@@ -1,4 +1,4 @@
-import { getWindow } from '../core';
+import { getWindow } from 'ag-charts-core';
 
 /**
  * Chrome & FireFox reports devicePixelRatio as the pixel ratio of the screen multiplied by the browser zoom.

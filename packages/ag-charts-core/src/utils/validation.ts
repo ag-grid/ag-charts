@@ -234,7 +234,9 @@ export const and = (...validators: Validator[]) =>
         (value, context) =>
             validators.every((validator) => {
                 const result = validator(value, context);
-                delete context.result;
+                if (context.result && !result) {
+                    delete context.result;
+                }
                 return result;
             }),
         validators
@@ -253,7 +255,9 @@ export const or = (...validators: Validator[]) =>
         (value, context) =>
             validators.some((validator) => {
                 const result = validator(value, context);
-                delete context.result;
+                if (context.result && !result) {
+                    delete context.result;
+                }
                 return result;
             }),
         validators
@@ -274,6 +278,21 @@ export const date = attachDescription(
     (value) => isDate(value) || ((isFiniteNumber(value) || isString(value)) && isValidDate(new Date(value))),
     'a date'
 );
+
+export const arrayLength = (minLength: number, maxLength = Infinity) => {
+    let message: string;
+    if (maxLength === Infinity) {
+        message = `an array of at least ${minLength} items`;
+    } else if (minLength === maxLength) {
+        message = `an array of exactly ${minLength} items`;
+    } else {
+        message = `an array of at least ${minLength} and no more than ${maxLength} items`;
+    }
+    return attachDescription(
+        (value) => isArray(value) && value.length >= minLength && value.length <= maxLength,
+        message
+    );
+};
 
 // Numeric type validators with specific conditions.
 export const numberMin = (min: number, inclusive = true) =>
@@ -350,6 +369,7 @@ export const arrayOf = (validator: Validator, description?: string) =>
     attachDescription(
         (value, context) =>
             isArray(value) &&
+            value.length > 0 &&
             value.every((v) => {
                 const result = validator(v, context);
                 delete context.result;
@@ -374,6 +394,7 @@ export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description?: string) =>
             const errors: ValidationError[] = [];
             for (let i = 0; i < value.length; i++) {
                 const result = validate(value[i], defs, `${context.path}[${i}]`);
+                // console.log(value[i], defs, `${context.path}[${i}]`, result);
                 errors.push(...result.errors);
                 valid.push(result.valid);
             }

@@ -1,6 +1,5 @@
-import { EventEmitter, type EventListener, Logger } from 'ag-charts-core';
+import { EventEmitter, type EventListener, Logger, getWindow } from 'ag-charts-core';
 
-import { getWindow } from '../../core';
 import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';

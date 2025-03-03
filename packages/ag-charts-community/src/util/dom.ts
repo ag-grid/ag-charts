@@ -1,6 +1,6 @@
+import { getDocument, getWindow } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
-import { getDocument, getWindow } from '../core';
 import { BBoxValues } from './bboxinterface';
 
 export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<BBoxValues>) {

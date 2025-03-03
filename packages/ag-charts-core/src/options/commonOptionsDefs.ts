@@ -9,12 +9,13 @@ import type {
 
 import {
     type OptionsDefs,
-    array,
+    and,
+    arrayLength,
     arrayOf,
     arrayOfDefs,
+    attachDescription,
     color,
     number,
-    optionsDefs,
     or,
     positiveNumber,
     ratio,
@@ -23,38 +24,53 @@ import {
     union,
 } from '../utils/validation';
 
-const operationsDef: OptionsDefs<any> = {
-    // Location operations
-    $ref: string,
-    $path: string,
-    // Logic operations
-    $if: array,
-    $or: array,
-    $and: array,
-    $eq: array,
-    // Numeric operations
-    $mul: array,
-    $round: array,
-    // Transform operations
-    $map: array,
-    $merge: array,
-    $value: string,
-    // Font operations
-    $rem: array,
-    // Color operations
-    $mix: array,
-    $foregroundBackgroundMix: array,
-    $foregroundBackgroundAccentMix: array,
-};
+// const operationsDef: OptionsDefs<any> = {
+//     // Location operations
+//     $ref: string,
+//     $path: string,
+//     // Logic operations
+//     $if: array,
+//     $or: array,
+//     $and: array,
+//     $eq: array,
+//     // Numeric operations
+//     $mul: array,
+//     $round: array,
+//     // Transform operations
+//     $map: array,
+//     $merge: array,
+//     $value: string,
+//     // Font operations
+//     $rem: array,
+//     // Color operations
+//     $mix: array,
+//     $foregroundBackgroundMix: array,
+//     $foregroundBackgroundAccentMix: array,
+// };
 
-export const operation = optionsDefs(operationsDef, 'a theme operation');
+const colorStopsOrderValidator = attachDescription((value) => {
+    let lastStop = -Infinity;
+    for (const item of value as AgGradientColorStop[]) {
+        if (item?.stop != null) {
+            if (item.stop < lastStop) {
+                return false;
+            }
+            lastStop = item.stop;
+        }
+    }
+    return true;
+}, 'stops to be defined in ascending order');
 
 export const gradient = typeUnion<AgGradientFill>(
     {
         gradient: {
+            bounds: union('axes', 'item', 'series'),
+            colorStops: and(
+                arrayLength(2),
+                arrayOfDefs<AgGradientColorStop>({ color: color, stop: ratio }, 'color stops'),
+                colorStopsOrderValidator
+            ),
             direction: union('horizontal', 'vertical'),
-            colorStops: arrayOfDefs<AgGradientColorStop>({ color: color, stop: number }, 'color stops'),
-            bounds: union('series', 'item', 'axes'),
             rotation: number,
         },
     },
@@ -62,12 +78,12 @@ export const gradient = typeUnion<AgGradientFill>(
 );
 
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
-    fill: or(color, gradient, operation),
+    fill: or(color, gradient),
     fillOpacity: ratio,
 };
 
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
-    stroke: or(color, operation),
+    stroke: color,
     strokeWidth: positiveNumber,
     strokeOpacity: ratio,
 };

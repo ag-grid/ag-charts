@@ -1,5 +1,6 @@
+import { getDocument } from 'ag-charts-core';
+
 import { createElement } from './domElements';
-import { getDocument } from './globalsProxy';
 
 /**
  * Triggers a download for a given data URL and file name.

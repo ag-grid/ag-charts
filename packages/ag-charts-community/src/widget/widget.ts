@@ -1,4 +1,5 @@
-import { getWindow } from '../core';
+import { getWindow } from 'ag-charts-core';
+
 import {
     type BaseAttributeTypeMap,
     type BaseStyleTypeMap,

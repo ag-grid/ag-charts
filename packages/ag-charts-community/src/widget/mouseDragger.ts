@@ -1,4 +1,4 @@
-import { getWindow } from '../core';
+import { getWindow } from 'ag-charts-core';
 
 export type MouseDragCallbacks = {
     mousedown: (event: MouseEvent) => void;
