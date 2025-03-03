@@ -293,7 +293,7 @@ export abstract class RadiusAxis<
             titleNode.textAlign = 'center';
             titleNode.textBaseline = 'bottom';
 
-            titleNode.text = callbackCache.call(formatter, this.getTitleFormatterParams());
+            titleNode.text = callbackCache.call(this, formatter, this.getTitleFormatterParams());
         }
 
         titleNode.visible = titleVisible;

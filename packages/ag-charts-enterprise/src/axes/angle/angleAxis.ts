@@ -362,7 +362,7 @@ export abstract class AngleAxis<
             let text = String(value);
             if (label.formatter) {
                 const { callbackCache } = this.moduleCtx;
-                text = callbackCache.call(label.formatter, { value, index }) ?? '';
+                text = callbackCache.call(this, label.formatter, { value, index }) ?? '';
             }
 
             tempText.text = text;

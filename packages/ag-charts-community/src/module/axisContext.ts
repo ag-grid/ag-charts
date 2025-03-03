@@ -6,6 +6,7 @@ import type { Node } from '../scene/node';
 import type { BBoxValues } from '../util/bboxinterface';
 
 export interface AxisContext {
+    context?: unknown;
     axisId: string;
     continuous: boolean;
     direction: ChartAxisDirection;
