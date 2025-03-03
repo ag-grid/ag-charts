@@ -19,6 +19,7 @@ import {
     string,
     strokeOptionsDef,
     union,
+    unknown,
 } from 'ag-charts-core';
 import type {
     AgBaseSeriesOptions,
@@ -35,8 +36,9 @@ import type {
 
 const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
 
-export const commonSeriesOptionsDef: OptionsDefs<AgBaseSeriesOptions<any>> = {
+export const commonSeriesOptionsDef: OptionsDefs<AgBaseSeriesOptions<any> & { context?: unknown }> = {
     id: string,
+    context: unknown,
     cursor: string,
     visible: boolean,
     data: arrayOf(object),

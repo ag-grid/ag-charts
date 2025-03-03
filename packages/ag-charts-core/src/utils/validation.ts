@@ -63,11 +63,6 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     const errors: ValidationError[] = [];
     const valid: Partial<T> & { context?: unknown } = {};
 
-    if ('context' in options) {
-        optionsKeys.delete('context');
-        valid.context = options.context;
-    }
-
     function extendPath(key: string) {
         if (isArray(optionsDefs)) {
             return `${path}[${key}]`;
@@ -109,7 +104,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 
     for (const key of optionsKeys) {
         const value = options[key as keyof object];
-        if (typeof value === 'undefined' || key === 'context') continue;
+        if (typeof value === 'undefined') continue;
         const match = findSuggestion(key, unusedKeys);
         const postfix = match ? `; Did you mean \`${match}\`? Ignoring.` : ', ignoring.';
         const message = `Unknown option \`${extendPath(key)}\`${postfix}`;
@@ -244,6 +239,7 @@ export const or = (...validators: Validator[]) =>
     );
 
 // Base type validators with descriptions.
+export const unknown = (_value: unknown): _value is unknown => true;
 export const array = attachDescription(isArray, 'an array');
 export const boolean = attachDescription(isBoolean, 'a boolean');
 export const callback = attachDescription(isFunction, 'a function');
