@@ -70,6 +70,9 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     },
     tooltips: {
         // Buttons have no visible rendering change
+        'tooltip-position': { skipCanvasUpdateCheck: true },
+        'tooltip-mode': { skipCanvasUpdateCheck: true },
+        'tooltip-pagination': { skipCanvasUpdateCheck: true },
         'interaction-range': { skipCanvasUpdateCheck: true },
     },
     touch: {
