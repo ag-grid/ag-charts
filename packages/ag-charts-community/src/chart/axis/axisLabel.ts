@@ -10,6 +10,7 @@ import type {
 
 import { Default } from '../../util/default';
 import { BaseProperties } from '../../util/properties';
+import { TextUtils } from '../../util/textMeasurer';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -123,4 +124,8 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
 
     @Validate(STRING, { optional: true })
     format?: string;
+
+    getFont(): string {
+        return TextUtils.toFontString(this);
+    }
 }

@@ -25,6 +25,7 @@ const {
     SeriesTooltip,
     SeriesProperties,
     PropertiesArray,
+    AxisLabel,
     Validate,
     BOOLEAN,
     COLOR_STRING,
@@ -32,6 +33,7 @@ const {
     FUNCTION,
     LINE_DASH,
     NUMBER,
+    NUMBER_ARRAY,
     OBJECT_ARRAY,
     OBJECT,
     POSITIVE_NUMBER,
@@ -206,7 +208,29 @@ class RadialGaugeBarProperties extends BaseProperties {
     lineDashOffset: number = 0;
 }
 
+class RadialGaugeScaleIntervalProperties extends BaseProperties {
+    @Validate(NUMBER_ARRAY, { optional: true })
+    values?: number[] = undefined;
+
+    @Validate(NUMBER, { optional: true })
+    step?: number = undefined;
+
+    @Validate(NUMBER)
+    minSpacing: number = 0;
+
+    @Validate(NUMBER)
+    maxSpacing: number = 1000;
+}
+
+class RadialGaugeScaleLabelProperties extends AxisLabel {}
+
 class RadialGaugeScaleProperties extends BaseProperties {
+    @Validate(NUMBER)
+    min: number = 0;
+
+    @Validate(NUMBER)
+    max: number = 1;
+
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
 
@@ -236,6 +260,12 @@ class RadialGaugeScaleProperties extends BaseProperties {
 
     @Validate(COLOR_STRING)
     defaultFill: string = 'black';
+
+    @Validate(OBJECT)
+    readonly interval = new RadialGaugeScaleIntervalProperties();
+
+    @Validate(OBJECT)
+    readonly label = new RadialGaugeScaleLabelProperties();
 }
 
 class RadialGaugeNeedleProperties extends BaseProperties {
@@ -283,6 +313,12 @@ class RadialGaugeSecondaryLabelProperties extends AutoSizedSecondaryLabel<AgRadi
 export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeOptions> {
     @Validate(NUMBER)
     value!: number;
+
+    @Validate(NUMBER)
+    startAngle: number = 0;
+
+    @Validate(NUMBER)
+    endAngle: number = 0;
 
     @Validate(OBJECT)
     readonly segmentation = new GaugeSegmentationProperties();

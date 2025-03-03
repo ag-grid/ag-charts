@@ -7,10 +7,8 @@ import {
     type AgLinearGaugeOptions,
     type AgLinearGaugePreset,
     type AgLinearGaugeThemeOverrides,
-    type AgPolarAxisOptions,
     type AgRadialGaugeOptions,
     type AgRadialGaugePreset,
-    type AgRadialGaugeScale,
     type AgRadialGaugeThemeOverrides,
 } from 'ag-charts-types';
 
@@ -42,19 +40,6 @@ function isRadialGauge(opts: AgGaugeOptions): opts is AgRadialGaugeOptions {
 function isLinearGauge(opts: AgGaugeOptions): opts is AgLinearGaugeOptions {
     return opts.type === 'linear-gauge';
 }
-
-type ScaleStyle = Pick<
-    AgRadialGaugeScale,
-    | 'fills'
-    | 'fillMode'
-    | 'fill'
-    | 'fillOpacity'
-    | 'stroke'
-    | 'strokeWidth'
-    | 'strokeOpacity'
-    | 'lineDash'
-    | 'lineDashOffset'
->;
 
 interface UndocumentedProperties {
     overrideDevicePixelRatio?: number;
@@ -103,22 +88,6 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         ...rest
     } = opts as AgRadialGaugeOptions & UndocumentedProperties;
 
-    const {
-        fills: scaleFills,
-        fillMode: scaleFillMode,
-        fill: scaleFill,
-        fillOpacity: scaleFillOpacity,
-        stroke: scaleStroke,
-        strokeWidth: scaleStrokeWidth,
-        strokeOpacity: scaleStrokeOpacity,
-        lineDash: scaleLineDash,
-        lineDashOffset: scaleLineDashOffset,
-        min: scaleMin = 0,
-        max: scaleMax = 1,
-        interval: scaleInterval = {},
-        label: scaleLabel = {},
-    } = scale;
-
     const chartOpts = pickProps<AgBaseGaugePresetOptions & UndocumentedProperties>(opts, {
         animation,
         background,
@@ -139,22 +108,11 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         width,
     });
 
-    const scaleOpts = pickProps<ScaleStyle>(scale, {
-        fills: scaleFills,
-        fillMode: scaleFillMode,
-        fill: scaleFill,
-        fillOpacity: scaleFillOpacity,
-        stroke: scaleStroke,
-        strokeWidth: scaleStrokeWidth,
-        strokeOpacity: scaleStrokeOpacity,
-        lineDash: scaleLineDash,
-        lineDashOffset: scaleLineDashOffset,
-    });
     const seriesOpts = pickProps<AgRadialGaugePreset>(opts, {
-        startAngle: IGNORED_PROP,
-        endAngle: IGNORED_PROP,
         needle: needle != null ? { enabled: true, ...needle } : IGNORED_PROP,
-        scale: scaleOpts,
+        startAngle,
+        endAngle,
+        scale,
         type,
         cursor,
         nodeClickRange,
@@ -177,23 +135,9 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         ...rest,
     });
 
-    const axesOpts: AgPolarAxisOptions[] = [
-        {
-            type: 'angle-number',
-            min: scaleMin,
-            max: scaleMax,
-            startAngle: startAngle,
-            endAngle: endAngle,
-            interval: scaleInterval ?? {},
-            label: scaleLabel ?? {},
-        },
-        { type: 'radius-number' },
-    ];
-
     return {
         ...chartOpts,
         series: [seriesOpts],
-        axes: axesOpts,
     };
 }
 

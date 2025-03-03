@@ -9,6 +9,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
+import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
@@ -34,12 +35,15 @@ import {
 const {
     fromToMotion,
     resetMotion,
+    CachedTextMeasurerPool,
     SeriesNodePickMode,
     StateMachine,
     createDatumId,
-    ChartAxisDirection,
     normalizeAngle360,
     normalizeAngle360Inclusive,
+    isBetweenAngles,
+    sectorBox,
+    countFractionDigits,
     toDegrees,
     toRadians,
     BBox,
@@ -102,6 +106,14 @@ interface RadialGaugeNeedleDatum {
     series: RadialGaugeSeries;
 }
 
+interface RadialGaugeTickDatum {
+    index: number;
+    value: number;
+    text: string;
+    width: number;
+    height: number;
+}
+
 interface RadialGaugeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<
         RadialGaugeNodeDatumIndex,
@@ -111,6 +123,7 @@ interface RadialGaugeNodeDataContext
     needleData: RadialGaugeNeedleDatum[];
     targetData: RadialGaugeTargetDatum[];
     scaleData: RadialGaugeNodeDatum[];
+    tickData: RadialGaugeTickDatum[];
 }
 
 const targetPlacementRotation: Record<AgRadialGaugeTargetPlacement, number> = {
@@ -139,27 +152,19 @@ export class RadialGaugeSeries
         RadialGaugeLabelDatum,
         RadialGaugeNodeDataContext
     >
-    implements _ModuleSupport.RadialGaugeSeries
+    implements _ModuleSupport.GaugeSeries
 {
     static readonly className = 'RadialGaugeSeries';
     static readonly type = 'radial-gauge' as const;
-
-    override canHaveAxes: boolean = true;
-
-    override properties = new RadialGaugeSeriesProperties();
 
     public centerX: number = 0;
     public centerY: number = 0;
     public radius: number = 0;
     public textAlign: TextAlign = 'center';
     public verticalAlign: VerticalAlign = 'middle';
+    override properties = new RadialGaugeSeriesProperties();
 
-    public get maximumRadius() {
-        return this.properties.outerRadius;
-    }
-    public get minimumRadius() {
-        return this.properties.outerRadius;
-    }
+    public scale = new LinearAngleScale();
 
     private readonly scaleGroup = this.contentGroup.appendChild(new Group({ name: 'scaleGroup' }));
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
@@ -170,6 +175,7 @@ export class RadialGaugeSeries
     private readonly highlightTargetGroup = this.highlightGroup.appendChild(
         new Group({ name: 'itemTargetLabelGroup' })
     );
+    private readonly tickGroup = this.contentGroup.appendChild(new Group({ name: 'tickGroup' }));
 
     private scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum> = Selection.select(
         this.scaleGroup,
@@ -195,6 +201,8 @@ export class RadialGaugeSeries
     );
     private highlightTargetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum> =
         Selection.select(this.highlightTargetGroup, () => this.markerFactory());
+    private tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, RadialGaugeTickDatum> =
+        Selection.select(this.tickGroup, _ModuleSupport.TransformableText);
 
     public datumUnion: DatumUnion<_ModuleSupport.Sector, RadialGaugeNodeDatum> = new DatumUnion();
     private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
@@ -242,6 +250,7 @@ export class RadialGaugeSeries
         });
 
         this.scaleGroup.pointerEvents = PointerEvents.None;
+        this.tickGroup.pointerEvents = PointerEvents.None;
     }
 
     override get hasData(): boolean {
@@ -265,13 +274,113 @@ export class RadialGaugeSeries
     }
 
     private formatLabel(value: number) {
-        const { min = 0, max = 1 } = this.axes[ChartAxisDirection.X] as _ModuleSupport.ChartAxisLike;
+        const { min, max } = this.properties.scale;
         return formatLabel(value, { min, max });
     }
 
+    private layoutScale() {
+        const { scale, properties } = this;
+        const { seriesRectWidth, seriesRectHeight } = this.nodeDataDependencies;
+        const { scale: scaleProps, outerRadius } = this.properties;
+        const { min, max, label, interval } = scaleProps;
+
+        const startAngle = toRadians(properties.startAngle - 90);
+        const endAngle = toRadians(properties.endAngle - 90);
+
+        const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
+        const largerThanHalf = sweepAngle > Math.PI;
+        const containsTop = largerThanHalf || isBetweenAngles(1.5 * Math.PI, startAngle, endAngle);
+        const containsRight = largerThanHalf || isBetweenAngles(0.0 * Math.PI, startAngle, endAngle);
+        const containsBottom = largerThanHalf || isBetweenAngles(0.5 * Math.PI, startAngle, endAngle);
+        const containsLeft = largerThanHalf || isBetweenAngles(1.0 * Math.PI, startAngle, endAngle);
+
+        let textAlign: TextAlign;
+        if (containsLeft && !containsRight) {
+            textAlign = 'right';
+        } else if (!containsLeft && containsRight) {
+            textAlign = 'left';
+        } else {
+            textAlign = 'center';
+        }
+
+        let verticalAlign: VerticalAlign;
+        if (containsTop && !containsBottom) {
+            verticalAlign = 'bottom';
+        } else if (!containsTop && containsBottom) {
+            verticalAlign = 'top';
+        } else {
+            verticalAlign = 'middle';
+        }
+
+        const unitBox = sectorBox({
+            startAngle,
+            endAngle,
+            innerRadius: 0,
+            outerRadius: 0.5,
+        });
+        const centerXOffset = -(unitBox.x + unitBox.width / 2) * 2;
+        const centerYOffset = -(unitBox.y + unitBox.height / 2) * 2;
+        const unitBoxSize = Math.min(seriesRectWidth / unitBox.width, seriesRectHeight / unitBox.height);
+
+        scale.domain = [min, max];
+        scale.range = [startAngle, endAngle];
+        scale.arcLength = unitBoxSize / 2;
+
+        const { maxSpacing, minSpacing } = interval;
+        const { arcLength } = scale;
+        const minTickCount = maxSpacing ? Math.floor(arcLength / maxSpacing) : 1;
+        const maxTickCount = minSpacing ? Math.floor(arcLength / minSpacing) : Infinity;
+        const preferredTickCount = Math.floor((4 / Math.PI) * Math.abs(scale.range[0] - scale.range[1]));
+        const tickCount = Math.max(minTickCount, Math.min(maxTickCount, preferredTickCount));
+        const ticks =
+            interval.values ??
+            scale.ticks({
+                nice: false,
+                interval: interval.step,
+                minTickCount,
+                maxTickCount,
+                tickCount,
+            });
+        const fractionDigits = ticks.reduce(
+            (f, tick) => Math.max(f, typeof tick === 'number' ? countFractionDigits(tick) : 0),
+            0
+        );
+        const tickFormatter = scale.tickFormatter({
+            domain: scale.domain,
+            ticks,
+            fractionDigits,
+            specifier: label.format,
+        });
+
+        const font = label.getFont();
+        const tickData = ticks.map((value, index): RadialGaugeTickDatum => {
+            const text = label.formatter?.({ value, index }) ?? tickFormatter(value);
+            const { width, height } = CachedTextMeasurerPool.measureText(text, { font });
+            return { index, value, text, width, height };
+        });
+
+        const maxWidth = tickData.reduce((m, t) => Math.max(m, t.width), 0);
+        const maxHeight = tickData.reduce((m, t) => Math.max(m, t.height), 0);
+
+        const radiusBounds = Math.max(
+            0.5 * unitBoxSize - (Math.max(maxWidth, maxHeight) + label.spacing),
+            // seriesRect may have negative size
+            0
+        );
+        const radius = outerRadius ?? radiusBounds;
+
+        this.centerX = seriesRectWidth / 2 + centerXOffset * radius;
+        this.centerY = seriesRectHeight / 2 + centerYOffset * radius;
+        this.radius = radius;
+        this.textAlign = textAlign;
+        this.verticalAlign = verticalAlign;
+
+        return tickData;
+    }
+
     private createConicGradient(fills: _ModuleSupport.StopProperties[], fillMode: AgGradientFillMode) {
-        const { centerX, centerY, radius } = this;
-        const { domain, range } = this.axes[ChartAxisDirection.X]!.scale;
+        const { centerX, centerY, radius, scale } = this;
+        const { domain, range } = scale;
         const [startAngle, endAngle] = range;
         const { defaultColorRange } = this.properties;
 
@@ -373,13 +482,12 @@ export class RadialGaugeSeries
     }
 
     private getTargetLabel(target: Target): RadialGaugeTargetDatumLabel {
-        const angleAxis = this.axes[ChartAxisDirection.X]!;
-        const angleScale = angleAxis.scale;
+        const { scale } = this;
 
         const { value, size, placement, label } = target;
         const { spacing, color: fill, fontStyle, fontWeight, fontSize, fontFamily } = label;
         const lineHeight = undefined;
-        const angle = angleScale.convert(value);
+        const angle = scale.convert(value);
 
         const quadrant = (normalizeAngle360(angle) / (Math.PI / 2)) | 0;
 
@@ -423,12 +531,10 @@ export class RadialGaugeSeries
     }
 
     override createNodeData() {
-        const { id: seriesId, properties, radius, centerX, centerY } = this;
+        if (!this.properties.isValid()) return;
 
-        if (!properties.isValid()) return;
-
-        const angleAxis = this.axes[ChartAxisDirection.X];
-        if (angleAxis == null) return;
+        const tickData = this.layoutScale();
+        const { id: seriesId, scale, properties, radius, centerX, centerY } = this;
 
         const {
             value,
@@ -439,39 +545,36 @@ export class RadialGaugeSeries
             cornerMode,
             needle,
             bar,
-            scale,
+            scale: scaleProps,
             label,
             secondaryLabel,
         } = properties;
         const { outerRadius = radius * outerRadiusRatio, innerRadius = radius * innerRadiusRatio } = properties;
         const targets = this.getTargets();
 
-        const { domain } = angleAxis.scale;
         const nodeData: RadialGaugeNodeDatum[] = [];
         const targetData: RadialGaugeTargetDatum[] = [];
         const needleData: RadialGaugeNeedleDatum[] = [];
         const labelData: RadialGaugeLabelDatum[] = [];
         const scaleData: RadialGaugeNodeDatum[] = [];
 
-        const [startAngle, endAngle] = angleAxis.range;
-        const angleScale = angleAxis.scale;
-
         const cornersOnAllItems = cornerMode === 'item';
 
-        const containerStartAngle = angleScale.convert(domain[0]);
-        const containerEndAngle = angleScale.convert(value);
+        const containerStartAngle = scale.convert(scale.domain[0]);
+        const containerEndAngle = scale.convert(value);
 
         const maxTicks = Math.ceil(normalizeAngle360Inclusive(containerEndAngle - containerStartAngle) * radius);
-        let segments = segmentation.enabled ? segmentation.interval.getSegments(angleAxis.scale, maxTicks) : undefined;
+        let segments = segmentation.enabled ? segmentation.interval.getSegments(scale, maxTicks) : undefined;
 
         const barFill = !bar.enabled ? 'rgba(0,0,0,0)' : bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode);
         const scaleFill =
-            scale.fill ??
-            (bar.enabled && scale.fills.length === 0 ? scale.defaultFill : undefined) ??
-            this.createConicGradient(scale.fills, scale.fillMode);
+            scaleProps.fill ??
+            (bar.enabled && scaleProps.fills.length === 0 ? scaleProps.defaultFill : undefined) ??
+            this.createConicGradient(scaleProps.fills, scaleProps.fillMode);
 
         if (segments == null && cornersOnAllItems) {
-            const [segmentStart, segmentEnd] = domain;
+            const segmentStart = Math.min(...scale.domain);
+            const segmentEnd = Math.max(...scale.domain);
             const datum = { value, segmentStart, segmentEnd };
             const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
             const angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
@@ -505,8 +608,8 @@ export class RadialGaugeSeries
                 centerY,
                 outerRadius,
                 innerRadius,
-                startAngle: startAngle - angleInset,
-                endAngle: endAngle + angleInset,
+                startAngle: scale.range[0] - angleInset,
+                endAngle: scale.range[1] + angleInset,
                 clipStartAngle: undefined,
                 clipEndAngle: undefined,
                 startCornerRadius: cornerRadius,
@@ -514,7 +617,7 @@ export class RadialGaugeSeries
                 fill: scaleFill,
             });
         } else {
-            segments ??= domain;
+            segments ??= scale.domain;
 
             for (let i = 0; i < segments.length - 1; i++) {
                 const segmentStart = segments[i];
@@ -524,8 +627,8 @@ export class RadialGaugeSeries
                 const isStart = i === 0;
                 const isEnd = i === segments.length - 2;
 
-                const itemStartAngle = angleScale.convert(segmentStart);
-                const itemEndAngle = angleScale.convert(segmentEnd);
+                const itemStartAngle = scale.convert(segmentStart);
+                const itemEndAngle = scale.convert(segmentEnd);
 
                 nodeData.push({
                     series: this,
@@ -628,7 +731,7 @@ export class RadialGaugeSeries
         if (needle.enabled) {
             let needleRadius = needle.radiusRatio != null ? radius * needle.radiusRatio : innerRadius;
             needleRadius = Math.max(needleRadius - needle.spacing, 0);
-            const needleAngle = angleScale.convert(value);
+            const needleAngle = scale.convert(value);
 
             needleData.push({
                 centerX,
@@ -655,12 +758,12 @@ export class RadialGaugeSeries
                 lineDashOffset,
             } = target;
 
-            if (targetValue < Math.min(...domain) || targetValue > Math.max(...domain)) {
+            if (targetValue < Math.min(...scale.domain) || targetValue > Math.max(...scale.domain)) {
                 continue;
             }
 
             const targetRadius = this.getTargetRadius(target);
-            const targetAngle = angleScale.convert(targetValue);
+            const targetAngle = scale.convert(targetValue);
             const targetRotation = toRadians(target.rotation + targetPlacementRotation[target.placement]);
 
             targetData.push({
@@ -700,6 +803,7 @@ export class RadialGaugeSeries
             targetData,
             labelData,
             scaleData,
+            tickData,
         };
     }
 
@@ -725,6 +829,7 @@ export class RadialGaugeSeries
             targetLabelSelection,
             scaleSelection,
             highlightTargetSelection,
+            tickSelection,
         } = this;
 
         const resize = this.checkResize(seriesRect);
@@ -738,6 +843,7 @@ export class RadialGaugeSeries
         const needleData = this.contextNodeData?.needleData ?? [];
         const targetData = this.contextNodeData?.targetData ?? [];
         const scaleData = this.contextNodeData?.scaleData ?? [];
+        const tickData = this.contextNodeData?.tickData ?? [];
 
         const highlightTargetDatum = this.highlightDatum(this.ctx.highlightManager.getActiveHighlight());
 
@@ -764,6 +870,9 @@ export class RadialGaugeSeries
             targetSelection: highlightTargetSelection,
         });
         this.updateTargetNodes({ targetSelection: highlightTargetSelection, isHighlight: true });
+
+        this.tickSelection = this.updateTickSelection({ tickData, tickSelection });
+        this.updateTickNodes({ tickSelection });
 
         if (resize) {
             this.animationState.transition('resize');
@@ -1029,6 +1138,48 @@ export class RadialGaugeSeries
         }
     }
 
+    private updateTickSelection(opts: {
+        tickData: RadialGaugeTickDatum[];
+        tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, RadialGaugeTickDatum>;
+    }) {
+        return opts.tickSelection.update(opts.tickData, undefined, (datum) => datum.index);
+    }
+
+    private updateTickNodes(opts: {
+        tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, RadialGaugeTickDatum>;
+    }) {
+        const { scale, radius, centerX, centerY } = this;
+        const { color, fontFamily, fontSize, fontStyle, fontWeight, spacing } = this.properties.scale.label;
+
+        opts.tickSelection.each((label, datum) => {
+            label.text = datum.text;
+            label.fill = color;
+            label.fontFamily = fontFamily;
+            label.fontSize = fontSize;
+            label.fontStyle = fontStyle;
+            label.fontWeight = fontWeight;
+
+            label.textAlign = 'center';
+            label.textBaseline = 'middle';
+
+            const angle = scale.convert(datum.value);
+
+            const { width, height } = datum;
+
+            const originX = Math.abs(radius * Math.cos(angle));
+            const originY = Math.abs(radius * Math.sin(angle));
+            const x = Math.min(Math.max(Math.abs(radius / Math.tan(angle)), originX - width / 2), originX + width / 2);
+            const y = Math.min(
+                Math.max(Math.abs(radius * Math.tan(angle)), originY - height / 2),
+                originY + height / 2
+            );
+            const outerR = Math.hypot(x, y);
+
+            label.x = centerX + (outerR + spacing) * Math.cos(angle);
+            label.y = centerY + (outerR + spacing) * Math.sin(angle);
+        });
+    }
+
     labelsHaveExplicitText() {
         for (const { datum } of this.labelSelection) {
             if (datum.text == null) {
@@ -1040,9 +1191,6 @@ export class RadialGaugeSeries
     }
 
     formatLabelText(datum?: { label: number | undefined; secondaryLabel: number | undefined }) {
-        const angleAxis = this.axes[ChartAxisDirection.X];
-        if (angleAxis == null) return;
-
         const { labelSelection, radius, textAlign, verticalAlign } = this;
         const { spacing: padding, innerRadiusRatio } = this.properties;
 
@@ -1114,10 +1262,7 @@ export class RadialGaugeSeries
     animateEmptyUpdateReady() {
         const { animationManager } = this.ctx;
 
-        const { node, needle } = prepareRadialGaugeSeriesAnimationFunctions(
-            true,
-            this.axes[ChartAxisDirection.X]?.range[0] ?? 0
-        );
+        const { node, needle } = prepareRadialGaugeSeriesAnimationFunctions(true, this.scale.range[0]);
         fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId);
         fromToMotion(this.id, 'needle', animationManager, [this.needleSelection], needle, () => 'needle');
 
@@ -1131,7 +1276,7 @@ export class RadialGaugeSeries
         );
 
         this.animateLabelText({
-            from: this.axes[ChartAxisDirection.X]?.scale.domain[0] ?? 0,
+            from: this.properties.scale.min,
             phase: 'initial',
         });
     }
@@ -1139,10 +1284,7 @@ export class RadialGaugeSeries
     animateWaitingUpdateReady() {
         const { animationManager } = this.ctx;
 
-        const { node, needle } = prepareRadialGaugeSeriesAnimationFunctions(
-            false,
-            this.axes[ChartAxisDirection.X]?.range[0] ?? 0
-        );
+        const { node, needle } = prepareRadialGaugeSeriesAnimationFunctions(false, this.scale.range[0]);
         fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId);
         fromToMotion(this.id, 'needle', animationManager, [this.needleSelection], needle, () => 'needle');
 

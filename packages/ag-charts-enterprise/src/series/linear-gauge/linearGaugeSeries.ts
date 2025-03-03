@@ -197,7 +197,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     private readonly highlightTargetGroup = this.highlightGroup.appendChild(
         new Group({ name: 'itemTargetLabelGroup' })
     );
-    private readonly tickGroup = this.highlightGroup.appendChild(new Group({ name: 'tickGroup' }));
+    private readonly tickGroup = this.contentGroup.appendChild(new Group({ name: 'tickGroup' }));
 
     private scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum> = Selection.select(
         this.scaleGroup,
@@ -268,6 +268,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         });
 
         this.scaleGroup.pointerEvents = PointerEvents.None;
+        this.tickGroup.pointerEvents = PointerEvents.None;
     }
 
     override get hasData(): boolean {

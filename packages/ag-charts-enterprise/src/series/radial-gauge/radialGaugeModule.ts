@@ -31,6 +31,17 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
         series: {
             outerRadiusRatio: 1,
             innerRadiusRatio: 0.8,
+            startAngle: 270,
+            endAngle: 270 + 180,
+            scale: {
+                label: {
+                    fontWeight: { $ref: 'fontWeight' },
+                    fontSize: { $ref: 'fontSize' },
+                    fontFamily: { $ref: 'fontFamily' },
+                    color: { $ref: 'textColor' },
+                    spacing: 12,
+                },
+            },
             bar: {
                 strokeWidth: 0,
             },
@@ -76,16 +87,6 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 minimumFontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
                 color: { $ref: 'subtleTextColor' },
-            },
-        },
-        axes: {
-            [POLAR_AXIS_TYPE.ANGLE_NUMBER]: {
-                startAngle: 270,
-                endAngle: 270 + 180,
-                nice: false,
-                line: {
-                    enabled: false,
-                },
             },
         },
     },
