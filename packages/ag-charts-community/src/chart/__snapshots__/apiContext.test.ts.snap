@@ -3,7 +3,7 @@
 exports[`options validation legend.context error 1`] = `
 [
   [
-    "AG Charts - unable to set [context] in Tooltip - property is unknown",
+    "AG Charts - unable to set [context] in Legend - property is unknown",
   ],
 ]
 `;
@@ -11,7 +11,7 @@ exports[`options validation legend.context error 1`] = `
 exports[`options validation tooltip.context error 1`] = `
 [
   [
-    "AG Charts - unable to set [context] in Legend - property is unknown",
+    "AG Charts - unable to set [context] in Tooltip - property is unknown",
   ],
 ]
 `;
