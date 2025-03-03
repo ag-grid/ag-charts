@@ -10,6 +10,7 @@ const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'a
 export const SELECTORS = {
     wrapper: '.ag-charts-wrapper',
     canvas: '.ag-charts-canvas',
+    canvasProxy: '.ag-charts-canvas-proxy',
     canvasCenter: '.ag-charts-canvas-center',
     legendItems: 'button[role="switch"][class="ag-charts-proxy-elem"]',
     axisButton: '.ag-charts-annotations__axis-button',
@@ -148,7 +149,7 @@ export async function dragCanvas(
 
 export async function locateCanvas(page: Page) {
     const canvasElem = page.locator('canvas');
-    const canvas = page.locator(SELECTORS.canvas);
+    const canvas = page.locator(SELECTORS.canvasProxy);
     const wrapper = page.locator(SELECTORS.wrapper);
     const width = Number(await canvasElem.getAttribute('width'));
     const height = Number(await canvasElem.getAttribute('height'));
@@ -167,7 +168,7 @@ export async function locateCanvas(page: Page) {
 type PointTransformer = (x: number, y: number) => { x: number; y: number };
 
 export async function canvasToPageTransformer(page: Page): Promise<PointTransformer> {
-    const offset = await (await page.$(SELECTORS.canvas))?.boundingBox();
+    const offset = await (await page.$(SELECTORS.canvasProxy))?.boundingBox();
     if (!offset) throw new Error("Couldn't get the canvas bbox");
     return (x: number, y: number) => {
         return { x: offset.x + x, y: offset.y + y };
