@@ -91,6 +91,17 @@ export default defineConfig({
         },
         server: {
             https: !['0', 'false'].includes(PUBLIC_HTTPS_SERVER),
+            cors: {
+                /**
+                 * CORS allow list for opening examples on external sites
+                 */
+                origin: [
+                    // Plunkr
+                    'https://run.plnkr.co',
+                    // Codesandbox
+                    /\.csb.app/,
+                ],
+            },
         },
         css: {
             preprocessorOptions: {
