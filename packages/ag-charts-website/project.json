@@ -75,11 +75,12 @@
       }
     },
     "test:vitest": {
-      "executor": "@nx/vite:test",
+      "command": "npx vitest",
       "outputs": ["{workspaceRoot}/reports/ag-charts-website.xml"],
       "dependsOn": [],
       "options": {
-        "config": "packages/ag-charts-website/vitest.config.mjs"
+        "config": "{projectRoot}/vitest.config.mjs",
+        "watch": false
       },
       "configurations": {
         "ci": {
