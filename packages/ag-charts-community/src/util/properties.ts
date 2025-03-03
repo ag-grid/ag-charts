@@ -3,7 +3,7 @@ import { Logger, isArray } from 'ag-charts-core';
 import { extractDecoratedPropertyMetadata, listDecoratedProperties } from './decorator';
 
 export class BaseProperties<T extends object = object> {
-    protected handleUnknownProperties(_unknownKeys: Set<string>, _properties: T) {
+    handleUnknownProperties(_unknownKeys: Set<string>, _properties: T) {
         // override point for derived class.
     }
 
