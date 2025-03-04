@@ -118,7 +118,7 @@ describe('json module', () => {
                     foo: [{ fn: () => 'foo-bar!?!?!' }],
                 };
 
-                const diff = jsonDiff(source, target as any);
+                const diff = jsonDiff(source, target);
                 expect(diff).toMatchSnapshot();
                 expect(diff).toHaveProperty(['foo', '0', 'fn'], target.foo[0].fn);
             });
@@ -127,7 +127,7 @@ describe('json module', () => {
                 const source = { listeners: {} };
                 const target = { listeners: { seriesNodeClick: (t: unknown) => console.log(t) } };
 
-                const diff = jsonDiff(source, target as any) as any;
+                const diff = jsonDiff(source, target);
                 expect(diff).toStrictEqual(target);
             });
 
@@ -135,7 +135,7 @@ describe('json module', () => {
                 const source = { listeners: { seriesNodeClick: (t: unknown) => console.log(t) } };
                 const target = { listeners: { seriesNodeClick: undefined } };
 
-                const diff = jsonDiff(source, target as any) as any;
+                const diff = jsonDiff<typeof source | typeof target>(source, target);
                 expect(diff).toStrictEqual(target);
             });
 
@@ -144,7 +144,7 @@ describe('json module', () => {
                 const source = { legend: { listeners: { seriesNodeClick } } };
                 const target = { legend: { listeners: { seriesNodeClick } } };
 
-                const diff = jsonDiff(source, target as any);
+                const diff = jsonDiff(source, target);
                 expect(diff).toEqual(null);
             });
 
@@ -182,7 +182,7 @@ describe('json module', () => {
                     date3: FIXED_DATE,
                 };
 
-                const merge = mergeDefaults(mergee2, mergee1 as any, base);
+                const merge = mergeDefaults(mergee2, mergee1, base);
                 expect(merge).toMatchSnapshot();
                 expect(merge).toHaveProperty('no', mergee1.no);
                 expect(merge).toHaveProperty('no2', mergee2.no2);
