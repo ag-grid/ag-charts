@@ -567,7 +567,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeOpacity,
         });
 
-        const fillBBox = this.getFillBBox(baseStyle.fill);
+        const fillBBox = this.getFillBBox(marker.fill);
         const { defaultColorRange } = marker;
 
         markerSelection.each((node, datum) => {
