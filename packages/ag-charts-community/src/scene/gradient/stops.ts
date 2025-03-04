@@ -97,17 +97,6 @@ export function getColorStops(
                 value0 +
                 ((value1 - value0) * (i - previousDefinedStopIndex + stopOffset)) /
                     (nextDefinedStopIndex - previousDefinedStopIndex + stopOffset);
-            console.log({
-                stop,
-                d0,
-                d1,
-                value0,
-                value1,
-                i,
-                stopOffset,
-                previousDefinedStopIndex,
-                nextDefinedStopIndex,
-            });
         } else {
             previousDefinedStopIndex = i;
         }
