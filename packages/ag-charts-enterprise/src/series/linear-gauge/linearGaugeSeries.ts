@@ -150,7 +150,7 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
     ): string {
         const { label } = this;
         return (
-            label.formatter?.({ value, index }) ??
+            label.formatter?.({ value, index, boundSeries: undefined! }) ??
             (label.format != null ? defaultFormatter?.(value) : undefined) ??
             this.gauge.formatLabel(value)
         );

@@ -359,11 +359,7 @@ export abstract class AngleAxis<
 
             const rotation = this.getLabelRotation(angle);
 
-            let text = String(value);
-            if (label.formatter) {
-                const { callbackCache } = this.moduleCtx;
-                text = callbackCache.call(this, label.formatter, { value, index }) ?? '';
-            }
+            let text = this.formatTick(value, index);
 
             tempText.text = text;
             tempText.x = x;
