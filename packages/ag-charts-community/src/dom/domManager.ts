@@ -409,14 +409,23 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     private getRawOverlayClientRect(): BBox {
         let element: HTMLElement | null = this.element;
+        const fullScreenElement = (this.element.getRootNode() as any as DocumentOrShadowRoot | undefined)
+            ?.fullscreenElement;
 
         // Try and find a parent which will clip rendering of children - if found we should restrict
         // to that elements bounding box.
         while (element != null) {
-            const styleMap = element.computedStyleMap?.();
-            const overflowY = styleMap?.get('overflow-y')?.toString();
+            let isContainer: boolean;
+            if (fullScreenElement != null && element === fullScreenElement) {
+                isContainer = true;
+            } else {
+                const styleMap = element.computedStyleMap?.();
+                const overflowY = styleMap?.get('overflow-y')?.toString();
 
-            if (overflowY === 'auto' || overflowY === 'scroll') {
+                isContainer = overflowY === 'auto' || overflowY === 'scroll';
+            }
+
+            if (isContainer) {
                 return BBox.fromDOMRect(element.getBoundingClientRect());
             }
 
