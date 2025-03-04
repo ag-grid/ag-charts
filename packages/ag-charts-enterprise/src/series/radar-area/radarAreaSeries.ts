@@ -41,12 +41,11 @@ export class RadarAreaSeries extends RadarSeries {
 
         const areaNode = this.getAreaNode();
 
-        let fillBBox: _ModuleSupport.BBox | undefined;
         const { fill, defaultColorRange, fillOpacity } = this.properties;
         if (isGradientFill(fill)) {
-            fill.bounds ??= 'series';
-            fillBBox = this.getFillBBox(fill);
+            fill.bounds = !fill.bounds || fill.bounds == 'item' ? 'series' : 'axis';
         }
+        const fillBBox = this.getFillBBox(fill);
 
         areaNode.fillBBox = fillBBox;
         areaNode.fill = fill;
