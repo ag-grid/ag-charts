@@ -1,5 +1,5 @@
-import { getDocument } from '../../globals';
 import { createElement } from './domElements';
+import { getDocument } from './globalsProxy';
 
 /**
  * Triggers a download for a given data URL and file name.

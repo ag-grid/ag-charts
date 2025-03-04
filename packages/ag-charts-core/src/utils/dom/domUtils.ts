@@ -1,4 +1,4 @@
-import { getWindow } from '../../globals';
+import { getWindow } from './globalsProxy';
 
 export function parseColor(color: string): string | null {
     // getWindow is required to make sure this works on our CI.
