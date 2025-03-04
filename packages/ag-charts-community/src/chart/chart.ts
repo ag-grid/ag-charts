@@ -830,8 +830,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     protected destroySeries(allSeries: Series<unknown, any, any>[]): void {
         allSeries?.forEach((series) => {
-            series.removeEventListener('nodeClick', this.onSeriesNodeClick);
-            series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
+            series.removeEventListener('seriesNodeClick', this.onSeriesNodeClick);
+            series.removeEventListener('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
             series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
             series.destroy();
             this.seriesLayerManager.releaseGroup(series);
@@ -843,11 +843,11 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     private addSeriesListeners(series: Series<unknown, any, any>) {
         if (this.hasEventListener('seriesNodeClick')) {
-            series.addEventListener('nodeClick', this.onSeriesNodeClick);
+            series.addEventListener('seriesNodeClick', this.onSeriesNodeClick);
         }
 
         if (this.hasEventListener('seriesNodeDoubleClick')) {
-            series.addEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
+            series.addEventListener('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
         }
 
         if (this.hasEventListener('seriesVisibilityChange')) {
@@ -1080,11 +1080,11 @@ export abstract class Chart extends Observable implements ModuleInstance {
     }
 
     private readonly onSeriesNodeClick = (event: SeriesNodeEvent<any>) => {
-        this.fireEvent(event.clone('seriesNodeClick'));
+        this.fireEvent(event);
     };
 
     private readonly onSeriesNodeDoubleClick = (event: SeriesNodeEvent<any>) => {
-        this.fireEvent(event.clone('seriesNodeDoubleClick'));
+        this.fireEvent(event);
     };
 
     private readonly onSeriesVisibilityChange = (event: TypedEvent) => {
@@ -1574,7 +1574,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
 
         if (listeners) {
-            this.registerListeners(target, listeners as Record<string, TypedEventListener>);
+            this.registerListeners(target, listeners as Record<string, TypedEventListener>, {
+                nodeClick: 'seriesNodeClick',
+                nodeDoubleClick: 'seriesNodeDoubleClick',
+            });
         }
 
         if ('seriesGrouping' in options) {
@@ -1623,11 +1626,33 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
     }
 
-    private registerListeners(source: Observable, listeners: Record<string, TypedEventListener>) {
+    private registerListeners(
+        source: Observable,
+        listeners: Record<string, TypedEventListener>,
+        mapping?: Record<string, string>
+    ) {
         source.clearEventListeners();
         for (const [property, listener] of entries(listeners)) {
             if (isFunction(listener)) {
-                source.addEventListener(property, listener);
+                const mappedEventName = mapping?.[property];
+                if (mappedEventName == null) {
+                    source.addEventListener(property, listener);
+                } else {
+                    // @todo(AG-10006) - remove this
+                    source.addEventListener(mappedEventName, (e: any) => {
+                        if (e?.type === mappedEventName) {
+                            const clone = new Proxy(e, {
+                                get(target, p, receiver) {
+                                    return p === 'type' ? property : Reflect.get(target, p, receiver);
+                                },
+                            });
+
+                            listener(clone);
+                        } else {
+                            listener(e);
+                        }
+                    });
+                }
             }
         }
     }

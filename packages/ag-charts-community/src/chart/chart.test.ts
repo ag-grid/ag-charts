@@ -15,6 +15,7 @@ import {
     clickAction,
     createChart,
     deproxy,
+    doubleClickAction,
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
@@ -687,6 +688,61 @@ describe('Chart', () => {
             expect(chart.series.map((s) => s.id)).toEqual(['BubbleSeries-1', 'LineSeries-1', 'BubbleSeries-2']);
             expect(chart.series.map((s) => s.type)).toEqual(['bubble', 'line', 'bubble']);
             expect(chart.series.map((s) => s.visible)).toEqual([true, true, true]);
+        });
+    });
+
+    describe('node click event types', () => {
+        it('has correct types for click events', async () => {
+            const nodeClick = jest.fn();
+            const nodeDoubleClick = jest.fn();
+            const seriesNodeClick = jest.fn();
+            const seriesNodeDoubleClick = jest.fn();
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: [
+                    {
+                        xValue: 'category',
+                        yValue: 1,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                        listeners: {
+                            nodeClick,
+                            nodeDoubleClick,
+                        },
+                    },
+                ],
+                listeners: {
+                    seriesNodeClick,
+                    seriesNodeDoubleClick,
+                },
+            });
+            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+
+            await clickAction(200, 200)(agChartInstance);
+
+            expect(nodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(nodeDoubleClick).toHaveBeenCalledTimes(0);
+            expect(seriesNodeDoubleClick).toHaveBeenCalledTimes(0);
+
+            expect(nodeClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'nodeClick' }));
+            expect(seriesNodeClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'seriesNodeClick' }));
+
+            await doubleClickAction(200, 200)(agChartInstance);
+
+            expect(nodeDoubleClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeDoubleClick).toHaveBeenCalledTimes(1);
+
+            expect(nodeDoubleClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'nodeDoubleClick' }));
+            expect(seriesNodeDoubleClick).toHaveBeenCalledWith(
+                expect.objectContaining({ type: 'seriesNodeDoubleClick' })
+            );
         });
     });
 });
