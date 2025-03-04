@@ -612,8 +612,8 @@ describe('json module', () => {
             expect(source).toEqual({ a: true, b: false, c: true });
         });
 
-        it('should resolve `$not` operation with strict equality', () => {
-            const source = { a: { $not: [1, 1] }, b: { $not: [1, '1'] }, c: { $not: ['hello', 'hello'] } };
+        it('should resolve `$not` operation', () => {
+            const source = { a: { $not: [true] }, b: { $not: [false] }, c: { $not: ['hello'] } };
             jsonResolveOperations(source, {});
             expect(source).toEqual({ a: false, b: true, c: false });
         });
@@ -634,6 +634,14 @@ describe('json module', () => {
             const source = { a: { $if: [true, 'yes', 'no'] }, b: { $if: [false, 'yes', 'no'] } };
             jsonResolveOperations(source, {});
             expect(source).toEqual({ a: 'yes', b: 'no' });
+        });
+
+        it('should resolve `$isOperation` operation', () => {
+            const source = { a: { $isOperation: './b' }, b: { $not: [true] }, c: { $isOperation: './b' } };
+            jsonResolveOperations(source, {});
+            // Note: `a` resolves before `b`, so it considers `b` to be an operation, while `c` resolves after `b` has
+            // been resolved to a value.
+            expect(source).toEqual({ a: true, b: false, c: false });
         });
 
         // Numeric operations
@@ -672,6 +680,81 @@ describe('json module', () => {
             };
             jsonResolveOperations(source, {});
             expect(source).toEqual({ a: [{ greeting: 'hello' }, { greeting: 'bonjour' }], b: ['hello', 'bonjour'] });
+        });
+
+        it('should resolve `$find` operations', () => {
+            const source = {
+                a: [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
+                b: { $find: [{ $eq: [{ $path: './greeting' }, 'bonjour'] }, { $path: './a' }] },
+            };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({
+                a: [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
+                b: { greeting: 'bonjour' },
+            });
+        });
+
+        it('should resolve `$find` operations wrapped in `$path`', () => {
+            const source = {
+                a: [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
+                b: {
+                    $path: [
+                        './greeting',
+                        'default',
+                        { $find: [{ $eq: [{ $path: './greeting' }, 'bonjour'] }, { $path: './a' }] },
+                    ],
+                },
+            };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({
+                a: [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
+                b: 'bonjour',
+            });
+        });
+
+        it('should resolve `$find` and safely handle circular references with `$isOperation` operation', () => {
+            const source = {
+                a: [
+                    { $find: [{ $not: [{ $isOperation: true }] }, { $path: '../a' }] },
+                    { greeting: 'bonjour', lang: 'fr' },
+                    { greeting: 'howdy', lang: 'en-US' },
+                ],
+            };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({
+                a: [
+                    { greeting: 'bonjour', lang: 'fr' },
+                    { greeting: 'bonjour', lang: 'fr' },
+                    { greeting: 'howdy', lang: 'en-US' },
+                ],
+            });
+        });
+
+        it('should resolve `$find` and safely handle circular references with `$isOperation` operation on child', () => {
+            const source = {
+                a: [
+                    {
+                        greeting: {
+                            $path: [
+                                './greeting',
+                                'default value',
+                                { $find: [{ $not: [{ $isOperation: './greeting' }] }, { $path: '..' }] },
+                            ],
+                        },
+                        lang: 'en',
+                    },
+                    { greeting: 'bonjour', lang: 'fr' },
+                    { greeting: 'howdy', lang: 'en-US' },
+                ],
+            };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({
+                a: [
+                    { greeting: 'bonjour', lang: 'en' },
+                    { greeting: 'bonjour', lang: 'fr' },
+                    { greeting: 'howdy', lang: 'en-US' },
+                ],
+            });
         });
 
         it('should resolve `$merge` operation', () => {

@@ -276,7 +276,7 @@ export class ChartTheme {
         };
     }
 
-    private static readonly cartesianAxisDefault = {
+    private static readonly axisDefault = {
         [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({
             line: { enabled: false },
         }),
@@ -307,16 +307,28 @@ export class ChartTheme {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({
             label: { spacing: 5 },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+            shape: {
+                $path: ['./shape', undefined, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],
+            },
         }),
         [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({
             label: { spacing: 5 },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+            shape: {
+                $path: ['./shape', undefined, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],
+            },
         }),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({
             line: { enabled: false },
+            shape: {
+                $path: ['./shape', undefined, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],
+            },
         }),
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({
             line: { enabled: false },
+            shape: {
+                $path: ['./shape', undefined, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],
+            },
         }),
     };
 
@@ -405,7 +417,7 @@ export class ChartTheme {
                     axes[axisType] = mergeDefaults(
                         axes[axisType],
                         axisRegistry.getThemeTemplate(axisType),
-                        (ChartTheme.cartesianAxisDefault as any)[axisType]
+                        (ChartTheme.axisDefault as any)[axisType]
                     );
                 }
             }
