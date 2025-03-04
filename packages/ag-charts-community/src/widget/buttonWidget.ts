@@ -1,4 +1,5 @@
-import { createElement } from '../core';
+import { createElement } from 'ag-charts-core';
+
 import { setAttribute, setElementStyle } from '../util/attributeUtil';
 import { Widget } from './widget';
 import type { WidgetEventMap as EventMap } from './widgetEvents';

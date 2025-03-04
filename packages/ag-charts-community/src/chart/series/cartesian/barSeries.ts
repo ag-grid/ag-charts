@@ -679,7 +679,7 @@ export class BarSeries extends AbstractBarSeries<
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
         }))!;
         return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return itemStyler({
+            return this.callWithContext(itemStyler, {
                 seriesId,
                 ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
                 xValue,
@@ -768,6 +768,7 @@ export class BarSeries extends AbstractBarSeries<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format, false));
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),

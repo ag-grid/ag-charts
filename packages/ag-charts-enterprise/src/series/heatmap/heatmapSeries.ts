@@ -367,7 +367,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             const itemStyle = this.cachedDatumCallback(
                 createDatumId(datumId, highlighted ? 'highlight' : 'node'),
                 () => {
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         xKey,
@@ -510,6 +510,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 : undefined;
 
         return tooltip.formatTooltip(
+            this.properties,
             { title: title ?? legendItemName, symbol, data },
             {
                 seriesId,

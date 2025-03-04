@@ -456,7 +456,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const itemStyle = this.cachedDatumCallback(
                 createDatumId(datumId, highlighted ? 'highlight' : 'node'),
                 () => {
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         stageKey,
@@ -582,6 +582,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, datumIndex, format, false));
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 symbol: this.legendItemSymbol(datumIndex),
                 data: [

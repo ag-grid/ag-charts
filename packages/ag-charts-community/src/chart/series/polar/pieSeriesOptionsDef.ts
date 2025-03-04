@@ -1,15 +1,15 @@
 import {
     type OptionsDefs,
     arrayOf,
-    arrayOfGradient,
     boolean,
     callback,
+    color,
     constant,
     fillOptionsDef,
     fontOptionsDef,
+    gradient,
     lineDashOptionsDef,
     number,
-    operation,
     or,
     positiveNumber,
     ratio,
@@ -17,7 +17,7 @@ import {
     string,
     strokeOptionsDef,
 } from 'ag-charts-core';
-import { type AgPieSeriesOptions } from 'ag-charts-types';
+import type { AgPieSeriesOptions } from 'ag-charts-types';
 
 import { without } from '../../../util/object';
 import { commonSeriesOptionsDef, shadowOptionsDef, tooltipOptionsDef } from '../../commonOptionsDef';
@@ -65,12 +65,12 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
         ...fontOptionsDef,
     },
     calloutLine: {
-        colors: arrayOf(string),
+        colors: arrayOf(color),
         length: positiveNumber,
         strokeWidth: positiveNumber,
     },
-    fills: or(or(arrayOf(string), arrayOfGradient), operation),
-    strokes: or(arrayOf(string), operation),
+    fills: arrayOf(or(color, gradient)),
+    strokes: arrayOf(color),
     tooltip: tooltipOptionsDef,
     shadow: shadowOptionsDef,
     ...commonSeriesOptionsDef,

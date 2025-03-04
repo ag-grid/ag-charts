@@ -2,6 +2,7 @@ import {
     Logger,
     isArray,
     isBoolean,
+    isColor,
     isFiniteNumber,
     isFunction,
     isNumber,
@@ -11,7 +12,6 @@ import {
     stringifyValue,
 } from 'ag-charts-core';
 
-import { Color } from './color';
 import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
 import { isProperties } from './properties';
 
@@ -148,10 +148,7 @@ export const DATE_OR_DATETIME_MS = OR(DATE, POSITIVE_NUMBER);
 
 const colorMessage = `A color string can be in one of the following formats to be valid: #rgb, #rrggbb, rgb(r, g, b), rgba(r, g, b, a) or a CSS color name such as 'white', 'orange', 'cyan', etc`;
 
-export const COLOR_STRING = predicateWithMessage(
-    (v: any) => isString(v) && Color.validColorString(v),
-    `color String. ${colorMessage}`
-);
+export const COLOR_STRING = predicateWithMessage(isColor, `color string. ${colorMessage}`);
 
 export const COLOR_GRADIENT = attachObjectRestrictions(
     predicateWithMessage((value) => isObject(value) && value.type === 'gradient', 'a color gradient object')

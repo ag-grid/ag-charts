@@ -540,7 +540,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         if (itemStyler == null) return;
 
         return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return itemStyler({
+            return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
                 xKey,
@@ -636,6 +636,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),

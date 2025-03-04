@@ -1,4 +1,5 @@
-import { createElement } from '../core';
+import { createElement } from 'ag-charts-core';
+
 import { getAttribute, setAttribute } from '../util/attributeUtil';
 import { formatPercent } from '../util/format.util';
 import { clamp } from '../util/number';

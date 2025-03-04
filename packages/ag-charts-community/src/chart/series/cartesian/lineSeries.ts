@@ -492,7 +492,7 @@ export class LineSeries extends CartesianSeries<
         return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
             const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
             const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-            return itemStyler({
+            return this.callWithContext(itemStyler, {
                 seriesId,
                 ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
                 highlighted,
@@ -601,6 +601,7 @@ export class LineSeries extends CartesianSeries<
         Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format, false));
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),

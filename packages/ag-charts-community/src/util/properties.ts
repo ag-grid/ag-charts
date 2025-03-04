@@ -3,6 +3,10 @@ import { Logger, isArray } from 'ag-charts-core';
 import { extractDecoratedPropertyMetadata, listDecoratedProperties } from './decorator';
 
 export class BaseProperties<T extends object = object> {
+    handleUnknownProperties(_unknownKeys: Set<string>, _properties: T) {
+        // override point for derived class.
+    }
+
     set(properties: T) {
         const { className = this.constructor.name } = this.constructor as { className?: string };
 
@@ -34,6 +38,7 @@ export class BaseProperties<T extends object = object> {
                 keys.delete(propertyKey);
             }
         }
+        this.handleUnknownProperties(keys, properties);
         for (const unknownKey of keys) {
             Logger.warn(`unable to set [${unknownKey}] in ${className} - property is unknown`);
         }

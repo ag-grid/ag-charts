@@ -447,7 +447,7 @@ export abstract class OhlcSeriesBase<
 
         const { xKey, openKey, closeKey, highKey, lowKey } = properties;
         return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return itemStyler({
+            return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
                 itemId,
@@ -500,6 +500,7 @@ export abstract class OhlcSeriesBase<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, itemId, format, false));
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 title: legendItemName,

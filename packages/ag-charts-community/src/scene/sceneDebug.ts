@@ -1,7 +1,6 @@
 /* eslint-disable no-restricted-properties */
-import { Logger, isString, toArray } from 'ag-charts-core';
+import { Logger, getWindow, isString, toArray } from 'ag-charts-core';
 
-import { getWindow } from '../core';
 import { Debug } from '../util/debug';
 import { SimpleTextMeasurer } from '../util/textMeasurer';
 import { BBox } from './bbox';

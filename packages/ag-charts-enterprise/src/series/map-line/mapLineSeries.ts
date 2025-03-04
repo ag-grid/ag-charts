@@ -405,7 +405,7 @@ export class MapLineSeries extends TopologySeries<
             const itemStyle = this.cachedDatumCallback(
                 createDatumId(datumId, highlighted ? 'highlight' : 'node'),
                 () => {
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted,
@@ -649,6 +649,7 @@ export class MapLineSeries extends TopologySeries<
         );
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: idValues[datumIndex],
                 title: title ?? legendItemName,

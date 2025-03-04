@@ -436,7 +436,7 @@ export class SankeySeries extends FlowProportionSeries<
                         lineDashOffset = 0,
                     } = format;
 
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted,
@@ -548,7 +548,7 @@ export class SankeySeries extends FlowProportionSeries<
                         lineDashOffset = 0,
                     } = format;
 
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted,
@@ -650,6 +650,7 @@ export class SankeySeries extends FlowProportionSeries<
         }
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 title,
                 symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex, format),

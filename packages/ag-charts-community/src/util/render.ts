@@ -1,4 +1,4 @@
-import { getWindow } from '../core';
+import { getWindow } from 'ag-charts-core';
 
 type Callback = (params: { count: number }) => Promise<void> | void;
 

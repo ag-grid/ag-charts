@@ -609,7 +609,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             format = this.cachedDatumCallback(
                 this.getDatumId(datum, datumIndex) + (highlighted ? '-highlight' : '-hide'),
                 () =>
-                    itemStyler({
+                    this.callWithContext(itemStyler, {
                         datum,
                         angleKey,
                         radiusKey,
@@ -1415,6 +1415,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             angleName;
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 title,
                 symbol: this.legendItemSymbol(datumIndex),

@@ -337,6 +337,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 title: legendItemName ?? yName,
@@ -429,7 +430,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         if (itemStyler == null) return;
 
         return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return itemStyler({
+            return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
                 xKey,
@@ -553,7 +554,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (itemStyler) {
             const formatStyles = this.cachedDatumCallback(createDatumId(datum.index, scope), () =>
-                itemStyler({
+                this.callWithContext(itemStyler, {
                     datum,
                     seriesId,
                     highlighted: scope === 'highlight',

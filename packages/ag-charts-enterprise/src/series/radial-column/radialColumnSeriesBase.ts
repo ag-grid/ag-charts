@@ -412,7 +412,7 @@ export abstract class RadialColumnSeriesBase<
         if (itemStyler == null) return;
 
         return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return itemStyler({
+            return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
                 highlighted,
@@ -530,6 +530,7 @@ export abstract class RadialColumnSeriesBase<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: angleAxis.formatDatum(angleValue),
                 symbol: this.legendItemSymbol(),

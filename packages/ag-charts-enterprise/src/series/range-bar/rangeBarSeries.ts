@@ -515,7 +515,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         if (itemStyler == null) return;
 
         return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return itemStyler({
+            return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
                 xKey,
@@ -597,6 +597,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),

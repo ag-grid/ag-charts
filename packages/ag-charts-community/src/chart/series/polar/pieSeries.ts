@@ -591,7 +591,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             format = this.cachedDatumCallback(
                 this.getDatumId(datum, datumIndex) + (highlighted ? '-highlight' : '-hide'),
                 () =>
-                    itemStyler({
+                    this.callWithContext(itemStyler, {
                         datum,
                         angleKey,
                         radiusKey,
@@ -1318,6 +1318,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             angleName;
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 title,
                 symbol: this.legendItemSymbol(datumIndex),

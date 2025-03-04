@@ -20,14 +20,12 @@ export class StopProperties extends BaseProperties implements AgGradientColorSto
 
 function stopsAreAscending(fills: AgGradientColorStop[]) {
     let currentStop: number | undefined;
-    for (const { stop } of fills) {
-        if (stop == null) {
-            continue;
-        } else if (currentStop != null && stop < currentStop) {
+    for (const fill of fills) {
+        if (fill?.stop == null) continue;
+        if (currentStop != null && fill.stop < currentStop) {
             return false;
         }
-
-        currentStop = stop;
+        currentStop = fill.stop;
     }
 
     return true;
@@ -80,18 +78,18 @@ export function getColorStops(
             nextDefinedStopIndex = fills.length - 1;
 
             for (let j = i + 1; j < fills.length; j += 1) {
-                if (fills[j].stop != null) {
+                if (fills[j]?.stop != null) {
                     nextDefinedStopIndex = j;
                     break;
                 }
             }
         }
 
-        let { stop } = colorStop;
+        let stop = colorStop?.stop;
 
         if (stop == null) {
-            const stop0 = fills[previousDefinedStopIndex].stop;
-            const stop1 = fills[nextDefinedStopIndex].stop;
+            const stop0 = fills[previousDefinedStopIndex]?.stop;
+            const stop1 = fills[nextDefinedStopIndex]?.stop;
             const value0 = stop0 ?? d0;
             const value1 = stop1 ?? d1;
             const stopOffset = isDiscrete && stop0 == null ? 1 : 0;
@@ -109,7 +107,8 @@ export function getColorStops(
     let lastDefinedColor = fills.find((c) => c.color != null)?.color;
     let colorScale: ColorScale | undefined;
 
-    const colorStops = fills.map(({ color }, i): GradientColorStop => {
+    const colorStops = fills.map((fill, i): GradientColorStop => {
+        let color = fill?.color;
         const offset = offsets[i];
 
         if (color != null) {

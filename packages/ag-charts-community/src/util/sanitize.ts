@@ -1,4 +1,4 @@
-import { createElement } from '../core';
+import { createElement } from 'ag-charts-core';
 
 let element: HTMLElement | null = null;
 

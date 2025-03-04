@@ -179,7 +179,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             const itemStyle = this.cachedDatumCallback(
                 createDatumId(datumId.join(':'), highlighted ? 'highlight' : 'node'),
                 () => {
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         depth,
@@ -573,6 +573,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const color = format.fill;
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 title: labelKey != null ? datum[labelKey] : undefined,
                 symbol: {

@@ -267,7 +267,7 @@ describe('json module', () => {
                 const base: any = {};
                 const mergee = { a: [{ x: 1 }], b: [{ y: 2 }] };
 
-                const merge = deepClone(mergeDefaults(mergee, base), new Set(['b']));
+                const merge = deepClone(mergeDefaults(mergee, base), { shallow: new Set(['b']) });
                 expect(merge).toMatchSnapshot();
                 expect(merge).not.toBe(base);
                 expect(merge).not.toBe(mergee);

@@ -1,4 +1,5 @@
-import { createElement } from '../core';
+import { createElement } from 'ag-charts-core';
+
 import { getAttribute, setAttribute } from '../util/attributeUtil';
 import { PREV_NEXT_KEYS, hasNoModifiers } from '../util/keynavUtil';
 import type { ButtonWidget } from './buttonWidget';

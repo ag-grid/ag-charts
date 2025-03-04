@@ -1328,6 +1328,7 @@ export class RadialGaugeSeries
         if (value == null) return;
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 data: [{ label: text, fallbackLabel: 'Value', value: this.formatLabel(value) }],
             },

@@ -8,6 +8,10 @@ export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _Modul
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
 
 type FormatOptions = Pick<AgErrorBarOptions<any>, 'xLowerKey' | 'xUpperKey' | 'yLowerKey' | 'yUpperKey' | 'itemStyler'>;
+type Caller = {
+    callWithContext<I, O, F extends (params: I) => O>(callback: F, params: I): O;
+    callWithContext<I, O, F extends (params: I) => O | undefined>(callback: F, params: I): O | undefined;
+};
 
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 type CapOptions = NonNullable<AgErrorBarThemeableOptions['cap']>;
@@ -95,12 +99,20 @@ export class ErrorBarNode extends _ModuleSupport.Group {
         };
     }
 
-    private formatStyles(style: AgErrorBarThemeableOptions, options: FormatOptions, highlighted: boolean) {
+    private formatStyles(
+        style: AgErrorBarThemeableOptions,
+        options: FormatOptions,
+        caller: Caller,
+        highlighted: boolean
+    ) {
         let { cap: capsStyle, ...whiskerStyle } = style;
 
         const params = this.getItemStylerParams(options, style, highlighted);
         if (params != null && options.itemStyler != null) {
-            const result = options.itemStyler(params);
+            type F = NonNullable<typeof options.itemStyler>;
+            type I = Parameters<F>[0];
+            type O = ReturnType<F>;
+            const result = caller.callWithContext<I, O, F>(options.itemStyler, params);
             whiskerStyle = mergeDefaults(result, whiskerStyle);
             capsStyle = mergeDefaults(result?.cap, result, capsStyle);
         }
@@ -118,11 +130,11 @@ export class ErrorBarNode extends _ModuleSupport.Group {
         );
     }
 
-    update(style: AgErrorBarThemeableOptions, formatters: FormatOptions, highlighted: boolean) {
+    update(style: AgErrorBarThemeableOptions, formatters: FormatOptions, caller: Caller, highlighted: boolean) {
         if (this.datum === undefined) {
             return;
         }
-        const { whiskerStyle, capsStyle } = this.formatStyles(style, formatters, highlighted);
+        const { whiskerStyle, capsStyle } = this.formatStyles(style, formatters, caller, highlighted);
         const { xBar, yBar, capDefaults } = this.datum;
 
         const whisker = this.whiskerPath;
