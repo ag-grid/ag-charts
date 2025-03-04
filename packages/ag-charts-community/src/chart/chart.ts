@@ -516,6 +516,13 @@ export abstract class Chart extends Observable implements ModuleInstance {
             .catch((e) => Logger.errorOnce(e));
     }
 
+    private clearCallbackCache() {
+        this.ctx.callbackCache.invalidateCache();
+        for (const series of this.series) {
+            series.resetDatumCallbackCache();
+        }
+    }
+
     private _pendingFactoryUpdatesCount = 0;
     private _performUpdateSkipAnimations: boolean = false;
     private readonly _performUpdateNotify = new AsyncAwaitQueue();
@@ -586,6 +593,12 @@ export abstract class Chart extends Observable implements ModuleInstance {
     private async performUpdate(count: number) {
         const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
+
+        // AG-10112 Callbacks (i.e. formatters / stylers / renderers) must always be considered "outdated" at the start
+        // of a draw call, because it is impossible for us to determine whether the return values have changed. The
+        // cache will only be used if nothing is being redrawn (e.g. moving the cursor within a bar of bar-series, which
+        // doesn't change the current highlight).
+        this.clearCallbackCache();
 
         // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
         this.performUpdateType = ChartUpdateType.NONE;
@@ -965,10 +978,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
 
         const dataController = new DataController(this.mode, this.suppressFieldDotNotation);
-        const seriesPromises = this.series.map((s) => {
-            s.resetDatumCallbackCache();
-            return s.processData(dataController);
-        });
+        const seriesPromises = this.series.map((s) => s.processData(dataController));
         const modulePromises = this.modulesManager.mapModules((m) => m.processData?.(dataController));
         this._cachedData = dataController.execute(this._cachedData);
         await Promise.all([...seriesPromises, ...modulePromises]);
