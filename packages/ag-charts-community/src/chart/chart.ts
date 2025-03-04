@@ -830,8 +830,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     protected destroySeries(allSeries: Series<unknown, any, any>[]): void {
         allSeries?.forEach((series) => {
-            series.removeEventListener('nodeClick', this.onSeriesNodeClick);
-            series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
+            series.removeEventListener('seriesNodeClick', this.onSeriesNodeClick);
+            series.removeEventListener('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
             series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
             series.destroy();
             this.seriesLayerManager.releaseGroup(series);
@@ -843,11 +843,11 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     private addSeriesListeners(series: Series<unknown, any, any>) {
         if (this.hasEventListener('seriesNodeClick')) {
-            series.addEventListener('nodeClick', this.onSeriesNodeClick);
+            series.addEventListener('seriesNodeClick', this.onSeriesNodeClick);
         }
 
         if (this.hasEventListener('seriesNodeDoubleClick')) {
-            series.addEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
+            series.addEventListener('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
         }
 
         if (this.hasEventListener('seriesVisibilityChange')) {
@@ -1080,11 +1080,11 @@ export abstract class Chart extends Observable implements ModuleInstance {
     }
 
     private readonly onSeriesNodeClick = (event: SeriesNodeEvent<any>) => {
-        this.fireEvent(event.clone('seriesNodeClick'));
+        this.fireEvent(event);
     };
 
     private readonly onSeriesNodeDoubleClick = (event: SeriesNodeEvent<any>) => {
-        this.fireEvent(event.clone('seriesNodeDoubleClick'));
+        this.fireEvent(event);
     };
 
     private readonly onSeriesVisibilityChange = (event: TypedEvent) => {

@@ -394,8 +394,8 @@ export class SeriesAreaManager extends BaseManager {
             const matches = this.pickNodes({ x, y }, 'event')?.matches;
             const found = matches?.[0];
             if (
-                found?.series.hasEventListener('nodeClick') ||
-                found?.series.hasEventListener('nodeDoubleClick') ||
+                found?.series.hasEventListener('seriesNodeClick') ||
+                found?.series.hasEventListener('seriesNodeDoubleClick') ||
                 (matches != null && matches.length > 1 && this.chart.tooltip.pagination)
             ) {
                 this.chart.ctx.domManager.updateCursor(this.id, 'pointer');
