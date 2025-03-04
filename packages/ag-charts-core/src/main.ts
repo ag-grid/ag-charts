@@ -12,8 +12,7 @@ export * from './classes/eventEmitter';
 export * from './options/commonOptionsDefs';
 
 // Utils
-export * from './utils/dom/domDownload';
-export * from './utils/dom/domElements';
+export * from './utils/dom';
 export * from './utils/arrays';
 export * from './utils/binarySearch';
 export * from './utils/diff';
