@@ -235,6 +235,10 @@ export function estimateTickCount(
     defaultTickCount: number,
     defaultMinSpacing: number
 ) {
+    if (rangeExtent <= 0) {
+        return { minTickCount: 0, maxTickCount: 0, tickCount: 0 };
+    }
+
     defaultMinSpacing = Math.max(defaultMinSpacing, rangeExtent / (defaultTickCount + 1));
 
     if (isNaN(minSpacing)) {
