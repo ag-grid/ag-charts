@@ -16,6 +16,9 @@ import { Color } from './color';
 import { SKIP_JS_BUILTINS, mergeDefaults } from './object';
 import { isProperties } from './properties';
 
+type StringSet = { has(value: string): boolean };
+export type CloneOptions = { shallow?: StringSet; assign?: StringSet };
+
 const CLASS_INSTANCE_TYPE = 'class-instance';
 
 /**
@@ -96,12 +99,12 @@ export function jsonPropertyCompare<T>(source: Partial<T>, target: T) {
  *
  * @return deep clone of source
  */
-export function deepClone<T>(source: T, shallow?: Set<string>): T {
+export function deepClone<T>(source: T, opts?: CloneOptions): T {
     if (isArray(source)) {
-        return source.map((item) => deepClone(item, shallow)) as T;
+        return source.map((item) => deepClone(item, opts)) as T;
     }
     if (isPlainObject(source)) {
-        return clonePlainObject(source, shallow) as T;
+        return clonePlainObject(source, opts) as T;
     }
     if (source instanceof Map) {
         return new Map(deepClone(Array.from(source))) as T;
@@ -109,15 +112,15 @@ export function deepClone<T>(source: T, shallow?: Set<string>): T {
     return shallowClone(source);
 }
 
-function clonePlainObject(source: PlainObject, shallow?: Set<string>) {
+function clonePlainObject(source: PlainObject, opts?: CloneOptions) {
     const target: PlainObject = {};
     for (const key of Object.keys(source)) {
-        if (key === 'context') {
+        if (opts?.assign?.has(key)) {
             target[key] = source[key];
-        } else if (shallow?.has(key)) {
+        } else if (opts?.shallow?.has(key)) {
             target[key] = shallowClone(source[key]);
         } else {
-            target[key] = deepClone(source[key], shallow);
+            target[key] = deepClone(source[key], opts);
         }
     }
     return target;

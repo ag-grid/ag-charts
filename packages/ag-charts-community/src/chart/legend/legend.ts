@@ -192,6 +192,8 @@ export class Legend extends BaseProperties {
 
     private readonly contextMenuDatum?: CategoryLegendDatum;
 
+    context!: never;
+
     @Validate(BOOLEAN)
     toggleSeries: boolean = true;
 

@@ -1,3 +1,5 @@
+import { AgCartesianChartOptions } from 'ag-charts-types';
+
 import type {
     MockAxisLabelFormatter,
     MockItemStyler,
@@ -9,6 +11,7 @@ import {
     AgCartesianChartOptionsWithContext,
     Chart,
     createChart,
+    expectWarningsCalls,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -139,8 +142,6 @@ describe('API context', () => {
     });
 });
 
-/*
-// TODO: Skip these tests (`xtest` triggers a sonarjs/no-skipped-test lint error in the CI)
 describe('options validation', () => {
     let chart: Chart;
     setupMockConsole();
@@ -165,4 +166,3 @@ describe('options validation', () => {
         expectWarningsCalls().toMatchSnapshot();
     });
 });
-//*/
