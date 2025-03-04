@@ -100,6 +100,8 @@ export default defineConfig({
                     'https://run.plnkr.co',
                     // Codesandbox
                     /\.csb.app/,
+                    // Github codespaces
+                    /\.github.dev/,
                 ],
             },
         },
