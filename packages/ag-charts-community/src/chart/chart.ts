@@ -1574,7 +1574,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
 
         if (listeners) {
-            this.registerListeners(target, listeners as Record<string, TypedEventListener>);
+            this.registerListeners(target, listeners as Record<string, TypedEventListener>, {
+                nodeClick: 'seriesNodeClick',
+                nodeDoubleClick: 'seriesNodeDoubleClick',
+            });
         }
 
         if ('seriesGrouping' in options) {
@@ -1623,11 +1626,33 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
     }
 
-    private registerListeners(source: Observable, listeners: Record<string, TypedEventListener>) {
+    private registerListeners(
+        source: Observable,
+        listeners: Record<string, TypedEventListener>,
+        mapping?: Record<string, string>
+    ) {
         source.clearEventListeners();
         for (const [property, listener] of entries(listeners)) {
             if (isFunction(listener)) {
-                source.addEventListener(property, listener);
+                const mappedEventName = mapping?.[property];
+                if (mappedEventName == null) {
+                    source.addEventListener(property, listener);
+                } else {
+                    // @todo(AG-10006) - remove this
+                    source.addEventListener(mappedEventName, (e: any) => {
+                        if (e?.type === mappedEventName) {
+                            const clone = new Proxy(e, {
+                                get(target, p, receiver) {
+                                    return p === 'type' ? property : Reflect.get(target, p, receiver);
+                                },
+                            });
+
+                            listener(clone);
+                        } else {
+                            listener(e);
+                        }
+                    });
+                }
             }
         }
     }
