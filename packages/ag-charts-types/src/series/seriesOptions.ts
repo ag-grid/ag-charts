@@ -48,4 +48,6 @@ export interface AgBaseSeriesOptions<TDatum> extends AgBaseSeriesThemeableOption
     data?: TDatum[];
     /** Whether to display the series. */
     visible?: boolean;
+    /** User context to be supplied to all callbacks */
+    context?: any;
 }

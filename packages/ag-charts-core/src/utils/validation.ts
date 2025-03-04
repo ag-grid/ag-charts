@@ -4,6 +4,7 @@ import {
     isBoolean,
     isColor,
     isDate,
+    isDefined,
     isFiniteNumber,
     isFunction,
     isObject,
@@ -71,7 +72,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     const unusedKeys = [];
     const optionsKeys = new Set(Object.keys(options));
     const errors: ValidationError[] = [];
-    const valid: Partial<T> & { context?: unknown } = {};
+    const valid: Partial<T> = {};
 
     function extendPath(key: string) {
         if (isArray(optionsDefs)) {
@@ -144,6 +145,13 @@ function validateMessage(
         : `${prefix} cannot be set to \`${stringifyValue(value, 50)}\`${expecting}, ignoring.`;
 }
 
+/**
+ * Generates an error message for unknown options.
+ * @param key The unknown option key.
+ * @param keyPath The path to the unknown option.
+ * @param unusedKeys List of available but unused keys.
+ * @returns A formatted error message with a suggestion if applicable.
+ */
 function unknownMessage(key: string, keyPath: string, unusedKeys: string[]): string {
     const match = findSuggestion(key, unusedKeys);
     const postfix = match ? `; Did you mean \`${match}\`? Ignoring.` : ', ignoring.';
@@ -266,19 +274,21 @@ export const or = (...validators: Validator[]) =>
             .join(' or ')
     );
 
+// Helpers
+const isComparable = (value: unknown): value is number | Date => isFiniteNumber(value) || isValidDate(value);
+const isValidDateValue = (value: unknown) =>
+    isDate(value) || ((isFiniteNumber(value) || isString(value)) && isValidDate(new Date(value)));
+
 // Base type validators with descriptions.
-export const unknown = (_value: unknown): _value is unknown => true;
 export const array = attachDescription(isArray, 'an array');
 export const boolean = attachDescription(isBoolean, 'a boolean');
 export const callback = attachDescription(isFunction, 'a function');
+export const color = attachDescription(isColor, 'a color');
+export const date = attachDescription(isValidDateValue, 'a date');
+export const defined = attachDescription(isDefined, 'a defined value');
 export const number = attachDescription(isFiniteNumber, 'a number');
 export const object = attachDescription(isObject, 'an object');
 export const string = attachDescription(isString, 'a string');
-export const color = attachDescription(isColor, 'a color');
-export const date = attachDescription(
-    (value) => isDate(value) || ((isFiniteNumber(value) || isString(value)) && isValidDate(new Date(value))),
-    'a date'
-);
 
 export const arrayLength = (minLength: number, maxLength = Infinity) => {
     let message: string;
@@ -286,6 +296,8 @@ export const arrayLength = (minLength: number, maxLength = Infinity) => {
         message = `an array of at least ${minLength} items`;
     } else if (minLength === maxLength) {
         message = `an array of exactly ${minLength} items`;
+    } else if (minLength === 0) {
+        message = `an array of no more than ${maxLength} items`;
     } else {
         message = `an array of at least ${minLength} and no more than ${maxLength} items`;
     }
@@ -302,7 +314,7 @@ export const numberMin = (min: number, inclusive = true) =>
         `a number greater than ${inclusive ? 'or equal to ' : ''}${min}`
     );
 
-const numberRange = (min: number, max: number) =>
+export const numberRange = (min: number, max: number) =>
     attachDescription(
         (value) => isFiniteNumber(value) && value >= min && value <= max,
         `a number between ${min} and ${max} inclusive`
@@ -311,8 +323,6 @@ const numberRange = (min: number, max: number) =>
 export const positiveNumber = numberMin(0);
 
 export const ratio = numberRange(0, 1);
-
-const isComparable = (value: unknown): value is number | Date => isFiniteNumber(value) || isValidDate(value);
 
 export const lessThan = (otherField: string) =>
     attachDescription(
