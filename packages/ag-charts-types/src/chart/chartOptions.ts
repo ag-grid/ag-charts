@@ -2,6 +2,7 @@ import type { AgInitialStateOptions } from '../api/initialStateOptions';
 import type { AgFillType } from '../series/cartesian/commonOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
+import type { Renderer } from './callbackOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
 import type { AgDataSourceOptions } from './dataSourceOptions';
 import type { AgBaseChartListeners } from './eventOptions';
@@ -53,7 +54,7 @@ export interface AgChartOverlayOptions {
     /** Text to render in the overlay. */
     text?: string;
     /** A function for generating HTML element or string for overlay content. */
-    renderer?: () => HTMLElement | string;
+    renderer?: Renderer<never, HTMLElement>;
 }
 
 export interface AgChartOverlaysOptions {
