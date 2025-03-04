@@ -185,6 +185,7 @@ export class AxisTicks {
         const niceDomain = tickParams.nice ? this.scale.niceDomain(tickParams) : this.scale.domain;
         const rawTicks = this.scale.ticks(tickParams, niceDomain);
         const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
+        const boundSeries: never[] = [];
         const idGenerator = createIdsGenerator();
 
         const labelFormatter = this.label.format
@@ -201,7 +202,8 @@ export class AxisTicks {
 
             if (!this.inRange(translate)) continue;
 
-            const tickLabel = this.label.formatter?.({ value: tick, index, fractionDigits }) ?? labelFormatter(tick);
+            const tickLabel =
+                this.label.formatter?.({ value: tick, index, fractionDigits, boundSeries }) ?? labelFormatter(tick);
             const tickId = idGenerator(tickLabel);
 
             ticks.push({ tick, tickId, tickLabel, translate });
