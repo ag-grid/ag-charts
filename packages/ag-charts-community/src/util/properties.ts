@@ -3,6 +3,9 @@ import { Logger, isArray } from 'ag-charts-core';
 import { extractDecoratedPropertyMetadata, listDecoratedProperties } from './decorator';
 
 export class BaseProperties<T extends object = object> {
+    // user pass-through option: no validation-decorator required.
+    context?: unknown;
+
     set(properties: T) {
         const { className = this.constructor.name } = this.constructor as { className?: string };
 
@@ -33,6 +36,10 @@ export class BaseProperties<T extends object = object> {
                 }
                 keys.delete(propertyKey);
             }
+        }
+        if ('context' in properties) {
+            this.context = properties.context;
+            keys.delete('context');
         }
         for (const unknownKey of keys) {
             Logger.warn(`unable to set [${unknownKey}] in ${className} - property is unknown`);

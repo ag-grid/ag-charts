@@ -456,7 +456,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const itemStyle = this.cachedDatumCallback(
                 createDatumId(datumId, highlighted ? 'highlight' : 'node'),
                 () => {
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         stageKey,

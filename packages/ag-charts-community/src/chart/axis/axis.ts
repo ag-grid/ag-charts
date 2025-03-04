@@ -104,6 +104,9 @@ export abstract class Axis<
 
     readonly id = createId(this);
 
+    // user pass-through option: no validation required.
+    context?: unknown;
+
     @Validate(BOOLEAN)
     nice: boolean = true;
 

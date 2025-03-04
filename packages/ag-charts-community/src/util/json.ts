@@ -112,7 +112,13 @@ export function deepClone<T>(source: T, shallow?: Set<string>): T {
 function clonePlainObject(source: PlainObject, shallow?: Set<string>) {
     const target: PlainObject = {};
     for (const key of Object.keys(source)) {
-        target[key] = shallow?.has(key) ? shallowClone(source[key]) : deepClone(source[key], shallow);
+        if (key === 'context') {
+            target[key] = source[key];
+        } else if (shallow?.has(key)) {
+            target[key] = shallowClone(source[key]);
+        } else {
+            target[key] = deepClone(source[key], shallow);
+        }
     }
     return target;
 }
@@ -231,7 +237,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             const currentValueType = classify(currentValue);
             const newValueType = classify(newValue);
 
-            if (targetType === CLASS_INSTANCE_TYPE && !(property in target)) {
+            if (targetType === CLASS_INSTANCE_TYPE && !(property in target || property === 'context')) {
                 if (newValue === undefined) continue;
 
                 Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
@@ -252,7 +258,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
 
             if (isProperties(currentValue)) {
                 targetAny[property].set(newValue);
-            } else if (newValueType === 'object') {
+            } else if (newValueType === 'object' && property !== 'context') {
                 if (currentValue == null) {
                     Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
                     continue;

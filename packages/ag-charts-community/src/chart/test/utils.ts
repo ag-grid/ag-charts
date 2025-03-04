@@ -56,6 +56,11 @@ export interface PolarTestCase extends TestCase {
     options: AgPolarChartOptions;
 }
 
+export type AgCartesianChartOptionsWithContext = Omit<AgCartesianChartOptions, 'series' | 'axes'> & {
+    series?: (NonNullable<AgCartesianChartOptions['series']>[number] & { context?: unknown })[];
+    axes?: (NonNullable<AgCartesianChartOptions['axes']>[number] & { context?: unknown })[];
+};
+
 const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0);
 export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
     failureThreshold: FAILURE_THRESHOLD,

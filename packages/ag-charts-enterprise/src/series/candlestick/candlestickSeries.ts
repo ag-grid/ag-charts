@@ -76,7 +76,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                 style = this.cachedDatumCallback(
                     createDatumId(this.getDatumId(datum), isHighlight ? 'highlight' : 'node'),
                     () =>
-                        itemStyler({
+                        this.callWithContext(itemStyler, {
                             seriesId,
                             itemId: datum.itemId,
                             xKey,

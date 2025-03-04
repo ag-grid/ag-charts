@@ -962,6 +962,19 @@ export abstract class Series<
         }
     }
 
+    private needsContext<I>(params: I): params is I & { context: unknown } {
+        return 'context' in this.properties;
+    }
+
+    public callWithContext<I, O>(callback: (params: I) => O, params: I): O;
+    public callWithContext<I, O>(callback: (params: I) => O | undefined, params: I): O | undefined;
+    public callWithContext<I, O>(callback: (params: I) => O | undefined, params: I): O | undefined {
+        if (this.needsContext(params)) {
+            params.context = this.properties.context;
+        }
+        return callback(params);
+    }
+
     abstract getCategoryValue(datumIndex: TDatumIndex): any;
 
     abstract datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;

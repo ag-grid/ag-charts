@@ -530,7 +530,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const itemStyle = this.cachedDatumCallback(
                 createDatumId(datumId, highlighted ? 'highlight' : 'node'),
                 () => {
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         itemId,
                         datum,

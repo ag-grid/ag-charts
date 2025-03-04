@@ -540,7 +540,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         if (itemStyler == null) return;
 
         return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return itemStyler({
+            return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
                 xKey,

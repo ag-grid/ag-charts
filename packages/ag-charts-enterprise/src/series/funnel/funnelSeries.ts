@@ -154,7 +154,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
                 createDatumId(datumId, highlighted ? 'highlight' : 'node'),
                 () => {
                     const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = format;
-                    return itemStyler({
+                    return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted,

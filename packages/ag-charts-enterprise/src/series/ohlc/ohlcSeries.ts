@@ -52,7 +52,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
                 style = this.cachedDatumCallback(
                     createDatumId(this.getDatumId(datum), isHighlight ? 'highlight' : 'node'),
                     () =>
-                        itemStyler({
+                        this.callWithContext(itemStyler, {
                             seriesId,
                             itemId: datum.itemId,
                             xKey,
