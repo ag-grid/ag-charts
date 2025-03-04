@@ -573,6 +573,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const color = format.fill;
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 title: labelKey != null ? datum[labelKey] : undefined,
                 symbol: {

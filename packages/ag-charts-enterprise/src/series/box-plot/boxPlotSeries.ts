@@ -337,6 +337,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 title: legendItemName ?? yName,

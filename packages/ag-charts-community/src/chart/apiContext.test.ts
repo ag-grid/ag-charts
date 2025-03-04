@@ -1,15 +1,22 @@
-import type { MockItemStyler, MockLabelFormatter, MockTooltipRenderer } from './test/freezableMock';
+import type {
+    MockAxisLabelFormatter,
+    MockItemStyler,
+    MockSeriesLabelFormatter,
+    MockTooltipRenderer,
+} from './test/freezableMock';
 import { newFreezableMock } from './test/freezableMock';
 import {
     AgCartesianChartOptionsWithContext,
     Chart,
     createChart,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
+    waitForChartStability,
 } from './test/utils';
 
-describe('Chart', () => {
-    setupMockConsole({ debugShowOutput: true });
+describe('API context', () => {
+    setupMockConsole();
     setupMockCanvas();
 
     let chart: Chart;
@@ -19,16 +26,18 @@ describe('Chart', () => {
     let seriesContext2: object;
     let axisContext: object;
     const itemStyler = newFreezableMock<MockItemStyler>((_params) => undefined);
-    const labelFormatter = newFreezableMock<MockLabelFormatter>((_params) => undefined);
+    const axisLabelFormatter = newFreezableMock<MockAxisLabelFormatter>((_params) => undefined);
+    const seriesLabelFormatter = newFreezableMock<MockSeriesLabelFormatter>((_params) => undefined);
     const tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
 
     beforeEach(async () => {
         seriesContext0 = { name: '[0]: toyota' };
         seriesContext1 = { name: '[1]: ford' };
         seriesContext2 = { name: '[2]: bmw' };
-        axisContext = {};
+        axisContext = { name: 'X axis context' };
         itemStyler.mock.mockClear();
-        labelFormatter.mock.mockClear();
+        axisLabelFormatter.mock.mockClear();
+        seriesLabelFormatter.mock.mockClear();
         tooltipRenderer.mock.mockClear();
         options = {
             theme: {
@@ -36,7 +45,7 @@ describe('Chart', () => {
                     bar: {
                         series: {
                             itemStyler: itemStyler.frozen,
-                            label: { formatter: labelFormatter.frozen },
+                            label: { formatter: seriesLabelFormatter.frozen },
                             tooltip: { renderer: tooltipRenderer.frozen },
                         },
                     },
@@ -57,9 +66,7 @@ describe('Chart', () => {
                 {
                     type: 'category',
                     position: 'bottom',
-                    label: {
-                        formatter: (params) => `Quarter ${params.value.toUpperCase()}`,
-                    },
+                    label: { formatter: axisLabelFormatter.frozen },
                     context: axisContext,
                 },
                 { type: 'number', position: 'left' },
@@ -72,6 +79,7 @@ describe('Chart', () => {
         expect(Object.isFrozen(seriesContext0)).toBe(false);
         expect(Object.isFrozen(seriesContext1)).toBe(false);
         expect(Object.isFrozen(seriesContext2)).toBe(false);
+        expect(Object.isFrozen(axisContext)).toBe(false);
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
@@ -93,24 +101,68 @@ describe('Chart', () => {
         itemStyler.expect().nthCalledWithContext(10, seriesContext2);
         itemStyler.expect().nthCalledWithContext(11, seriesContext2);
     });
-    /*
-    // TODO: Skip these tests (`xtest` triggers a sonarjs/no-skipped-test lint error in the CI)
-    test('labelFormatter', () => {
-        labelFormatter.expect().toHaveBeenCalledTimes(12).withContext(axisContext);
+    test('seriesLabelFormatter', () => {
+        seriesLabelFormatter.expect().toHaveBeenCalledTimes(12);
+        seriesLabelFormatter.expect().nthCalledWithContext(0, seriesContext0);
+        seriesLabelFormatter.expect().nthCalledWithContext(1, seriesContext0);
+        seriesLabelFormatter.expect().nthCalledWithContext(2, seriesContext0);
+        seriesLabelFormatter.expect().nthCalledWithContext(3, seriesContext0);
+        seriesLabelFormatter.expect().nthCalledWithContext(4, seriesContext1);
+        seriesLabelFormatter.expect().nthCalledWithContext(5, seriesContext1);
+        seriesLabelFormatter.expect().nthCalledWithContext(6, seriesContext1);
+        seriesLabelFormatter.expect().nthCalledWithContext(7, seriesContext1);
+        seriesLabelFormatter.expect().nthCalledWithContext(8, seriesContext2);
+        seriesLabelFormatter.expect().nthCalledWithContext(9, seriesContext2);
+        seriesLabelFormatter.expect().nthCalledWithContext(10, seriesContext2);
+        seriesLabelFormatter.expect().nthCalledWithContext(11, seriesContext2);
+    });
+    test('axisLabelFormatter', () => {
+        axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(axisContext);
     });
     test('tooltipRenderer', async () => {
         tooltipRenderer.expect().toHaveBeenCalledTimes(0);
 
-        await hoverAction(53, 363)(chart); // datum 1, series 1
+        await hoverAction(130, 363)(chart); // datum 1, series 1
+        await waitForChartStability(chart);
+        await hoverAction(163, 369)(chart); // datum 2, series 1
+        await waitForChartStability(chart);
+        await hoverAction(205, 370)(chart); // datum 3, series 1
         await waitForChartStability(chart);
 
-        await hoverAction(87, 369)(chart); // datum 2, series 1
-        await waitForChartStability(chart);
-
-        await hoverAction(128, 370)(chart); // datum 3, series 1
-        await waitForChartStability(chart);
-
-        tooltipRenderer.expect().toHaveBeenCalledTimes(3).withContext(seriesContext);
+        tooltipRenderer.expect().toHaveBeenCalledTimes(6);
+        tooltipRenderer.expect().nthCalledWithContext(0, seriesContext0);
+        tooltipRenderer.expect().nthCalledWithContext(1, seriesContext0);
+        tooltipRenderer.expect().nthCalledWithContext(2, seriesContext1);
+        tooltipRenderer.expect().nthCalledWithContext(3, seriesContext1);
+        tooltipRenderer.expect().nthCalledWithContext(4, seriesContext2);
+        tooltipRenderer.expect().nthCalledWithContext(5, seriesContext2);
     });
-    //*/
 });
+
+/*
+// TODO: Skip these tests (`xtest` triggers a sonarjs/no-skipped-test lint error in the CI)
+describe('options validation', () => {
+    let chart: Chart;
+    setupMockConsole();
+    setupMockCanvas();
+    afterEach(() => chart?.destroy());
+    test('tooltip.context error', async () => {
+        const opts: AgCartesianChartOptions & { tooltip: { context: unknown } } = {
+            data: [{ x: 0, y: 0 }],
+            series: [{ xKey: 'x', yKey: 'y' }],
+            tooltip: { context: {} },
+        };
+        chart = await createChart(opts);
+        expectWarningsCalls().toMatchSnapshot();
+    });
+    test('legend.context error', async () => {
+        const opts: AgCartesianChartOptions & { legend: { context: unknown } } = {
+            data: [{ x: 0, y: 0 }],
+            series: [{ xKey: 'x', yKey: 'y' }],
+            legend: { context: {} },
+        };
+        chart = await createChart(opts);
+        expectWarningsCalls().toMatchSnapshot();
+    });
+});
+//*/

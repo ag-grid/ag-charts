@@ -400,6 +400,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         );
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: angleAxis.formatDatum(angleValue),
                 symbol: this.legendItemSymbol(),

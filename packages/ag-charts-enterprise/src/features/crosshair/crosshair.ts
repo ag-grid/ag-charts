@@ -204,7 +204,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         } = this;
 
         if (labelFormatter) {
-            const result = callbackCache.call(labelFormatter, value);
+            const result = callbackCache.call(this.axisCtx, labelFormatter, value);
             if (result != null) {
                 return result;
             }

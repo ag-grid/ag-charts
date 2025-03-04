@@ -500,6 +500,7 @@ export abstract class OhlcSeriesBase<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, itemId, format, false));
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 title: legendItemName,

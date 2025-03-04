@@ -1415,6 +1415,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             angleName;
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 title,
                 symbol: this.legendItemSymbol(datumIndex),

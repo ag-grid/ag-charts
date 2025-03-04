@@ -542,6 +542,7 @@ export abstract class BaseFunnelSeries<
         if (xValue == null) return;
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 symbol: this.legendItemSymbol(datumIndex),
                 data: [{ label: xAxis.formatDatum(xValue), value: yAxis.formatDatum(yValue) }],

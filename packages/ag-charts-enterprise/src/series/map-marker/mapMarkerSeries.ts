@@ -836,6 +836,7 @@ export class MapMarkerSeries
         );
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading,
                 title: title ?? legendItemName,

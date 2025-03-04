@@ -328,6 +328,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         );
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 symbol: this.legendItemSymbol(),
                 title,

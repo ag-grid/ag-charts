@@ -344,7 +344,7 @@ export class Legend extends BaseProperties {
         const { formatter } = this.item.label;
         if (formatter) {
             const seriesDatum = datum.datum;
-            return callbackCache.call(formatter, {
+            return callbackCache.call(this, formatter, {
                 itemId: datum.itemId,
                 value: datum.label.text,
                 seriesId: datum.seriesId,

@@ -854,6 +854,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             : undefined;
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 title: labelKey != null ? datum[labelKey] : undefined,
                 symbol,

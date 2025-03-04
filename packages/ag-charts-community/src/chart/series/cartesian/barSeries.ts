@@ -768,6 +768,7 @@ export class BarSeries extends AbstractBarSeries<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format, false));
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),

@@ -530,6 +530,7 @@ export abstract class RadialColumnSeriesBase<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: angleAxis.formatDatum(angleValue),
                 symbol: this.legendItemSymbol(),

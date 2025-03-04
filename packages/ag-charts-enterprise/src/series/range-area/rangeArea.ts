@@ -636,6 +636,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
         return tooltip.formatTooltip(
+            this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),
