@@ -1,0 +1,56 @@
+<div>
+    <my-chart></my-chart>
+</div>
+<script>
+    class MyChart extends HTMLElement {
+        constructor() {
+            super();
+
+            // Attach Shadow DOM
+            let shadow = this.attachShadow({ mode: 'open' });
+            // Create and append content inside the Shadow DOM
+            shadow.innerHTML = `
+                <div>
+                <style>
+                    #fs {
+                    position: absolute;
+                    right: 10px;
+                    top: 10px;
+                    cursor: pointer;
+                    }
+
+                    .full-screen #fs {
+                    visibility: hidden;
+                    }
+
+                    #content {
+                    background: var(--ha-card-background,var(--card-background-color,#fff));
+                    display: grid;
+                    }
+                </style>
+                <div id="content">
+                    <div id="container"></div>
+                    <div id="fs">
+                    <svg width="20px" height="20px" viewBox="0 0 32 32" id="i-fullscreen" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                        <path d="M4 12 L4 4 12 4 M20 4 L28 4 28 12 M4 20 L4 28 12 28 M28 20 L28 28 20 28"></path>
+                    </svg>
+                    </div>
+                </div>
+                </div>
+            `;
+            this.content = shadow.querySelector('#content');
+            this.container = shadow.querySelector('#container');
+            let fs = shadow.querySelector('#fs');
+            fs.addEventListener('click', () => {
+                this.content.classList.toggle('full-screen', true),
+                    this.content.requestFullscreen({ navigationUI: 'auto' });
+            });
+            shadow.addEventListener('fullscreenchange', () => {
+                this.content.classList.toggle('full-screen', document.fullscreenElement != null);
+            });
+        }
+    }
+
+    // Define the custom element
+    customElements.define('my-chart', MyChart);
+</script>
