@@ -22,8 +22,11 @@ export class Observable {
     }
 
     removeEventListener(type: string, listener: TypedEventListener): void {
-        this.eventListeners.get(type)?.delete(listener);
-        if (this.eventListeners.size === 0) {
+        const listeners = this.eventListeners.get(type);
+        if (listeners == null) return;
+
+        listeners.delete(listener);
+        if (listeners.size === 0) {
             this.eventListeners.delete(type);
         }
     }
