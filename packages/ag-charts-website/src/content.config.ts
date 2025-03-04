@@ -191,6 +191,7 @@ const gallery = defineCollection({
                         z.object({
                             title: z.string(),
                             name: z.string(),
+                            hidden: z.boolean().optional(),
                         })
                     ),
                 })
