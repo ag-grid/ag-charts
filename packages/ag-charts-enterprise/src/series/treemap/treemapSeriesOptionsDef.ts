@@ -4,9 +4,10 @@ import {
     arrayOf,
     boolean,
     callback,
+    color,
     constant,
     fillOptionsDef,
-    object,
+    gradient,
     or,
     positiveNumber,
     required,
@@ -26,9 +27,9 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
     colorKey: string,
     sizeName: string,
     colorName: string,
-    fills: arrayOf(or(string, object)),
-    strokes: arrayOf(string),
-    colorRange: arrayOf(string),
+    fills: arrayOf(or(color, gradient)),
+    strokes: arrayOf(color),
+    colorRange: arrayOf(color),
     itemStyler: callback,
     group: {
         gap: positiveNumber,
@@ -72,17 +73,17 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
     highlightStyle: {
         group: {
             label: {
-                color: string,
+                color: color,
             },
             ...fillOptionsDef,
             ...strokeOptionsDef,
         },
         tile: {
             label: {
-                color: string,
+                color: color,
             },
             secondaryLabel: {
-                color: string,
+                color: color,
             },
             ...fillOptionsDef,
             ...strokeOptionsDef,

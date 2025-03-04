@@ -1,23 +1,20 @@
 import {
     type OptionsDefs,
-    and,
     arrayOf,
     boolean,
     callback,
-    constant,
+    color,
     fillOptionsDef,
     fontOptionsDef,
     lineDashOptionsDef,
     number,
     object,
-    optionsDefs,
     or,
-    partialDefs,
     positiveNumber,
     ratio,
-    required,
     string,
     strokeOptionsDef,
+    typeUnion,
     union,
     unknown,
 } from 'ag-charts-core';
@@ -27,9 +24,6 @@ import type {
     AgDropShadowOptions,
     AgErrorBarOptions,
     AgInterpolationType,
-    AgLineLinearType,
-    AgLineSmoothType,
-    AgLineStepType,
     AgSeriesMarkerOptions,
     AgSeriesTooltip,
 } from 'ag-charts-types';
@@ -146,31 +140,18 @@ export const shadowOptionsDef: OptionsDefs<AgDropShadowOptions> = {
     xOffset: number,
     yOffset: number,
     blur: positiveNumber,
-    color: string,
+    color: color,
 };
 
-export const interpolationValidator = and(
-    partialDefs<Pick<AgInterpolationType, 'type'>>({ type: required(union('linear', 'smooth', 'step')) }),
-    or(
-        optionsDefs<AgLineLinearType>(
-            {
-                type: required(constant('linear')),
-            },
-            'linear interpolation line options'
-        ),
-        optionsDefs<AgLineSmoothType>(
-            {
-                type: required(constant('smooth')),
-                tension: ratio,
-            },
-            'smooth interpolation line options'
-        ),
-        optionsDefs<AgLineStepType>(
-            {
-                type: required(constant('step')),
-                position: union('start', 'middle', 'end'),
-            },
-            'step interpolation line options'
-        )
-    )
+export const interpolationValidator = typeUnion<AgInterpolationType>(
+    {
+        linear: {},
+        smooth: {
+            tension: ratio,
+        },
+        step: {
+            position: union('start', 'middle', 'end'),
+        },
+    },
+    'interpolation line options'
 );

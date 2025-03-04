@@ -1,4 +1,13 @@
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from '../../chart/types';
+import type {
+    CssColor,
+    FontFamily,
+    FontSize,
+    FontStyle,
+    FontWeight,
+    Opacity,
+    PixelSize,
+    Ratio,
+} from '../../chart/types';
 
 /**
  * Represents configuration options for X and Y axes in a chart.
@@ -30,9 +39,9 @@ export type AgGradientFillMode = 'continuous' | 'discrete';
 
 export interface AgGradientColorStop {
     /** Colour of this category. */
-    color?: string;
+    color?: CssColor;
     /** Stop value of this category. Defaults the maximum value if unset. */
-    stop?: number;
+    stop?: Ratio;
 }
 
 export interface AgGradientFill {

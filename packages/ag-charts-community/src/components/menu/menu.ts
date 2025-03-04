@@ -1,4 +1,5 @@
-import { createElement } from '../../core';
+import { createElement } from 'ag-charts-core';
+
 import type { LabelIcon } from '../../dom/elements';
 import { getIconClassNames } from '../../util/dom';
 import { type MenuCloser, initMenuKeyNav, isButtonClickEvent } from '../../util/keynavUtil';

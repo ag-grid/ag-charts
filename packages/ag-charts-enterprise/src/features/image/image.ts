@@ -1,16 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { createElement } from 'ag-charts-core';
 
-const {
-    BaseProperties,
-    ObserveChanges,
-    ProxyProperty,
-    Validate,
-    NUMBER,
-    POSITIVE_NUMBER,
-    RATIO,
-    calculatePlacement,
-    createElement,
-} = _ModuleSupport;
+const { BaseProperties, ObserveChanges, ProxyProperty, Validate, NUMBER, POSITIVE_NUMBER, RATIO, calculatePlacement } =
+    _ModuleSupport;
 
 export class Image extends BaseProperties {
     @Validate(NUMBER, { optional: true })

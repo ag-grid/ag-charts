@@ -1,6 +1,6 @@
+import { createElement } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
-import { createElement } from '../core';
 import type { LocaleManager } from '../locale/localeManager';
 import { type BaseStyleTypeMap, setAttribute, setElementStyle } from '../util/attributeUtil';
 import { BoundedTextWidget } from '../widget/boundedTextWidget';

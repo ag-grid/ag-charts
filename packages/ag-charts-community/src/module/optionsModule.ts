@@ -3,8 +3,10 @@ import {
     Logger,
     ModuleRegistry,
     type OptionsDefs,
-    attachDescription,
     circularSliceArray,
+    color,
+    getDocument,
+    getWindow,
     groupBy,
     isEnumValue,
     isFiniteNumber,
@@ -14,6 +16,8 @@ import {
     isSymbol,
     number,
     or,
+    setDocument,
+    setWindow,
     string,
     unique,
     validate,
@@ -47,8 +51,6 @@ import {
     isSeriesOptionType,
 } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
-import { getDocument, getWindow, setDocument, setWindow } from '../core';
-import { Color } from '../util/color';
 import { Debug } from '../util/debug';
 import {
     type CloneOptions,
@@ -274,9 +276,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         const validatedSeriesOptions: any[] = [];
-        let index = -1;
-        for (const seriesOptions of options.series ?? []) {
-            index++;
+        const seriesCount = options.series?.length ?? 0;
+        for (let index = 0; index < seriesCount; index++) {
+            const seriesOptions = options.series![index];
             const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type ?? 'line');
 
             if (seriesDef?.options == null) {
@@ -491,11 +493,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (!isPlainObject(options.theme) || !options.theme.params) {
             return defaultParameters;
         }
-
-        const color = attachDescription(
-            (value: unknown) => isString(value) && Color.validColorString(value),
-            `a color`
-        );
 
         const themeParamsOptionsDef: OptionsDefs<AgChartThemeParams> = {
             accentColor: color,

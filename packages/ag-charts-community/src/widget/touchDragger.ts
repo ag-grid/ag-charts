@@ -1,4 +1,4 @@
-import { getWindow } from '../core';
+import { getWindow } from 'ag-charts-core';
 
 const LONG_TAP_DURATION_MS = 500; /* milliseconds */
 const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px²*/

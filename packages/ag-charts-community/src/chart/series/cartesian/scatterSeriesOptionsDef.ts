@@ -1,6 +1,7 @@
 import { type OptionsDefs, boolean, constant, required, string, union } from 'ag-charts-core';
 import type { AgScatterSeriesOptions } from 'ag-charts-types';
 
+import { without } from '../../../util/object';
 import {
     commonSeriesOptionsDef,
     errorBarOptionsDef,
@@ -26,5 +27,5 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     tooltip: tooltipOptionsDef,
     errorBar: errorBarOptionsDef,
     ...commonSeriesOptionsDef,
-    ...markerOptionsDef,
+    ...without(markerOptionsDef, ['enabled']),
 };

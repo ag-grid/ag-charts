@@ -1,4 +1,5 @@
-import { getDocument, getWindow } from '../core';
+import { getDocument, getWindow } from 'ag-charts-core';
+
 import { setAttribute } from './attributeUtil';
 
 export class GuardedElement {

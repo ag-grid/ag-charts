@@ -1,6 +1,4 @@
-import { Logger, toArray } from 'ag-charts-core';
-
-import { getWindow } from '../core';
+import { Logger, getWindow, toArray } from 'ag-charts-core';
 
 export type DebugLoggerMethods = {
     check(): boolean;

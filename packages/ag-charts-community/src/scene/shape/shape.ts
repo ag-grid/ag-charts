@@ -1,6 +1,6 @@
+import { createSvgElement } from 'ag-charts-core';
 import type { AgFillType, AgGradientFill } from 'ag-charts-types';
 
-import { createSvgElement } from '../../core';
 import { generateUUID } from '../../util/id';
 import { clamp } from '../../util/number';
 import type { BBox } from '../bbox';

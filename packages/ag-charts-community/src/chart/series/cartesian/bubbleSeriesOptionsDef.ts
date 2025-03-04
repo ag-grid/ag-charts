@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-core';
 import type { AgBubbleSeriesOptions } from 'ag-charts-types';
 
+import { without } from '../../../util/object';
 import {
     commonSeriesOptionsDef,
     markerOptionsDef,
@@ -38,5 +39,5 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     },
     tooltip: tooltipOptionsDef,
     ...commonSeriesOptionsDef,
-    ...markerOptionsDef,
+    ...without(markerOptionsDef, ['enabled']),
 };

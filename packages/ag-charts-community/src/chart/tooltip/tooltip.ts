@@ -1,6 +1,6 @@
+import { getWindow } from 'ag-charts-core';
 import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
 
-import { getWindow } from '../../core';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import { clamp } from '../../util/number';
