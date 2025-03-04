@@ -1,4 +1,5 @@
-import { createElement } from '../../core';
+import { createElement } from 'ag-charts-core';
+
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
 import { BaseProperties } from '../../util/properties';

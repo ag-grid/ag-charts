@@ -1,4 +1,5 @@
-import { createElement } from '../core';
+import { createElement } from 'ag-charts-core';
+
 import { setAttribute } from '../util/attributeUtil';
 import { Widget } from './widget';
 

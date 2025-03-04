@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { entries } from 'ag-charts-core';
+import { createElement, entries } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -31,7 +31,6 @@ const {
     Toolbar,
     ToolbarButtonProperties,
     Validate,
-    createElement,
 } = _ModuleSupport;
 
 class ZoomButtonProperties extends ToolbarButtonProperties {

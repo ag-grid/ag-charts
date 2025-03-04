@@ -394,7 +394,6 @@ export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description?: string) =>
             const errors: ValidationError[] = [];
             for (let i = 0; i < value.length; i++) {
                 const result = validate(value[i], defs, `${context.path}[${i}]`);
-                // console.log(value[i], defs, `${context.path}[${i}]`, result);
                 errors.push(...result.errors);
                 valid.push(result.valid);
             }

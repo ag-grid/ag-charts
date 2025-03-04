@@ -1,6 +1,5 @@
-import { getWindow } from 'ag-charts-core';
+import { createElement, createSvgElement, getWindow } from 'ag-charts-core';
 
-import { createElement, createSvgElement } from '../core';
 import { BBox } from '../scene/bbox';
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';

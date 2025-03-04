@@ -1,5 +1,4 @@
-import { getDocument } from 'ag-charts-core';
-
+import { getDocument } from '../../globals';
 import { createElement } from './domElements';
 
 /**

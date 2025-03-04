@@ -1,4 +1,5 @@
-import { createElement } from '../../core';
+import { createElement } from 'ag-charts-core';
+
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { Node } from '../../scene/node';

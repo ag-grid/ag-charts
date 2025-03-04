@@ -1,4 +1,4 @@
-import { getDocument } from 'ag-charts-core';
+import { getDocument } from '../../globals';
 
 /**
  * Creates an HTML element with optional class names and inline styles.

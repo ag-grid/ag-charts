@@ -1,7 +1,7 @@
 import type { CssColor } from 'ag-charts-types';
 
-import { getWindow } from '../globals/globalsProxy';
 import type { PlainObject } from '../interfaces/globalTypes';
+import { parseColor } from './dom';
 
 export function isDefined<T>(val: T | undefined | null): val is T {
     return val != null;
@@ -72,11 +72,5 @@ export function isSymbol(value: unknown): value is symbol {
 }
 
 export function isColor(value: unknown): value is CssColor {
-    if (!isString(value) || value === '') return false;
-    // getWindow is required to make sure this works on our CI.
-    // Using Option instead of createElement because it should be faster.
-    const OptionConstructor = Option ?? getWindow('Option');
-    const { style } = new OptionConstructor();
-    style.color = value;
-    return style.color !== '';
+    return isString(value) && parseColor(value) != null;
 }
