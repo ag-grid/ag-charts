@@ -147,6 +147,15 @@ describe('json module', () => {
                 const diff = jsonDiff(source, target as any);
                 expect(diff).toEqual(null);
             });
+
+            it('should correctly diff dictionary with alwaysReplace', () => {
+                const itemStyler = () => undefined;
+                const source = { series: [{ itemStyler }] };
+                const target = { series: [{ itemStyler }] };
+
+                const diff = jsonDiff(source, target, { alwaysReplace: ['itemStyler'] });
+                expect(diff).toStrictEqual(target);
+            });
         });
     });
 
