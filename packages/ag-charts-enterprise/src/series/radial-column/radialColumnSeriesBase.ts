@@ -455,7 +455,7 @@ export abstract class RadialColumnSeriesBase<
                 ) {
                     nodeFill = {
                         ...nodeFill,
-                        rotation: toDegrees(midAngle - Math.PI / 2),
+                        rotation: toDegrees(normalizeAngle360(midAngle + Math.PI / 2)),
                     };
                 }
 
