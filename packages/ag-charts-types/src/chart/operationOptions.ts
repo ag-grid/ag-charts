@@ -50,7 +50,11 @@ type LogicOperation =
 
 type NumericOperation = { $mul: [Leaf<number>, Leaf<number>] } | { $round: [Leaf<number>] };
 
-type TransformOperation = { $map: [Leaf, Leaf] } | { $merge: Leaf<object>[] } | { $value: '$1' };
+type TransformOperation =
+    | { $map: [Leaf, Leaf] }
+    | { $find: [Leaf, Leaf] }
+    | { $merge: Leaf<object>[] }
+    | { $value: '$1' };
 
 type FontOperation = { $rem: [Leaf] | [Leaf, Leaf] };
 

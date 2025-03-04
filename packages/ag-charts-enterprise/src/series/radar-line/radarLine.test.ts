@@ -67,10 +67,7 @@ describe('RadarLineSeries', () => {
     it(`should render polar chart with circle axes as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
-            axes: [
-                { type: 'angle-category', shape: 'circle' },
-                { type: 'radius-number', shape: 'circle' },
-            ],
+            axes: [{ type: 'angle-category', shape: 'circle' }, { type: 'radius-number' }],
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -89,7 +86,6 @@ describe('RadarLineSeries', () => {
                 },
                 {
                     type: 'radius-number',
-                    shape: 'circle',
                     reverse: true,
                 },
             ],
@@ -111,7 +107,6 @@ describe('RadarLineSeries', () => {
                 },
                 {
                     type: 'radius-number',
-                    shape: 'polygon',
                     reverse: true,
                 },
             ],

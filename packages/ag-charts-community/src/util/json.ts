@@ -13,7 +13,7 @@ import {
 import type { DeepPartial, PlainObject } from 'ag-charts-core';
 
 import { Color } from './color';
-import { SKIP_JS_BUILTINS, mergeDefaults } from './object';
+import { SKIP_JS_BUILTINS, getPath, mergeDefaults } from './object';
 import { isProperties } from './properties';
 
 type StringSet = { has(value: string): boolean };
@@ -318,7 +318,12 @@ export function jsonResolveOperations<T extends object, P extends object>(source
     return jsonResolveInner(source, params, source, { matches: new Map() }, skip);
 }
 
-type OperationMeta = { referencedParams?: Set<string>; matches: Map<string, any> };
+type OperationMeta = {
+    matches: Map<string, any>;
+    referencedParams?: Set<string>;
+};
+
+const operationResolvedUndefined = Symbol('operation-resolved-undefined');
 
 function jsonResolveInner<T extends object, P extends object>(
     json: T,
@@ -366,6 +371,9 @@ function jsonResolveVisitor<T extends object, P extends object>(
         for (const name of Object.keys(node)) {
             const value = node[name];
             node[name] = jsonResolveVisitorValue(value, params, source, meta, [...path, name], modifiedPaths);
+            if (node[name] === operationResolvedUndefined) {
+                delete node[name];
+            }
         }
     }
 }
@@ -382,7 +390,9 @@ function jsonResolveVisitorValue<T extends object, P extends object>(
     if (!operation || !isKey(operation.operation, operations)) return value;
     modifiedPaths[path.join('.')] = value;
 
-    return resolveOperation(operation.operation, operation.values, params, source, path, meta);
+    const resolved = resolveOperation(operation.operation, operation.values, params, source, path, meta);
+    if (resolved === undefined) return operationResolvedUndefined;
+    return resolved;
 }
 
 enum LocationOperation {
@@ -397,6 +407,7 @@ enum LogicOperation {
     Or = '$or',
     And = '$and',
     Switch = '$switch',
+    IsOperation = '$isOperation',
 }
 
 enum NumericOperation {
@@ -408,6 +419,7 @@ enum TransformOperation {
     Map = '$map',
     Merge = '$merge',
     Value = '$value',
+    Find = '$find',
 }
 
 enum FontOperation {
@@ -445,8 +457,8 @@ function resolveOperation<T extends object, P extends object>(
 ): any {
     meta.referencedParams ??= new Set();
 
-    // Resolve operations nested within an array first, unless this is a map operation, in which case resolve that first.
-    if (isArray(value) && operation !== TransformOperation.Map) {
+    const resolveBranchFirst: Array<Operation> = [TransformOperation.Find, TransformOperation.Map];
+    if (isArray(value) && !resolveBranchFirst.includes(operation)) {
         value = value.map((v) => {
             const nestedOperation = getOperation(v);
             if (!nestedOperation) return v;
@@ -459,11 +471,36 @@ function resolveOperation<T extends object, P extends object>(
 }
 
 function isKey<T extends object>(key: unknown, obj: T): key is keyof T & string {
-    return isString(key) && key in obj;
+    return isString(key) && obj != null && key in obj;
 }
 
 function isRatio(value: unknown): value is number {
     return isNumber(value) && value >= 0 && value <= 1;
+}
+
+function resolvePath(root: string[], path: string) {
+    const relativePathParts = path.split('/');
+    let resolvedPath = [...root];
+    if (path.startsWith('/')) {
+        resolvedPath = [];
+        relativePathParts.shift();
+    }
+
+    for (const part of relativePathParts) {
+        if (part === '..') {
+            resolvedPath.pop();
+            resolvedPath.pop();
+        } else if (part === '.') {
+            resolvedPath.pop();
+        } else if (part === '$index') {
+            const index = root.findLast((v) => !isNaN(Number(v)));
+            if (index != null) resolvedPath.push(index);
+        } else if (part.length !== 0) {
+            resolvedPath.push(part);
+        }
+    }
+
+    return resolvedPath;
 }
 
 type OperationFn<T extends object = object, P extends object = object> = (
@@ -482,12 +519,13 @@ const locationOperations: Record<LocationOperation, OperationFn> = {
 const logicOperations: Record<LogicOperation, OperationFn> = {
     $if: ([condition, thenValue, elseValue]) => (condition ? thenValue : elseValue),
     $eq: ([a, b]) => a === b,
-    $not: ([a, b]) => a !== b,
+    $not: ([a]) => !a,
     $or: (values) => isArray(values) && values.some(Boolean),
     $and: (values) => isArray(values) && values.every(Boolean),
     $switch: () => {
         // TODO
     },
+    $isOperation: isOperationOperator,
 };
 
 const numericOperations: Record<NumericOperation, OperationFn> = {
@@ -497,6 +535,7 @@ const numericOperations: Record<NumericOperation, OperationFn> = {
 
 const transformOperations: Record<TransformOperation, OperationFn> = {
     $map: map,
+    $find: find,
     $merge: merge,
     $value: valueOperation,
 };
@@ -527,26 +566,27 @@ function ref<T extends object, P extends object>(
     source: T,
     meta: OperationMeta
 ) {
-    if (isKey(value, params)) {
-        const operation = getOperation(params[value]);
-        if (operation?.operation !== LocationOperation.Ref) {
-            return params[value];
-        }
-
-        if (meta.referencedParams?.has(operation.values)) {
-            Logger.warnOnce(
-                `\`$ref\` json operation failed on [${String(value)}] at [${path.join('.')}], circular reference detected with [${[...meta.referencedParams].join(', ')}].`
-            );
-            return;
-        }
-
-        meta.referencedParams?.add(operation.values);
-        return ref(operation.values, path, params, source, meta);
+    if (!isKey(value, params)) {
+        Logger.warnOnce(
+            `\`$ref\` json operation failed on [${String(value)}] at [${path.join('.')}], expecting one of [${Object.keys(params).join(', ')}].`
+        );
+        return;
     }
 
-    Logger.warnOnce(
-        `\`$ref\` json operation failed on [${String(value)}] at [${path.join('.')}], expecting one of [${Object.keys(params).join(', ')}].`
-    );
+    const operation = getOperation(params[value]);
+    if (operation?.operation !== LocationOperation.Ref) {
+        return params[value];
+    }
+
+    if (meta.referencedParams?.has(operation.values)) {
+        Logger.warnOnce(
+            `\`$ref\` json operation failed on [${String(value)}] at [${path.join('.')}], circular reference detected with [${[...meta.referencedParams].join(', ')}].`
+        );
+        return;
+    }
+
+    meta.referencedParams?.add(operation.values);
+    return ref(operation.values, path, params, source, meta);
 }
 
 function pathOperation<T extends object, P extends object>(
@@ -557,41 +597,26 @@ function pathOperation<T extends object, P extends object>(
 ) {
     let hasDefaultValue = false;
     let defaultValue;
-    if (!isString(value)) {
-        if (isArray(value)) {
-            hasDefaultValue = true;
-            defaultValue = value[1];
-            value = value[0] as string;
-        } else {
-            Logger.warnOnce(
-                `\`$path\` json operation failed on [${String(value)}] at [${path.join('.')}], expecting a string.`
-            );
-            return;
-        }
+    let usingCustomBranch = false;
+    let branch = source;
+
+    if (isArray(value)) {
+        hasDefaultValue = true;
+        defaultValue = value[1];
+        usingCustomBranch = value.length === 3;
+        branch = usingCustomBranch ? (value[2] as T) : branch;
+        value = value[0] as string;
+    } else if (!isString(value)) {
+        Logger.warnOnce(
+            `\`$path\` json operation failed on [${String(value)}] at [${path.join('.')}], expecting a string.`
+        );
+        return;
     }
 
     // Apply the relative path to the current path
-    const relativePathParts = value.split('/');
-    let resolvedPath = [...path];
-    if (value.startsWith('/')) {
-        resolvedPath = [];
-        relativePathParts.shift();
-    }
-    for (const part of relativePathParts) {
-        if (part === '..') {
-            resolvedPath.pop();
-            resolvedPath.pop();
-        } else if (part === '.') {
-            resolvedPath.pop();
-        } else if (part === '$index') {
-            const index = path.findLast((v) => !isNaN(Number(v)));
-            if (index != null) resolvedPath.push(index);
-        } else {
-            resolvedPath.push(part);
-        }
-    }
+    const resolvedPath = resolvePath(usingCustomBranch ? [] : path, value);
 
-    let resolvedValue: any = source;
+    let resolvedValue: any = branch;
     for (const part of resolvedPath) {
         if (!isKey(part, resolvedValue)) {
             if (!hasDefaultValue) {
@@ -607,6 +632,17 @@ function pathOperation<T extends object, P extends object>(
     }
 
     return resolvedValue;
+}
+
+function isOperationOperator<T extends object, P extends object>(
+    value: string | Array<unknown>,
+    path: string[],
+    _params: P,
+    source: T
+) {
+    const resolvedPath = isString(value) ? resolvePath(path, value) : path;
+    const branch = resolvedPath.length === 0 ? source : getPath(source, resolvedPath);
+    return getOperation(branch) != null;
 }
 
 function mul([a, b]: string | Array<unknown>, path: string[]) {
@@ -639,6 +675,29 @@ function map<T extends object, P extends object>(
     meta.matches.set(path.join('.'), mapValues);
 
     return mapValues.map(() => ({ [mappedOperation.operation]: mappedOperation.values }));
+}
+
+function find<T extends object, P extends object>(
+    [findCondition, findValues]: string | Array<unknown>,
+    path: string[],
+    params: P,
+    source: T,
+    meta: OperationMeta
+) {
+    const valuesOperation = getOperation(findValues);
+    if (valuesOperation) {
+        findValues = resolveOperation(valuesOperation.operation, valuesOperation.values, params, source, path, meta);
+    }
+    if (!isArray(findValues)) return undefined;
+
+    const conditionOperation = getOperation(findCondition);
+    if (!conditionOperation) {
+        return findCondition ? findValues[0] : undefined;
+    }
+
+    return findValues.find((value) =>
+        resolveOperation(conditionOperation.operation, conditionOperation.values, params, value as object, [], meta)
+    );
 }
 
 function merge(values: string | Array<unknown>) {
