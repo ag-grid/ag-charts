@@ -228,6 +228,16 @@
         }
       }
     },
+    "lint:changeDetection": {
+      "executor": "nx:run-commands",
+      "inputs": ["{projectRoot}/src/**/*.ts", "{workspaceRoot}/tools/lint-change-detection.js"],
+      "outputs": [],
+      "cache": true,
+      "options": {
+        "cwd": "{workspaceRoot}",
+        "command": "node tools/lint-change-detection.js {projectRoot}/src/\\*\\*/\\*.ts"
+      }
+    },
     "test": {
       "inputs": ["default", "buildOutputExcludes", "^production", "{workspaceRoot}/jest.preset.js"],
       "outputs": [],
