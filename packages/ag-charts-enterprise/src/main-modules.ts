@@ -16,6 +16,7 @@ import { MapLineSeriesModule } from './series/map-line';
 import { MapLineBackgroundSeriesModule } from './series/map-line-background';
 import { MapMarkerSeriesModule } from './series/map-marker';
 import { MapShapeSeriesModule } from './series/map-shape';
+import { MapShapeBackgroundSeriesModule } from './series/map-shape-background';
 import { NightingaleSeriesModule } from './series/nightingale';
 import { OhlcSeriesModule } from './series/ohlc';
 import { PyramidSeriesModule } from './series/pyramid';
@@ -61,6 +62,7 @@ export {
     MapLineBackgroundSeriesModule,
     MapMarkerSeriesModule,
     MapShapeSeriesModule,
+    MapShapeBackgroundSeriesModule,
 };
 
 export const AllCartesianEnterpriseModules = [
@@ -97,6 +99,7 @@ export const AllTopologyEnterpriseModules = [
     MapLineBackgroundSeriesModule,
     MapMarkerSeriesModule,
     MapShapeSeriesModule,
+    MapShapeBackgroundSeriesModule,
 ];
 
 export const AllEnterpriseModules = [
