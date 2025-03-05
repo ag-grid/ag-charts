@@ -24,8 +24,6 @@ const {
     CategoryScale,
     motion,
     applyShapeStyle,
-    isGradientFill,
-    toDegrees,
 } = _ModuleSupport;
 
 class RadialColumnSeriesNodeEvent<
@@ -450,22 +448,9 @@ export abstract class RadialColumnSeriesBase<
             .each((node, nodeDatum) => {
                 const { datum, datumIndex, midAngle } = nodeDatum;
 
-                let nodeFill = style.fill;
-                if (
-                    isGradientFill(nodeFill) &&
-                    nodeFill.type === 'gradient' &&
-                    nodeFill.bounds !== 'series' &&
-                    nodeFill.bounds !== 'axis' &&
-                    nodeFill.rotation == null &&
-                    nodeFill.direction == null
-                ) {
-                    nodeFill = {
-                        ...nodeFill,
-                        rotation: toDegrees(normalizeAngle360(midAngle + Math.PI / 2)),
-                    };
-                }
+                const nodeFill = this.getNodeFill(style.fill, midAngle);
 
-                const nodeStyle = { ...style, fill: nodeFill };
+                const nodeStyle = { ...style, fill: nodeFill! };
                 const overrides = this.getItemStyleOverrides(String(datumIndex), datum, nodeStyle, highlighted);
 
                 this.updateItemPath(node, nodeDatum, highlighted);

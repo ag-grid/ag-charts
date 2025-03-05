@@ -13,9 +13,9 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
-import { isGradientFill, isStringFillArray } from '../../../scene/util/fill';
+import { isStringFillArray } from '../../../scene/util/fill';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
-import { normalizeAngle180, toDegrees, toRadians } from '../../../util/angle';
+import { normalizeAngle180, toRadians } from '../../../util/angle';
 import { formatValue } from '../../../util/format.util';
 import { jsonDiff } from '../../../util/json';
 import { mod } from '../../../util/number';
@@ -587,21 +587,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 this.properties
             );
 
-        let sectorFill: AgFillType | undefined = fill;
-        if (
-            angle != null &&
-            isGradientFill(sectorFill) &&
-            sectorFill.type === 'gradient' &&
-            sectorFill.bounds !== 'series' &&
-            sectorFill.bounds !== 'axis' &&
-            sectorFill.rotation == null &&
-            sectorFill.direction == null
-        ) {
-            sectorFill = {
-                ...sectorFill,
-                rotation: toDegrees(angle + Math.PI / 2),
-            };
-        }
+        const sectorFill: AgFillType | undefined = this.getNodeFill(fill, angle);
 
         let format: AgDonutSeriesStyle | undefined;
         if (itemStyler) {
