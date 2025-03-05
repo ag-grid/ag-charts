@@ -570,18 +570,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getSectorFormat(datum: any, datumIndex: number, highlighted: boolean, angle: number) {
-        const {
-            angleKey,
-            radiusKey,
-            calloutLabelKey,
-            sectorLabelKey,
-            legendItemKey,
-            fills,
-            strokes,
-            itemStyler,
-            defaultColorRange,
-        } = this.properties;
+    private getSectorFormat(datum: any, datumIndex: number, highlighted: boolean, angle?: number) {
+        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
+            this.properties;
 
         const defaultStroke: string | undefined = strokes[datumIndex % strokes.length];
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
@@ -598,6 +589,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         let sectorFill: AgFillType | undefined = fill;
         if (
+            angle != null &&
             isGradientFill(sectorFill) &&
             sectorFill.type === 'gradient' &&
             sectorFill.rotation == null &&
@@ -644,7 +636,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             lineDash: format?.lineDash ?? lineDash,
             lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
             cornerRadius: format?.cornerRadius ?? cornerRadius,
-            defaultColorRange: defaultColorRange[datumIndex],
         };
     }
 
@@ -848,6 +839,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.labelGroup.visible = visible;
 
         this.contentGroup.opacity = this.getOpacity();
+        const { defaultColorRange } = this.properties;
 
         this.innerCircleSelection.each((node, { radius }) => {
             node.setProperties({
@@ -882,7 +874,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             sector.lineDashOffset = format.lineDashOffset;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
-            sector.defaultColorRange = format.defaultColorRange;
+            sector.defaultColorRange = defaultColorRange[datum.itemId];
             const inset = Math.max(
                 (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth : 0)) / 2,
                 0
@@ -1445,14 +1437,14 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 angleName,
                 radiusKey,
                 radiusName,
-                ...this.getSectorFormat(datum, datumIndex, false, 0),
+                ...this.getSectorFormat(datum, datumIndex, false),
             }
         );
     }
 
     private legendItemSymbol(datumIndex: number): LegendSymbolOptions {
         const datum = this.processedData?.dataSources.get(this.id)?.[datumIndex];
-        const sectorFormat = this.getSectorFormat(datum, datumIndex, false, 0);
+        const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
 
         return {
             marker: {
@@ -1463,7 +1455,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 strokeWidth: this.properties.strokeWidth,
                 lineDash: this.properties.lineDash,
                 lineDashOffset: this.properties.lineDashOffset,
-                defaultColorRange: sectorFormat.defaultColorRange,
+                defaultColorRange: this.properties.defaultColorRange[datumIndex],
             },
         };
     }
