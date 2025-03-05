@@ -16,7 +16,7 @@ import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Debug } from '../util/debug';
-import { deepClone, jsonDiff, jsonWalk } from '../util/json';
+import { deepClone, jsonWalk } from '../util/json';
 import { Pool } from '../util/pool';
 import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';
@@ -180,20 +180,19 @@ class AgChartsInternal {
         const pool = this.getPool(optionsMetadata);
         let create = false;
         let poolResult;
-        let poolOptionsDiff;
         let chart = proxy?.chart;
         if (chart == null && pool?.hasFree()) {
             // Pooled re-use case - we should use the pooled instances options as our base options
             // to optimise the processing here.
             poolResult = pool.obtainFree();
             chart = poolResult.item;
-            poolOptionsDiff = jsonDiff(chart.getOptions(), userOptions);
         }
 
         const { document, window: userWindow, styleContainer, ...options } = mutableOptions ?? {};
-        const baseOptions = (deltaOptions ?? poolOptionsDiff ? chart?.getChartOptions() : options) ?? options;
+        const baseOptions = chart?.getChartOptions() ?? options;
         const chartOptions = new ChartOptions(
             baseOptions,
+            options,
             processedOverrides,
             {
                 ...specialOverrides,
@@ -202,7 +201,7 @@ class AgChartsInternal {
                 styleContainer,
             },
             optionsMetadata,
-            poolOptionsDiff ?? deltaOptions,
+            deltaOptions,
             stripSymbols
         );
 
