@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     WheelDeltaMode,
     clickAction,
@@ -444,6 +444,31 @@ describe('Zoom', () => {
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(148, 154)(chart); // this is the position of the 1st visible node
             await compare(); // this should be a zoomed-in snapshot
+        });
+    });
+
+    describe('data changes during zoom', () => {
+        it('AG-14055', async () => {
+            const data = [
+                { x: { id: 0, value: 'a', toString: () => 'a' }, y: 50 },
+                { x: { id: 1, value: 'b', toString: () => 'b' }, y: 30 },
+                { x: { id: 2, value: 'c', toString: () => 'c' }, y: 10 },
+                { x: { id: 3, value: 'd', toString: () => 'd' }, y: 30 },
+                { x: { id: 4, value: 'e', toString: () => 'e' }, y: 50 },
+            ];
+            const options: AgCartesianChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                animation: { enabled: false },
+                data,
+            };
+            await prepareChart(undefined, undefined, options);
+            await scrollAction(cx, cy, -1)(chart);
+            await chart.update({
+                ...options,
+                data: data.map((d) => ({ x: { ...d.x }, y: d.y + 10 })),
+            });
+            // Chart should not be blank
+            await compare();
         });
     });
 });
