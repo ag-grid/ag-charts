@@ -15,6 +15,7 @@ const {
     toRadians,
     normalizeAngle360,
     normalizeAngle360Inclusive,
+    countFractionDigits,
     Path,
     RotatableText,
     Transformable,
@@ -97,12 +98,17 @@ export abstract class AngleAxis<
 
         const ticks = tickData.map((t) => t.value);
 
+        const fractionDigits = ticks.reduce(
+            (f, t) => Math.max(typeof t === 'number' ? countFractionDigits(t) : 0, f),
+            0
+        );
+
         return {
             niceDomain,
             primaryTickCount: undefined,
             tickDomain: niceDomain,
             ticks,
-            fractionDigits: 0,
+            fractionDigits,
             bbox: this.getBBox(),
         };
     }
@@ -359,11 +365,7 @@ export abstract class AngleAxis<
 
             const rotation = this.getLabelRotation(angle);
 
-            let text = String(value);
-            if (label.formatter) {
-                const { callbackCache } = this.moduleCtx;
-                text = callbackCache.call(this, label.formatter, { value, index }) ?? '';
-            }
+            let text = this.formatTick(value, index);
 
             tempText.text = text;
             tempText.x = x;

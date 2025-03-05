@@ -133,6 +133,7 @@ export interface AgAxisLabelFormatterParams {
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;
+    readonly boundSeries: AgAxisBoundSeries[];
 }
 
 export interface AgAxisLabelStylerParams extends AgBaseAxisLabelStyleOptions {

@@ -695,7 +695,8 @@ export abstract class Axis<
 
         let result: string | undefined;
         if (formatter) {
-            result = callbackCache.call(this, formatter, { value: value, index, fractionDigits });
+            const boundSeries = this.getFormatterBoundSeries();
+            result = callbackCache.call(this, formatter, { value: value, index, fractionDigits, boundSeries });
         } else if (defaultFormatter) {
             result = defaultFormatter(value);
         } else if (labelFormatter) {
@@ -714,7 +715,8 @@ export abstract class Axis<
 
         let result: string | undefined;
         if (formatter) {
-            result = callbackCache.call(this, formatter, { value: value, index: NaN });
+            const boundSeries = this.getFormatterBoundSeries();
+            result = callbackCache.call(this, formatter, { value: value, index: NaN, boundSeries });
         } else if (valueFormatter) {
             result = callbackCache.call(this, valueFormatter, value);
         } else if (isArray(value)) {
@@ -762,7 +764,7 @@ export abstract class Axis<
         this.gridGroup.setClipRect(new BBox(x, y, width, height));
     }
 
-    protected getTitleFormatterParams() {
+    private getFormatterBoundSeries() {
         const { direction } = this;
         const boundSeries: AgAxisBoundSeries[] = [];
         for (const series of this.boundSeries) {
@@ -772,6 +774,12 @@ export abstract class Axis<
                 boundSeries.push({ key: keys[idx], name: names[idx] });
             }
         }
+        return boundSeries;
+    }
+
+    protected getTitleFormatterParams() {
+        const { direction } = this;
+        const boundSeries = this.getFormatterBoundSeries();
         return { direction, boundSeries, defaultValue: this.title?.text };
     }
 
