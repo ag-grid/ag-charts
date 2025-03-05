@@ -18,6 +18,8 @@ export * from './utils/binarySearch';
 export * from './utils/diff';
 export * from './utils/functions';
 export * from './utils/iterators';
+export * from './utils/numberFormat';
+export * from './utils/numbers';
 export * from './utils/strings';
 export * from './utils/typeGuards';
 export * from './utils/validation';

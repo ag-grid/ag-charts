@@ -1,3 +1,4 @@
+import { clamp } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
 import { FocusIndicator } from '../../dom/focusIndicator';
@@ -8,7 +9,6 @@ import type { Point } from '../../scene/point';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
 import { createId } from '../../util/id';
-import { clamp } from '../../util/number';
 import { objectsEqual } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';

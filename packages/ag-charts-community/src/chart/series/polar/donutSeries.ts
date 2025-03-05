@@ -1,5 +1,4 @@
-import type { Has } from 'ag-charts-core';
-import { Logger } from 'ag-charts-core';
+import { type Has, Logger, modulus } from 'ag-charts-core';
 import type { AgDonutSeriesStyle, AgFillType } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -18,7 +17,6 @@ import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toDegrees, toRadians } from '../../../util/angle';
 import { formatValue } from '../../../util/format.util';
 import { jsonDiff } from '../../../util/json';
-import { mod } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { ChartUpdateType } from '../../chartUpdateType';
@@ -565,7 +563,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const quadrantStart = -0.75 * Math.PI; // same as `normalizeAngle180(toRadians(-135))`
         const quadrantOffset = midAngle180 - quadrantStart;
         const quadrant = Math.floor(quadrantOffset / (Math.PI / 2));
-        const quadrantIndex = mod(quadrant, quadrantTextOpts.length);
+        const quadrantIndex = modulus(quadrant, quadrantTextOpts.length);
 
         return quadrantTextOpts[quadrantIndex];
     }

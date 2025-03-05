@@ -1,5 +1,6 @@
+import { clamp } from 'ag-charts-core';
+
 import type { BBoxValues } from './bboxinterface';
-import { clamp } from './number';
 import { Vec4 } from './vector4';
 
 type Ratios = { min: number; max: number };

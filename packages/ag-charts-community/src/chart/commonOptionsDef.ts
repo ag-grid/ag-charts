@@ -33,7 +33,6 @@ const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
 export const commonSeriesOptionsDef: OptionsDefs<AgBaseSeriesOptions<any>> = {
     id: string,
     cursor: string,
-    context: defined,
     visible: boolean,
     data: arrayOf(object),
     showInLegend: boolean,
@@ -51,6 +50,9 @@ export const commonSeriesOptionsDef: OptionsDefs<AgBaseSeriesOptions<any>> = {
         },
     },
 };
+
+// @ts-expect-error undocumented option
+commonSeriesOptionsDef.context = defined;
 
 // @ts-expect-error undocumented option
 commonSeriesOptionsDef.highlight = {

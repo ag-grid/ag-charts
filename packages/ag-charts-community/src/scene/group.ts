@@ -1,4 +1,5 @@
-import { clamp } from '../util/number';
+import { clamp } from 'ag-charts-core';
+
 import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { LayersManager } from './layersManager';

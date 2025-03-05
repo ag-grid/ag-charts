@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { debounce, entries } from 'ag-charts-core';
+import { debounce, entries, roundTo } from 'ag-charts-core';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
@@ -42,10 +42,9 @@ const {
     Validate,
     InteractionState,
     ProxyProperty,
-    round: sharedRound,
 } = _ModuleSupport;
 
-const round = (value: number) => sharedRound(value, 10);
+const round = (value: number) => roundTo(value, 10);
 
 const CURSOR_ID = 'zoom-cursor';
 const TOOLTIP_ID = 'zoom-tooltip';

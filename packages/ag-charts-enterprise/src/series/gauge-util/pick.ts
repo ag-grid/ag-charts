@@ -1,7 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { iterate } from 'ag-charts-core';
+import { clamp, iterate } from 'ag-charts-core';
 
-const { clamp } = _ModuleSupport;
 type SceneNode = _ModuleSupport.Node;
 type Point = _ModuleSupport.Point;
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum<unknown>;

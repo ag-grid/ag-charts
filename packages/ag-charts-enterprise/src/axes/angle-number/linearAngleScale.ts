@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNumberEqual } from 'ag-charts-core';
 
-const { range, isDenseInterval, isNumberEqual, LinearScale } = _ModuleSupport;
+const { range, isDenseInterval, LinearScale } = _ModuleSupport;
 
 export class LinearAngleScale extends LinearScale {
     static getNiceStepAndTickCount(ticks: _ModuleSupport.ScaleTickParams<number>, domain: number[]) {

@@ -1,4 +1,4 @@
-import { clamp } from './number';
+import { clamp } from 'ag-charts-core';
 
 interface IColor {
     readonly r: number;

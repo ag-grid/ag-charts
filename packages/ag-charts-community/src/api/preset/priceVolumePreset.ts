@@ -186,7 +186,7 @@ export function priceVolume(
                   layoutConstraints: {
                       stacked: false,
                       width: 20,
-                      unit: 'percentage',
+                      unit: 'percent',
                       align: 'end',
                   },
               } satisfies AgNumberAxisOptions,
@@ -275,7 +275,7 @@ export function priceVolume(
                 layoutConstraints: {
                     stacked: false,
                     width: 100,
-                    unit: 'percentage',
+                    unit: 'percent',
                     align: 'start',
                 },
             },

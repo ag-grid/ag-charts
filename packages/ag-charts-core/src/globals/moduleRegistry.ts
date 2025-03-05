@@ -1,4 +1,5 @@
 import {
+    type AxisModuleDefinition,
     type ChartModuleDefinition,
     type ModuleDefinition,
     ModuleType,
@@ -30,6 +31,14 @@ export function hasModule(moduleName: string): boolean {
     return registeredModules.has(moduleName);
 }
 
+export function* listModulesByType<T extends ModuleType>(moduleType: T) {
+    for (const definition of registeredModules.values()) {
+        if (definition.type === moduleType) {
+            yield definition as ModuleDefinition<T>;
+        }
+    }
+}
+
 export function detectChartDefinition(options: object): ChartModuleDefinition {
     for (const definition of registeredModules.values()) {
         if (isChartModule(definition) && definition.detect(options)) {
@@ -48,8 +57,19 @@ export function getSeriesModule(moduleName: string): SeriesModuleDefinition<any>
     }
 }
 
+export function getAxisModule(moduleName: string): AxisModuleDefinition<any> | undefined {
+    const definition = registeredModules.get(moduleName);
+    if (isAxisModule(definition)) {
+        return definition;
+    }
+}
+
 function isChartModule(definition?: ModuleDefinition): definition is ChartModuleDefinition {
     return definition?.type === ModuleType.Chart;
+}
+
+function isAxisModule(definition?: ModuleDefinition): definition is AxisModuleDefinition<any> {
+    return definition?.type === ModuleType.Axis;
 }
 
 function isSeriesModule(definition?: ModuleDefinition): definition is SeriesModuleDefinition<any> {

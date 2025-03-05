@@ -1,6 +1,5 @@
-import { getWindow } from 'ag-charts-core';
+import { clamp, getWindow } from 'ag-charts-core';
 
-import { clamp } from '../../util/number';
 import type { Vec2 } from '../../util/vector';
 import { Popover, type PopoverOptions } from './popover';
 

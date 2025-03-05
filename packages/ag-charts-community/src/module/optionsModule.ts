@@ -2,6 +2,7 @@ import {
     type DeepPartial,
     Logger,
     ModuleRegistry,
+    ModuleType,
     type OptionsDefs,
     circularSliceArray,
     color,
@@ -14,6 +15,7 @@ import {
     isPlainObject,
     isString,
     isSymbol,
+    joinFormatted,
     number,
     or,
     setDocument,
@@ -23,7 +25,6 @@ import {
     validate,
 } from 'ag-charts-core';
 import {
-    type AgBaseAxisOptions,
     type AgCartesianAxisOptions,
     type AgChartOptions,
     type AgChartThemeParams,
@@ -36,7 +37,6 @@ import {
 } from 'ag-charts-types';
 
 import { PRESETS, PRESET_DATA_PROCESSORS } from '../api/preset/presets';
-import { axisRegistry } from '../chart/factory/axisRegistry';
 import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
 import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
@@ -47,7 +47,6 @@ import {
     isAgCartesianChartOptions,
     isAgPolarChartOptionsWithSeriesBasedLegend,
     isAgStandaloneChartOptions,
-    isAxisOptionType,
     isSeriesOptionType,
 } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
@@ -281,8 +280,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const seriesOptions = options.series![index];
             const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type ?? 'line');
 
-            if (seriesDef?.options == null) {
-                validatedSeriesOptions.push(seriesOptions);
+            if (seriesDef == null) {
+                Logger.warn(`Unknown series type \`${seriesOptions.type}\`, ignoring.\``);
                 continue;
             }
 
@@ -297,6 +296,38 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         }
         options.series = validatedSeriesOptions;
+
+        if ('axes' in options && options.axes) {
+            const validatedAxesOptions: any[] = [];
+            const axesCount = options.axes.length ?? 0;
+            for (let index = 0; index < axesCount; index++) {
+                const axisOptions = options.axes[index];
+                const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
+
+                if (axisDef == null) {
+                    const validTypes = Array.from(ModuleRegistry.listModulesByType(ModuleType.Axis), (def) => def.name);
+                    const expectedTypes = joinFormatted(validTypes, 'or', (value: string) => `'${value}'`);
+                    Logger.warn(
+                        `Unknown axis type \`${axisOptions.type}\`; expected one of ${expectedTypes}, ignoring all axes options.\``
+                    );
+                    delete options.axes;
+                    break;
+                }
+
+                const keyPath = `axes[${index}]`;
+                const { validate: validateAxis = validate } = axisDef;
+                const { valid, errors } = validateAxis(axisOptions, axisDef.options, keyPath);
+
+                errors.forEach((error) => Logger.warn(error));
+
+                if (!errors.some((e) => e.required && e.path === keyPath)) {
+                    validatedAxesOptions.push(valid);
+                }
+            }
+            if (options.axes) {
+                options.axes = validatedAxesOptions;
+            }
+        }
 
         this.removeDisabledOptions(options);
 
@@ -337,7 +368,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             processedOptions.legend.enabled = processedOptions.series!.length > 1;
         }
 
-        this.enableConfiguredOptions(processedOptions, this.userOptions as T);
+        this.enableConfiguredOptions(processedOptions, options);
 
         const themeParameters = this.getThemeParameters(activeTheme, processedOptions) as AgChartThemeParams;
         this.resolveThemeOperations(themeParameters, themeParameters);
@@ -348,7 +379,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         activeTheme.templateTheme(processedOptions, false);
 
-        this.removeDisabledOptions(options);
         removeUnusedEnterpriseOptions(processedOptions);
         if (!enterpriseModule.isEnterprise) {
             removeUsedEnterpriseOptions(processedOptions, true);
@@ -386,7 +416,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private sanityCheck(options: Partial<T>) {
         // output warnings and correct options when required
-        this.axesTypeIntegrity(options);
         this.seriesTypeIntegrity(options);
         this.soloSeriesIntegrity(options);
     }
@@ -701,20 +730,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 range: options.tooltip?.range ?? seriesRegistry.getTooltipDefauls(seriesType)?.range,
             },
         };
-    }
-
-    private axesTypeIntegrity(options: Partial<T>) {
-        if ('axes' in options && options.axes) {
-            const axes = options.axes as AgBaseAxisOptions[];
-            for (const { type } of axes) {
-                // If any of the axes type is invalid remove all user provided options in favour of our defaults.
-                if (!isAxisOptionType(type)) {
-                    delete options.axes;
-                    const expectedTypes = [...axisRegistry.keys()].join(', ');
-                    Logger.warnOnce(`unknown axis type: ${type}; expected one of: ${expectedTypes}`);
-                }
-            }
-        }
     }
 
     private seriesTypeIntegrity(options: Partial<T>) {

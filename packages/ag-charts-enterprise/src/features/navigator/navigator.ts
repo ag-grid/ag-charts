@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, clamp } from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
@@ -7,7 +7,7 @@ import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
 
-const { clamp, BaseModuleInstance, ObserveChanges, Validate, BOOLEAN, POSITIVE_NUMBER } = _ModuleSupport;
+const { BaseModuleInstance, ObserveChanges, Validate, BOOLEAN, POSITIVE_NUMBER } = _ModuleSupport;
 
 export class Navigator extends BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     // @Validate(OBJECT, { optional: true })

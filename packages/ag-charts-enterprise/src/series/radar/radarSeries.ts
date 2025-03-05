@@ -1,5 +1,5 @@
 import { type AgSeriesMarkerStyle, _ModuleSupport } from 'ag-charts-community';
-import { type RequireOptional, isFiniteNumber } from 'ag-charts-core';
+import { type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
@@ -15,7 +15,6 @@ const {
     animationValidation,
     computeMarkerFocusBounds,
     extent,
-    isNumberEqual,
     BBox,
     Group,
     Path,
