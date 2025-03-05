@@ -331,5 +331,34 @@ describe('NightingaleSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        it('should render nightingale series with a series bound gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        type: 'nightingale',
+                        angleKey: 'quarter',
+                        radiusKey: 'Mountain air',
+                        fill: {
+                            type: 'gradient',
+                            bounds: 'series',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 });

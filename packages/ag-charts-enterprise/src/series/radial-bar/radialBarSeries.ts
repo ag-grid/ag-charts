@@ -406,7 +406,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         }
 
         const style = this.getItemBaseStyle(highlighted);
-        const fillBBox = this.getFillBBox(style.fill);
+        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const radiusAxisReversed = radiusAxis?.isReversed();
+        const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
+        const fillBBox = this.getFillBBox(style.fill, axisOuterRadius);
+
         const { defaultColorRange } = this.properties;
 
         selection

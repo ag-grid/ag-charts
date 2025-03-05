@@ -438,7 +438,11 @@ export abstract class RadialColumnSeriesBase<
         }
 
         const style = this.getItemBaseStyle(highlighted);
-        const fillBBox = this.getFillBBox(style.fill);
+
+        const radiusAxisReversed = this.isRadiusAxisReversed();
+        const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
+        const fillBBox = this.getFillBBox(style.fill, axisOuterRadius);
+
         const { defaultColorRange } = this.properties;
 
         selection
@@ -450,6 +454,8 @@ export abstract class RadialColumnSeriesBase<
                 if (
                     isGradientFill(nodeFill) &&
                     nodeFill.type === 'gradient' &&
+                    nodeFill.bounds !== 'series' &&
+                    nodeFill.bounds !== 'axis' &&
                     nodeFill.rotation == null &&
                     nodeFill.direction == null
                 ) {
