@@ -282,18 +282,28 @@ export abstract class Shape<D = any> extends Node<D> {
         } else if (isGradientFill(fill) && this.fillGradient) {
             defs ??= [];
 
-            const gradient = createSvgElement('linearGradient');
             const id = generateUUID();
-            gradient.setAttribute('id', id);
 
-            const isVertical = fill.type === 'gradient' && (fill.direction ?? 'vertical') === 'vertical';
+            let gradient: SVGElement | undefined;
+            if (fill.type === 'radial-gradient') {
+                gradient = createSvgElement('radialGradient');
+                const { x, y, width, height } = this.fillBBox ?? this.getBBox();
+                gradient.setAttribute('cx', String(x + width * 0.5));
+                gradient.setAttribute('cy', String(y + height * 0.5));
+                gradient.setAttribute('r', String(Math.hypot(width * 0.5, height * 0.5) / Math.SQRT2));
+                gradient.setAttribute('gradientUnits', 'userSpaceOnUse');
+            } else {
+                gradient = createSvgElement('linearGradient');
+                const isVertical = fill.type === 'gradient' && (fill.direction ?? 'vertical') === 'vertical';
 
-            if (isVertical) {
-                gradient.setAttribute('x1', '0');
-                gradient.setAttribute('x2', '0');
-                gradient.setAttribute('y1', '1');
-                gradient.setAttribute('y2', '0');
+                if (isVertical) {
+                    gradient.setAttribute('x1', '0');
+                    gradient.setAttribute('x2', '0');
+                    gradient.setAttribute('y1', '1');
+                    gradient.setAttribute('y2', '0');
+                }
             }
+            gradient.setAttribute('id', id);
 
             const { stops } = this.fillGradient;
             stops.forEach(({ offset, color }) => {

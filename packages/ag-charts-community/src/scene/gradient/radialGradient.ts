@@ -10,6 +10,13 @@ export class RadialGradient extends Gradient {
     protected override createCanvasGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | undefined {
         const cx = bbox.x + bbox.width * 0.5;
         const cy = bbox.y + bbox.height * 0.5;
-        return ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.hypot(bbox.width * 0.5, bbox.height * 0.5));
+        return ctx.createRadialGradient(
+            cx,
+            cy,
+            0,
+            cx,
+            cy,
+            Math.hypot(bbox.width * 0.5, bbox.height * 0.5) / Math.SQRT2
+        );
     }
 }

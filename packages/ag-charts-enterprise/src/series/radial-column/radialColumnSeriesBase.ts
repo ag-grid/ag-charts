@@ -446,7 +446,12 @@ export abstract class RadialColumnSeriesBase<
                 const { datum, datumIndex, midAngle } = nodeDatum;
 
                 let nodeFill = style.fill;
-                if (isGradientFill(nodeFill) && nodeFill.rotation == null && nodeFill.direction == null) {
+                if (
+                    isGradientFill(nodeFill) &&
+                    nodeFill.type === 'gradient' &&
+                    nodeFill.rotation == null &&
+                    nodeFill.direction == null
+                ) {
                     nodeFill = {
                         ...nodeFill,
                         rotation: toDegrees(midAngle - Math.PI / 2),
