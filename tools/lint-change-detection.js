@@ -55,9 +55,11 @@ function isObjectType(type) {
  */
 function processSourceFile(sourceFile, checker, errors) {
     function visit(node) {
+        const decorators = ts.canHaveDecorators(node) ? ts.getDecorators(node) : node.decorators;
+
         if (ts.isPropertyDeclaration(node) || ts.isPropertySignature(node)) {
-            if (node.decorators && node.decorators.length > 0) {
-                node.decorators.forEach((decorator) => {
+            if (decorators && decorators.length > 0) {
+                decorators.forEach((decorator) => {
                     let decoratorName = '';
                     if (ts.isCallExpression(decorator.expression)) {
                         if (ts.isIdentifier(decorator.expression.expression)) {
