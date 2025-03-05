@@ -6,8 +6,10 @@ import {
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
+import { applyPyramidDatum, preparePyramidAnimationFunctions } from './pyramidUtil';
 
 const {
+    StateMachine,
     valueProperty,
     SeriesNodePickMode,
     CachedTextMeasurerPool,
@@ -19,6 +21,8 @@ const {
     Text,
     PointerEvents,
     applyShapeStyle,
+    fromToMotion,
+    seriesLabelFadeInAnimation,
 } = _ModuleSupport;
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
@@ -49,6 +53,14 @@ interface PyramidNodeDataContext
 type ItemStyle = Pick<AgPyramidSeriesStyle, 'fill' | 'stroke'> &
     Required<Omit<AgPyramidSeriesStyle, 'fill' | 'stroke'>> &
     _ModuleSupport.DefaultFillStyle;
+
+type PyramidAnimationState = 'empty' | 'ready';
+type PyramidAnimationEvent = {
+    update: undefined;
+    clear: undefined;
+    reset: undefined;
+    skip: undefined;
+};
 
 export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     PyramidNodeDatum,
@@ -82,6 +94,26 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     public contextNodeData?: PyramidNodeDataContext;
 
+    private readonly animationState = new StateMachine<PyramidAnimationState, PyramidAnimationEvent>(
+        'empty',
+        {
+            empty: {
+                update: {
+                    target: 'ready',
+                    action: () => this.animateEmptyUpdateReady(),
+                },
+                reset: 'empty',
+                skip: 'ready',
+            },
+            ready: {
+                clear: 'empty',
+                reset: 'empty',
+                skip: 'ready',
+            },
+        },
+        () => this.checkProcessedDataAnimatable()
+    );
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -105,6 +137,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     public override getNodeData(): PyramidNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
+    }
+
+    override resetAnimation(phase: _ModuleSupport.ChartAnimationPhase): void {
+        if (phase === 'initial') {
+            this.animationState.transition('reset');
+        } else if (phase === 'ready') {
+            this.animationState.transition('skip');
+        }
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -408,6 +448,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
+
+        this.animationState.transition('update');
     }
 
     private updateDatumSelection(opts: {
@@ -487,20 +529,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const fillBBox = this.getFillBBox(style.fill);
 
         datumSelection.each((connector, nodeDatum) => {
-            const { datumIndex, datum, x, y, top, right, bottom, left } = nodeDatum;
+            const { datumIndex, datum } = nodeDatum;
             const overrides = this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, style, isHighlight);
 
-            connector.x0 = x - top / 2;
-            connector.x1 = x + top / 2;
-            connector.x2 = x + bottom / 2;
-            connector.x3 = x - bottom / 2;
-
-            connector.y0 = y - left / 2;
-            connector.y1 = y - right / 2;
-            connector.y2 = y + right / 2;
-            connector.y3 = y + left / 2;
-
             applyShapeStyle(connector, style, overrides, fillBBox);
+
+            applyPyramidDatum(connector, nodeDatum);
 
             connector.fillShadow = shadow;
         });
@@ -540,10 +574,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             label.textAlign = textAlign;
             label.textBaseline = textBaseline;
         });
-    }
-
-    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {
-        // Does not reset any animations
     }
 
     protected override computeFocusBounds(
@@ -683,5 +713,18 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         });
 
         return legendData;
+    }
+
+    protected animateReset() {
+        this.ctx.animationManager.skipCurrentBatch();
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+    }
+
+    private animateEmptyUpdateReady() {
+        const { datumSelection, labelSelection, properties } = this;
+
+        const fns = preparePyramidAnimationFunctions(properties.direction);
+        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 }
