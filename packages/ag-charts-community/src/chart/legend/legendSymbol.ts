@@ -76,7 +76,11 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
 
         marker.x = x;
         marker.y = y;
-        marker.size = scale * size;
+
+        marker.scalingCenterX = x;
+        marker.scalingCenterY = y;
+        marker.scalingX = scale;
+        marker.scalingY = scale;
 
         group.append(marker);
     }
