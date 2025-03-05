@@ -1,5 +1,5 @@
 ---
-import { getEntry } from 'astro:content';
+import { getEntry, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { getFrameworkFromPath } from '@components/docs/utils/urlPaths';
 import { Changelog } from '@components/changelog/Changelog';
@@ -10,7 +10,7 @@ import classnames from 'classnames';
 const path = Astro.url.pathname;
 const framework = getFrameworkFromPath(path);
 
-const { data: docsNavData } = await getEntry('docs-nav', 'docsNav');
+const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEntry<'docsNav'>;
 ---
 
 <Layout

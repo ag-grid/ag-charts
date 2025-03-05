@@ -1,5 +1,5 @@
 ---
-import { getEntry } from 'astro:content';
+import { getEntry, type CollectionEntry } from 'astro:content';
 import GalleryFrameworkTemplate from '@components/gallery/components/GalleryFrameworkTemplate.astro';
 import { getGalleryExamplePages } from '@components/gallery/utils/pageData';
 import { getIsDev } from '@utils/env';
@@ -8,7 +8,7 @@ import { getIsDev } from '@utils/env';
  * This page is the same as `[exampleName].astro`, but for Code Sandbox examples
  */
 export async function getStaticPaths() {
-    const galleryDataEntry = await getEntry('gallery', 'data');
+    const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
     const pages = getGalleryExamplePages({ galleryData: galleryDataEntry.data });
     return pages;
 }

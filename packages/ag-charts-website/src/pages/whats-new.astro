@@ -1,9 +1,9 @@
 ---
-import { getEntry } from 'astro:content';
+import { getEntry, type CollectionEntry } from 'astro:content';
 import WhatsNew from '@ag-website-shared/components/whats-new/pages/whats-new.astro';
 
-const { data: versionsData } = await getEntry('versions', 'ag-charts-versions');
-const { data: docsNavData } = await getEntry('docs-nav', 'docsNav');
+const { data: versionsData } = (await getEntry('versions', 'ag-charts-versions')) as CollectionEntry<'versions'>;
+const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEntry<'docsNav'>;
 ---
 
 <WhatsNew site="charts" versionsData={versionsData} menuData={docsNavData} />

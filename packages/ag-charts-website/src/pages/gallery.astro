@@ -1,5 +1,5 @@
 ---
-import { getEntry } from 'astro:content';
+import { getEntry, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { Icon, IconName } from '@ag-website-shared/components/icon/Icon';
 import { getPageHashUrl } from '@components/gallery/utils/urlPaths';
@@ -9,7 +9,7 @@ import { GalleryExampleThemeDropdown } from '@components/gallery/components/Gall
 import { GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
 import styles from '@pages-styles/gallery.module.scss';
 
-const galleryDataEntry = await getEntry('gallery', 'data');
+const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
 const galleryData: GalleryData = galleryDataEntry?.data;
 const { series } = galleryData;
 const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;

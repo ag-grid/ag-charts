@@ -1,5 +1,5 @@
 ---
-import { getEntry } from 'astro:content';
+import { getEntry, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import GalleryExampleRunner from '@components/gallery/components/GalleryExampleRunner.astro';
@@ -9,7 +9,7 @@ import { GallerySeriesLink } from '@components/gallery/components/GallerySeriesL
 import { toTitle } from '@utils/toTitle';
 
 export async function getStaticPaths() {
-    const galleryEntry = await getEntry('gallery', 'data');
+    const galleryEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
 
     const pages = getGalleryPages({ galleryData: galleryEntry.data });
     return pages;

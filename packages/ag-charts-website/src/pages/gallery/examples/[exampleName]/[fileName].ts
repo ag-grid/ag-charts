@@ -2,7 +2,7 @@ import { getGalleryExampleFiles } from '@components/gallery/utils/pageData';
 import { getIsDev } from '@utils/env';
 import { fileNameToMimeType } from '@utils/mimeType';
 import { getContentRootFileUrl } from '@utils/pages';
-import { getEntry } from 'astro:content';
+import { type CollectionEntry, getEntry } from 'astro:content';
 
 import { getGeneratedContents } from '../../../../components/example-generator';
 
@@ -12,7 +12,7 @@ interface Params {
 }
 
 export async function getStaticPaths() {
-    const galleryDataEntry = await getEntry('gallery', 'data');
+    const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
     const exampleFiles = await getGalleryExampleFiles({
         galleryData: galleryDataEntry?.data,
     });

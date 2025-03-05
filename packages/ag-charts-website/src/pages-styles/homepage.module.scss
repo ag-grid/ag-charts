@@ -22,8 +22,8 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     background-color: var(--color-util-brand-500);
     color: var(--color-white);
 
-    #{$selector-darkmode}:not(:has([data-is-homepage])) &,
-    #{$selector-darkmode}:has([data-is-homepage]) &:global(.header-scrolled) {
+    #{$selector-darkmode}:has([data-is-homepage='false']) &,
+    #{$selector-darkmode}:has([data-is-homepage='true']) &:global(.header-scrolled) {
         background-color: var(--color-bg-primary);
     }
 }
