@@ -119,9 +119,16 @@ const cartesianAxisOptionsDefs: OptionsDefs<Omit<AgBaseCartesianAxisOptions, 'ty
     ...commonAxisOptionsDefs,
     crossLines: arrayOfDefs<AgCartesianCrossLineOptions>({
         enabled: boolean,
-        type: union('line', 'range'),
-        range: and(arrayOf(defined), arrayLength(2, 2)),
-        value: defined,
+        type: required(union('line', 'range')),
+        range: and(
+            attachDescription((_, context) => context.options.type === 'range', "crossLine type to be 'range'"),
+            arrayOf(defined),
+            arrayLength(2, 2)
+        ),
+        value: and(
+            attachDescription((_, context) => context.options.type === 'line', "crossLine type to be 'line'"),
+            defined
+        ),
         label: {
             enabled: boolean,
             text: required(string),

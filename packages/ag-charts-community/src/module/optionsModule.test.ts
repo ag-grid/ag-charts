@@ -1768,7 +1768,7 @@ describe('ChartOptions', () => {
 
             expect(numberAxis?.crossLines?.[0]?.enabled).toBe(false);
             expect(numberAxis?.crossLines?.[0]?.type).toBe(theme.config.line.axes.time.crossLines.type);
-            expect(numberAxis?.crossLines?.[0]?.label?.enabled).toBe(false);
+            expect(numberAxis?.crossLines?.[0]?.label?.enabled).toBe(true);
             expect(numberAxis?.crossLines?.[0]?.label?.text).toBe(theme.config.line.axes.time.crossLines.label.text);
 
             expect(preparedOptions.axes![1]?.title?.enabled).toBe(true);
