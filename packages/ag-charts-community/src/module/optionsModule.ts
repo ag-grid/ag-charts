@@ -152,7 +152,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             if (deltaOptions === undefined) {
                 // No diff case - null means diff was a no-op.
-                deltaOptions = (jsonDiff(baseChartOptions.userOptions as T, newUserOptions) as DeepPartial<T>) ?? null;
+                deltaOptions = jsonDiff(baseChartOptions.userOptions as T, newUserOptions) as DeepPartial<T>;
             }
 
             this.userOptions = deepClone(
