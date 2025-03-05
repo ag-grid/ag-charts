@@ -1,12 +1,13 @@
-import { createSvgElement } from 'ag-charts-core';
 import type { AgFillType, AgGradientFill } from 'ag-charts-types';
 
 import { generateUUID } from '../../util/id';
 import { clamp } from '../../util/number';
 import type { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
+import { ConicGradient } from '../gradient/conicGradient';
 import { Gradient } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
+import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Node, SceneChangeDetection } from '../node';
 import { type FillType, isGradientFill } from '../util/fill';
@@ -83,22 +84,33 @@ export abstract class Shape<D = any> extends Node<D> {
         if (pattern instanceof Gradient) {
             return pattern;
         } else if (isGradientFill(pattern)) {
-            return this.createLinearGradient(pattern);
+            return this.createGradient(pattern);
         }
 
         return undefined;
     }
 
-    private createLinearGradient(fill: AgGradientFill) {
+    private createGradient(fill: AgGradientFill) {
         if (!this.defaultColorRange) {
             return;
         }
 
-        const { colorStops = [], direction, rotation = 0 } = fill;
-        const isHorizontal = direction === 'horizontal';
-        const stops = getColorStops(colorStops, this.defaultColorRange, [0, 1]);
+        const stops = getColorStops(fill.colorStops ?? [], this.defaultColorRange, [0, 1]);
 
-        return new LinearGradient('rgb', stops, isHorizontal ? rotation + 90 : rotation);
+        switch (fill.type) {
+            case 'gradient': {
+                const { direction, rotation = 0 } = fill;
+                const isHorizontal = direction === 'horizontal';
+                return new LinearGradient('rgb', stops, isHorizontal ? rotation + 90 : rotation);
+            }
+            case 'radial-gradient': {
+                return new RadialGradient('rgb', stops);
+            }
+            case 'conic-gradient': {
+                const { rotation = 0 } = fill;
+                return new ConicGradient('rgb', stops, rotation);
+            }
+        }
     }
 
     protected onFillChange() {
@@ -269,29 +281,10 @@ export abstract class Shape<D = any> extends Node<D> {
         } else if (isGradientFill(fill) && this.fillGradient) {
             defs ??= [];
 
-            const gradient = createSvgElement('linearGradient');
+            const gradient = this.fillGradient.toSvg(this.fillBBox ?? this.getBBox());
+
             const id = generateUUID();
             gradient.setAttribute('id', id);
-
-            const { direction = 'vertical' } = fill;
-            const isVertical = direction === 'vertical';
-
-            if (isVertical) {
-                gradient.setAttribute('x1', '0');
-                gradient.setAttribute('x2', '0');
-                gradient.setAttribute('y1', '1');
-                gradient.setAttribute('y2', '0');
-            }
-
-            const { stops } = this.fillGradient;
-            stops.forEach(({ offset, color }) => {
-                const stop = createSvgElement('stop');
-
-                stop.setAttribute('offset', `${offset}`);
-                stop.setAttribute('stop-color', `${color}`);
-
-                gradient.appendChild(stop);
-            });
 
             defs.push(gradient);
 

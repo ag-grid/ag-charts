@@ -151,7 +151,12 @@ const colorMessage = `A color string can be in one of the following formats to b
 export const COLOR_STRING = predicateWithMessage(isColor, `color string. ${colorMessage}`);
 
 export const COLOR_GRADIENT = attachObjectRestrictions(
-    predicateWithMessage((value) => isObject(value) && value.type === 'gradient', 'a color gradient object')
+    predicateWithMessage(
+        (value) =>
+            isObject(value) &&
+            (value.type === 'gradient' || value.type === 'radial-gradient' || value.type === 'conic-gradient'),
+        'a color gradient object'
+    )
 );
 
 export const COLOR_STRING_ARRAY = predicateWithMessage(ARRAY_OF(COLOR_STRING), `color strings. ${colorMessage}`);

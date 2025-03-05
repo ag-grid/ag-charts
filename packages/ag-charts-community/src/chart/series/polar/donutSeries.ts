@@ -597,7 +597,12 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             );
 
         let sectorFill: AgFillType | undefined = fill;
-        if (isGradientFill(sectorFill) && sectorFill.rotation == null && sectorFill.direction == null) {
+        if (
+            isGradientFill(sectorFill) &&
+            sectorFill.type === 'gradient' &&
+            sectorFill.rotation == null &&
+            sectorFill.direction == null
+        ) {
             sectorFill = {
                 ...sectorFill,
                 rotation: toDegrees(angle + Math.PI / 2),

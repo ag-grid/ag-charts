@@ -1,3 +1,5 @@
+import { createSvgElement } from 'ag-charts-core';
+
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import type { BBox } from '../bbox';
 import { type ColorSpace, Gradient } from './gradient';
@@ -13,7 +15,7 @@ export class LinearGradient extends Gradient {
         super(colorSpace, stops, bbox);
     }
 
-    protected override createCanvasGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | undefined {
+    private getGradientPoints(bbox: BBox) {
         const angleOffset = 90;
         const { angle } = this;
 
@@ -41,6 +43,23 @@ export class LinearGradient extends Gradient {
         }
 
         const l = diagonal * Math.abs(Math.cos(quarteredAngle - diagonalAngle));
-        return ctx.createLinearGradient(cx + cos * l, cy + sin * l, cx - cos * l, cy - sin * l);
+        return { x0: cx + cos * l, y0: cy + sin * l, x1: cx - cos * l, y1: cy - sin * l };
+    }
+
+    protected override createCanvasGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | undefined {
+        const { x0, y0, x1, y1 } = this.getGradientPoints(bbox);
+        return ctx.createLinearGradient(x0, y0, x1, y1);
+    }
+
+    createSvgGradient(bbox: BBox) {
+        const { x0, y0, x1, y1 } = this.getGradientPoints(bbox);
+
+        const gradient = createSvgElement('linearGradient');
+        gradient.setAttribute('x1', String(x0));
+        gradient.setAttribute('y1', String(y0));
+        gradient.setAttribute('x2', String(x1));
+        gradient.setAttribute('y2', String(y1));
+        gradient.setAttribute('gradientUnits', 'userSpaceOnUse');
+        return gradient;
     }
 }

@@ -74,10 +74,11 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         const y = height / 2 + (anchor.y - 0.5) * size;
         const scale = size / (size + markerStrokeWidth);
 
-        marker.x = 0;
-        marker.y = 0;
-        marker.translationX = x;
-        marker.translationY = y;
+        marker.x = x;
+        marker.y = y;
+
+        marker.scalingCenterX = x;
+        marker.scalingCenterY = y;
         marker.scalingX = scale;
         marker.scalingY = scale;
 
