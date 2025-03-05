@@ -574,6 +574,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             angle != null &&
             isGradientFill(sectorFill) &&
             sectorFill.type === 'gradient' &&
+            sectorFill.bounds !== 'series' &&
+            sectorFill.bounds !== 'axis' &&
             sectorFill.rotation == null &&
             sectorFill.direction == null
         ) {
@@ -787,12 +789,16 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.contentGroup.opacity = this.getOpacity();
         const { defaultColorRange } = this.properties;
 
+        const outerRadius = this.radiusScale.range[1];
+
         const animationDisabled = this.ctx.animationManager.isSkipped();
         const updateSectorFn = (sector: Sector, datum: PieNodeDatum, _index: number, isDatumHighlighted: boolean) => {
             const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted, datum.midAngle);
 
             datum.sectorFormat.fill = format.fill;
             datum.sectorFormat.stroke = format.stroke;
+
+            const fillBBox = this.getFillBBox(format.fill, outerRadius);
 
             if (animationDisabled) {
                 sector.startAngle = datum.startAngle;
@@ -805,6 +811,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 sector.stroke = format.stroke;
             }
 
+            sector.fillBBox = fillBBox;
             sector.strokeWidth = format.strokeWidth;
             sector.fillOpacity = format.fillOpacity;
             sector.strokeOpacity = format.strokeOpacity;
