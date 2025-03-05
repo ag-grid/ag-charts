@@ -150,16 +150,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             baseChartOptions = currentUserOptions;
             this.specialOverrides = baseChartOptions.specialOverrides;
 
-            deltaOptions ??=
-                (jsonDiff(baseChartOptions.userOptions as T, newUserOptions) as DeepPartial<T> | null) ?? null;
+            if (deltaOptions === undefined) {
+                // No diff case - null means diff was a no-op.
+                deltaOptions = (jsonDiff(baseChartOptions.userOptions as T, newUserOptions) as DeepPartial<T>) ?? null;
+            }
 
-            this.userOptions = mergeDefaults(
-                deltaOptions,
-                deepClone(baseChartOptions.userOptions, ChartOptions.OPTIONS_CLONE_OPTS)
+            this.userOptions = deepClone(
+                mergeDefaults(deltaOptions, baseChartOptions.userOptions),
+                ChartOptions.OPTIONS_CLONE_OPTS
             ) as T;
         } else {
             // Full update case.
-            this.userOptions = currentUserOptions;
+            this.userOptions = deepClone(currentUserOptions, ChartOptions.OPTIONS_CLONE_OPTS);
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
 

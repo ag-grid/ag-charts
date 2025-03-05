@@ -100,8 +100,8 @@ describe('Tooltip', () => {
             await waitForChartStability(chart);
 
             const nextValue = async (time: number, voltage: number) => {
-                opts.data!.shift();
-                opts.data!.push({ time, voltage });
+                opts.data = opts.data?.slice(1);
+                opts.data?.push({ time, voltage });
                 await (chart as AgChartProxy).update(opts);
                 await waitForChartStability(chart);
             };
