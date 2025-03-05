@@ -127,6 +127,7 @@ const navBase = {
     type: navType.optional(),
     path: z.string().optional(),
     url: z.string().optional(),
+    icon: z.string().optional(),
     frameworks: z.array(framework).optional(),
     childPaths: z.array(z.string()).optional(),
     isEnterprise: z.boolean().optional(),
