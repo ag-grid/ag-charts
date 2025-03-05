@@ -8,7 +8,11 @@ export type FillType = AgFillType | Gradient;
 export type DefaultFillStyle = { defaultColorRange: string[] };
 
 export function isGradientFill(fill: any): fill is AgGradientFill {
-    return fill !== null && isObject(fill) && fill.type == 'gradient';
+    return (
+        fill !== null &&
+        isObject(fill) &&
+        (fill.type == 'gradient' || fill.type === 'radial-gradient' || fill.type === 'conic-gradient')
+    );
 }
 
 export function isGradientFillArray(fills: any): fills is AgGradientFill[] {

@@ -44,7 +44,7 @@ export interface AgGradientColorStop {
     stop?: Ratio;
 }
 
-export interface AgGradientFill {
+export interface AgLinearGradientFill {
     type: 'gradient';
     /** Direction of the gradient, defaults to vertical. */
     direction?: AgGradientFillDirection;
@@ -55,6 +55,26 @@ export interface AgGradientFill {
     /** The rotation angle of the line along which the gradient is rendered. */
     rotation?: number;
 }
+
+export interface AgRadialGradientFill {
+    type: 'radial-gradient';
+    /** Represents the position and color of stops in the gradient. */
+    colorStops?: AgGradientColorStop[];
+    /** The domain of the color gradient, defaults to item. */
+    bounds?: AgGradientFillBounds;
+}
+
+export interface AgConicGradientFill {
+    type: 'conic-gradient';
+    /** Represents the position and color of stops in the gradient. */
+    colorStops?: AgGradientColorStop[];
+    /** The domain of the color gradient, defaults to item. */
+    bounds?: AgGradientFillBounds;
+    /** The rotation angle of the line along which the gradient is rendered. */
+    rotation?: number;
+}
+
+export type AgGradientFill = AgLinearGradientFill | AgRadialGradientFill | AgConicGradientFill;
 
 export type AgGradientFillBounds = 'series' | 'item' | 'axes';
 export type AgGradientFillDirection = 'horizontal' | 'vertical';

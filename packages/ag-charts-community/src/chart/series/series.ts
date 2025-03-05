@@ -519,7 +519,7 @@ export abstract class Series<
             return;
         }
 
-        const { bounds = 'item', direction } = fill;
+        const { bounds = 'item' } = fill;
 
         if (bounds === 'item') {
             return;
@@ -532,7 +532,7 @@ export abstract class Series<
         const xRange = xAxis?.range ?? [0, 1];
         const yRange = yAxis?.range ?? [0, 1];
 
-        const isHorizontal = direction === 'horizontal';
+        const isHorizontal = fill.type === 'gradient' && fill.direction === 'horizontal';
         const axisDirection = isHorizontal ? ChartAxisDirection.X : ChartAxisDirection.Y;
         const axis = axes[axisDirection];
         const seriesDomain = this.getSeriesDomain(axisDirection);
