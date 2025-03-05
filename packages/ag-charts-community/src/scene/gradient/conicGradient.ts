@@ -1,3 +1,5 @@
+import { createSvgElement } from 'ag-charts-core';
+
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import type { BBox } from '../bbox';
 import { type ColorSpace, Gradient } from './gradient';
@@ -22,5 +24,9 @@ export class ConicGradient extends Gradient {
         const cx = bbox.x + bbox.width * 0.5;
         const cy = bbox.y + bbox.height * 0.5;
         return ctx.createConicGradient(radians, cx, cy);
+    }
+    createSvgGradient(_bbox: BBox) {
+        // SVG doesn't support conic gradients
+        return createSvgElement('linearGradient');
     }
 }

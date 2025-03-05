@@ -1,3 +1,5 @@
+import { createSvgElement } from 'ag-charts-core';
+
 import { ColorScale } from '../../scale/colorScale';
 import type { BBox } from '../bbox';
 import type { GradientColorStop } from './stops';
@@ -60,6 +62,22 @@ export abstract class Gradient {
 
         this._cache = { ctx, bbox, gradient };
 
+        return gradient;
+    }
+
+    protected abstract createSvgGradient(bbox: BBox): SVGElement;
+    toSvg(shapeBbox: BBox): SVGElement {
+        const bbox = this.bbox ?? shapeBbox;
+
+        const gradient = this.createSvgGradient(bbox);
+        this.stops.forEach(({ offset, color }) => {
+            const stop = createSvgElement('stop');
+
+            stop.setAttribute('offset', `${offset}`);
+            stop.setAttribute('stop-color', `${color}`);
+
+            gradient.appendChild(stop);
+        });
         return gradient;
     }
 }
