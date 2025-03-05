@@ -4,10 +4,7 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 import { TreemapSeries } from './treemapSeries';
 import { treemapSeriesOptionsDef } from './treemapSeriesOptionsDef';
 
-const {
-    FONT_SIZE_RATIO,
-    ThemeSymbols: { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_HIERARCHY_FILLS, DEFAULT_HIERARCHY_STROKES },
-} = _ModuleSupport;
+const { FONT_SIZE_RATIO } = _ModuleSupport;
 
 export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     type: 'series',
@@ -20,6 +17,13 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     solo: true,
     themeTemplate: {
         series: {
+            fills: { $palette: 'fills' },
+            strokes: { $palette: 'strokes' },
+            colorRange: { $palette: 'divergingColors' },
+            // @ts-expect-error undocumented option
+            defaultColorRange: { $palette: 'gradient' },
+            undocumentedGroupFills: { $palette: 'hierarchyColors' },
+            undocumentedGroupStrokes: { $palette: 'secondHierarchyColors' },
             group: {
                 label: {
                     enabled: true,
@@ -93,24 +97,6 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
         gradientLegend: {
             enabled: true,
         },
-    },
-    paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
-        const {
-            fills,
-            strokes,
-            sequentialColors: [defaultColorRange],
-        } = takeColors(colorsCount);
-        const colorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
-        const groupFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
-        const groupStrokes = themeTemplateParameters.get(DEFAULT_HIERARCHY_STROKES);
-        return {
-            fills,
-            strokes,
-            colorRange,
-            undocumentedGroupFills: groupFills,
-            undocumentedGroupStrokes: groupStrokes,
-            defaultColorRange,
-        };
     },
 };
 

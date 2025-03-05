@@ -21,6 +21,28 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
     ],
     themeTemplate: {
         animation: { enabled: false },
+        series: {
+            item: {
+                up: {
+                    stroke: {
+                        $if: [
+                            { $eq: [{ $palette: 'type' }, 'user-indexed'] },
+                            { $palette: 'stroke' },
+                            { $palette: 'up.stroke' },
+                        ],
+                    },
+                },
+                down: {
+                    stroke: {
+                        $if: [
+                            { $eq: [{ $palette: 'type' }, 'user-indexed'] },
+                            { $palette: 'stroke' },
+                            { $palette: 'down.stroke' },
+                        ],
+                    },
+                },
+            },
+        },
         axes: {
             [CARTESIAN_AXIS_TYPE.NUMBER]: {
                 crosshair: {
@@ -36,24 +58,6 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
         },
     },
     groupable: false,
-    paletteFactory: ({ takeColors, colorsCount, userPalette, palette }) => {
-        if (userPalette === 'user-indexed') {
-            const [stroke] = takeColors(colorsCount).strokes;
-            return {
-                item: {
-                    up: { stroke },
-                    down: { stroke },
-                },
-            };
-        }
-
-        return {
-            item: {
-                up: { stroke: palette.up.stroke },
-                down: { stroke: palette.down.stroke },
-            },
-        };
-    },
 };
 
 export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {

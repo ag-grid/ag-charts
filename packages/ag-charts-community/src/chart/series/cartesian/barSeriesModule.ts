@@ -5,7 +5,7 @@ import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { singleSeriesPaletteFactory, swapAxisCondition } from '../../themes/util';
+import { swapAxisCondition } from '../../themes/util';
 import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
 
@@ -30,6 +30,10 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     themeTemplate: {
         series: {
             direction: 'vertical',
+            fill: { $palette: 'fill' },
+            stroke: { $palette: 'stroke' },
+            // @ts-expect-error undocumented option
+            defaultColorRange: { $palette: 'gradient' },
             fillOpacity: 1,
             strokeWidth: 0,
             lineDash: [0],
@@ -67,7 +71,6 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             },
         },
     },
-    paletteFactory: singleSeriesPaletteFactory,
 };
 
 export const NewBarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {

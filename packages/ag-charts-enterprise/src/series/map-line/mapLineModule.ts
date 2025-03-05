@@ -5,8 +5,6 @@ import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapLineSeries } from './mapLineSeries';
 import { mapLineSeriesOptionsDef } from './mapLineSeriesOptionsDef';
 
-const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
-
 export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -19,6 +17,15 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
+            stroke: { $palette: 'fill' },
+            // @ts-expect-error undocumented option
+            colorRange: {
+                $if: [
+                    { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                    { $palette: 'divergingColors' },
+                    { $palette: 'range2' },
+                ],
+            },
             strokeWidth: 1,
             maxStrokeWidth: 3,
             lineDash: [0],
@@ -31,16 +38,6 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
                 color: { $ref: 'textColor' },
             },
         },
-    },
-    paletteFactory: (opts) => {
-        const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
-        const { fill } = _ModuleSupport.singleSeriesPaletteFactory(opts);
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
-        const { fills } = takeColors(colorsCount);
-        return {
-            colorRange: userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]],
-            stroke: fill,
-        };
     },
 };
 

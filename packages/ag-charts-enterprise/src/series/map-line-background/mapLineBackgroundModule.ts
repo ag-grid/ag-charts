@@ -5,8 +5,6 @@ import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapLineBackgroundSeries } from './mapLineBackgroundSeries';
 import { mapLineBackgroundSeriesOptionsDef } from './mapLineBackgroundSeriesOptionsDef';
 
-const { DEFAULT_HIERARCHY_STROKES } = _ModuleSupport.ThemeSymbols;
-
 export const MapLineBackgroundModule: _ModuleSupport.SeriesModule<'map-line-background'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -19,15 +17,11 @@ export const MapLineBackgroundModule: _ModuleSupport.SeriesModule<'map-line-back
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
+            stroke: { $path: ['./1', { $palette: 'stroke' }, { $palette: 'secondHierarchyColors' }] },
             strokeWidth: 1,
             lineDash: [0],
             lineDashOffset: 0,
         },
-    },
-    paletteFactory: ({ themeTemplateParameters }) => {
-        return {
-            stroke: themeTemplateParameters.get(DEFAULT_HIERARCHY_STROKES)?.[1],
-        };
     },
 };
 

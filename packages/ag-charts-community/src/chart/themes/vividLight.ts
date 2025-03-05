@@ -1,10 +1,7 @@
 import { ChartTheme } from './chartTheme';
 import {
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
-    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
 import { getSequentialColors } from './util';
 
@@ -37,9 +34,24 @@ const VIVID_STROKES = {
 export class VividLight extends ChartTheme {
     override getDefaultColors() {
         return {
+            ...super.getDefaultColors(),
             fills: VIVID_FILLS,
             strokes: VIVID_STROKES,
             sequentialColors: getSequentialColors(VIVID_FILLS),
+            divergingColors: [VIVID_FILLS.ORANGE, VIVID_FILLS.YELLOW, VIVID_FILLS.GREEN],
+            hierarchyColors: [],
+            secondSequentialColors: [
+                '#0083ff',
+                '#1a8fff',
+                '#339cff',
+                '#4da8ff',
+                '#66b5ff',
+                '#80c1ff',
+                '#99cdff',
+                '#b3daff',
+            ],
+            secondDivergingColors: [VIVID_FILLS.GREEN, VIVID_FILLS.YELLOW, VIVID_FILLS.RED],
+            secondHierarchyColors: [],
             up: { fill: VIVID_FILLS.GREEN, stroke: VIVID_STROKES.GREEN },
             down: { fill: VIVID_FILLS.RED, stroke: VIVID_STROKES.RED },
             neutral: { fill: VIVID_FILLS.GRAY, stroke: VIVID_STROKES.GRAY },
@@ -51,19 +63,6 @@ export class VividLight extends ChartTheme {
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [VIVID_FILLS.ORANGE, VIVID_FILLS.YELLOW, VIVID_FILLS.GREEN]);
-        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
-            '#0083ff',
-            '#1a8fff',
-            '#339cff',
-            '#4da8ff',
-            '#66b5ff',
-            '#80c1ff',
-            '#99cdff',
-            '#b3daff',
-        ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [VIVID_FILLS.GREEN, VIVID_FILLS.YELLOW, VIVID_FILLS.RED]);
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, VIVID_FILLS.BLUE);
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, VIVID_FILLS.BLUE);

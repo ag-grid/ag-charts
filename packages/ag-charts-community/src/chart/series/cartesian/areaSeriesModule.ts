@@ -5,7 +5,6 @@ import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { markerPaletteFactory } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
 
@@ -33,6 +32,9 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
         series: {
             nodeClickRange: 'nearest',
             tooltip: { position: { type: 'node' } },
+            fill: { $palette: 'fill' },
+            stroke: { $palette: 'stroke' },
+            defaultColorRange: { $palette: 'gradient' },
             fillOpacity: 0.8,
             strokeOpacity: 1,
             strokeWidth: 0,
@@ -55,6 +57,10 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 shape: 'circle',
                 size: 7,
                 strokeWidth: 0,
+                fill: { $palette: 'fill' },
+                stroke: { $palette: 'stroke' },
+                // @ts-expect-error undocumented option
+                defaultColorRange: { $palette: 'gradient' },
             },
             label: {
                 enabled: false,
@@ -64,10 +70,6 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 color: { $ref: 'textColor' },
             },
         },
-    },
-    paletteFactory: (params) => {
-        const { marker } = markerPaletteFactory(params);
-        return { fill: marker.fill, stroke: marker.stroke, marker, defaultColorRange: marker.defaultColorRange };
     },
 };
 

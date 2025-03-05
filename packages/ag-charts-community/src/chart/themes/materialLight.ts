@@ -1,10 +1,7 @@
 import { ChartTheme } from './chartTheme';
 import {
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
-    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
 import { getSequentialColors } from './util';
 
@@ -37,9 +34,23 @@ const MATERIAL_LIGHT_STROKES = {
 export class MaterialLight extends ChartTheme {
     override getDefaultColors() {
         return {
+            ...super.getDefaultColors(),
             fills: MATERIAL_LIGHT_FILLS,
             strokes: MATERIAL_LIGHT_STROKES,
             sequentialColors: getSequentialColors(MATERIAL_LIGHT_FILLS),
+            divergingColors: [MATERIAL_LIGHT_FILLS.ORANGE, MATERIAL_LIGHT_FILLS.YELLOW, MATERIAL_LIGHT_FILLS.GREEN],
+            // hierarchyColors: [],
+            secondSequentialColors: [
+                '#2196f3', // 500
+                '#329EF4', // (interpolated)
+                '#42a5f5', // 400
+                '#53ADF6', // (interpolated)
+                '#64b5f6', // 300
+                '#7AC0F8', // (interpolated)
+                '#90caf9', // 200
+            ],
+            secondDivergingColors: [MATERIAL_LIGHT_FILLS.GREEN, MATERIAL_LIGHT_FILLS.YELLOW, MATERIAL_LIGHT_FILLS.RED],
+            // secondHierarchyColors: [],
             up: { fill: MATERIAL_LIGHT_FILLS.GREEN, stroke: MATERIAL_LIGHT_STROKES.GREEN },
             down: { fill: MATERIAL_LIGHT_FILLS.RED, stroke: MATERIAL_LIGHT_STROKES.RED },
             neutral: { fill: MATERIAL_LIGHT_FILLS.GRAY, stroke: MATERIAL_LIGHT_STROKES.GRAY },
@@ -51,26 +62,6 @@ export class MaterialLight extends ChartTheme {
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
-            MATERIAL_LIGHT_FILLS.ORANGE,
-            MATERIAL_LIGHT_FILLS.YELLOW,
-            MATERIAL_LIGHT_FILLS.GREEN,
-        ]);
-        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
-            '#2196f3', // 500
-            '#329EF4', // (interpolated)
-            '#42a5f5', // 400
-            '#53ADF6', // (interpolated)
-            '#64b5f6', // 300
-            '#7AC0F8', // (interpolated)
-            '#90caf9', // 200
-        ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [
-            MATERIAL_LIGHT_FILLS.GREEN,
-            MATERIAL_LIGHT_FILLS.YELLOW,
-            MATERIAL_LIGHT_FILLS.RED,
-        ]);
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, MATERIAL_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, MATERIAL_LIGHT_FILLS.BLUE);

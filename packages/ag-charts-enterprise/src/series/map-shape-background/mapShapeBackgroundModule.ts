@@ -5,8 +5,6 @@ import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeBackgroundSeries } from './mapShapeBackgroundSeries';
 import { mapShapeBackgroundSeriesOptionsDef } from './mapShapeBackgroundSeriesOptionsDef';
 
-const { DEFAULT_HIERARCHY_FILLS } = _ModuleSupport.ThemeSymbols;
-
 export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-background'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -19,16 +17,12 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
+            fill: { $path: ['./1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
             stroke: { $ref: 'backgroundColor' },
             strokeWidth: 1,
+            // @ts-expect-error undocumented-option
+            defaultColorRange: { $palette: 'gradient' },
         },
-    },
-    paletteFactory: ({ themeTemplateParameters }) => {
-        const fill = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS)?.[1];
-        return {
-            fill,
-            defaultColorRange: Object.values(_ModuleSupport.getSequentialColors({ fill: fill ?? 'grey' }))[0],
-        };
     },
 };
 

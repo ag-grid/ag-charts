@@ -1,5 +1,4 @@
 import type { SeriesFactory, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
-import type { SeriesPaletteFactory } from '../../module/coreModulesTypes';
 import type { ModuleContext } from '../../module/moduleContext';
 import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
@@ -11,7 +10,6 @@ interface SeriesRegistryRecord {
     moduleFactory?: SeriesFactory;
     defaultAxes?: object[] | ((opts: object) => object[]);
     tooltipDefaults?: SeriesTooltipDefaults;
-    paletteFactory?: SeriesPaletteFactory<unknown>;
     solo?: boolean;
     groupable?: boolean;
     stackable?: boolean;
@@ -30,7 +28,6 @@ class SeriesRegistry {
             tooltipDefaults,
             defaultAxes,
             themeTemplate,
-            paletteFactory,
             solo,
             stackable,
             groupable,
@@ -43,7 +40,6 @@ class SeriesRegistry {
             moduleFactory,
             tooltipDefaults,
             defaultAxes,
-            paletteFactory,
             solo,
             stackable,
             groupable,
@@ -82,10 +78,6 @@ class SeriesRegistry {
 
     getThemeTemplate(seriesType: string) {
         return this.themeTemplates.get(seriesType);
-    }
-
-    getPaletteFactory(seriesType: SeriesType) {
-        return this.seriesMap.get(seriesType)?.paletteFactory;
     }
 
     getTooltipDefauls(seriesType: SeriesType) {

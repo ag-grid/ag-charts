@@ -1,10 +1,7 @@
 import { DarkTheme } from './darkTheme';
 import {
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
-    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
 import { getSequentialColors } from './util';
 
@@ -37,9 +34,23 @@ const MATERIAL_DARK_STROKES = {
 export class MaterialDark extends DarkTheme {
     override getDefaultColors() {
         return {
+            ...super.getDefaultColors(),
             fills: MATERIAL_DARK_FILLS,
             strokes: MATERIAL_DARK_STROKES,
             sequentialColors: getSequentialColors(MATERIAL_DARK_FILLS),
+            divergingColors: [MATERIAL_DARK_FILLS.ORANGE, MATERIAL_DARK_FILLS.YELLOW, MATERIAL_DARK_FILLS.GREEN],
+            // hierarchyColors: [],
+            secondSequentialColors: [
+                '#2196f3', // 500
+                '#208FEC', // (interpolated)
+                '#1E88E5', // 600
+                '#1C7FDC', // (interpolated)
+                '#1976d2', // 700
+                '#176EC9', // (interpolated)
+                '#1565c0', // 800
+            ],
+            secondDivergingColors: [MATERIAL_DARK_FILLS.GREEN, MATERIAL_DARK_FILLS.YELLOW, MATERIAL_DARK_FILLS.RED],
+            // secondHierarchyColors: [],
             up: { fill: MATERIAL_DARK_FILLS.GREEN, stroke: MATERIAL_DARK_STROKES.GREEN },
             down: { fill: MATERIAL_DARK_FILLS.RED, stroke: MATERIAL_DARK_STROKES.RED },
             neutral: { fill: MATERIAL_DARK_FILLS.GRAY, stroke: MATERIAL_DARK_STROKES.GRAY },
@@ -51,26 +62,6 @@ export class MaterialDark extends DarkTheme {
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
-            MATERIAL_DARK_FILLS.ORANGE,
-            MATERIAL_DARK_FILLS.YELLOW,
-            MATERIAL_DARK_FILLS.GREEN,
-        ]);
-        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
-            '#2196f3', // 500
-            '#208FEC', // (interpolated)
-            '#1E88E5', // 600
-            '#1C7FDC', // (interpolated)
-            '#1976d2', // 700
-            '#176EC9', // (interpolated)
-            '#1565c0', // 800
-        ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [
-            MATERIAL_DARK_FILLS.GREEN,
-            MATERIAL_DARK_FILLS.YELLOW,
-            MATERIAL_DARK_FILLS.RED,
-        ]);
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, MATERIAL_DARK_FILLS.BLUE);
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, MATERIAL_DARK_FILLS.BLUE);

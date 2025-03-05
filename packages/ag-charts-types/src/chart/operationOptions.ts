@@ -25,7 +25,7 @@ type ExcludeLeaves = string | symbol | number | undefined | AgGradientFill;
 type ExtendLiteralLeaves<T, V, E> = {
     [P in keyof T]: NonNullable<T[P]> extends Array<infer U>
         ? U extends E
-            ? Array<U> | V
+            ? Array<U> | Array<V> | V
             : ExtendLiteralLeavesInner<T, V, E, P>
         : ExtendLiteralLeavesInner<T, V, E, P>;
 };
@@ -39,7 +39,36 @@ type ExtendLiteralLeavesInner<T, V, E, P extends keyof T> =
 
 type ThemeParam = keyof AgChartThemeParams;
 
-type PathOperation = { $ref: ThemeParam } | { $path: string | [string, Leaf] };
+type PaletteParam =
+    | 'type'
+    | 'fills'
+    | 'fill'
+    | 'strokes'
+    | 'stroke'
+    | 'gradients'
+    | 'gradient'
+    | 'sequentialColors'
+    | 'divergingColors'
+    | 'hierarchyColors'
+    | 'secondSequentialColors'
+    | 'secondDivergingColors'
+    | 'secondHierarchyColors'
+    | 'range2'
+    | 'up.fill'
+    | 'up.stroke'
+    | 'down.fill'
+    | 'down.stroke'
+    | 'altUp.fill'
+    | 'altUp.stroke'
+    | 'altDown.fill'
+    | 'altDown.stroke'
+    | 'neutral.fill'
+    | 'neutral.stroke';
+
+type PathOperation =
+    | { $ref: ThemeParam }
+    | { $palette: PaletteParam }
+    | { $path: string | [string, Leaf] | [string, Leaf, Leaf] };
 
 type LogicOperation =
     | { $if: [Leaf, Leaf, Leaf] }
@@ -61,4 +90,5 @@ type FontOperation = { $rem: [Leaf] | [Leaf, Leaf] };
 type ColorOperation =
     | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] }
     | { $foregroundBackgroundMix: [Leaf<number>] }
-    | { $foregroundBackgroundAccentMix: [Leaf<number>, Leaf<number>] };
+    | { $foregroundBackgroundAccentMix: [Leaf<number>, Leaf<number>] }
+    | { $interpolate: [Leaf, Leaf<number>] };

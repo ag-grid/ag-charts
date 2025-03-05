@@ -17,15 +17,6 @@ export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
     tooltipDefaults: { range: 'exact' },
     defaultAxes: funnelSeriesAxes,
     themeTemplate: FUNNEL_SERIES_THEME,
-
-    paletteFactory: ({ takeColors }) => {
-        const {
-            fills,
-            strokes,
-            sequentialColors: [defaultColorRange],
-        } = takeColors(1);
-        return { fills, strokes, defaultColorRange };
-    },
 };
 
 export const FunnelSeriesModule: SeriesModuleDefinition<AgFunnelSeriesOptions> = {

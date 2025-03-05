@@ -18,16 +18,6 @@ export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
     themeTemplate: RADAR_LINE_SERIES_THEME,
-    paletteFactory: ({ takeColors }) => {
-        const {
-            fills: [fill],
-            strokes: [stroke],
-        } = takeColors(1);
-        return {
-            stroke: fill,
-            marker: { fill, stroke },
-        };
-    },
 };
 
 export const RadarLineSeriesModule: SeriesModuleDefinition<AgRadarLineSeriesOptions> = {

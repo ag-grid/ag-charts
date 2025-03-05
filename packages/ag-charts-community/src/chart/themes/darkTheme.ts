@@ -8,14 +8,8 @@ import {
     DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
     DEFAULT_ANNOTATION_STATISTICS_FILL,
     DEFAULT_ANNOTATION_STATISTICS_STROKE,
-    DEFAULT_BACKGROUND_COLOUR,
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
-    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
-    DEFAULT_HIERARCHY_FILLS,
-    DEFAULT_HIERARCHY_STROKES,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_TEXTBOX_COLOR,
@@ -61,6 +55,20 @@ export class DarkTheme extends ChartTheme {
             fills: DEFAULT_DARK_FILLS,
             strokes: DEFAULT_DARK_STROKES,
             sequentialColors: getSequentialColors(DEFAULT_DARK_FILLS),
+            divergingColors: [DEFAULT_DARK_FILLS.ORANGE, DEFAULT_DARK_FILLS.YELLOW, DEFAULT_DARK_FILLS.GREEN],
+            hierarchyColors: ['#192834', '#253746', '#324859', '#3f596c', '#4d6a80'],
+            secondSequentialColors: [
+                '#5090dc',
+                '#4882c6',
+                '#4073b0',
+                '#38659a',
+                '#305684',
+                '#28486e',
+                '#203a58',
+                '#182b42',
+            ],
+            secondDivergingColors: [DEFAULT_DARK_FILLS.GREEN, DEFAULT_DARK_FILLS.YELLOW, DEFAULT_DARK_FILLS.RED],
+            secondHierarchyColors: ['#192834', '#3b5164', '#496275', '#577287', '#668399'],
             up: { fill: DEFAULT_DARK_FILLS.GREEN, stroke: DEFAULT_DARK_STROKES.GREEN },
             down: { fill: DEFAULT_DARK_FILLS.RED, stroke: DEFAULT_DARK_STROKES.RED },
             neutral: { fill: DEFAULT_DARK_FILLS.GRAY, stroke: DEFAULT_DARK_STROKES.GRAY },
@@ -94,30 +102,6 @@ export class DarkTheme extends ChartTheme {
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
 
         params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#7f8389');
-
-        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
-            DEFAULT_DARK_FILLS.ORANGE,
-            DEFAULT_DARK_FILLS.YELLOW,
-            DEFAULT_DARK_FILLS.GREEN,
-        ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [
-            DEFAULT_DARK_FILLS.GREEN,
-            DEFAULT_DARK_FILLS.YELLOW,
-            DEFAULT_DARK_FILLS.RED,
-        ]);
-        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
-            '#5090dc',
-            '#4882c6',
-            '#4073b0',
-            '#38659a',
-            '#305684',
-            '#28486e',
-            '#203a58',
-            '#182b42',
-        ]);
-        params.set(DEFAULT_HIERARCHY_FILLS, ['#192834', '#253746', '#324859', '#3f596c', '#4d6a80']);
-        params.set(DEFAULT_HIERARCHY_STROKES, ['#192834', '#3b5164', '#496275', '#577287', '#668399']);
-        params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL); // TODO: remove uses in paletteFactory()
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, DEFAULT_DARK_FILLS.BLUE);
         params.set(DEFAULT_TEXT_ANNOTATION_COLOR, '#fff');

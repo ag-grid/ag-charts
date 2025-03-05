@@ -5948,11 +5948,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       ],
       "lineDashOffset": 0,
       "marker": {
-        "defaultColorRange": [
-          "#2162aa",
-          "#5090dc",
-          "#7ec0ff",
-        ],
         "enabled": true,
         "fill": "#006847",
         "shape": "circle",
@@ -5999,11 +5994,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       ],
       "lineDashOffset": 0,
       "marker": {
-        "defaultColorRange": [
-          "#cc7100",
-          "#ffa03a",
-          "#ffd171",
-        ],
         "enabled": true,
         "fill": "#c22b38",
         "shape": "circle",
@@ -6050,11 +6040,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       ],
       "lineDashOffset": 0,
       "marker": {
-        "defaultColorRange": [
-          "#076f29",
-          "#459d55",
-          "#75cd82",
-        ],
         "enabled": true,
         "fill": "#042279",
         "shape": "circle",
@@ -6101,11 +6086,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       ],
       "lineDashOffset": 0,
       "marker": {
-        "defaultColorRange": [
-          "#008fb0",
-          "#34bfe1",
-          "#70f1ff",
-        ],
         "enabled": true,
         "fill": "#4997d0",
         "shape": "circle",
@@ -6152,11 +6132,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       ],
       "lineDashOffset": 0,
       "marker": {
-        "defaultColorRange": [
-          "#b19c00",
-          "#e1cc00",
-          "#fffe5d",
-        ],
         "enabled": true,
         "fill": "#ffffff",
         "shape": "circle",
@@ -6203,11 +6178,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       ],
       "lineDashOffset": 0,
       "marker": {
-        "defaultColorRange": [
-          "#6a3c9a",
-          "#9669cb",
-          "#c597fe",
-        ],
         "enabled": true,
         "fill": "#459945",
         "shape": "circle",
@@ -8963,16 +8933,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
       "calloutLabelKey": "type",
       "calloutLine": {
         "colors": [
-          "#2b5c95",
-          "#cc6f10",
-          "#1e652e",
-          "#18859e",
-          "#a69400",
-          "#603c88",
-          "#575757",
-          "#7d2f6d",
-          "#4f3508",
-          "#a82529",
+          "#fb7451",
+          "#f4b944",
+          "#57cc8b",
+          "#49afda",
+          "#3988dc",
+          "#72508c",
+          "#b499b5",
+          "#b7b5ba",
         ],
         "length": 10,
         "strokeWidth": 2,

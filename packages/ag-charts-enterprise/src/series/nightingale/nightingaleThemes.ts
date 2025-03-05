@@ -6,6 +6,12 @@ const {
 
 export const NIGHTINGALE_SERIES_THEME: _ModuleSupport.SeriesModule<'nightingale'>['themeTemplate'] = {
     series: {
+        fill: { $palette: 'fill' },
+        stroke: {
+            $if: [{ $eq: [{ $palette: 'type' }, 'inbuilt'] }, { $ref: 'backgroundColor' }, { $palette: 'stroke' }],
+        },
+        // @ts-expect-error undocumented option
+        defaultColorRange: { $palette: 'gradient' },
         strokeWidth: 1,
         label: {
             enabled: false,

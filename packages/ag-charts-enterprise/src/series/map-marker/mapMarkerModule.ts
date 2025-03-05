@@ -5,8 +5,6 @@ import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
 import { mapMarkerSeriesOptionsDef } from './mapMarkerSeriesOptionsDef';
 
-const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
-
 export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -21,23 +19,22 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
         series: {
             shape: 'circle',
             maxSize: 30,
+            fill: { $palette: 'fill' },
+            stroke: { $palette: 'stroke' },
+            colorRange: {
+                $if: [
+                    { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                    { $palette: 'divergingColors' },
+                    { $palette: 'range2' },
+                ],
+            },
+            // @ts-expect-error undocumented option
+            defaultColorRange: { $palette: 'gradient' },
             fillOpacity: 0.5,
             label: {
                 color: { $ref: 'textColor' },
             },
         },
-    },
-    paletteFactory: (opts) => {
-        const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
-        const { fill, stroke, defaultColorRange } = _ModuleSupport.singleSeriesPaletteFactory(opts);
-        const colorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
-        const { fills } = takeColors(colorsCount);
-        return {
-            fill,
-            stroke,
-            colorRange: userPalette === 'inbuilt' ? colorRange : [fills[0], fills[1]],
-            defaultColorRange,
-        };
     },
 };
 

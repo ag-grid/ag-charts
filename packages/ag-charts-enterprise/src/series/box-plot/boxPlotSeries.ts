@@ -18,7 +18,6 @@ const {
     animationValidation,
     computeBarFocusBounds,
     createDatumId,
-    Color,
     ContinuousScale,
     ChartAxisDirection,
     motion,
@@ -501,41 +500,17 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     getFormattedStyles(nodeDatum: BoxPlotNodeDatum, scope: 'tooltip' | 'node' | 'highlight'): AgBoxPlotSeriesStyle {
         const { id: seriesId, properties } = this;
-        const {
-            xKey,
-            minKey,
-            q1Key,
-            medianKey,
-            q3Key,
-            maxKey,
-            itemStyler,
-            backgroundFill,
-            cornerRadius,
-            defaultColorRange,
-        } = properties;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler, cornerRadius, defaultColorRange } =
+            properties;
         const { datum, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
         let fill;
         let fillOpacity: number | undefined;
 
-        // @todo(AG-11876) Use fillOpacity to match area, range area, radar area, chord, and sankey series
-        const useFakeFill = true;
-        if (useFakeFill) {
-            fill = nodeDatum.fill;
-            fillOpacity = properties.fillOpacity;
-        } else if (isGradientFill(nodeDatum.fill)) {
+        if (isGradientFill(nodeDatum.fill)) {
             fill = nodeDatum.fill;
         } else {
-            try {
-                fill = Color.mix(
-                    Color.fromString(backgroundFill),
-                    Color.fromString(nodeDatum.fill),
-                    properties.fillOpacity
-                ).toString();
-            } catch {
-                fill = nodeDatum.fill;
-            }
-
-            fillOpacity = undefined;
+            fill = nodeDatum.fill;
+            fillOpacity = properties.fillOpacity;
         }
 
         const activeStyles: Required<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle = {
