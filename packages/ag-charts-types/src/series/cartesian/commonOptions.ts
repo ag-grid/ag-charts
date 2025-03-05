@@ -76,7 +76,7 @@ export interface AgConicGradientFill {
 
 export type AgGradientFill = AgLinearGradientFill | AgRadialGradientFill | AgConicGradientFill;
 
-export type AgGradientFillBounds = 'series' | 'item' | 'axes';
+export type AgGradientFillBounds = 'series' | 'item' | 'axis';
 export type AgGradientFillDirection = 'horizontal' | 'vertical';
 
 /**

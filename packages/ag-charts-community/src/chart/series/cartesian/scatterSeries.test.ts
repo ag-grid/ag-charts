@@ -205,7 +205,7 @@ describe('ScatterSeries', () => {
                         fill: {
                             type: 'gradient',
                             direction: 'vertical',
-                            bounds: 'axes',
+                            bounds: 'axis',
                         },
                         size: 20,
                         strokeWidth: 0,
@@ -242,7 +242,7 @@ describe('ScatterSeries', () => {
                         fill: {
                             type: 'gradient',
                             direction: 'horizontal',
-                            bounds: 'axes',
+                            bounds: 'axis',
                         },
                         size: 20,
                         strokeWidth: 0,
