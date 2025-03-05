@@ -400,7 +400,9 @@ export abstract class Chart extends Observable implements ModuleInstance {
         datumIndex: unknown,
         removeMeDatum: unknown
     ): TooltipContent[] {
-        const baseTooltipContent = series.getTooltipContent(datumIndex, removeMeDatum);
+        const baseTooltipContent = series.properties.tooltip.enabled
+            ? series.getTooltipContent(datumIndex, removeMeDatum)
+            : undefined;
         const tooltipContent = baseTooltipContent == null ? [] : [baseTooltipContent];
         if (this.tooltip.mode !== 'shared' || this.series.length === 1) {
             return tooltipContent;

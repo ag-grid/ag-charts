@@ -253,9 +253,19 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const fillBBox = this.getFillBBox(baseStyle.fill);
 
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, labelKey }, baseStyle, fillBBox, {
-                selected: datum.selected,
-            });
+            this.updateMarkerStyle(
+                marker,
+                node,
+                datum.datum,
+                datum.point,
+                { xKey, yKey, labelKey },
+                highlighted,
+                baseStyle,
+                fillBBox,
+                {
+                    selected: datum.selected,
+                }
+            );
         });
 
         if (!highlighted) {
@@ -314,18 +324,12 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const nodeDatum = this.contextNodeData?.nodeData[datumIndex];
         if (xValue == null || nodeDatum == null) return;
 
-        const style = marker.getStyle();
-        const activeStyle = this.getMarkerStyle(
-            marker,
-            {
-                datum: nodeDatum,
-                xKey,
-                yKey,
-                labelKey,
-                highlighted: true,
-            },
-            style
-        );
+        const activeStyle = this.getMarkerStyle(marker, nodeDatum.datum, {
+            xKey,
+            yKey,
+            labelKey,
+            highlighted: true,
+        });
 
         return tooltip.formatTooltip(
             this.properties,
@@ -427,7 +431,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
     public getFormattedMarkerStyle(datum: ScatterNodeDatum) {
         const { xKey, yKey, labelKey } = this.properties;
-        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, labelKey, highlighted: true });
+        return this.getMarkerStyle(this.properties.marker, datum.datum, { xKey, yKey, labelKey }, true);
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
