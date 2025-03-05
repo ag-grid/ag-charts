@@ -1,10 +1,10 @@
-import { type AgCandlestickSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgCandlestickSeriesItemOptions, type AgGradientFill, _ModuleSupport } from 'ag-charts-community';
 
 import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { createDatumId, isGradientFill } = _ModuleSupport;
+const { createDatumId, isGradientFill, BBox } = _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, CandlestickSeriesProperties<any>> {
     static readonly className = 'CandleStickSeries';
@@ -62,9 +62,6 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
         } = down.wick;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
 
-        const upFillBBox = this.getFillBBox(upFill);
-        const downFillBBox = this.getFillBBox(downFill);
-
         datumSelection.each((node, datum) => {
             const { isRising, centerX, width, y, height, yOpen, yClose, crisp } = datum;
 
@@ -105,6 +102,9 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             node.yClose = yClose;
             node.crisp = crisp;
 
+            const upFillBBox = this.getFillBBox(upFill, node);
+            const downFillBBox = this.getFillBBox(downFill, node);
+
             node.fillBBox = isRising ? upFillBBox : downFillBBox;
             node.defaultColorRange = isRising ? upDefaultColorRange : downDefaultColorRange;
             node.fill = highlightStyle?.fill ?? style?.fill ?? (isRising ? upFill : downFill);
@@ -143,6 +143,29 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             // Ignore highlight style
             node.strokeAlignment = (style?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth)) / 2;
         });
+    }
+
+    protected override getFillBBox(fill?: AgGradientFill | string | undefined, candlestickNode?: CandlestickNode) {
+        if (!isGradientFill(fill) || !candlestickNode) {
+            return;
+        }
+
+        const { bounds = 'item' } = fill;
+
+        if (bounds !== 'item') {
+            return super.getFillBBox(fill);
+        }
+
+        const { width, centerX, yOpen, yClose } = candlestickNode;
+
+        const boxTop = Math.min(yOpen, yClose);
+        const boxBottom = Math.max(yOpen, yClose);
+        const rectHeight = boxBottom - boxTop;
+
+        const x0 = centerX - width / 2;
+        let x1 = centerX + width / 2;
+
+        return new BBox(x0, boxTop, x1 - x0, rectHeight);
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
