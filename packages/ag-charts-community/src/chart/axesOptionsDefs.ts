@@ -39,7 +39,7 @@ export const numberFormatValidator = attachDescription(isValidNumberFormat, 'a v
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,
     text: required(string),
-    padding: positiveNumber,
+    padding: number,
     ...fontOptionsDef,
 };
 

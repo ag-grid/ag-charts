@@ -65,7 +65,7 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
             union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle', 'line'),
             callback
         ),
-        placement: union('before', 'after', 'middle'),
+        placement: union('inside', 'outside', 'middle'),
         spacing: positiveNumber,
         size: positiveNumber,
         rotation: number,
