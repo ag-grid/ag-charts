@@ -52,14 +52,17 @@ describe('lint-change-detection', () => {
     const lintScriptPath = path.resolve(__dirname, 'lint-change-detection.js');
 
     it('should match the expected linting errors snapshot', () => {
+        let stdout: string | undefined;
+        let stderr: string | undefined;
         try {
-            const output = execSync(`node ${lintScriptPath} ${testFilePath}`, {
+            stdout = execSync(`node ${lintScriptPath} ${testFilePath}`, {
                 encoding: 'utf-8',
                 stdio: 'pipe',
             });
-            expect(output).toMatchSnapshot();
         } catch (error: any) {
-            expect(error.stdout).toMatchSnapshot();
+            stdout = error.stdout;
+            stderr = error.stderr;
         }
+        expect({ stdout, stderr }).toMatchSnapshot();
     });
 });

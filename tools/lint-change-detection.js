@@ -116,7 +116,7 @@ function main() {
     const pattern = process.argv[2] || '**/*.ts';
     const filePaths = glob
         .sync(pattern, {
-            ignore: ['**/node_modules/**', '**/dist/**', '**/test/**', '**/*.test.ts'],
+            ignore: ['**/node_modules/**', '**/dist/**', '**/test/**'],
         })
         .map((file) => path.resolve(process.cwd(), file));
 

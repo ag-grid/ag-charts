@@ -1,6 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`lint-change-detection should match the expected linting errors snapshot 1`] = `
-"No TypeScript files found.
-"
+{
+  "stderr": "Change detection lint errors found:
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:27:29 - Decorator @SceneChangeDetection applied to property 'requiredObject' with type 'object'. Property type is not allowed for change detection.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:28:29 - Decorator @SceneChangeDetection applied to property 'optionalObject' with type 'object'. Property type is not allowed for change detection.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:29:29 - Decorator @SceneChangeDetection applied to property 'requiredArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:30:29 - Decorator @SceneChangeDetection applied to property 'optionalArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:38:33 - Decorator @ScenePathChangeDetection applied to property 'requiredPathObject' with type 'object'. Property type is not allowed for change detection.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:39:33 - Decorator @ScenePathChangeDetection applied to property 'optionalPathObject' with type 'object'. Property type is not allowed for change detection.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:40:33 - Decorator @ScenePathChangeDetection applied to property 'requiredPathArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:41:33 - Decorator @ScenePathChangeDetection applied to property 'optionalPathArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
+",
+  "stdout": "",
+}
 `;
