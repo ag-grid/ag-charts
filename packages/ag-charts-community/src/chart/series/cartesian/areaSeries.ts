@@ -690,6 +690,7 @@ export class AreaSeries extends CartesianSeries<
         });
 
         const fillBBox = this.getFillBBox(fill);
+        const { defaultColorRange } = marker;
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
@@ -700,6 +701,7 @@ export class AreaSeries extends CartesianSeries<
                 datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
                 highlighted,
                 baseStyle,
+                defaultColorRange,
                 fillBBox,
                 { selected: datum.selected }
             );

@@ -569,6 +569,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
 
         const fillBBox = this.getFillBBox(baseStyle.fill);
+        const { defaultColorRange } = marker;
+
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
                 marker,
@@ -578,6 +580,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 { xKey, yHighKey, yLowKey },
                 highlighted,
                 baseStyle,
+                defaultColorRange,
                 fillBBox
             );
         });

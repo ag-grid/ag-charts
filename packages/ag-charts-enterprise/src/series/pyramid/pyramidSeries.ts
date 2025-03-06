@@ -51,8 +51,7 @@ interface PyramidNodeDataContext
 }
 
 type ItemStyle = Pick<AgPyramidSeriesStyle, 'fill' | 'stroke'> &
-    Required<Omit<AgPyramidSeriesStyle, 'fill' | 'stroke'>> &
-    _ModuleSupport.DefaultFillStyle;
+    Required<Omit<AgPyramidSeriesStyle, 'fill' | 'stroke'>>;
 
 type PyramidAnimationState = 'empty' | 'ready';
 type PyramidAnimationEvent = {
@@ -471,7 +470,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -527,12 +525,13 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const style = this.getItemBaseStyle(isHighlight);
         const fillBBox = this.getFillBBox(style.fill);
+        const { defaultColorRange } = this.properties;
 
         datumSelection.each((connector, nodeDatum) => {
             const { datumIndex, datum } = nodeDatum;
             const overrides = this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, style, isHighlight);
 
-            applyShapeStyle(connector, style, overrides, fillBBox);
+            applyShapeStyle(connector, { ...style, defaultColorRange }, overrides, fillBBox);
 
             applyPyramidDatum(connector, nodeDatum);
 

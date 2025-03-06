@@ -61,7 +61,7 @@ interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
 }
 
-type ItemStyle = Required<AgRadialSeriesStyle> & _ModuleSupport.DefaultFillStyle;
+type ItemStyle = Required<AgRadialSeriesStyle>;
 
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
@@ -370,7 +370,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             cornerRadius: properties.cornerRadius,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -408,6 +407,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const style = this.getItemBaseStyle(highlighted);
         const fillBBox = this.getFillBBox(style.fill);
+        const { defaultColorRange } = this.properties;
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
@@ -417,7 +417,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
                 const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
 
-                applyShapeStyle(node, style, overrides, fillBBox);
+                applyShapeStyle(node, { ...style, defaultColorRange }, overrides, fillBBox);
 
                 node.lineJoin = 'round';
                 node.inset = node.stroke != null ? node.strokeWidth / 2 : 0;

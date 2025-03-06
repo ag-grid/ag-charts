@@ -880,6 +880,7 @@ export abstract class Series<
         params: TParams,
         highlighted: boolean,
         defaultStyle: AgSeriesMarkerStyle,
+        defaultColorRange: string[],
         fillBBox?: BBox,
         { applyTranslation = true, selected = true } = {}
     ) {
@@ -892,13 +893,14 @@ export abstract class Series<
             markerNode.setProperties({
                 visible,
                 ...activeStyle,
+                defaultColorRange,
                 x: point?.x,
                 y: point?.y,
                 scalingCenterX: point?.x,
                 scalingCenterY: point?.y,
             });
         } else {
-            markerNode.setProperties({ visible, ...activeStyle });
+            markerNode.setProperties({ visible, ...activeStyle, defaultColorRange });
         }
 
         if (!selected) {

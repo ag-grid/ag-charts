@@ -22,10 +22,7 @@ const {
     applyShapeStyle,
 } = _ModuleSupport;
 
-type ItemStyle = Pick<AgFunnelSeriesStyle, 'fill' | 'stroke'> &
-    Required<Omit<AgFunnelSeriesStyle, 'fill' | 'stroke'>> &
-    _ModuleSupport.DefaultFillStyle;
-
+type ItemStyle = Pick<AgFunnelSeriesStyle, 'fill' | 'stroke'> & Required<Omit<AgFunnelSeriesStyle, 'fill' | 'stroke'>>;
 export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>> {
     static readonly className = 'FunnelSeries';
     static readonly type = 'funnel' as const;
@@ -125,7 +122,6 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -188,6 +184,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
 
         const style = this.getItemBaseStyle(isHighlight);
         const fillBBox = this.getFillBBox(style.fill);
+        const { defaultColorRange } = this.properties;
 
         datumSelection.each((rect, datum) => {
             const { datumIndex } = datum;
@@ -199,7 +196,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
                 isHighlight
             );
 
-            applyShapeStyle(rect, style, overrides, fillBBox);
+            applyShapeStyle(rect, { ...style, defaultColorRange }, overrides, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

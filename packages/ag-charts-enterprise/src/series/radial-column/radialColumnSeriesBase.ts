@@ -439,6 +439,7 @@ export abstract class RadialColumnSeriesBase<
 
         const style = this.getItemBaseStyle(highlighted);
         const fillBBox = this.getFillBBox(style.fill);
+        const { defaultColorRange } = this.properties;
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
@@ -463,7 +464,7 @@ export abstract class RadialColumnSeriesBase<
 
                 this.updateItemPath(node, nodeDatum, highlighted);
 
-                applyShapeStyle(node, nodeStyle, overrides, fillBBox);
+                applyShapeStyle(node, { ...nodeStyle, defaultColorRange }, overrides, fillBBox);
 
                 node.cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
                 node.lineJoin = 'round';

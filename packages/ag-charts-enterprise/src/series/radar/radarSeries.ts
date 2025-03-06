@@ -342,6 +342,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         const { fill } = baseStyle;
         const fillBBox = this.getFillBBox(fill);
+        const { defaultColorRange } = marker;
 
         selection.update(selectionData).each((node, datum) => {
             this.updateMarkerStyle(
@@ -352,6 +353,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 this.getDatumStylerProperties(datum),
                 highlight,
                 baseStyle,
+                defaultColorRange,
                 fillBBox
             );
         });
