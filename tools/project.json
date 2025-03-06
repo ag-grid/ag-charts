@@ -1,0 +1,19 @@
+{
+  "name": "tools",
+  "projectType": "library",
+  "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/tools.xml"],
+      "options": {
+        "jestConfig": "{projectRoot}/jest.config.ts",
+        "passWithNoTests": false
+      },
+      "configurations": {
+        "watch": { "watch": true },
+        "update": { "updateSnapshot": true }
+      },
+      "dependsOn": ["build:test"]
+    }
+  }
+}

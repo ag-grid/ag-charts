@@ -1,0 +1,6 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`lint-change-detection should match the expected linting errors snapshot 1`] = `
+"No TypeScript files found.
+"
+`;
