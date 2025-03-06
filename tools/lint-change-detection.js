@@ -23,6 +23,32 @@ function isAllowedPrimitive(type) {
 }
 
 /**
+ * Checks if the type (or union) is an array of allowed primitive types.
+ */
+function isAllowedPrimitiveArray(type) {
+    if (type.isUnion()) {
+        return type.types.every((t) => isAllowedPrimitiveArray(t));
+    }
+    if (type.flags & ts.TypeFlags.Object) {
+        if (type.objectFlags & ts.ObjectFlags.Reference && type.symbol) {
+            const name = type.symbol.name;
+            if (name === 'Array' || name === 'ReadonlyArray') {
+                const typeArguments = type.typeArguments || [];
+                return typeArguments.length === 1 && isAllowedPrimitive(typeArguments[0]);
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Checks if the type (or union) is an object but NOT an array.
+ */
+function isStrictObjectType(type) {
+    return isObjectType(type) && !isArrayType(type);
+}
+
+/**
  * Checks a type (or union of types) to ensure all constituents are allowed.
  */
 function checkAllowedType(type) {
@@ -77,14 +103,15 @@ function processSourceFile(sourceFile, checker, errors) {
                         decoratorName = decorator.expression.escapedText;
                     }
 
-                    if (decoratorName === 'ScenePathChangeDetection' || decoratorName === 'SceneChangeDetection') {
-                        const propertyName = node.name.getText(sourceFile);
-                        const symbol = checker.getSymbolAtLocation(node.name);
-                        if (symbol) {
-                            const type = checker.getTypeOfSymbolAtLocation(symbol, node);
-                            const typeString = checker.typeToString(type);
+                    const propertyName = node.name.getText(sourceFile);
+                    const symbol = checker.getSymbolAtLocation(node.name);
+                    if (symbol) {
+                        const type = checker.getTypeOfSymbolAtLocation(symbol, node);
+                        const typeString = checker.typeToString(type);
+                        let suggestion = '';
+
+                        if (decoratorName === 'SceneChangeDetection' || decoratorName === 'ScenePathChangeDetection') {
                             if (!checkAllowedType(type)) {
-                                let suggestion = '';
                                 if (isArrayType(type)) {
                                     suggestion = 'Switch to @SceneArrayChangeDetection for array properties.';
                                 } else if (isObjectType(type)) {
@@ -92,13 +119,24 @@ function processSourceFile(sourceFile, checker, errors) {
                                 } else {
                                     suggestion = 'Property type is not allowed for change detection.';
                                 }
-                                const { line, character } = sourceFile.getLineAndCharacterOfPosition(
-                                    node.name.getStart()
-                                );
-                                errors.push(
-                                    `${sourceFile.fileName}:${line + 1}:${character + 1} - Decorator @${decoratorName} applied to property '${propertyName}' with type '${typeString}'. ${suggestion}`
-                                );
                             }
+                        } else if (decoratorName === 'SceneArrayChangeDetection') {
+                            if (!isAllowedPrimitiveArray(type)) {
+                                suggestion =
+                                    'SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.';
+                            }
+                        } else if (decoratorName === 'SceneObjectChangeDetection') {
+                            if (!isStrictObjectType(type)) {
+                                suggestion =
+                                    'SceneObjectChangeDetection should only be applied to non-array object types.';
+                            }
+                        }
+
+                        if (suggestion) {
+                            const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.name.getStart());
+                            errors.push(
+                                `${sourceFile.fileName}:${line + 1}:${character + 1} - Decorator @${decoratorName} applied to property '${propertyName}' with type '${typeString}'. ${suggestion}`
+                            );
                         }
                     }
                 });
