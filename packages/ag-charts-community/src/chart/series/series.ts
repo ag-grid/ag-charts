@@ -4,7 +4,6 @@ import type {
     AgChartLabelOptions,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
-    AgSeriesMarkerStylerParams,
     AgSeriesVisibilityChange,
     ISeriesMarker,
 } from 'ag-charts-types';
@@ -852,17 +851,21 @@ export abstract class Series<
 
     public getMarkerStyle<TParams>(
         marker: ISeriesMarker<TParams>,
-        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId' | keyof AgSeriesMarkerStyle>,
+        datum: any,
+        params: TParams,
+        highlighted = false,
+        size = marker.size ?? 0,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
-        const defaultSize = { size: params.datum.point?.size ?? 0 };
+        const defaultSize = { size };
         const markerStyle = mergeDefaults(defaultSize, defaultStyle);
         if (marker.itemStyler) {
             const style = this.ctx.callbackCache.call(this.properties, marker.itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,
-                datum: params.datum.datum,
+                highlighted,
+                datum,
             });
             return mergeDefaults(style, markerStyle);
         }
@@ -870,15 +873,17 @@ export abstract class Series<
     }
 
     protected updateMarkerStyle<TParams>(
-        markerNode: Marker,
         marker: ISeriesMarker<TParams>,
-        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
-        defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
+        markerNode: Marker,
+        datum: any,
+        point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
+        params: TParams,
+        highlighted: boolean,
+        defaultStyle: AgSeriesMarkerStyle,
         fillBBox?: BBox,
         { applyTranslation = true, selected = true } = {}
     ) {
-        const { point } = params.datum;
-        const activeStyle = this.getMarkerStyle(marker, params, defaultStyle);
+        const activeStyle = this.getMarkerStyle(marker, datum, params, highlighted, point?.size, defaultStyle);
         const visible = this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
         markerNode.fillBBox = fillBBox;

@@ -687,9 +687,12 @@ export class AreaSeries extends CartesianSeries<
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
-                node,
                 marker,
-                { ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain), highlighted },
+                node,
+                datum.datum,
+                datum.point,
+                datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+                highlighted,
                 baseStyle,
                 fillBBox,
                 { selected: datum.selected }
@@ -755,9 +758,17 @@ export class AreaSeries extends CartesianSeries<
 
         const style = marker.getStyle();
 
+        const nodeDatum = {
+            datum,
+            xValue,
+            yValue,
+        };
         const activeStyle = this.getMarkerStyle(
             marker,
-            { ...datumStylerProperties(datum as any, xKey, yKey, xDomain, yDomain), highlighted: false },
+            datum,
+            datumStylerProperties(nodeDatum, xKey, yKey, xDomain, yDomain),
+            false,
+            undefined,
             style
         );
 
@@ -945,10 +956,12 @@ export class AreaSeries extends CartesianSeries<
         const { xKey, yKey } = datum;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-        return this.getMarkerStyle(this.properties.marker, {
-            ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
-            highlighted: true,
-        });
+        return this.getMarkerStyle(
+            this.properties.marker,
+            datum.datum,
+            datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+            true
+        );
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
