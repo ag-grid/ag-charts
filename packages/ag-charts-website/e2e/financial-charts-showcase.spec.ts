@@ -18,6 +18,7 @@ test.describe('financial-charts-showcase', () => {
                 const x = width - 20;
                 await dragCanvas(page, { x, y: height / 2 + 150 }, { x, y: 20 });
                 await canvas.hover({ position: { x: width / 5, y: height / 2 } });
+                await page.waitForTimeout(500);
 
                 // Expect that the price datum has been highlighted / snapped to, even though not
                 // visible.
