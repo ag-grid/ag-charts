@@ -483,7 +483,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    protected override getFillBBox(fill?: AgGradientFill | string | undefined, boxPlotDatum?: BoxPlotNodeDatum) {
+    protected override getFillBBox(fill: AgGradientFill | string | undefined, boxPlotDatum?: BoxPlotNodeDatum) {
         if (!isGradientFill(fill) || !boxPlotDatum) {
             return;
         }
@@ -497,10 +497,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
 
-        let { minValue, q1Value, q3Value, maxValue } = boxPlotDatum.scaledValues;
+        let { q1Value, q3Value } = boxPlotDatum.scaledValues;
 
         if ((isVertical && !isReversedValueAxis) || (!isVertical && isReversedValueAxis)) {
-            [maxValue, q3Value, q1Value, minValue] = [minValue, q1Value, q3Value, maxValue];
+            [q3Value, q1Value] = [q1Value, q3Value];
         }
 
         const {
@@ -508,10 +508,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             scaledValues: { xValue: axisValue },
         } = boxPlotDatum;
 
-        const position = (x: number, y: number, width: number, height: number) =>
-            isVertical ? new BBox(y, x, height, width) : new BBox(x, y, width, height);
-
-        return position(q1Value, axisValue, q3Value - q1Value, bandwidth);
+        return isVertical
+            ? new BBox(axisValue, q1Value, bandwidth, q3Value - q1Value)
+            : new BBox(q1Value, axisValue, q3Value - q1Value, bandwidth);
     }
 
     protected updateLabelNodes() {

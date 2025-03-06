@@ -413,7 +413,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
     }
 
-    protected override getFillBBox(fill?: AgGradientFill | string | undefined) {
+    protected override getFillBBox(fill: AgGradientFill | string | undefined) {
         if (!isGradientFill(fill)) {
             return;
         }

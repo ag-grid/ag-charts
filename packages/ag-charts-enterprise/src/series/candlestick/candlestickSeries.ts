@@ -145,7 +145,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
         });
     }
 
-    protected override getFillBBox(fill?: AgGradientFill | string | undefined, candlestickNode?: CandlestickNode) {
+    protected override getFillBBox(fill: AgGradientFill | string | undefined, candlestickNode?: CandlestickNode) {
         if (!isGradientFill(fill) || !candlestickNode) {
             return;
         }
@@ -163,7 +163,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
         const rectHeight = boxBottom - boxTop;
 
         const x0 = centerX - width / 2;
-        let x1 = centerX + width / 2;
+        const x1 = centerX + width / 2;
 
         return new BBox(x0, boxTop, x1 - x0, rectHeight);
     }

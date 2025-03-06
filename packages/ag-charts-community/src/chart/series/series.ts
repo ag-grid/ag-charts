@@ -509,7 +509,7 @@ export abstract class Series<
     // Needed for auto-scaling zoom
     abstract getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [number, number]): any[];
 
-    protected getFillBBox(fill?: FillType): BBox | undefined {
+    protected getFillBBox(fill: FillType | undefined): BBox | undefined {
         if (!isGradientFill(fill)) {
             return;
         }

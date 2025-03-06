@@ -217,7 +217,7 @@ export abstract class PolarSeries<
         return null;
     }
 
-    protected override getFillBBox(fill?: FillType, radius: number = 1): BBox | undefined {
+    protected override getFillBBox(fill: FillType | undefined, radius: number = 1): BBox | undefined {
         if (!isGradientFill(fill)) {
             return;
         }
