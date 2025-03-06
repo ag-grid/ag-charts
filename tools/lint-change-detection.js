@@ -163,9 +163,7 @@ function main() {
         .sync(pattern, {
             ignore: ['**/node_modules/**', '**/dist/**', '**/test/**'],
         })
-        .map((file) =>
-            useRelativePaths ? path.relative(process.cwd(), file) : path.resolve(process.cwd(), file)
-        );
+        .map((file) => (useRelativePaths ? path.relative(process.cwd(), file) : path.resolve(process.cwd(), file)));
 
     if (filePaths.length === 0) {
         console.log('No TypeScript files found.');
