@@ -275,7 +275,7 @@ export class AreaSeries extends CartesianSeries<
             return fixNumericExtent(extent(keys));
         }
 
-        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValueEnd'], 'xValue', true);
+        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValueCumulative'], 'xValue', true);
 
         if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {
             return fixNumericExtent(yExtent);
@@ -288,7 +288,13 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, ['yValueEnd'], 'xValue', visibleRange, true);
+        const [y0, y1] = this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            ['yValueCumulative'],
+            'xValue',
+            visibleRange,
+            true
+        );
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 
@@ -297,7 +303,7 @@ export class AreaSeries extends CartesianSeries<
         yVisibleRange: [number, number],
         minVisibleItems: number
     ): number {
-        return this.countVisibleItems('xValue', ['yValueEnd'], xVisibleRange, yVisibleRange, minVisibleItems);
+        return this.countVisibleItems('xValue', ['yValueCumulative'], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
     override createNodeData() {
@@ -497,8 +503,8 @@ export class AreaSeries extends CartesianSeries<
                         points.push(yDatumIsFinite ? [pointForwards] : { skip: 0 });
                     }
                 } else {
-                    const yValueEnd = Math.max(yValueEndBackwards, yValueEndForwards);
-                    const point = createPoint(xDatum, yValueEnd);
+                    const yValue = connectMissingData ? yDatum : Math.max(yValueEndBackwards, yValueEndForwards);
+                    const point = createPoint(xDatum, yValue);
 
                     if (Array.isArray(currentPoints)) {
                         currentPoints.push(point);
