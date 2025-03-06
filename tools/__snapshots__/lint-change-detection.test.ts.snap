@@ -3,19 +3,18 @@
 exports[`lint-change-detection should match the expected linting errors snapshot 1`] = `
 {
   "stderr": "Change detection lint errors found:
-/Users/olegat/ag-charts/tools/lint-change-detection.test.ts
-  27:29  error  Decorator @SceneChangeDetection applied to property 'requiredObject' with type 'object'. Property type is not allowed for change detection.
-  28:29  error  Decorator @SceneChangeDetection applied to property 'optionalObject' with type 'object'. Property type is not allowed for change detection.
-  29:29  error  Decorator @SceneChangeDetection applied to property 'requiredArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
-  30:29  error  Decorator @SceneChangeDetection applied to property 'optionalArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
-  38:33  error  Decorator @ScenePathChangeDetection applied to property 'requiredPathObject' with type 'object'. Property type is not allowed for change detection.
-  39:33  error  Decorator @ScenePathChangeDetection applied to property 'optionalPathObject' with type 'object'. Property type is not allowed for change detection.
-  40:33  error  Decorator @ScenePathChangeDetection applied to property 'requiredPathArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
-  41:33  error  Decorator @ScenePathChangeDetection applied to property 'optionalPathArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
-  43:35  error  Decorator @SceneObjectChangeDetection applied to property 'requiredObjectDetection' with type 'object'. SceneObjectChangeDetection should only be applied to non-array object types.
-  44:35  error  Decorator @SceneObjectChangeDetection applied to property 'optionalObjectDetection' with type 'object'. SceneObjectChangeDetection should only be applied to non-array object types.
-  46:34  error  Decorator @SceneArrayChangeDetection applied to property 'requiredArrayDetection' with type 'any[]'. SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.
-  47:34  error  Decorator @SceneArrayChangeDetection applied to property 'optionalArrayDetection' with type 'any[]'. SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:27:29 - Decorator @SceneChangeDetection applied to property 'requiredObject' with type 'object'. Property type is not allowed for change detection.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:28:29 - Decorator @SceneChangeDetection applied to property 'optionalObject' with type 'object'. Property type is not allowed for change detection.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:29:29 - Decorator @SceneChangeDetection applied to property 'requiredArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:30:29 - Decorator @SceneChangeDetection applied to property 'optionalArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:38:33 - Decorator @ScenePathChangeDetection applied to property 'requiredPathObject' with type 'object'. Property type is not allowed for change detection.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:39:33 - Decorator @ScenePathChangeDetection applied to property 'optionalPathObject' with type 'object'. Property type is not allowed for change detection.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:40:33 - Decorator @ScenePathChangeDetection applied to property 'requiredPathArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:41:33 - Decorator @ScenePathChangeDetection applied to property 'optionalPathArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:43:35 - Decorator @SceneObjectChangeDetection applied to property 'requiredObjectDetection' with type 'object'. SceneObjectChangeDetection should only be applied to non-array object types.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:44:35 - Decorator @SceneObjectChangeDetection applied to property 'optionalObjectDetection' with type 'object'. SceneObjectChangeDetection should only be applied to non-array object types.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:46:34 - Decorator @SceneArrayChangeDetection applied to property 'requiredArrayDetection' with type 'any[]'. SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.
+/Users/olegat/ag-charts/tools/lint-change-detection.test.ts:47:34 - Decorator @SceneArrayChangeDetection applied to property 'optionalArrayDetection' with type 'any[]'. SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.
 ",
   "stdout": "",
 }
