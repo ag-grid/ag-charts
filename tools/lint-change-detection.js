@@ -103,40 +103,58 @@ function processSourceFile(sourceFile, checker, errors) {
                         decoratorName = decorator.expression.escapedText;
                     }
 
-                    const propertyName = node.name.getText(sourceFile);
-                    const symbol = checker.getSymbolAtLocation(node.name);
-                    if (symbol) {
-                        const type = checker.getTypeOfSymbolAtLocation(symbol, node);
-                        const typeString = checker.typeToString(type);
-                        let suggestion = '';
+                    // Process only our decorators.
+                    if (
+                        [
+                            'ScenePathChangeDetection',
+                            'SceneChangeDetection',
+                            'SceneArrayChangeDetection',
+                            'SceneObjectChangeDetection',
+                        ].includes(decoratorName)
+                    ) {
+                        const propertyName = node.name.getText(sourceFile);
+                        const symbol = checker.getSymbolAtLocation(node.name);
+                        if (symbol) {
+                            const type = checker.getTypeOfSymbolAtLocation(symbol, node);
+                            const typeString = checker.typeToString(type);
+                            let suggestion = '';
 
-                        if (decoratorName === 'SceneChangeDetection' || decoratorName === 'ScenePathChangeDetection') {
-                            if (!checkAllowedType(type)) {
-                                if (isArrayType(type)) {
-                                    suggestion = 'Switch to @SceneArrayChangeDetection for array properties.';
-                                } else if (isObjectType(type)) {
-                                    suggestion = 'Switch to @SceneObjectChangeDetection for object properties.';
-                                } else {
-                                    suggestion = 'Property type is not allowed for change detection.';
+                            if (
+                                decoratorName === 'SceneChangeDetection' ||
+                                decoratorName === 'ScenePathChangeDetection'
+                            ) {
+                                if (!checkAllowedType(type)) {
+                                    if (isArrayType(type)) {
+                                        suggestion = 'Switch to @SceneArrayChangeDetection for array properties.';
+                                    } else if (isObjectType(type)) {
+                                        suggestion = 'Switch to @SceneObjectChangeDetection for object properties.';
+                                    } else {
+                                        suggestion = 'Property type is not allowed for change detection.';
+                                    }
+                                }
+                            } else if (decoratorName === 'SceneArrayChangeDetection') {
+                                if (!isAllowedPrimitiveArray(type)) {
+                                    suggestion =
+                                        'SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.';
+                                }
+                            } else if (decoratorName === 'SceneObjectChangeDetection') {
+                                if (!isStrictObjectType(type)) {
+                                    suggestion =
+                                        'SceneObjectChangeDetection should only be applied to non-array object types.';
                                 }
                             }
-                        } else if (decoratorName === 'SceneArrayChangeDetection') {
-                            if (!isAllowedPrimitiveArray(type)) {
-                                suggestion =
-                                    'SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.';
-                            }
-                        } else if (decoratorName === 'SceneObjectChangeDetection') {
-                            if (!isStrictObjectType(type)) {
-                                suggestion =
-                                    'SceneObjectChangeDetection should only be applied to non-array object types.';
-                            }
-                        }
 
-                        if (suggestion) {
-                            const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.name.getStart());
-                            errors.push(
-                                `${sourceFile.fileName}:${line + 1}:${character + 1} - Decorator @${decoratorName} applied to property '${propertyName}' with type '${typeString}'. ${suggestion}`
-                            );
+                            if (suggestion) {
+                                const { line, character } = sourceFile.getLineAndCharacterOfPosition(
+                                    node.name.getStart()
+                                );
+                                errors.push({
+                                    file: sourceFile.fileName,
+                                    line: line + 1,
+                                    char: character + 1,
+                                    message: `Decorator @${decoratorName} applied to property '${propertyName}' with type '${typeString}'. ${suggestion}`,
+                                });
+                            }
                         }
                     }
                 });
@@ -182,8 +200,29 @@ function main() {
     });
 
     if (errors.length > 0) {
+        // Group errors by file
+        const errorsByFile = {};
+        errors.forEach((err) => {
+            if (!errorsByFile[err.file]) {
+                errorsByFile[err.file] = [];
+            }
+            errorsByFile[err.file].push(err);
+        });
+
         console.error('Change detection lint errors found:');
-        errors.forEach((err) => console.error(err));
+        let firstFile = true;
+        Object.keys(errorsByFile).forEach((file) => {
+            if (!firstFile) {
+                console.error(''); // Print an empty line before each new file (except the first)
+            }
+            firstFile = false;
+
+            console.error(file);
+            errorsByFile[file].forEach((err) => {
+                console.error(`  ${err.line}:${err.char}  error  ${err.message}`);
+            });
+        });
+
         process.exit(1);
     } else {
         console.log('No change detection issues found.');
