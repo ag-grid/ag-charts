@@ -28,37 +28,6 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
     ],
     themeTemplate: CANDLESTICK_SERIES_THEME,
     groupable: false,
-    paletteFactory: ({ takeColors, colorsCount, userPalette, palette }) => {
-        const {
-            fills: [fill],
-            strokes: [stroke],
-            sequentialColors: [defaultColorRange],
-        } = takeColors(colorsCount);
-
-        if (userPalette === 'user-indexed') {
-            return {
-                item: {
-                    up: {
-                        fill: 'transparent',
-                        stroke,
-                        defaultColorRange,
-                    },
-                    down: {
-                        fill,
-                        stroke,
-                        defaultColorRange,
-                    },
-                },
-            };
-        }
-
-        return {
-            item: {
-                up: { ...palette.up, defaultColorRange },
-                down: { ...palette.down, defaultColorRange },
-            },
-        };
-    },
 };
 
 export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeriesOptions> = {

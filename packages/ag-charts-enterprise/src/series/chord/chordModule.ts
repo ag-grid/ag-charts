@@ -17,6 +17,10 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
 
     themeTemplate: {
         series: {
+            fills: { $palette: 'fills' },
+            strokes: { $palette: 'strokes' },
+            // @ts-expect-error undocumented option
+            defaultColorRange: { $palette: 'gradient' }, // TODO: fix chord to handle 'gradients'
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,
@@ -45,18 +49,6 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
             enabled: false,
             toggleSeries: false,
         },
-    },
-    paletteFactory({ takeColors, colorsCount }) {
-        const {
-            fills,
-            strokes,
-            sequentialColors: [defaultColorRange],
-        } = takeColors(colorsCount);
-        return {
-            fills,
-            strokes,
-            defaultColorRange,
-        };
     },
 };
 

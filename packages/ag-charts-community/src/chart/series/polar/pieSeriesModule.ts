@@ -5,7 +5,7 @@ import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { PieSeries } from './pieSeries';
 import { pieSeriesOptionsDef } from './pieSeriesOptionsDef';
-import { piePaletteFactory, pieTheme } from './pieTheme';
+import { pieTheme } from './pieTheme';
 
 export const PieSeriesModule: SeriesModule<'pie'> = {
     type: 'series',
@@ -17,7 +17,6 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
     moduleFactory: (ctx) => new PieSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     themeTemplate: pieTheme,
-    paletteFactory: piePaletteFactory,
 };
 
 export const NewPieSeriesModule: SeriesModuleDefinition<AgPieSeriesOptions> = {

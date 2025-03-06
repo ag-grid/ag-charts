@@ -18,7 +18,7 @@ import type { ChartType } from '../chart/factory/chartTypes';
 import type { ChartLegend, ChartLegendType } from '../chart/legend/legendDatum';
 import type { Series } from '../chart/series/series';
 import type { BaseModule, BaseOptionsModule, ModuleInstance } from './baseModule';
-import type { RequiredSeriesType, SeriesPaletteFactory } from './coreModulesTypes';
+import type { RequiredSeriesType } from './coreModulesTypes';
 import type { ModuleContext } from './moduleContext';
 
 type ModuleInstanceFactory<M> = (moduleContext: ModuleContext) => M;
@@ -101,7 +101,6 @@ export interface SeriesModule<
     tooltipDefaults: SeriesTooltipDefaults;
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
     themeTemplate: ExtensibleTheme<SeriesType>;
-    paletteFactory?: SeriesPaletteFactory<ExtensibleTheme<SeriesType>>;
     solo?: boolean;
     stackable?: boolean;
     groupable?: boolean;

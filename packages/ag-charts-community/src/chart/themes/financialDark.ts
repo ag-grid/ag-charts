@@ -4,7 +4,6 @@ import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
     DEFAULT_GRIDLINE_ENABLED,
@@ -29,9 +28,24 @@ const FINANCIAL_DARK_STROKES = {
 export class FinancialDark extends DarkTheme {
     override getDefaultColors() {
         return {
+            ...super.getDefaultColors(),
             fills: { ...FINANCIAL_DARK_FILLS },
             strokes: { ...FINANCIAL_DARK_STROKES },
             sequentialColors: getSequentialColors(FINANCIAL_DARK_FILLS),
+            divergingColors: [FINANCIAL_DARK_FILLS.GREEN, FINANCIAL_DARK_FILLS.BLUE, FINANCIAL_DARK_FILLS.RED],
+            // hierarchyColors: [],
+            secondSequentialColors: [
+                '#5090dc',
+                '#4882c6',
+                '#4073b0',
+                '#38659a',
+                '#305684',
+                '#28486e',
+                '#203a58',
+                '#182b42',
+            ],
+            // secondDivergingColors: [],
+            // secondHierarchyColors: [],
             up: { fill: FINANCIAL_DARK_FILLS.GREEN, stroke: FINANCIAL_DARK_STROKES.GREEN },
             down: { fill: FINANCIAL_DARK_FILLS.RED, stroke: FINANCIAL_DARK_STROKES.RED },
             neutral: { fill: FINANCIAL_DARK_FILLS.BLUE, stroke: FINANCIAL_DARK_STROKES.BLUE },
@@ -51,12 +65,6 @@ export class FinancialDark extends DarkTheme {
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
-            FINANCIAL_DARK_FILLS.GREEN,
-            FINANCIAL_DARK_FILLS.BLUE,
-            FINANCIAL_DARK_FILLS.RED,
-        ]);
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, FINANCIAL_DARK_FILLS.BLUE);
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, FINANCIAL_DARK_FILLS.BLUE);

@@ -18,19 +18,6 @@ export const ConeFunnelModule: _ModuleSupport.SeriesModule<'cone-funnel'> = {
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: funnelSeriesAxes,
     themeTemplate: CONE_FUNNEL_SERIES_THEME,
-
-    paletteFactory: ({ userPalette, themeTemplateParameters, takeColors, colorsCount }) => {
-        const {
-            fills: userFills,
-            sequentialColors: [defaultColorRange],
-        } = takeColors(colorsCount);
-        const defaultFills = themeTemplateParameters.get(
-            _ModuleSupport.ThemeSymbols.DEFAULT_FUNNEL_SERIES_COLOR_RANGE
-        ) as string[];
-
-        const fills = userPalette === 'inbuilt' ? defaultFills : [userFills[0], userFills[1]];
-        return { fills, strokes: fills.slice(0), defaultColorRange };
-    },
 };
 
 export const ConeFunnelSeriesModule: SeriesModuleDefinition<AgConeFunnelSeriesOptions> = {

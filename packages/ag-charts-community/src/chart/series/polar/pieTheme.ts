@@ -1,5 +1,4 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
-import type { SeriesPaletteFactory } from '../../../module/coreModulesTypes';
 import { FONT_SIZE_RATIO } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 
@@ -38,6 +37,10 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
                 $if: [{ $eq: [{ $path: '../strokeWidth' }, 0] }, { $path: '../fills' }, { $path: '../strokes' }],
             },
         },
+        fills: { $palette: 'fills' },
+        strokes: { $palette: 'strokes' },
+        // @ts-expect-error undocumented option
+        defaultColorRange: { $palette: 'gradients' },
         fillOpacity: 1,
         strokeOpacity: 1,
         strokeWidth: 0,
@@ -54,9 +57,4 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         },
     },
     legend: { enabled: true },
-};
-
-export const piePaletteFactory: SeriesPaletteFactory<'pie'> = ({ takeColors, colorsCount }) => {
-    const { fills, strokes, sequentialColors } = takeColors(colorsCount);
-    return { fills, strokes, defaultColorRange: sequentialColors, calloutLine: { colors: strokes } };
 };

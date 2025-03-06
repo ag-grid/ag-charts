@@ -1,9 +1,7 @@
 import { ChartTheme } from './chartTheme';
 import {
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
 import { getSequentialColors } from './util';
 
@@ -36,9 +34,24 @@ const SHEETS_LIGHT_STROKES = {
 export class SheetsLight extends ChartTheme {
     override getDefaultColors() {
         return {
+            ...super.getDefaultColors(),
             fills: { ...SHEETS_LIGHT_FILLS, RED: SHEETS_LIGHT_FILLS.ORANGE },
             strokes: { ...SHEETS_LIGHT_STROKES, RED: SHEETS_LIGHT_STROKES.ORANGE },
             sequentialColors: getSequentialColors({ ...SHEETS_LIGHT_FILLS, RED: SHEETS_LIGHT_FILLS.ORANGE }),
+            divergingColors: [SHEETS_LIGHT_FILLS.ORANGE, SHEETS_LIGHT_FILLS.YELLOW, SHEETS_LIGHT_FILLS.GREEN],
+            // hierarchyColors: [],
+            secondSequentialColors: [
+                '#5090dc',
+                '#629be0',
+                '#73a6e3',
+                '#85b1e7',
+                '#96bcea',
+                '#a8c8ee',
+                '#b9d3f1',
+                '#cbdef5',
+            ],
+            secondDivergingColors: [SHEETS_LIGHT_FILLS.GREEN, SHEETS_LIGHT_FILLS.YELLOW, SHEETS_LIGHT_FILLS.ORANGE],
+            secondHierarchyColors: [],
             up: { fill: SHEETS_LIGHT_FILLS.GREEN, stroke: SHEETS_LIGHT_STROKES.GREEN },
             down: { fill: SHEETS_LIGHT_FILLS.ORANGE, stroke: SHEETS_LIGHT_STROKES.ORANGE },
             neutral: { fill: SHEETS_LIGHT_STROKES.GRAY, stroke: SHEETS_LIGHT_STROKES.GRAY },
@@ -50,17 +63,6 @@ export class SheetsLight extends ChartTheme {
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
-            SHEETS_LIGHT_FILLS.ORANGE,
-            SHEETS_LIGHT_FILLS.YELLOW,
-            SHEETS_LIGHT_FILLS.GREEN,
-        ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [
-            SHEETS_LIGHT_FILLS.GREEN,
-            SHEETS_LIGHT_FILLS.YELLOW,
-            SHEETS_LIGHT_FILLS.ORANGE,
-        ]);
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, SHEETS_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, SHEETS_LIGHT_FILLS.BLUE);
