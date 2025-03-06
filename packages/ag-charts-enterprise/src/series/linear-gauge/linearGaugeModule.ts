@@ -1,7 +1,9 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgLinearGaugePreset, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import defaultColorStops from '../gauge-util/defaultColorStops';
 import { LinearGaugeSeries } from './linearGaugeSeries';
+import { linearGaugeSeriesOptionsDef } from './linearGaugeSeriesOptionsDef';
 
 const {
     ThemeSymbols: { DEFAULT_HIERARCHY_FILLS, DEFAULT_GAUGE_SERIES_COLOR_RANGE },
@@ -89,4 +91,15 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
             defaultColorRange: defaultColorStops(colorRange),
         };
     },
+};
+
+export const LinearGaugeSeriesModule: SeriesModuleDefinition<AgLinearGaugePreset> = {
+    type: 'series',
+    name: 'linear-gauge',
+    chartType: 'gauge',
+    enterprise: true,
+
+    options: linearGaugeSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new LinearGaugeSeries(ctx),
 };

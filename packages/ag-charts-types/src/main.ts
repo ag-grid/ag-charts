@@ -19,6 +19,7 @@ export * from './chart/localeOptions';
 export * from './chart/navigatorOptions';
 export * from './chart/operationOptions';
 export * from './chart/polarAxisOptions';
+export * from './chart/radiusAxisOptions';
 export * from './chart/rangesOptions';
 export * from './chart/themeOptions';
 export * from './chart/themeParamsOptions';

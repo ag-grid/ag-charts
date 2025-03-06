@@ -1,7 +1,9 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgRadialGaugePreset, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import defaultColorStops from '../gauge-util/defaultColorStops';
 import { RadialGaugeSeries } from './radialGaugeSeries';
+import { radialGaugeSeriesOptionsDef } from './radialGaugeSeriesOptionsDef';
 
 const {
     FONT_SIZE_RATIO,
@@ -104,4 +106,15 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             defaultColorRange: defaultColorStops(colorRange),
         };
     },
+};
+
+export const RadialGaugeSeriesModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
+    type: 'series',
+    name: 'radial-gauge',
+    chartType: 'gauge',
+    enterprise: true,
+
+    options: radialGaugeSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new RadialGaugeSeries(ctx),
 };

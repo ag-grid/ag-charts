@@ -28,6 +28,8 @@ export interface AgBaseCartesianAxisOptions<
     LabelType = AgCartesianAxisLabelOptions,
     CrosshairLabelType = AgCrosshairLabel,
 > extends AgBaseAxisOptions<LabelType> {
+    /** An array of keys determining which series are charted on this axis. */
+    keys?: string[];
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
     /** Add cross lines or regions corresponding to data values. */

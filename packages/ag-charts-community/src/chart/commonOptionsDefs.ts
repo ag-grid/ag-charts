@@ -20,6 +20,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgBaseSeriesOptions,
+    AgChartAutoSizedBaseLabelOptions,
     AgChartLabelOptions,
     AgDropShadowOptions,
     AgErrorBarOptions,
@@ -30,7 +31,7 @@ import type {
 
 const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
 
-export const commonSeriesOptionsDef: OptionsDefs<AgBaseSeriesOptions<any>> = {
+export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     id: string,
     cursor: string,
     visible: boolean,
@@ -52,14 +53,14 @@ export const commonSeriesOptionsDef: OptionsDefs<AgBaseSeriesOptions<any>> = {
 };
 
 // @ts-expect-error undocumented option
-commonSeriesOptionsDef.context = defined;
+commonSeriesOptionsDefs.context = defined;
 
 // @ts-expect-error undocumented option
-commonSeriesOptionsDef.highlight = {
+commonSeriesOptionsDefs.highlight = {
     enabled: boolean,
 };
 
-export const markerOptionsDef: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
+export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     enabled: boolean,
     shape: or(union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle'), callback),
     size: positiveNumber,
@@ -69,13 +70,21 @@ export const markerOptionsDef: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     ...lineDashOptionsDef,
 };
 
-export const seriesLabelOptionsDef: OptionsDefs<AgChartLabelOptions<any, any>> = {
+export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
     enabled: boolean,
     formatter: callback,
     ...fontOptionsDef,
 };
 
-export const errorBarOptionsDef: OptionsDefs<AgErrorBarOptions<any>> = {
+export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {
+    ...seriesLabelOptionsDefs,
+    lineHeight: positiveNumber,
+    minimumFontSize: positiveNumber,
+    wrapping: union('never', 'always', 'hyphenate', 'on-space'),
+    overflowStrategy: union('ellipsis', 'hide'),
+};
+
+export const errorBarOptionsDefs: OptionsDefs<AgErrorBarOptions<any>> = {
     visible: boolean,
     xLowerKey: string,
     xUpperKey: string,
@@ -109,7 +118,7 @@ const placement = union(
     'center'
 );
 
-export const tooltipOptionsDef: OptionsDefs<AgSeriesTooltip<any>> = {
+export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
     enabled: boolean,
     showArrow: boolean,
     range: rangeValidator,
@@ -137,7 +146,7 @@ export const tooltipOptionsDef: OptionsDefs<AgSeriesTooltip<any>> = {
     },
 };
 
-export const shadowOptionsDef: OptionsDefs<AgDropShadowOptions> = {
+export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     enabled: boolean,
     xOffset: number,
     yOffset: number,

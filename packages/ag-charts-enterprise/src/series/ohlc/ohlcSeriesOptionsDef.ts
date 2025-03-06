@@ -11,7 +11,7 @@ import {
     strokeOptionsDef,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+const { commonSeriesOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 const ohlcSeriesItemOptionsDef: OptionsDefs<AgOhlcSeriesItemOptions> = {
     ...strokeOptionsDef,
@@ -37,8 +37,8 @@ export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
         up: ohlcSeriesItemOptionsDef,
         down: ohlcSeriesItemOptionsDef,
     },
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
 };
 
 // @ts-expect-error undocumented option

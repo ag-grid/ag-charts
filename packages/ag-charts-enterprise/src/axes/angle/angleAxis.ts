@@ -1,6 +1,6 @@
 import type { AgAngleAxisLabelOrientation } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import { countFractionDigits, isNumberEqual } from 'ag-charts-core';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
@@ -15,7 +15,6 @@ const {
     toRadians,
     normalizeAngle360,
     normalizeAngle360Inclusive,
-    countFractionDigits,
     Path,
     RotatableText,
     Transformable,

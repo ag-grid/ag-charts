@@ -1,0 +1,194 @@
+import { type AgRadiusCrossLineOptions, _ModuleSupport, time } from 'ag-charts-community';
+import {
+    type AxisModuleDefinition,
+    type OptionsDefs,
+    arrayOfDefs,
+    boolean,
+    callback,
+    constant,
+    date,
+    fontOptionsDef,
+    instanceOf,
+    number,
+    or,
+    positiveNumber,
+    ratio,
+    required,
+    string,
+    union,
+} from 'ag-charts-core';
+import type {
+    AgAngleCategoryAxisOptions,
+    AgAngleNumberAxisOptions,
+    AgOrdinalTimeAxisOptions,
+    AgRadiusCategoryAxisOptions,
+    AgRadiusNumberAxisOptions,
+} from 'ag-charts-types';
+
+import { AngleCategoryAxis } from './angle-category/angleCategoryAxis';
+import { AngleNumberAxis } from './angle-number/angleNumberAxis';
+import { OrdinalTimeAxis } from './ordinal/ordinalTimeAxis';
+import { RadiusCategoryAxis } from './radius-category/radiusCategoryAxis';
+import { RadiusNumberAxis } from './radius-number/radiusNumberAxis';
+
+const {
+    cartesianAxisLabelOptionsDefs,
+    cartesianAxisOptionsDefs,
+    continuousAxisOptions,
+    commonAxisLabelOptionsDefs,
+    commonAxisOptionsDefs,
+    commonCrossLineOptionsDefs,
+    commonCrossLineLabelOptionsDefs,
+    without,
+} = _ModuleSupport;
+
+export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
+    ...cartesianAxisOptionsDefs,
+    ...continuousAxisOptions(or(number, date), or(number, date, instanceOf(time.TimeInterval))),
+    type: required(constant('ordinal-time')),
+    paddingInner: positiveNumber,
+    paddingOuter: positiveNumber,
+    groupPaddingInner: positiveNumber,
+    label: {
+        ...cartesianAxisLabelOptionsDefs,
+        format: string,
+    },
+};
+
+export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> = {
+    ...commonAxisOptionsDefs,
+    ...continuousAxisOptions(number),
+    type: required(constant('angle-number')),
+    crossLines: arrayOfDefs(commonCrossLineOptionsDefs),
+    startAngle: number,
+    endAngle: number,
+    label: {
+        ...commonAxisLabelOptionsDefs,
+        orientation: union('fixed', 'parallel', 'perpendicular'),
+        format: string,
+    },
+};
+
+export const angleCategoryAxisOptionsDefs: OptionsDefs<AgAngleCategoryAxisOptions> = {
+    ...without(commonAxisOptionsDefs, ['interval']),
+    ...continuousAxisOptions(number),
+    type: required(constant('angle-category')),
+    shape: union('polygon', 'circle'),
+    crossLines: arrayOfDefs(commonCrossLineOptionsDefs),
+    startAngle: number,
+    endAngle: number,
+    paddingInner: positiveNumber,
+    groupPaddingInner: positiveNumber,
+    label: {
+        ...commonAxisLabelOptionsDefs,
+        orientation: union('fixed', 'parallel', 'perpendicular'),
+    },
+};
+
+export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions> = {
+    ...commonAxisOptionsDefs,
+    ...continuousAxisOptions(number),
+    type: required(constant('radius-number')),
+    shape: union('polygon', 'circle'),
+    positionAngle: number,
+    innerRadiusRatio: ratio,
+    crossLines: arrayOfDefs<AgRadiusCrossLineOptions>({
+        ...commonCrossLineOptionsDefs,
+        label: {
+            ...commonCrossLineLabelOptionsDefs,
+            positionAngle: number,
+        },
+    }),
+    title: {
+        enabled: boolean,
+        text: string,
+        spacing: positiveNumber,
+        formatter: callback,
+        ...fontOptionsDef,
+    },
+    label: {
+        ...commonAxisLabelOptionsDefs,
+        format: string,
+    },
+};
+
+export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOptions> = {
+    ...without(commonAxisOptionsDefs, ['interval']),
+    ...continuousAxisOptions(number),
+    type: required(constant('radius-category')),
+    positionAngle: number,
+    innerRadiusRatio: ratio,
+    paddingInner: positiveNumber,
+    paddingOuter: positiveNumber,
+    groupPaddingInner: positiveNumber,
+    label: commonAxisLabelOptionsDefs,
+    crossLines: arrayOfDefs<AgRadiusCrossLineOptions>({
+        ...commonCrossLineOptionsDefs,
+        label: {
+            ...commonCrossLineLabelOptionsDefs,
+            positionAngle: number,
+        },
+    }),
+    title: {
+        enabled: boolean,
+        text: string,
+        spacing: positiveNumber,
+        formatter: callback,
+        ...fontOptionsDef,
+    },
+};
+
+export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOptions> = {
+    type: 'axis',
+    name: 'ordinal-time',
+    chartType: 'cartesian',
+    enterprise: true,
+
+    options: ordinalTimeAxisOptionsDefs,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new OrdinalTimeAxis(ctx),
+};
+
+export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOptions> = {
+    type: 'axis',
+    name: 'angle-number',
+    chartType: 'polar',
+    enterprise: true,
+
+    options: angleNumberAxisOptionsDefs,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new AngleNumberAxis(ctx),
+};
+
+export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOptions> = {
+    type: 'axis',
+    name: 'angle-category',
+    chartType: 'polar',
+    enterprise: true,
+
+    options: angleCategoryAxisOptionsDefs,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new AngleCategoryAxis(ctx),
+};
+
+export const RadiusNumberAxisModule: AxisModuleDefinition<AgRadiusNumberAxisOptions> = {
+    type: 'axis',
+    name: 'radius-number',
+    chartType: 'polar',
+    enterprise: true,
+
+    options: radiusNumberAxisOptionsDefs,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new RadiusNumberAxis(ctx),
+};
+
+export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxisOptions> = {
+    type: 'axis',
+    name: 'radius-category',
+    chartType: 'polar',
+    enterprise: true,
+
+    options: radiusCategoryAxisOptionsDefs,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new RadiusCategoryAxis(ctx),
+};

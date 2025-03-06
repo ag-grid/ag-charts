@@ -12,10 +12,9 @@ import {
     required,
     string,
     strokeOptionsDef,
-    union,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+const { commonSeriesOptionsDefs, autoSizedLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 export const mapShapeSeriesOptionsDef: OptionsDefs<AgMapShapeSeriesOptions> = {
     type: required(constant('map-shape')),
@@ -32,20 +31,14 @@ export const mapShapeSeriesOptionsDef: OptionsDefs<AgMapShapeSeriesOptions> = {
     padding: positiveNumber,
     itemStyler: callback,
     title: string,
-    label: {
-        lineHeight: positiveNumber,
-        minimumFontSize: positiveNumber,
-        wrapping: union('never', 'always', 'hyphenate', 'on-space'),
-        overflowStrategy: union('ellipsis', 'hide'),
-        ...seriesLabelOptionsDef,
-    },
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    label: autoSizedLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     highlightStyle: {
-        ...(commonSeriesOptionsDef.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
+        ...(commonSeriesOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
         ...fillOptionsDef,
         ...strokeOptionsDef,
     },
