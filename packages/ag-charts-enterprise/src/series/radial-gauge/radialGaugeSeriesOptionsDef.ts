@@ -1,4 +1,4 @@
-import { type AgLinearGaugeTarget, type AgRadialGaugePreset, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadialGaugePreset, type AgRadialGaugeTarget, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
@@ -21,8 +21,13 @@ import {
 
 import { fillsOptionsDef } from '../linear-gauge/linearGaugeSeriesOptionsDef';
 
-const { commonSeriesOptionsDefs, autoSizedLabelOptionsDefs, tooltipOptionsDefs, numberFormatValidator } =
-    _ModuleSupport;
+const {
+    commonSeriesOptionsDefs,
+    autoSizedLabelOptionsDefs,
+    seriesLabelOptionsDefs,
+    tooltipOptionsDefs,
+    numberFormatValidator,
+} = _ModuleSupport;
 
 export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
     type: required(constant('radial-gauge')),
@@ -58,7 +63,7 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    targets: arrayOfDefs<AgLinearGaugeTarget>({
+    targets: arrayOfDefs<AgRadialGaugeTarget>({
         value: required(number),
         text: string,
         shape: or(
@@ -69,6 +74,10 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
         spacing: positiveNumber,
         size: positiveNumber,
         rotation: number,
+        label: {
+            spacing: positiveNumber,
+            ...seriesLabelOptionsDefs,
+        },
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
