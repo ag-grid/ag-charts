@@ -87,7 +87,7 @@ function isObjectType(type) {
 /**
  * Processes a source file AST and pushes any linting errors to the errors array.
  */
-function processSourceFile(sourceFile, checker, errors) {
+function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
     function visit(node) {
         const decorators = ts.canHaveDecorators(node) ? ts.getDecorators(node) : node.decorators;
 
@@ -134,8 +134,11 @@ function processSourceFile(sourceFile, checker, errors) {
 
                         if (suggestion) {
                             const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.name.getStart());
+                            const filePath = useRelativePaths
+                                ? path.relative(process.cwd(), sourceFile.fileName)
+                                : sourceFile.fileName;
                             errors.push(
-                                `${sourceFile.fileName}:${line + 1}:${character + 1} - Decorator @${decoratorName} applied to property '${propertyName}' with type '${typeString}'. ${suggestion}`
+                                `${filePath}:${line + 1}:${character + 1} - Decorator @${decoratorName} applied to property '${propertyName}' with type '${typeString}'. ${suggestion}`
                             );
                         }
                     }
@@ -151,12 +154,18 @@ function processSourceFile(sourceFile, checker, errors) {
  * Main function that gathers all TypeScript files and runs lint checks in one TypeScript program.
  */
 function main() {
-    const pattern = process.argv[2] || '**/*.ts';
+    const args = process.argv.slice(2);
+    const patternIndex = args.findIndex((arg) => !arg.startsWith('--'));
+    const pattern = patternIndex !== -1 ? args[patternIndex] : '**/*.ts';
+    const useRelativePaths = args.includes('--relative-path');
+
     const filePaths = glob
         .sync(pattern, {
             ignore: ['**/node_modules/**', '**/dist/**', '**/test/**'],
         })
-        .map((file) => path.resolve(process.cwd(), file));
+        .map((file) =>
+            useRelativePaths ? path.relative(process.cwd(), file) : path.resolve(process.cwd(), file)
+        );
 
     if (filePaths.length === 0) {
         console.log('No TypeScript files found.');
@@ -177,7 +186,7 @@ function main() {
     filePaths.forEach((filePath) => {
         const sourceFile = program.getSourceFile(filePath);
         if (sourceFile) {
-            processSourceFile(sourceFile, checker, errors);
+            processSourceFile(sourceFile, checker, errors, useRelativePaths);
         }
     });
 

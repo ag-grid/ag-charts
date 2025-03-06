@@ -48,14 +48,14 @@ export class TestDecoratorUsages {
 }
 
 describe('lint-change-detection', () => {
-    const testFilePath = path.resolve(__dirname, 'lint-change-detection.test.ts');
+    const testFilePath = 'tools/lint-change-detection.test.ts';
     const lintScriptPath = path.resolve(__dirname, 'lint-change-detection.js');
 
     it('should match the expected linting errors snapshot', () => {
         let stdout: string | undefined;
         let stderr: string | undefined;
         try {
-            stdout = execSync(`node ${lintScriptPath} ${testFilePath}`, {
+            stdout = execSync(`node ${lintScriptPath} --relative-path ${testFilePath}`, {
                 encoding: 'utf-8',
                 stdio: 'pipe',
             });
