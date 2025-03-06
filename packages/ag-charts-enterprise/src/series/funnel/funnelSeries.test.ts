@@ -385,5 +385,36 @@ describe('FunnelSeries', () => {
             chart = deproxy(AgCharts.create(options as AgChartOptions));
             await compare();
         });
+
+        it('should render funnel series with a series bound gradient fill', async () => {
+            const options = {
+                ...FUNNEL_EXAMPLE,
+                series: [
+                    {
+                        type: 'funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        fills: [
+                            {
+                                type: 'gradient',
+                                bounds: 'series',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
     });
 });
