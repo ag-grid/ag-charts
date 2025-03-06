@@ -11,7 +11,15 @@ const path = require('path');
  */
 function isAllowedPrimitive(type) {
     const flags = ts.TypeFlags;
-    return (type.flags & (flags.Number | flags.String | flags.Boolean | flags.Undefined)) !== 0;
+    const allowed =
+        flags.Number |
+        flags.NumberLiteral |
+        flags.String |
+        flags.StringLiteral |
+        flags.Boolean |
+        flags.BooleanLiteral |
+        flags.Undefined;
+    return (type.flags & allowed) !== 0;
 }
 
 /**
