@@ -15,6 +15,7 @@ function stabilityProxy(page: Page, instance: any) {
                     for (const locator of await page.locator('.ag-charts-wrapper').all()) {
                         await waitForChartUpdate(locator);
                     }
+                    return result;
                 };
             }
             return value;
