@@ -1,10 +1,10 @@
-import { type Page } from '@playwright/test';
+import { type Locator, type Page } from '@playwright/test';
 import { execSync } from 'child_process';
 import glob from 'glob';
 
 import { expect, test } from './fixture';
 
-const baseUrl = process.env.PUBLIC_SITE_URL;
+const baseUrl = process.env.PUBLIC_SITE_URL ?? 'https://localhost:4600/charts';
 const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'] as const;
 
 export const SELECTORS = {
@@ -119,10 +119,14 @@ export async function gotoExample(page: Page, url: string) {
         const count: number = await elements.count();
         for (let i = 0; i < count; i++) {
             await expect(elements.nth(i)).toHaveAttribute('data-scene-renders', { timeout: 5_000 });
-            await expect(elements.nth(i)).toHaveAttribute('data-update-pending', 'false', { timeout: 5_000 });
-            await expect(elements.nth(i)).toHaveAttribute('data-animating', 'false', { timeout: 5_000 });
+            await waitForChartUpdate(elements.nth(i));
         }
     }
+}
+
+export async function waitForChartUpdate(wrapper: Locator) {
+    await expect(wrapper).toHaveAttribute('data-update-pending', 'false', { timeout: 5_000 });
+    await expect(wrapper).toHaveAttribute('data-animating', 'false', { timeout: 5_000 });
 }
 
 // The in-built `page.dragAndDrop()` methods do not trigger our canvas drag events

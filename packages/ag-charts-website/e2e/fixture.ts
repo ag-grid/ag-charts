@@ -1,19 +1,20 @@
 import { Page, test as base, expect } from '@playwright/test';
 
+import { waitForChartUpdate } from './util';
+
 function stabilityProxy(page: Page, instance: any) {
     return new Proxy(instance, {
         get(target, prop, receiver) {
             const value = target[prop];
             if (value instanceof Function) {
                 return async function (...args: unknown[]) {
-                    for (const elements of await page.locator('.ag-charts-wrapper').all()) {
-                        const count: number = await elements.count();
-                        for (let i = 0; i < count; i++) {
-                            await expect(elements.nth(i)).toHaveAttribute('data-update-pending', 'false');
-                            await expect(elements.nth(i)).toHaveAttribute('data-animating', 'false');
-                        }
+                    for (const locator of await page.locator('.ag-charts-wrapper').all()) {
+                        await waitForChartUpdate(locator);
                     }
-                    return target[prop].apply(this === receiver ? target : this, args);
+                    const result = target[prop].apply(this === receiver ? target : this, args);
+                    for (const locator of await page.locator('.ag-charts-wrapper').all()) {
+                        await waitForChartUpdate(locator);
+                    }
                 };
             }
             return value;
