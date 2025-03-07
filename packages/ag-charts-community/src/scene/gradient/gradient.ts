@@ -21,7 +21,11 @@ export abstract class Gradient {
     createGradient(ctx: CanvasRenderingContext2D, shapeBbox: BBox): CanvasGradient | string | undefined {
         const bbox = this.bbox ?? shapeBbox;
 
-        if (this._cache != null && this._cache.ctx === ctx && this._cache.bbox.equals(bbox)) {
+        if (
+            this._cache != null &&
+            this._cache.ctx === ctx &&
+            (this._cache.bbox.equals(bbox) || isNaN(bbox.x) || isNaN(bbox.y))
+        ) {
             return this._cache.gradient;
         }
 

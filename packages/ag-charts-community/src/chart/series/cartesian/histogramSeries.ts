@@ -410,7 +410,6 @@ export class HistogramSeries extends CartesianSeries<
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             cornerRadius: properties.cornerRadius,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -419,7 +418,7 @@ export class HistogramSeries extends CartesianSeries<
         isHighlight: boolean;
     }) {
         const { isHighlight: isDatumHighlighted } = opts;
-        const { shadow } = this.properties;
+        const { shadow, defaultColorRange } = this.properties;
 
         const style = this.getItemBaseStyle(isDatumHighlighted);
         const fillBBox = this.getFillBBox(style.fill);
@@ -429,7 +428,7 @@ export class HistogramSeries extends CartesianSeries<
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            applyShapeStyle(rect, style, undefined, fillBBox);
+            applyShapeStyle(rect, { ...style, defaultColorRange }, undefined, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;

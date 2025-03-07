@@ -597,11 +597,10 @@ export class AreaSeries extends CartesianSeries<
 
         const { fill: seriesFill } = this.properties;
 
-        let fillBBox;
         if (isGradientFill(seriesFill)) {
-            seriesFill.bounds ??= 'series';
-            fillBBox = this.getFillBBox(seriesFill);
+            seriesFill.bounds = !seriesFill.bounds || seriesFill.bounds == 'item' ? 'series' : 'axis';
         }
+        const fillBBox = this.getFillBBox(seriesFill);
 
         fill.setProperties({
             fillBBox,
@@ -689,7 +688,8 @@ export class AreaSeries extends CartesianSeries<
             strokeOpacity,
         });
 
-        const fillBBox = this.getFillBBox(fill);
+        const fillBBox = this.getFillBBox(marker.fill);
+        const { defaultColorRange } = marker;
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
@@ -700,6 +700,7 @@ export class AreaSeries extends CartesianSeries<
                 datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
                 highlighted,
                 baseStyle,
+                defaultColorRange,
                 fillBBox,
                 { selected: datum.selected }
             );

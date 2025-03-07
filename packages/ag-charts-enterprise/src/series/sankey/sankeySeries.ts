@@ -30,8 +30,7 @@ const {
 } = _ModuleSupport;
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
-    Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'> &
-    _ModuleSupport.DefaultFillStyle;
+    Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
 
 type LinkStyle = NodeStyle;
 
@@ -397,7 +396,6 @@ export class SankeySeries extends FlowProportionSeries<
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.node.strokeWidth),
             lineDash: highlightStyle?.lineDash ?? lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -467,6 +465,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         const style = this.getBaseNodeStyle(isHighlight);
         const fillBBox = this.getFillBBox(style.fill);
+        const { defaultColorRange } = this.properties;
 
         datumSelection.each((rect, datum) => {
             const { datumIndex, size, label } = datum;
@@ -485,7 +484,7 @@ export class SankeySeries extends FlowProportionSeries<
             rect.width = Math.max(datum.width, 0);
             rect.height = Math.max(datum.height, 0);
 
-            applyShapeStyle(rect, style, overrides, fillBBox);
+            applyShapeStyle(rect, { ...style, defaultColorRange }, overrides, fillBBox);
         });
     }
 
@@ -511,7 +510,6 @@ export class SankeySeries extends FlowProportionSeries<
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.link.strokeWidth),
             lineDash: highlightStyle?.lineDash ?? lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -576,6 +574,7 @@ export class SankeySeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const style = this.getBaseLinkStyle(isHighlight);
+        const { defaultColorRange } = this.properties;
 
         datumSelection.each((link, datum) => {
             const { datumIndex } = datum;
@@ -594,7 +593,7 @@ export class SankeySeries extends FlowProportionSeries<
             link.y2 = datum.y2;
             link.height = datum.height;
 
-            applyShapeStyle(link, style, overrides);
+            applyShapeStyle(link, { ...style, defaultColorRange }, overrides);
 
             link.inset = link.strokeWidth / 2;
         });

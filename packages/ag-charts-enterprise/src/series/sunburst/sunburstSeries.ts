@@ -74,8 +74,7 @@ enum TextNodeTag {
 }
 
 type ItemStyle = Pick<AgSunburstSeriesStyle, 'fill' | 'stroke'> &
-    Omit<Required<AgSunburstSeriesStyle>, 'fill' | 'stroke'> &
-    _ModuleSupport.DefaultFillStyle;
+    Omit<Required<AgSunburstSeriesStyle>, 'fill' | 'stroke'>;
 
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     _ModuleSupport.Sector,
@@ -148,7 +147,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             stroke: highlightStyle?.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -425,6 +423,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             nodeDatum: SunburstNode,
             sector: _ModuleSupport.Sector,
             style: ItemStyle,
+            defaultColorRange: string[],
             highlighted: boolean,
             fillBBox?: _ModuleSupport.BBox
         ) => {
@@ -440,7 +439,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             const strokeWidth = overrides.strokeWidth ?? style.strokeWidth;
 
-            applyShapeStyle(sector, style, overrides, fillBBox);
+            applyShapeStyle(sector, { ...style, defaultColorRange }, overrides, fillBBox);
 
             sector.centerX = 0;
             sector.centerY = 0;
@@ -454,13 +453,14 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const baseFormat = this.getItemBaseStyle(false);
         const fillBBox = this.getFillBBox(baseFormat.fill);
+        const { defaultColorRange } = this.properties;
 
         this.datumSelection.each((sector, datum) => {
-            updateSector(datum, sector, baseFormat, false, fillBBox);
+            updateSector(datum, sector, baseFormat, defaultColorRange, false, fillBBox);
         });
         const highlightFormat = this.getItemBaseStyle(true);
         this.highlightSelection.each((rect, datum) => {
-            updateSector(datum, rect, highlightFormat, true, fillBBox);
+            updateSector(datum, rect, highlightFormat, defaultColorRange, true, fillBBox);
         });
 
         const updateText = (

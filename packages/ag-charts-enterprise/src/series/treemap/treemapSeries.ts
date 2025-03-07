@@ -63,8 +63,7 @@ enum TextNodeTag {
 }
 
 type ItemStyle = Pick<AgTreemapSeriesStyle, 'fill' | 'stroke'> &
-    Omit<Required<AgTreemapSeriesStyle>, 'fill' | 'stroke'> &
-    _ModuleSupport.DefaultFillStyle;
+    Omit<Required<AgTreemapSeriesStyle>, 'fill' | 'stroke'>;
 
 const tempText = new Text();
 
@@ -338,7 +337,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             stroke: highlightStyle?.stroke ?? group.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? group.strokeWidth,
             strokeOpacity: highlightStyle?.strokeOpacity ?? group.strokeOpacity,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -395,7 +393,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             stroke: highlightStyle?.stroke ?? tile.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? tile.strokeWidth,
             strokeOpacity: highlightStyle?.strokeOpacity ?? tile.strokeOpacity,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -667,6 +664,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             rect: _ModuleSupport.Rect,
             groupStyle: ItemStyle,
             tileStyle: ItemStyle,
+            defaultColorRange: string[],
             highlighted: boolean,
             fillBBox?: _ModuleSupport.BBox
         ) => {
@@ -686,7 +684,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
             rect.crisp = true;
 
-            applyShapeStyle(rect, style, overrides, fillBBox);
+            applyShapeStyle(rect, { ...style, defaultColorRange }, overrides, fillBBox);
 
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, highlighted ? 1 : 0];
@@ -714,8 +712,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         const baseGroupFormat = this.getGroupBaseStyle(false);
         const baseTileFormat = this.getTileBaseStyle(false);
         const fillBBox = this.getFillBBox(baseTileFormat.fill);
+        const { defaultColorRange } = this.properties;
         this.datumSelection.each((rect, datum) =>
-            updateRectFn(datum, rect, baseGroupFormat, baseTileFormat, false, fillBBox)
+            updateRectFn(datum, rect, baseGroupFormat, baseTileFormat, defaultColorRange, false, fillBBox)
         );
 
         const highlightGroupFormat = this.getGroupBaseStyle(true);
@@ -723,7 +722,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         const highlightFillBBox = this.getFillBBox(highlightTileFormat.fill);
 
         this.highlightSelection.each((rect, datum) => {
-            updateRectFn(datum, rect, highlightGroupFormat, highlightTileFormat, true, highlightFillBBox);
+            updateRectFn(
+                datum,
+                rect,
+                highlightGroupFormat,
+                highlightTileFormat,
+                defaultColorRange,
+                true,
+                highlightFillBBox
+            );
         });
 
         const updateLabelFn = (
