@@ -103,9 +103,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     public static readonly OPTIONS_CLONE_OPTS: CloneOptions = {
         shallow: new Set(['data', 'container']),
         assign: new Set(['context']),
-    } as const;
-
-    public static readonly JSON_DIFF_OPTS = { alwaysReplace: ['formatter', 'itemStyler', 'renderer'] } as const;
+    };
 
     private static readonly perfDebug = Debug.create(true, 'perf');
 
@@ -369,12 +367,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (this === other) return {};
         if (other == null) return this.processedOptions;
 
-        // Callbacks must always be considered "outdated" because it is impossible for us to know if the return value
-        // (which is what we actually care about) has changed.
-        return (
-            (this.fastDelta as Partial<T>) ??
-            jsonDiff(other.processedOptions, this.processedOptions, ChartOptions.JSON_DIFF_OPTS)
-        );
+        return (this.fastDelta as Partial<T>) ?? jsonDiff(other.processedOptions, this.processedOptions);
     }
 
     private getSeriesThemeConfig(seriesType: string, activeTheme: ChartTheme) {

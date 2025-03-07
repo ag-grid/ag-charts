@@ -19,7 +19,6 @@ import { isProperties } from './properties';
 
 type StringSet = { has(value: string): boolean };
 export type CloneOptions = { shallow?: StringSet; assign?: StringSet };
-export type JsonDiffOptions = { alwaysReplace?: readonly (keyof any)[] };
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
 
@@ -33,15 +32,14 @@ const CLASS_INSTANCE_TYPE = 'class-instance';
  *
  * @param source starting point for diff
  * @param target target for diff vs. source
- * @param opts.alwaysReplace keys for which a deep diff is not performed; instead, the target value is used directly.
  * @returns `null` if no differences, or an object with the subset of properties that have changed.
  */
-export function jsonDiff<T>(source: T, target: T, opts?: JsonDiffOptions): Partial<T> | null {
+export function jsonDiff<T>(source: T, target: T): Partial<T> | null {
     if (isArray(target)) {
         if (
             !isArray(source) ||
             source.length !== target.length ||
-            target.some((v, i) => jsonDiff(source[i], v, opts) != null)
+            target.some((v, i) => jsonDiff(source[i], v) != null)
         ) {
             return target;
         }
@@ -54,9 +52,10 @@ export function jsonDiff<T>(source: T, target: T, opts?: JsonDiffOptions): Parti
             ...(Object.keys(source) as Array<keyof T>),
             ...(Object.keys(target) as Array<keyof T>),
         ]);
-        const { alwaysReplace = [] } = opts ?? {};
         for (const key of allKeys) {
-            if (alwaysReplace.includes(key)) {
+            // Functions must always be considered "outdated" because it is impossible for us to know if the return
+            // value (which is what we actually care about) has changed.
+            if (typeof target[key] === 'function') {
                 result[key] = target[key];
                 continue;
             }
@@ -65,7 +64,7 @@ export function jsonDiff<T>(source: T, target: T, opts?: JsonDiffOptions): Parti
                 continue;
             }
             if (typeof source[key] === typeof target[key]) {
-                const diff = jsonDiff(source[key], target[key], opts);
+                const diff = jsonDiff(source[key], target[key]);
                 if (diff !== null) {
                     result[key] = diff as T[keyof T];
                 }
