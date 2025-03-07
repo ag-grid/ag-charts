@@ -195,4 +195,30 @@ describe('LinearGaugeSeries', () => {
             await compare();
         });
     });
+
+    describe('when in development mode', () => {
+        beforeEach(() => {
+            (window as any).agChartsDebug = ['dev'];
+        });
+
+        afterEach(() => {
+            delete (window as any).agChartsDebug;
+        });
+
+        it('should not error when creating gauge in dev mode', async () => {
+            const options: AgLinearGaugeOptions = {
+                ...EXAMPLE_OPTIONS,
+                segmentation: {
+                    enabled: false,
+                    // AG-14117 - Failed with  TypeError: Cannot delete property 'interval' of #<Object> previously.
+                    interval: { count: 10 },
+                },
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.createGauge(options));
+            await compare();
+        });
+    });
 });

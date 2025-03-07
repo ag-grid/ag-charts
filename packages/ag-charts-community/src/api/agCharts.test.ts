@@ -289,7 +289,7 @@ describe('AgCharts', () => {
                 width: 200,
                 height: 50,
                 data: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
-                marker: { enabled: false, fill: 'red' }, // Previously failed due to dev mode + user option mutation bug.
+                marker: { enabled: false, fill: { type: 'gradient' } }, // Previously failed due to dev mode + user option mutation bug.
             };
             prepareTestOptions(options, container);
 
