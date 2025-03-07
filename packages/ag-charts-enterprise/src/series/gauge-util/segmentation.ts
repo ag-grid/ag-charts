@@ -1,16 +1,16 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
-const { BaseProperties, Validate, OBJECT, BOOLEAN, NUMBER, NUMBER_ARRAY } = _ModuleSupport;
+const { BaseProperties, TempValidate, OBJECT, BOOLEAN, NUMBER, NUMBER_ARRAY } = _ModuleSupport;
 
 class GaugeSegmentationIntervalProperties extends BaseProperties {
-    @Validate(NUMBER_ARRAY, { optional: true })
+    @TempValidate(NUMBER_ARRAY, { optional: true })
     values?: number[];
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     step?: number;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     count?: number;
 
     getSegments(scale: _ModuleSupport.Scale<number, number>, maxTicks: number) {
@@ -59,12 +59,12 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
 }
 
 export class GaugeSegmentationProperties extends BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled = false;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly interval = new GaugeSegmentationIntervalProperties();
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     spacing: number = 0;
 }

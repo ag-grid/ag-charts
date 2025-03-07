@@ -1,7 +1,7 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import { extent } from '../../util/extent';
-import { AND, DATE_OR_DATETIME_MS, GREATER_THAN, LESS_THAN, Validate } from '../../util/validation';
+import { AND, DATE_OR_DATETIME_MS, GREATER_THAN, LESS_THAN, TempValidate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
@@ -12,10 +12,10 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         super(moduleCtx, new TimeScale());
     }
 
-    @Validate(AND(DATE_OR_DATETIME_MS, LESS_THAN('max')), { optional: true })
+    @TempValidate(AND(DATE_OR_DATETIME_MS, LESS_THAN('max')), { optional: true })
     min?: Date | number = undefined;
 
-    @Validate(AND(DATE_OR_DATETIME_MS, GREATER_THAN('min')), { optional: true })
+    @TempValidate(AND(DATE_OR_DATETIME_MS, GREATER_THAN('min')), { optional: true })
     max?: Date | number = undefined;
 
     override normaliseDataDomain(d: Date[]) {

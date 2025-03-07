@@ -4,7 +4,7 @@ import type { ModuleContext } from '../../module/moduleContext';
 import { LogScale } from '../../scale/logScale';
 import { Default } from '../../util/default';
 import { normalisedExtentWithMetadata } from '../../util/extent';
-import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate, predicateWithMessage } from '../../util/validation';
+import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, TempValidate, predicateWithMessage } from '../../util/validation';
 import { NumberAxis } from './numberAxis';
 
 // Cannot be 0
@@ -33,11 +33,11 @@ export class LogAxis extends NumberAxis {
         return { domain: extent, clipped };
     }
 
-    @Validate(AND(NUMBER_OR_NAN, NON_ZERO_NUMBER, LESS_THAN('max')))
+    @TempValidate(AND(NUMBER_OR_NAN, NON_ZERO_NUMBER, LESS_THAN('max')))
     @Default(NaN)
     override min: number = NaN;
 
-    @Validate(AND(NUMBER_OR_NAN, NON_ZERO_NUMBER, GREATER_THAN('min')))
+    @TempValidate(AND(NUMBER_OR_NAN, NON_ZERO_NUMBER, GREATER_THAN('min')))
     @Default(NaN)
     override max: number = NaN;
 

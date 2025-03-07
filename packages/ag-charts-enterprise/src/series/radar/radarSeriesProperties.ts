@@ -25,7 +25,7 @@ const {
     SeriesMarker,
     SeriesProperties,
     SeriesTooltip,
-    Validate,
+    TempValidate,
     BOOLEAN,
     COLOR_STRING,
     NUMBER,
@@ -37,45 +37,45 @@ const {
 } = _ModuleSupport;
 
 export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends SeriesProperties<T> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     angleKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     radiusKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     angleName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     radiusName?: string;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = 'black';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     rotation: number = 0;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly marker = new SeriesMarker<AgRadialSeriesOptionsKeys>();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new Label<AgRadarSeriesLabelFormatterParams>();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgRadarSeriesTooltipRendererParams<any>>();
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     connectMissingData: boolean = false;
 }

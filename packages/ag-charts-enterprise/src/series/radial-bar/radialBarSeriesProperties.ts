@@ -12,7 +12,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 const {
     SeriesProperties,
     SeriesTooltip,
-    Validate,
+    TempValidate,
     COLOR_STRING,
     NUMBER,
     FUNCTION,
@@ -28,60 +28,60 @@ const {
 } = _ModuleSupport;
 
 export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> extends SeriesProperties<T> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     angleKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     radiusKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     angleName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     radiusName?: string;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgFillType = 'black';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = 'black';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     rotation: number = 0;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     stackGroup?: string;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new Label<AgRadialSeriesLabelFormatterParams>();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgRadialSeriesTooltipRendererParams<any>>();
 }

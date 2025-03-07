@@ -32,7 +32,7 @@ const {
     RATIO,
     STRING,
     UNION,
-    Validate,
+    TempValidate,
     Label,
 } = _ModuleSupport;
 
@@ -63,117 +63,117 @@ export interface SankeyNodeLabelDatum {
 }
 
 class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     spacing: number = 1;
 }
 
 class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity = 1;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     stroke: string | undefined = undefined;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<unknown>, AgSankeySeriesLinkStyle>;
 }
 
 class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions<any>> {
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     spacing: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     width: number = 1;
 
-    @Validate(ALIGNMENT)
+    @TempValidate(ALIGNMENT)
     alignment: 'left' | 'right' | 'center' | 'justify' = 'justify';
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity = 1;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     stroke: string | undefined = undefined;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<unknown>, AgSankeySeriesNodeStyle>;
 }
 
 export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptions> {
-    @Validate(ARRAY, { optional: true })
+    @TempValidate(ARRAY, { optional: true })
     nodes: any[] | undefined = undefined;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     fromKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     toKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     idKey: string = '';
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     idName: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     labelKey: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     labelName: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     sizeKey: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     sizeName: string | undefined = undefined;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    @TempValidate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
     fills: AgFillType[] = [];
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = [];
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new SankeySeriesLabelProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly link = new SankeySeriesLinkProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly node = new SankeySeriesNodeProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgSankeySeriesTooltipRendererParams<any>>();
 }

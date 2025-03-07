@@ -23,7 +23,7 @@ import {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
-    Validate,
+    TempValidate,
 } from '../../../util/validation';
 import { Caption } from '../../caption';
 import { Label } from '../../label';
@@ -32,143 +32,143 @@ import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 
 export class PieTitle extends Caption {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     showInLegend = false;
 }
 
 class PieSeriesCalloutLabel extends Label<AgPieSeriesLabelFormatterParams> {
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     offset = 3; // from the callout line
 
-    @Validate(NUMBER.restrict({ min: 0, max: 360 }))
+    @TempValidate(NUMBER.restrict({ min: 0, max: 360 }))
     minAngle = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     minSpacing = 4;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     maxCollisionOffset = 50;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     avoidCollisions = true;
 }
 
 class PieSeriesSectorLabel extends Label<AgPieSeriesLabelFormatterParams> {
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     positionOffset = 0;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     positionRatio = 0.5;
 }
 
 class PieSeriesCalloutLine extends BaseProperties {
-    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY), { optional: true })
+    @TempValidate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY), { optional: true })
     colors?: AgFillType[];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     length: number = 10;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 }
 
 export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     angleKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     angleName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     angleFilterKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     radiusKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     radiusName?: string;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     radiusMin?: number;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     radiusMax?: number;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     calloutLabelKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     calloutLabelName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     sectorLabelKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     sectorLabelName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     legendItemKey?: string;
 
-    @Validate(ARRAY_OF(COLOR_STRING_ARRAY))
+    @TempValidate(ARRAY_OF(COLOR_STRING_ARRAY))
     defaultColorRange: string[][] = [];
 
-    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    @TempValidate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
     fills: AgFillType[] = Object.values(DEFAULT_FILLS);
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgPieSeriesItemStylerParams<unknown>, AgPieSeriesStyle>;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     rotation: number = 0;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     outerRadiusOffset: number = 0;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     outerRadiusRatio: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     sectorSpacing: number = 0;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     hideZeroValueSectorsInLegend = false;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly title = new PieTitle();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly shadow = new DropShadow();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly calloutLabel = new PieSeriesCalloutLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly sectorLabel = new PieSeriesSectorLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly calloutLine = new PieSeriesCalloutLine();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams<any>>();
 }

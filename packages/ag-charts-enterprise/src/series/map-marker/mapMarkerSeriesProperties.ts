@@ -27,7 +27,7 @@ const {
     STRING,
     MARKER_SHAPE,
     LINE_DASH,
-    Validate,
+    TempValidate,
     SeriesProperties,
     SeriesTooltip,
     Label,
@@ -47,105 +47,105 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDa
 }
 
 class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     placement: _ModuleSupport.LabelPlacement = 'bottom';
 }
 
 export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSeriesOptions> {
-    @Validate(GEOJSON_OBJECT, { optional: true })
+    @TempValidate(GEOJSON_OBJECT, { optional: true })
     topology: _ModuleSupport.FeatureCollection | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     title?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     legendItemName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     idKey: string | undefined = undefined;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     topologyIdKey: string = 'name';
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     idName: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     latitudeKey: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     latitudeName: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     longitudeKey: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     longitudeName: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     labelKey: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     labelName: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     sizeKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     sizeName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     colorKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     colorName?: string;
 
-    @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
+    @TempValidate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
     colorRange: string[] | undefined = undefined;
 
     /** One of the predefined marker names, or a marker shape function (for user-defined markers). */
-    @Validate(MARKER_SHAPE)
+    @TempValidate(MARKER_SHAPE)
     shape: AgMarkerShape = 'circle';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     size: number = 6;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     maxSize: number | undefined;
 
-    @Validate(NUMBER_ARRAY, { optional: true })
+    @TempValidate(NUMBER_ARRAY, { optional: true })
     sizeDomain?: [number, number];
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgFillType = 'black';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = 'black';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<unknown>, AgMapMarkerSeriesStyle>;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new MapMarkerSeriesLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<any>>();
 }

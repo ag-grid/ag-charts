@@ -28,7 +28,7 @@ const {
     SeriesTooltip,
     SeriesProperties,
     PropertiesArray,
-    Validate,
+    TempValidate,
     BOOLEAN,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
@@ -143,215 +143,215 @@ export type LinearGaugeLabelDatum = {
 const PLACEMENT = UNION(['before', 'after'], 'a placement');
 
 class LinearGaugeDefaultTargetLabelProperties extends Label<never> {
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     spacing: number | undefined;
 }
 
 export class LinearGaugeTargetProperties extends BaseProperties {
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     text: string | undefined;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     value: number = 0;
 
-    @Validate(TARGET_MARKER_SHAPE, { optional: true })
+    @TempValidate(TARGET_MARKER_SHAPE, { optional: true })
     shape: AgLinearGaugeMarkerShape | undefined;
 
-    @Validate(TARGET_PLACEMENT, { optional: true })
+    @TempValidate(TARGET_PLACEMENT, { optional: true })
     placement: AgLinearGaugeTargetPlacement | undefined;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     spacing: number | undefined;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     size: number | undefined;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     rotation: number | undefined;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     fill: string | undefined;
 
-    @Validate(RATIO, { optional: true })
+    @TempValidate(RATIO, { optional: true })
     fillOpacity: number | undefined;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     stroke: string | undefined;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     strokeWidth: number | undefined;
 
-    @Validate(RATIO, { optional: true })
+    @TempValidate(RATIO, { optional: true })
     strokeOpacity: number | undefined;
 
-    @Validate(LINE_DASH, { optional: true })
+    @TempValidate(LINE_DASH, { optional: true })
     lineDash: number[] | undefined;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     lineDashOffset: number | undefined;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new LinearGaugeDefaultTargetLabelProperties();
 }
 
 class LinearGaugeBarProperties extends BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled = true;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     thickness: number | undefined;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     thicknessRatio: number = 1;
 
-    @Validate(OBJECT_ARRAY)
+    @TempValidate(OBJECT_ARRAY)
     fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
 
-    @Validate(FILL_MODE)
+    @TempValidate(FILL_MODE)
     fillMode: AgGradientFillMode = 'continuous';
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     fill: string | undefined;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = 'black';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 0;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 }
 
 class LinearGaugeScaleIntervalProperties extends BaseProperties {
-    @Validate(NUMBER_ARRAY, { optional: true })
+    @TempValidate(NUMBER_ARRAY, { optional: true })
     values?: number[] = undefined;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     step?: number = undefined;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     minSpacing: number = 0;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     maxSpacing: number = 1000;
 }
 
 class LinearGaugeScaleLabelProperties extends AxisLabel {
-    @Validate(PLACEMENT, { optional: true })
+    @TempValidate(PLACEMENT, { optional: true })
     placement?: 'before' | 'after' = undefined;
 }
 
 class LinearGaugeScaleProperties extends BaseProperties {
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     min: number = 0;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     max: number = 1;
 
-    @Validate(OBJECT_ARRAY)
+    @TempValidate(OBJECT_ARRAY)
     fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
 
-    @Validate(FILL_MODE)
+    @TempValidate(FILL_MODE)
     fillMode: AgGradientFillMode = 'continuous';
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     fill: string | undefined;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = 'black';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 0;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     defaultFill: string = 'black';
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly interval = new LinearGaugeScaleIntervalProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new LinearGaugeScaleLabelProperties();
 }
 
 export class LinearGaugeLabelProperties extends AutoSizedLabel<AgLinearGaugeLabelFormatterParams> {
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     text?: string;
 
-    @Validate(LABEL_PLACEMENT)
+    @TempValidate(LABEL_PLACEMENT)
     placement: AgLinearGaugeLabelPlacement = 'inside-center';
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     avoidCollisions: boolean = true;
 }
 
 export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeOptions> {
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     value: number = 0;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly segmentation = new GaugeSegmentationProperties();
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OBJECT_ARRAY)
+    @TempValidate(OBJECT_ARRAY)
     targets = new PropertiesArray<LinearGaugeTargetProperties>(LinearGaugeTargetProperties);
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     defaultTarget = new LinearGaugeTargetProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     defaultScale = new LinearGaugeScaleProperties();
 
-    @Validate(DIRECTION)
+    @TempValidate(DIRECTION)
     direction: 'horizontal' | 'vertical' = 'vertical';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     thickness: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(CORNER_MODE)
+    @TempValidate(CORNER_MODE)
     cornerMode: 'container' | 'item' = 'container';
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     margin: number = 0;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly scale = new LinearGaugeScaleProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly bar = new LinearGaugeBarProperties();
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgLinearGaugeItemStylerParams, AgLinearGaugeStyle>;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new LinearGaugeLabelProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgLinearGaugeTooltipRendererParams>();
 }

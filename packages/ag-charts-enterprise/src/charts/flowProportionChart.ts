@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AgFlowProportionChartOptions } from 'ag-charts-types';
 
-const { Chart } = _ModuleSupport;
+const { Chart, Validate, ARRAY } = _ModuleSupport;
 
 function isFlowProportion(
     series: _ModuleSupport.Series<unknown, any, any>
@@ -13,6 +13,9 @@ export class FlowProportionChart extends Chart {
     static readonly className = 'FlowProportionChart';
     static readonly type = 'flow-proportion' as const;
 
+    @Validate(ARRAY, { optional: true })
+    nodes?: any[];
+
     override getChartType() {
         return 'flow-proportion' as const;
     }
@@ -20,8 +23,12 @@ export class FlowProportionChart extends Chart {
     override async updateData() {
         await super.updateData();
 
-        const { nodes } = this.getOptions() as AgFlowProportionChartOptions;
+        const options = this.getOptions() as AgFlowProportionChartOptions;
+        if (this.nodes !== options.nodes) {
+            this.nodes = options.nodes;
+        }
 
+        const { nodes } = this;
         this.series.forEach((series) => {
             if (isFlowProportion(series)) {
                 series.setChartNodes(nodes);

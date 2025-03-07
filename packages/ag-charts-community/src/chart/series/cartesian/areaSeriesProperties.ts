@@ -18,7 +18,7 @@ import {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
-    Validate,
+    TempValidate,
 } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
@@ -27,63 +27,63 @@ import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
 
 export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesAreaOptions> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     xKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     xName?: string = undefined;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     yKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yFilterKey: string | undefined;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgFillType = '#c16068';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity = 1;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = '#874349';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth = 2;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     interpolation: InterpolationProperties = new InterpolationProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly shadow = new DropShadow();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly marker = new SeriesMarker<AgAreaSeriesMarkerItemStylerParams>();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new Label<AgAreaSeriesLabelFormatterParams>();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgAreaSeriesTooltipRendererParams<any>>();
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     connectMissingData: boolean = false;
 }

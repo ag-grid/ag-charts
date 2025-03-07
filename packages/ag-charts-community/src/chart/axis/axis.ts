@@ -31,7 +31,7 @@ import { createId } from '../../util/id';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import { ObserveChanges } from '../../util/proxy';
-import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
+import { BOOLEAN, OBJECT, STRING_ARRAY, TempValidate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -107,17 +107,17 @@ export abstract class Axis<
     // user pass-through option: no validation required.
     context?: unknown;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     nice: boolean = true;
 
     /** Reverse the axis scale domain. */
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     reverse: boolean = false;
 
-    @Validate(STRING_ARRAY)
+    @TempValidate(STRING_ARRAY)
     keys: string[] = [];
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly interval = new AxisInterval();
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
@@ -339,7 +339,7 @@ export abstract class Axis<
         return formatValue(datum, fractionDigits);
     }
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly title = new AxisTitle();
 
     /**

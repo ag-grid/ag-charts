@@ -27,125 +27,125 @@ const {
     STRING,
     OR,
     COLOR_GRADIENT,
-    Validate,
+    TempValidate,
     Label,
 } = _ModuleSupport;
 
 class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     spacing: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     maxWidth: number = 1;
 }
 
 class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
     fill: AgFillType | undefined = undefined;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity = 1;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     stroke: string | undefined = undefined;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     tension = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<unknown>, AgChordSeriesLinkStyle>;
 }
 
 class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     spacing: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     width: number = 1;
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
     fill: AgFillType | undefined = undefined;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity = 1;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     stroke: string | undefined = undefined;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<unknown>, AgChordSeriesNodeStyle>;
 }
 
 export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     fromKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     toKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     idKey: string = '';
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     idName: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     labelKey: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     labelName: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     sizeKey: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     sizeName: string | undefined = undefined;
 
-    @Validate(ARRAY, { optional: true })
+    @TempValidate(ARRAY, { optional: true })
     nodes: any[] | undefined = undefined;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    @TempValidate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
     fills: AgFillType[] = [];
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = [];
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new ChordSeriesLabelProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly link = new ChordSeriesLinkProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly node = new ChordSeriesNodeProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams<any>>();
 }

@@ -259,7 +259,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             return;
         }
 
-        // The datum has an error value for `key`. Validate this user input value:
+        // The datum has an error value for `key`. TempValidate this user input value:
         if (typeof value !== 'number') {
             Logger.warnOnce(`Found [${key}] error value of type ${typeof value}. Expected number type`);
             return;

@@ -7,16 +7,16 @@ import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
 
-const { clamp, BaseModuleInstance, ObserveChanges, Validate, BOOLEAN, POSITIVE_NUMBER } = _ModuleSupport;
+const { clamp, BaseModuleInstance, ObserveChanges, TempValidate, BOOLEAN, POSITIVE_NUMBER } = _ModuleSupport;
 
 export class Navigator extends BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    // @Validate(OBJECT, { optional: true })
+    // @TempValidate(OBJECT, { optional: true })
     @ObserveChanges<Navigator, MiniChart>((target, value, oldValue) => {
         target.updateBackground(oldValue?.root, value?.root);
     })
     public miniChart?: MiniChart;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     @ObserveChanges<Navigator>((target, value) => {
         target.ctx.zoomManager.setNavigatorEnabled(Boolean(value));
         target.updateGroupVisibility();
@@ -33,16 +33,16 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         fromCanvasPoint: (x: number, y: number) => ({ x, y }),
     } satisfies _ModuleSupport.BBoxProvider & { getBBox(): _ModuleSupport.BBox };
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     public height: number = 30;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     @ObserveChanges<Navigator>((target, value) => {
         target.mask.cornerRadius = value;
     })
     public cornerRadius: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     public spacing: number = 10;
 
     protected x = 0;

@@ -9,7 +9,7 @@ const {
     ZIndexMap,
     NUMBER,
     BOOLEAN,
-    Validate,
+    TempValidate,
     isNumberEqual,
     normalizeAngle360,
     toRadians,
@@ -28,10 +28,10 @@ interface GeneratedTicks {
 }
 
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     autoRotate?: boolean;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     autoRotateAngle: number = 335;
 }
 
@@ -41,7 +41,7 @@ export abstract class RadiusAxis<
 > extends _ModuleSupport.PolarAxis<S, D, _ModuleSupport.TickDatum, _ModuleSupport.LabelNodeDatum> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     @Default(0)
     positionAngle: number = 0;
 

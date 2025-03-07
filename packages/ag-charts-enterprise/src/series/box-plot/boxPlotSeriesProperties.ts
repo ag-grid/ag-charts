@@ -12,7 +12,7 @@ const {
     BaseProperties,
     AbstractBarSeriesProperties,
     SeriesTooltip,
-    Validate,
+    TempValidate,
     COLOR_STRING,
     FUNCTION,
     LINE_DASH,
@@ -27,104 +27,104 @@ const {
 } = _ModuleSupport;
 
 class BoxPlotSeriesCap extends BaseProperties {
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     lengthRatio = 0.5;
 }
 
 class BoxPlotSeriesWhisker extends BaseProperties {
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     stroke?: string;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth?: number;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity?: number;
 
-    @Validate(LINE_DASH, { optional: true })
+    @TempValidate(LINE_DASH, { optional: true })
     lineDash?: number[];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset?: number;
 }
 
 export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPlotSeriesOptions> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     xKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     minKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     q1Key!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     medianKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     q3Key!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     maxKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     xName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     minName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     q1Name?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     medianName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     q3Name?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     maxName?: string;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
     fill: AgFillType = '#c16068';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity = 1;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = '#333';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<unknown>, AgBoxPlotSeriesStyle>;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly cap = new BoxPlotSeriesCap();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly whisker = new BoxPlotSeriesWhisker();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<any>>();
 
     override toJson() {

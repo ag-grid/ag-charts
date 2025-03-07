@@ -23,88 +23,88 @@ import {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    TempValidate,
     UNION,
-    Validate,
 } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesTooltip } from '../seriesTooltip';
 import { AbstractBarSeriesProperties } from './abstractBarSeries';
 
 class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
-    @Validate(UNION(['inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'], 'a placement'))
+    @TempValidate(UNION(['inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'], 'a placement'))
     placement: AgBarSeriesLabelPlacement = 'inside-center';
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     padding: number = 0;
 }
 
 export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeriesOptions> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     xKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     xName?: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     yKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yFilterKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     stackGroup?: string;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgFillType = '#c16068';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = '#874349';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     crisp?: boolean = undefined;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgBarSeriesItemStylerParams<unknown>, AgBarSeriesStyle>;
 
-    @Validate(OBJECT, { optional: true })
+    @TempValidate(OBJECT, { optional: true })
     readonly shadow = new DropShadow();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new BarSeriesLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgBarSeriesTooltipRendererParams>();
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     sparklineMode: boolean = false;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     fastDataProcessing: boolean = false;
 }

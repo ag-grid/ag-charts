@@ -15,7 +15,7 @@ const {
     LINE_DASH,
     OBJECT,
     InteractionState,
-    Validate,
+    TempValidate,
     ZIndexMap,
     formatNumber,
     isInteger,
@@ -30,28 +30,28 @@ type HoverLikeEvent =
 export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     readonly id = createId(this);
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled = false;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     stroke?: string = 'rgb(195, 195, 195)';
 
-    @Validate(LINE_DASH, { optional: true })
+    @TempValidate(LINE_DASH, { optional: true })
     lineDash?: number[] = [6, 3];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     snap: boolean = true;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new CrosshairLabelProperties();
 
     private readonly labels: { [key: string]: CrosshairLabel };

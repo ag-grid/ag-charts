@@ -1,43 +1,43 @@
 import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate, createId, setAttribute } = _ModuleSupport;
+const { BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, TempValidate, createId, setAttribute } = _ModuleSupport;
 
 const DEFAULT_LABEL_CLASS = 'ag-charts-crosshair-label';
 
 export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectableProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled: boolean = true;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     xOffset: number = 0;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     yOffset: number = 0;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     format?: string = undefined;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
 }
 
 export class CrosshairLabel extends BaseProperties {
     private readonly id = createId(this);
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled: boolean = true;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     xOffset: number = 0;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     yOffset: number = 0;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     format?: string;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
 
     private readonly element: HTMLElement;

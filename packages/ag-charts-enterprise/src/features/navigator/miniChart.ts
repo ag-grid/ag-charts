@@ -4,7 +4,7 @@ import { Logger } from 'ag-charts-core';
 import { MiniChartGroup } from './shapes/miniChartGroup';
 
 const {
-    Validate,
+    TempValidate,
     BOOLEAN,
     POSITIVE_NUMBER,
     ZIndexMap,
@@ -18,15 +18,15 @@ const {
 } = _ModuleSupport;
 
 class MiniChartPadding {
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     top: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     bottom: number = 0;
 }
 
 export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled: boolean = false;
 
     @ProxyProperty(['seriesRoot', 'inset'])

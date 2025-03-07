@@ -12,7 +12,7 @@ const {
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
-    Validate,
+    TempValidate,
     SeriesProperties,
     SeriesTooltip,
 } = _ModuleSupport;
@@ -23,33 +23,33 @@ export interface MapShapeBackgroundNodeDatum extends _ModuleSupport.DataModelSer
 }
 
 export class MapShapeBackgroundSeriesProperties extends SeriesProperties<AgMapShapeBackgroundOptions> {
-    @Validate(GEOJSON_OBJECT, { optional: true })
+    @TempValidate(GEOJSON_OBJECT, { optional: true })
     topology?: _ModuleSupport.FeatureCollection = undefined;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgFillType = 'black';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = 'black';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 0;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<never>();
 }

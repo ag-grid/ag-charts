@@ -3,8 +3,7 @@ import { type AgFillType, _ModuleSupport } from 'ag-charts-community';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
 
-const { Series, DataController, Validate, ARRAY, keyProperty, valueProperty, Selection, Group, TransformableText } =
-    _ModuleSupport;
+const { Series, DataController, keyProperty, valueProperty, Selection, Group, TransformableText } = _ModuleSupport;
 
 export enum FlowProportionDatumType {
     Link,
@@ -103,7 +102,6 @@ export abstract class FlowProportionSeries<
 
     abstract override properties: TProps;
 
-    @Validate(ARRAY, { optional: true, property: 'nodes' })
     private _chartNodes?: any[] = undefined;
 
     protected get nodes() {

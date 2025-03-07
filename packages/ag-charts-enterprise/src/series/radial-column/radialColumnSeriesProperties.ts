@@ -3,14 +3,14 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseProperties';
 
-const { Validate, RATIO } = _ModuleSupport;
+const { TempValidate, RATIO } = _ModuleSupport;
 
 export class RadialColumnSeriesProperties<
     T extends AgBaseRadialColumnSeriesOptions,
 > extends RadialColumnSeriesBaseProperties<T> {
-    @Validate(RATIO, { optional: true })
+    @TempValidate(RATIO, { optional: true })
     columnWidthRatio?: number;
 
-    @Validate(RATIO, { optional: true })
+    @TempValidate(RATIO, { optional: true })
     maxColumnWidthRatio?: number;
 }

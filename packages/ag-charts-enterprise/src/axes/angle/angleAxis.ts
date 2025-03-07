@@ -10,7 +10,7 @@ const {
     ProxyOnWrite,
     TextWrapper,
     TextUtils,
-    Validate,
+    TempValidate,
     isNumberEqual,
     toRadians,
     normalizeAngle360,
@@ -39,7 +39,7 @@ interface AngleAxisTickDatum<TDatum> {
 }
 
 class AngleAxisLabel extends _ModuleSupport.AxisLabel {
-    @Validate(UNION(['fixed', 'parallel', 'perpendicular'], 'a label orientation'))
+    @TempValidate(UNION(['fixed', 'parallel', 'perpendicular'], 'a label orientation'))
     orientation: AgAngleAxisLabelOrientation = 'fixed';
 }
 
@@ -50,10 +50,10 @@ export abstract class AngleAxis<
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
 
     @ProxyOnWrite('rotation')
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     startAngle: number = 0;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     endAngle: number | undefined = undefined;
 
     protected labelData: AngleAxisLabelDatum[] = [];
