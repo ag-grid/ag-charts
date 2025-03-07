@@ -37,6 +37,10 @@ export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTe
         direction: 'vertical',
         strokeWidth: 0,
         spacingRatio: 0.25,
+        fills: [{ $palette: 'fill' }],
+        strokes: [{ $palette: 'stroke' }],
+        // @ts-expect-error undocumented option
+        defaultColorRange: { $palette: 'gradient' },
         label: {
             enabled: true,
             fontSize: { $ref: 'fontSize' },

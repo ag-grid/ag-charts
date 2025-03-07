@@ -33,7 +33,14 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         calloutLine: {
             length: 10,
             strokeWidth: 2,
+            colors: {
+                $if: [{ $eq: [{ $path: '../strokeWidth' }, 0] }, { $path: '../fills' }, { $path: '../strokes' }],
+            },
         },
+        fills: { $palette: 'fills' },
+        strokes: { $palette: 'strokes' },
+        // @ts-expect-error undocumented option
+        defaultColorRange: { $palette: 'gradients' },
         fillOpacity: 1,
         strokeOpacity: 1,
         strokeWidth: 0,

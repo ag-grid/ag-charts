@@ -4,7 +4,6 @@ import type { AgLineSeriesOptions } from 'ag-charts-types';
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { markerPaletteFactory } from '../../themes/util';
 import { LineSeries } from './lineSeries';
 import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
 
@@ -31,6 +30,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     themeTemplate: {
         series: {
             tooltip: { position: { type: 'node' } },
+            stroke: { $palette: 'fill' },
             strokeWidth: 2,
             strokeOpacity: 1,
             lineDash: [0],
@@ -44,6 +44,10 @@ export const LineSeriesModule: SeriesModule<'line'> = {
                 shape: 'circle',
                 size: 7,
                 strokeWidth: 0,
+                fill: { $palette: 'fill' },
+                stroke: { $palette: 'stroke' },
+                // @ts-expect-error undocumented option
+                defaultColorRange: { $palette: 'gradient' },
             },
             label: {
                 enabled: false,
@@ -58,10 +62,6 @@ export const LineSeriesModule: SeriesModule<'line'> = {
                 },
             },
         },
-    },
-    paletteFactory: (params) => {
-        const { marker } = markerPaletteFactory(params);
-        return { stroke: marker.fill, marker };
     },
 };
 

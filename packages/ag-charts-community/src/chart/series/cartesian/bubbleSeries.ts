@@ -323,9 +323,12 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
-                node,
                 marker,
-                { datum, highlighted, xKey, yKey, sizeKey, labelKey },
+                node,
+                datum.datum,
+                datum.point,
+                { xKey, yKey, sizeKey, labelKey },
+                highlighted,
                 baseStyle,
                 fillBBox,
                 {
@@ -401,14 +404,16 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const style = marker.getStyle();
         const activeStyle = this.getMarkerStyle(
             marker,
+            datum,
             {
-                datum: nodeDatum,
                 xKey,
                 yKey,
                 sizeKey,
                 labelKey,
                 highlighted: true,
             },
+            false,
+            undefined,
             style
         );
 
@@ -509,14 +514,13 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     public getFormattedMarkerStyle(datum: BubbleNodeDatum): AgSeriesMarkerStyle & { size: number } {
         const { xKey, yKey, sizeKey, labelKey } = this.properties;
-        return this.getMarkerStyle(this.properties.marker, {
+        return this.getMarkerStyle(
+            this.properties.marker,
             datum,
-            xKey,
-            yKey,
-            sizeKey,
-            labelKey,
-            highlighted: false,
-        });
+            { xKey, yKey, sizeKey, labelKey },
+            false,
+            datum.sizeValue
+        );
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {

@@ -28,6 +28,11 @@ export type DefaultColors = {
     fills: { [key: string]: string };
     strokes: { [key: string]: string };
     sequentialColors: { [key: string]: string[] };
+    divergingColors: string[];
+    hierarchyColors: string[];
+    secondSequentialColors: string[];
+    secondDivergingColors: string[];
+    secondHierarchyColors: string[];
     up: { stroke: string; fill: string };
     down: { stroke: string; fill: string };
     neutral: { stroke: string; fill: string };

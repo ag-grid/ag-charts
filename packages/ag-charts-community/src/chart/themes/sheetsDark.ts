@@ -1,9 +1,7 @@
 import { DarkTheme } from './darkTheme';
 import {
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
 import { getSequentialColors } from './util';
 
@@ -36,9 +34,24 @@ const SHEETS_DARK_STROKES = {
 export class SheetsDark extends DarkTheme {
     override getDefaultColors() {
         return {
+            ...super.getDefaultColors(),
             fills: { ...SHEETS_DARK_FILLS, RED: SHEETS_DARK_FILLS.ORANGE },
             strokes: { ...SHEETS_DARK_STROKES, RED: SHEETS_DARK_STROKES.ORANGE },
             sequentialColors: getSequentialColors({ ...SHEETS_DARK_FILLS, RED: SHEETS_DARK_FILLS.ORANGE }),
+            divergingColors: [SHEETS_DARK_FILLS.ORANGE, SHEETS_DARK_FILLS.YELLOW, SHEETS_DARK_FILLS.GREEN],
+            // hierarchyColors: [],
+            secondSequentialColors: [
+                '#5090dc',
+                '#4882c6',
+                '#4073b0',
+                '#38659a',
+                '#305684',
+                '#28486e',
+                '#203a58',
+                '#182b42',
+            ],
+            secondDivergingColors: [SHEETS_DARK_FILLS.GREEN, SHEETS_DARK_FILLS.YELLOW, SHEETS_DARK_FILLS.ORANGE],
+            // secondHierarchyColors: [],
             up: { fill: SHEETS_DARK_FILLS.GREEN, stroke: SHEETS_DARK_STROKES.GREEN },
             down: { fill: SHEETS_DARK_FILLS.ORANGE, stroke: SHEETS_DARK_STROKES.ORANGE },
             neutral: { fill: SHEETS_DARK_FILLS.GRAY, stroke: SHEETS_DARK_STROKES.GRAY },
@@ -50,17 +63,6 @@ export class SheetsDark extends DarkTheme {
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
-            SHEETS_DARK_FILLS.ORANGE,
-            SHEETS_DARK_FILLS.YELLOW,
-            SHEETS_DARK_FILLS.GREEN,
-        ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [
-            SHEETS_DARK_FILLS.GREEN,
-            SHEETS_DARK_FILLS.YELLOW,
-            SHEETS_DARK_FILLS.ORANGE,
-        ]);
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, SHEETS_DARK_FILLS.BLUE);
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, SHEETS_DARK_FILLS.BLUE);

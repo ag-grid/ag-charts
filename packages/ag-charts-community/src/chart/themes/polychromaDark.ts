@@ -1,10 +1,7 @@
 import { DarkTheme } from './darkTheme';
 import {
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
-    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
 import { getSequentialColors } from './util';
 
@@ -42,6 +39,20 @@ export class PolychromaDark extends DarkTheme {
             fills: POLYCHROMA_DARK_FILLS,
             strokes: POLYCHROMA_DARK_STROKES,
             sequentialColors: getSequentialColors(POLYCHROMA_DARK_FILLS),
+            divergingColors: [POLYCHROMA_DARK_FILLS.BLUE, POLYCHROMA_DARK_FILLS.RED],
+            hierarchyColors: [],
+            secondSequentialColors: [
+                POLYCHROMA_DARK_FILLS.BLUE,
+                POLYCHROMA_DARK_FILLS.PURPLE,
+                POLYCHROMA_DARK_FILLS.MAGENTA,
+                POLYCHROMA_DARK_FILLS.PINK,
+                POLYCHROMA_DARK_FILLS.RED,
+                POLYCHROMA_DARK_FILLS.ORANGE,
+                POLYCHROMA_DARK_FILLS.YELLOW,
+                POLYCHROMA_DARK_FILLS.GREEN,
+            ],
+            secondDivergingColors: [POLYCHROMA_DARK_FILLS.BLUE, POLYCHROMA_DARK_FILLS.RED],
+            secondHierarchyColors: [],
             up: { fill: POLYCHROMA_DARK_FILLS.GREEN, stroke: POLYCHROMA_DARK_STROKES.GREEN },
             down: { fill: POLYCHROMA_DARK_FILLS.RED, stroke: POLYCHROMA_DARK_STROKES.RED },
             neutral: { fill: POLYCHROMA_DARK_FILLS.GRAY, stroke: POLYCHROMA_DARK_STROKES.GRAY },
@@ -53,19 +64,6 @@ export class PolychromaDark extends DarkTheme {
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [POLYCHROMA_DARK_FILLS.BLUE, POLYCHROMA_DARK_FILLS.RED]);
-        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
-            POLYCHROMA_DARK_FILLS.BLUE,
-            POLYCHROMA_DARK_FILLS.PURPLE,
-            POLYCHROMA_DARK_FILLS.MAGENTA,
-            POLYCHROMA_DARK_FILLS.PINK,
-            POLYCHROMA_DARK_FILLS.RED,
-            POLYCHROMA_DARK_FILLS.ORANGE,
-            POLYCHROMA_DARK_FILLS.YELLOW,
-            POLYCHROMA_DARK_FILLS.GREEN,
-        ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [POLYCHROMA_DARK_FILLS.BLUE, POLYCHROMA_DARK_FILLS.RED]);
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, POLYCHROMA_DARK_FILLS.BLUE);
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_DARK_FILLS.BLUE);

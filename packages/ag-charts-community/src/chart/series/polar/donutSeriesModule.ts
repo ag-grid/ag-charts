@@ -6,7 +6,6 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { DonutSeries } from './donutSeries';
 import { donutSeriesOptionsDef } from './donutSeriesOptionsDef';
 import { donutTheme } from './donutTheme';
-import { piePaletteFactory } from './pieTheme';
 
 export const DonutSeriesModule: SeriesModule<'donut'> = {
     type: 'series',
@@ -18,7 +17,6 @@ export const DonutSeriesModule: SeriesModule<'donut'> = {
     moduleFactory: (ctx) => new DonutSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     themeTemplate: donutTheme,
-    paletteFactory: piePaletteFactory,
 };
 
 export const NewDonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions> = {

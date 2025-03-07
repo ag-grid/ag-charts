@@ -4,7 +4,6 @@ import type { AgBubbleSeriesOptions } from 'ag-charts-types';
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { singleSeriesPaletteFactory } from '../../themes/util';
 import { BubbleSeries } from './bubbleSeries';
 import { bubbleSeriesOptionsDef } from './bubbleSeriesOptionsDef';
 
@@ -32,6 +31,10 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
             shape: 'circle',
             size: 7,
             maxSize: 30,
+            fill: { $palette: 'fill' },
+            stroke: { $palette: 'stroke' },
+            // @ts-expect-error undocumented option
+            defaultColorRange: { $palette: 'gradient' },
             fillOpacity: 0.8,
             tooltip: { position: { type: 'node' } },
             label: {
@@ -43,7 +46,6 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
             },
         },
     },
-    paletteFactory: singleSeriesPaletteFactory,
 };
 
 export const NewBubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> = {

@@ -4,7 +4,6 @@ import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
     DEFAULT_GRIDLINE_ENABLED,
@@ -29,9 +28,15 @@ const FINANCIAL_LIGHT_STROKES = {
 export class FinancialLight extends ChartTheme {
     override getDefaultColors() {
         return {
+            ...super.getDefaultColors(),
             fills: { ...FINANCIAL_LIGHT_FILLS },
             strokes: { ...FINANCIAL_LIGHT_STROKES },
             sequentialColors: getSequentialColors(FINANCIAL_LIGHT_FILLS),
+            divergingColors: [FINANCIAL_LIGHT_FILLS.GREEN, FINANCIAL_LIGHT_FILLS.BLUE, FINANCIAL_LIGHT_FILLS.RED],
+            // hierarchyColors: [],
+            // secondSequentialColors: [],
+            // secondDivergingColors: [],
+            // secondHierarchyColors: [],
             up: { fill: FINANCIAL_LIGHT_FILLS.GREEN, stroke: FINANCIAL_LIGHT_STROKES.GREEN },
             down: { fill: FINANCIAL_LIGHT_FILLS.RED, stroke: FINANCIAL_LIGHT_STROKES.RED },
             neutral: { fill: FINANCIAL_LIGHT_FILLS.BLUE, stroke: FINANCIAL_LIGHT_STROKES.BLUE },
@@ -51,12 +56,6 @@ export class FinancialLight extends ChartTheme {
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
-            FINANCIAL_LIGHT_FILLS.GREEN,
-            FINANCIAL_LIGHT_FILLS.BLUE,
-            FINANCIAL_LIGHT_FILLS.RED,
-        ]);
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, FINANCIAL_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, FINANCIAL_LIGHT_FILLS.BLUE);

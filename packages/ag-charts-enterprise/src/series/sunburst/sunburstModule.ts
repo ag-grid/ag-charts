@@ -4,10 +4,7 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 import { SunburstSeries } from './sunburstSeries';
 import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
 
-const {
-    FONT_SIZE_RATIO,
-    ThemeSymbols: { DEFAULT_DIVERGING_SERIES_COLOR_RANGE },
-} = _ModuleSupport;
+const { FONT_SIZE_RATIO } = _ModuleSupport;
 
 export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     type: 'series',
@@ -21,6 +18,11 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     solo: true,
     themeTemplate: {
         series: {
+            fills: { $palette: 'fills' },
+            strokes: { $palette: 'strokes' },
+            colorRange: { $palette: 'divergingColors' },
+            // @ts-expect-error undocumented option
+            defaultColorRange: { $palette: 'gradient' }, // TODO: update sunburst to handle 'gradients'
             label: {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
@@ -57,15 +59,6 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
         gradientLegend: {
             enabled: true,
         },
-    },
-    paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
-        const {
-            fills,
-            strokes,
-            sequentialColors: [defaultColorRange],
-        } = takeColors(colorsCount);
-        const colorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
-        return { fills, strokes, colorRange, defaultColorRange };
     },
 };
 

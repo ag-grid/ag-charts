@@ -6,6 +6,10 @@ const {
 
 export const RADIAL_COLUMN_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-column'>['themeTemplate'] = {
     series: {
+        fill: { $palette: 'fill' },
+        stroke: { $palette: 'stroke' },
+        // @ts-expect-error undocumented option
+        defaultColorRange: { $palette: 'gradient' },
         columnWidthRatio: 0.5,
         maxColumnWidthRatio: 0.5,
         strokeWidth: 0,

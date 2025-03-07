@@ -4,7 +4,6 @@ import type { AgScatterSeriesOptions } from 'ag-charts-types';
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { singleSeriesPaletteFactory } from '../../themes/util';
 import { ScatterSeries } from './scatterSeries';
 import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
 
@@ -31,6 +30,10 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
         series: {
             shape: 'circle',
             size: 7,
+            fill: { $palette: 'fill' },
+            stroke: { $palette: 'stroke' },
+            // @ts-expect-error undocumented option
+            defaultColorRange: { $palette: 'gradient' },
             fillOpacity: 0.8,
             tooltip: { position: { type: 'node' } },
             label: {
@@ -47,7 +50,6 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             },
         },
     },
-    paletteFactory: singleSeriesPaletteFactory,
 };
 
 export const NewScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {

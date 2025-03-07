@@ -7,7 +7,13 @@ export const urlWithBaseUrl = (url: string = '', siteBaseUrl: string = SITE_BASE
     if (url.startsWith('./')) {
         path = pathJoin('/', siteBaseUrl, url.slice('./'.length));
     } else if (url === '/') {
-        path = siteBaseUrl;
+        if (siteBaseUrl === '' || siteBaseUrl === '/') {
+            path = '';
+        } else if (siteBaseUrl.endsWith('/')) {
+            path = siteBaseUrl.slice(0, -1);
+        } else {
+            path = siteBaseUrl;
+        }
     } else if (url.startsWith('/')) {
         path = pathJoin('/', siteBaseUrl, url);
     } else if (!url.startsWith('http')) {

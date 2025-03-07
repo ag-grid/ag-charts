@@ -570,7 +570,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const fillBBox = this.getFillBBox(baseStyle.fill);
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yHighKey, yLowKey }, baseStyle, fillBBox);
+            this.updateMarkerStyle(
+                marker,
+                node,
+                datum.datum,
+                datum.point,
+                { xKey, yHighKey, yLowKey },
+                highlighted,
+                baseStyle,
+                fillBBox
+            );
         });
 
         if (!highlighted) {
@@ -833,7 +842,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
         const { xKey, yLowKey, yHighKey } = this.properties;
-        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yLowKey, yHighKey, highlighted: true });
+        return this.getMarkerStyle(this.properties.marker, datum.datum, { xKey, yLowKey, yHighKey }, true);
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

@@ -17,7 +17,7 @@ const algoliasearch = require('algoliasearch');
 const commander = require('commander');
 const path = require('path');
 
-const menu = require('./src/content/docs-nav/docsNav.json');
+const menu = require('./src/content/docs-nav/nav.json');
 const supportedFrameworks = ['javascript', 'react', 'angular', 'vue'];
 const puppeteer = require('puppeteer-core');
 const assert = require('node:assert/strict');

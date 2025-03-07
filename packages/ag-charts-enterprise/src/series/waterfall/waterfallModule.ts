@@ -25,62 +25,6 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
         (series) => series?.direction === 'horizontal'
     ),
     themeTemplate: WATERFALL_SERIES_THEME,
-    paletteFactory: ({ takeColors, colorsCount, userPalette, palette }) => {
-        const { fills, strokes, sequentialColors } = takeColors(colorsCount);
-
-        if (userPalette === 'user-indexed') {
-            return {
-                line: { stroke: palette.neutral.stroke },
-                item: {
-                    positive: {
-                        fill: fills[0],
-                        stroke: strokes[0],
-                        defaultColorRange: sequentialColors[0],
-                    },
-                    negative: {
-                        fill: fills[1],
-                        stroke: strokes[1],
-                        defaultColorRange: sequentialColors[1],
-                    },
-                    total: {
-                        fill: fills[2],
-                        stroke: strokes[2],
-                        defaultColorRange: sequentialColors[2],
-                    },
-                },
-            };
-        }
-
-        return {
-            line: { stroke: palette.neutral.stroke },
-            item: {
-                positive: {
-                    fill: palette.altUp.fill,
-                    stroke: palette.altUp.stroke,
-                    defaultColorRange: sequentialColors[0],
-                    label: {
-                        color: { $ref: 'textColor' },
-                    },
-                },
-                negative: {
-                    fill: palette.altDown.fill,
-                    stroke: palette.altDown.stroke,
-                    defaultColorRange: sequentialColors[1],
-                    label: {
-                        color: { $ref: 'textColor' },
-                    },
-                },
-                total: {
-                    fill: palette.neutral.fill,
-                    stroke: palette.neutral.stroke,
-                    defaultColorRange: sequentialColors[2],
-                    label: {
-                        color: { $ref: 'textColor' },
-                    },
-                },
-            },
-        };
-    },
 };
 
 export const WaterfallSeriesModule: SeriesModuleDefinition<AgWaterfallSeriesOptions> = {

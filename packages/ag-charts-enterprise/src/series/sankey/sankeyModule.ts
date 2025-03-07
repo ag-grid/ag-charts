@@ -23,6 +23,10 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
             },
         },
         series: {
+            fills: { $palette: 'fills' },
+            strokes: { $palette: 'strokes' },
+            // @ts-expect-error undocumented option
+            defaultColorRange: { $palette: 'gradient' }, // TODO: update sankey to handle 'gradients'
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,
@@ -49,13 +53,6 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
             enabled: false,
             toggleSeries: false,
         },
-    },
-    paletteFactory({ takeColors, colorsCount }) {
-        const {
-            sequentialColors: [defaultColorRange],
-            ...colors
-        } = takeColors(colorsCount);
-        return { ...colors, defaultColorRange };
     },
 };
 

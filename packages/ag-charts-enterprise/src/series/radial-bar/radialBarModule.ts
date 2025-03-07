@@ -18,14 +18,6 @@ export const RadialBarModule: _ModuleSupport.SeriesModule<'radial-bar'> = {
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_NUMBER }, { type: POLAR_AXIS_TYPE.RADIUS_CATEGORY }],
     themeTemplate: RADIAL_BAR_SERIES_THEME,
-    paletteFactory: ({ takeColors }) => {
-        const {
-            fills: [fill],
-            strokes: [stroke],
-            sequentialColors: [defaultColorRange],
-        } = takeColors(1);
-        return { fill, stroke, defaultColorRange };
-    },
     stackable: true,
     groupable: true,
 };

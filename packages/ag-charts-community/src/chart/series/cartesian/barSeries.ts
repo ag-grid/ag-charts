@@ -682,6 +682,7 @@ export class BarSeries extends AbstractBarSeries<
             return this.callWithContext(itemStyler, {
                 seriesId,
                 ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+                datum,
                 xValue,
                 yValue,
                 highlighted,

@@ -1,10 +1,7 @@
 import { DarkTheme } from './darkTheme';
 import {
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
-    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
 import { getSequentialColors } from './util';
 
@@ -40,6 +37,20 @@ export class VividDark extends DarkTheme {
             fills: VIVID_DARK_FILLS,
             strokes: VIVID_DARK_STROKES,
             sequentialColors: getSequentialColors(VIVID_DARK_FILLS),
+            divergingColors: [VIVID_DARK_FILLS.ORANGE, VIVID_DARK_FILLS.YELLOW, VIVID_DARK_FILLS.GREEN],
+            hierarchyColors: [],
+            secondSequentialColors: [
+                '#0083ff',
+                '#0076e6',
+                '#0069cc',
+                '#005cb3',
+                '#004f99',
+                '#004280',
+                '#003466',
+                '#00274c',
+            ],
+            secondDivergingColors: [VIVID_DARK_FILLS.GREEN, VIVID_DARK_FILLS.YELLOW, VIVID_DARK_FILLS.RED],
+            secondHierarchyColors: [],
             up: { fill: VIVID_DARK_FILLS.GREEN, stroke: VIVID_DARK_STROKES.GREEN },
             down: { fill: VIVID_DARK_FILLS.RED, stroke: VIVID_DARK_STROKES.RED },
             neutral: { fill: VIVID_DARK_FILLS.GRAY, stroke: VIVID_DARK_STROKES.GRAY },
@@ -51,27 +62,6 @@ export class VividDark extends DarkTheme {
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
-            VIVID_DARK_FILLS.ORANGE,
-            VIVID_DARK_FILLS.YELLOW,
-            VIVID_DARK_FILLS.GREEN,
-        ]);
-        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
-            '#0083ff',
-            '#0076e6',
-            '#0069cc',
-            '#005cb3',
-            '#004f99',
-            '#004280',
-            '#003466',
-            '#00274c',
-        ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [
-            VIVID_DARK_FILLS.GREEN,
-            VIVID_DARK_FILLS.YELLOW,
-            VIVID_DARK_FILLS.RED,
-        ]);
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, VIVID_DARK_FILLS.BLUE);
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, VIVID_DARK_FILLS.BLUE);

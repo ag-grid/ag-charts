@@ -2,6 +2,17 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 export const HEATMAP_SERIES_THEME: _ModuleSupport.SeriesModule<'heatmap'>['themeTemplate'] = {
     series: {
+        stroke: {
+            $if: [
+                { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                { $ref: 'backgroundColor' },
+                { $path: ['./0', { $palette: 'stroke' }, { $palette: 'strokes' }] },
+            ],
+        },
+        // @ts-expect-error undocumented option
+        colorRange: {
+            $if: [{ $eq: [{ $palette: 'type' }, 'inbuilt'] }, { $palette: 'divergingColors' }, { $palette: 'range2' }],
+        },
         label: {
             enabled: false,
             color: { $ref: 'textColor' },

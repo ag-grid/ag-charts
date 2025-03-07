@@ -24,20 +24,6 @@ export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
         (series) => series?.direction === 'horizontal'
     ),
     themeTemplate: RANGE_BAR_SERIES_THEME,
-
-    paletteFactory: ({ takeColors }) => {
-        const {
-            fills: [fill],
-            strokes: [stroke],
-            sequentialColors: [defaultColorRange],
-        } = takeColors(1);
-        return {
-            fill,
-            stroke,
-            defaultColorRange,
-        };
-    },
-
     groupable: true,
 };
 

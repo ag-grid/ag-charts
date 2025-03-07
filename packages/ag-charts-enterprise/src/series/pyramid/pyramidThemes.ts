@@ -9,6 +9,10 @@ export const PYRAMID_SERIES_THEME: _ModuleSupport.SeriesModule<'pyramid'>['theme
         direction: 'vertical',
         strokeWidth: 0,
         spacing: 2,
+        fills: { $palette: 'fills' },
+        strokes: { $palette: 'strokes' },
+        // @ts-expect-error undocumented option
+        defaultColorRange: { $palette: 'gradient' }, // TODO: fix pyramid to handle 'gradients'
         label: {
             enabled: true,
             fontSize: { $ref: 'fontSize' },

@@ -1,10 +1,7 @@
 import { ChartTheme } from './chartTheme';
 import {
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
-    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
 import { getSequentialColors } from './util';
 
@@ -39,9 +36,24 @@ const POLYCHROMA_LIGHT_STROKES = {
 export class PolychromaLight extends ChartTheme {
     override getDefaultColors() {
         return {
+            ...super.getDefaultColors(),
             fills: POLYCHROMA_LIGHT_FILLS,
             strokes: POLYCHROMA_LIGHT_STROKES,
             sequentialColors: getSequentialColors(POLYCHROMA_LIGHT_FILLS),
+            divergingColors: [POLYCHROMA_LIGHT_FILLS.BLUE, POLYCHROMA_LIGHT_FILLS.RED],
+            hierarchyColors: [],
+            secondSequentialColors: [
+                POLYCHROMA_LIGHT_FILLS.BLUE,
+                POLYCHROMA_LIGHT_FILLS.PURPLE,
+                POLYCHROMA_LIGHT_FILLS.MAGENTA,
+                POLYCHROMA_LIGHT_FILLS.PINK,
+                POLYCHROMA_LIGHT_FILLS.RED,
+                POLYCHROMA_LIGHT_FILLS.ORANGE,
+                POLYCHROMA_LIGHT_FILLS.YELLOW,
+                POLYCHROMA_LIGHT_FILLS.GREEN,
+            ],
+            secondDivergingColors: [POLYCHROMA_LIGHT_FILLS.BLUE, POLYCHROMA_LIGHT_FILLS.RED],
+            secondHierarchyColors: [],
             up: { fill: POLYCHROMA_LIGHT_FILLS.GREEN, stroke: POLYCHROMA_LIGHT_STROKES.GREEN },
             down: { fill: POLYCHROMA_LIGHT_FILLS.RED, stroke: POLYCHROMA_LIGHT_STROKES.RED },
             neutral: { fill: POLYCHROMA_LIGHT_FILLS.GRAY, stroke: POLYCHROMA_LIGHT_STROKES.GRAY },
@@ -53,19 +65,6 @@ export class PolychromaLight extends ChartTheme {
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [POLYCHROMA_LIGHT_FILLS.BLUE, POLYCHROMA_LIGHT_FILLS.RED]);
-        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
-            POLYCHROMA_LIGHT_FILLS.BLUE,
-            POLYCHROMA_LIGHT_FILLS.PURPLE,
-            POLYCHROMA_LIGHT_FILLS.MAGENTA,
-            POLYCHROMA_LIGHT_FILLS.PINK,
-            POLYCHROMA_LIGHT_FILLS.RED,
-            POLYCHROMA_LIGHT_FILLS.ORANGE,
-            POLYCHROMA_LIGHT_FILLS.YELLOW,
-            POLYCHROMA_LIGHT_FILLS.GREEN,
-        ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [POLYCHROMA_LIGHT_FILLS.BLUE, POLYCHROMA_LIGHT_FILLS.RED]);
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, POLYCHROMA_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_LIGHT_FILLS.BLUE);

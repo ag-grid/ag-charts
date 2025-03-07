@@ -6,6 +6,10 @@ const {
 
 export const RADIAL_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-bar'>['themeTemplate'] = {
     series: {
+        fill: { $palette: 'fill' },
+        stroke: { $palette: 'stroke' },
+        // @ts-expect-error undocumented option
+        defaultColorRange: { $palette: 'gradient' },
         strokeWidth: 0,
         label: {
             enabled: false,

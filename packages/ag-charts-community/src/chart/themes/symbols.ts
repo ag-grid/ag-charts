@@ -2,7 +2,6 @@ export const IS_DARK_THEME = Symbol('is-dark-theme') as unknown as boolean;
 export const IS_COMMUNITY = Symbol('is-community') as unknown as boolean;
 export const IS_ENTERPRISE = Symbol('is-enterprise') as unknown as boolean;
 export const DEFAULT_SEPARATION_LINES_COLOUR = Symbol('default-separation-lines-colour') as unknown as string;
-export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour') as unknown as string; // TODO: remove uses in paletteFactory()
 export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour') as unknown as string;
 export const DEFAULT_CAPTION_LAYOUT_STYLE = Symbol('default-caption-layout-style') as unknown as string;
 export const DEFAULT_CAPTION_ALIGNMENT = Symbol('default-caption-alignment') as unknown as string;
@@ -20,14 +19,7 @@ export const PALETTE_ALT_NEUTRAL_FILL = Symbol('palette-gray-fill') as unknown a
 export const PALETTE_ALT_NEUTRAL_STROKE = Symbol('palette-gray-stroke') as unknown as string;
 
 export const DEFAULT_POLAR_SERIES_STROKE = Symbol('default-polar-series-stroke') as unknown as string;
-export const DEFAULT_DIVERGING_SERIES_COLOR_RANGE = Symbol(
-    'default-diverging-series-colour-range'
-) as unknown as string;
 export const DEFAULT_SPARKLINE_CROSSHAIR_STROKE = Symbol('default-sparkline-crosshair-stroke') as unknown as string;
-export const DEFAULT_GAUGE_SERIES_COLOR_RANGE = Symbol('default-gauge-series-colour-range') as unknown as string;
-export const DEFAULT_FUNNEL_SERIES_COLOR_RANGE = Symbol('default-funnel-series-colour-range') as unknown as string;
-export const DEFAULT_HIERARCHY_FILLS = Symbol('default-hierarchy-fills') as unknown as string;
-export const DEFAULT_HIERARCHY_STROKES = Symbol('default-hierarchy-strokes') as unknown as string;
 export const DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR = Symbol(
     'default-financial-charts-annotation-stroke'
 ) as unknown as string;

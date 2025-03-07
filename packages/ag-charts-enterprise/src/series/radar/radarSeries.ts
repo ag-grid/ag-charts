@@ -345,9 +345,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         selection.update(selectionData).each((node, datum) => {
             this.updateMarkerStyle(
-                node,
                 marker,
-                { ...this.getDatumStylerProperties(datum), highlighted: highlight },
+                node,
+                datum.datum,
+                datum.point,
+                this.getDatumStylerProperties(datum),
+                highlight,
                 baseStyle,
                 fillBBox
             );
@@ -392,12 +395,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         if (angleValue == null) return;
 
-        const style = marker.getStyle();
-        const activeStyle = this.getMarkerStyle(
-            marker,
-            { ...this.getDatumStylerProperties(datum), highlighted: false },
-            style
-        );
+        const activeStyle = this.getMarkerStyle(marker, datum, this.getDatumStylerProperties(datum), false);
 
         return tooltip.formatTooltip(
             this.properties,
@@ -703,7 +701,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     public getFormattedMarkerStyle(datum: RadarNodeDatum) {
         const { angleKey, radiusKey } = this.properties;
-        return this.getMarkerStyle(this.properties.marker, { datum, angleKey, radiusKey, highlighted: true });
+        return this.getMarkerStyle(this.properties.marker, datum.datum, { angleKey, radiusKey }, true);
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
