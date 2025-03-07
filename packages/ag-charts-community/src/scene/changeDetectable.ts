@@ -4,7 +4,10 @@ type SceneChangeDetectionOptions<T = any> = {
     convertor?: (o: any) => any;
     changeCb?: (o: T) => any;
     checkDirtyOnAssignment?: boolean;
+    equals?: (newValue: T, oldValue: T) => boolean;
 };
+
+const TRIPLE_EQ = (lhs: unknown, rhs: unknown) => lhs === rhs;
 
 export function SceneChangeDetection<T extends Target = any>(opts?: SceneChangeDetectionOptions) {
     return function (target: T, key: string) {
@@ -27,7 +30,7 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
     // of change detection.
     const setter = buildCheckDirtyChain(
         privateKey,
-        buildChangeCallbackChain(buildConvertorChain(buildSetter(privateKey), requiredOpts), requiredOpts),
+        buildChangeCallbackChain(buildConvertorChain(buildSetter(privateKey, requiredOpts), requiredOpts), requiredOpts),
         requiredOpts
     );
 
@@ -88,10 +91,11 @@ function buildCheckDirtyChain(privateKey: string, setterFn: Function, opts: Scen
     return setterFn;
 }
 
-function buildSetter(privateKey: string) {
+function buildSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
+    const { equals = TRIPLE_EQ } = opts;
     return function (this: Target, value: unknown) {
         const oldValue = this[privateKey];
-        if (value !== oldValue) {
+        if (!equals(value, oldValue)) {
             this[privateKey] = value;
             this.onChangeDetection(privateKey);
             return value;
