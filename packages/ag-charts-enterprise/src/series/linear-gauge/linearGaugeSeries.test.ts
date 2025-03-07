@@ -205,7 +205,7 @@ describe('LinearGaugeSeries', () => {
             delete (window as any).agChartsDebug;
         });
 
-        it('should not error when creating gauge in dev mode', async () => {
+        it('should not error when creating gauge with disabled nested options', async () => {
             const options: AgLinearGaugeOptions = {
                 ...EXAMPLE_OPTIONS,
                 segmentation: {
