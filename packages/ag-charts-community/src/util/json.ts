@@ -53,12 +53,6 @@ export function jsonDiff<T>(source: T, target: T): Partial<T> | null {
             ...(Object.keys(target) as Array<keyof T>),
         ]);
         for (const key of allKeys) {
-            // Functions must always be considered "outdated" because it is impossible for us to know if the return
-            // value (which is what we actually care about) has changed.
-            if (typeof target[key] === 'function') {
-                result[key] = target[key];
-                continue;
-            }
             // Cheap-and-easy equality check.
             if (source[key] === target[key]) {
                 continue;
