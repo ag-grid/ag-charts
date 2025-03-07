@@ -29,6 +29,12 @@ if [ "$1" == "--host" ] ; then
     exit 1
   fi
 
+  existingContainers=$(docker ps --format "{{.Names}}" | grep "playwright-e2e-" || echo "")
+  if [[ $existingContainers != "" ]] ; then
+    echo "Stopping existing containers: ${existingContainers}"
+    docker stop ${existingContainers}
+  fi
+
   npx astro dev --port=4601 --host &
   astro_pid=$!
   container_name=playwright-e2e-$$

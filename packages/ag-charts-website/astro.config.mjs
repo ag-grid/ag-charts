@@ -104,6 +104,7 @@ export default defineConfig({
                     /\.github.dev/,
                 ],
             },
+            allowedHosts: [new URL(PUBLIC_SITE_URL).hostname],
         },
         css: {
             preprocessorOptions: {
