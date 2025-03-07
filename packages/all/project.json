@@ -24,6 +24,12 @@
         "fix": {}
       }
     },
+    "lint:changeDetection": {
+      "executor": "nx:noop",
+      "inputs": [],
+      "outputs": [],
+      "dependsOn": ["ag-charts-community:lint:changeDetection", "ag-charts-enterprise:lint:changeDetection"]
+    },
     "test": {
       "executor": "nx:noop",
       "inputs": [],
