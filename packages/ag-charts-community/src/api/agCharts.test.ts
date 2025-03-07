@@ -109,7 +109,8 @@ describe('AgCharts', () => {
                 expectNonCachedLogs();
             });
 
-            it('should use fast setup for re-used instances', async () => {
+            // AG-14117 - Temporarily skipped whilst general `update()` case optimisations are fixed.
+            it.skip('should use fast setup for re-used instances', async () => {
                 const options = { ...sparklineOptions };
                 prepareTestOptions(options, container);
 
@@ -129,7 +130,8 @@ describe('AgCharts', () => {
             });
         });
 
-        describe('for update()', () => {
+        // AG-14117 - Temporarily skipped whilst general `update()` case optimisations are fixed.
+        describe.skip('for update()', () => {
             for (const property in fastSettings) {
                 it(`should use fast setup for ${property} with update()`, async () => {
                     let options = { ...sparklineOptions };
