@@ -191,7 +191,6 @@ const donutOptions: AgPolarChartOptions = {
             calloutLabelKey: 'year',
             legendItemKey: 'year',
             angleKey: 'two',
-            innerRadiusRatio: 0.7,
             showInLegend: false,
         },
     ],
