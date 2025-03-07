@@ -1,4 +1,3 @@
-import type { RequireOptional } from 'ag-charts-core';
 import {
     type AgBaseGaugePresetOptions,
     type AgChartTooltipOptions,
@@ -10,28 +9,11 @@ import {
     type AgRadialGaugeOptions,
     type AgRadialGaugePreset,
     type AgRadialGaugeThemeOverrides,
+    type AgSeriesTooltip,
 } from 'ag-charts-types';
 
 import { mergeArrayDefaults, mergeDefaults } from '../../util/object';
 import { IGNORED_PROP, pickProps } from './presetUtils';
-
-function pickTooltipProps(tooltip: AgChartTooltipOptions | undefined): AgChartTooltipOptions | undefined {
-    if (tooltip === undefined) return undefined;
-
-    const { enabled, mode, showArrow, range, position, pagination, delay, wrapping } = tooltip;
-    const result: RequireOptional<AgChartTooltipOptions> = {
-        enabled,
-        mode,
-        showArrow,
-        range,
-        position,
-        pagination,
-        delay,
-        wrapping,
-    };
-    // eslint-disable-next-line no-restricted-properties
-    return Object.fromEntries(Object.entries(result).filter(([_, value]) => value !== undefined));
-}
 
 function isRadialGauge(opts: AgGaugeOptions): opts is AgRadialGaugeOptions {
     return opts.type === 'radial-gauge';
@@ -43,6 +25,35 @@ function isLinearGauge(opts: AgGaugeOptions): opts is AgLinearGaugeOptions {
 
 interface UndocumentedProperties {
     overrideDevicePixelRatio?: number;
+}
+
+function tooltipOptions(opts: Exclude<AgRadialGaugeOptions['tooltip'], undefined>) {
+    const { enabled, mode, showArrow, range, position, pagination, delay, wrapping, interaction, renderer, ...rest } =
+        opts;
+
+    const seriesTooltipOptions: AgSeriesTooltip<any> = pickProps<AgSeriesTooltip<any>>(opts, {
+        enabled,
+        showArrow,
+        range,
+        position,
+        interaction,
+        renderer,
+        ...rest,
+    });
+
+    const chartTooltipOptions: AgChartTooltipOptions = pickProps<AgChartTooltipOptions>(opts, {
+        enabled: IGNORED_PROP,
+        showArrow: IGNORED_PROP,
+        range: IGNORED_PROP,
+        position: IGNORED_PROP,
+        mode,
+        pagination,
+        delay,
+        wrapping,
+        ...rest,
+    });
+
+    return { chartTooltipOptions, seriesTooltipOptions };
 }
 
 function radialGaugeOptions(opts: AgRadialGaugeOptions) {
@@ -66,7 +77,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         type,
         cursor,
         nodeClickRange,
-        tooltip,
+        tooltip = {},
         value,
         scale = {},
         startAngle,
@@ -88,6 +99,8 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         ...rest
     } = opts as AgRadialGaugeOptions & UndocumentedProperties;
 
+    const { chartTooltipOptions, seriesTooltipOptions } = tooltipOptions(tooltip);
+
     const chartOpts = pickProps<AgBaseGaugePresetOptions & UndocumentedProperties>(opts, {
         animation,
         background,
@@ -104,7 +117,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         subtitle,
         theme,
         title,
-        tooltip: pickTooltipProps(tooltip),
+        tooltip: chartTooltipOptions,
         width,
     });
 
@@ -117,7 +130,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         cursor,
         nodeClickRange,
         listeners,
-        tooltip,
+        tooltip: seriesTooltipOptions,
         value,
         highlightStyle,
         segmentation,
@@ -162,7 +175,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         type,
         cursor,
         nodeClickRange,
-        tooltip,
+        tooltip = {},
         value,
         scale = {},
         direction = 'vertical',
@@ -176,6 +189,8 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         label,
         ...rest
     } = opts as AgLinearGaugeOptions & UndocumentedProperties;
+
+    const { chartTooltipOptions, seriesTooltipOptions } = tooltipOptions(tooltip);
 
     const chartOpts = pickProps<AgBaseGaugePresetOptions & UndocumentedProperties>(opts, {
         animation,
@@ -193,7 +208,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         subtitle,
         theme,
         title,
-        tooltip: pickTooltipProps(tooltip),
+        tooltip: chartTooltipOptions,
         width,
     });
     const seriesOpts = pickProps<AgLinearGaugePreset>(opts, {
@@ -202,7 +217,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         cursor,
         nodeClickRange,
         listeners,
-        tooltip,
+        tooltip: seriesTooltipOptions,
         value,
         direction,
         thickness,
