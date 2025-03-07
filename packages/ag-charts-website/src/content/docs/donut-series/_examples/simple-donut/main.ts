@@ -13,7 +13,6 @@ const options: AgChartOptions = {
             type: 'donut',
             calloutLabelKey: 'asset',
             angleKey: 'amount',
-            innerRadiusRatio: 0.7,
         },
     ],
 };
