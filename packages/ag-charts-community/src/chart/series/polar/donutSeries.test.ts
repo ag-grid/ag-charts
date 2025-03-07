@@ -200,6 +200,42 @@ describe('DonutSeries', () => {
             await compare();
         });
 
+        it('should render donut series with a mix of gradient and string fills', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { cat: 1, fox: 20, dog: 37 },
+                    { cat: 3, fox: 10, dog: 32 },
+                    { cat: 7, fox: 15, dog: 35 },
+                    { cat: 8, fox: 17, dog: 36 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        radiusKey: 'dog',
+                        angleKey: 'fox',
+                        sectorLabelKey: 'fox',
+                        innerRadiusRatio: 0.5,
+                        fills: [
+                            {
+                                type: 'gradient',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                            'blue',
+                        ],
+                    },
+                ],
+            });
+            await compare();
+        });
+
         it('should render donut series with a series bound gradient fill', async () => {
             chart = await createChart({
                 ...options,
