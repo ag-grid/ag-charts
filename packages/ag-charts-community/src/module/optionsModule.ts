@@ -254,13 +254,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             const presetConstructor: PresetConstructor | undefined = (PRESETS as any)[presetType];
 
-            const presetParams = this.userOptions as any as AgPresetOptions;
+            const presetParams = options as any as AgPresetOptions;
 
             // Note financial charts defines the theme in its returned options,
             // so we need to get the theme before and after applying the preset
-            const presetSubType = (this.userOptions as any).type as keyof AgPresetOverrides | undefined;
-            const presetTheme =
-                presetSubType != null ? getChartTheme(this.userOptions.theme).presets[presetSubType] : undefined;
+            const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
+            const presetTheme = presetSubType != null ? getChartTheme(options.theme).presets[presetSubType] : undefined;
 
             ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', presetParams);
             options = presetConstructor?.(presetParams, presetTheme, () => this.activeTheme) ?? options;
