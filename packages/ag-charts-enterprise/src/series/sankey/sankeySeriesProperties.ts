@@ -68,8 +68,8 @@ class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterPara
 }
 
 class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string | undefined = undefined;
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill: AgFillType | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity = 1;
