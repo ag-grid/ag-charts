@@ -15,5 +15,6 @@
       },
       "dependsOn": ["build:test"]
     }
-  }
+  },
+  "tags": ["no-sharding"]
 }
