@@ -1,4 +1,4 @@
-import type { DatumItemCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { DatumItemCallbackParams, Renderer, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
@@ -30,7 +30,7 @@ export interface AgWaterfallSeriesTooltipRendererParams<TDatum = any>
 
 export interface AgWaterfallSeriesItemTooltip {
     /** Function used to create the content for tooltips. */
-    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
+    renderer?: Renderer<AgWaterfallSeriesTooltipRendererParams, AgTooltipRendererResult>;
 }
 
 export interface AgWaterfallSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {

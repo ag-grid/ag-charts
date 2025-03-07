@@ -1,3 +1,4 @@
+import type { Renderer } from '../../chart/callbackOptions';
 import type { AgCrosshairOptions } from '../../chart/crosshairOptions';
 import type { AgSeriesTooltipInteraction, AgTooltipPositionOptions } from '../../chart/tooltipOptions';
 import type { InteractionRange } from '../../chart/types';
@@ -38,7 +39,7 @@ export interface AgSparklineTooltip<TDatum = any> {
     /** Configuration for tooltip interaction. */
     interaction?: AgSeriesTooltipInteraction;
     /** Function used to create the content for tooltips. */
-    renderer?: (params: AgSparklineTooltipRendererParams<TDatum>) => string | AgSparklineTooltipRendererResult;
+    renderer?: Renderer<AgSparklineTooltipRendererParams<TDatum>, AgSparklineTooltipRendererResult>;
 }
 
 export interface AgSparklineBaseThemeableOptions {
