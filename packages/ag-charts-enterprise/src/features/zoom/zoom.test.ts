@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     WheelDeltaMode,
     clickAction,
@@ -27,7 +27,7 @@ import { prepareEnterpriseTestOptions } from '../../test/utils';
 describe('Zoom', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     const EXAMPLE_OPTIONS: AgChartOptions = {
@@ -463,8 +463,7 @@ describe('Zoom', () => {
             };
             await prepareChart(undefined, undefined, options);
             await scrollAction(cx, cy, -1)(chart);
-            await chart.update({
-                ...options,
+            await chart.updateDelta({
                 data: data.map((d) => ({ x: { ...d.x }, y: d.y + 10 })),
             });
             // Chart should not be blank
