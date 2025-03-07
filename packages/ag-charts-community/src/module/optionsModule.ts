@@ -59,7 +59,7 @@ import {
     jsonResolveOperations,
     jsonWalk,
 } from '../util/json';
-import { mergeArrayDefaults, mergeDefaults } from '../util/object';
+import { deepFreeze, mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
 import type { SeriesType } from './optionsModuleTypes';
@@ -195,6 +195,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.defaultAxes = defaultAxes;
         this.fastDelta = fastDelta;
         this.themeParameters = themeParameters ?? {};
+
+        // This ChartOptions should be treated as immutable from here-on, force immutability to
+        // flush out runtime issues.
+        Debug.inDevelopmentMode(() => deepFreeze(this));
     }
 
     private fastSetup(deltaOptions: DeepPartial<T>, baseChartOptions: ChartOptions<T>) {
@@ -357,7 +361,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             removeUsedEnterpriseOptions(processedOptions, true);
         }
 
-        ChartOptions.debug('ChartOptions.slowSetup() - processed options', processedOptions);
+        ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
         return { activeTheme, processedOptions, defaultAxes, themeParameters };
     }

@@ -47,6 +47,12 @@ export const Debug = {
         const chartDebug = toArray(getWindow<boolean | string>('agChartsDebug'));
         return chartDebug.some((selector) => debugSelectors.includes(selector));
     },
+
+    inDevelopmentMode<R>(fn: () => R): R | undefined {
+        if (Debug.check('dev')) {
+            return fn();
+        }
+    },
 };
 
 interface DebugTimingOpts {
