@@ -104,6 +104,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         shallow: new Set(['data', 'container']),
         assign: new Set(['context']),
     };
+    public static readonly JSON_DIFF_OPTS = new Set<any>(['data']);
 
     private static readonly perfDebug = Debug.create(true, 'perf');
 
@@ -152,7 +153,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             if (deltaOptions === undefined) {
                 // No diff case - null means diff was a no-op.
-                deltaOptions = jsonDiff(baseChartOptions.userOptions as T, newUserOptions) as DeepPartial<T>;
+                deltaOptions = jsonDiff(
+                    baseChartOptions.userOptions as T,
+                    newUserOptions,
+                    ChartOptions.JSON_DIFF_OPTS
+                ) as DeepPartial<T>;
             }
 
             this.userOptions = deepClone(
@@ -371,7 +376,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (this === other) return {};
         if (other == null) return this.processedOptions;
 
-        return (this.fastDelta as Partial<T>) ?? jsonDiff(other.processedOptions, this.processedOptions);
+        return (
+            (this.fastDelta as Partial<T>) ??
+            jsonDiff(other.processedOptions, this.processedOptions, ChartOptions.JSON_DIFF_OPTS)
+        );
     }
 
     private getSeriesThemeConfig(seriesType: string, activeTheme: ChartTheme) {

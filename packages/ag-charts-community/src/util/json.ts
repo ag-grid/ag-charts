@@ -32,15 +32,15 @@ const CLASS_INSTANCE_TYPE = 'class-instance';
  *
  * @param source starting point for diff
  * @param target target for diff vs. source
- * @param skip object keys to skip during diff
+ * @param shallow object keys to only shallow compare during diff
  * @returns `null` if no differences, or an object with the subset of properties that have changed.
  */
-export function jsonDiff<T>(source: T, target: T, skip?: (keyof T)[]): Partial<T> | null {
+export function jsonDiff<T>(source: T, target: T, shallow?: Set<keyof T>): Partial<T> | null {
     if (isArray(target)) {
         if (
             !isArray(source) ||
             source.length !== target.length ||
-            target.some((v, i) => jsonDiff(source[i], v) != null)
+            target.some((v, i) => jsonDiff(source[i], v, shallow) != null)
         ) {
             return target;
         }
@@ -55,11 +55,14 @@ export function jsonDiff<T>(source: T, target: T, skip?: (keyof T)[]): Partial<T
         ]);
         for (const key of allKeys) {
             // Cheap-and-easy equality check.
-            if (source[key] === target[key] || skip?.includes(key)) {
+            if (source[key] === target[key]) {
                 continue;
             }
+            if (shallow?.has(key)) {
+                result[key] = target[key];
+            }
             if (typeof source[key] === typeof target[key]) {
-                const diff = jsonDiff(source[key], target[key]);
+                const diff = jsonDiff(source[key], target[key], shallow);
                 if (diff !== null) {
                     result[key] = diff as T[keyof T];
                 }
