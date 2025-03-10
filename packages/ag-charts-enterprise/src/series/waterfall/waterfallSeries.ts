@@ -563,7 +563,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const fillBBox = this.getFillBBox(style.fill);
             const { defaultColorRange } = item[seriesItemType === 'subtotal' ? 'total' : seriesItemType];
 
-            applyShapeStyle(rect, { ...style, defaultColorRange }, undefined, fillBBox);
+            applyShapeStyle(rect, style, undefined, defaultColorRange, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

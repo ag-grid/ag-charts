@@ -1,4 +1,4 @@
-import type { AgRadialSeriesStyle } from 'ag-charts-community';
+import type { AgFillType, AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { isDefined } from 'ag-charts-core';
 
@@ -24,6 +24,7 @@ const {
     CategoryScale,
     motion,
     applyShapeStyle,
+    isGradientFill,
 } = _ModuleSupport;
 
 class RadialColumnSeriesNodeEvent<
@@ -361,6 +362,8 @@ export abstract class RadialColumnSeriesBase<
         return NaN;
     }
 
+    protected abstract getNodeFill(fill: AgFillType, angle: number): Required<AgFillType>;
+
     update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         const resize = this.checkResize(seriesRect);
         this.maybeRefreshNodeData();
@@ -446,16 +449,20 @@ export abstract class RadialColumnSeriesBase<
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
-                const { datum, datumIndex, midAngle } = nodeDatum;
+                const { datum, datumIndex, point, innerRadius, outerRadius } = nodeDatum;
 
-                const nodeFill = this.getNodeFill(style.fill, midAngle);
+                const fill = this.getNodeFill(style.fill, nodeDatum.midAngle);
+                const itemBounds = isGradientFill(fill) && fill.bounds === 'item';
+                const fillParams = itemBounds
+                    ? { centerX: point?.x ?? 0, centerY: point?.y ?? 0, innerRadius, outerRadius }
+                    : { centerX: 0, centerY: 0, innerRadius: innerRadius, outerRadius: outerRadius };
 
-                const nodeStyle = { ...style, fill: nodeFill! };
+                const nodeStyle = { ...style, fill: fill };
                 const overrides = this.getItemStyleOverrides(String(datumIndex), datum, nodeStyle, highlighted);
 
                 this.updateItemPath(node, nodeDatum, highlighted);
 
-                applyShapeStyle(node, { ...nodeStyle, defaultColorRange }, overrides, fillBBox);
+                applyShapeStyle(node, nodeStyle, overrides, defaultColorRange, fillBBox, fillParams);
 
                 node.cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
                 node.lineJoin = 'round';
