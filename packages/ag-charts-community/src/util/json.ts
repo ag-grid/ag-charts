@@ -594,33 +594,33 @@ function ref<T extends object, P extends object>(
 }
 
 function palette(value: string | Array<unknown>, path: string[], params: any, source: any) {
-if (!isString(value)) return;
+    if (!isString(value)) return;
 
     const p = params.__palette;
 
     const indexPaletteParams = ['fill', 'stroke', 'gradient', 'range2'];
     if (indexPaletteParams.includes(value)) {
-    const indexIndex = path.findLastIndex((v) => !isNaN(Number(v)));
-    let index = Number(path[indexIndex]);
-    if (isNaN(index)) return;
+        const indexIndex = path.findLastIndex((v) => !isNaN(Number(v)));
+        let index = Number(path[indexIndex]);
+        if (isNaN(index)) return;
 
-    const seriesPath = path.slice(0, indexIndex);
-    const ignoreIndexSeries = ['map-shape-background', 'map-line-background'];
-    const ignoreIndexOffset = getPath(source, seriesPath)
-        .slice(0, index)
-        .filter((s: any) => ignoreIndexSeries.includes(s.type)).length;
-    index -= ignoreIndexOffset;
+        const seriesPath = path.slice(0, indexIndex);
+        const ignoreIndexSeries = ['map-shape-background', 'map-line-background'];
+        const ignoreIndexOffset = getPath(source, seriesPath)
+            .slice(0, index)
+            .filter((s: any) => ignoreIndexSeries.includes(s.type)).length;
+        index -= ignoreIndexOffset;
 
-    switch (value) {
-        case 'fill':
-            return circularSliceArray(p.fills, 1, index)[0];
-        case 'stroke':
-            return circularSliceArray(p.strokes, 1, index)[0];
-                case 'gradient':
-            return p.sequentialColors[index];
-        case 'range2':
-            return circularSliceArray(p.fills, 2, index);
-}
+        switch (value) {
+            case 'fill':
+                return circularSliceArray(p.fills, 1, index)[0];
+            case 'stroke':
+                return circularSliceArray(p.strokes, 1, index)[0];
+            case 'gradient':
+                return p.sequentialColors[index];
+            case 'range2':
+                return circularSliceArray(p.fills, 2, index);
+        }
 
         return;
     }
