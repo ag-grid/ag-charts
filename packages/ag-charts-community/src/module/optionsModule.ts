@@ -221,11 +221,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (presetType != null && deltaOptions?.data != null && processor != null) {
             // Handle preset data transforms gracefully.
             const { series, data } = processor(deltaOptions.data);
-            deltaOptions = merge({ series, data }, deltaOptions) as DeepPartial<T>;
+            deltaOptions = mergeDefaults({ series, data }, deltaOptions) as DeepPartial<T>;
         }
 
         this.fastSeriesSetup(deltaOptions, baseOptions);
-        const processedOptions = merge(deltaOptions, baseOptions);
+        const processedOptions = mergeDefaults(deltaOptions, baseOptions);
 
         ChartOptions.debug('ChartOptions.fastSetup() - processed options', processedOptions);
 
@@ -241,7 +241,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         } else {
             // Need to take full series options in update cases.
             deltaOptions.series = deltaOptions.series.map((s, i) => {
-                return mergeDefaults(s, baseOptions.series?.[i] ?? {});
+                return merge(s, baseOptions.series?.[i] ?? {});
             });
         }
     }
