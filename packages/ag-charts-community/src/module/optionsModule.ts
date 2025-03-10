@@ -179,7 +179,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.removeLeftoverSymbols(this.userOptions);
         }
 
-        let activeTheme, processedOptions, defaultAxes, fastDelta, themeParameters;
+        let activeTheme, processedOptions, defaultAxes, fastDelta, themeParameters, annotationThemes;
         if (
             !stripSymbols &&
             deltaOptions !== undefined &&
@@ -190,9 +190,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 deltaOptions,
                 baseChartOptions
             ));
+            themeParameters = baseChartOptions.themeParameters;
+            annotationThemes = baseChartOptions.annotationThemes;
         } else {
             ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
-            ({ activeTheme, processedOptions, defaultAxes, themeParameters } = this.slowSetup(
+            ({ activeTheme, processedOptions, defaultAxes, themeParameters, annotationThemes } = this.slowSetup(
                 processedOverrides,
                 deltaOptions,
                 stripSymbols
@@ -203,7 +205,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.processedOptions = processedOptions;
         this.defaultAxes = defaultAxes;
         this.fastDelta = fastDelta ?? undefined;
-        this.themeParameters = themeParameters ?? {};
+        this.themeParameters = themeParameters;
+        this.annotationThemes = annotationThemes;
 
         // This ChartOptions should be treated as immutable from here-on, force immutability to
         // flush out runtime issues.
@@ -320,7 +323,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         } = this.getSeriesThemeConfig(seriesType, activeTheme);
 
         const [annotationsOptions, annotationsThemes] = this.splitAnnotationsOptions(annotations);
-        this.annotationThemes = deepClone(annotationsThemes);
+        const annotationThemes = deepClone(annotationsThemes);
 
         const defaultAxes = this.getDefaultAxes(options, seriesTheme);
         let processedOptions = mergeDefaults(
@@ -357,7 +360,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             : 'inbuilt';
         this.resolveThemeOperations(themeParameters, themeParameters);
         this.resolveThemeOperations(themeParameters, processedOptions);
-        this.resolveThemeOperations(themeParameters, this.annotationThemes);
+        this.resolveThemeOperations(themeParameters, annotationThemes);
 
         this.processMiniChartSeriesOptions(processedOptions);
 
@@ -371,7 +374,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
-        return { activeTheme, processedOptions, defaultAxes, themeParameters };
+        return { activeTheme, processedOptions, defaultAxes, themeParameters, annotationThemes };
     }
 
     diffOptions(other?: ChartOptions): Partial<T> {
