@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, AgTooltipMode } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgTooltipMode } from 'ag-charts-community';
 
 import { getData } from './data';
 
