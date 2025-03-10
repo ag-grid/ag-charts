@@ -320,6 +320,36 @@ describe('SankeySeries', () => {
             await compare();
         });
 
+        it('should render sankey series with a default node gradient fill', async () => {
+            const options = {
+                ...GALLERY_EXAMPLES.SIMPLE_SANKEY_EXAMPLE.options,
+                series: [
+                    {
+                        type: 'sankey',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'sales',
+                        sizeName: 'Sales',
+                        node: {
+                            alignment: 'center',
+                            fill: {
+                                type: 'gradient',
+                            },
+                        },
+                        fills: [
+                            {
+                                type: 'gradient',
+                            },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
+
         it('should render sankey series with a gradient fill', async () => {
             const options = {
                 ...GALLERY_EXAMPLES.SIMPLE_SANKEY_EXAMPLE.options,
