@@ -17,6 +17,7 @@ import { enterpriseModule } from '../module/enterpriseModule';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Debug } from '../util/debug';
 import { deepClone, jsonDiff, jsonWalk } from '../util/json';
+import { deepFreeze } from '../util/object';
 import { Pool } from '../util/pool';
 import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';
@@ -66,6 +67,7 @@ export abstract class AgCharts {
         optionsMetadata?: ChartInternalOptionMetadata
     ): AgChartInstance<O> {
         return debug.group('AgCharts.create()', () => {
+            userOptions = Debug.inDevelopmentMode(() => deepFreeze(deepClone(userOptions))) ?? userOptions;
             this.licenseCheck(userOptions);
             const chart = AgChartsInternal.createOrUpdate({
                 userOptions,

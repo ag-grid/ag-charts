@@ -113,6 +113,10 @@ export function partialAssign<T>(keysToCopy: (keyof T)[], target: T, source?: Pa
 }
 
 export function deepFreeze<T>(obj: T): T {
+    if (obj == null || typeof obj !== 'object' || !isPlainObject(obj)) {
+        return obj;
+    }
+
     // Freeze the current object
     Object.freeze(obj);
 
