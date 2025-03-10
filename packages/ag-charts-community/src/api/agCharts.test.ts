@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 
 import { getDocument } from 'ag-charts-core';
-import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import { deproxy, prepareTestOptions, resetMockConsole, setupMockCanvas, setupMockConsole } from '../chart/test/utils';
@@ -109,8 +109,7 @@ describe('AgCharts', () => {
                 expectNonCachedLogs();
             });
 
-            // AG-14117 - Temporarily skipped whilst general `update()` case optimisations are fixed.
-            it.skip('should use fast setup for re-used instances', async () => {
+            it('should use fast setup for re-used instances', async () => {
                 const options = { ...sparklineOptions };
                 prepareTestOptions(options, container);
 
@@ -130,8 +129,7 @@ describe('AgCharts', () => {
             });
         });
 
-        // AG-14117 - Temporarily skipped whilst general `update()` case optimisations are fixed.
-        describe.skip('for update()', () => {
+        describe('for update()', () => {
             for (const property in fastSettings) {
                 it(`should use fast setup for ${property} with update()`, async () => {
                     let options = { ...sparklineOptions };
@@ -182,8 +180,7 @@ describe('AgCharts', () => {
     });
 
     describe('option mutability', () => {
-        // AG-14117 - Skipped to enable 'dev' mode to be merged before fixes.
-        it.skip('should correctly handle deep options mutations', async () => {
+        it('should handle deep options mutations', async () => {
             const options = {
                 data: [
                     { month: 'January', max: 8.5, min: 2.6 },
@@ -235,7 +232,7 @@ describe('AgCharts', () => {
             });
         });
 
-        it('should correctly handle deep options enablement mutations', async () => {
+        it('should handle deep options enablement mutations', async () => {
             const options = {
                 data: [
                     { month: 'January', max: 8.5, min: 2.6 },
@@ -285,6 +282,19 @@ describe('AgCharts', () => {
             expect(series.marker).toMatchObject({
                 enabled: false,
             });
+        });
+
+        it('should handle disabled preset nested options', async () => {
+            const options: AgSparklineOptions = {
+                width: 200,
+                height: 50,
+                data: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+                marker: { enabled: false, fill: { type: 'gradient' } }, // Previously failed due to dev mode + user option mutation bug.
+            };
+            prepareTestOptions(options, container);
+
+            const sparkline = AgCharts.__createSparkline(options);
+            await sparkline.waitForUpdate();
         });
     });
 });
