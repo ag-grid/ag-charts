@@ -59,7 +59,7 @@ import {
     jsonResolveOperations,
     jsonWalk,
 } from '../util/json';
-import { deepFreeze, mergeArrayDefaults, mergeDefaults } from '../util/object';
+import { deepFreeze, merge, mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
 import type { SeriesType } from './optionsModuleTypes';
@@ -161,7 +161,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
 
             this.userOptions = deepClone(
-                mergeDefaults(deltaOptions, baseChartOptions.userOptions),
+                merge(deltaOptions, baseChartOptions.userOptions),
                 ChartOptions.OPTIONS_CLONE_OPTS
             ) as T;
         } else {
@@ -221,11 +221,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (presetType != null && deltaOptions?.data != null && processor != null) {
             // Handle preset data transforms gracefully.
             const { series, data } = processor(deltaOptions.data);
-            deltaOptions = mergeDefaults({ series, data }, deltaOptions) as DeepPartial<T>;
+            deltaOptions = merge({ series, data }, deltaOptions) as DeepPartial<T>;
         }
 
         this.fastSeriesSetup(deltaOptions, baseOptions);
-        const processedOptions = mergeDefaults(deltaOptions, baseOptions);
+        const processedOptions = merge(deltaOptions, baseOptions);
 
         ChartOptions.debug('ChartOptions.fastSetup() - processed options', processedOptions);
 
