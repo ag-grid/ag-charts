@@ -203,7 +203,8 @@ export class AxisTicks {
             if (!this.inRange(translate)) continue;
 
             const tickLabel =
-                this.label.formatter?.({ value: tick, index, fractionDigits, boundSeries }) ?? labelFormatter(tick);
+                this.label.formatter?.({ value: tick, index, domain: niceDomain, fractionDigits, boundSeries }) ??
+                labelFormatter(tick);
             const tickId = idGenerator(tickLabel);
 
             ticks.push({ tick, tickId, tickLabel, translate });

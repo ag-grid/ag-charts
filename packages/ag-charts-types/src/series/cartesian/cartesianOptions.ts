@@ -24,10 +24,8 @@ import type { Degree, PixelSize, Ratio } from '../../chart/types';
 import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
 
 /** Configuration for axes in cartesian charts. */
-export interface AgBaseCartesianAxisOptions<
-    LabelType = AgCartesianAxisLabelOptions,
-    CrosshairLabelType = AgCrosshairLabel,
-> extends AgBaseAxisOptions<LabelType> {
+export interface AgBaseCartesianAxisOptions<LabelType, CrosshairLabelType = AgCrosshairLabel>
+    extends AgBaseAxisOptions<LabelType> {
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
     /** Add cross lines or regions corresponding to data values. */
@@ -40,16 +38,16 @@ export interface AgBaseCartesianAxisOptions<
     crosshair?: AgCrosshairOptions<CrosshairLabelType>;
 }
 
-export interface AgCartesianAxisLabelOptions extends AgBaseCartesianAxisLabelOptions, FormattableLabel {}
+export interface AgCartesianAxisLabelOptions<D> extends AgBaseCartesianAxisLabelOptions<D>, FormattableLabel {}
 
-export interface AgBaseCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
+export interface AgBaseCartesianAxisLabelOptions<D> extends AgBaseAxisLabelOptions<D> {
     /** If specified and axis labels may collide, they are rotated so that they are positioned at the supplied angle. This is enabled by default for category. If the `rotation` property is specified, it takes precedence. */
     autoRotate?: boolean;
     /** If autoRotate is enabled, specifies the rotation angle to use when autoRotate is activated. Defaults to an angle of 335 degrees if unspecified. */
     autoRotateAngle?: Degree;
 }
 
-export interface AgGroupedCategoryAxisLabelOptions extends Omit<AgBaseAxisLabelOptions, 'itemStyler'> {
+export interface AgGroupedCategoryAxisLabelOptions extends Omit<AgBaseAxisLabelOptions<any[]>, 'itemStyler'> {
     /** Function used to style axis labels. */
     itemStyler?: Styler<AgGroupedCategoryAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
 }
@@ -81,7 +79,7 @@ export interface AgGroupedCategoryDepthOptions {
 }
 
 export interface AgCategoryAxisOptions
-    extends AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions, AgBaseCrosshairLabel> {
+    extends AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions<any>, AgBaseCrosshairLabel> {
     type: 'category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
@@ -94,7 +92,10 @@ export interface AgCategoryAxisOptions
 type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
 
 export interface AgGroupedCategoryAxisOptions
-    extends Omit<AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions>, 'crossLines' | 'tick'> {
+    extends Omit<
+        AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions<any[]>, AgGroupedCategoryAxisLabelOptions>,
+        'crossLines' | 'tick'
+    > {
     type: 'grouped-category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
@@ -106,7 +107,8 @@ export interface AgGroupedCategoryAxisOptions
     tick?: AgGroupedCategoryAxisTickOptions;
 }
 
-export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions {
+export interface AgOrdinalTimeAxisOptions
+    extends AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions<Date | number>> {
     type: 'ordinal-time';
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisContinuousIntervalOptions<TimeInterval | number>;
@@ -118,18 +120,22 @@ export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions {
     groupPaddingInner?: Ratio;
 }
 
-export interface AgNumberAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'interval'>, AgContinuousAxisOptions {
+export interface AgNumberAxisOptions
+    extends Omit<AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions<number>>, 'interval'>,
+        AgContinuousAxisOptions {
     type: 'number';
 }
 
-export interface AgLogAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'interval'>, AgContinuousAxisOptions {
+export interface AgLogAxisOptions
+    extends Omit<AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions<number>>, 'interval'>,
+        AgContinuousAxisOptions {
     type: 'log';
     /** The base of the logarithm used. */
     base?: number;
 }
 
 export interface AgTimeAxisOptions
-    extends Omit<AgBaseCartesianAxisOptions, 'interval'>,
+    extends Omit<AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions<Date | number>>, 'interval'>,
         AgContinuousAxisOptions<Date | number, TimeInterval | number> {
     type: 'time';
 }

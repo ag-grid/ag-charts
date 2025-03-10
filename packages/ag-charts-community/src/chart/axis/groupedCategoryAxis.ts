@@ -216,7 +216,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 return false;
             }
 
-            const text = this.formatTick(datum.label, index - 1);
+            const text = this.formatTick(datum.label, index - 1, this.scale.domain);
             const labelStyles = this.getLabelStyles({ value: text, depth }, depthOptions[depth]?.label);
 
             tempText.setProperties({
