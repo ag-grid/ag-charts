@@ -65,7 +65,16 @@ export type AgChartOptions =
 
 export type AgBaseFinancialPresetOptions = Pick<
     AgCartesianChartOptions,
-    'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title' | 'initialState' | 'data'
+    | 'container'
+    | 'width'
+    | 'height'
+    | 'minWidth'
+    | 'minHeight'
+    | 'theme'
+    | 'title'
+    | 'initialState'
+    | 'data'
+    | 'listeners'
 >;
 
 export type AgBaseSparklinePresetThemeOptions = AgSparklineBaseThemeableOptions &
