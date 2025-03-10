@@ -103,8 +103,8 @@ class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOption
     @Validate(ALIGNMENT)
     alignment: 'left' | 'right' | 'center' | 'justify' = 'justify';
 
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string | undefined = undefined;
+    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    fill: AgFillType | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity = 1;
