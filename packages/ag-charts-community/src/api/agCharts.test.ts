@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 
 import { getDocument } from 'ag-charts-core';
-import type { AgChartInstance } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import { prepareTestOptions, resetMockConsole, setupMockCanvas, setupMockConsole } from '../chart/test/utils';
+import { deproxy, prepareTestOptions, resetMockConsole, setupMockCanvas, setupMockConsole } from '../chart/test/utils';
 
 describe('AgCharts', () => {
     setupMockConsole({ includeAllLevels: true });
@@ -66,6 +66,14 @@ describe('AgCharts', () => {
         expect(console.log).not.toHaveBeenCalledWith(expect.stringMatching(/Pool\[name=.*\]/), expect.any(Object));
     }
 
+    beforeEach(() => {
+        (window as any).agChartsDebug = ['perf', 'pool', 'dev'];
+    });
+
+    afterEach(() => {
+        delete (window as any).agChartsDebug;
+    });
+
     describe('sparkline optimisations', () => {
         const sparklineOptions = {
             width: 200,
@@ -79,14 +87,6 @@ describe('AgCharts', () => {
             data: sparklineOptions.data.toReversed(),
             container: () => getDocument().createElement('div'),
         };
-
-        beforeEach(() => {
-            (window as any).agChartsDebug = ['perf', 'pool'];
-        });
-
-        afterEach(() => {
-            delete (window as any).agChartsDebug;
-        });
 
         describe('#__createSparkline', () => {
             it('should use pooling by default', async () => {
@@ -109,8 +109,7 @@ describe('AgCharts', () => {
                 expectNonCachedLogs();
             });
 
-            // AG-14117 - Temporarily skipped whilst general `update()` case optimisations are fixed.
-            it.skip('should use fast setup for re-used instances', async () => {
+            it('should use fast setup for re-used instances', async () => {
                 const options = { ...sparklineOptions };
                 prepareTestOptions(options, container);
 
@@ -130,8 +129,7 @@ describe('AgCharts', () => {
             });
         });
 
-        // AG-14117 - Temporarily skipped whilst general `update()` case optimisations are fixed.
-        describe.skip('for update()', () => {
+        describe('for update()', () => {
             for (const property in fastSettings) {
                 it(`should use fast setup for ${property} with update()`, async () => {
                     let options = { ...sparklineOptions };
@@ -178,6 +176,125 @@ describe('AgCharts', () => {
                     expectNoPoolActivityLogs();
                 });
             }
+        });
+    });
+
+    describe('option mutability', () => {
+        it('should handle deep options mutations', async () => {
+            const options = {
+                data: [
+                    { month: 'January', max: 8.5, min: 2.6 },
+                    { month: 'February', max: 10.4, min: 3.0 },
+                    { month: 'March', max: 10.9, min: 4.7 },
+                    { month: 'April', max: 13.7, min: 5.0 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'min',
+                        interpolation: { type: 'smooth' },
+                    },
+                ],
+            } satisfies AgChartOptions;
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await chart.waitForUpdate();
+
+            expect(chart.getOptions().series?.[0]).toStrictEqual({
+                type: 'line',
+                xKey: 'month',
+                yKey: 'min',
+                interpolation: { type: 'smooth' },
+            });
+
+            options.series[0].interpolation = { type: 'smooth', tension: 1 } as any;
+            await chart.update(options);
+            await chart.waitForUpdate();
+
+            expect(chart.getOptions().series?.[0]).toStrictEqual({
+                type: 'line',
+                xKey: 'month',
+                yKey: 'min',
+                interpolation: { type: 'smooth', tension: 1 },
+            });
+
+            options.series[0].interpolation = { type: 'linear' } as any;
+            await chart.update(options);
+
+            expect(chart.getOptions().series?.[0]).toStrictEqual({
+                type: 'line',
+                xKey: 'month',
+                yKey: 'min',
+                interpolation: { type: 'linear' },
+            });
+        });
+
+        it('should handle deep options enablement mutations', async () => {
+            const options = {
+                data: [
+                    { month: 'January', max: 8.5, min: 2.6 },
+                    { month: 'February', max: 10.4, min: 3.0 },
+                    { month: 'March', max: 10.9, min: 4.7 },
+                    { month: 'April', max: 13.7, min: 5.0 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'min',
+                        marker: {
+                            enabled: false,
+                            fill: { type: 'gradient' },
+                            stroke: 'blue',
+                        },
+                    },
+                ],
+            } satisfies AgChartOptions;
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await chart.waitForUpdate();
+            const realChart = deproxy(chart);
+
+            let series = realChart.getChartOptions().processedOptions.series?.[0] as AgLineSeriesOptions;
+            expect(series.marker).toMatchObject({
+                enabled: false,
+            });
+
+            options.series[0].marker.enabled = true as any;
+            await chart.update(options);
+
+            series = realChart.getChartOptions().processedOptions.series?.[0] as AgLineSeriesOptions;
+            expect(series.marker).toMatchObject({
+                enabled: true,
+                fill: { type: 'gradient' },
+                stroke: 'blue',
+            });
+
+            options.series[0].marker.enabled = false;
+            await chart.update(options);
+
+            series = realChart.getChartOptions().processedOptions.series?.[0] as AgLineSeriesOptions;
+            expect(series.marker).toMatchObject({
+                enabled: false,
+            });
+        });
+
+        it('should handle disabled preset nested options', async () => {
+            const options: AgSparklineOptions = {
+                width: 200,
+                height: 50,
+                data: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+                marker: { enabled: false, fill: { type: 'gradient' } }, // Previously failed due to dev mode + user option mutation bug.
+            };
+            prepareTestOptions(options, container);
+
+            const sparkline = AgCharts.__createSparkline(options);
+            await sparkline.waitForUpdate();
         });
     });
 });

@@ -3,6 +3,7 @@
 /* eslint-disable sonarjs/class-name */
 
 /* eslint-disable sonarjs/prefer-function-type */
+import type { Operation } from './chart/operationOptions';
 import type { AgChartThemePalette, AgPaletteColors } from './chart/themeOptions';
 import type { AgChartInstance, AgChartInstanceOptions, AgSparklineOptions } from './chartBuilderOptions';
 import type {
@@ -74,6 +75,7 @@ export interface _ITheme {
     themeNames: string[];
     themeSymbols: Record<string, symbol | boolean | string>;
     getChartTheme(value: unknown): IChartTheme;
+    resolveOperation(operation: Operation): any;
 
     // TODO remove legacy & type symbols map
     themes: Record<string, () => IChartTheme>;
