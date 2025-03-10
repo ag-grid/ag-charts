@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
-import type { AgMapShapeSeriesStyle } from 'ag-charts-types';
+import type { AgGradientFill, AgMapShapeSeriesStyle } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
@@ -31,6 +31,8 @@ const {
     Text,
     PointerEvents,
     applyShapeStyle,
+    isGradientFill,
+    BBox,
 } = _ModuleSupport;
 
 interface MapShapeNodeDataContext
@@ -525,6 +527,26 @@ export class MapShapeSeries
 
             applyShapeStyle(geoGeometry, style, overrides, fillBBox);
         });
+    }
+
+    protected override getFillBBox(fill: AgGradientFill | string | undefined) {
+        if (!isGradientFill(fill)) {
+            return;
+        }
+
+        const { bounds = 'item' } = fill;
+
+        if (bounds === 'item') {
+            return;
+        }
+
+        const range = this.scale?.range;
+        if (!range) return;
+
+        const width = range[1][0] - range[0][0];
+        const height = range[1][1] - range[0][1];
+
+        return new BBox(0, 0, width, height);
     }
 
     private updateLabelSelection(opts: {
