@@ -38,7 +38,7 @@ if [ "$1" == "--host" ] ; then
   if (pgrep -f "astro dev --port=4601" >/dev/null) ; then
     echo "Astro already running on port 4601, killing."
     pkill -f "astro dev --port=4601"
-    wait 1
+    sleep 1
   fi
 
   npx astro dev --port=4601 --host &
