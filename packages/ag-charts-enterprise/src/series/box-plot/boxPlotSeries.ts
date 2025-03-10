@@ -1,4 +1,4 @@
-import { type AgBoxPlotSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgBoxPlotSeriesStyle, type AgGradientFill, _ModuleSupport } from 'ag-charts-community';
 import type { DeepRequired } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
@@ -18,11 +18,11 @@ const {
     animationValidation,
     computeBarFocusBounds,
     createDatumId,
-    Color,
     ContinuousScale,
     ChartAxisDirection,
     motion,
     isGradientFill,
+    BBox,
 } = _ModuleSupport;
 
 class BoxPlotSeriesNodeEvent<
@@ -454,7 +454,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
-        const fillBBox = this.getFillBBox(this.properties.fill);
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted ? 'highlight' : 'node');
 
@@ -472,6 +471,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset,
             });
 
+            const fillBBox = this.getFillBBox(this.properties.fill, nodeDatum);
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
                 activeStyles as DeepRequired<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle,
@@ -480,6 +480,36 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 fillBBox
             );
         });
+    }
+
+    protected override getFillBBox(fill: AgGradientFill | string | undefined, boxPlotDatum?: BoxPlotNodeDatum) {
+        if (!isGradientFill(fill) || !boxPlotDatum) {
+            return;
+        }
+
+        const { bounds = 'item' } = fill;
+
+        if (bounds !== 'item') {
+            return super.getFillBBox(fill);
+        }
+
+        const isVertical = this.isVertical();
+        const isReversedValueAxis = this.getValueAxis()?.isReversed();
+
+        let { q1Value, q3Value } = boxPlotDatum.scaledValues;
+
+        if ((isVertical && !isReversedValueAxis) || (!isVertical && isReversedValueAxis)) {
+            [q3Value, q1Value] = [q1Value, q3Value];
+        }
+
+        const {
+            bandwidth,
+            scaledValues: { xValue: axisValue },
+        } = boxPlotDatum;
+
+        return isVertical
+            ? new BBox(axisValue, q1Value, bandwidth, q3Value - q1Value)
+            : new BBox(q1Value, axisValue, q3Value - q1Value, bandwidth);
     }
 
     protected updateLabelNodes() {
@@ -501,41 +531,17 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     getFormattedStyles(nodeDatum: BoxPlotNodeDatum, scope: 'tooltip' | 'node' | 'highlight'): AgBoxPlotSeriesStyle {
         const { id: seriesId, properties } = this;
-        const {
-            xKey,
-            minKey,
-            q1Key,
-            medianKey,
-            q3Key,
-            maxKey,
-            itemStyler,
-            backgroundFill,
-            cornerRadius,
-            defaultColorRange,
-        } = properties;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler, cornerRadius, defaultColorRange } =
+            properties;
         const { datum, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
         let fill;
         let fillOpacity: number | undefined;
 
-        // @todo(AG-11876) Use fillOpacity to match area, range area, radar area, chord, and sankey series
-        const useFakeFill = true;
-        if (useFakeFill) {
-            fill = nodeDatum.fill;
-            fillOpacity = properties.fillOpacity;
-        } else if (isGradientFill(nodeDatum.fill)) {
+        if (isGradientFill(nodeDatum.fill)) {
             fill = nodeDatum.fill;
         } else {
-            try {
-                fill = Color.mix(
-                    Color.fromString(backgroundFill),
-                    Color.fromString(nodeDatum.fill),
-                    properties.fillOpacity
-                ).toString();
-            } catch {
-                fill = nodeDatum.fill;
-            }
-
-            fillOpacity = undefined;
+            fill = nodeDatum.fill;
+            fillOpacity = properties.fillOpacity;
         }
 
         const activeStyles: Required<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle = {

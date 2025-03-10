@@ -3,6 +3,10 @@ import { _ModuleSupport } from 'ag-charts-community';
 export const RANGE_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'range-bar'>['themeTemplate'] = {
     series: {
         direction: 'vertical' as const,
+        fill: { $palette: 'fill' },
+        stroke: { $palette: 'stroke' },
+        // @ts-expect-error undocumented option
+        defaultColorRange: { $palette: 'gradient' },
         strokeWidth: 0,
         label: {
             enabled: false,

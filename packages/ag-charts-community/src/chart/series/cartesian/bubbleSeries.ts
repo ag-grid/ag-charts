@@ -320,6 +320,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
         this.sizeScale.range = [marker.size, marker.maxSize];
         const fillBBox = this.getFillBBox(baseStyle.fill);
+        const { defaultColorRange } = marker;
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
@@ -330,6 +331,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 { xKey, yKey, sizeKey, labelKey },
                 highlighted,
                 baseStyle,
+                defaultColorRange,
                 fillBBox,
                 {
                     selected: datum.selected,

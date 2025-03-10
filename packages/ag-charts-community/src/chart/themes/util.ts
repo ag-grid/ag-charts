@@ -1,6 +1,5 @@
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
-import type { SeriesPaletteFactoryParams } from '../../module/coreModulesTypes';
 import { Color } from '../../util/color';
 import { mapValues } from '../../util/object';
 
@@ -15,20 +14,6 @@ export function swapAxisCondition(axes: [CartesianAxis, CartesianAxis], swap: (s
             { ...axes[1], position: axes[0].position },
         ];
     };
-}
-
-export function singleSeriesPaletteFactory({ takeColors }: SeriesPaletteFactoryParams) {
-    const {
-        fills: [fill],
-        strokes: [stroke],
-        sequentialColors: [defaultColorRange],
-    } = takeColors(1);
-
-    return { fill, stroke, defaultColorRange };
-}
-
-export function markerPaletteFactory(params: SeriesPaletteFactoryParams) {
-    return { marker: singleSeriesPaletteFactory(params) };
 }
 
 export function getSequentialColors(colors: { [key: string]: string }) {

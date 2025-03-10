@@ -102,6 +102,7 @@ export function priceVolume(
                           type: 'line' as const,
                           xKey: dateKey,
                           yKey: volumeKey,
+                          stroke: { $palette: 'fill' } as any,
                           marker: { enabled: false },
                       },
                   ],

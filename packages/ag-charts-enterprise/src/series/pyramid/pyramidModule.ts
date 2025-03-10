@@ -16,15 +16,6 @@ export const PyramidModule: _ModuleSupport.SeriesModule<'pyramid'> = {
     solo: true,
     tooltipDefaults: { range: 'exact' },
     themeTemplate: PYRAMID_SERIES_THEME,
-
-    paletteFactory: ({ takeColors, colorsCount }) => {
-        const {
-            fills,
-            strokes,
-            sequentialColors: [defaultColorRange],
-        } = takeColors(colorsCount);
-        return { fills, strokes, defaultColorRange };
-    },
 };
 
 export const PyramidSeriesModule: SeriesModuleDefinition<AgPyramidSeriesOptions> = {

@@ -4,7 +4,6 @@ import {
     ModuleRegistry,
     ModuleType,
     type OptionsDefs,
-    circularSliceArray,
     color,
     getDocument,
     getWindow,
@@ -60,7 +59,7 @@ import {
     jsonWalk,
 } from '../util/json';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
-import { type PaletteType, paletteType } from './coreModulesTypes';
+import { paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
 import type { SeriesType } from './optionsModuleTypes';
 
@@ -97,7 +96,7 @@ enum GroupingType {
     GROUP = 'group',
 }
 
-const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-background']);
+// const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-background']);
 
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     public static readonly OPTIONS_CLONE_OPTS: CloneOptions = {
@@ -371,11 +370,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.enableConfiguredOptions(processedOptions, options);
 
         const themeParameters = this.getThemeParameters(activeTheme, processedOptions) as AgChartThemeParams;
+        (themeParameters as any).__palette = deepClone(activeTheme.palette);
+        (themeParameters as any).__palette.type = isObject(options.theme)
+            ? paletteType(options.theme?.palette)
+            : 'inbuilt';
         this.resolveThemeOperations(themeParameters, themeParameters);
         this.resolveThemeOperations(themeParameters, processedOptions);
         this.resolveThemeOperations(themeParameters, this.annotationThemes);
 
-        this.processMiniChartSeriesOptions(processedOptions, activeTheme);
+        this.processMiniChartSeriesOptions(processedOptions);
 
         activeTheme.templateTheme(processedOptions, false);
 
@@ -463,21 +466,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private processSeriesOptions(options: T, activeTheme: ChartTheme) {
         const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
-        const userPalette = isObject(options.theme) ? paletteType(options.theme?.palette) : 'inbuilt';
-        const paletteOptions = {
-            colourIndex: 0,
-            userPalette,
-        };
 
         const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series) => {
             series.type ??= 'line'; // TODO remove this behaviour
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type, activeTheme).series ?? {};
-            // Don't advance series index for background series
-            const seriesPaletteOptions = unthemedSeries.has(series.type)
-                ? { colourIndex: 0, userPalette }
-                : paletteOptions;
-            const palette = this.getSeriesPalette(series.type, seriesPaletteOptions, activeTheme);
             const defaultTooltipRange = this.getTooltipRangeDefaults(options, series.type);
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
@@ -485,7 +478,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 defaultTooltipPosition,
                 defaultTooltipRange,
                 seriesTheme,
-                palette,
                 { visible: true }
             );
 
@@ -499,18 +491,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.series = this.setSeriesGroupingOptions(processedSeries ?? []);
     }
 
-    private processMiniChartSeriesOptions(options: T, activeTheme: ChartTheme) {
+    private processMiniChartSeriesOptions(options: T) {
         let miniChartSeries = options.navigator?.miniChart?.series;
         if (miniChartSeries == null) return;
 
-        const paletteOptions = {
-            colourIndex: 0,
-            userPalette: isObject(options.theme) ? paletteType(options.theme.palette) : 'inbuilt',
-        };
-
         miniChartSeries = miniChartSeries.map((series) => {
             series.type ??= 'line';
-            return mergeDefaults(series, this.getSeriesPalette(series.type, paletteOptions, activeTheme));
+            return series;
         });
 
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
@@ -562,31 +549,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private resolveThemeOperations(params: WithThemeParams<AgChartThemeParams>, options: object) {
         const modifiedPaths = jsonResolveOperations(options, params, new Set(['palette', 'data']));
         ChartOptions.debug('ChartOptions.resolveTheme()', modifiedPaths);
-    }
-
-    private getSeriesPalette(
-        seriesType: SeriesType,
-        options: { colourIndex: number; userPalette: PaletteType },
-        activeTheme: ChartTheme
-    ) {
-        const paletteFactory = seriesRegistry.getPaletteFactory(seriesType);
-        const { colourIndex: colourOffset, userPalette } = options;
-        const { fills = [], strokes = [], sequentialColors = [] } = activeTheme.palette;
-
-        return paletteFactory?.({
-            userPalette,
-            colorsCount: Math.max(fills.length, strokes.length),
-            themeTemplateParameters: activeTheme.getTemplateParameters(),
-            palette: activeTheme.palette,
-            takeColors(count) {
-                options.colourIndex += count;
-                return {
-                    fills: circularSliceArray(fills, count, colourOffset),
-                    strokes: circularSliceArray(strokes, count, colourOffset),
-                    sequentialColors: circularSliceArray(sequentialColors, count, colourOffset),
-                };
-            },
-        });
     }
 
     private getSeriesGroupingOptions(series: SeriesOptionsTypes & GroupingOptions) {

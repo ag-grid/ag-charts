@@ -1,5 +1,6 @@
 import {
     Logger,
+    circularSliceArray,
     isArray,
     isDate,
     isFunction,
@@ -31,10 +32,9 @@ const CLASS_INSTANCE_TYPE = 'class-instance';
  *
  * @param source starting point for diff
  * @param target target for diff vs. source
- * @param skip object keys to skip during diff
  * @returns `null` if no differences, or an object with the subset of properties that have changed.
  */
-export function jsonDiff<T>(source: T, target: T, skip?: (keyof T)[]): Partial<T> | null {
+export function jsonDiff<T>(source: T, target: T): Partial<T> | null {
     if (isArray(target)) {
         if (
             !isArray(source) ||
@@ -54,7 +54,7 @@ export function jsonDiff<T>(source: T, target: T, skip?: (keyof T)[]): Partial<T
         ]);
         for (const key of allKeys) {
             // Cheap-and-easy equality check.
-            if (source[key] === target[key] || skip?.includes(key)) {
+            if (source[key] === target[key]) {
                 continue;
             }
             if (typeof source[key] === typeof target[key]) {
@@ -398,6 +398,7 @@ function jsonResolveVisitorValue<T extends object, P extends object>(
 enum LocationOperation {
     Ref = '$ref',
     Path = '$path',
+    Palette = '$palette',
 }
 
 enum LogicOperation {
@@ -430,6 +431,7 @@ enum ColorOperation {
     Mix = '$mix',
     ForegroundBackgroundMix = '$foregroundBackgroundMix',
     ForegroundBackgroundAccentMix = '$foregroundBackgroundAccentMix',
+    Interpolate = '$interpolate',
 }
 
 type Operation =
@@ -514,6 +516,7 @@ type OperationFn<T extends object = object, P extends object = object> = (
 const locationOperations: Record<LocationOperation, OperationFn> = {
     $ref: ref,
     $path: pathOperation,
+    $palette: palette,
 };
 
 const logicOperations: Record<LogicOperation, OperationFn> = {
@@ -548,6 +551,7 @@ const colorOperations: Record<ColorOperation, OperationFn> = {
     $mix: mix,
     $foregroundBackgroundMix: foregroundBackgroundMix,
     $foregroundBackgroundAccentMix: foregroundBackgroundAccentMix,
+    $interpolate: interpolate,
 };
 
 const operations: Record<Operation, OperationFn<any, any>> = {
@@ -587,6 +591,36 @@ function ref<T extends object, P extends object>(
 
     meta.referencedParams?.add(operation.values);
     return ref(operation.values, path, params, source, meta);
+}
+
+function palette(value: string | Array<unknown>, path: string[], params: any, source: any) {
+    const indexIndex = path.findLastIndex((v) => !isNaN(Number(v)));
+    let index = Number(path[indexIndex]);
+    if (isNaN(index) || !isString(value)) return;
+
+    const seriesPath = path.slice(0, indexIndex);
+    const ignoreIndexSeries = ['map-shape-background', 'map-line-background'];
+    const ignoreIndexOffset = getPath(source, seriesPath)
+        .slice(0, index)
+        .filter((s: any) => ignoreIndexSeries.includes(s.type)).length;
+    index -= ignoreIndexOffset;
+
+    const p = params.__palette;
+
+    switch (value) {
+        case 'fill':
+            return circularSliceArray(p.fills, 1, index)[0];
+        case 'stroke':
+            return circularSliceArray(p.strokes, 1, index)[0];
+        case 'gradients':
+            return p.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
+        case 'gradient':
+            return p.sequentialColors[index];
+        case 'range2':
+            return circularSliceArray(p.fills, 2, index);
+    }
+
+    return getPath(p, value);
 }
 
 function pathOperation<T extends object, P extends object>(
@@ -794,4 +828,12 @@ function foregroundBackgroundAccentMix<P extends object>(
     Logger.warnOnce(
         `\`$foregroundBackgroundAccentMix\` json operation failed on [${String(background)}, ${String(accent)}}] at [${path.join('.')}], expecting two numbers between 0 and 1.`
     );
+}
+
+function interpolate([colors, count]: string | Array<unknown>) {
+    if (!isArray(colors) || !isNumber(count)) return;
+    return Color.interpolate(
+        (colors as string[]).map((color) => Color.fromString(color)),
+        count
+    ).map((color: any) => color.toString());
 }

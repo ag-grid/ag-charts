@@ -1,13 +1,11 @@
 import { type AgRadialGaugePreset, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
-import defaultColorStops from '../gauge-util/defaultColorStops';
 import { RadialGaugeSeries } from './radialGaugeSeries';
 import { radialGaugeSeriesOptionsDef } from './radialGaugeSeriesOptionsDef';
 
 const {
     FONT_SIZE_RATIO,
-    ThemeSymbols: { DEFAULT_HIERARCHY_FILLS, DEFAULT_GAUGE_SERIES_COLOR_RANGE },
     ThemeConstants: { POLAR_AXIS_TYPE },
 } = _ModuleSupport;
 
@@ -35,7 +33,17 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             innerRadiusRatio: 0.8,
             startAngle: 270,
             endAngle: 270 + 180,
+            defaultColorRange: {
+                $if: [
+                    { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                    { $interpolate: [{ $palette: 'secondDivergingColors' }, 5] },
+                    { $palette: 'range2' },
+                ],
+            },
             scale: {
+                // @ts-expect-error undocumented option
+                defaultFill: { $path: ['./1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
+                stroke: { $path: ['./2', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
                 label: {
                     fontWeight: { $ref: 'fontWeight' },
                     fontSize: { $ref: 'fontSize' },
@@ -52,7 +60,6 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 interval: {},
                 spacing: 2,
             },
-            // @ts-expect-error Private
             defaultTarget: {
                 fill: { $ref: 'foregroundColor' },
                 stroke: { $ref: 'foregroundColor' },
@@ -91,20 +98,6 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 color: { $ref: 'subtleTextColor' },
             },
         },
-    },
-    paletteFactory(params) {
-        const { takeColors, colorsCount, userPalette, themeTemplateParameters } = params;
-        const { fills } = takeColors(colorsCount);
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_GAUGE_SERIES_COLOR_RANGE) as string[] | undefined;
-        const hierarchyFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
-        const colorRange = userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]];
-        return {
-            scale: {
-                defaultFill: hierarchyFills?.[1],
-                stroke: hierarchyFills?.[2],
-            },
-            defaultColorRange: defaultColorStops(colorRange),
-        };
     },
 };
 

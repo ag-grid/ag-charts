@@ -338,6 +338,38 @@ describe('ChordSeries', () => {
             await compare();
         });
 
+        it('should render chord series with a mix of gradient and string fills', async () => {
+            const options = {
+                ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,
+                series: [
+                    {
+                        type: 'chord',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'sales',
+                        sizeName: 'Sales',
+                        fills: [
+                            {
+                                type: 'gradient',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                            'blue',
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
         it('should render chord series with a gradient fill', async () => {
             const options = {
                 ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,

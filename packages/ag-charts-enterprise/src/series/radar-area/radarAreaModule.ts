@@ -6,7 +6,6 @@ import { RadarAreaSeries } from './radarAreaSeries';
 import { radarAreaSeriesOptionsDef } from './radarAreaSeriesOptionsDef';
 
 const {
-    markerPaletteFactory,
     ThemeConstants: { POLAR_AXIS_TYPE },
 } = _ModuleSupport;
 
@@ -21,15 +20,6 @@ export const RadarAreaModule: _ModuleSupport.SeriesModule<'radar-area'> = {
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
     themeTemplate: RADAR_AREA_SERIES_THEME,
-    paletteFactory: (params) => {
-        const { marker } = markerPaletteFactory(params);
-        return {
-            stroke: marker.stroke,
-            fill: marker.fill,
-            defaultColorRange: marker.defaultColorRange,
-            marker,
-        };
-    },
 };
 
 export const RadarAreaSeriesModule: SeriesModuleDefinition<AgRadarAreaSeriesOptions> = {

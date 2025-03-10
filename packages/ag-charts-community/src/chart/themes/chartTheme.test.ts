@@ -285,7 +285,7 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             expect((chart.series[0] as PieSeries).properties.fills).toEqual(['red', 'green', 'blue']);
-            expect((chart.series[0] as PieSeries).properties.strokes).toEqual(['cyan', 'cyan', 'cyan']);
+            expect((chart.series[0] as PieSeries).properties.strokes).toEqual(['cyan']);
             expect((chart.series[0] as PieSeries).properties.calloutLabel.enabled).toBe(true);
             expect((chart.series[0] as PieSeries).properties.calloutLabel.color).toBe('yellow');
             expect((chart.series[0] as PieSeries).properties.calloutLabel.fontSize).toBe(18);
@@ -446,7 +446,7 @@ describe('ChartTheme', () => {
             }
         });
 
-        test('Polar chart intstance properties', async () => {
+        test('Polar chart instance properties', async () => {
             chart = deproxy(AgCharts.create(polarChartOptions));
             if (!(chart instanceof PolarChart)) fail();
 
@@ -460,7 +460,7 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             expect((chart.series[0] as PieSeries).properties.fills).toEqual(['red', 'green', 'blue']);
-            expect((chart.series[0] as PieSeries).properties.strokes).toEqual(['cyan', 'cyan', 'cyan']);
+            expect((chart.series[0] as PieSeries).properties.strokes).toEqual(['cyan']);
             expect((chart.series[0] as PieSeries).properties.calloutLabel.enabled).toBe(true);
             expect((chart.series[0] as PieSeries).properties.calloutLabel.color).toBe('yellow');
             expect((chart.series[0] as PieSeries).properties.calloutLabel.fontSize).toBe(18);

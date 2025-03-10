@@ -61,7 +61,7 @@ export const colorStopsOrderValidator = attachDescription((value) => {
     return true;
 }, 'stops to be defined in ascending order');
 
-const gradientBounds = union('axes', 'item', 'series');
+const gradientBounds = union('axis', 'item', 'series');
 const gradientColorStops = and(
     arrayLength(2),
     arrayOfDefs<AgGradientColorStop>({ color: color, stop: ratio }, 'color stops'),

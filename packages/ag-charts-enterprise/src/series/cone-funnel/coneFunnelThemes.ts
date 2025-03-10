@@ -7,6 +7,22 @@ const {
 export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'>['themeTemplate'] = {
     series: {
         direction: 'vertical',
+        fills: {
+            $if: [
+                { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                { $palette: 'secondSequentialColors' },
+                { $palette: 'range2' },
+            ],
+        },
+        strokes: {
+            $if: [
+                { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                { $palette: 'secondSequentialColors' },
+                { $palette: 'range2' },
+            ],
+        },
+        // @ts-expect-error undocumented option
+        defaultColorRange: { $palette: 'gradient' }, // TODO: update cone funnel to handle 'gradients'
         strokeWidth: 0,
         label: {
             enabled: true,

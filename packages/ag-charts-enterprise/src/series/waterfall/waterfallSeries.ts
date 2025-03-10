@@ -523,7 +523,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             lineDash: highlightStyle?.lineDash ?? item.lineDash ?? [],
             lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
             cornerRadius: item.cornerRadius,
-            defaultColorRange: item.defaultColorRange,
         };
 
         if (itemStyler != null) {
@@ -555,14 +554,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { datumSelection, isHighlight } = opts;
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
+        const { item } = this.properties;
 
         datumSelection.each((rect, datum) => {
             const seriesItemType = datum.itemId;
 
             const style = this.getItemStyle(String(datum.datumIndex), datum.datum, seriesItemType, isHighlight);
             const fillBBox = this.getFillBBox(style.fill);
+            const { defaultColorRange } = item[seriesItemType === 'subtotal' ? 'total' : seriesItemType];
 
-            applyShapeStyle(rect, style, undefined, fillBBox);
+            applyShapeStyle(rect, { ...style, defaultColorRange }, undefined, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

@@ -440,11 +440,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
 
         const { fill: seriesFill, defaultColorRange } = this.properties;
-        let fillBBox;
         if (isGradientFill(seriesFill)) {
-            seriesFill.bounds ??= 'series';
-            fillBBox = this.getFillBBox(seriesFill);
+            seriesFill.bounds = !seriesFill.bounds || seriesFill.bounds == 'item' ? 'series' : 'axis';
         }
+        const fillBBox = this.getFillBBox(seriesFill);
 
         fill.setProperties({
             fillBBox,
@@ -568,7 +567,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeOpacity,
         });
 
-        const fillBBox = this.getFillBBox(baseStyle.fill);
+        const fillBBox = this.getFillBBox(marker.fill);
+        const { defaultColorRange } = marker;
+
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
                 marker,
@@ -578,6 +579,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 { xKey, yHighKey, yLowKey },
                 highlighted,
                 baseStyle,
+                defaultColorRange,
                 fillBBox
             );
         });

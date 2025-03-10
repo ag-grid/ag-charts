@@ -12,6 +12,14 @@ describe('urlWithBaseUrl', () => {
         ${'/gallery/'}            | ${'/gallery/'}
         ${'https://youtube.com'}  | ${'https://youtube.com'}
         ${'https://youtube.com/'} | ${'https://youtube.com/'}
+    `('$url (/ siteBaseUrl) -> $expected', ({ url, expected }) => {
+        const siteBaseUrl = '/';
+        expect(urlWithBaseUrl(url, siteBaseUrl)).toBe(expected);
+    });
+
+    test.each`
+        url    | expected
+        ${'/'} | ${'/'}
     `('$url (empty siteBaseUrl) -> $expected', ({ url, expected }) => {
         const siteBaseUrl = '';
         expect(urlWithBaseUrl(url, siteBaseUrl)).toBe(expected);
@@ -35,6 +43,7 @@ describe('urlWithBaseUrl', () => {
 
     test.each`
         url                       | expected
+        ${'/'}                    | ${'/ag-charts/'}
         ${'docs'}                 | ${'/ag-charts/docs'}
         ${'/docs'}                | ${'/ag-charts/docs'}
         ${'./docs'}               | ${'/ag-charts/docs'}

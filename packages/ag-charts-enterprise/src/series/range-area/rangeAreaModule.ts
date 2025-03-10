@@ -6,7 +6,6 @@ import { rangeAreaSeriesOptionsDef } from './rangeAreaSeriesOptionsDef';
 import { RANGE_AREA_SERIES_THEME } from './rangeAreaThemes';
 
 const {
-    markerPaletteFactory,
     ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
 } = _ModuleSupport;
 
@@ -24,16 +23,6 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
         { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
     ],
     themeTemplate: RANGE_AREA_SERIES_THEME,
-
-    paletteFactory: (params) => {
-        const { marker } = markerPaletteFactory(params);
-        return {
-            fill: marker.fill,
-            stroke: marker.stroke,
-            defaultColorRange: marker.defaultColorRange,
-            marker,
-        };
-    },
 };
 
 export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOptions> = {

@@ -513,6 +513,7 @@ export abstract class OhlcSeriesBase<
                         strokeOpacity: item.strokeOpacity ?? 1,
                         lineDash: item.lineDash ?? [0],
                         lineDashOffset: item.lineDashOffset ?? 0,
+                        defaultColorRange: item.defaultColorRange,
                     },
                 },
                 data: [

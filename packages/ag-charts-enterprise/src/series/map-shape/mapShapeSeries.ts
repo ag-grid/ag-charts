@@ -36,7 +36,7 @@ const {
 interface MapShapeNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
 
-type ItemStyle = Required<AgMapShapeSeriesStyle> & _ModuleSupport.DefaultFillStyle;
+type ItemStyle = Required<AgMapShapeSeriesStyle>;
 
 const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
@@ -446,7 +446,6 @@ export class MapShapeSeries
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -498,6 +497,7 @@ export class MapShapeSeries
 
         const style = this.getItemBaseStyle(isHighlight);
         const fillBBox = this.getFillBBox(style.fill);
+        const { defaultColorRange } = this.properties;
 
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { datum, datumIndex, colorValue, projectedGeometry } = nodeDatum;
@@ -512,7 +512,7 @@ export class MapShapeSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            applyShapeStyle(geoGeometry, style, overrides, fillBBox);
+            applyShapeStyle(geoGeometry, { ...style, defaultColorRange }, overrides, fillBBox);
         });
     }
 

@@ -127,9 +127,6 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<any>>();
 
-    @Validate(COLOR_STRING) // Internal: Set by paletteFactory.
-    backgroundFill: string = 'white';
-
     override toJson() {
         const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
         const properties = super.toJson();

@@ -24,8 +24,6 @@ const {
     CategoryScale,
     motion,
     applyShapeStyle,
-    isGradientFill,
-    toDegrees,
 } = _ModuleSupport;
 
 class RadialColumnSeriesNodeEvent<
@@ -438,32 +436,26 @@ export abstract class RadialColumnSeriesBase<
         }
 
         const style = this.getItemBaseStyle(highlighted);
-        const fillBBox = this.getFillBBox(style.fill);
+
+        const radiusAxisReversed = this.isRadiusAxisReversed();
+        const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
+        const fillBBox = this.getFillBBox(style.fill, axisOuterRadius);
+
+        const { defaultColorRange } = this.properties;
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const { datum, datumIndex, midAngle } = nodeDatum;
 
-                let nodeFill = style.fill;
-                if (
-                    isGradientFill(nodeFill) &&
-                    nodeFill.type === 'gradient' &&
-                    nodeFill.rotation == null &&
-                    nodeFill.direction == null
-                ) {
-                    nodeFill = {
-                        ...nodeFill,
-                        rotation: toDegrees(midAngle - Math.PI / 2),
-                    };
-                }
+                const nodeFill = this.getNodeFill(style.fill, midAngle);
 
-                const nodeStyle = { ...style, fill: nodeFill };
+                const nodeStyle = { ...style, fill: nodeFill! };
                 const overrides = this.getItemStyleOverrides(String(datumIndex), datum, nodeStyle, highlighted);
 
                 this.updateItemPath(node, nodeDatum, highlighted);
 
-                applyShapeStyle(node, nodeStyle, overrides, fillBBox);
+                applyShapeStyle(node, { ...nodeStyle, defaultColorRange }, overrides, fillBBox);
 
                 node.cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
                 node.lineJoin = 'round';

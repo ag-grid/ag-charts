@@ -1,13 +1,8 @@
 import { type AgLinearGaugePreset, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
-import defaultColorStops from '../gauge-util/defaultColorStops';
 import { LinearGaugeSeries } from './linearGaugeSeries';
 import { linearGaugeSeriesOptionsDef } from './linearGaugeSeriesOptionsDef';
-
-const {
-    ThemeSymbols: { DEFAULT_HIERARCHY_FILLS, DEFAULT_GAUGE_SERIES_COLOR_RANGE },
-} = _ModuleSupport;
 
 export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
     type: 'series',
@@ -26,7 +21,17 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
         },
         series: {
             thickness: 50,
+            defaultColorRange: {
+                $if: [
+                    { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                    { $interpolate: [{ $palette: 'secondDivergingColors' }, 5] },
+                    { $palette: 'range2' },
+                ],
+            },
             scale: {
+                // @ts-expect-error undocumented option
+                defaultFill: { $path: ['./1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
+                stroke: { $path: ['./2', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
                 label: {
                     spacing: 11,
                 },
@@ -39,7 +44,6 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 interval: {},
                 spacing: 1,
             },
-            // @ts-expect-error Private
             defaultTarget: {
                 fill: { $ref: 'foregroundColor' },
                 stroke: { $ref: 'foregroundColor' },
@@ -76,20 +80,6 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
             },
             margin: 4,
         },
-    },
-    paletteFactory(params) {
-        const { takeColors, colorsCount, userPalette, themeTemplateParameters } = params;
-        const { fills } = takeColors(colorsCount);
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_GAUGE_SERIES_COLOR_RANGE) as string[] | undefined;
-        const hierarchyFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
-        const colorRange = userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]];
-        return {
-            scale: {
-                defaultFill: hierarchyFills?.[1],
-                stroke: hierarchyFills?.[2],
-            },
-            defaultColorRange: defaultColorStops(colorRange),
-        };
     },
 };
 

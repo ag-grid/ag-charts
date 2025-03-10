@@ -479,9 +479,9 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#076f29",
-      "#459d55",
-      "#75cd82",
+      "#cc7100",
+      "#ffa03a",
+      "#ffd171",
     ],
     "direction": "vertical",
     "fill": "red",
@@ -513,7 +513,7 @@ describe('ChartOptions', () => {
       "yOffset": 3,
     },
     "showInLegend": false,
-    "stroke": "#1e652e",
+    "stroke": "#cc6f10",
     "strokeWidth": 0,
     "tooltip": {
       "range": "exact",
@@ -526,12 +526,12 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#b19c00",
-      "#e1cc00",
-      "#fffe5d",
+      "#076f29",
+      "#459d55",
+      "#75cd82",
     ],
     "direction": "vertical",
-    "fill": "#e1cc00",
+    "fill": "#459d55",
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -560,7 +560,7 @@ describe('ChartOptions', () => {
       "yOffset": 3,
     },
     "showInLegend": true,
-    "stroke": "#a69400",
+    "stroke": "#1e652e",
     "strokeWidth": 0,
     "tooltip": {
       "range": "exact",
@@ -573,12 +573,12 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#6a3c9a",
-      "#9669cb",
-      "#c597fe",
+      "#008fb0",
+      "#34bfe1",
+      "#70f1ff",
     ],
     "direction": "vertical",
-    "fill": "#9669cb",
+    "fill": "#34bfe1",
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -607,7 +607,7 @@ describe('ChartOptions', () => {
       "yOffset": 3,
     },
     "showInLegend": false,
-    "stroke": "#603c88",
+    "stroke": "#18859e",
     "strokeWidth": 0,
     "tooltip": {
       "range": "exact",
@@ -637,17 +637,17 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "marker": {
       "defaultColorRange": [
-        "#cc7100",
-        "#ffa03a",
-        "#ffd171",
+        "#b19c00",
+        "#e1cc00",
+        "#fffe5d",
       ],
-      "fill": "#ffa03a",
+      "fill": "#e1cc00",
       "shape": "circle",
       "size": 7,
-      "stroke": "#cc6f10",
+      "stroke": "#a69400",
       "strokeWidth": 0,
     },
-    "stroke": "#ffa03a",
+    "stroke": "#e1cc00",
     "strokeOpacity": 1,
     "strokeWidth": 2,
     "tooltip": {
@@ -681,17 +681,17 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "marker": {
       "defaultColorRange": [
-        "#008fb0",
-        "#34bfe1",
-        "#70f1ff",
+        "#6a3c9a",
+        "#9669cb",
+        "#c597fe",
       ],
-      "fill": "#34bfe1",
+      "fill": "#9669cb",
       "shape": "circle",
       "size": 7,
-      "stroke": "#18859e",
+      "stroke": "#603c88",
       "strokeWidth": 0,
     },
-    "stroke": "#34bfe1",
+    "stroke": "#9669cb",
     "strokeOpacity": 1,
     "strokeWidth": 2,
     "tooltip": {
@@ -766,9 +766,9 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#076f29",
-      "#459d55",
-      "#75cd82",
+      "#cc7100",
+      "#ffa03a",
+      "#ffd171",
     ],
     "direction": "vertical",
     "fill": "red",
@@ -800,7 +800,7 @@ describe('ChartOptions', () => {
       "yOffset": 3,
     },
     "showInLegend": false,
-    "stroke": "#1e652e",
+    "stroke": "#cc6f10",
     "strokeWidth": 0,
     "tooltip": {
       "range": "exact",
@@ -813,12 +813,12 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#b19c00",
-      "#e1cc00",
-      "#fffe5d",
+      "#076f29",
+      "#459d55",
+      "#75cd82",
     ],
     "direction": "vertical",
-    "fill": "#e1cc00",
+    "fill": "#459d55",
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -847,7 +847,7 @@ describe('ChartOptions', () => {
       "yOffset": 3,
     },
     "showInLegend": true,
-    "stroke": "#a69400",
+    "stroke": "#1e652e",
     "strokeWidth": 0,
     "tooltip": {
       "range": "exact",
@@ -860,12 +860,12 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#6a3c9a",
-      "#9669cb",
-      "#c597fe",
+      "#008fb0",
+      "#34bfe1",
+      "#70f1ff",
     ],
     "direction": "vertical",
-    "fill": "#9669cb",
+    "fill": "#34bfe1",
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -894,7 +894,7 @@ describe('ChartOptions', () => {
       "yOffset": 3,
     },
     "showInLegend": false,
-    "stroke": "#603c88",
+    "stroke": "#18859e",
     "strokeWidth": 0,
     "tooltip": {
       "range": "exact",
@@ -924,17 +924,17 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "marker": {
       "defaultColorRange": [
-        "#cc7100",
-        "#ffa03a",
-        "#ffd171",
+        "#b19c00",
+        "#e1cc00",
+        "#fffe5d",
       ],
-      "fill": "#ffa03a",
+      "fill": "#e1cc00",
       "shape": "circle",
       "size": 7,
-      "stroke": "#cc6f10",
+      "stroke": "#a69400",
       "strokeWidth": 0,
     },
-    "stroke": "#ffa03a",
+    "stroke": "#e1cc00",
     "strokeOpacity": 1,
     "strokeWidth": 2,
     "tooltip": {
@@ -968,17 +968,17 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "marker": {
       "defaultColorRange": [
-        "#008fb0",
-        "#34bfe1",
-        "#70f1ff",
+        "#6a3c9a",
+        "#9669cb",
+        "#c597fe",
       ],
-      "fill": "#34bfe1",
+      "fill": "#9669cb",
       "shape": "circle",
       "size": 7,
-      "stroke": "#18859e",
+      "stroke": "#603c88",
       "strokeWidth": 0,
     },
-    "stroke": "#34bfe1",
+    "stroke": "#9669cb",
     "strokeOpacity": 1,
     "strokeWidth": 2,
     "tooltip": {
@@ -1053,9 +1053,9 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#076f29",
-      "#459d55",
-      "#75cd82",
+      "#cc7100",
+      "#ffa03a",
+      "#ffd171",
     ],
     "direction": "vertical",
     "fill": "red",
@@ -1087,7 +1087,7 @@ describe('ChartOptions', () => {
       "yOffset": 3,
     },
     "showInLegend": false,
-    "stroke": "#1e652e",
+    "stroke": "#cc6f10",
     "strokeWidth": 0,
     "tooltip": {
       "range": "exact",
@@ -1100,12 +1100,12 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#b19c00",
-      "#e1cc00",
-      "#fffe5d",
+      "#076f29",
+      "#459d55",
+      "#75cd82",
     ],
     "direction": "vertical",
-    "fill": "#e1cc00",
+    "fill": "#459d55",
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -1134,7 +1134,7 @@ describe('ChartOptions', () => {
       "yOffset": 3,
     },
     "showInLegend": true,
-    "stroke": "#a69400",
+    "stroke": "#1e652e",
     "strokeWidth": 0,
     "tooltip": {
       "range": "exact",
@@ -1147,12 +1147,12 @@ describe('ChartOptions', () => {
   },
   {
     "defaultColorRange": [
-      "#6a3c9a",
-      "#9669cb",
-      "#c597fe",
+      "#008fb0",
+      "#34bfe1",
+      "#70f1ff",
     ],
     "direction": "vertical",
-    "fill": "#9669cb",
+    "fill": "#34bfe1",
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -1181,7 +1181,7 @@ describe('ChartOptions', () => {
       "yOffset": 3,
     },
     "showInLegend": false,
-    "stroke": "#603c88",
+    "stroke": "#18859e",
     "strokeWidth": 0,
     "tooltip": {
       "range": "exact",
@@ -1211,17 +1211,17 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "marker": {
       "defaultColorRange": [
-        "#cc7100",
-        "#ffa03a",
-        "#ffd171",
+        "#b19c00",
+        "#e1cc00",
+        "#fffe5d",
       ],
-      "fill": "#ffa03a",
+      "fill": "#e1cc00",
       "shape": "circle",
       "size": 7,
-      "stroke": "#cc6f10",
+      "stroke": "#a69400",
       "strokeWidth": 0,
     },
-    "stroke": "#ffa03a",
+    "stroke": "#e1cc00",
     "strokeOpacity": 1,
     "strokeWidth": 2,
     "tooltip": {
@@ -1255,17 +1255,17 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "marker": {
       "defaultColorRange": [
-        "#008fb0",
-        "#34bfe1",
-        "#70f1ff",
+        "#6a3c9a",
+        "#9669cb",
+        "#c597fe",
       ],
-      "fill": "#34bfe1",
+      "fill": "#9669cb",
       "shape": "circle",
       "size": 7,
-      "stroke": "#18859e",
+      "stroke": "#603c88",
       "strokeWidth": 0,
     },
-    "stroke": "#34bfe1",
+    "stroke": "#9669cb",
     "strokeOpacity": 1,
     "strokeWidth": 2,
     "tooltip": {

@@ -5,8 +5,6 @@ import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeSeries } from './mapShapeSeries';
 import { mapShapeSeriesOptionsDef } from './mapShapeSeriesOptionsDef';
 
-const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_BACKGROUND_COLOUR } = _ModuleSupport.ThemeSymbols;
-
 export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -19,6 +17,17 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
+            fill: { $palette: 'fill' },
+            stroke: { $ref: 'backgroundColor' },
+            colorRange: {
+                $if: [
+                    { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                    { $palette: 'divergingColors' },
+                    { $palette: 'range2' },
+                ],
+            },
+            // @ts-expect-error undocumented option
+            defaultColorRange: { $palette: 'gradient' },
             fillOpacity: 1,
             strokeWidth: 1,
             lineDash: [0],
@@ -32,18 +41,6 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 overflowStrategy: 'hide',
             },
         },
-    },
-    paletteFactory: (opts) => {
-        const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
-        const { fill, defaultColorRange } = _ModuleSupport.singleSeriesPaletteFactory(opts);
-        const colorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
-        const { fills } = takeColors(colorsCount);
-        return {
-            fill,
-            stroke: themeTemplateParameters.get(DEFAULT_BACKGROUND_COLOUR) as string,
-            colorRange: userPalette === 'inbuilt' ? colorRange : [fills[0], fills[1]],
-            defaultColorRange,
-        };
     },
 };
 

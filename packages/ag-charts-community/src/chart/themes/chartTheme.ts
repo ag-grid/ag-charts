@@ -15,6 +15,7 @@ import type {
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
 import { enterpriseModule } from '../../module/enterpriseModule';
+import { Color } from '../../util/color';
 import { deepClone, jsonWalk } from '../../util/json';
 import { deepFreeze, mergeDefaults } from '../../util/object';
 import { axisRegistry } from '../factory/axisRegistry';
@@ -31,18 +32,12 @@ import {
     DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
     DEFAULT_ANNOTATION_STATISTICS_FILL,
     DEFAULT_ANNOTATION_STATISTICS_STROKE,
-    DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FIBONACCI_STROKES,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
-    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
     DEFAULT_GRIDLINE_ENABLED,
-    DEFAULT_HIERARCHY_FILLS,
-    DEFAULT_HIERARCHY_STROKES,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_SHADOW_COLOUR,
@@ -468,6 +463,17 @@ export class ChartTheme {
             fills: DEFAULT_FILLS,
             strokes: DEFAULT_STROKES,
             sequentialColors: getSequentialColors(DEFAULT_FILLS),
+            divergingColors: [DEFAULT_FILLS.ORANGE, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.GREEN],
+            hierarchyColors: ['#fff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad'],
+            secondSequentialColors: Color.interpolate(
+                [
+                    Color.fromHexString(DEFAULT_FILLS.BLUE),
+                    Color.fromHexString('#cbdef5'), // TODO: Color.lighten(DEFAULT_FILLS.BLUE, ?)
+                ],
+                8
+            ).map((color) => color.toString()),
+            secondDivergingColors: [DEFAULT_FILLS.GREEN, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.RED],
+            secondHierarchyColors: ['#fff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096'],
             up: { fill: DEFAULT_FILLS.GREEN, stroke: DEFAULT_STROKES.GREEN },
             down: { fill: DEFAULT_FILLS.RED, stroke: DEFAULT_STROKES.RED },
             neutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
@@ -516,29 +522,10 @@ export class ChartTheme {
         params.set(IS_ENTERPRISE, isEnterprise);
         params.set(IS_COMMUNITY, !isEnterprise);
         params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#d9d9d9');
-        params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL); // TODO: remove uses in paletteFactory()
         params.set(DEFAULT_SHADOW_COLOUR, '#00000080');
-        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
-            DEFAULT_FILLS.ORANGE,
-            DEFAULT_FILLS.YELLOW,
-            DEFAULT_FILLS.GREEN,
-        ]);
         params.set(DEFAULT_SPARKLINE_CROSSHAIR_STROKE, '#aaa');
-        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [DEFAULT_FILLS.GREEN, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.RED]);
-        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
-            '#5090dc',
-            '#629be0',
-            '#73a6e3',
-            '#85b1e7',
-            '#96bcea',
-            '#a8c8ee',
-            '#b9d3f1',
-            '#cbdef5',
-        ]);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
         params.set(DEFAULT_CAPTION_ALIGNMENT, 'center');
-        params.set(DEFAULT_HIERARCHY_FILLS, ['#fff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
-        params.set(DEFAULT_HIERARCHY_STROKES, ['#fff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
         params.set(DEFAULT_FIBONACCI_STROKES, [
             '#797b86',
             '#e24c4a',

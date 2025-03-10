@@ -343,5 +343,36 @@ describe('ConeFunnelSeries', () => {
             chart = deproxy(AgCharts.create(options as AgChartOptions));
             await compare();
         });
+
+        it('should render cone funnel series with a mix of gradient and string fills', async () => {
+            const options = {
+                ...CONE_FUNNEL_EXAMPLE,
+                series: [
+                    {
+                        type: 'cone-funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        fills: [
+                            {
+                                type: 'gradient',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                            'blue',
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
     });
 });

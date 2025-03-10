@@ -472,6 +472,23 @@ export class Color implements IColor {
         return Color.fromOKLCH(clamp(0, oklch[0] - t, 1), oklch[1], oklch[2]);
     }
 
+    static interpolate(colors: Color[], count: number) {
+        const step = 1 / (colors.length - 1);
+
+        const oklchColors = colors.map((c) => Color.RGBtoOKLCH(c.r, c.g, c.b));
+
+        return Array.from({ length: count }, (_, i) => {
+            const t = i / (count - 1);
+            const index = colors.length <= 2 ? 0 : Math.min(Math.floor(t * (colors.length - 1)), colors.length - 2);
+            const q = (t - index * step) / step;
+
+            const c0 = oklchColors[index];
+            const c1 = oklchColors[index + 1];
+
+            return Color.fromOKLCH(lerp(c0[0], c1[0], q), lerp(c0[1], c1[1], q), lerp(c0[2], c1[2], q));
+        });
+    }
+
     /**
      * CSS Color Module Level 4:
      * https://drafts.csswg.org/css-color/#named-colors

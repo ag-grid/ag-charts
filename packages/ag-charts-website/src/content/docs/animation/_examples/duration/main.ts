@@ -211,7 +211,6 @@ const donutOptions: AgPolarChartOptions = {
             calloutLabelKey: 'station',
             legendItemKey: 'station',
             angleKey: 'afternoonPeak',
-            innerRadiusRatio: 0.7,
             showInLegend: false,
         },
     ],

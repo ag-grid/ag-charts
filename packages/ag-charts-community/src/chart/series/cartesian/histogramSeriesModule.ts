@@ -5,7 +5,6 @@ import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { singleSeriesPaletteFactory } from '../../themes/util';
 import { HistogramSeries } from './histogramSeries';
 import { histogramSeriesOptionsDef } from './histogramSeriesOptionsDef';
 
@@ -30,6 +29,10 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
     ],
     themeTemplate: {
         series: {
+            fill: { $palette: 'fill' },
+            stroke: { $palette: 'stroke' },
+            // @ts-expect-error undocumented option
+            defaultColorRange: { $palette: 'gradient' },
             strokeWidth: 1,
             fillOpacity: 1,
             strokeOpacity: 1,
@@ -51,7 +54,6 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
             },
         },
     },
-    paletteFactory: singleSeriesPaletteFactory,
 };
 
 export const NewHistogramSeriesModule: SeriesModuleDefinition<AgHistogramSeriesOptions> = {
