@@ -320,7 +320,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
         this.sizeScale.range = [marker.size, marker.maxSize];
         const fillBBox = this.getFillBBox(baseStyle.fill);
-        const { defaultColorRange } = marker;
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
@@ -331,11 +330,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 { xKey, yKey, sizeKey, labelKey },
                 highlighted,
                 baseStyle,
-                defaultColorRange,
                 fillBBox,
-                {
-                    selected: datum.selected,
-                }
+                { selected: datum.selected }
             );
         });
 
@@ -515,14 +511,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }
 
     public getFormattedMarkerStyle(datum: BubbleNodeDatum): AgSeriesMarkerStyle & { size: number } {
-        const { xKey, yKey, sizeKey, labelKey } = this.properties;
-        return this.getMarkerStyle(
-            this.properties.marker,
-            datum,
-            { xKey, yKey, sizeKey, labelKey },
-            false,
-            datum.sizeValue
-        );
+        const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
+        return this.getMarkerStyle(marker, datum, { xKey, yKey, sizeKey, labelKey }, false, datum.sizeValue);
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {

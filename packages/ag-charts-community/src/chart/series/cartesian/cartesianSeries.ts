@@ -1,4 +1,5 @@
 import { findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
+import type { AgFillType } from 'ag-charts-types';
 
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -13,6 +14,7 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
+import { isGradientFill } from '../../../scene/util/fill';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { StateMachine } from '../../../util/stateMachine';
@@ -426,6 +428,20 @@ export abstract class CartesianSeries<
     }
 
     protected abstract nodeFactory(): TNode;
+
+    protected getNodeFill(fill: AgFillType, defaultColorStops: string[]): Required<AgFillType>;
+    protected getNodeFill(fill: AgFillType | undefined, defaultColorStops: string[]): Required<AgFillType> | undefined;
+    protected getNodeFill(fill: AgFillType | undefined, defaultColorStops: string[]): Required<AgFillType> | undefined {
+        if (!isGradientFill(fill)) return fill;
+
+        return {
+            ...fill,
+            gradient: fill.gradient ?? 'linear',
+            bounds: fill.bounds ?? 'item',
+            rotation: fill.rotation ?? 0,
+            colorStops: fill.colorStops ?? defaultColorStops.map((color) => ({ color })),
+        };
+    }
 
     protected updateNodes(
         highlightedItems: TDatum[] | undefined,

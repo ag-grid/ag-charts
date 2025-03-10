@@ -1,5 +1,3 @@
-import type { AgFillType } from 'ag-charts-types';
-
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -10,7 +8,6 @@ import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import { type FillType, isGradientFill } from '../../../scene/util/fill';
-import { normalizeAngle360, toDegrees } from '../../../util/angle';
 import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -222,31 +219,13 @@ export abstract class PolarSeries<
             return;
         }
 
-        const { bounds = 'item' } = fill;
+        const { bounds = 'series' } = fill;
 
         if (bounds === 'item') {
             return;
         }
 
         return new BBox(-radius, -radius, radius * 2, radius * 2);
-    }
-
-    getNodeFill(fill?: AgFillType, angle?: number) {
-        if (
-            angle != null &&
-            isGradientFill(fill) &&
-            fill.type === 'gradient' &&
-            fill.bounds !== 'series' &&
-            fill.bounds !== 'axis' &&
-            fill.rotation == null &&
-            fill.direction == null
-        ) {
-            return {
-                ...fill,
-                rotation: toDegrees(normalizeAngle360(angle) + Math.PI / 2),
-            };
-        }
-        return fill;
     }
 
     protected resetAllAnimation() {

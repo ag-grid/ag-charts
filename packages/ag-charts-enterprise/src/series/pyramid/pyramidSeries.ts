@@ -550,7 +550,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             const fillBBox = this.getFillBBox(overrides.fill);
 
-            applyShapeStyle(connector, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(connector, style, overrides, defaultColorRange, fillBBox);
 
             applyPyramidDatum(connector, nodeDatum);
 

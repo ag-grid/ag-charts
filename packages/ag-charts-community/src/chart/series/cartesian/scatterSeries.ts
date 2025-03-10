@@ -251,7 +251,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle());
 
         const fillBBox = this.getFillBBox(baseStyle.fill);
-        const { defaultColorRange } = marker;
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
@@ -262,11 +261,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 { xKey, yKey, labelKey },
                 highlighted,
                 baseStyle,
-                defaultColorRange,
                 fillBBox,
-                {
-                    selected: datum.selected,
-                }
+                { selected: datum.selected }
             );
         });
 

@@ -543,7 +543,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection.each((rect, datum) => {
             const overrides = this.getItemStyleOverrides(String(datum.datumIndex), datum.datum, style, isHighlight);
 
-            applyShapeStyle(rect, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(rect, style, overrides, defaultColorRange, fillBBox);
 
             rect.cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;

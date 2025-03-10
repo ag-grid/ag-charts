@@ -536,7 +536,6 @@ export class LineSeries extends CartesianSeries<
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
         const fillBBox = this.getFillBBox(baseStyle.fill);
-        const { defaultColorRange } = marker;
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
@@ -547,7 +546,6 @@ export class LineSeries extends CartesianSeries<
                 datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
                 highlighted,
                 baseStyle,
-                defaultColorRange,
                 fillBBox,
                 { applyTranslation, selected: datum.selected }
             );

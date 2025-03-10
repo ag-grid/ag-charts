@@ -6,6 +6,13 @@ import type { GradientColorStop } from './stops';
 
 export type ColorSpace = 'rgb' | 'oklch';
 
+export interface GradientParams {
+    centerX?: number;
+    centerY?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+}
+
 export abstract class Gradient {
     constructor(
         public colorSpace: ColorSpace,
@@ -13,19 +20,27 @@ export abstract class Gradient {
         private readonly bbox?: BBox
     ) {}
 
-    protected abstract createCanvasGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | undefined;
+    protected abstract createCanvasGradient(
+        ctx: CanvasRenderingContext2D,
+        bbox: BBox,
+        params?: GradientParams
+    ): CanvasGradient | undefined;
 
     private _cache:
         | { ctx: CanvasRenderingContext2D; bbox: BBox; gradient: CanvasGradient | string | undefined }
         | undefined = undefined;
-    createGradient(ctx: CanvasRenderingContext2D, shapeBbox: BBox): CanvasGradient | string | undefined {
+    createGradient(
+        ctx: CanvasRenderingContext2D,
+        shapeBbox: BBox,
+        params?: GradientParams
+    ): CanvasGradient | string | undefined {
         const bbox = this.bbox ?? shapeBbox;
 
-        if (
-            this._cache != null &&
-            this._cache.ctx === ctx &&
-            (this._cache.bbox.equals(bbox) || isNaN(bbox.x) || isNaN(bbox.y))
-        ) {
+        if (isNaN(bbox.x) || isNaN(bbox.y)) {
+            return;
+        }
+
+        if (this._cache != null && this._cache.ctx === ctx && this._cache.bbox.equals(bbox)) {
             return this._cache.gradient;
         }
 
@@ -34,7 +49,7 @@ export abstract class Gradient {
         if (stops.length === 0) return;
         if (stops.length === 1) return stops[0].color;
 
-        let gradient = this.createCanvasGradient(ctx, bbox);
+        let gradient = this.createCanvasGradient(ctx, bbox, params);
         if (gradient == null) return;
 
         const isOkLch = colorSpace === 'oklch';

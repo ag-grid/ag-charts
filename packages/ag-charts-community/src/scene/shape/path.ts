@@ -1,6 +1,7 @@
 import { createSvgElement } from 'ag-charts-core';
 
 import type { DistantObject } from '../../util/nearest';
+import type { BBox } from '../bbox';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { ChildNodeCounts, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
@@ -67,6 +68,11 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
 
         this.dirtyPath =
             this.path.isDirty() || (this.fillShadow?.isDirty() ?? false) || (this._clipPath?.isDirty() ?? false);
+    }
+
+    protected override computeBBox(): BBox | undefined {
+        this.updatePathIfDirty();
+        return this.path.computeBBox();
     }
 
     isPointInPath(x: number, y: number): boolean {

@@ -197,7 +197,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
 
             const fillBBox = this.getFillBBox(overrides.fill);
 
-            applyShapeStyle(rect, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(rect, style, overrides, defaultColorRange, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

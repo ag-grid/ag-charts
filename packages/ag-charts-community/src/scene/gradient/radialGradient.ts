@@ -1,7 +1,7 @@
 import { createSvgElement } from 'ag-charts-core';
 
 import type { BBox } from '../bbox';
-import { type ColorSpace, Gradient } from './gradient';
+import { type ColorSpace, Gradient, type GradientParams } from './gradient';
 import type { GradientColorStop } from './stops';
 
 export class RadialGradient extends Gradient {
@@ -9,18 +9,18 @@ export class RadialGradient extends Gradient {
         super(colorSpace, stops, bbox);
     }
 
-    protected override createCanvasGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | undefined {
-        const cx = bbox.x + bbox.width * 0.5;
-        const cy = bbox.y + bbox.height * 0.5;
-        return ctx.createRadialGradient(
-            cx,
-            cy,
-            0,
-            cx,
-            cy,
-            Math.hypot(bbox.width * 0.5, bbox.height * 0.5) / Math.SQRT2
-        );
+    protected override createCanvasGradient(
+        ctx: CanvasRenderingContext2D,
+        bbox: BBox,
+        params?: GradientParams
+    ): CanvasGradient | undefined {
+        const cx = params?.centerX ?? bbox.x + bbox.width * 0.5;
+        const cy = params?.centerY ?? bbox.y + bbox.height * 0.5;
+        const innerRadius = params?.innerRadius ?? 0;
+        const outerRadius = params?.outerRadius ?? Math.hypot(bbox.width * 0.5, bbox.height * 0.5) / Math.SQRT2;
+        return ctx.createRadialGradient(cx, cy, innerRadius, cx, cy, outerRadius);
     }
+
     createSvgGradient(bbox: BBox) {
         const cx = bbox.x + bbox.width * 0.5;
         const cy = bbox.y + bbox.height * 0.5;

@@ -512,7 +512,7 @@ export class MapShapeSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            applyShapeStyle(geoGeometry, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(geoGeometry, style, overrides, defaultColorRange, fillBBox);
         });
     }
 

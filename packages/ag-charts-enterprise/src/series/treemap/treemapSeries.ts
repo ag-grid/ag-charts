@@ -684,7 +684,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
             rect.crisp = true;
 
-            applyShapeStyle(rect, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(rect, style, overrides, defaultColorRange, fillBBox);
 
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, highlighted ? 1 : 0];

@@ -1,16 +1,16 @@
-import type { AgFillType, AgGradientFill } from 'ag-charts-types';
+import type { AgGradientFill } from 'ag-charts-types';
 
 import { generateUUID } from '../../util/id';
 import { clamp } from '../../util/number';
 import type { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
 import { ConicGradient } from '../gradient/conicGradient';
-import { Gradient } from '../gradient/gradient';
+import { Gradient, type GradientParams } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Node, SceneChangeDetection } from '../node';
-import { type FillType, isGradientFill } from '../util/fill';
+import { isGradientFill } from '../util/fill';
 import { align } from '../util/pixel';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
@@ -25,8 +25,12 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasTransform &
     CanvasState;
 
+export type ShapeGradientFill = Omit<AgGradientFill, 'bounds'>;
+
+export type ShapeFill = string | Gradient | ShapeGradientFill;
+
 export interface DefaultStyles {
-    fill?: AgFillType;
+    fill?: ShapeFill;
     stroke?: string;
     strokeWidth: number;
     lineDash?: number[];
@@ -35,7 +39,6 @@ export interface DefaultStyles {
     lineJoin?: ShapeLineJoin;
     opacity: number;
     fillShadow?: DropShadow;
-    defaultColorRange: string[];
 }
 
 export abstract class Shape<D = any> extends Node<D> {
@@ -57,7 +60,6 @@ export abstract class Shape<D = any> extends Node<D> {
         lineJoin: undefined,
         opacity: 1,
         fillShadow: undefined,
-        defaultColorRange: [],
     };
 
     /**
@@ -75,41 +77,31 @@ export abstract class Shape<D = any> extends Node<D> {
     strokeOpacity: number = 1;
 
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
-    defaultColorRange?: string[] = Shape.defaultStyles.defaultColorRange;
+    fill: ShapeFill | undefined = Shape.defaultStyles.fill;
 
-    @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
-    fill?: FillType = Shape.defaultStyles.fill;
-
-    private getGradient(pattern: FillType | undefined) {
+    private getGradient(pattern: Gradient | ShapeFill | undefined) {
         if (pattern instanceof Gradient) {
             return pattern;
-        } else if (isGradientFill(pattern)) {
+        } else if (typeof pattern !== 'string' && pattern?.type === 'gradient') {
             return this.createGradient(pattern);
         }
 
         return undefined;
     }
 
-    private createGradient(fill: AgGradientFill) {
-        if (!this.defaultColorRange) {
-            return;
-        }
+    private createGradient(fill: ShapeGradientFill) {
+        const { gradient = 'linear', colorStops, rotation = 0 } = fill;
+        if (colorStops == null) return;
 
-        const stops = getColorStops(fill.colorStops ?? [], this.defaultColorRange, [0, 1]);
+        const stops = getColorStops(colorStops, ['black'], [0, 1]);
 
-        switch (fill.type) {
-            case 'gradient': {
-                const { direction, rotation = 0 } = fill;
-                const isHorizontal = direction === 'horizontal';
-                return new LinearGradient('rgb', stops, isHorizontal ? rotation + 90 : rotation);
-            }
-            case 'radial-gradient': {
+        switch (gradient) {
+            case 'linear':
+                return new LinearGradient('rgb', stops, rotation);
+            case 'radial':
                 return new RadialGradient('rgb', stops);
-            }
-            case 'conic-gradient': {
-                const { rotation = 0 } = fill;
+            case 'conic':
                 return new ConicGradient('rgb', stops, rotation);
-            }
         }
     }
 
@@ -175,6 +167,9 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fillBBox?: BBox;
 
+    @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
+    fillParams?: GradientParams;
+
     protected fillStroke(ctx: CanvasContext, path?: Path2D) {
         this.renderFill(ctx, path);
         this.renderStroke(ctx, path);
@@ -201,9 +196,9 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyFill(ctx: CanvasContext) {
-        const bbox = this.fillBBox ?? this.getBBox();
-        const gradientFill = bbox ? this.fillGradient?.createGradient(ctx as any, bbox) : undefined;
-        ctx.fillStyle = gradientFill ?? (typeof this.fill === 'string' ? this.fill : undefined) ?? 'black';
+        const { fill, fillGradient, fillBBox = this.getBBox(), fillParams } = this;
+        const gradientFill = fillBBox ? fillGradient?.createGradient(ctx as any, fillBBox, fillParams) : undefined;
+        ctx.fillStyle = gradientFill ?? (typeof fill === 'string' ? fill : undefined) ?? 'black';
     }
 
     protected applyStroke(ctx: CanvasContext) {

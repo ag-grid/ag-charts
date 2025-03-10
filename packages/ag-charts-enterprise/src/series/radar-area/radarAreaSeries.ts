@@ -46,10 +46,10 @@ export class RadarAreaSeries extends RadarSeries {
             fill.bounds = !fill.bounds || fill.bounds == 'item' ? 'series' : 'axis';
         }
 
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
-        const radiusAxisReversed = radiusAxis?.isReversed();
-        const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
-        const fillBBox = this.getFillBBox(fill, axisOuterRadius);
+        // const radiusAxis = this.axes[ChartAxisDirection.Y];
+        // const radiusAxisReversed = radiusAxis?.isReversed();
+        // const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
+        const fillBBox = this.getFillBBox(fill);
 
         areaNode.fillBBox = fillBBox;
         areaNode.fill = fill;
