@@ -594,9 +594,15 @@ function ref<T extends object, P extends object>(
 }
 
 function palette(value: string | Array<unknown>, path: string[], params: any, source: any) {
+if (!isString(value)) return;
+
+    const p = params.__palette;
+
+    const indexPaletteParams = ['fill', 'stroke', 'gradient', 'range2'];
+    if (indexPaletteParams.includes(value)) {
     const indexIndex = path.findLastIndex((v) => !isNaN(Number(v)));
     let index = Number(path[indexIndex]);
-    if (isNaN(index) || !isString(value)) return;
+    if (isNaN(index)) return;
 
     const seriesPath = path.slice(0, indexIndex);
     const ignoreIndexSeries = ['map-shape-background', 'map-line-background'];
@@ -605,19 +611,22 @@ function palette(value: string | Array<unknown>, path: string[], params: any, so
         .filter((s: any) => ignoreIndexSeries.includes(s.type)).length;
     index -= ignoreIndexOffset;
 
-    const p = params.__palette;
-
     switch (value) {
         case 'fill':
             return circularSliceArray(p.fills, 1, index)[0];
         case 'stroke':
             return circularSliceArray(p.strokes, 1, index)[0];
-        case 'gradients':
-            return p.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
-        case 'gradient':
+                case 'gradient':
             return p.sequentialColors[index];
         case 'range2':
             return circularSliceArray(p.fills, 2, index);
+}
+
+        return;
+    }
+
+    if (value === 'gradients') {
+        return p.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
     }
 
     return getPath(p, value);
