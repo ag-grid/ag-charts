@@ -13,7 +13,7 @@ const {
     AbstractBarSeriesProperties,
     SeriesTooltip,
     AxisLabel,
-    Validate,
+    TempValidate,
     UNION,
     ARRAY_OF,
     OR,
@@ -28,15 +28,15 @@ const {
 } = _ModuleSupport;
 
 class ConeFunnelSeriesLabel extends Label<AgConeFunnelSeriesLabelFormatterParams> {
-    @Validate(UNION(['before', 'middle', 'after'], 'a placement'))
+    @TempValidate(UNION(['before', 'middle', 'after'], 'a placement'))
     placement: string | undefined;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     spacing: number = 0;
 }
 
 class ConeFunnelSeriesStageLabel extends AxisLabel {
-    @Validate(UNION(['before', 'after'], 'a placement'))
+    @TempValidate(UNION(['before', 'after'], 'a placement'))
     placement?: string;
 }
 
@@ -44,42 +44,42 @@ export class ConeFunnelProperties
     extends AbstractBarSeriesProperties<AgConeFunnelSeriesOptions>
     implements BaseFunnelProperties<AgConeFunnelSeriesOptions>
 {
-    @Validate(STRING)
+    @TempValidate(STRING)
     stageKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     valueKey!: string;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
     fills: AgFillType[] = [];
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = [];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new ConeFunnelSeriesLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly stageLabel = new ConeFunnelSeriesStageLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgConeFunnelSeriesTooltipRendererParams<unknown>>();
 }

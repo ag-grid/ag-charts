@@ -17,40 +17,40 @@ import {
     POSITIVE_NUMBER,
     STRING,
     TEXT_WRAP,
-    Validate,
+    TempValidate,
 } from '../../util/validation';
 import { Caption } from '../caption';
 
 export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     readonly caption = new Caption();
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled: boolean = false;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     text?: string;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     spacing?: number = Caption.SMALL_PADDING;
 
-    @Validate(FONT_STYLE, { optional: true })
+    @TempValidate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle;
 
-    @Validate(FONT_WEIGHT, { optional: true })
+    @TempValidate(FONT_WEIGHT, { optional: true })
     fontWeight?: FontWeight;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     fontSize: number = 10;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     fontFamily: string = 'sans-serif';
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     color?: string;
 
-    @Validate(TEXT_WRAP)
+    @TempValidate(TEXT_WRAP)
     wrapping: TextWrap = 'always';
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     formatter?: Formatter<AgAxisCaptionFormatterParams>;
 }

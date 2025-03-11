@@ -25,6 +25,12 @@ type ConfigMetadata = Omit<TransformConfig, 'setters' | 'getters' | 'observers' 
 
 type DecoratedObject = { __decorator_config: Record<string, TransformConfig> };
 
+// Used temporarily while transitioning between options validation methods.
+export function addFakeTransformToInstanceProperty(target: any, propertyKeyOrSymbol: string | symbol) {
+    target[CONFIG_KEY] ??= {};
+    target[CONFIG_KEY][propertyKeyOrSymbol.toString()] = null;
+}
+
 function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
     if (Object.getOwnPropertyDescriptor(target, CONFIG_KEY) == null) {
         Object.defineProperty(target, CONFIG_KEY, { value: {} });

@@ -7,7 +7,6 @@ import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { markerPositions } from '../map-util/markerUtil';
 import { TopologySeries } from '../map-util/topologySeries';
-import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
     type MapMarkerNodeDatum,
     type MapMarkerNodeLabelDatum,
@@ -16,7 +15,6 @@ import {
 
 const {
     CachedTextMeasurerPool,
-    Validate,
     fromToMotion,
     StateMachine,
     getMissCount,
@@ -67,7 +65,6 @@ export class MapMarkerSeries
 
     override properties = new MapMarkerSeriesProperties();
 
-    @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
     public override getNodeData(): MapMarkerNodeDatum[] | undefined {

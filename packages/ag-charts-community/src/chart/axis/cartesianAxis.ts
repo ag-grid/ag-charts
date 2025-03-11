@@ -10,7 +10,7 @@ import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { TransformableText } from '../../scene/shape/text';
 import { StateMachine } from '../../util/stateMachine';
-import { POSITION, POSITIVE_NUMBER, Validate } from '../../util/validation';
+import { POSITION, POSITIVE_NUMBER, TempValidate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -46,10 +46,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return value instanceof CartesianAxis;
     }
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     thickness?: number;
 
-    @Validate(POSITION)
+    @TempValidate(POSITION)
     position!: AgCartesianAxisPosition;
 
     protected animationManager: AnimationManager;

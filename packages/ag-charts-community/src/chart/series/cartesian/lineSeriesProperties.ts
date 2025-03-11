@@ -13,7 +13,7 @@ import {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
-    Validate,
+    TempValidate,
 } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
@@ -22,60 +22,60 @@ import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
 
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     xKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     yKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     xName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yFilterKey: string | undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     stackGroup?: string;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     title?: string;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = '#874349';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 2;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     interpolation: InterpolationProperties = new InterpolationProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly marker = new SeriesMarker<AgLineSeriesMarkerItemStylerParams>();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new Label<AgLineSeriesLabelFormatterParams>();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgLineSeriesTooltipRendererParams>();
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     connectMissingData: boolean = false;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     sparklineMode: boolean = false;
 }

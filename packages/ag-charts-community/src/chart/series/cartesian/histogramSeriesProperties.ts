@@ -19,8 +19,8 @@ import {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    TempValidate,
     UNION,
-    Validate,
 } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -50,63 +50,63 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
 }
 
 export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHistogramSeriesOptions> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     xKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     xName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yName?: string;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
     fill?: AgFillType;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity = 1;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     stroke?: string;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     areaPlot: boolean = false;
 
-    @Validate(ARRAY, { optional: true })
+    @TempValidate(ARRAY, { optional: true })
     bins?: [number, number][];
 
-    @Validate(UNION(['count', 'sum', 'mean'], 'a histogram aggregation'))
+    @TempValidate(UNION(['count', 'sum', 'mean'], 'a histogram aggregation'))
     aggregation: NonNullable<AgHistogramSeriesOptions['aggregation']> = 'sum';
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     binCount?: number;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly shadow = new DropShadow();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new Label<AgHistogramSeriesLabelFormatterParams>();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams<HistogramNodeDatum>>();
 }

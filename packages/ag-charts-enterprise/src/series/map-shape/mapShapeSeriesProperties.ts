@@ -25,7 +25,7 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
-    Validate,
+    TempValidate,
     SeriesProperties,
     SeriesTooltip,
 } = _ModuleSupport;
@@ -46,72 +46,72 @@ export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDat
 }
 
 export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesOptions> {
-    @Validate(GEOJSON_OBJECT, { optional: true })
+    @TempValidate(GEOJSON_OBJECT, { optional: true })
     topology?: _ModuleSupport.FeatureCollection = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     title?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     legendItemName?: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     idKey: string = '';
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     idName: string | undefined = undefined;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     topologyIdKey: string = 'name';
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     labelKey: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     labelName: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     colorKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     colorName?: string;
 
-    @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
+    @TempValidate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
     colorRange: string[] | undefined = undefined;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgFillType = 'black';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = 'black';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 0;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     padding: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<unknown>, AgMapShapeSeriesStyle>;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new AutoSizedSecondaryLabel<AgMapShapeSeriesLabelFormatterParams>();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgMapShapeSeriesTooltipRendererParams<any>>();
 }

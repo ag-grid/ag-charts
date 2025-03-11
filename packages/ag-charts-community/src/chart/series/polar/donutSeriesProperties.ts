@@ -25,7 +25,7 @@ import {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
-    Validate,
+    TempValidate,
 } from '../../../util/validation';
 import { Caption } from '../../caption';
 import { Label } from '../../label';
@@ -34,15 +34,15 @@ import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 
 export class DonutTitle extends Caption {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     showInLegend = false;
 }
 
 export class DonutInnerLabel<T extends object = any> extends Label<AgDonutSeriesLabelFormatterParams> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     text!: string;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     spacing: number = 2;
 
     override set(properties: T, _reset?: boolean) {
@@ -51,158 +51,158 @@ export class DonutInnerLabel<T extends object = any> extends Label<AgDonutSeries
 }
 
 class DonutInnerCircle extends BaseProperties {
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgFillType = 'transparent';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 }
 
 class DonutSeriesCalloutLabel extends Label<AgDonutSeriesLabelFormatterParams> {
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     offset = 3; // from the callout line
 
-    @Validate(NUMBER.restrict({ min: 0, max: 360 }))
+    @TempValidate(NUMBER.restrict({ min: 0, max: 360 }))
     minAngle = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     minSpacing = 4;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     maxCollisionOffset = 50;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     avoidCollisions = true;
 }
 
 class DonutSeriesSectorLabel extends Label<AgDonutSeriesLabelFormatterParams> {
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     positionOffset = 0;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     positionRatio = 0.5;
 }
 
 class DonutSeriesCalloutLine extends BaseProperties {
-    @Validate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)), { optional: true })
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)), { optional: true })
     colors?: AgFillType[];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     length: number = 10;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 }
 
 export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     angleKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     angleName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     angleFilterKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     radiusKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     radiusName?: string;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     radiusMin?: number;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     radiusMax?: number;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     calloutLabelKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     calloutLabelName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     sectorLabelKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     sectorLabelName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     legendItemKey?: string;
 
-    @Validate(ARRAY_OF(COLOR_STRING_ARRAY))
+    @TempValidate(ARRAY_OF(COLOR_STRING_ARRAY))
     defaultColorRange: string[][] = [];
 
-    @Validate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
     fills: AgFillType[] = Object.values(DEFAULT_FILLS);
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgDonutSeriesItemStylerParams<unknown>, AgDonutSeriesStyle>;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     rotation: number = 0;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     outerRadiusOffset: number = 0;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     outerRadiusRatio: number = 1;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     innerRadiusOffset?: number;
 
-    @Validate(RATIO, { optional: true })
+    @TempValidate(RATIO, { optional: true })
     innerRadiusRatio?: number;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     sectorSpacing: number = 0;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     hideZeroValueSectorsInLegend = false;
 
-    @Validate(OBJECT_ARRAY)
+    @TempValidate(OBJECT_ARRAY)
     readonly innerLabels = new PropertiesArray(DonutInnerLabel);
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly title = new DonutTitle();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly innerCircle = new DonutInnerCircle();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly shadow = new DropShadow();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly calloutLabel = new DonutSeriesCalloutLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly sectorLabel = new DonutSeriesSectorLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly calloutLine = new DonutSeriesCalloutLine();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgDonutSeriesTooltipRendererParams<any>>();
 }

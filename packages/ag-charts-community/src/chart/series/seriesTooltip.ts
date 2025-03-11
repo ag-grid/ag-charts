@@ -3,36 +3,36 @@ import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult, Interactio
 
 import { callWithContext } from '../../util/callbackCache';
 import { BaseProperties } from '../../util/properties';
-import { BOOLEAN, FUNCTION, INTERACTION_RANGE, OBJECT, STRING, Validate } from '../../util/validation';
+import { BOOLEAN, FUNCTION, INTERACTION_RANGE, OBJECT, STRING, TempValidate } from '../../util/validation';
 import { type TooltipContent, TooltipPosition, type TooltipStructuredContent } from '../tooltip/tooltip';
 
 type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
 
 class SeriesTooltipInteraction extends BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled: boolean = false;
 }
 
 export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends BaseProperties {
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     enabled?: boolean;
 
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     showArrow?: boolean;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     renderer?: TooltipRenderer<RequireOptional<P>>;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly interaction = new SeriesTooltipInteraction();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly position = new TooltipPosition();
 
-    @Validate(INTERACTION_RANGE, { optional: true })
+    @TempValidate(INTERACTION_RANGE, { optional: true })
     range?: InteractionRange = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     class?: string = undefined;
 
     public formatTooltip(

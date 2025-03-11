@@ -12,6 +12,7 @@ import {
     isString,
 } from 'ag-charts-core';
 import type { DeepPartial, PlainObject } from 'ag-charts-core';
+import type { AgGradientFill } from 'ag-charts-types';
 
 import { Color } from './color';
 import { SKIP_JS_BUILTINS, getPath, mergeDefaults } from './object';
@@ -434,6 +435,7 @@ enum ColorOperation {
     ForegroundBackgroundMix = '$foregroundBackgroundMix',
     ForegroundBackgroundAccentMix = '$foregroundBackgroundAccentMix',
     Interpolate = '$interpolate',
+    IsGradient = '$isGradient',
 }
 
 type Operation =
@@ -475,11 +477,20 @@ function resolveOperation<T extends object, P extends object>(
 }
 
 function isKey<T extends object>(key: unknown, obj: T): key is keyof T & string {
-    return isString(key) && obj != null && key in obj;
+    return isString(key) && (isObject(obj) || isArray(obj)) && key in obj;
 }
 
 function isRatio(value: unknown): value is number {
     return isNumber(value) && value >= 0 && value <= 1;
+}
+
+// Duplicates `isGradientFill()` from `../scene/util/fill` due to dependency violations
+function isGradientFill(fill: any): fill is AgGradientFill {
+    return (
+        fill !== null &&
+        isObject(fill) &&
+        (fill.type == 'gradient' || fill.type === 'radial-gradient' || fill.type === 'conic-gradient')
+    );
 }
 
 function resolvePath(root: string[], path: string) {
@@ -490,10 +501,11 @@ function resolvePath(root: string[], path: string) {
         relativePathParts.shift();
     }
 
+    let prevPartWasTwoDots = false;
     for (const part of relativePathParts) {
         if (part === '..') {
             resolvedPath.pop();
-            resolvedPath.pop();
+            if (!prevPartWasTwoDots) resolvedPath.pop();
         } else if (part === '.') {
             resolvedPath.pop();
         } else if (part === '$index') {
@@ -502,6 +514,8 @@ function resolvePath(root: string[], path: string) {
         } else if (part.length !== 0) {
             resolvedPath.push(part);
         }
+
+        prevPartWasTwoDots = part === '..';
     }
 
     return resolvedPath;
@@ -554,6 +568,7 @@ const colorOperations: Record<ColorOperation, OperationFn> = {
     $foregroundBackgroundMix: foregroundBackgroundMix,
     $foregroundBackgroundAccentMix: foregroundBackgroundAccentMix,
     $interpolate: interpolate,
+    $isGradient: ([value]: string | Array<unknown>) => isGradientFill(value),
 };
 
 const operations: Record<Operation, OperationFn<any, any>> = {
@@ -779,16 +794,43 @@ function rem<P extends object>([a]: string | Array<unknown>, path: string[], par
 }
 
 function mix([a, b, c]: string | Array<unknown>, path: string[]) {
-    if (typeof a === 'string' && typeof b === 'string' && isRatio(c)) {
+    const warningPrefix = `\`$mix\` json operation failed on [${String(a)}, ${String(b)}, ${String(c)}] at [${path.join('.')}], expecting`;
+    const warningMessage = `${warningPrefix} two colors and a number between 0 and 1.`;
+
+    if (typeof b !== 'string' || !isRatio(c)) {
+        Logger.warnOnce(warningMessage);
+        return;
+    }
+
+    if (typeof a === 'string') {
         try {
             return Color.mix(Color.fromString(a), Color.fromString(b), c).toString();
         } catch {
-            // Discard and log below
+            Logger.warnOnce(warningMessage);
+            return;
         }
     }
-    Logger.warnOnce(
-        `\`$mix\` json operation failed on [${String(a)}, ${String(b)}, ${String(c)}] at [${path.join('.')}], expecting two colors and a number between 0 and 1.`
-    );
+
+    if (!isGradientFill(a)) {
+        Logger.warnOnce(warningMessage);
+        return;
+    }
+
+    let colorStops = a.colorStops;
+    try {
+        colorStops = colorStops?.map((value) => {
+            let color;
+            if (typeof value.color === 'string') {
+                color = Color.mix(Color.fromString(value.color), Color.fromString(b), c).toString();
+            }
+            return { ...value, color };
+        });
+    } catch {
+        Logger.warnOnce(`${warningPrefix} a gradient, a color and a number between 0 and 1.`);
+        return;
+    }
+
+    return { ...a, colorStops };
 }
 
 function foregroundBackgroundMix<P extends object>([background]: string | Array<unknown>, path: string[], params: P) {

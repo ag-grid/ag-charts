@@ -8,6 +8,7 @@ import type { AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleO
 import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/candlestickOptions';
 import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { AgFillType } from '../series/cartesian/commonOptions';
 import type { AgConeFunnelSeriesThemeableOptions } from '../series/cartesian/coneFunnelOptions';
 import type { AgFunnelSeriesThemeableOptions } from '../series/cartesian/funnelOptions';
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
@@ -71,7 +72,7 @@ export interface AgPaletteColors {
  */
 export interface AgChartThemePalette {
     /** The array of fills to be used. */
-    fills?: CssColor[];
+    fills?: AgFillType[];
     /** The array of strokes to be used. */
     strokes?: CssColor[];
     up?: AgPaletteColors;

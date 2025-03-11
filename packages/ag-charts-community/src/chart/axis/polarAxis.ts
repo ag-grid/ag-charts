@@ -1,6 +1,6 @@
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
-import { RATIO, UNION, Validate } from '../../util/validation';
+import { RATIO, TempValidate, UNION } from '../../util/validation';
 import { Axis } from './axis';
 import type { TickInterval } from './axisTick';
 import { prepareAxisAnimationContext, resetAxisLabelSelectionFn, resetAxisSelectionFn } from './axisUtil';
@@ -23,10 +23,10 @@ export abstract class PolarAxis<
     gridAngles: number[] | undefined;
     gridRange: number[] | undefined;
 
-    @Validate(UNION(['polygon', 'circle'], 'a polar axis shape'))
+    @TempValidate(UNION(['polygon', 'circle'], 'a polar axis shape'))
     shape: 'polygon' | 'circle' = 'polygon';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     innerRadiusRatio: number = 0;
 
     override defaultTickMinSpacing = 20;
