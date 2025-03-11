@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgFillType, type AgGradientFill, _ModuleSupport } from 'ag-charts-community';
 
 import { type RadarPathPoint, RadarSeries } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
@@ -41,9 +41,16 @@ export class RadarAreaSeries extends RadarSeries {
 
         const areaNode = this.getAreaNode();
 
-        const { fill, defaultColorRange, fillOpacity } = this.properties;
+        let fill = this.properties.fill as Required<AgFillType>;
+        const { fillOpacity } = this.properties;
         if (isGradientFill(fill)) {
-            fill.bounds = !fill.bounds || fill.bounds == 'item' ? 'series' : 'axis';
+            fill = {
+                ...(fill as AgGradientFill),
+                gradient: fill.gradient ?? 'linear',
+                bounds: fill.bounds ?? 'item',
+                colorStops: fill.colorStops ?? this.properties.defaultColorRange.map((color) => ({ color })),
+                rotation: fill.rotation ?? 0,
+            };
         }
 
         // const radiusAxis = this.axes[ChartAxisDirection.Y];
@@ -53,7 +60,6 @@ export class RadarAreaSeries extends RadarSeries {
 
         areaNode.fillBBox = fillBBox;
         areaNode.fill = fill;
-        areaNode.defaultColorRange = defaultColorRange;
         areaNode.fillOpacity = fillOpacity;
         areaNode.pointerEvents = PointerEvents.None;
         areaNode.stroke = undefined;

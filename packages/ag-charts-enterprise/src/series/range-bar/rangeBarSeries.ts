@@ -486,19 +486,22 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     private getItemBaseStyle(highlighted: boolean): Required<AgRangeBarSeriesStyle> {
         const { properties } = this;
-        const { cornerRadius } = properties;
+        const { cornerRadius, defaultColorRange } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return {
-            fill: highlightStyle?.fill ?? properties.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            cornerRadius,
-        };
+        return this.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? properties.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke ?? properties.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
+                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+                cornerRadius,
+            },
+            defaultColorRange
+        );
     }
 
     private getItemStyleOverrides(
@@ -509,11 +512,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     ) {
         const { id: seriesId, properties } = this;
 
-        const { xKey, yHighKey, yLowKey, itemStyler } = properties;
+        const { xKey, yHighKey, yLowKey, itemStyler, defaultColorRange } = properties;
 
         if (itemStyler == null) return;
 
-        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+        const overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
             return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
@@ -524,6 +527,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 ...format,
             });
         });
+
+        return this.getShapeStyle(overrides, defaultColorRange);
     }
 
     protected override updateDatumNodes(opts: {
@@ -538,12 +543,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const fillBBox = isGradientFill(style.fill) ? this.getFillBBox(style.fill) : undefined;
 
-        const { defaultColorRange } = this.properties;
-
         datumSelection.each((rect, datum) => {
             const overrides = this.getItemStyleOverrides(String(datum.datumIndex), datum.datum, style, isHighlight);
 
-            applyShapeStyle(rect, style, overrides, defaultColorRange, fillBBox);
+            applyShapeStyle(rect, style, overrides, fillBBox);
 
             rect.cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;

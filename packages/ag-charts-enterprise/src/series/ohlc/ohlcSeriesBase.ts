@@ -421,15 +421,18 @@ export abstract class OhlcSeriesBase<
         const { properties } = this;
         const item = properties.item[itemId];
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-        return {
-            fill: highlightStyle?.fill ?? item.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,
-            stroke: highlightStyle?.stroke ?? item.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? item.strokeWidth,
-            strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? item.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
-        };
+        return this.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? item.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,
+                stroke: highlightStyle?.stroke ?? item.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? item.strokeWidth,
+                strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? item.lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
+            },
+            item.defaultColorRange ?? ['black']
+        );
     }
 
     protected getItemStyleOverrides(
@@ -440,13 +443,14 @@ export abstract class OhlcSeriesBase<
         highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
+        const item = properties.item[itemId];
 
         const { itemStyler } = properties;
 
         if (itemStyler == null) return;
 
         const { xKey, openKey, closeKey, highKey, lowKey } = properties;
-        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+        const overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
             return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
@@ -460,6 +464,8 @@ export abstract class OhlcSeriesBase<
                 ...format,
             });
         });
+
+        return this.getShapeStyle(overrides, item.defaultColorRange ?? ['black']);
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {

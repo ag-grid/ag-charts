@@ -443,6 +443,22 @@ export abstract class CartesianSeries<
         };
     }
 
+    protected getShapeStyle<T extends { fill?: AgFillType }>(style: T, defaultColorRange: string[]): T;
+    protected getShapeStyle<T extends { fill?: AgFillType }>(
+        style: T | undefined,
+        defaultColorRange: string[]
+    ): T | undefined;
+    protected getShapeStyle<T extends { fill?: AgFillType }>(
+        style: T | undefined,
+        defaultColorRange: string[]
+    ): T | undefined {
+        if (!isGradientFill(style?.fill)) return style;
+        return {
+            ...style,
+            fill: this.getNodeFill(style.fill, defaultColorRange),
+        };
+    }
+
     protected updateNodes(
         highlightedItems: TDatum[] | undefined,
         seriesHighlighted: boolean,

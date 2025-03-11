@@ -647,16 +647,19 @@ export class BarSeries extends AbstractBarSeries<
         const { cornerRadius, defaultColorRange } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return {
-            fill: this.getNodeFill(highlightStyle?.fill ?? properties.fill, defaultColorRange),
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            cornerRadius,
-        };
+        return this.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? properties.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke ?? properties.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
+                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+                cornerRadius,
+            },
+            defaultColorRange
+        );
     }
 
     private getItemStyleOverrides(
@@ -677,7 +680,7 @@ export class BarSeries extends AbstractBarSeries<
             xDomain: this.getSeriesDomain(ChartAxisDirection.X),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
         }))!;
-        let overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+        const overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
             return this.callWithContext(itemStyler, {
                 seriesId,
                 ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
@@ -689,11 +692,7 @@ export class BarSeries extends AbstractBarSeries<
             });
         });
 
-        if (overrides?.fill != null) {
-            overrides = { ...overrides, fill: this.getNodeFill(overrides.fill, defaultColorRange) };
-        }
-
-        return overrides;
+        return this.getShapeStyle(overrides, defaultColorRange);
     }
 
     protected override updateDatumNodes(opts: { datumSelection: Selection<Rect, BarNodeDatum>; isHighlight: boolean }) {

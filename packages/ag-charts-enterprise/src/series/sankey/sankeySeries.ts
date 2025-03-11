@@ -389,7 +389,7 @@ export class SankeySeries extends FlowProportionSeries<
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
-            fill: highlightStyle?.fill ?? fill,
+            fill: this.getNodeFill(highlightStyle?.fill ?? fill, properties.defaultColorRange),
             fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
             stroke: highlightStyle?.stroke ?? stroke,
             strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
@@ -409,15 +409,16 @@ export class SankeySeries extends FlowProportionSeries<
         highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
-        const { fills, strokes } = properties;
+        const { fills, strokes, defaultColorRange } = properties;
         const { itemStyler } = properties.node;
 
         const fill = format.fill ?? fills[datumIndex % fills.length];
         const stroke = format.stroke ?? strokes[datumIndex % strokes.length];
 
-        const overrides: Partial<NodeStyle> = {};
+        let overrides: Partial<NodeStyle> | undefined;
 
         if (!highlighted) {
+            overrides ??= {};
             overrides.fill = fill;
             overrides.stroke = stroke;
         }
@@ -451,7 +452,12 @@ export class SankeySeries extends FlowProportionSeries<
                 }
             );
 
+            overrides ??= {};
             Object.assign(overrides, itemStyle);
+        }
+
+        if (overrides?.fill) {
+            overrides = { ...overrides, fill: this.getNodeFill(overrides.fill, defaultColorRange) };
         }
 
         return overrides;
@@ -465,7 +471,6 @@ export class SankeySeries extends FlowProportionSeries<
 
         const style = this.getBaseNodeStyle(isHighlight);
         const fillBBox = this.getFillBBox(style.fill);
-        const { defaultColorRange } = this.properties;
 
         datumSelection.each((rect, datum) => {
             const { datumIndex, size, label } = datum;
@@ -484,7 +489,7 @@ export class SankeySeries extends FlowProportionSeries<
             rect.width = Math.max(datum.width, 0);
             rect.height = Math.max(datum.height, 0);
 
-            applyShapeStyle(rect, style, overrides, defaultColorRange, fillBBox);
+            applyShapeStyle(rect, style, overrides, fillBBox);
         });
     }
 
@@ -503,7 +508,7 @@ export class SankeySeries extends FlowProportionSeries<
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
-            fill: highlightStyle?.fill ?? fill,
+            fill: this.getNodeFill(highlightStyle?.fill ?? fill, properties.defaultColorRange),
             fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
             stroke: highlightStyle?.stroke ?? stroke,
             strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
@@ -527,9 +532,10 @@ export class SankeySeries extends FlowProportionSeries<
         const fill = format.fill ?? fills[datumIndex % fills.length];
         const stroke = format.stroke ?? strokes[datumIndex % strokes.length];
 
-        const overrides: Partial<LinkStyle> = {};
+        let overrides: Partial<LinkStyle> | undefined;
 
         if (!highlighted) {
+            overrides ??= {};
             overrides.fill = fill;
             overrides.stroke = stroke;
         }
@@ -561,7 +567,12 @@ export class SankeySeries extends FlowProportionSeries<
                 }
             );
 
+            overrides ??= {};
             Object.assign(overrides, itemStyle);
+        }
+
+        if (overrides?.fill) {
+            overrides = { ...overrides, fill: this.getNodeFill(overrides.fill, properties.defaultColorRange) };
         }
 
         return overrides;
@@ -574,7 +585,6 @@ export class SankeySeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const style = this.getBaseLinkStyle(isHighlight);
-        const { defaultColorRange } = this.properties;
 
         datumSelection.each((link, datum) => {
             const { datumIndex } = datum;
@@ -593,7 +603,7 @@ export class SankeySeries extends FlowProportionSeries<
             link.y2 = datum.y2;
             link.height = datum.height;
 
-            applyShapeStyle(link, style, overrides, defaultColorRange);
+            applyShapeStyle(link, style, overrides);
 
             link.inset = link.strokeWidth / 2;
         });

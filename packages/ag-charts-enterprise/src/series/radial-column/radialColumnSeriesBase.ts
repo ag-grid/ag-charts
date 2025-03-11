@@ -65,7 +65,7 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNod
     readonly index: number;
 }
 
-type ItemStyle = Required<AgRadialSeriesStyle> & _ModuleSupport.DefaultFillStyle;
+type ItemStyle = Required<AgRadialSeriesStyle>;
 
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends _ModuleSupport.Sector | _ModuleSupport.RadialColumnShape,
@@ -364,6 +364,16 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract getNodeFill(fill: AgFillType, angle: number): Required<AgFillType>;
 
+    private getShapeStyle<T extends { fill?: AgFillType }>(style: T, angle: number): T;
+    private getShapeStyle<T extends { fill?: AgFillType }>(style: T | undefined, angle: number): T | undefined;
+    private getShapeStyle<T extends { fill?: AgFillType }>(style: T | undefined, angle: number): T | undefined {
+        if (!isGradientFill(style?.fill)) return style;
+        return {
+            ...style,
+            fill: this.getNodeFill(style.fill, angle),
+        };
+    }
+
     update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         const resize = this.checkResize(seriesRect);
         this.maybeRefreshNodeData();
@@ -389,30 +399,38 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
 
-    private getItemBaseStyle(highlighted: boolean): ItemStyle {
+    private getItemBaseStyle(angle: number, highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return {
-            fill: highlightStyle?.fill ?? properties.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            cornerRadius: properties.cornerRadius,
-            defaultColorRange: properties.defaultColorRange,
-        };
+        return this.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? properties.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke ?? properties.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+                cornerRadius: properties.cornerRadius,
+            },
+            angle
+        );
     }
 
-    protected getItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
+    protected getItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        format: ItemStyle,
+        angle: number,
+        highlighted: boolean
+    ) {
         const { id: seriesId, properties } = this;
         const { angleKey, radiusKey, itemStyler } = properties;
 
         if (itemStyler == null) return;
 
-        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+        const overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
             return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
@@ -422,6 +440,8 @@ export abstract class RadialColumnSeriesBase<
                 ...format,
             });
         });
+
+        return this.getShapeStyle(overrides, angle);
     }
 
     protected updateSectorSelection(
@@ -438,31 +458,29 @@ export abstract class RadialColumnSeriesBase<
             selectionData = this.nodeData;
         }
 
-        const style = this.getItemBaseStyle(highlighted);
-
         const radiusAxisReversed = this.isRadiusAxisReversed();
+        const axisInnerRadius = radiusAxisReversed ? this.radius : this.getAxisInnerRadius();
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
-        const fillBBox = this.getFillBBox(style.fill, axisOuterRadius);
-
-        const { defaultColorRange } = this.properties;
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const { datum, datumIndex, point, innerRadius, outerRadius } = nodeDatum;
+                const angle = nodeDatum.midAngle;
 
-                const fill = this.getNodeFill(style.fill, nodeDatum.midAngle);
+                const style = this.getItemBaseStyle(angle, highlighted);
+                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, angle, highlighted);
+
+                const fill = overrides?.fill ?? style.fill;
                 const itemBounds = isGradientFill(fill) && fill.bounds === 'item';
+                const fillBBox = this.getFillBBox(fill, axisOuterRadius);
                 const fillParams = itemBounds
                     ? { centerX: point?.x ?? 0, centerY: point?.y ?? 0, innerRadius, outerRadius }
-                    : { centerX: 0, centerY: 0, innerRadius: innerRadius, outerRadius: outerRadius };
-
-                const nodeStyle = { ...style, fill: fill };
-                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, nodeStyle, highlighted);
+                    : { centerX: 0, centerY: 0, innerRadius: axisInnerRadius, outerRadius: axisOuterRadius };
 
                 this.updateItemPath(node, nodeDatum, highlighted);
 
-                applyShapeStyle(node, nodeStyle, overrides, defaultColorRange, fillBBox, fillParams);
+                applyShapeStyle(node, style, overrides, fillBBox, fillParams);
 
                 node.cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
                 node.lineJoin = 'round';
@@ -530,8 +548,8 @@ export abstract class RadialColumnSeriesBase<
 
         if (angleValue == null) return;
 
-        const format = this.getItemBaseStyle(false);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, false));
+        const format = this.getItemBaseStyle(-Math.PI / 2, false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, -Math.PI / 2, false));
 
         return tooltip.formatTooltip(
             this.properties,

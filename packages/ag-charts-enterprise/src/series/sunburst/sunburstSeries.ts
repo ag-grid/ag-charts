@@ -103,6 +103,15 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         Sector
     );
 
+    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
+        return {
+            gradient: 'radial',
+            bounds: 'series',
+            rotation: 0,
+            colorStops: this.properties.defaultColorRange,
+        };
+    }
+
     override processData() {
         super.processData();
 
@@ -141,13 +150,16 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle : undefined;
 
-        return {
-            fill: highlightStyle?.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-        };
+        return _ModuleSupport.getShapeStyle(
+            {
+                fill: highlightStyle?.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            },
+            this.defaultShapeStyle
+        );
     }
 
     private getItemStyleOverrides(
@@ -192,7 +204,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return overrides;
+        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
     }
 
     updateNodes() {
@@ -223,6 +235,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const radius = Math.min(width, height) / 2;
         const radiusScale = radius / (maxDepth + 1);
         const angleOffset = -Math.PI / 2;
+
+        const seriesFillBBox = new _ModuleSupport.BBox(-radius, -radius, 2 * radius, 2 * radius);
 
         this.rootNode?.walk((node) => {
             const { startAngle, endAngle } = node;
@@ -423,9 +437,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             nodeDatum: SunburstNode,
             sector: _ModuleSupport.Sector,
             style: ItemStyle,
-            defaultColorRange: string[],
-            highlighted: boolean,
-            fillBBox?: _ModuleSupport.BBox
+            highlighted: boolean
         ) => {
             const { datum, datumIndex, depth, colorValue, startAngle, endAngle } = nodeDatum;
             if (depth == null) {
@@ -437,9 +449,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             const overrides = this.getItemStyleOverrides(datumIndex, datum, depth, colorValue, style, highlighted);
 
+            const fill = overrides.fill ?? style.fill;
             const strokeWidth = overrides.strokeWidth ?? style.strokeWidth;
 
-            applyShapeStyle(sector, style, overrides, defaultColorRange, fillBBox);
+            const fillBBox = _ModuleSupport.isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
+            applyShapeStyle(sector, style, overrides, fillBBox);
 
             sector.centerX = 0;
             sector.centerY = 0;
@@ -452,15 +466,13 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         };
 
         const baseFormat = this.getItemBaseStyle(false);
-        const fillBBox = this.getFillBBox(baseFormat.fill);
-        const { defaultColorRange } = this.properties;
 
         this.datumSelection.each((sector, datum) => {
-            updateSector(datum, sector, baseFormat, defaultColorRange, false, fillBBox);
+            updateSector(datum, sector, baseFormat, false);
         });
         const highlightFormat = this.getItemBaseStyle(true);
         this.highlightSelection.each((rect, datum) => {
-            updateSector(datum, rect, highlightFormat, defaultColorRange, true, fillBBox);
+            updateSector(datum, rect, highlightFormat, true);
         });
 
         const updateText = (

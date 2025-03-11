@@ -44,7 +44,6 @@ const {
     ContinuousScale,
     OrdinalTimeScale,
     findMinMax,
-    isGradientFill,
 } = _ModuleSupport;
 
 class RangeAreaSeriesNodeEvent<
@@ -439,10 +438,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible: visible || animationEnabled,
         });
 
-        const { fill: seriesFill } = this.properties;
-        if (isGradientFill(seriesFill)) {
-            seriesFill.bounds = !seriesFill.bounds || seriesFill.bounds == 'item' ? 'series' : 'axis';
-        }
+        const seriesFill = this.getNodeFill(this.properties.fill, this.properties.defaultColorRange);
         const fillBBox = this.getFillBBox(seriesFill);
 
         fill.setProperties({
@@ -450,7 +446,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            fill: this.properties.fill,
+            fill: seriesFill,
             fillOpacity: this.properties.fillOpacity,
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,

@@ -17,6 +17,7 @@ export interface BaseFunnelProperties<SeriesOptions extends object>
     valueName?: string;
     fills: AgFillType[];
     strokes: string[];
+    defaultColorRange: string[];
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;
     label: FunnelSeriesLabel;
     tooltip: _ModuleSupport.SeriesTooltip<AgFunnelSeriesTooltipRendererParams<unknown>>;
