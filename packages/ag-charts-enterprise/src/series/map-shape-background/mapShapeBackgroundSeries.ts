@@ -183,7 +183,7 @@ export class MapShapeBackgroundSeries
     }) {
         const { properties } = this;
         const { datumSelection } = opts;
-        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } = properties;
+        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
         datumSelection.each((geoGeometry, datum) => {
@@ -197,7 +197,6 @@ export class MapShapeBackgroundSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
             geoGeometry.fill = fill;
-            geoGeometry.defaultColorRange = defaultColorRange;
             geoGeometry.fillOpacity = fillOpacity;
             geoGeometry.stroke = stroke;
             geoGeometry.strokeWidth = strokeWidth;
