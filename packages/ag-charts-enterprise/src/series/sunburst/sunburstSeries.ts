@@ -13,6 +13,7 @@ const {
     ScalableGroup,
     Selection,
     TransformableText,
+    BBox,
     applyShapeStyle,
 } = _ModuleSupport;
 
@@ -236,7 +237,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const radiusScale = radius / (maxDepth + 1);
         const angleOffset = -Math.PI / 2;
 
-        const seriesFillBBox = new _ModuleSupport.BBox(-radius, -radius, 2 * radius, 2 * radius);
+        const seriesFillBBox: _ModuleSupport.ShapeFillBBox = {
+            series: new BBox(-radius, -radius, 2 * radius, 2 * radius),
+            axis: new BBox(-radius, -radius, 2 * radius, 2 * radius),
+        };
 
         this.rootNode?.walk((node) => {
             const { startAngle, endAngle } = node;

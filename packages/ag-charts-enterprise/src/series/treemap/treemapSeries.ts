@@ -674,7 +674,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             }
         });
 
-        const seriesFillBBox = new BBox(0, 0, width, height);
+        const fillBBox: _ModuleSupport.ShapeFillBBox = {
+            series: new BBox(0, 0, width, height),
+            axis: new BBox(0, 0, width, height),
+        };
 
         const updateRectFn = (
             node: TreemapNode,
@@ -699,8 +702,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
             rect.crisp = true;
 
-            const fill = overrides?.fill ?? style.fill;
-            const fillBBox = _ModuleSupport.isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             applyShapeStyle(rect, style, overrides, fillBBox);
 
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;

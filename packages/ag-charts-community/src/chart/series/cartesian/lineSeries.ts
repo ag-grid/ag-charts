@@ -535,7 +535,7 @@ export class LineSeries extends CartesianSeries<
         });
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
-        const fillBBox = this.getFillBBox(baseStyle.fill);
+        const fillBBox = this.getShapeFillBBox();
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(

@@ -11,7 +11,6 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
-import { isGradientFill } from '../../../scene/util/fill';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -706,7 +705,7 @@ export class BarSeries extends AbstractBarSeries<
 
         const style = this.getItemBaseStyle(opts.isHighlight);
 
-        const fillBBox = isGradientFill(style.fill) ? this.getFillBBox(style.fill) : undefined;
+        const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
             const overrides = this.getItemStyleOverrides(

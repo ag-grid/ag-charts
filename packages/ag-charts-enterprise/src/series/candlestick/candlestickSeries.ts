@@ -4,7 +4,7 @@ import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { createDatumId, isGradientFill, BBox } = _ModuleSupport;
+const { createDatumId, isGradientFill, applyShapeFillBBox, BBox } = _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, CandlestickSeriesProperties<any>> {
     static readonly className = 'CandleStickSeries';
@@ -92,13 +92,11 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             node.yClose = yClose;
             node.crisp = crisp;
 
-            const upFillBBox = this.getFillBBox(upStyle.fill, node);
-            const downFillBBox = this.getFillBBox(downStyle.fill, node);
-
             const risingStyle = isRising ? upStyle : downStyle;
             const risingWickStyle = isRising ? up.wick : down.wick;
 
-            node.fillBBox = isRising ? upFillBBox : downFillBBox;
+            const fill = highlightStyle?.fill ?? style?.fill ?? risingStyle.fill;
+            applyShapeFillBBox(node, fill, this.getShapeFillBBox());
             node.fill = highlightStyle?.fill ?? style?.fill ?? risingStyle.fill;
             node.fillOpacity = highlightStyle?.fillOpacity ?? style?.fillOpacity ?? risingStyle.fillOpacity;
             node.stroke = highlightStyle?.stroke ?? style?.stroke ?? risingStyle.stroke;

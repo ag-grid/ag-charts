@@ -17,6 +17,7 @@ import { Text } from '../../../scene/shape/text';
 import { isGradientFill } from '../../../scene/util/fill';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
+import { findMinMax } from '../../../util/number';
 import { StateMachine } from '../../../util/stateMachine';
 import { BOOLEAN, STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
@@ -36,6 +37,7 @@ import type { SeriesDirectionKeysMapping, SeriesNodeEventTypes, SeriesNodePickMa
 import { SeriesNodeEvent } from '../series';
 import { SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
+import type { ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type { Scaling } from './scaling';
 
@@ -456,6 +458,27 @@ export abstract class CartesianSeries<
         return {
             ...style,
             fill: this.getNodeFill(style.fill, defaultColorRange),
+        };
+    }
+
+    protected getShapeFillBBox(): ShapeFillBBox {
+        const { axes } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        const [axisX1, axisX2] = findMinMax(xAxis?.range ?? [0, 1]);
+        const [axisY1, axisY2] = findMinMax(yAxis?.range ?? [0, 1]);
+
+        const xSeriesDomain = this.getSeriesDomain(ChartAxisDirection.X);
+        const xSeriesRange = [xAxis?.scale.convert(xSeriesDomain.at(0)), xAxis?.scale.convert(xSeriesDomain.at(-1))];
+        const ySeriesDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const ySeriesRange = [yAxis?.scale.convert(ySeriesDomain.at(0)), yAxis?.scale.convert(ySeriesDomain.at(-1))];
+        const [seriesX1, seriesX2] = findMinMax(xSeriesRange);
+        const [seriesY1, seriesY2] = findMinMax(ySeriesRange);
+
+        return {
+            axis: new BBox(axisX1, axisY1, axisX2 - axisX1, axisY2 - axisY1),
+            series: new BBox(seriesX1, seriesY1, seriesX2 - seriesX1, seriesY2 - seriesY1),
         };
     }
 

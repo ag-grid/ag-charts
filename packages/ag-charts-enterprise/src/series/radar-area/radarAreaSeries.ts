@@ -3,7 +3,7 @@ import { type AgFillType, type AgGradientFill, _ModuleSupport } from 'ag-charts-
 import { type RadarPathPoint, RadarSeries } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
-const { Group, Path, PointerEvents, Selection, ChartAxisDirection, isGradientFill } = _ModuleSupport;
+const { Group, Path, PointerEvents, Selection, ChartAxisDirection, isGradientFill, applyShapeStyle } = _ModuleSupport;
 
 export class RadarAreaSeries extends RadarSeries {
     static override readonly className = 'RadarAreaSeries';
@@ -53,14 +53,7 @@ export class RadarAreaSeries extends RadarSeries {
             };
         }
 
-        // const radiusAxis = this.axes[ChartAxisDirection.Y];
-        // const radiusAxisReversed = radiusAxis?.isReversed();
-        // const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
-        const fillBBox = this.getFillBBox(fill);
-
-        areaNode.fillBBox = fillBBox;
-        areaNode.fill = fill;
-        areaNode.fillOpacity = fillOpacity;
+        applyShapeStyle(areaNode, { fill, fillOpacity }, undefined, this.getShapeFillBBox());
         areaNode.pointerEvents = PointerEvents.None;
         areaNode.stroke = undefined;
     }

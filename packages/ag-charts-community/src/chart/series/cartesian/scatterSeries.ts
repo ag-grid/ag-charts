@@ -250,7 +250,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const { xKey, yKey, labelKey, marker, highlightStyle } = this.properties;
         const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle());
 
-        const fillBBox = this.getFillBBox(baseStyle.fill);
+        const fillBBox = this.getShapeFillBBox();
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(

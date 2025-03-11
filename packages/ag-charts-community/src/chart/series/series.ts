@@ -45,6 +45,7 @@ import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
+import { type ShapeFillBBox, applyShapeStyle } from './shapeUtil';
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -904,13 +905,13 @@ export abstract class Series<
         params: TParams,
         highlighted: boolean,
         defaultStyle: AgSeriesMarkerStyle,
-        fillBBox?: BBox,
+        fillBBox?: ShapeFillBBox,
         { applyTranslation = true, selected = true } = {}
     ) {
         const activeStyle = this.getMarkerStyle(marker, datum, params, highlighted, point?.size, defaultStyle);
         const visible = this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
-        markerNode.fillBBox = fillBBox;
+        applyShapeStyle(markerNode, { fill: activeStyle.fill }, undefined, fillBBox);
 
         if (applyTranslation) {
             markerNode.setProperties({

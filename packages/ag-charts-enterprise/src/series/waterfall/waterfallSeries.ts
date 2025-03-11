@@ -556,12 +556,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { datumSelection, isHighlight } = opts;
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
+        const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
             const seriesItemType = datum.itemId;
 
             const style = this.getItemStyle(String(datum.datumIndex), datum.datum, seriesItemType, isHighlight);
-            const fillBBox = this.getFillBBox(style.fill);
 
             applyShapeStyle(rect, style, undefined, fillBBox);
 
