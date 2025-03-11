@@ -3,7 +3,7 @@ import { isFiniteNumber } from 'ag-charts-core';
 import { Default } from '../../util/default';
 import { BaseProperties } from '../../util/properties';
 import { TimeInterval } from '../../util/time';
-import { ARRAY, MAX_SPACING, MIN_SPACING, Validate, predicateWithMessage } from '../../util/validation';
+import { ARRAY, MAX_SPACING, MIN_SPACING, TempValidate, predicateWithMessage } from '../../util/validation';
 import type { TickInterval } from './axisTick';
 
 export const TICK_INTERVAL = predicateWithMessage(
@@ -12,17 +12,17 @@ export const TICK_INTERVAL = predicateWithMessage(
 );
 
 export class AxisInterval<S> extends BaseProperties {
-    @Validate(TICK_INTERVAL, { optional: true })
+    @TempValidate(TICK_INTERVAL, { optional: true })
     step?: TickInterval<S>;
 
-    @Validate(ARRAY, { optional: true })
+    @TempValidate(ARRAY, { optional: true })
     values?: any[];
 
-    @Validate(MIN_SPACING)
+    @TempValidate(MIN_SPACING)
     @Default(NaN)
     minSpacing: number = NaN;
 
-    @Validate(MAX_SPACING)
+    @TempValidate(MAX_SPACING)
     @Default(NaN)
     maxSpacing: number = NaN;
 }

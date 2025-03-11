@@ -7,7 +7,6 @@ import { lineStringCenter } from '../map-util/lineStringUtil';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { TopologySeries } from '../map-util/topologySeries';
-import { GEOJSON_OBJECT } from '../map-util/validation';
 import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
 const {
@@ -16,7 +15,6 @@ const {
     SeriesNodePickMode,
     valueProperty,
     CachedTextMeasurerPool,
-    Validate,
     ColorScale,
     LinearScale,
     Selection,
@@ -44,7 +42,6 @@ export class MapLineSeries extends TopologySeries<
 
     override properties = new MapLineSeriesProperties();
 
-    @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
     public override getNodeData(): MapLineNodeDatum[] | undefined {

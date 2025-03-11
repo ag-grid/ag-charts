@@ -15,7 +15,7 @@ import { SceneChangeDetection } from '../../../scene/changeDetectable';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
-import { LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, POSITIVE_NUMBER, STRING, Validate } from '../../../util/validation';
+import { LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, POSITIVE_NUMBER, STRING, TempValidate } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -37,55 +37,55 @@ class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys> {
      * `[size, maxSize]` range, where the largest values will correspond to the `maxSize` and the
      * lowest to the `size`.
      */
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     @SceneChangeDetection()
     maxSize = 30;
 
-    @Validate(NUMBER_ARRAY, { optional: true })
+    @TempValidate(NUMBER_ARRAY, { optional: true })
     @SceneChangeDetection()
     domain?: [number, number];
 }
 
 class BubbleSeriesLabel extends Label<AgBubbleSeriesLabelFormatterParams> {
-    @Validate(LABEL_PLACEMENT)
+    @TempValidate(LABEL_PLACEMENT)
     placement: LabelPlacement = 'top';
 }
 
 export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSeriesOptions> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     xKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     yKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     sizeKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     labelKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     xFilterKey: string | undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yFilterKey: string | undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     sizeFilterKey: string | undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     xName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     sizeName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     labelName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     title?: string;
 
     @ProxyProperty('marker.shape')
@@ -127,10 +127,10 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     @ProxyProperty('marker.itemStyler', { optional: true })
     itemStyler?: Styler<BubbleSeriesItemStylerParams<unknown>, AgBubbleSeriesStyle>;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new BubbleSeriesLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgBubbleSeriesTooltipRendererParams>();
 
     // No validation. Not a part of the options contract.

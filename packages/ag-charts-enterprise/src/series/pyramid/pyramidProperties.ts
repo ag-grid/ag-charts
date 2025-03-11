@@ -13,7 +13,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 const {
     SeriesProperties,
     SeriesTooltip,
-    Validate,
+    TempValidate,
     UNION,
     OR,
     COLOR_GRADIENT,
@@ -36,68 +36,68 @@ const {
 class PyramidSeriesLabel extends Label<AgPyramidSeriesLabelFormatterParams> {}
 
 class PyramidSeriesStageLabel extends Label<AgPyramidSeriesLabelFormatterParams> {
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     spacing: number = 0;
 
-    @Validate(UNION(['before', 'after'], 'a placement'))
+    @TempValidate(UNION(['before', 'after'], 'a placement'))
     placement?: string;
 }
 
 export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     stageKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     valueKey!: string;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
     fills: AgFillType[] = [];
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = [];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(DIRECTION)
+    @TempValidate(DIRECTION)
     direction: Direction = 'vertical';
 
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     reverse?: boolean = undefined;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     spacing: number = 0;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     aspectRatio?: number = undefined;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgPyramidSeriesItemStylerParams<unknown>, AgPyramidSeriesStyle>;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly shadow = new DropShadow().set({ enabled: false });
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new PyramidSeriesLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly stageLabel = new PyramidSeriesStageLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgPyramidSeriesTooltipRendererParams<unknown>>();
 }

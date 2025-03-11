@@ -1,7 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AgTopologyChartOptions } from 'ag-charts-types';
 
-const { Chart, MercatorScale, NumberAxis } = _ModuleSupport;
+import { GEOJSON_OBJECT } from '../series/map-util/validation';
+
+const { Chart, MercatorScale, NumberAxis, Validate } = _ModuleSupport;
 
 function isTopologySeries(series: _ModuleSupport.Series<unknown, any, any>): series is _ModuleSupport.ITopology {
     return (
@@ -19,6 +21,9 @@ export class TopologyChart extends Chart {
 
     private readonly xAxis: _ModuleSupport.NumberAxis;
     private readonly yAxis: _ModuleSupport.NumberAxis;
+
+    @Validate(GEOJSON_OBJECT, { optional: true })
+    topology?: _ModuleSupport.FeatureCollection;
 
     constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
         super(options, resources);
@@ -38,8 +43,12 @@ export class TopologyChart extends Chart {
     override async updateData() {
         await super.updateData();
 
-        const { topology } = this.getOptions() as AgTopologyChartOptions;
+        const options = this.getOptions() as AgTopologyChartOptions;
+        if (this.topology !== options.topology) {
+            this.topology = options.topology;
+        }
 
+        const { topology } = this;
         this.series.forEach((series) => {
             if (isTopologySeries(series)) {
                 series.setChartTopology(topology);

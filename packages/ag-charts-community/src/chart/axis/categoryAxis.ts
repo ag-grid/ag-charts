@@ -3,7 +3,7 @@ import { isFiniteNumber } from 'ag-charts-core';
 import type { ModuleContext } from '../../module/moduleContext';
 import { CategoryScale } from '../../scale/categoryScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import { RATIO, Validate } from '../../util/validation';
+import { RATIO, TempValidate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class CategoryAxis<
@@ -24,13 +24,13 @@ export class CategoryAxis<
         this.nice = false;
     }
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     groupPaddingInner: number = 0.1;
 
-    @Validate(RATIO, { optional: true })
+    @TempValidate(RATIO, { optional: true })
     paddingInner?: number;
 
-    @Validate(RATIO, { optional: true })
+    @TempValidate(RATIO, { optional: true })
     paddingOuter?: number;
 
     override normaliseDataDomain(domain: Array<string | object>) {

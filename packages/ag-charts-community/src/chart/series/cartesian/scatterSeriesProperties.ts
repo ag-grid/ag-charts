@@ -13,7 +13,7 @@ import type {
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
-import { LABEL_PLACEMENT, OBJECT, STRING, Validate } from '../../../util/validation';
+import { LABEL_PLACEMENT, OBJECT, STRING, TempValidate } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -29,36 +29,36 @@ export interface ScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSe
 }
 
 class ScatterSeriesLabel extends Label<AgScatterSeriesLabelFormatterParams> {
-    @Validate(LABEL_PLACEMENT)
+    @TempValidate(LABEL_PLACEMENT)
     placement: LabelPlacement = 'top';
 }
 
 export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatterSeriesOptions> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     xKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     yKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     labelKey?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     xFilterKey: string | undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yFilterKey: string | undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     xName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     labelName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     title?: string;
 
     @ProxyProperty('marker.shape')
@@ -94,10 +94,10 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     @ProxyProperty('marker.itemStyler', { optional: true })
     itemStyler?: Styler<AgScatterSeriesItemStylerParams<unknown>, AgSeriesMarkerStyle>;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new ScatterSeriesLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgScatterSeriesTooltipRendererParams>();
 
     // No validation. Not a part of the options contract.

@@ -48,8 +48,9 @@ export class BaseProperties<T extends object = object> {
 
     isValid<TContext = Omit<T, 'type'>>(this: TContext, warningPrefix?: string) {
         return listDecoratedProperties(this).every((propertyKey) => {
-            const { optional } = extractDecoratedPropertyMetadata(this, propertyKey)!;
-            const valid = optional === true || typeof this[propertyKey as keyof TContext] !== 'undefined';
+            const metadata = extractDecoratedPropertyMetadata(this, propertyKey);
+            if (metadata == null) return true; // Skip fake validators.
+            const valid = metadata.optional === true || typeof this[propertyKey as keyof TContext] !== 'undefined';
             if (!valid) {
                 Logger.warnOnce(`${warningPrefix ?? ''}[${propertyKey}] is required.`);
             }

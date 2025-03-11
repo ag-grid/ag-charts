@@ -9,7 +9,6 @@ import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { TopologySeries } from '../map-util/topologySeries';
-import { GEOJSON_OBJECT } from '../map-util/validation';
 import { formatSingleLabel } from '../util/labelFormatter';
 import {
     type MapShapeNodeDatum,
@@ -22,7 +21,6 @@ const {
     createDatumId,
     SeriesNodePickMode,
     valueProperty,
-    Validate,
     CachedTextMeasurerPool,
     TextUtils,
     ColorScale,
@@ -62,7 +60,6 @@ export class MapShapeSeries
 
     override properties = new MapShapeSeriesProperties();
 
-    @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
     public override getNodeData(): MapShapeNodeDatum[] | undefined {
