@@ -20,6 +20,28 @@ export class SizeMonitor {
     private documentReady = false;
     private queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
 
+    static singleShot(element: HTMLElement, cb: OnSizeChange) {
+        if (typeof ResizeObserver !== 'undefined') {
+            const observer = new ResizeObserver((entries) => {
+                try {
+                    for (const {
+                        contentRect: { width, height },
+                        target,
+                    } of entries) {
+                        cb({ width, height, pixelRatio: 1 }, target as HTMLElement);
+                    }
+                } finally {
+                    observer.disconnect();
+                }
+            });
+            observer.observe(element);
+            return;
+        }
+
+        // Fallback to using clientWidth + clientHeight, which will force a layout.
+        cb({ width: element.clientWidth, height: element.clientHeight, pixelRatio: 1 }, element);
+    }
+
     constructor() {
         if (typeof ResizeObserver !== 'undefined') {
             this.resizeObserver = new ResizeObserver((entries) => {
