@@ -145,12 +145,13 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
     formatTick(
         value: any,
         index: number,
+        domain: number[],
         _fractionDigits?: number,
         defaultFormatter?: (datum: unknown) => string
     ): string {
         const { label } = this;
         return (
-            label.formatter?.({ value, index, domain: [], boundSeries: undefined! }) ??
+            label.formatter?.({ value, index, domain, boundSeries: undefined! }) ??
             (label.format != null ? defaultFormatter?.(value) : undefined) ??
             this.gauge.formatLabel(value)
         );
