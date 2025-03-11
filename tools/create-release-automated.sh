@@ -6,11 +6,15 @@ BRANCH=$1
 RELEASE=$(echo "$1" | sed 's/^[a-zA-Z]*//')
 echo "Preparing BRANCH branch ${BRANCH}"
 
-SKIP_PROMPT=${2:-prompt} # optional
+SKIP_LICENSE_UPDATE="${2:-false}" # optional - for lts releases we dont update the license timestamp
 
 git checkout -b ${BRANCH}
 ./tools/bump-versions.sh ${RELEASE}
-node ./tools/update-release-info.js
+
+if [[ "$SKIP_LICENSE_UPDATE" == "false" ]];
+then
+    node ./tools/update-release-info.js
+fi
 
 NEW_VERSION=$(node ./tools/calculate-next-version.js)
 ./tools/bump-versions.sh ${NEW_VERSION}
