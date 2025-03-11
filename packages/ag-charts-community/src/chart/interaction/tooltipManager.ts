@@ -52,14 +52,12 @@ export class TooltipManager {
         content?: TooltipContent[],
         pagination?: TooltipPaginationState
     ) {
-        if (!this.tooltip.enabled) return;
         content ??= this.stateTracker.get(callerId)?.content;
         this.stateTracker.set(callerId, { meta, content, pagination });
         this.applyStates();
     }
 
     public removeTooltip(callerId: string) {
-        if (!this.tooltip.enabled) return;
         this.stateTracker.delete(callerId);
         this.applyStates();
     }

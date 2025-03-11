@@ -293,7 +293,7 @@ export abstract class Series<
     }
 
     get tooltipEnabled() {
-        return this.properties.tooltip?.enabled ?? false;
+        return this.properties.tooltip?.enabled;
     }
 
     protected onDataChange() {
