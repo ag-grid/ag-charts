@@ -3,7 +3,7 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { FunnelSeries } from './funnelSeries';
 import { funnelSeriesOptionsDef } from './funnelSeriesOptionsDef';
-import { FUNNEL_SERIES_THEME, funnelSeriesAxes } from './funnelThemes';
+import { FUNNEL_SERIES_AXES, FUNNEL_SERIES_THEME } from './funnelThemes';
 
 export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
     type: 'series',
@@ -15,7 +15,7 @@ export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
     moduleFactory: (ctx) => new FunnelSeries(ctx),
     solo: true,
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: funnelSeriesAxes,
+    defaultAxes: FUNNEL_SERIES_AXES,
     themeTemplate: FUNNEL_SERIES_THEME,
 };
 

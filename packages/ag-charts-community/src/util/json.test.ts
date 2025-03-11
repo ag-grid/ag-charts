@@ -769,6 +769,12 @@ describe('json module', () => {
             });
         });
 
+        it('should resolve `$omit` operations', () => {
+            const source = { a: { $omit: [['b'], { b: 'hello', c: 'world' }] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: { c: 'world' } });
+        });
+
         // Font operations
         it('should resolve `$rem` operation', () => {
             const source = { a: { $rem: [1.5] } };

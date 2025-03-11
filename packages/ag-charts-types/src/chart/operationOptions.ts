@@ -85,6 +85,7 @@ type TransformOperation =
     | { $map: [Leaf, Leaf] }
     | { $find: [Leaf, Leaf] }
     | { $merge: Leaf<object>[] }
+    | { $omit: [Leaf<Array<string>>, Leaf<object>] }
     | { $value: '$1' };
 
 type FontOperation = { $rem: [Leaf] | [Leaf, Leaf] };

@@ -5,8 +5,6 @@ import { WaterfallSeries } from './waterfallSeries';
 import { waterfallSeriesOptionsDef } from './waterfallSeriesOptionsDef';
 import { WATERFALL_SERIES_THEME } from './waterfallThemes';
 
-const { ThemeConstants } = _ModuleSupport;
-
 export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -17,13 +15,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     solo: true,
     moduleFactory: (ctx) => new WaterfallSeries(ctx),
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: _ModuleSupport.swapAxisCondition(
-        [
-            { type: ThemeConstants.CARTESIAN_AXIS_TYPE.NUMBER, position: ThemeConstants.CARTESIAN_POSITION.LEFT },
-            { type: ThemeConstants.CARTESIAN_AXIS_TYPE.CATEGORY, position: ThemeConstants.CARTESIAN_POSITION.BOTTOM },
-        ],
-        (series) => series?.direction === 'horizontal'
-    ),
+    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
     themeTemplate: WATERFALL_SERIES_THEME,
 };
 

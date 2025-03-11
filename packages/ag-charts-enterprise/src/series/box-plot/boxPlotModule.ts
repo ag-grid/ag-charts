@@ -5,11 +5,6 @@ import { BoxPlotSeries } from './boxPlotSeries';
 import { boxPlotSeriesOptionsDef } from './boxPlotSeriesOptionsDef';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 
-const {
-    swapAxisCondition,
-    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
-} = _ModuleSupport;
-
 export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -19,13 +14,7 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     identifier: 'box-plot',
     moduleFactory: (ctx) => new BoxPlotSeries(ctx),
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: swapAxisCondition(
-        [
-            { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
-            { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
-        ],
-        (series) => series?.direction === 'horizontal'
-    ),
+    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
     themeTemplate: BOX_PLOT_SERIES_THEME,
     groupable: true,
 };

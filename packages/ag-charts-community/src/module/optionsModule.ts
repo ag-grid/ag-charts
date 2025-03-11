@@ -424,11 +424,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private getDefaultAxes(options: T, seriesTheme: object) {
         const optionsType = this.optionsType(options);
-        let firstSeriesOptions = options.series?.find((series) => (series.type ?? 'line') === optionsType) ?? {};
-        if (seriesRegistry.isDerivedDefaultAxes(optionsType)) {
-            firstSeriesOptions = mergeDefaults(firstSeriesOptions, seriesTheme);
-        }
-        return seriesRegistry.cloneDefaultAxes(optionsType, firstSeriesOptions) as T;
+        const firstSeriesOptions = options.series?.find((series) => (series.type ?? 'line') === optionsType) ?? {};
+        const axes = seriesRegistry.cloneDefaultAxes(optionsType) as T;
+        jsonResolveOperations(axes, {}, undefined, mergeDefaults(firstSeriesOptions, seriesTheme));
+        return axes;
     }
 
     private optionsType(options: Partial<T>) {
