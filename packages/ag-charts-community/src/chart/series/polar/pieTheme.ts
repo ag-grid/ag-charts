@@ -34,7 +34,22 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             length: 10,
             strokeWidth: 2,
             colors: {
-                $if: [{ $eq: [{ $path: '../strokeWidth' }, 0] }, { $path: '../fills' }, { $path: '../strokes' }],
+                $map: [
+                    {
+                        $if: [
+                            { $isGradient: [{ $value: '$1' }] },
+                            { $path: ['../../strokes/$index', { $ref: 'foregroundColor' }] },
+                            { $value: '$1' },
+                        ],
+                    },
+                    {
+                        $if: [
+                            { $eq: [{ $path: '../strokeWidth' }, 0] },
+                            { $path: '../fills' },
+                            { $path: '../strokes' },
+                        ],
+                    },
+                ],
             },
         },
         fills: { $palette: 'fills' },

@@ -68,7 +68,7 @@ type PaletteParam =
 type PathOperation =
     | { $ref: ThemeParam }
     | { $palette: PaletteParam }
-    | { $path: string | [string, Leaf] | [string, Leaf, Leaf] };
+    | { $path: Leaf<string> | [Leaf<string>, Leaf] | [Leaf<string>, Leaf, Leaf] };
 
 type LogicOperation =
     | { $if: [Leaf, Leaf, Leaf] }
@@ -93,4 +93,5 @@ type ColorOperation =
     | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] }
     | { $foregroundBackgroundMix: [Leaf<number>] }
     | { $foregroundBackgroundAccentMix: [Leaf<number>, Leaf<number>] }
-    | { $interpolate: [Leaf, Leaf<number>] };
+    | { $interpolate: [Leaf, Leaf<number>] }
+    | { $isGradient: [Leaf] };
