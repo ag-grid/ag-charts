@@ -173,6 +173,42 @@ describe('PieSeries', () => {
             await compare();
         });
 
+        it('should render pie series with an item bound linear gradient fill', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { cat: 1, fox: 20, dog: 37 },
+                    { cat: 3, fox: 10, dog: 32 },
+                    { cat: 7, fox: 15, dog: 35 },
+                    { cat: 8, fox: 17, dog: 36 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        radiusKey: 'dog',
+                        angleKey: 'fox',
+                        sectorLabelKey: 'fox',
+                        fills: [
+                            {
+                                type: 'gradient',
+                                gradient: 'linear',
+                                bounds: 'item',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            });
+            await compare();
+        });
+
         it('should render pie series with a series bound linear gradient fill', async () => {
             chart = await createChart({
                 ...options,
@@ -229,6 +265,42 @@ describe('PieSeries', () => {
                                 type: 'gradient',
                                 gradient: 'radial',
                                 bounds: 'series',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render pie series with an item bound radial gradient fill', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { cat: 1, fox: 20, dog: 37 },
+                    { cat: 3, fox: 10, dog: 32 },
+                    { cat: 7, fox: 15, dog: 35 },
+                    { cat: 8, fox: 17, dog: 36 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'fox',
+                        radiusKey: 'cat',
+                        sectorLabelKey: 'fox',
+                        fills: [
+                            {
+                                type: 'gradient',
+                                gradient: 'radial',
+                                bounds: 'item',
                                 colorStops: [
                                     {
                                         color: 'green',
