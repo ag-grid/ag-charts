@@ -2231,7 +2231,6 @@ export const AREA_SERIES_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
                 series: {
                     fill: {
                         type: 'gradient',
-                        direction: 'vertical',
                         colorStops,
                     },
                 },
@@ -2265,7 +2264,7 @@ export const AREA_SERIES_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
                 series: {
                     fill: {
                         type: 'gradient',
-                        direction: 'horizontal',
+                        rotation: 90,
                         colorStops,
                     },
                 },
@@ -2299,7 +2298,6 @@ export const AREA_SERIES_DEFAULT_GRADIENT_FILL: AgCartesianChartOptions = {
                 series: {
                     fill: {
                         type: 'gradient',
-                        direction: 'vertical',
                     },
                 },
             },
@@ -2332,7 +2330,7 @@ export const AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS: AgCartesianChartOptions = {
                 series: {
                     fill: {
                         type: 'gradient',
-                        direction: 'horizontal',
+                        rotation: 90,
                         bounds: 'axis',
                     },
                 },
@@ -3053,7 +3051,7 @@ export const STACKED_COLUMN_GRADIENT_FILL: AgCartesianChartOptions = {
         overrides: {
             bar: {
                 series: {
-                    fill: { type: 'gradient', direction: 'vertical' },
+                    fill: { type: 'gradient' },
                 },
             },
         },
@@ -3121,7 +3119,7 @@ export const STACKED_COLUMN_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = 
         overrides: {
             bar: {
                 series: {
-                    fill: { type: 'gradient', direction: 'horizontal' },
+                    fill: { type: 'gradient', rotation: 90 },
                 },
             },
         },
@@ -3134,7 +3132,7 @@ export const STACKED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChar
         overrides: {
             bar: {
                 series: {
-                    fill: { type: 'gradient', direction: 'vertical', bounds: 'series' },
+                    fill: { type: 'gradient', bounds: 'series' },
                 },
             },
         },
@@ -3147,7 +3145,7 @@ export const STACKED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianCh
         overrides: {
             bar: {
                 series: {
-                    fill: { type: 'gradient', direction: 'horizontal', bounds: 'series' },
+                    fill: { type: 'gradient', rotation: 90, bounds: 'series' },
                 },
             },
         },
@@ -3160,7 +3158,7 @@ export const STACKED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartO
         overrides: {
             bar: {
                 series: {
-                    fill: { type: 'gradient', direction: 'vertical', bounds: 'axis' },
+                    fill: { type: 'gradient', bounds: 'axis' },
                 },
             },
         },
@@ -3173,7 +3171,7 @@ export const STACKED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChar
         overrides: {
             bar: {
                 series: {
-                    fill: { type: 'gradient', direction: 'horizontal', bounds: 'axis' },
+                    fill: { type: 'gradient', rotation: 90, bounds: 'axis' },
                 },
             },
         },
@@ -3224,7 +3222,7 @@ export const GROUPED_COLUMN_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = 
         overrides: {
             bar: {
                 series: {
-                    fill: { type: 'gradient', direction: 'horizontal' },
+                    fill: { type: 'gradient', rotation: 90 },
                 },
             },
         },
@@ -3237,7 +3235,7 @@ export const GROUPED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChar
         overrides: {
             bar: {
                 series: {
-                    fill: { type: 'gradient', direction: 'vertical', bounds: 'series' },
+                    fill: { type: 'gradient', bounds: 'series' },
                 },
             },
         },
@@ -3250,7 +3248,7 @@ export const GROUPED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianCh
         overrides: {
             bar: {
                 series: {
-                    fill: { type: 'gradient', direction: 'horizontal', bounds: 'series' },
+                    fill: { type: 'gradient', rotation: 90, bounds: 'series' },
                 },
             },
         },
@@ -3263,7 +3261,7 @@ export const GROUPED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartO
         overrides: {
             bar: {
                 series: {
-                    fill: { type: 'gradient', direction: 'vertical', bounds: 'axis' },
+                    fill: { type: 'gradient', bounds: 'axis' },
                 },
             },
         },
@@ -3276,7 +3274,7 @@ export const GROUPED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChar
         overrides: {
             bar: {
                 series: {
-                    fill: { type: 'gradient', direction: 'horizontal', bounds: 'axis' },
+                    fill: { type: 'gradient', rotation: 90, bounds: 'axis' },
                 },
             },
         },
