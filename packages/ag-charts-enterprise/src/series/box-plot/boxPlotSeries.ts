@@ -458,11 +458,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
+        const { fill, highlightStyle } = this.properties;
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted ? 'highlight' : 'node');
 
             if (highlighted) {
-                activeStyles = mergeDefaults(this.properties.highlightStyle.item, activeStyles);
+                activeStyles = mergeDefaults(highlightStyle.item, activeStyles);
             }
 
             const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = activeStyles;
@@ -475,7 +476,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset,
             });
 
-            const fillBBox = this.getFillBBox(this.properties.fill, nodeDatum);
+            const fillBBox = this.getFillBBox(fill, nodeDatum);
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
                 activeStyles as DeepRequired<AgBoxPlotSeriesStyle>,
