@@ -364,7 +364,7 @@ export abstract class AngleAxis<
 
             const rotation = this.getLabelRotation(angle);
 
-            let text = this.formatTick(value, index);
+            let text = this.formatTick(value, index, scale.domain);
 
             tempText.text = text;
             tempText.x = x;

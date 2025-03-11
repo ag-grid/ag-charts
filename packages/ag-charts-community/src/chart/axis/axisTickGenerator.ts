@@ -80,7 +80,13 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
     readonly interval: AxisInterval<S>;
     readonly defaultTickMinSpacing: number;
     readonly inRange: ChartAxis['inRange'];
-    formatTick(value: any, index: number, fractionDigits?: number, formatter?: (datum: any) => string): string;
+    formatTick(
+        value: any,
+        index: number,
+        domain: D[],
+        fractionDigits?: number,
+        formatter?: (datum: any) => string
+    ): string;
 }
 
 export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
@@ -449,7 +455,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             // instead hide ticks based on their translation.
             if (range.length > 0 && !axis.inRange(translationY, 0.001)) continue;
 
-            const tickLabel = label.enabled ? axis.formatTick(tick, i, fractionDigits, labelFormatter) : '';
+            const tickLabel = label.enabled ? axis.formatTick(tick, i, niceDomain, fractionDigits, labelFormatter) : '';
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
             ticks.push({ tick, tickId: idGenerator(tickLabel), tickLabel, translationY: Math.floor(translationY) });
