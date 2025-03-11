@@ -14,8 +14,8 @@ class SeriesTooltipInteraction extends BaseProperties {
 }
 
 export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends BaseProperties {
-    @Validate(BOOLEAN)
-    enabled: boolean = true;
+    @Validate(BOOLEAN, { optional: true })
+    enabled?: boolean;
 
     @Validate(BOOLEAN, { optional: true })
     showArrow?: boolean;
