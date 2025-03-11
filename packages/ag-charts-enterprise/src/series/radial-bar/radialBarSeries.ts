@@ -433,8 +433,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
         const fillBBox = this.getFillBBox(style.fill, axisOuterRadius);
 
-        const { defaultColorRange } = this.properties;
-
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
@@ -449,7 +447,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                         ? { centerX: 0, centerY: 0 }
                         : undefined;
 
-                applyShapeStyle(node, style, overrides, defaultColorRange, fillBBox, fillParams);
+                applyShapeStyle(node, style, overrides, fillBBox, fillParams);
 
                 node.lineJoin = 'round';
                 node.inset = node.stroke != null ? node.strokeWidth / 2 : 0;

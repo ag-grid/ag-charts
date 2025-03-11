@@ -95,6 +95,15 @@ export class MapShapeSeries
         () => this.nodeFactory()
     );
 
+    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
+        return {
+            gradient: 'linear',
+            bounds: 'series',
+            rotation: 0,
+            colorStops: this.properties.defaultColorRange,
+        };
+    }
+
     public contextNodeData?: MapShapeNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
@@ -438,15 +447,18 @@ export class MapShapeSeries
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return {
-            fill: highlightStyle?.fill ?? properties.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-        };
+        return _ModuleSupport.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? properties.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke ?? properties.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            },
+            this.defaultShapeStyle
+        );
     }
 
     protected getItemStyleOverrides(
@@ -486,7 +498,7 @@ export class MapShapeSeries
             Object.assign(overrides, itemStyle);
         }
 
-        return overrides;
+        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
     }
 
     private updateDatumNodes(opts: {
@@ -497,7 +509,6 @@ export class MapShapeSeries
 
         const style = this.getItemBaseStyle(isHighlight);
         const fillBBox = this.getFillBBox(style.fill);
-        const { defaultColorRange } = this.properties;
 
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { datum, datumIndex, colorValue, projectedGeometry } = nodeDatum;
@@ -512,7 +523,7 @@ export class MapShapeSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            applyShapeStyle(geoGeometry, style, overrides, defaultColorRange, fillBBox);
+            applyShapeStyle(geoGeometry, style, overrides, fillBBox);
         });
     }
 

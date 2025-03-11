@@ -58,7 +58,7 @@ export abstract class OhlcSeriesBaseProperties<
 > extends AbstractBarSeriesProperties<T> {
     abstract item: Record<
         'up' | 'down',
-        FillOptions & StrokeOptions & LineDashOptions & Partial<_ModuleSupport.DefaultFillStyle>
+        FillOptions & StrokeOptions & LineDashOptions & { defaultColorRange?: string[] }
     >;
 
     @Validate(STRING)
