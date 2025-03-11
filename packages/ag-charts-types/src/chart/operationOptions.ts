@@ -75,7 +75,9 @@ type LogicOperation =
     | { $or: Leaf[] }
     | { $and: Leaf[] }
     | { $eq: [Leaf, Leaf] }
-    | { $switch: [Leaf] };
+    | { $not: [Leaf] }
+    | { $switch: [Leaf] }
+    | { $isOperation: string };
 
 type NumericOperation = { $mul: [Leaf<number>, Leaf<number>] } | { $round: [Leaf<number>] };
 
