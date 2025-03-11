@@ -186,6 +186,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         const style = this.getItemBaseStyle(isHighlight);
+        const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
             const { datumIndex } = datum;
@@ -196,8 +197,6 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
                 style,
                 isHighlight
             );
-
-            const fillBBox = this.getFillBBox(overrides.fill);
 
             applyShapeStyle(rect, style, overrides, fillBBox);
 

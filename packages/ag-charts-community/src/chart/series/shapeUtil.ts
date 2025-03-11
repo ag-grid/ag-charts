@@ -2,12 +2,17 @@ import type { AgFillType, AgGradientFillBounds, AgGradientType } from 'ag-charts
 
 import type { BBox } from '../../scene/bbox';
 import { type GradientParams } from '../../scene/gradient/gradient';
-import type { Shape } from '../../scene/shape/shape';
+import type { Shape, ShapeFill } from '../../scene/shape/shape';
 import { isGradientFill } from '../../scene/util/fill';
 
 export type ShapeStyle = Partial<
     Pick<Shape, 'fill' | 'fillOpacity' | 'stroke' | 'strokeOpacity' | 'strokeWidth' | 'lineDash' | 'lineDashOffset'>
 >;
+
+export interface ShapeFillBBox {
+    series: BBox;
+    axis: BBox;
+}
 
 export interface ShapeFillDefaults {
     gradient: AgGradientType;
@@ -52,16 +57,30 @@ export function getShapeStyle<T extends { fill?: AgFillType }>(
     };
 }
 
+export function applyShapeFillBBox(
+    shape: Shape,
+    fill: ShapeFill | undefined,
+    fillBBox?: ShapeFillBBox,
+    fillParams?: GradientParams
+) {
+    if (fillBBox == null || !isGradientFill(fill) || fill.bounds == null || fill.bounds === 'item') {
+        shape.fillBBox = undefined;
+    } else {
+        shape.fillBBox = fillBBox[fill.bounds];
+    }
+    shape.fillParams = fillParams;
+}
+
 export function applyShapeStyle(
     shape: Shape,
     style: ShapeStyle,
     overrides?: ShapeStyle,
-    fillBBox?: BBox,
+    fillBBox?: ShapeFillBBox,
     fillParams?: GradientParams
 ) {
-    shape.fillBBox = fillBBox;
-    shape.fillParams = fillParams;
-    shape.fill = overrides?.fill ?? style.fill;
+    const fill = overrides?.fill ?? style.fill;
+    shape.fill = fill;
+    applyShapeFillBBox(shape, overrides?.fill ?? style.fill, fillBBox, fillParams);
     shape.fillOpacity = overrides?.fillOpacity ?? style.fillOpacity ?? 1;
     shape.stroke = overrides?.stroke ?? style.stroke;
     shape.strokeOpacity = overrides?.strokeOpacity ?? style.strokeOpacity ?? 1;

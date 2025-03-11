@@ -18,6 +18,7 @@ import {
 } from '../dataModelSeries';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import type { SeriesProperties } from '../seriesProperties';
+import type { ShapeFillBBox } from '../shapeUtil';
 import { PolarZIndexMap } from './polarZIndexMap';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
@@ -226,6 +227,15 @@ export abstract class PolarSeries<
         }
 
         return new BBox(-radius, -radius, radius * 2, radius * 2);
+    }
+
+    protected getShapeFillBBox(): ShapeFillBBox {
+        const outerRadius = this.radius;
+
+        return {
+            series: new BBox(-outerRadius, -outerRadius, outerRadius * 2, outerRadius * 2),
+            axis: new BBox(-outerRadius, -outerRadius, outerRadius * 2, outerRadius * 2),
+        };
     }
 
     protected resetAllAnimation() {

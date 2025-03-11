@@ -424,7 +424,7 @@ export class HistogramSeries extends CartesianSeries<
         const { shadow } = this.properties;
 
         const style = this.getItemBaseStyle(isDatumHighlighted);
-        const fillBBox = this.getFillBBox(style.fill);
+        const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
             const { cornerRadius } = style;

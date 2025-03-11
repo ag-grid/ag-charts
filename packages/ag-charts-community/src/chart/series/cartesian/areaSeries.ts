@@ -39,6 +39,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
+import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
@@ -596,15 +597,21 @@ export class AreaSeries extends CartesianSeries<
         });
 
         const seriesFill = this.getNodeFill(this.properties.fill, this.properties.defaultColorRange);
-        const fillBBox = this.getFillBBox(seriesFill);
+
+        applyShapeStyle(
+            fill,
+            {
+                fill: seriesFill,
+                stroke: undefined,
+                fillOpacity: this.properties.fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
+            },
+            undefined,
+            this.getShapeFillBBox()
+        );
 
         fill.setProperties({
-            fill: seriesFill,
-            fillBBox,
-            stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            fillOpacity: this.properties.fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
@@ -683,7 +690,7 @@ export class AreaSeries extends CartesianSeries<
             strokeOpacity,
         });
 
-        const fillBBox = this.getFillBBox(marker.fill);
+        const fillBBox = this.getShapeFillBBox();
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(

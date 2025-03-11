@@ -40,6 +40,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
+import { applyShapeFillBBox } from '../shapeUtil';
 import type { PieTitle } from './pieSeriesProperties';
 import { PieSeriesProperties } from './pieSeriesProperties';
 import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
@@ -810,15 +811,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const innerRadius = this.radiusScale.range[0];
         const outerRadius = this.radiusScale.range[1];
 
+        const fillBBox = this.getShapeFillBBox();
+
         const animationDisabled = this.ctx.animationManager.isSkipped();
         const updateSectorFn = (sector: Sector, datum: PieNodeDatum, _index: number, isDatumHighlighted: boolean) => {
             const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted);
 
             datum.sectorFormat.fill = format.fill;
             datum.sectorFormat.stroke = format.stroke;
-
-            const fillBBox = this.getFillBBox(format.fill);
-            const fillParams = this.getFillParams(format.fill, innerRadius, outerRadius);
 
             if (animationDisabled) {
                 sector.startAngle = datum.startAngle;
@@ -831,8 +831,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 sector.stroke = format.stroke;
             }
 
-            sector.fillBBox = fillBBox;
-            sector.fillParams = fillParams;
+            const fillParams = this.getFillParams(format.fill, innerRadius, outerRadius);
+            applyShapeFillBBox(sector, format.fill, fillBBox, fillParams);
+
             sector.strokeWidth = format.strokeWidth;
             sector.fillOpacity = format.fillOpacity;
             sector.strokeOpacity = format.strokeOpacity;

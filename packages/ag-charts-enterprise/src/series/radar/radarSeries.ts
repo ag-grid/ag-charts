@@ -339,12 +339,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             strokeOpacity,
         });
 
-        const { fill } = baseStyle;
-
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
-        const radiusAxisReversed = radiusAxis?.isReversed();
-        const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
-        const fillBBox = this.getFillBBox(fill, axisOuterRadius);
+        const fillBBox = this.getShapeFillBBox();
 
         selection.update(selectionData).each((node, datum) => {
             this.updateMarkerStyle(

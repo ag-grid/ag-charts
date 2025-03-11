@@ -462,10 +462,12 @@ export abstract class RadialColumnSeriesBase<
         const axisInnerRadius = radiusAxisReversed ? this.radius : this.getAxisInnerRadius();
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
 
+        const fillBBox = this.getShapeFillBBox();
+
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
-                const { datum, datumIndex, point, innerRadius, outerRadius } = nodeDatum;
+                const { datum, datumIndex, midPoint } = nodeDatum;
                 const angle = nodeDatum.midAngle;
 
                 const style = this.getItemBaseStyle(angle, highlighted);
@@ -473,9 +475,8 @@ export abstract class RadialColumnSeriesBase<
 
                 const fill = overrides?.fill ?? style.fill;
                 const itemBounds = isGradientFill(fill) && fill.bounds === 'item';
-                const fillBBox = this.getFillBBox(fill, axisOuterRadius);
                 const fillParams = itemBounds
-                    ? { centerX: point?.x ?? 0, centerY: point?.y ?? 0, innerRadius, outerRadius }
+                    ? { centerX: midPoint?.x ?? 0, centerY: midPoint?.y ?? 0 }
                     : { centerX: 0, centerY: 0, innerRadius: axisInnerRadius, outerRadius: axisOuterRadius };
 
                 this.updateItemPath(node, nodeDatum, highlighted);
