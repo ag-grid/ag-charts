@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNumberEqual } from 'ag-charts-core';
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
@@ -14,7 +15,6 @@ const {
     OBJECT,
     Validate,
     angleBetween,
-    isNumberEqual,
     normalisedExtentWithMetadata,
     findMinMax,
 } = _ModuleSupport;

@@ -26,6 +26,8 @@ import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions<LabelType, CrosshairLabelType = AgCrosshairLabel>
     extends AgBaseAxisOptions<LabelType> {
+    /** An array of keys determining which series are charted on this axis. */
+    keys?: string[];
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
     /** Add cross lines or regions corresponding to data values. */
@@ -93,7 +95,7 @@ type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
 
 export interface AgGroupedCategoryAxisOptions
     extends Omit<
-        AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions<any[]>, AgGroupedCategoryAxisLabelOptions>,
+        AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions, AgBaseCrosshairLabel>,
         'crossLines' | 'tick'
     > {
     type: 'grouped-category';

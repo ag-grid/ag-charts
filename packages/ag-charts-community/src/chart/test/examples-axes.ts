@@ -389,7 +389,7 @@ export const COMBO_SERIES_COMPLEX_LAYOUT: AgCartesianChartOptions = {
                 const layoutConstraints = {
                     stacked: false,
                     width: 50,
-                    unit: 'percentage',
+                    unit: 'percent',
                     align: 'start',
                 };
                 if (a.position === 'left' && a.type === 'number') {
@@ -405,7 +405,7 @@ export const COMBO_SERIES_COMPLEX_LAYOUT: AgCartesianChartOptions = {
                 const layoutConstraints = {
                     stacked: false,
                     width: 50,
-                    unit: 'percentage',
+                    unit: 'percent',
                     align: 'end',
                 };
                 if (a.position === 'left' && a.type === 'number') {

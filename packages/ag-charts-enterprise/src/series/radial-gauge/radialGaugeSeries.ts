@@ -8,6 +8,7 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
+import { countFractionDigits } from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -43,7 +44,6 @@ const {
     normalizeAngle360Inclusive,
     isBetweenAngles,
     sectorBox,
-    countFractionDigits,
     toDegrees,
     toRadians,
     BBox,

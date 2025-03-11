@@ -3,12 +3,12 @@ import type { AgScatterSeriesOptions } from 'ag-charts-types';
 
 import { without } from '../../../util/object';
 import {
-    commonSeriesOptionsDef,
-    errorBarOptionsDef,
-    markerOptionsDef,
-    seriesLabelOptionsDef,
-    tooltipOptionsDef,
-} from '../../commonOptionsDef';
+    commonSeriesOptionsDefs,
+    errorBarOptionsDefs,
+    markerOptionsDefs,
+    seriesLabelOptionsDefs,
+    tooltipOptionsDefs,
+} from '../../commonOptionsDefs';
 
 export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     type: required(constant('scatter')),
@@ -22,10 +22,10 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     showInMiniChart: boolean,
     label: {
         placement: union('top', 'right', 'bottom', 'left'),
-        ...seriesLabelOptionsDef,
+        ...seriesLabelOptionsDefs,
     },
-    tooltip: tooltipOptionsDef,
-    errorBar: errorBarOptionsDef,
-    ...commonSeriesOptionsDef,
-    ...without(markerOptionsDef, ['enabled']),
+    tooltip: tooltipOptionsDefs,
+    errorBar: errorBarOptionsDefs,
+    ...commonSeriesOptionsDefs,
+    ...without(markerOptionsDefs, ['enabled']),
 };

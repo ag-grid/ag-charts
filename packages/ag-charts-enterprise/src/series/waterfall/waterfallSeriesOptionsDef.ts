@@ -19,19 +19,19 @@ import {
     union,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, shadowOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, shadowOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<any>> = {
     name: string,
     cornerRadius: positiveNumber,
     itemStyler: callback,
     label: {
-        ...seriesLabelOptionsDef,
+        ...seriesLabelOptionsDefs,
         padding: positiveNumber,
         placement: union('inside-start', 'inside-center', 'inside-end', 'outside-start', 'outside-end'),
     },
-    tooltip: tooltipOptionsDef,
-    shadow: shadowOptionsDef,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
@@ -63,6 +63,6 @@ export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = 
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
 };

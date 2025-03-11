@@ -16,7 +16,7 @@ import {
     union,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     type: required(constant('sankey')),
@@ -27,7 +27,7 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     fills: arrayOf(or(color, gradient)),
     strokes: arrayOf(color),
     label: {
-        ...seriesLabelOptionsDef,
+        ...seriesLabelOptionsDefs,
         spacing: positiveNumber,
     },
     link: {
@@ -45,6 +45,6 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
 };

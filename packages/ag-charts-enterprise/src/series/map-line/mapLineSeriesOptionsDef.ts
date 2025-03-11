@@ -12,7 +12,7 @@ import {
     strokeOptionsDef,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
     type: required(constant('map-line')),
@@ -31,13 +31,13 @@ export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
     title: string,
     itemStyler: callback,
     sizeDomain: arrayOf(positiveNumber),
-    label: seriesLabelOptionsDef,
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    label: seriesLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     highlightStyle: {
-        ...(commonSeriesOptionsDef.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
+        ...(commonSeriesOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
         ...strokeOptionsDef,
     },
 };

@@ -14,12 +14,12 @@ import {
 } from 'ag-charts-core';
 
 const {
-    commonSeriesOptionsDef,
+    commonSeriesOptionsDefs,
     interpolationValidator,
-    markerOptionsDef,
-    seriesLabelOptionsDef,
-    shadowOptionsDef,
-    tooltipOptionsDef,
+    markerOptionsDefs,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
+    tooltipOptionsDefs,
 } = _ModuleSupport;
 
 export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = {
@@ -35,14 +35,14 @@ export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = 
     connectMissingData: boolean,
     interpolation: interpolationValidator,
     label: {
-        ...seriesLabelOptionsDef,
+        ...seriesLabelOptionsDefs,
         padding: positiveNumber,
         placement: union('inside', 'outside'),
     },
-    marker: markerOptionsDef,
-    tooltip: tooltipOptionsDef,
-    shadow: shadowOptionsDef,
-    ...commonSeriesOptionsDef,
+    marker: markerOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,

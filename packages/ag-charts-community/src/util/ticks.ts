@@ -1,7 +1,5 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, clamp, countFractionDigits, createNumberFormatter, parseNumberFormat } from 'ag-charts-core';
 
-import { clamp, countFractionDigits } from './number';
-import { numberFormat, parseFormat } from './numberFormat';
 import { day, hour, millisecond, minute, month, second, sunday as week, year } from './time';
 import {
     durationDay,
@@ -152,7 +150,7 @@ function decimalPlaces(decimal: string) {
 }
 
 export function tickFormat(ticks: any[], format?: string): (n: number | { valueOf(): number }) => string {
-    const options = parseFormat(format ?? ',f');
+    const options = parseNumberFormat(format ?? ',f');
     if (options.precision == null || isNaN(options.precision)) {
         if (!options.type || 'eEFgGnprs'.includes(options.type)) {
             options.precision = Math.max(
@@ -175,7 +173,7 @@ export function tickFormat(ticks: any[], format?: string): (n: number | { valueO
             );
         }
     }
-    const formatter = numberFormat(options);
+    const formatter = createNumberFormatter(options);
     return (n) => formatter(Number(n));
 }
 

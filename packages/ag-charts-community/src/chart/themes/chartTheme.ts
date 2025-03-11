@@ -213,13 +213,12 @@ export class ChartTheme {
                 style: [{ stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
             },
             crossLines: {
-                enabled: false,
+                enabled: true,
                 fill: { $ref: 'foregroundColor' },
                 stroke: { $ref: 'foregroundColor' },
                 fillOpacity: 0.1,
                 strokeWidth: 1,
                 label: {
-                    enabled: false,
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
                     fontWeight: { $ref: 'fontWeight' },

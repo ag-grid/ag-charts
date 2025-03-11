@@ -14,7 +14,7 @@ import {
     union,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+const { commonSeriesOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
     type: required(constant('box-plot')),
@@ -44,8 +44,8 @@ export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
     cap: {
         lengthRatio: ratio,
     },
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,

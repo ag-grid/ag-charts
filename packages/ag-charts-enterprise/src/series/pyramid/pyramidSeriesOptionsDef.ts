@@ -17,7 +17,8 @@ import {
     union,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, shadowOptionsDef, tooltipOptionsDef, without } = _ModuleSupport;
+const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, shadowOptionsDefs, tooltipOptionsDefs, without } =
+    _ModuleSupport;
 
 export const pyramidSeriesOptionsDef: OptionsDefs<AgPyramidSeriesOptions> = {
     type: required(constant('pyramid')),
@@ -30,15 +31,15 @@ export const pyramidSeriesOptionsDef: OptionsDefs<AgPyramidSeriesOptions> = {
     itemStyler: callback,
     fills: arrayOf(or(color, gradient)),
     strokes: arrayOf(color),
-    label: seriesLabelOptionsDef,
+    label: seriesLabelOptionsDefs,
     stageLabel: {
         spacing: positiveNumber,
         placement: union('before', 'after'),
-        ...seriesLabelOptionsDef,
+        ...seriesLabelOptionsDefs,
     },
-    tooltip: tooltipOptionsDef,
-    shadow: shadowOptionsDef,
-    ...commonSeriesOptionsDef,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     ...lineDashOptionsDef,

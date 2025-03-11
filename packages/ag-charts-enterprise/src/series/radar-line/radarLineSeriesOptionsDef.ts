@@ -9,7 +9,7 @@ import {
     strokeOptionsDef,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, markerOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, markerOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions> = {
     type: required(constant('radar-line')),
@@ -18,10 +18,10 @@ export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions> = 
     angleName: string,
     radiusName: string,
     connectMissingData: boolean,
-    marker: markerOptionsDef,
-    label: seriesLabelOptionsDef,
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    marker: markerOptionsDefs,
+    label: seriesLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
 };

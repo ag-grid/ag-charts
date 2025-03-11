@@ -12,13 +12,13 @@ import {
 import type { AgLineSeriesOptions } from 'ag-charts-types';
 
 import {
-    commonSeriesOptionsDef,
-    errorBarOptionsDef,
+    commonSeriesOptionsDefs,
+    errorBarOptionsDefs,
     interpolationValidator,
-    markerOptionsDef,
-    seriesLabelOptionsDef,
-    tooltipOptionsDef,
-} from '../../commonOptionsDef';
+    markerOptionsDefs,
+    seriesLabelOptionsDefs,
+    tooltipOptionsDefs,
+} from '../../commonOptionsDefs';
 
 export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     type: constant('line'),
@@ -34,11 +34,11 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     showInMiniChart: boolean,
     connectMissingData: boolean,
     interpolation: interpolationValidator,
-    label: seriesLabelOptionsDef,
-    marker: markerOptionsDef,
-    tooltip: tooltipOptionsDef,
-    errorBar: errorBarOptionsDef,
-    ...commonSeriesOptionsDef,
+    label: seriesLabelOptionsDefs,
+    marker: markerOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    errorBar: errorBarOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,

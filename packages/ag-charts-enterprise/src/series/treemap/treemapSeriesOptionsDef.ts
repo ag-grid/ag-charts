@@ -16,7 +16,7 @@ import {
     union,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
     type: required(constant('treemap')),
@@ -38,7 +38,7 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
         textAlign: union('left', 'center', 'right'),
         interactive: boolean,
         label: {
-            ...seriesLabelOptionsDef,
+            ...seriesLabelOptionsDefs,
             spacing: positiveNumber,
         },
         ...fillOptionsDef,
@@ -51,7 +51,7 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
         textAlign: union('left', 'center', 'right'),
         verticalAlign: union('top', 'middle', 'bottom'),
         label: {
-            ...seriesLabelOptionsDef,
+            ...seriesLabelOptionsDefs,
             spacing: positiveNumber,
             lineHeight: positiveNumber,
             minimumFontSize: positiveNumber,
@@ -59,7 +59,7 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
             overflowStrategy: union('ellipsis', 'hide'),
         },
         secondaryLabel: {
-            ...seriesLabelOptionsDef,
+            ...seriesLabelOptionsDefs,
             lineHeight: positiveNumber,
             minimumFontSize: positiveNumber,
             wrapping: union('never', 'always', 'hyphenate', 'on-space'),
@@ -68,8 +68,8 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
         ...fillOptionsDef,
         ...strokeOptionsDef,
     },
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
     highlightStyle: {
         group: {
             label: {

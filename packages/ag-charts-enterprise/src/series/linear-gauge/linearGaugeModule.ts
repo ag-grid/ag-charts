@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgLinearGaugePreset, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { LinearGaugeSeries } from './linearGaugeSeries';
+import { linearGaugeSeriesOptionsDef } from './linearGaugeSeriesOptionsDef';
 
 export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
     type: 'series',
@@ -79,4 +81,15 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
             margin: 4,
         },
     },
+};
+
+export const LinearGaugeSeriesModule: SeriesModuleDefinition<AgLinearGaugePreset> = {
+    type: 'series',
+    name: 'linear-gauge',
+    chartType: 'gauge',
+    enterprise: true,
+
+    options: linearGaugeSeriesOptionsDef,
+
+    create: (ctx: _ModuleSupport.ModuleContext) => new LinearGaugeSeries(ctx),
 };

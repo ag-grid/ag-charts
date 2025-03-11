@@ -3,7 +3,7 @@
 exports[`Validation utils Conditional Validators validates axis schema with optional min/max 1`] = `
 [
   ValidationError {
-    "message": "Option \`max\` cannot be set to \`"100"\`; expecting a number and to be greater than min, ignoring.",
+    "message": "Option \`max\` cannot be set to \`"100"\`; expecting a number and the value to be greater than \`min\`, ignoring.",
     "path": "",
     "required": undefined,
     "unknown": undefined,

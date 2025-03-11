@@ -7,23 +7,13 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
+import { isNumberEqual } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const {
-    TextUtils,
-    TextWrapper,
-    isNumberEqual,
-    createDatumId,
-    Rect,
-    Group,
-    BBox,
-    Selection,
-    Text,
-    Transformable,
-    applyShapeStyle,
-} = _ModuleSupport;
+const { TextUtils, TextWrapper, createDatumId, Rect, Group, BBox, Selection, Text, Transformable, applyShapeStyle } =
+    _ModuleSupport;
 
 class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;

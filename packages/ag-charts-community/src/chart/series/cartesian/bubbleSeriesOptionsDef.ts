@@ -13,11 +13,11 @@ import type { AgBubbleSeriesOptions } from 'ag-charts-types';
 
 import { without } from '../../../util/object';
 import {
-    commonSeriesOptionsDef,
-    markerOptionsDef,
-    seriesLabelOptionsDef,
-    tooltipOptionsDef,
-} from '../../commonOptionsDef';
+    commonSeriesOptionsDefs,
+    markerOptionsDefs,
+    seriesLabelOptionsDefs,
+    tooltipOptionsDefs,
+} from '../../commonOptionsDefs';
 
 export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     type: required(constant('bubble')),
@@ -35,9 +35,9 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     showInMiniChart: boolean,
     label: {
         placement: union('top', 'right', 'bottom', 'left'),
-        ...seriesLabelOptionsDef,
+        ...seriesLabelOptionsDefs,
     },
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
-    ...without(markerOptionsDef, ['enabled']),
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
+    ...without(markerOptionsDefs, ['enabled']),
 };

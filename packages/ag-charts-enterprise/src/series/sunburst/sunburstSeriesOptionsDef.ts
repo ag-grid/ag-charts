@@ -12,10 +12,9 @@ import {
     required,
     string,
     strokeOptionsDef,
-    union,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, tooltipOptionsDef, without } = _ModuleSupport;
+const { commonSeriesOptionsDefs, autoSizedLabelOptionsDefs, tooltipOptionsDefs, without } = _ModuleSupport;
 
 export const sunburstSeriesOptionsDef: OptionsDefs<AgSunburstSeriesOptions> = {
     type: required(constant('sunburst')),
@@ -34,22 +33,12 @@ export const sunburstSeriesOptionsDef: OptionsDefs<AgSunburstSeriesOptions> = {
     padding: positiveNumber,
     itemStyler: callback,
     label: {
-        ...seriesLabelOptionsDef,
         spacing: positiveNumber,
-        lineHeight: positiveNumber,
-        minimumFontSize: positiveNumber,
-        wrapping: union('never', 'always', 'hyphenate', 'on-space'),
-        overflowStrategy: union('ellipsis', 'hide'),
+        ...autoSizedLabelOptionsDefs,
     },
-    secondaryLabel: {
-        ...seriesLabelOptionsDef,
-        lineHeight: positiveNumber,
-        minimumFontSize: positiveNumber,
-        wrapping: union('never', 'always', 'hyphenate', 'on-space'),
-        overflowStrategy: union('ellipsis', 'hide'),
-    },
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    secondaryLabel: autoSizedLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     highlightStyle: {

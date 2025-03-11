@@ -1,4 +1,5 @@
-import { clamp } from './number';
+import { clamp } from './numbers';
+import { isString } from './typeGuards';
 
 interface FormatterOptions {
     prefix?: string;
@@ -15,7 +16,17 @@ interface FormatterOptions {
     suffix?: string;
 }
 
-export function parseFormat(format: string): FormatterOptions {
+// formatRegEx structure: (fill? + align)? sign? symbol? zero? width? comma? precision? tilde? type?
+const formatRegEx = /^(?:(.)?([<>=^]))?([+\-( ])?([$€£¥₣₹#])?(0)?(\d+)?(,)?(?:\.(\d+))?(~)?([%a-z])?$/i;
+const surroundedRegEx = /^((?:[^#]|#[^{])*)#{([^}]+)}(.*)$/;
+
+export function isValidNumberFormat(value: unknown): boolean {
+    if (!isString(value)) return false;
+    const match = surroundedRegEx.exec(value);
+    return formatRegEx.test(match ? match[2] : value);
+}
+
+export function parseNumberFormat(format: string): FormatterOptions {
     let prefix: string | undefined;
     let suffix: string | undefined;
     const surrounded = surroundedRegEx.exec(format);
@@ -44,8 +55,8 @@ export function parseFormat(format: string): FormatterOptions {
     };
 }
 
-export function numberFormat(format: string | FormatterOptions) {
-    const options = typeof format === 'string' ? parseFormat(format) : format;
+export function createNumberFormatter(format: string | FormatterOptions) {
+    const options = typeof format === 'string' ? parseNumberFormat(format) : format;
     const { fill, align, sign = '-', symbol, zero, width, comma, type, prefix = '', suffix = '', precision } = options;
     let { trim } = options;
 
@@ -65,7 +76,7 @@ export function numberFormat(format: string | FormatterOptions) {
     }
 
     let formatterPrecision: number;
-    if (precision == null || precisionIsNaN) {
+    if (precisionIsNaN) {
         formatterPrecision = type ? 6 : 12;
     } else {
         formatterPrecision = precision;
@@ -99,10 +110,6 @@ export function numberFormat(format: string | FormatterOptions) {
         return result;
     };
 }
-
-// formatRegEx structure: (fill? + align)? sign? symbol? zero? width? comma? precision? tilde? type?
-const formatRegEx = /^(?:(.)?([<>=^]))?([+\-( ])?([$€£¥₣₹#])?(0)?(\d+)?(,)?(?:\.(\d+))?(~)?([%a-z])?$/i;
-const surroundedRegEx = /^((?:[^#]|#[^{])*)#{([^}]+)}(.*)$/;
 
 const integerTypes: Record<string, (n: number) => string> = {
     b: (n) => absFloor(n).toString(2),

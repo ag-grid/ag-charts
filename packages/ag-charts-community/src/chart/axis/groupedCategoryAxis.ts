@@ -1,4 +1,4 @@
-import { countLines, isArray, isObject, iterate, sortBasedOnArray, toArray } from 'ag-charts-core';
+import { countLines, inRange, isArray, isObject, iterate, sortBasedOnArray, toArray } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -8,7 +8,6 @@ import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { getAngleRatioRadians, normalizeAngle360, toRadians } from '../../util/angle';
 import { extent } from '../../util/extent';
-import { inRange } from '../../util/number';
 import { BaseProperties, PropertiesArray } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';

@@ -1,6 +1,13 @@
 // Entry point to implement and test our tree-shaking abilities
 import { _ModuleSupport } from 'ag-charts-community';
 
+import {
+    AngleCategoryAxisModule,
+    AngleNumberAxisModule,
+    OrdinalTimeAxisModule,
+    RadiusCategoryAxisModule,
+    RadiusNumberAxisModule,
+} from './axes/axisModules';
 import { FlowProportionChartModule } from './charts/flowProportionChartModule';
 import { GaugeChartModule } from './charts/gaugeChartModule';
 import { HierarchyChartModule } from './charts/hierarchyChartModule';
@@ -12,10 +19,12 @@ import { ChordSeriesModule } from './series/chord';
 import { ConeFunnelSeriesModule } from './series/cone-funnel';
 import { FunnelSeriesModule } from './series/funnel';
 import { HeatmapSeriesModule } from './series/heatmap';
+import { LinearGaugeSeriesModule } from './series/linear-gauge/linearGaugeModule';
 import { MapLineSeriesModule } from './series/map-line';
 import { MapLineBackgroundSeriesModule } from './series/map-line-background';
 import { MapMarkerSeriesModule } from './series/map-marker';
 import { MapShapeSeriesModule } from './series/map-shape';
+import { MapShapeBackgroundSeriesModule } from './series/map-shape-background';
 import { NightingaleSeriesModule } from './series/nightingale';
 import { OhlcSeriesModule } from './series/ohlc';
 import { PyramidSeriesModule } from './series/pyramid';
@@ -23,6 +32,7 @@ import { RadarAreaSeriesModule } from './series/radar-area';
 import { RadarLineSeriesModule } from './series/radar-line';
 import { RadialBarSeriesModule } from './series/radial-bar';
 import { RadialColumnSeriesModule } from './series/radial-column';
+import { RadialGaugeSeriesModule } from './series/radial-gauge/radialGaugeModule';
 import { RangeAreaSeriesModule } from './series/range-area';
 import { RangeBarSeriesModule } from './series/range-bar';
 import { SankeySeriesModule } from './series/sankey';
@@ -33,6 +43,11 @@ import { WaterfallSeriesModule } from './series/waterfall';
 export const ModuleRegistry = _ModuleSupport.ModuleRegistry;
 
 export {
+    OrdinalTimeAxisModule,
+    AngleNumberAxisModule,
+    AngleCategoryAxisModule,
+    RadiusNumberAxisModule,
+    RadiusCategoryAxisModule,
     BoxPlotSeriesModule,
     CandlestickSeriesModule,
     ConeFunnelSeriesModule,
@@ -51,6 +66,8 @@ export {
     ChordSeriesModule,
     SankeySeriesModule,
     GaugeChartModule,
+    LinearGaugeSeriesModule,
+    RadialGaugeSeriesModule,
     HierarchyChartModule,
     SunburstSeriesModule,
     TreemapSeriesModule,
@@ -61,9 +78,11 @@ export {
     MapLineBackgroundSeriesModule,
     MapMarkerSeriesModule,
     MapShapeSeriesModule,
+    MapShapeBackgroundSeriesModule,
 };
 
 export const AllCartesianEnterpriseModules = [
+    OrdinalTimeAxisModule,
     BoxPlotSeriesModule,
     CandlestickSeriesModule,
     ConeFunnelSeriesModule,
@@ -76,6 +95,10 @@ export const AllCartesianEnterpriseModules = [
 ];
 
 export const AllPolarEnterpriseModules = [
+    AngleNumberAxisModule,
+    AngleCategoryAxisModule,
+    RadiusNumberAxisModule,
+    RadiusCategoryAxisModule,
     NightingaleSeriesModule,
     RadarAreaSeriesModule,
     RadarLineSeriesModule,
@@ -85,7 +108,7 @@ export const AllPolarEnterpriseModules = [
 
 export const AllFlowProportionEnterpriseModules = [FlowProportionChartModule, ChordSeriesModule, SankeySeriesModule];
 
-export const AllGaugeEnterpriseModules = [GaugeChartModule];
+export const AllGaugeEnterpriseModules = [GaugeChartModule, LinearGaugeSeriesModule, RadialGaugeSeriesModule];
 
 export const AllHierarchyEnterpriseModules = [HierarchyChartModule, SunburstSeriesModule, TreemapSeriesModule];
 
@@ -97,6 +120,7 @@ export const AllTopologyEnterpriseModules = [
     MapLineBackgroundSeriesModule,
     MapMarkerSeriesModule,
     MapShapeSeriesModule,
+    MapShapeBackgroundSeriesModule,
 ];
 
 export const AllEnterpriseModules = [
