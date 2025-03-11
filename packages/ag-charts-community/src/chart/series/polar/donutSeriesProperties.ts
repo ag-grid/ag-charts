@@ -84,7 +84,7 @@ class DonutSeriesSectorLabel extends Label<AgDonutSeriesLabelFormatterParams> {
 }
 
 class DonutSeriesCalloutLine extends BaseProperties {
-    @TempValidate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY), { optional: true })
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)), { optional: true })
     colors?: AgFillType[];
 
     @TempValidate(POSITIVE_NUMBER)
@@ -134,7 +134,7 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     @TempValidate(ARRAY_OF(COLOR_STRING_ARRAY))
     defaultColorRange: string[][] = [];
 
-    @TempValidate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
     fills: AgFillType[] = Object.values(DEFAULT_FILLS);
 
     @TempValidate(COLOR_STRING_ARRAY)

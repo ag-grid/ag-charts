@@ -41,8 +41,6 @@ export interface AgAxisCaptionOptions {
 export interface AgBaseAxisOptions<LabelType = any> {
     /** Axis type identifier. */
     type: string;
-    /** An array of keys determining which series are charted on this axis. */
-    keys?: string[];
     /** Reverse the axis scale domain if `true`. */
     reverse?: boolean;
     /** Configuration for the axis line. */
@@ -129,11 +127,12 @@ export interface AgBaseAxisLabelStyleOptions {
     color?: CssColor;
 }
 
-export interface AgAxisLabelFormatterParams {
+export interface AgAxisLabelFormatterParams<D = any> {
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;
     readonly boundSeries: AgAxisBoundSeries[];
+    readonly domain: D[];
 }
 
 export interface AgAxisLabelStylerParams extends AgBaseAxisLabelStyleOptions {
@@ -141,7 +140,7 @@ export interface AgAxisLabelStylerParams extends AgBaseAxisLabelStyleOptions {
     readonly value: any;
 }
 
-export interface AgBaseAxisLabelOptions extends AgBaseAxisLabelStyleOptions {
+export interface AgBaseAxisLabelOptions<D = any> extends AgBaseAxisLabelStyleOptions {
     /** Set to `false` to hide the axis labels. */
     enabled?: boolean;
     /** The rotation of the axis labels in degrees. Note: for integrated charts the default is 335 degrees, unless the axis shows grouped or default categories (indexes). The first row of labels in a grouped category axis is rotated perpendicular to the axis line. */
@@ -151,7 +150,7 @@ export interface AgBaseAxisLabelOptions extends AgBaseAxisLabelStyleOptions {
     /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
     minSpacing?: PixelSize;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
-    formatter?: Formatter<AgAxisLabelFormatterParams>;
+    formatter?: Formatter<AgAxisLabelFormatterParams<D>>;
     /** Function used to style axis labels. */
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
 }
@@ -161,7 +160,7 @@ export interface FormattableLabel {
     format?: string;
 }
 
-export interface AgBaseAxisFormattableLabelOptions extends AgBaseAxisLabelOptions, FormattableLabel {}
+export interface AgBaseAxisFormattableLabelOptions<D = any> extends AgBaseAxisLabelOptions<D>, FormattableLabel {}
 
 export interface AgAxisGridStyle {
     /** The colour of the grid line. */

@@ -1,6 +1,6 @@
 import type { AgContextMenuOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, createElement } from 'ag-charts-core';
+import { Logger, clamp, createElement } from 'ag-charts-core';
 
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
@@ -353,8 +353,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const canvasRect = this.ctx.domManager.getBoundingClientRect();
         const { offsetWidth: width, offsetHeight: height } = this.element;
 
-        x = _ModuleSupport.clamp(0, x, canvasRect.width - width);
-        y = _ModuleSupport.clamp(0, y, canvasRect.height - height);
+        x = clamp(0, x, canvasRect.width - width);
+        y = clamp(0, y, canvasRect.height - height);
 
         this.element.style.left = `${x}px`;
         this.element.style.top = `calc(${y}px - 0.5em)`;

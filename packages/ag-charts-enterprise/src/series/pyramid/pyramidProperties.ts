@@ -17,6 +17,7 @@ const {
     UNION,
     OR,
     COLOR_GRADIENT,
+    COLOR_STRING,
     ARRAY_OF,
     COLOR_STRING_ARRAY,
     FUNCTION,
@@ -52,7 +53,7 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
     fills: AgFillType[] = [];
 
     @TempValidate(RATIO)

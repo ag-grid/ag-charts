@@ -1,5 +1,4 @@
-import type { Has } from 'ag-charts-core';
-import { Logger } from 'ag-charts-core';
+import { type Has, Logger, modulus } from 'ag-charts-core';
 import type { AgFillType, AgPieSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -13,12 +12,11 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
-import { isGradientFill, isStringFillArray } from '../../../scene/util/fill';
+import { isStringFillArray } from '../../../scene/util/fill';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
-import { normalizeAngle180, toDegrees, toRadians } from '../../../util/angle';
+import { normalizeAngle180, toRadians } from '../../../util/angle';
 import { formatValue } from '../../../util/format.util';
 import { jsonDiff } from '../../../util/json';
-import { mod } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { ChartUpdateType } from '../../chartUpdateType';
@@ -547,23 +545,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const quadrantStart = -0.75 * Math.PI; // same as `normalizeAngle180(toRadians(-135))`
         const quadrantOffset = midAngle180 - quadrantStart;
         const quadrant = Math.floor(quadrantOffset / (Math.PI / 2));
-        const quadrantIndex = mod(quadrant, quadrantTextOpts.length);
+        const quadrantIndex = modulus(quadrant, quadrantTextOpts.length);
 
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getSectorFormat(datum: any, datumIndex: number, highlighted: boolean, angle: number) {
-        const {
-            angleKey,
-            radiusKey,
-            calloutLabelKey,
-            sectorLabelKey,
-            legendItemKey,
-            fills,
-            strokes,
-            itemStyler,
-            defaultColorRange,
-        } = this.properties;
+    private getSectorFormat(datum: any, datumIndex: number, highlighted: boolean, angle?: number) {
+        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
+            this.properties;
 
         const defaultStroke: string | undefined = strokes[datumIndex % strokes.length];
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
@@ -578,18 +567,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 this.properties
             );
 
-        let sectorFill: AgFillType | undefined = fill;
-        if (
-            isGradientFill(sectorFill) &&
-            sectorFill.type === 'gradient' &&
-            sectorFill.rotation == null &&
-            sectorFill.direction == null
-        ) {
-            sectorFill = {
-                ...sectorFill,
-                rotation: toDegrees(angle + Math.PI / 2),
-            };
-        }
+        const sectorFill: AgFillType | undefined = this.getNodeFill(fill, angle);
 
         let format: AgPieSeriesStyle | undefined;
         if (itemStyler) {
@@ -626,7 +604,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             lineDash: format?.lineDash ?? lineDash,
             lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
             cornerRadius: format?.cornerRadius ?? cornerRadius,
-            defaultColorRange: defaultColorRange[datumIndex],
         };
     }
 
@@ -794,6 +771,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         }
 
         this.contentGroup.opacity = this.getOpacity();
+        const { defaultColorRange } = this.properties;
+
+        const outerRadius = this.radiusScale.range[1];
 
         const animationDisabled = this.ctx.animationManager.isSkipped();
         const updateSectorFn = (sector: Sector, datum: PieNodeDatum, _index: number, isDatumHighlighted: boolean) => {
@@ -801,6 +781,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
             datum.sectorFormat.fill = format.fill;
             datum.sectorFormat.stroke = format.stroke;
+
+            const fillBBox = this.getFillBBox(format.fill, outerRadius);
 
             if (animationDisabled) {
                 sector.startAngle = datum.startAngle;
@@ -813,6 +795,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 sector.stroke = format.stroke;
             }
 
+            sector.fillBBox = fillBBox;
             sector.strokeWidth = format.strokeWidth;
             sector.fillOpacity = format.fillOpacity;
             sector.strokeOpacity = format.strokeOpacity;
@@ -820,7 +803,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             sector.lineDashOffset = format.lineDashOffset;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
-            sector.defaultColorRange = format.defaultColorRange;
+            sector.defaultColorRange = defaultColorRange[datum.itemId];
             const inset = Math.max(
                 (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth : 0)) / 2,
                 0
@@ -1348,14 +1331,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 angleName,
                 radiusKey,
                 radiusName,
-                ...this.getSectorFormat(datum, datumIndex, false, 0),
+                ...this.getSectorFormat(datum, datumIndex, false),
             }
         );
     }
 
     private legendItemSymbol(datumIndex: number): LegendSymbolOptions {
         const datum = this.processedData?.dataSources.get(this.id)?.[datumIndex];
-        const sectorFormat = this.getSectorFormat(datum, datumIndex, false, 0);
+        const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
 
         return {
             marker: {
@@ -1366,7 +1349,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 strokeWidth: this.properties.strokeWidth,
                 lineDash: this.properties.lineDash,
                 lineDashOffset: this.properties.lineDashOffset,
-                defaultColorRange: sectorFormat.defaultColorRange,
+                defaultColorRange: this.properties.defaultColorRange[datumIndex],
             },
         };
     }

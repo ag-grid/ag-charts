@@ -45,7 +45,7 @@ type MapMarkerAnimationEvent = {
     skip: undefined;
 };
 
-type ItemStyle = Required<AgMapMarkerSeriesStyle> & _ModuleSupport.DefaultFillStyle;
+type ItemStyle = Required<AgMapMarkerSeriesStyle>;
 
 export class MapMarkerSeries
     extends TopologySeries<
@@ -568,7 +568,6 @@ export class MapMarkerSeries
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -627,6 +626,7 @@ export class MapMarkerSeries
 
         const style = this.getMarkerItemBaseStyle(isHighlight);
         const fillBBox = this.getFillBBox(style.fill);
+        const { defaultColorRange } = this.properties;
 
         markerSelection.each((marker, markerDatum) => {
             const { datumIndex, datum, point, colorValue, sizeValue } = markerDatum;
@@ -642,7 +642,7 @@ export class MapMarkerSeries
             marker.shape = overrides?.shape ?? style.shape;
             marker.size = overrides?.size ?? style.size;
 
-            applyShapeStyle(marker, style, overrides, fillBBox);
+            applyShapeStyle(marker, { ...style, defaultColorRange }, overrides, fillBBox);
 
             marker.x = point.x;
             marker.y = point.y;

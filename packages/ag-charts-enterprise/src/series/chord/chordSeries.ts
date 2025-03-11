@@ -56,10 +56,8 @@ interface ChordNodeLabelDatum {
 }
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
-    Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'> &
-    _ModuleSupport.DefaultFillStyle;
-
-type LinkStyle = NodeStyle & { tension: number } & _ModuleSupport.DefaultFillStyle;
+    Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
+type LinkStyle = NodeStyle & { tension: number };
 
 interface ChordNodeDataContext
     extends FlowProportionSeriesContext<ChordNodeDatum, ChordLinkDatum, ChordNodeLabelDatum> {}
@@ -380,7 +378,6 @@ export class ChordSeries extends FlowProportionSeries<
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.node.strokeWidth),
             lineDash: highlightStyle?.lineDash ?? lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -449,6 +446,7 @@ export class ChordSeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const format = this.getBaseNodeStyle(isHighlight);
+        const { defaultColorRange } = this.properties;
 
         datumSelection.each((sector, datum) => {
             const { datumIndex, size, label } = datum;
@@ -469,7 +467,7 @@ export class ChordSeries extends FlowProportionSeries<
             sector.startAngle = datum.startAngle;
             sector.endAngle = datum.endAngle;
             sector.fill = overrides.fill ?? format?.fill;
-            sector.defaultColorRange = format?.defaultColorRange;
+            sector.defaultColorRange = defaultColorRange;
             sector.fillOpacity = overrides.fillOpacity ?? format?.fillOpacity;
             sector.stroke = overrides.stroke ?? format?.stroke;
             sector.strokeOpacity = overrides.strokeOpacity ?? format?.strokeOpacity;
@@ -503,7 +501,6 @@ export class ChordSeries extends FlowProportionSeries<
             lineDash: highlightStyle?.lineDash ?? lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
             tension,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -571,6 +568,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         const style = this.getBaseLinkStyle(isHighlight);
         const fillBBox = this.getFillBBox(style.fill);
+        const { defaultColorRange } = this.properties;
 
         datumSelection.each((link, datum) => {
             const { datumIndex } = datum;
@@ -591,7 +589,7 @@ export class ChordSeries extends FlowProportionSeries<
             link.startAngle2 = datum.startAngle2;
             link.endAngle2 = datum.endAngle2;
 
-            applyShapeStyle(link, style, overrides, fillBBox);
+            applyShapeStyle(link, { ...style, defaultColorRange }, overrides, fillBBox);
 
             link.tension = overrides?.tension ?? style.tension;
         });

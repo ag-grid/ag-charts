@@ -349,5 +349,67 @@ describe('PyramidSeries', () => {
             chart = deproxy(AgCharts.create(options as AgChartOptions));
             await compare();
         });
+
+        it('should render pyramid series with a mix of gradient and string fills', async () => {
+            const options = {
+                ...PYRAMID_EXAMPLE,
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        fills: [
+                            {
+                                type: 'gradient',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                            'blue',
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
+
+        it('should render pyramid series with a series bound gradient fill', async () => {
+            const options = {
+                ...PYRAMID_EXAMPLE,
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        fills: [
+                            {
+                                type: 'gradient',
+                                bounds: 'series',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
     });
 });

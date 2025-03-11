@@ -131,7 +131,7 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(OR(ARRAY_OF(COLOR_GRADIENT), COLOR_STRING_ARRAY))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
     fills: AgFillType[] = [];
 
     @TempValidate(COLOR_STRING_ARRAY)

@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams } from './callbackOptions';
+import type { AgChartCallbackParams, Renderer } from './callbackOptions';
 import type { DurationMs, InteractionRange, PixelSize, TextWrap } from './types';
 
 export type AgTooltipMode = 'single' | 'shared' | 'compact';
@@ -106,7 +106,7 @@ export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams<a
     /** Configuration for tooltip interaction. */
     interaction?: AgSeriesTooltipInteraction;
     /** Function used to create the content for tooltips. */
-    renderer?: (params: TParams) => string | AgTooltipRendererResult;
+    renderer?: Renderer<TParams, AgTooltipRendererResult>;
 }
 
 export interface AgSeriesTooltipInteraction {

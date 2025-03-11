@@ -1,5 +1,4 @@
 import type {
-    AgAxisBaseTickOptions,
     AgBaseAxisFormattableLabelOptions,
     AgBaseAxisLabelOptions,
     AgBaseAxisOptions,
@@ -10,10 +9,8 @@ import type { Degree, Ratio } from './types';
 
 export type AgPolarAxisShape = 'polygon' | 'circle';
 
-export interface AgAngleCategoryAxisOptions extends Omit<AgBaseAxisOptions<AgAngleAxisLabelOptions>, 'keys'> {
+export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleAxisLabelOptions> {
     type: 'angle-category';
-    /** Configuration for the axis ticks. */
-    tick?: AgAxisBaseTickOptions;
     /** Shape of axis. Default: `polygon` */
     shape?: AgPolarAxisShape;
     /** Angle in degrees to start ticks positioning from. */
@@ -35,11 +32,9 @@ export interface AgAngleCategoryAxisOptions extends Omit<AgBaseAxisOptions<AgAng
 }
 
 export interface AgAngleNumberAxisOptions
-    extends Omit<AgBaseAxisOptions<AgAngleAxisFormattableLabelOptions>, 'keys' | 'interval'>,
+    extends Omit<AgBaseAxisOptions<AgAngleAxisFormattableLabelOptions>, 'interval'>,
         AgContinuousAxisOptions {
     type: 'angle-number';
-    /** Configuration for the axis ticks. */
-    tick?: AgAxisBaseTickOptions;
     /** Angle in degrees to start ticks positioning from. */
     startAngle?: Degree;
     /** Angle in degrees to end ticks positioning at. It should be greater than `startAngle`. */

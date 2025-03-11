@@ -13,7 +13,7 @@ interface AgRadiusAxisFormattableLabelOptions extends AgBaseAxisFormattableLabel
 interface AgRadiusAxisLabelOptions extends AgBaseAxisLabelOptions {}
 
 export interface AgRadiusNumberAxisOptions
-    extends Omit<AgBaseAxisOptions<AgRadiusAxisFormattableLabelOptions>, 'keys' | 'interval'>,
+    extends Omit<AgBaseAxisOptions<AgRadiusAxisFormattableLabelOptions>, 'interval'>,
         AgContinuousAxisOptions {
     type: 'radius-number';
     /** The rotation angle of axis line and labels in degrees. */
@@ -24,13 +24,14 @@ export interface AgRadiusNumberAxisOptions
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgRadiusCrossLineOptions[];
-    /** The ratio of the inner radius of the axis as a proportion of the overall radius.
+    /**
+     * The ratio of the inner radius of the axis as a proportion of the overall radius.
      *  Used to create an inner circle.
      */
     innerRadiusRatio?: Ratio;
 }
 
-export interface AgRadiusCategoryAxisOptions extends Omit<AgBaseAxisOptions<AgRadiusAxisLabelOptions>, 'keys'> {
+export interface AgRadiusCategoryAxisOptions extends AgBaseAxisOptions<AgRadiusAxisLabelOptions> {
     type: 'radius-category';
     /** The rotation angle of axis line and labels in degrees. */
     positionAngle?: Degree;
@@ -38,7 +39,8 @@ export interface AgRadiusCategoryAxisOptions extends Omit<AgBaseAxisOptions<AgRa
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgRadiusCrossLineOptions[];
-    /** The ratio of the inner radius of the axis as a proportion of the overall radius.
+    /**
+     * The ratio of the inner radius of the axis as a proportion of the overall radius.
      *  Used to create an inner circle.
      */
     innerRadiusRatio?: Ratio;

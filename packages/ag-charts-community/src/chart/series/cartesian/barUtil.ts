@@ -1,3 +1,5 @@
+import { isNegative } from 'ag-charts-core';
+
 import type { ApplyFn, FromToMotionPropFn } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -5,7 +7,6 @@ import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { Rect } from '../../../scene/shape/rect';
 import { Transformable } from '../../../scene/transformable';
-import { isNegative } from '../../../util/number';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { ISeries } from '../seriesTypes';

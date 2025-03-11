@@ -31,6 +31,11 @@ export function objectsEqualWith<T extends PlainObject>(a: T, b: T, cmp: (a: T, 
     return true;
 }
 
+/**
+ * Merge objects from left to right, with left-most properties having highest precedent.
+ *
+ * NOTE: `undefined` values take lower priority than actual values irrespective of precedent.
+ */
 export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
     const target: PlainObject = {};
 
@@ -43,6 +48,29 @@ export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSourc
             if (isPlainObject(target[key]) && isPlainObject(source[key])) {
                 target[key] = mergeDefaults(target[key], source[key]);
             } else {
+                target[key] ??= source[key];
+            }
+        }
+    }
+
+    return target as Intersection<Exclude<TArgs[number], FalsyType>>;
+}
+
+/**
+ * Merge objects from left to right, with left-most properties having highest precedent.
+ */
+export function merge<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
+    const target: PlainObject = {};
+
+    for (const source of sources) {
+        if (!isObject(source)) continue;
+
+        const keys = isDecoratedObject(source) ? listDecoratedProperties(source) : Object.keys(source);
+
+        for (const key of keys) {
+            if (isPlainObject(target[key]) && isPlainObject(source[key])) {
+                target[key] = merge(target[key], source[key]);
+            } else if (!(key in target)) {
                 target[key] ??= source[key];
             }
         }
@@ -113,6 +141,10 @@ export function partialAssign<T>(keysToCopy: (keyof T)[], target: T, source?: Pa
 }
 
 export function deepFreeze<T>(obj: T): T {
+    if (obj == null || typeof obj !== 'object' || !isPlainObject(obj)) {
+        return obj;
+    }
+
     // Freeze the current object
     Object.freeze(obj);
 

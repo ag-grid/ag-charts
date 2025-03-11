@@ -1,5 +1,6 @@
 import type { AgAngleAxisLabelOrientation } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { countFractionDigits, isNumberEqual } from 'ag-charts-core';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
@@ -11,11 +12,9 @@ const {
     TextWrapper,
     TextUtils,
     TempValidate,
-    isNumberEqual,
     toRadians,
     normalizeAngle360,
     normalizeAngle360Inclusive,
-    countFractionDigits,
     Path,
     RotatableText,
     Transformable,
@@ -365,7 +364,7 @@ export abstract class AngleAxis<
 
             const rotation = this.getLabelRotation(angle);
 
-            let text = this.formatTick(value, index);
+            let text = this.formatTick(value, index, scale.domain);
 
             tempText.text = text;
             tempText.x = x;

@@ -1,9 +1,8 @@
-import { getWindow } from 'ag-charts-core';
+import { clamp, getWindow } from 'ag-charts-core';
 import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
 
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import { clamp } from '../../util/number';
 import { type Bounds, type Placement, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
 import {

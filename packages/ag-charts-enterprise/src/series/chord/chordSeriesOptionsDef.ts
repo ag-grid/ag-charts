@@ -16,7 +16,7 @@ import {
     strokeOptionsDef,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     type: required(constant('chord')),
@@ -29,7 +29,7 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     label: {
         spacing: positiveNumber,
         maxWidth: positiveNumber,
-        ...seriesLabelOptionsDef,
+        ...seriesLabelOptionsDefs,
     },
     link: {
         tension: ratio,
@@ -46,6 +46,6 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
 };

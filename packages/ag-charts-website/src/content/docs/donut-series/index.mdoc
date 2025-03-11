@@ -9,7 +9,7 @@ A Donut Series has all the benefits of a Pie Series and allows displaying multip
 
 {% chartExampleRunner title="Donut Chart" name="simple-donut" type="generated" /%}
 
-To create a Donut Series, use the `donut` series type and specify an `innerRadiusRatio`.
+To create a Donut Series, use the `donut` series type.
 
 ```js
 series: [
@@ -17,12 +17,11 @@ series: [
         type: 'donut',
         calloutLabelKey: 'asset',
         angleKey: 'amount',
-        innerRadiusRatio: 0.7,
     },
 ],
 ```
 
-The `innerRadiusRatio` should be a value between `0` and `1` and defines the radius of the inner circle as a ratio of the outer radius of the chart.
+An option `innerRadiusRatio` can be provided which should be a value between `0` and `1` and defines the radius of the inner circle as a ratio of the outer radius of the chart.
 
 ## Inner Labels
 

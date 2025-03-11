@@ -1,4 +1,5 @@
-import { isNumberEqual } from '../util/number';
+import { isNumberEqual } from 'ag-charts-core';
+
 import { BBox } from './bbox';
 
 export const IDENTITY_MATRIX_ELEMENTS: readonly number[] = [1, 0, 0, 1, 0, 0];

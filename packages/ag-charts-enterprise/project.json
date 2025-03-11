@@ -34,10 +34,16 @@
     "lint:eslint": {},
     "lint:circular": {},
     "lint:depcruise": {},
+    "lint:changeDetection": {},
 
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": ["lint:eslint", "lint:circular", "lint:depcruise"],
+      "dependsOn": [
+        "lint:eslint",
+        "lint:circular",
+        "lint:depcruise"
+        // TODO: "lint:changeDetection"
+      ],
       "configurations": {
         "fix": {}
       }

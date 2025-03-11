@@ -181,22 +181,23 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
     INVALID_RANGE_CROSSLINES: {
         options: examples.INVALID_RANGE_VALUE_CROSSLINE,
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
-        warningMessages: [],
+        warningMessages: [
+            "AG Charts - Option `axes[1].crossLines[0].range` cannot be set to `[null,134]`; expecting crossLine type to be 'range' and a defined value array and an array of exactly 2 items, ignoring.",
+        ],
     },
     INVALID_RANGE_LENGTH_CROSSLINE: {
         options: examples.INVALID_RANGE_LENGTH_CROSSLINE,
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
         warningMessages: [
-            `AG Charts - Property [range] of [CrossLine] cannot be set to [[128,134,135]]; expecting an array of length 2, ignoring.`,
+            "AG Charts - Option `axes[1].crossLines[0].range` cannot be set to `[128,134,135]`; expecting crossLine type to be 'range' and a defined value array and an array of exactly 2 items, ignoring.",
         ],
     },
     INVALID_RANGE_WITHOUT_TYPE_CROSSLINE: {
         options: examples.INVALID_RANGE_WITHOUT_TYPE_CROSSLINE,
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
         warningMessages: [
-            `AG Charts - Property [type] of [CrossLine] cannot be set to [undefined]; expecting a crossLine type keyword such as 'range' or 'line', ignoring.`,
-            `AG Charts - Property [range] of [CrossLine] cannot be set to [[128,134]]; expecting crossLine property 'type' to be 'range', ignoring.`,
-            `AG Charts - [type] is required.`,
+            "AG Charts - Option `axes[1].crossLines[0].type` is required and has not been provided; expecting a keyword such as 'line' or 'range', ignoring.",
+            "AG Charts - Option `axes[1].crossLines[0].range` cannot be set to `[128,134]`; expecting crossLine type to be 'range' and a defined value array and an array of exactly 2 items, ignoring.",
         ],
     },
     INVALID_LINE_VALUE_CROSSLINES: {
@@ -208,23 +209,22 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
         options: examples.INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE,
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
         warningMessages: [
-            `AG Charts - Property [range] of [CrossLine] cannot be set to [[128,134]]; expecting crossLine type 'line' to have a 'value' property instead of 'range', ignoring.`,
+            "AG Charts - Option `axes[1].crossLines[0].range` cannot be set to `[128,134]`; expecting crossLine type to be 'range' and a defined value array and an array of exactly 2 items, ignoring.",
         ],
     },
     INVALID_LINE_WITHOUT_TYPE_CROSSLINE: {
         options: examples.INVALID_LINE_WITHOUT_TYPE_CROSSLINE,
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
         warningMessages: [
-            `AG Charts - Property [type] of [CrossLine] cannot be set to [undefined]; expecting a crossLine type keyword such as 'range' or 'line', ignoring.`,
-            `AG Charts - Property [value] of [CrossLine] cannot be set to [128]; expecting crossLine property 'type' to be 'line', ignoring.`,
-            `AG Charts - [type] is required.`,
+            "AG Charts - Option `axes[1].crossLines[0].type` is required and has not been provided; expecting a keyword such as 'line' or 'range', ignoring.",
+            "AG Charts - Option `axes[1].crossLines[0].value` cannot be set to `128`; expecting crossLine type to be 'line' and a defined value, ignoring.",
         ],
     },
     INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE: {
         options: examples.INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE,
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
         warningMessages: [
-            `AG Charts - Property [value] of [CrossLine] cannot be set to [128]; expecting crossLine type 'range' to have a 'range' property instead of 'value', ignoring.`,
+            "AG Charts - Option `axes[1].crossLines[0].value` cannot be set to `128`; expecting crossLine type to be 'line' and a defined value, ignoring.",
         ],
     },
 };

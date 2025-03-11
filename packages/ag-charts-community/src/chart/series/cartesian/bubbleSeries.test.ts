@@ -202,7 +202,7 @@ describe('BubbleSeries', () => {
                                 fill: {
                                     type: 'gradient',
                                     direction: 'vertical',
-                                    bounds: 'axes',
+                                    bounds: 'axis',
                                 },
                             },
                         },
@@ -226,7 +226,7 @@ describe('BubbleSeries', () => {
                                 fill: {
                                     type: 'gradient',
                                     direction: 'horizontal',
-                                    bounds: 'axes',
+                                    bounds: 'axis',
                                 },
                             },
                         },

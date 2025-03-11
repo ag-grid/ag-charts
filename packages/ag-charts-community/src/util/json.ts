@@ -32,15 +32,15 @@ const CLASS_INSTANCE_TYPE = 'class-instance';
  *
  * @param source starting point for diff
  * @param target target for diff vs. source
- * @param skip object keys to skip during diff
++ * @param shallow object keys to only shallow compare during diff
  * @returns `null` if no differences, or an object with the subset of properties that have changed.
  */
-export function jsonDiff<T>(source: T, target: T, skip?: (keyof T)[]): Partial<T> | null {
+export function jsonDiff<T>(source: T, target: T, shallow?: Set<keyof T>): Partial<T> | null {
     if (isArray(target)) {
         if (
             !isArray(source) ||
             source.length !== target.length ||
-            target.some((v, i) => jsonDiff(source[i], v) != null)
+            target.some((v, i) => jsonDiff(source[i], v, shallow) != null)
         ) {
             return target;
         }
@@ -55,11 +55,12 @@ export function jsonDiff<T>(source: T, target: T, skip?: (keyof T)[]): Partial<T
         ]);
         for (const key of allKeys) {
             // Cheap-and-easy equality check.
-            if (source[key] === target[key] || skip?.includes(key)) {
+            if (source[key] === target[key]) {
                 continue;
-            }
-            if (typeof source[key] === typeof target[key]) {
-                const diff = jsonDiff(source[key], target[key]);
+            } else if (shallow?.has(key)) {
+                result[key] = target[key];
+            } else if (typeof source[key] === typeof target[key]) {
+                const diff = jsonDiff(source[key], target[key], shallow);
                 if (diff !== null) {
                     result[key] = diff as T[keyof T];
                 }
@@ -595,30 +596,39 @@ function ref<T extends object, P extends object>(
 }
 
 function palette(value: string | Array<unknown>, path: string[], params: any, source: any) {
-    const indexIndex = path.findLastIndex((v) => !isNaN(Number(v)));
-    let index = Number(path[indexIndex]);
-    if (isNaN(index) || !isString(value)) return;
-
-    const seriesPath = path.slice(0, indexIndex);
-    const ignoreIndexSeries = ['map-shape-background', 'map-line-background'];
-    const ignoreIndexOffset = getPath(source, seriesPath)
-        .slice(0, index)
-        .filter((s: any) => ignoreIndexSeries.includes(s.type)).length;
-    index -= ignoreIndexOffset;
+    if (!isString(value)) return;
 
     const p = params.__palette;
 
-    switch (value) {
-        case 'fill':
-            return circularSliceArray(p.fills, 1, index)[0];
-        case 'stroke':
-            return circularSliceArray(p.strokes, 1, index)[0];
-        case 'gradients':
-            return p.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
-        case 'gradient':
-            return p.sequentialColors[index];
-        case 'range2':
-            return circularSliceArray(p.fills, 2, index);
+    const indexPaletteParams = ['fill', 'stroke', 'gradient', 'range2'];
+    if (indexPaletteParams.includes(value)) {
+        const indexIndex = path.findLastIndex((v) => !isNaN(Number(v)));
+        let index = Number(path[indexIndex]);
+        if (isNaN(index)) return;
+
+        const seriesPath = path.slice(0, indexIndex);
+        const ignoreIndexSeries = ['map-shape-background', 'map-line-background'];
+        const ignoreIndexOffset = getPath(source, seriesPath)
+            .slice(0, index)
+            .filter((s: any) => ignoreIndexSeries.includes(s.type)).length;
+        index -= ignoreIndexOffset;
+
+        switch (value) {
+            case 'fill':
+                return circularSliceArray(p.fills, 1, index)[0];
+            case 'stroke':
+                return circularSliceArray(p.strokes, 1, index)[0];
+            case 'gradient':
+                return p.sequentialColors[index];
+            case 'range2':
+                return circularSliceArray(p.fills, 2, index);
+        }
+
+        return;
+    }
+
+    if (value === 'gradients') {
+        return p.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
     }
 
     return getPath(p, value);

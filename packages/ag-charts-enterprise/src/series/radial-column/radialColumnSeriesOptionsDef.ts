@@ -14,7 +14,7 @@ import {
     strokeOptionsDef,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptions> = {
     type: required(constant('radial-column')),
@@ -30,9 +30,9 @@ export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptio
     columnWidthRatio: ratio,
     maxColumnWidthRatio: ratio,
     itemStyler: callback,
-    label: seriesLabelOptionsDef,
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    label: seriesLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,

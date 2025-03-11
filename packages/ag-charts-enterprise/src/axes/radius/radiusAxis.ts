@@ -1,5 +1,6 @@
 import type { AgAxisCaptionFormatterParams } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNumberEqual } from 'ag-charts-core';
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
@@ -10,7 +11,6 @@ const {
     NUMBER,
     BOOLEAN,
     TempValidate,
-    isNumberEqual,
     normalizeAngle360,
     toRadians,
     Caption,

@@ -1,10 +1,9 @@
-import { isPlainObject } from 'ag-charts-core';
+import { clamp, isPlainObject } from 'ag-charts-core';
 
 import { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
 import { type Interpolating, interpolate, isInterpolating } from '../util/interpolating';
-import { clamp } from '../util/number';
 import { objectsEqualWith } from '../util/object';
 import { linear } from './easing';
 

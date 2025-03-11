@@ -12,13 +12,13 @@ import {
 import type { AgAreaSeriesOptions } from 'ag-charts-types';
 
 import {
-    commonSeriesOptionsDef,
+    commonSeriesOptionsDefs,
     interpolationValidator,
-    markerOptionsDef,
-    seriesLabelOptionsDef,
-    shadowOptionsDef,
-    tooltipOptionsDef,
-} from '../../commonOptionsDef';
+    markerOptionsDefs,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
+    tooltipOptionsDefs,
+} from '../../commonOptionsDefs';
 
 export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
     type: required(constant('area')),
@@ -32,11 +32,11 @@ export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
     showInMiniChart: boolean,
     connectMissingData: boolean,
     interpolation: interpolationValidator,
-    label: seriesLabelOptionsDef,
-    marker: markerOptionsDef,
-    tooltip: tooltipOptionsDef,
-    shadow: shadowOptionsDef,
-    ...commonSeriesOptionsDef,
+    label: seriesLabelOptionsDefs,
+    marker: markerOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,

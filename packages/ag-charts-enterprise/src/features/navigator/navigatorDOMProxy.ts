@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { clamp } from 'ag-charts-core';
 
-const { clamp, SliderWidget } = _ModuleSupport;
+const { SliderWidget } = _ModuleSupport;
 
 export type NavigatorButtonType = 'min' | 'max' | 'pan';
 

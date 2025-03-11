@@ -1,4 +1,5 @@
 import {
+    type AgGradientFill,
     type AgPyramidSeriesLabelFormatterParams,
     type AgPyramidSeriesStyle,
     _ModuleSupport,
@@ -23,6 +24,7 @@ const {
     applyShapeStyle,
     fromToMotion,
     seriesLabelFadeInAnimation,
+    isGradientFill,
 } = _ModuleSupport;
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
@@ -51,8 +53,7 @@ interface PyramidNodeDataContext
 }
 
 type ItemStyle = Pick<AgPyramidSeriesStyle, 'fill' | 'stroke'> &
-    Required<Omit<AgPyramidSeriesStyle, 'fill' | 'stroke'>> &
-    _ModuleSupport.DefaultFillStyle;
+    Required<Omit<AgPyramidSeriesStyle, 'fill' | 'stroke'>>;
 
 type PyramidAnimationState = 'empty' | 'ready';
 type PyramidAnimationEvent = {
@@ -412,6 +413,22 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
     }
 
+    protected override getFillBBox(fill: AgGradientFill | string | undefined) {
+        if (!isGradientFill(fill)) {
+            return;
+        }
+
+        const { bounds = 'item' } = fill;
+
+        if (bounds === 'item') {
+            return;
+        }
+
+        const width = this._nodeDataDependencies?.seriesRectWidth ?? 0;
+        const height = this._nodeDataDependencies?.seriesRectHeight ?? 0;
+        return new BBox(0, 0, width, height);
+    }
+
     override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         this.checkResize(seriesRect);
 
@@ -471,7 +488,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -526,13 +542,15 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { shadow } = properties;
 
         const style = this.getItemBaseStyle(isHighlight);
-        const fillBBox = this.getFillBBox(style.fill);
+        const { defaultColorRange } = this.properties;
 
         datumSelection.each((connector, nodeDatum) => {
             const { datumIndex, datum } = nodeDatum;
             const overrides = this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, style, isHighlight);
 
-            applyShapeStyle(connector, style, overrides, fillBBox);
+            const fillBBox = this.getFillBBox(overrides.fill);
+
+            applyShapeStyle(connector, { ...style, defaultColorRange }, overrides, fillBBox);
 
             applyPyramidDatum(connector, nodeDatum);
 

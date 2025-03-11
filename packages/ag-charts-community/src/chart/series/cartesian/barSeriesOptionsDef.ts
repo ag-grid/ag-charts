@@ -15,12 +15,12 @@ import {
 import type { AgBarSeriesOptions } from 'ag-charts-types';
 
 import {
-    commonSeriesOptionsDef,
-    errorBarOptionsDef,
-    seriesLabelOptionsDef,
-    shadowOptionsDef,
-    tooltipOptionsDef,
-} from '../../commonOptionsDef';
+    commonSeriesOptionsDefs,
+    errorBarOptionsDefs,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
+    tooltipOptionsDefs,
+} from '../../commonOptionsDefs';
 
 export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     type: required(constant('bar')),
@@ -39,14 +39,14 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     itemStyler: callback,
     crisp: boolean,
     label: {
-        ...seriesLabelOptionsDef,
+        ...seriesLabelOptionsDefs,
         placement: union('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'),
         padding: positiveNumber,
     },
-    errorBar: errorBarOptionsDef,
-    shadow: shadowOptionsDef,
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    errorBar: errorBarOptionsDefs,
+    shadow: shadowOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,

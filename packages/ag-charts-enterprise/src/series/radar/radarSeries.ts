@@ -1,5 +1,5 @@
 import { type AgSeriesMarkerStyle, _ModuleSupport } from 'ag-charts-community';
-import { type RequireOptional, isFiniteNumber } from 'ag-charts-core';
+import { type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
@@ -15,7 +15,6 @@ const {
     animationValidation,
     computeMarkerFocusBounds,
     extent,
-    isNumberEqual,
     BBox,
     Group,
     Path,
@@ -341,7 +340,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         });
 
         const { fill } = baseStyle;
-        const fillBBox = this.getFillBBox(fill);
+
+        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const radiusAxisReversed = radiusAxis?.isReversed();
+        const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
+        const fillBBox = this.getFillBBox(fill, axisOuterRadius);
+
+        const { defaultColorRange } = marker;
 
         selection.update(selectionData).each((node, datum) => {
             this.updateMarkerStyle(
@@ -352,6 +357,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 this.getDatumStylerProperties(datum),
                 highlight,
                 baseStyle,
+                defaultColorRange,
                 fillBBox
             );
         });

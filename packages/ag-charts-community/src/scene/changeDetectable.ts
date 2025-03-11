@@ -46,7 +46,7 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
     };
 
     Object.defineProperty(target, key, {
-        set: setter as (v: any) => void,
+        set: setter as (v: unknown) => void,
         get: getter,
         enumerable: true,
         configurable: true,
@@ -56,7 +56,7 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
 function buildConvertorChain(setterFn: Function, opts: SceneChangeDetectionOptions) {
     const { convertor } = opts;
     if (convertor) {
-        return function (this: any, value: any) {
+        return function (this: any, value: unknown) {
             setterFn.call(this, convertor(value));
         };
     }
@@ -69,7 +69,7 @@ const NO_CHANGE = Symbol('no-change');
 function buildChangeCallbackChain(setterFn: Function, opts: SceneChangeDetectionOptions) {
     const { changeCb } = opts;
     if (changeCb) {
-        return function (this: any, value: any) {
+        return function (this: any, value: unknown) {
             const change = setterFn.call(this, value);
             if (change !== NO_CHANGE) {
                 changeCb.call(this, this);
@@ -84,7 +84,7 @@ function buildChangeCallbackChain(setterFn: Function, opts: SceneChangeDetection
 function buildCheckDirtyChain(setterFn: Function, opts: SceneChangeDetectionOptions) {
     const { checkDirtyOnAssignment } = opts;
     if (checkDirtyOnAssignment) {
-        return function (this: any, value: any) {
+        return function (this: any, value: undefined | { _dirty: boolean }) {
             const change = setterFn.call(this, value);
 
             if (value?._dirty === true) {
@@ -101,7 +101,7 @@ function buildCheckDirtyChain(setterFn: Function, opts: SceneChangeDetectionOpti
 function buildNormalSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
     const { changeCb } = opts;
 
-    return function (this: any, value: any) {
+    return function (this: any, value: unknown) {
         const oldValue = this[privateKey];
         if (value !== oldValue) {
             this[privateKey] = value;
@@ -115,7 +115,7 @@ function buildNormalSetter(privateKey: string, opts: SceneChangeDetectionOptions
 }
 
 function buildTransformSetter(privateKey: string) {
-    return function (this: any, value: any) {
+    return function (this: any, value: unknown) {
         const oldValue = this[privateKey];
         if (value !== oldValue) {
             this[privateKey] = value;
@@ -128,7 +128,7 @@ function buildTransformSetter(privateKey: string) {
 }
 
 function buildPathSetter(privateKey: string) {
-    return function (this: any, value: any) {
+    return function (this: any, value: unknown) {
         const oldValue = this[privateKey];
         if (value !== oldValue) {
             this[privateKey] = value;

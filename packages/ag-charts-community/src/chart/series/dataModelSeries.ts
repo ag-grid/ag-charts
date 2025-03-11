@@ -1,8 +1,9 @@
+import { clamp } from 'ag-charts-core';
+
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import type { Path } from '../../scene/shape/path';
-import { clamp } from '../../util/number';
 import { objectsEqual } from '../../util/object';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';

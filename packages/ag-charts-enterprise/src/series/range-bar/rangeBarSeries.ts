@@ -484,7 +484,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemBaseStyle(highlighted: boolean): Required<AgRangeBarSeriesStyle> & _ModuleSupport.DefaultFillStyle {
+    private getItemBaseStyle(highlighted: boolean): Required<AgRangeBarSeriesStyle> {
         const { properties } = this;
         const { cornerRadius } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -498,7 +498,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             cornerRadius,
-            defaultColorRange: properties.defaultColorRange,
         };
     }
 
@@ -539,10 +538,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const fillBBox = isGradientFill(style.fill) ? this.getFillBBox(style.fill) : undefined;
 
+        const { defaultColorRange } = this.properties;
+
         datumSelection.each((rect, datum) => {
             const overrides = this.getItemStyleOverrides(String(datum.datumIndex), datum.datum, style, isHighlight);
 
-            applyShapeStyle(rect, style, overrides, fillBBox);
+            applyShapeStyle(rect, { ...style, defaultColorRange }, overrides, fillBBox);
 
             rect.cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;

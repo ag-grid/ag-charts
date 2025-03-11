@@ -1,4 +1,4 @@
-import { clamp } from '../util/number';
+import { clamp } from 'ag-charts-core';
 
 export function filterVisibleTicks<T = any>(
     ticks: T[],

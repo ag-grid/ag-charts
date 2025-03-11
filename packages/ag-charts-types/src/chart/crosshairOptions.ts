@@ -1,4 +1,5 @@
 import type { FormattableLabel } from './axisOptions';
+import type { Renderer } from './callbackOptions';
 import type { CssColor, Opacity, PixelSize } from './types';
 
 export interface AgCrosshairOptions<LabelType = AgCrosshairLabel> {
@@ -30,7 +31,7 @@ export interface AgBaseCrosshairLabel {
     /** The vertical offset in pixels for the label. */
     yOffset?: PixelSize;
     /** Function used to create the content for the label. */
-    renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult;
+    renderer?: Renderer<AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult>;
 }
 
 export interface AgCrosshairLabelRendererParams {

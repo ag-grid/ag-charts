@@ -124,6 +124,61 @@ export class ChartTheme {
     readonly config: any;
     readonly presets: AgPresetOverrides;
 
+    public static getDefaultColors(): DefaultColors {
+        return {
+            fills: DEFAULT_FILLS,
+            strokes: DEFAULT_STROKES,
+            sequentialColors: getSequentialColors(DEFAULT_FILLS),
+            divergingColors: [DEFAULT_FILLS.ORANGE, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.GREEN],
+            hierarchyColors: ['#fff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad'],
+            secondSequentialColors: Color.interpolate(
+                [
+                    Color.fromHexString(DEFAULT_FILLS.BLUE),
+                    Color.fromHexString('#cbdef5'), // TODO: Color.lighten(DEFAULT_FILLS.BLUE, ?)
+                ],
+                8
+            ).map((color) => color.toString()),
+            secondDivergingColors: [DEFAULT_FILLS.GREEN, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.RED],
+            secondHierarchyColors: ['#fff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096'],
+            up: { fill: DEFAULT_FILLS.GREEN, stroke: DEFAULT_STROKES.GREEN },
+            down: { fill: DEFAULT_FILLS.RED, stroke: DEFAULT_STROKES.RED },
+            neutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
+            altUp: { fill: DEFAULT_FILLS.BLUE, stroke: DEFAULT_STROKES.BLUE },
+            altDown: { fill: DEFAULT_FILLS.ORANGE, stroke: DEFAULT_STROKES.ORANGE },
+            altNeutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
+        };
+    }
+
+    public static getDefaultPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
+        return {
+            accentColor: '#2196f3',
+            axisColor: { $foregroundBackgroundMix: [0.675] },
+            backgroundColor: DEFAULT_BACKGROUND_FILL,
+            borderColor: { $foregroundBackgroundMix: [0.818] },
+            foregroundColor: '#464646',
+            fontFamily: 'Verdana, sans-serif',
+            fontSize: FONT_SIZE.SMALL,
+            fontWeight: 400,
+            gridLineColor: { $foregroundBackgroundAccentMix: [0.93, 0.085] },
+            padding: 20,
+            subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'backgroundColor' }, 0.38] },
+            textColor: { $ref: 'foregroundColor' },
+
+            chromeBackgroundColor: { $foregroundBackgroundMix: [0.975] },
+            chromeFontFamily: { $ref: 'fontFamily' },
+            chromeFontSize: { $ref: 'fontSize' },
+            chromeFontWeight: { $ref: 'fontWeight' },
+            chromeTextColor: '#181d1f',
+            chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
+
+            inputBackgroundColor: { $ref: 'backgroundColor' },
+            inputTextColor: { $ref: 'textColor' },
+
+            crosshairLabelBackgroundColor: { $ref: 'foregroundColor' },
+            crosshairLabelTextColor: { $ref: 'backgroundColor' },
+        };
+    }
+
     private static getAxisDefaults(overrideDefaults?: object) {
         return mergeDefaults(overrideDefaults, {
             title: {
@@ -158,13 +213,12 @@ export class ChartTheme {
                 style: [{ stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
             },
             crossLines: {
-                enabled: false,
+                enabled: true,
                 fill: { $ref: 'foregroundColor' },
                 stroke: { $ref: 'foregroundColor' },
                 fillOpacity: 0.1,
                 strokeWidth: 1,
                 label: {
-                    enabled: false,
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
                     fontWeight: { $ref: 'fontWeight' },
@@ -459,58 +513,11 @@ export class ChartTheme {
     }
 
     protected getDefaultColors(): DefaultColors {
-        return {
-            fills: DEFAULT_FILLS,
-            strokes: DEFAULT_STROKES,
-            sequentialColors: getSequentialColors(DEFAULT_FILLS),
-            divergingColors: [DEFAULT_FILLS.ORANGE, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.GREEN],
-            hierarchyColors: ['#fff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad'],
-            secondSequentialColors: Color.interpolate(
-                [
-                    Color.fromHexString(DEFAULT_FILLS.BLUE),
-                    Color.fromHexString('#cbdef5'), // TODO: Color.lighten(DEFAULT_FILLS.BLUE, ?)
-                ],
-                8
-            ).map((color) => color.toString()),
-            secondDivergingColors: [DEFAULT_FILLS.GREEN, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.RED],
-            secondHierarchyColors: ['#fff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096'],
-            up: { fill: DEFAULT_FILLS.GREEN, stroke: DEFAULT_STROKES.GREEN },
-            down: { fill: DEFAULT_FILLS.RED, stroke: DEFAULT_STROKES.RED },
-            neutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
-            altUp: { fill: DEFAULT_FILLS.BLUE, stroke: DEFAULT_STROKES.BLUE },
-            altDown: { fill: DEFAULT_FILLS.ORANGE, stroke: DEFAULT_STROKES.ORANGE },
-            altNeutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
-        };
+        return ChartTheme.getDefaultColors();
     }
 
     getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
-        return {
-            accentColor: '#2196f3',
-            axisColor: { $foregroundBackgroundMix: [0.675] },
-            backgroundColor: DEFAULT_BACKGROUND_FILL,
-            borderColor: { $foregroundBackgroundMix: [0.818] },
-            foregroundColor: '#464646',
-            fontFamily: 'Verdana, sans-serif',
-            fontSize: FONT_SIZE.SMALL,
-            fontWeight: 400,
-            gridLineColor: { $foregroundBackgroundAccentMix: [0.93, 0.085] },
-            padding: 20,
-            subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'backgroundColor' }, 0.38] },
-            textColor: { $ref: 'foregroundColor' },
-
-            chromeBackgroundColor: { $foregroundBackgroundMix: [0.975] },
-            chromeFontFamily: { $ref: 'fontFamily' },
-            chromeFontSize: { $ref: 'fontSize' },
-            chromeFontWeight: { $ref: 'fontWeight' },
-            chromeTextColor: '#181d1f',
-            chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
-
-            inputBackgroundColor: { $ref: 'backgroundColor' },
-            inputTextColor: { $ref: 'textColor' },
-
-            crosshairLabelBackgroundColor: { $ref: 'foregroundColor' },
-            crosshairLabelTextColor: { $ref: 'backgroundColor' },
-        };
+        return ChartTheme.getDefaultPublicParameters();
     }
 
     // Private parameters that are not exposed in the themes API.

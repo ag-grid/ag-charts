@@ -56,7 +56,10 @@ class OhlcSeriesItems extends BaseProperties {
 export abstract class OhlcSeriesBaseProperties<
     T extends AgOhlcSeriesBaseOptions,
 > extends AbstractBarSeriesProperties<T> {
-    abstract item: Record<'up' | 'down', FillOptions & StrokeOptions & LineDashOptions>;
+    abstract item: Record<
+        'up' | 'down',
+        FillOptions & StrokeOptions & LineDashOptions & Partial<_ModuleSupport.DefaultFillStyle>
+    >;
 
     @TempValidate(STRING)
     xKey!: string;

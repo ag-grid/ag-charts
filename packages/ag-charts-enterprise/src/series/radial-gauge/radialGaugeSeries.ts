@@ -8,6 +8,7 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
+import { countFractionDigits } from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -43,7 +44,6 @@ const {
     normalizeAngle360Inclusive,
     isBetweenAngles,
     sectorBox,
-    countFractionDigits,
     toDegrees,
     toRadians,
     BBox,
@@ -354,7 +354,9 @@ export class RadialGaugeSeries
 
         const font = label.getFont();
         const tickData = ticks.map((value, index): RadialGaugeTickDatum => {
-            const text = label.formatter?.({ value, index, boundSeries: undefined! }) ?? tickFormatter(value);
+            const text =
+                label.formatter?.({ value, index, domain: scale.domain, boundSeries: undefined! }) ??
+                tickFormatter(value);
             const { width, height } = CachedTextMeasurerPool.measureText(text, { font });
             return { index, value, text, width, height };
         });
@@ -362,8 +364,9 @@ export class RadialGaugeSeries
         const maxWidth = tickData.reduce((m, t) => Math.max(m, t.width), 0);
         const maxHeight = tickData.reduce((m, t) => Math.max(m, t.height), 0);
 
+        const labelInset = label.enabled ? Math.max(maxWidth, maxHeight) + label.spacing : 0;
         const radiusBounds = Math.max(
-            0.5 * unitBoxSize - (Math.max(maxWidth, maxHeight) + label.spacing),
+            0.5 * unitBoxSize - labelInset,
             // seriesRect may have negative size
             0
         );
@@ -1148,10 +1151,17 @@ export class RadialGaugeSeries
     private updateTickNodes(opts: {
         tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, RadialGaugeTickDatum>;
     }) {
-        const { scale, radius, centerX, centerY } = this;
-        const { color, fontFamily, fontSize, fontStyle, fontWeight, spacing } = this.properties.scale.label;
+        const { scale, radius, centerX, centerY, properties } = this;
+        const { enabled, color, fontFamily, fontSize, fontStyle, fontWeight, spacing } = properties.scale.label;
+        const rotation = toRadians(properties.scale.label.rotation ?? 0);
 
         opts.tickSelection.each((label, datum) => {
+            if (!enabled) {
+                label.visible = false;
+                return;
+            }
+
+            label.visible = true;
             label.text = datum.text;
             label.fill = color;
             label.fontFamily = fontFamily;
@@ -1168,15 +1178,21 @@ export class RadialGaugeSeries
 
             const originX = Math.abs(radius * Math.cos(angle));
             const originY = Math.abs(radius * Math.sin(angle));
-            const x = Math.min(Math.max(Math.abs(radius / Math.tan(angle)), originX - width / 2), originX + width / 2);
-            const y = Math.min(
+            const x0 = Math.min(Math.max(Math.abs(radius / Math.tan(angle)), originX - width / 2), originX + width / 2);
+            const y0 = Math.min(
                 Math.max(Math.abs(radius * Math.tan(angle)), originY - height / 2),
                 originY + height / 2
             );
-            const outerR = Math.hypot(x, y);
+            const outerR = Math.hypot(x0, y0);
 
-            label.x = centerX + (outerR + spacing) * Math.cos(angle);
-            label.y = centerY + (outerR + spacing) * Math.sin(angle);
+            const x = centerX + (outerR + spacing) * Math.cos(angle);
+            const y = centerY + (outerR + spacing) * Math.sin(angle);
+
+            label.x = x;
+            label.y = y;
+            label.rotationCenterX = x;
+            label.rotationCenterY = y;
+            label.rotation = rotation;
         });
     }
 
