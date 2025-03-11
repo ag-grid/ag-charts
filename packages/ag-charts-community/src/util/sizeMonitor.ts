@@ -28,7 +28,11 @@ export class SizeMonitor {
                         contentRect: { width, height },
                         target,
                     } of entries) {
-                        cb({ width, height, pixelRatio: 1 }, target as HTMLElement);
+                        // Round to mimic Element.clientWidth + Element.clientHeight.
+                        cb(
+                            { width: Math.round(width), height: Math.round(height), pixelRatio: 1 },
+                            target as HTMLElement
+                        );
                     }
                 } finally {
                     observer.disconnect();
