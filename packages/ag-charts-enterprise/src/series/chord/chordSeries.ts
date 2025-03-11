@@ -1,4 +1,10 @@
-import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgGradientFill,
+    type FillOptions,
+    type LineDashOptions,
+    type StrokeOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 import {
@@ -24,6 +30,8 @@ const {
     Sector,
     evaluateBezier,
     applyShapeStyle,
+    isGradientFill,
+    BBox,
 } = _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {
@@ -572,7 +580,6 @@ export class ChordSeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const style = this.getBaseLinkStyle(isHighlight);
-        const fillBBox = this.getFillBBox(style.fill);
 
         datumSelection.each((link, datum) => {
             const { datumIndex } = datum;
@@ -593,10 +600,28 @@ export class ChordSeries extends FlowProportionSeries<
             link.startAngle2 = datum.startAngle2;
             link.endAngle2 = datum.endAngle2;
 
+            const fillBBox = this.getFillBBox(overrides?.fill ?? style.fill, datum.radius);
             applyShapeStyle(link, style, overrides, fillBBox);
 
             link.tension = overrides?.tension ?? style.tension;
         });
+    }
+
+    protected override getFillBBox(
+        fill: AgGradientFill | string | undefined,
+        radius: number = 1
+    ): _ModuleSupport.BBox | undefined {
+        if (!isGradientFill(fill)) {
+            return;
+        }
+
+        const { bounds = 'item' } = fill;
+
+        if (bounds === 'item') {
+            return;
+        }
+
+        return new BBox(radius / 2, radius / 2, radius * 2, radius * 2);
     }
 
     override getTooltipContent(datumIndex: FlowProportionNodeDatumIndex): _ModuleSupport.TooltipContent | undefined {

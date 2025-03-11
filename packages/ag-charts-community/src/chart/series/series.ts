@@ -517,13 +517,13 @@ export abstract class Series<
 
         const { bounds = 'item' } = fill;
 
-        if (bounds === 'item') {
-            return;
-        }
-
         const { axes } = this;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
+
+        if (bounds === 'item' || !xAxis || !yAxis) {
+            return;
+        }
 
         let x1: number;
         let x2: number;
