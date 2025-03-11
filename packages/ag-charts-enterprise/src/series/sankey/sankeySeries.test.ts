@@ -385,6 +385,42 @@ describe('SankeySeries', () => {
             await compare();
         });
 
+        it('should render sankey series with a series bound gradient fill', async () => {
+            const options = {
+                ...GALLERY_EXAMPLES.SIMPLE_SANKEY_EXAMPLE.options,
+                series: [
+                    {
+                        type: 'sankey',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'sales',
+                        sizeName: 'Sales',
+                        node: {
+                            alignment: 'center',
+                        },
+                        fills: [
+                            {
+                                type: 'gradient',
+                                bounds: 'series',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
+
         it('should render sankey series with a mix of gradient and string fills', async () => {
             const options = {
                 ...GALLERY_EXAMPLES.SIMPLE_SANKEY_EXAMPLE.options,

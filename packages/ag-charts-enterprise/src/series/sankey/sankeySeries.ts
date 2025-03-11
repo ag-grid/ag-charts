@@ -1,4 +1,10 @@
-import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgGradientFill,
+    type FillOptions,
+    type LineDashOptions,
+    type StrokeOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 import {
@@ -27,6 +33,7 @@ const {
     createDatumId,
     Rect,
     BBox,
+    isGradientFill,
 } = _ModuleSupport;
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
@@ -470,7 +477,6 @@ export class SankeySeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const style = this.getBaseNodeStyle(isHighlight);
-        const fillBBox = this.getFillBBox(style.fill);
 
         datumSelection.each((rect, datum) => {
             const { datumIndex, size, label } = datum;
@@ -489,8 +495,25 @@ export class SankeySeries extends FlowProportionSeries<
             rect.width = Math.max(datum.width, 0);
             rect.height = Math.max(datum.height, 0);
 
+            const fillBBox = this.getFillBBox(overrides?.fill ?? style.fill);
             applyShapeStyle(rect, style, overrides, fillBBox);
         });
+    }
+
+    protected override getFillBBox(fill: AgGradientFill | string | undefined) {
+        if (!isGradientFill(fill)) {
+            return;
+        }
+
+        const { bounds = 'item' } = fill;
+
+        if (bounds === 'item') {
+            return;
+        }
+
+        const width = this._nodeDataDependencies?.seriesRectWidth ?? 0;
+        const height = this._nodeDataDependencies?.seriesRectHeight ?? 0;
+        return new BBox(0, 0, width, height);
     }
 
     protected updateLinkSelection(opts: {
@@ -603,7 +626,8 @@ export class SankeySeries extends FlowProportionSeries<
             link.y2 = datum.y2;
             link.height = datum.height;
 
-            applyShapeStyle(link, style, overrides);
+            const fillBBox = this.getFillBBox(overrides?.fill ?? style.fill);
+            applyShapeStyle(link, style, overrides, fillBBox);
 
             link.inset = link.strokeWidth / 2;
         });
