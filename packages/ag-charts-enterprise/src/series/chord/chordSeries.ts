@@ -453,6 +453,7 @@ export class ChordSeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const format = this.getBaseNodeStyle(isHighlight);
+        const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((sector, datum) => {
             const { datumIndex, size, label } = datum;
@@ -466,7 +467,7 @@ export class ChordSeries extends FlowProportionSeries<
                 isHighlight
             );
 
-            applyShapeStyle(sector, format, overrides);
+            applyShapeStyle(sector, format, overrides, fillBBox);
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
