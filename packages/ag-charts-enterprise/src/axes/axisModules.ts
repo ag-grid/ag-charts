@@ -34,6 +34,7 @@ import { RadiusNumberAxis } from './radius-number/radiusNumberAxis';
 const {
     cartesianAxisLabelOptionsDefs,
     cartesianAxisOptionsDefs,
+    cartesianAxisCrosshairOptions,
     continuousAxisOptions,
     commonAxisLabelOptionsDefs,
     commonAxisOptionsDefs,
@@ -53,6 +54,7 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
         ...cartesianAxisLabelOptionsDefs,
         format: string,
     },
+    crosshair: cartesianAxisCrosshairOptions(true),
 };
 
 export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> = {

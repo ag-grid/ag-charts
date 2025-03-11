@@ -27,6 +27,7 @@ import type {
 } from 'ag-charts-types';
 
 import {
+    cartesianAxisCrosshairOptions,
     cartesianAxisLabelOptionsDefs,
     cartesianAxisOptionsDefs,
     continuousAxisOptions,
@@ -48,6 +49,7 @@ export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
         format: numberFormatValidator,
         ...cartesianAxisLabelOptionsDefs,
     },
+    crosshair: cartesianAxisCrosshairOptions(true),
 };
 
 export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
@@ -62,6 +64,7 @@ export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
         format: numberFormatValidator,
         ...cartesianAxisLabelOptionsDefs,
     },
+    crosshair: cartesianAxisCrosshairOptions(true),
 };
 
 export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
@@ -72,6 +75,7 @@ export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
         ...cartesianAxisLabelOptionsDefs,
         format: string,
     },
+    crosshair: cartesianAxisCrosshairOptions(true),
 };
 
 export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
@@ -81,12 +85,14 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
     paddingInner: positiveNumber,
     paddingOuter: positiveNumber,
     groupPaddingInner: positiveNumber,
+    crosshair: cartesianAxisCrosshairOptions(),
 };
 
 export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     type: required(constant('grouped-category')),
     label: cartesianAxisLabelOptionsDefs,
+    crosshair: cartesianAxisCrosshairOptions(),
     paddingInner: positiveNumber,
     groupPaddingInner: positiveNumber,
     depthOptions: arrayOfDefs<AgGroupedCategoryDepthOptions>(

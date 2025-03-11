@@ -95,7 +95,7 @@ type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
 
 export interface AgGroupedCategoryAxisOptions
     extends Omit<
-        AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions<any[]>, AgGroupedCategoryAxisLabelOptions>,
+        AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions, AgBaseCrosshairLabel>,
         'crossLines' | 'tick'
     > {
     type: 'grouped-category';

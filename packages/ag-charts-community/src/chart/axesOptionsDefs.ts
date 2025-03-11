@@ -30,8 +30,11 @@ import type {
     AgBaseCartesianAxisOptions,
     AgBaseCrossLineLabelOptions,
     AgBaseCrossLineOptions,
+    AgBaseCrosshairLabel,
     AgCartesianCrossLineOptions,
     AgContinuousAxisOptions,
+    AgCrosshairLabel,
+    AgCrosshairOptions,
 } from 'ag-charts-types';
 
 export const numberFormatValidator = attachDescription(isValidNumberFormat, 'a valid number format string');
@@ -99,7 +102,7 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     ...fontOptionsDef,
 };
 
-export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabelOptions> = {
+export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabelOptions<any>> = {
     autoRotate: boolean,
     autoRotateAngle: number,
     ...commonAxisLabelOptionsDefs,
@@ -147,23 +150,12 @@ commonAxisOptionsDefs.layoutConstraints = {
     width: required(positiveNumber),
 };
 
-export const cartesianAxisOptionsDefs: OptionsDefs<Omit<AgBaseCartesianAxisOptions, 'type' | 'label'>> = {
+export const cartesianAxisOptionsDefs: OptionsDefs<
+    Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'crosshair'>
+> = {
     ...commonAxisOptionsDefs,
     keys: arrayOf(string),
     crossLines: arrayOfDefs(cartesianCrossLineOptionsDefs),
-    crosshair: {
-        enabled: boolean,
-        snap: boolean,
-        label: {
-            enabled: boolean,
-            xOffset: number,
-            yOffset: number,
-            format: string,
-            renderer: callback,
-        },
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    },
     position: union('top', 'right', 'bottom', 'left'),
     thickness: positiveNumber,
     title: {
@@ -174,6 +166,25 @@ export const cartesianAxisOptionsDefs: OptionsDefs<Omit<AgBaseCartesianAxisOptio
         ...fontOptionsDef,
     },
 };
+
+export function cartesianAxisCrosshairOptions<T extends boolean>(canFormat?: T) {
+    const crosshairLabel = {
+        enabled: boolean,
+        xOffset: number,
+        yOffset: number,
+        renderer: callback,
+    };
+    if (canFormat) {
+        (crosshairLabel as OptionsDefs<AgCrosshairLabel>).format = string;
+    }
+    return {
+        enabled: boolean,
+        snap: boolean,
+        label: crosshairLabel,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    } as OptionsDefs<AgCrosshairOptions<T extends true ? AgCrosshairLabel : AgBaseCrosshairLabel>>;
+}
 
 export function continuousAxisOptions(
     validDatum: Validator,
