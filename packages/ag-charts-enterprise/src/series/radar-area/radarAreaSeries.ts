@@ -1,4 +1,4 @@
-import { type AgFillType, type AgGradientFill, _ModuleSupport } from 'ag-charts-community';
+import { type AgFillType, _ModuleSupport } from 'ag-charts-community';
 
 import { type RadarPathPoint, RadarSeries } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
@@ -44,18 +44,24 @@ export class RadarAreaSeries extends RadarSeries {
         let fill = this.properties.fill as Required<AgFillType>;
         const { fillOpacity } = this.properties;
         if (isGradientFill(fill)) {
-            fill = {
-                ...(fill as AgGradientFill),
-                gradient: fill.gradient ?? 'linear',
-                bounds: fill.bounds ?? 'item',
-                colorStops: fill.colorStops ?? this.properties.defaultColorRange.map((color) => ({ color })),
-                rotation: fill.rotation ?? 0,
-            };
+            fill = this.getNodeFill(fill);
         }
 
         applyShapeStyle(areaNode, { fill, fillOpacity }, undefined, this.getShapeFillBBox());
         areaNode.pointerEvents = PointerEvents.None;
         areaNode.stroke = undefined;
+    }
+
+    protected getNodeFill(fill: AgFillType): Required<AgFillType> {
+        if (!_ModuleSupport.isGradientFill(fill)) return fill;
+
+        return {
+            ...fill,
+            gradient: fill.gradient ?? 'radial',
+            bounds: fill.bounds ?? 'series',
+            rotation: fill.rotation ?? 0,
+            colorStops: fill.colorStops ?? this.properties.defaultColorRange.map((color) => ({ color })),
+        };
     }
 
     protected override animatePaths(ratio: number) {

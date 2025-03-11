@@ -250,7 +250,7 @@ describe('RadarAreaSeries', () => {
             await compare();
         });
 
-        it('should render radar area series with a radial gradient fill', async () => {
+        it('should render radar area series with a linear gradient fill', async () => {
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [
@@ -259,7 +259,8 @@ describe('RadarAreaSeries', () => {
                         angleKey: 'subject',
                         radiusKey: 'gradeA',
                         fill: {
-                            type: 'radial-gradient',
+                            type: 'gradient',
+                            gradient: 'linear',
                             colorStops: [
                                 {
                                     color: 'green',
@@ -278,7 +279,7 @@ describe('RadarAreaSeries', () => {
             await compare();
         });
 
-        it('should render radar area series with a series bound radial gradient fill', async () => {
+        it('should render radar area series with a series bound linear gradient fill', async () => {
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [
@@ -287,7 +288,8 @@ describe('RadarAreaSeries', () => {
                         angleKey: 'subject',
                         radiusKey: 'gradeA',
                         fill: {
-                            type: 'radial-gradient',
+                            type: 'gradient',
+                            gradient: 'linear',
                             bounds: 'series',
                             colorStops: [
                                 {
