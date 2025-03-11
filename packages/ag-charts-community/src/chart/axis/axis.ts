@@ -684,6 +684,7 @@ export abstract class Axis<
     formatTick(
         value: unknown,
         index: number,
+        domain: D[],
         fractionDigits?: number,
         defaultFormatter?: (datum: unknown) => string
     ): string {
@@ -696,7 +697,7 @@ export abstract class Axis<
         let result: string | undefined;
         if (formatter) {
             const boundSeries = this.getFormatterBoundSeries();
-            result = callbackCache.call(this, formatter, { value: value, index, fractionDigits, boundSeries });
+            result = callbackCache.call(this, formatter, { value, index, domain, fractionDigits, boundSeries });
         } else if (defaultFormatter) {
             result = defaultFormatter(value);
         } else if (labelFormatter) {
@@ -716,7 +717,7 @@ export abstract class Axis<
         let result: string | undefined;
         if (formatter) {
             const boundSeries = this.getFormatterBoundSeries();
-            result = callbackCache.call(this, formatter, { value: value, index: NaN, boundSeries });
+            result = callbackCache.call(this, formatter, { value: value, index: NaN, domain: [], boundSeries });
         } else if (valueFormatter) {
             result = callbackCache.call(this, valueFormatter, value);
         } else if (isArray(value)) {

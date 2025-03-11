@@ -29,7 +29,7 @@ describe('API context', () => {
     let seriesContext2: object;
     let axisContext: object;
     const itemStyler = newFreezableMock<MockItemStyler>((_params) => undefined);
-    const axisLabelFormatter = newFreezableMock<MockAxisLabelFormatter>((_params) => undefined);
+    const axisLabelFormatter = newFreezableMock<MockAxisLabelFormatter>((_params: any) => undefined);
     const seriesLabelFormatter = newFreezableMock<MockSeriesLabelFormatter>((_params) => undefined);
     const tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
 
