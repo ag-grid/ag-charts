@@ -28,7 +28,10 @@ export const WATERFALL_SERIES_THEME: _ModuleSupport.SeriesModule<'waterfall'>['t
                 },
                 stroke: { $palette: 'altUp.stroke' },
                 // @ts-expect-error undocumented-option
-                defaultColorRange: { $path: ['./0', { $palette: 'fill' }, { $palette: 'sequentialColors' }] },
+                defaultColorRange: [
+                    { $mix: [{ $palette: 'altUp.fill' }, 'black', 0.15] },
+                    { $mix: [{ $palette: 'altUp.fill' }, 'white', 0.15] },
+                ],
                 label: {
                     ...itemTheme.label,
                     color: { $ref: 'textColor' },
@@ -45,7 +48,10 @@ export const WATERFALL_SERIES_THEME: _ModuleSupport.SeriesModule<'waterfall'>['t
                 },
                 stroke: { $palette: 'altDown.stroke' },
                 // @ts-expect-error undocumented-option
-                defaultColorRange: { $path: ['./1', { $palette: 'fill' }, { $palette: 'sequentialColors' }] },
+                defaultColorRange: [
+                    { $mix: [{ $palette: 'altDown.fill' }, 'black', 0.15] },
+                    { $mix: [{ $palette: 'altDown.fill' }, 'white', 0.15] },
+                ],
                 label: {
                     ...itemTheme.label,
                     color: { $ref: 'textColor' },
@@ -62,7 +68,10 @@ export const WATERFALL_SERIES_THEME: _ModuleSupport.SeriesModule<'waterfall'>['t
                 },
                 stroke: { $palette: 'neutral.stroke' },
                 // @ts-expect-error undocumented-option
-                defaultColorRange: { $path: ['./2', { $palette: 'fill' }, { $palette: 'sequentialColors' }] },
+                defaultColorRange: [
+                    { $mix: [{ $palette: 'neutral.fill' }, 'black', 0.15] },
+                    { $mix: [{ $palette: 'neutral.fill' }, 'white', 0.15] },
+                ],
                 label: {
                     ...itemTheme.label,
                     color: { $ref: 'textColor' },
