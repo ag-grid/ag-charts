@@ -830,7 +830,7 @@ export class Legend extends BaseProperties {
                 bounds: 'item',
                 gradient: marker.fill.gradient ?? 'linear',
                 colorStops: marker.fill.colorStops ?? marker.defaultColorRange?.map((color) => ({ color })) ?? [],
-                rotation: 0,
+                rotation: marker.fill.rotation ?? 0,
             };
         } else {
             fill = marker.fill;
