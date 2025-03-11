@@ -48,8 +48,8 @@ export interface ValidateObjectPredicate extends ValidatePredicate {
     restrict(objectType: Function): ValidatePredicate;
 }
 
-export function Validate(predicate: ValidatePredicate, options: ValidateOptions & { prefix?: string } = {}) {
-    const { optional = false, prefix = '' } = options;
+export function Validate(predicate: ValidatePredicate, options: ValidateOptions = {}) {
+    const { optional = false } = options;
     return addTransformToInstanceProperty(
         (target, property, value: any) => {
             const context = { ...options, target, property };
@@ -67,7 +67,7 @@ export function Validate(predicate: ValidatePredicate, options: ValidateOptions 
             const expectedMessage = predicate.message ? `; expecting ${getPredicateMessage(predicate, context)}` : '';
 
             Logger.warn(
-                `${prefix}Property [${cleanKey}] of [${targetName}] cannot be set to [${valueString}]${expectedMessage}, ignoring.`
+                `Property [${cleanKey}] of [${targetName}] cannot be set to [${valueString}]${expectedMessage}, ignoring.`
             );
 
             return BREAK_TRANSFORM_CHAIN;
@@ -79,8 +79,36 @@ export function Validate(predicate: ValidatePredicate, options: ValidateOptions 
 
 const TestEnv = true;
 export const TempValidate = TestEnv
-    ? (predicate: ValidatePredicate, options?: ValidateOptions) =>
-          Validate(predicate, { ...options, prefix: 'TempValidation!!! ' })
+    ? (predicate: ValidatePredicate, options: ValidateOptions = {}) => {
+          const { optional = false } = options;
+          return addTransformToInstanceProperty(
+              (target, property, value: any) => {
+                  const context = { ...options, target, property };
+                  if ((optional && typeof value === 'undefined') || predicate(value, context)) {
+                      if (isProperties(target[property]) && !isProperties(value)) {
+                          target[property].set(value);
+                          return target[property];
+                      }
+                  } else {
+                      const valueString = stringifyValue(value, 50);
+                      const cleanKey = String(property).replace(/^_*/, '');
+                      const targetName =
+                          target.constructor.className ?? target.constructor.name.replace(/Properties$/, '');
+                      const expectedMessage = predicate.message
+                          ? `; expecting ${getPredicateMessage(predicate, context)}`
+                          : '';
+
+                      Logger.warn(
+                          `TempValidation!!! Property [${cleanKey}] of [${targetName}] cannot be set to [${valueString}]${expectedMessage}, ignoring.`
+                      );
+                  }
+
+                  return value;
+              },
+              undefined,
+              { optional }
+          );
+      }
     : () => addFakeTransformToInstanceProperty;
 
 export const AND = (...predicates: ValidatePredicate[]) => {
