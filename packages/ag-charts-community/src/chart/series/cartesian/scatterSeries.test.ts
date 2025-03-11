@@ -72,7 +72,7 @@ describe('ScatterSeries', () => {
     });
 
     describe('gradient fill', () => {
-        it('should render scatter series with a vertical gradient fill', async () => {
+        it('should render scatter series with a vertical linear gradient fill', async () => {
             const options: AgChartOptions = {
                 ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
                 series: [
@@ -82,7 +82,7 @@ describe('ScatterSeries', () => {
                         yKey: 'height',
                         fill: {
                             type: 'gradient',
-                            direction: 'vertical',
+                            gradient: 'linear',
                         },
                         size: 20,
                         strokeWidth: 0,
@@ -96,7 +96,7 @@ describe('ScatterSeries', () => {
             await compare();
         });
 
-        it('should render scatter series with a horizontal gradient fill', async () => {
+        it('should render scatter series with a horizontal linear gradient fill', async () => {
             const options: AgChartOptions = {
                 ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
                 series: [
@@ -106,7 +106,8 @@ describe('ScatterSeries', () => {
                         yKey: 'height',
                         fill: {
                             type: 'gradient',
-                            direction: 'horizontal',
+                            gradient: 'linear',
+                            rotation: 90,
                         },
                         size: 20,
                         strokeWidth: 0,
@@ -120,7 +121,7 @@ describe('ScatterSeries', () => {
             await compare();
         });
 
-        it('should render scatter series with a series bound vertical gradient fill', async () => {
+        it('should render scatter series with a series bound vertical linear gradient fill', async () => {
             const options: AgChartOptions = {
                 ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
                 series: [
@@ -130,7 +131,7 @@ describe('ScatterSeries', () => {
                         yKey: 'height',
                         fill: {
                             type: 'gradient',
-                            direction: 'vertical',
+                            gradient: 'linear',
                             bounds: 'series',
                         },
                         size: 20,
@@ -157,7 +158,7 @@ describe('ScatterSeries', () => {
             await compare();
         });
 
-        it('should render scatter series with a series bound horizontal gradient fill', async () => {
+        it('should render scatter series with a series bound horizontal linear gradient fill', async () => {
             const options: AgChartOptions = {
                 ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
                 series: [
@@ -167,7 +168,8 @@ describe('ScatterSeries', () => {
                         yKey: 'height',
                         fill: {
                             type: 'gradient',
-                            direction: 'horizontal',
+                            gradient: 'linear',
+                            rotation: 90,
                             bounds: 'series',
                         },
                         size: 20,
@@ -194,7 +196,7 @@ describe('ScatterSeries', () => {
             await compare();
         });
 
-        it('should render scatter series with an axes bound vertical gradient fill', async () => {
+        it('should render scatter series with an axes bound vertical linear gradient fill', async () => {
             const options: AgChartOptions = {
                 ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
                 series: [
@@ -204,7 +206,7 @@ describe('ScatterSeries', () => {
                         yKey: 'height',
                         fill: {
                             type: 'gradient',
-                            direction: 'vertical',
+                            gradient: 'linear',
                             bounds: 'axis',
                         },
                         size: 20,
@@ -231,7 +233,7 @@ describe('ScatterSeries', () => {
             await compare();
         });
 
-        it('should render scatter series with an axes bound horizontal gradient fill', async () => {
+        it('should render scatter series with an axes bound horizontal linear gradient fill', async () => {
             const options: AgChartOptions = {
                 ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
                 series: [
@@ -241,7 +243,8 @@ describe('ScatterSeries', () => {
                         yKey: 'height',
                         fill: {
                             type: 'gradient',
-                            direction: 'horizontal',
+                            gradient: 'linear',
+                            rotation: 90,
                             bounds: 'axis',
                         },
                         size: 20,
@@ -258,6 +261,86 @@ describe('ScatterSeries', () => {
                     {
                         position: 'bottom',
                         type: 'number',
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render scatter series with a default radial gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        fill: {
+                            type: 'gradient',
+                        },
+                        size: 30,
+                        strokeWidth: 0,
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render scatter series with a series bound radial gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        fill: {
+                            type: 'gradient',
+                            gradient: 'radial',
+                            bounds: 'series',
+                        },
+                        size: 30,
+                        strokeWidth: 0,
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render scatter series with a radial gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        fill: {
+                            type: 'gradient',
+                            gradient: 'radial',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                        size: 30,
+                        strokeWidth: 0,
                     },
                 ],
             };
