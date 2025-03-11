@@ -1094,6 +1094,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { gaugeRect, properties } = this;
         const defaultScale = properties.defaultScale;
         const {
+            enabled,
             color,
             fontFamily = defaultScale.label.fontFamily,
             fontSize = defaultScale.label.fontSize,
@@ -1121,8 +1122,15 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         }
 
         opts.tickSelection.each((label, datum) => {
+            if (!enabled) {
+                label.visible = false;
+                return;
+            }
+
             const x = textX ?? datum.translationY;
             const y = textY ?? datum.translationY;
+            label.visible = true;
+
             label.text = datum.tickLabel;
             label.fill = color;
             label.fontFamily = fontFamily;

@@ -35,6 +35,12 @@ if [ "$1" == "--host" ] ; then
     docker stop ${existingContainers}
   fi
 
+  if (pgrep -f "astro dev --port=4601" >/dev/null) ; then
+    echo "Astro already running on port 4601, killing."
+    pkill -f "astro dev --port=4601"
+    sleep 1
+  fi
+
   npx astro dev --port=4601 --host &
   astro_pid=$!
   container_name=playwright-e2e-$$
