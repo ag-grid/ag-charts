@@ -371,7 +371,7 @@ export class ChordSeries extends FlowProportionSeries<
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
-            fill: highlightStyle?.fill ?? fill,
+            fill: this.getNodeFill(highlightStyle?.fill ?? fill, properties.defaultColorRange),
             fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
             stroke: highlightStyle?.stroke ?? stroke,
             strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
@@ -391,15 +391,16 @@ export class ChordSeries extends FlowProportionSeries<
         highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
-        const { fills, strokes } = properties;
+        const { fills, strokes, defaultColorRange } = properties;
         const { itemStyler } = properties.node;
 
         const fill = format.fill ?? fills[datumIndex % fills.length];
         const stroke = format.stroke ?? strokes[datumIndex % strokes.length];
 
-        const overrides: Partial<NodeStyle> = {};
+        let overrides: Partial<NodeStyle> | undefined;
 
         if (!highlighted) {
+            overrides ??= {};
             overrides.fill = fill;
             overrides.stroke = stroke;
         }
@@ -433,7 +434,12 @@ export class ChordSeries extends FlowProportionSeries<
                 }
             );
 
+            overrides ??= {};
             Object.assign(overrides, itemStyle);
+        }
+
+        if (overrides?.fill) {
+            overrides = { ...overrides, fill: this.getNodeFill(overrides.fill, defaultColorRange) };
         }
 
         return overrides;
@@ -446,7 +452,6 @@ export class ChordSeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const format = this.getBaseNodeStyle(isHighlight);
-        const { defaultColorRange } = this.properties;
 
         datumSelection.each((sector, datum) => {
             const { datumIndex, size, label } = datum;
@@ -460,20 +465,14 @@ export class ChordSeries extends FlowProportionSeries<
                 isHighlight
             );
 
+            applyShapeStyle(sector, format, overrides);
+
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
             sector.innerRadius = datum.innerRadius;
             sector.outerRadius = datum.outerRadius;
             sector.startAngle = datum.startAngle;
             sector.endAngle = datum.endAngle;
-            sector.fill = overrides.fill ?? format?.fill;
-            sector.defaultColorRange = defaultColorRange;
-            sector.fillOpacity = overrides.fillOpacity ?? format?.fillOpacity;
-            sector.stroke = overrides.stroke ?? format?.stroke;
-            sector.strokeOpacity = overrides.strokeOpacity ?? format?.strokeOpacity;
-            sector.strokeWidth = overrides.strokeWidth ?? format?.strokeWidth;
-            sector.lineDash = overrides.lineDash ?? format?.lineDash;
-            sector.lineDashOffset = overrides.lineDashOffset ?? format?.lineDashOffset;
             sector.inset = sector.strokeWidth / 2;
         });
     }
@@ -493,7 +492,7 @@ export class ChordSeries extends FlowProportionSeries<
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
-            fill: highlightStyle?.fill ?? fill,
+            fill: this.getNodeFill(highlightStyle?.fill ?? fill, properties.defaultColorRange),
             fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
             stroke: highlightStyle?.stroke ?? stroke,
             strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
@@ -518,9 +517,10 @@ export class ChordSeries extends FlowProportionSeries<
         const fill = format.fill ?? fills[fromNodeDatumIndex % fills.length];
         const stroke = format.stroke ?? strokes[fromNodeDatumIndex % strokes.length];
 
-        const overrides: Partial<LinkStyle> = {};
+        let overrides: Partial<LinkStyle> | undefined;
 
         if (!highlighted) {
+            overrides ??= {};
             overrides.fill = fill;
             overrides.stroke = stroke;
         }
@@ -554,7 +554,12 @@ export class ChordSeries extends FlowProportionSeries<
                 }
             );
 
+            overrides ??= {};
             Object.assign(overrides, itemStyle);
+        }
+
+        if (overrides?.fill) {
+            overrides = { ...overrides, fill: this.getNodeFill(overrides.fill, properties.defaultColorRange) };
         }
 
         return overrides;
@@ -568,7 +573,6 @@ export class ChordSeries extends FlowProportionSeries<
 
         const style = this.getBaseLinkStyle(isHighlight);
         const fillBBox = this.getFillBBox(style.fill);
-        const { defaultColorRange } = this.properties;
 
         datumSelection.each((link, datum) => {
             const { datumIndex } = datum;
@@ -589,7 +593,7 @@ export class ChordSeries extends FlowProportionSeries<
             link.startAngle2 = datum.startAngle2;
             link.endAngle2 = datum.endAngle2;
 
-            applyShapeStyle(link, style, overrides, defaultColorRange, fillBBox);
+            applyShapeStyle(link, style, overrides, fillBBox);
 
             link.tension = overrides?.tension ?? style.tension;
         });

@@ -482,17 +482,16 @@ export abstract class BaseFunnelSeries<
     private updateConnectorNodes(opts: {
         connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
-        const { fills, strokes } = this.properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
+        const { fills, strokes, defaultColorRange } = this.properties;
+        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
             this.connectorStyle();
 
         opts.connectorSelection.each((connector, datum) => {
             const { datumIndex } = datum;
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
 
-            connector.fill = fill ?? fills[datumIndex % fills.length];
+            connector.fill = this.getNodeFill(fill ?? fills[datumIndex % fills.length], defaultColorRange);
             connector.fillOpacity = fillOpacity;
-            connector.defaultColorRange = defaultColorRange;
             connector.stroke = stroke ?? strokes[datumIndex % strokes.length];
             connector.strokeOpacity = strokeOpacity;
             connector.strokeWidth = strokeWidth;

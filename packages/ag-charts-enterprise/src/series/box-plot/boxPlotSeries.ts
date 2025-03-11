@@ -396,25 +396,27 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return opts.datumSelection.update(data);
     }
 
-    private getItemBaseStyle(highlighted: boolean): Required<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle {
+    private getItemBaseStyle(highlighted: boolean): Required<AgBoxPlotSeriesStyle> {
         const { properties } = this;
         const { cornerRadius, cap, whisker, defaultColorRange } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
-        return {
-            fill: highlightStyle?.fill ?? properties.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            cornerRadius,
-            cap,
-            whisker,
-            defaultColorRange,
-        };
+        return this.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? properties.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke ?? properties.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
+                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+                cornerRadius,
+                cap,
+                whisker,
+            },
+            defaultColorRange
+        );
     }
 
     private getItemStyleOverrides(
@@ -425,11 +427,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     ) {
         const { id: seriesId, properties } = this;
 
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler } = properties;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, defaultColorRange, itemStyler } = properties;
 
         if (itemStyler == null) return;
 
-        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+        const overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
             return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
@@ -443,6 +445,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 ...format,
             });
         });
+
+        return this.getShapeStyle(overrides, defaultColorRange);
     }
 
     protected override updateDatumNodes({
@@ -474,7 +478,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             const fillBBox = this.getFillBBox(this.properties.fill, nodeDatum);
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
-                activeStyles as DeepRequired<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle,
+                activeStyles as DeepRequired<AgBoxPlotSeriesStyle>,
                 isVertical,
                 isReversedValueAxis,
                 fillBBox
@@ -544,19 +548,21 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             fillOpacity = properties.fillOpacity;
         }
 
-        const activeStyles: Required<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle = {
-            fill,
-            fillOpacity: fillOpacity!,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-            cap: extractDecoratedProperties(cap),
-            whisker: extractDecoratedProperties(whisker),
-            defaultColorRange,
-        };
+        let styles: Required<AgBoxPlotSeriesStyle> = this.getShapeStyle(
+            {
+                fill,
+                fillOpacity: fillOpacity!,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                cornerRadius,
+                cap: extractDecoratedProperties(cap),
+                whisker: extractDecoratedProperties(whisker),
+            },
+            defaultColorRange
+        );
 
         if (itemStyler) {
             const formatStyles = this.cachedDatumCallback(createDatumId(datum.index, scope), () =>
@@ -564,7 +570,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                     datum,
                     seriesId,
                     highlighted: scope === 'highlight',
-                    ...activeStyles,
+                    ...styles,
                     xKey,
                     minKey,
                     q1Key,
@@ -573,11 +579,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                     maxKey,
                 })
             );
+
             if (formatStyles) {
-                return mergeDefaults(formatStyles, activeStyles);
+                styles = this.getShapeStyle(mergeDefaults(formatStyles, styles), defaultColorRange);
             }
         }
-        return activeStyles;
+
+        return styles;
     }
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
