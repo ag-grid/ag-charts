@@ -783,6 +783,29 @@ describe('json module', () => {
             expect(source).toEqual({ a: '#808080' });
         });
 
+        it('should resolve `$mix` operation with gradients', () => {
+            const source = {
+                a: {
+                    $mix: [
+                        {
+                            type: 'gradient',
+                            colorStops: [{ color: '#ffffff' }, { color: '#ffff00', stop: 0.3 }, { color: '#ff0000' }],
+                        },
+                        '#000000',
+                        0.5,
+                    ],
+                },
+            };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({
+                a: {
+                    type: 'gradient',
+                    colorStops: [{ color: '#808080' }, { color: '#808000', stop: 0.3 }, { color: '#800000' }],
+                },
+            });
+        });
+
+        // Combined
         it('should resolve nested operations', () => {
             const source = {
                 a: { $ref: 'indirectRelative' },
