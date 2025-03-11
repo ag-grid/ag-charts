@@ -490,7 +490,9 @@ export abstract class BaseFunnelSeries<
             const { datumIndex } = datum;
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
 
-            connector.fill = this.getNodeFill(fill ?? fills[datumIndex % fills.length], defaultColorRange);
+            const connectorFill = this.getNodeFill(fill ?? fills[datumIndex % fills.length], defaultColorRange);
+            connector.fill = connectorFill;
+            connector.fillBBox = this.getFillBBox(connectorFill);
             connector.fillOpacity = fillOpacity;
             connector.stroke = stroke ?? strokes[datumIndex % strokes.length];
             connector.strokeOpacity = strokeOpacity;
