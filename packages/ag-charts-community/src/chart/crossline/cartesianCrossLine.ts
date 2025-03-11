@@ -279,7 +279,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         this.data = [clampedYStart, clampedYEnd];
 
-        if (!this.label.enabled) return;
+        if (this.label.enabled === false || !this.label.text) return;
 
         const { c = POSITION_TOP_COORDINATES } = labelDirectionHandling[position] ?? {};
         const { x: labelX, y: labelY } = c({
@@ -299,7 +299,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private updateNodes() {
         this.updateRangeNode();
 
-        if (this.label.enabled) {
+        const { label } = this;
+        if (label.enabled !== false && label.text) {
             this.updateLabel();
             this.positionLabel();
         }
@@ -411,7 +412,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     private computeLabelBBox(): BBox | undefined {
         const { label } = this;
-        if (!label.enabled) return;
+        if (label.enabled === false || !label.text) return;
         const tempText = new TransformableText();
         tempText.fontFamily = label.fontFamily;
         tempText.fontSize = label.fontSize;

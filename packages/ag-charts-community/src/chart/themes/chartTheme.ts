@@ -219,7 +219,6 @@ export class ChartTheme {
                 fillOpacity: 0.1,
                 strokeWidth: 1,
                 label: {
-                    enabled: true,
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
                     fontWeight: { $ref: 'fontWeight' },
