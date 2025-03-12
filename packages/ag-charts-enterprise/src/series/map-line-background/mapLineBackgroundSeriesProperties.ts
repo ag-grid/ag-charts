@@ -3,7 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
-const { COLOR_STRING, LINE_DASH, OBJECT, POSITIVE_NUMBER, RATIO, Validate, SeriesProperties, SeriesTooltip } =
+const { COLOR_STRING, LINE_DASH, OBJECT, POSITIVE_NUMBER, RATIO, TempValidate, SeriesProperties, SeriesTooltip } =
     _ModuleSupport;
 
 export interface MapLineBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
@@ -12,24 +12,24 @@ export interface MapLineBackgroundNodeDatum extends _ModuleSupport.DataModelSeri
 }
 
 export class MapLineBackgroundSeriesProperties extends SeriesProperties<AgMapLineBackgroundOptions> {
-    @Validate(GEOJSON_OBJECT, { optional: true })
+    @TempValidate(GEOJSON_OBJECT, { optional: true })
     topology?: _ModuleSupport.FeatureCollection = undefined;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = 'black';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 0;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<never>();
 }

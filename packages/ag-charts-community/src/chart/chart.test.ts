@@ -89,6 +89,7 @@ describe('Chart', () => {
         }): Promise<Chart> => {
             const tooltip = params.hasTooltip
                 ? {
+                      ...(testParams.seriesOptions.tooltip ?? {}),
                       renderer(rParams: any) {
                           const values = testParams.getTooltipRenderedValues(rParams);
                           return format(...values);
@@ -328,6 +329,10 @@ describe('Chart', () => {
                 data: datasets.economy.data,
                 xKey: datasets.economy.categoryKey,
                 yKey: datasets.economy.valueKey,
+                tooltip: { enabled: true },
+            },
+            chartOptions: {
+                tooltip: { enabled: false },
             },
             getNodePoint: (item) => [item.x + item.width / 2, item.y + item.height / 2],
             getNodeExitPoint: (item) => [item.x + item.width / 2, item.y + item.height + 8],

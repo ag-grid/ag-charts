@@ -18,7 +18,7 @@ const {
     BaseProperties,
     SeriesTooltip,
     AxisLabel,
-    Validate,
+    TempValidate,
     UNION,
     BOOLEAN,
     OR,
@@ -37,33 +37,33 @@ const {
 class FunnelSeriesLabel extends Label<AgFunnelSeriesLabelFormatterParams> {}
 
 class FunnelSeriesStageLabel extends AxisLabel {
-    @Validate(UNION(['before', 'after'], 'a placement'))
+    @TempValidate(UNION(['before', 'after'], 'a placement'))
     placement?: string;
 }
 
 class FunnelDropOff extends BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled: boolean = true;
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
     fill: AgFillType | undefined = undefined;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     stroke: string | undefined;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 }
 
@@ -71,54 +71,54 @@ export class FunnelProperties
     extends AbstractBarSeriesProperties<AgFunnelSeriesOptions>
     implements BaseFunnelProperties<AgFunnelSeriesOptions>
 {
-    @Validate(STRING)
+    @TempValidate(STRING)
     stageKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     valueKey!: string;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
     fills: AgFillType[] = [];
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = [];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     spacingRatio: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly dropOff = new FunnelDropOff();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly shadow = new DropShadow().set({ enabled: false });
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new FunnelSeriesLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly stageLabel = new FunnelSeriesStageLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgFunnelSeriesTooltipRendererParams<unknown>>();
 }

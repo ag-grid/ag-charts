@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgCartesianChartOptions, type AgChartOptions, AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -8,6 +8,7 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { roundTo } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -549,8 +550,8 @@ describe('RangeBarSeries', () => {
                 ...(RANGE_COLUMN_OPTIONS.data ?? []),
                 ...(RANGE_COLUMN_OPTIONS.data?.map((datum: { date: string; high: number; low: number }) => ({
                     ...datum,
-                    low: _ModuleSupport.round(datum.low * 0.5, 1),
-                    high: _ModuleSupport.round(datum.high * 2, 1),
+                    low: roundTo(datum.low * 0.5, 1),
+                    high: roundTo(datum.high * 2, 1),
                 })) ?? []),
             ],
         };

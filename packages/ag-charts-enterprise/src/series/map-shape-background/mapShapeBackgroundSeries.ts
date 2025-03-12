@@ -5,13 +5,12 @@ import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { TopologySeries } from '../map-util/topologySeries';
-import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
     type MapShapeBackgroundNodeDatum,
     MapShapeBackgroundSeriesProperties,
 } from './mapShapeBackgroundSeriesProperties';
 
-const { createDatumId, SeriesNodePickMode, Validate, Selection, Group, PointerEvents } = _ModuleSupport;
+const { createDatumId, SeriesNodePickMode, Selection, Group, PointerEvents } = _ModuleSupport;
 
 interface MapShapeBackgroundNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
@@ -34,7 +33,6 @@ export class MapShapeBackgroundSeries
 
     override properties = new MapShapeBackgroundSeriesProperties();
 
-    @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
     private get topology() {

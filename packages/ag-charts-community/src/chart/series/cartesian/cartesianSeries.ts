@@ -19,7 +19,7 @@ import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { findMinMax } from '../../../util/number';
 import { StateMachine } from '../../../util/stateMachine';
-import { BOOLEAN, STRING, Validate } from '../../../util/validation';
+import { BOOLEAN, STRING, TempValidate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
@@ -135,10 +135,10 @@ export interface CartesianAnimationData<
 }
 
 export abstract class CartesianSeriesProperties<T extends object> extends SeriesProperties<T> {
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     legendItemName?: string;
 
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     pickOutsideVisibleMinorAxis = false;
 }
 

@@ -1,17 +1,17 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { clamp, isNumberEqual } from 'ag-charts-core';
 
 import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 
 const {
     ChartAxisDirection,
-    Validate,
+    TempValidate,
     NUMBER,
     getCrossLineValue,
     validateCrossLineValue,
-    clamp,
     normalizeAngle360,
     toRadians,
-    isNumberEqual,
+
     Group,
     Path,
     Sector,
@@ -20,7 +20,7 @@ const {
 } = _ModuleSupport;
 
 class RadiusCrossLineLabel extends PolarCrossLineLabel {
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     positionAngle?: number = undefined;
 }
 

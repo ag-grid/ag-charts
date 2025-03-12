@@ -20,7 +20,7 @@ import {
     OR,
     POSITIVE_NUMBER,
     RATIO,
-    Validate,
+    TempValidate,
     predicateWithMessage,
 } from '../../util/validation';
 import { isSupportedMarkerShape } from '../marker/util';
@@ -34,49 +34,49 @@ export class SeriesMarker<TParams = never>
     extends ChangeDetectableProperties
     implements ISeriesMarker<RequireOptional<TParams>>
 {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     @SceneChangeDetection()
     enabled = true;
 
     /** One of the predefined marker names, or a marker shape function (for user-defined markers). */
-    @Validate(MARKER_SHAPE)
+    @TempValidate(MARKER_SHAPE)
     @SceneChangeDetection()
     shape: AgMarkerShape = 'circle';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     @SceneChangeDetection()
     size: number = 6;
 
-    @Validate(OR(COLOR_STRING, COLOR_GRADIENT), { optional: true })
+    @TempValidate(OR(COLOR_STRING, COLOR_GRADIENT), { optional: true })
     @SceneChangeDetection()
     fill?: AgFillType;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     @SceneChangeDetection()
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     @SceneChangeDetection()
     stroke?: string;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     @SceneChangeDetection()
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     @SceneChangeDetection()
     strokeOpacity: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     @SceneChangeDetection()
     itemStyler?: Styler<AgSeriesMarkerStylerParams<unknown> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
 

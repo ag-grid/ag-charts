@@ -1,23 +1,24 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNumberEqual } from 'ag-charts-core';
 
 import { loopSymmetrically } from '../../utils/polar';
 import { AngleAxisInterval } from '../angle-number/angleAxisInterval';
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 
-const { RATIO, OBJECT, Validate, isNumberEqual, CategoryScale } = _ModuleSupport;
+const { RATIO, OBJECT, TempValidate, CategoryScale } = _ModuleSupport;
 
 export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScale<string>> {
     static readonly className = 'AngleCategoryAxis';
     static readonly type = 'angle-category' as const;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     groupPaddingInner: number = 0;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     paddingInner: number = 0;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     override interval = new AngleAxisInterval();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {

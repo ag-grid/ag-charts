@@ -3,7 +3,7 @@ import { LinearScale } from '../../scale/linearScale';
 import type { LogScale } from '../../scale/logScale';
 import { Default } from '../../util/default';
 import { normalisedExtentWithMetadata } from '../../util/extent';
-import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate } from '../../util/validation';
+import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, TempValidate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
@@ -21,11 +21,11 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
         return { domain: extent, clipped };
     }
 
-    @Validate(AND(NUMBER_OR_NAN, LESS_THAN('max')))
+    @TempValidate(AND(NUMBER_OR_NAN, LESS_THAN('max')))
     @Default(NaN)
     min: number = NaN;
 
-    @Validate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
+    @TempValidate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
     @Default(NaN)
     max: number = NaN;
 }

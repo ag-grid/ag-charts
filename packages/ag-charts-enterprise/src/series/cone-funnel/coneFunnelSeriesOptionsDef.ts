@@ -18,7 +18,7 @@ import {
     union,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, tooltipOptionsDef, without } = _ModuleSupport;
+const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs, without } = _ModuleSupport;
 
 export const coneFunnelSeriesOptionsDef: OptionsDefs<AgConeFunnelSeriesOptions> = {
     type: required(constant('cone-funnel')),
@@ -31,7 +31,7 @@ export const coneFunnelSeriesOptionsDef: OptionsDefs<AgConeFunnelSeriesOptions> 
     label: {
         spacing: positiveNumber,
         placement: union('before', 'middle', 'after'),
-        ...seriesLabelOptionsDef,
+        ...seriesLabelOptionsDefs,
     },
     stageLabel: {
         rotation: number,
@@ -41,10 +41,10 @@ export const coneFunnelSeriesOptionsDef: OptionsDefs<AgConeFunnelSeriesOptions> 
         avoidCollisions: boolean,
         itemStyler: callback,
         format: string,
-        ...seriesLabelOptionsDef,
+        ...seriesLabelOptionsDefs,
     },
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     ...lineDashOptionsDef,

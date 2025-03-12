@@ -48,7 +48,7 @@ import {
 //     $foregroundBackgroundAccentMix: array,
 // };
 
-const colorStopsOrderValidator = attachDescription((value) => {
+export const colorStopsOrderValidator = attachDescription((value) => {
     let lastStop = -Infinity;
     for (const item of value as AgGradientColorStop[]) {
         if (item?.stop != null) {

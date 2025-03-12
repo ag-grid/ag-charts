@@ -8,6 +8,7 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
+import { countFractionDigits } from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -43,7 +44,6 @@ const {
     normalizeAngle360Inclusive,
     isBetweenAngles,
     sectorBox,
-    countFractionDigits,
     toDegrees,
     toRadians,
     BBox,
@@ -354,7 +354,9 @@ export class RadialGaugeSeries
 
         const font = label.getFont();
         const tickData = ticks.map((value, index): RadialGaugeTickDatum => {
-            const text = label.formatter?.({ value, index, boundSeries: undefined! }) ?? tickFormatter(value);
+            const text =
+                label.formatter?.({ value, index, domain: scale.domain, boundSeries: undefined! }) ??
+                tickFormatter(value);
             const { width, height } = CachedTextMeasurerPool.measureText(text, { font });
             return { index, value, text, width, height };
         });

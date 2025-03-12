@@ -13,7 +13,7 @@ import {
     strokeOptionsDef,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 export const radialBarSeriesOptionsDef: OptionsDefs<AgRadialBarSeriesOptions> = {
     type: required(constant('radial-bar')),
@@ -27,9 +27,9 @@ export const radialBarSeriesOptionsDef: OptionsDefs<AgRadialBarSeriesOptions> = 
     normalizedTo: number,
     cornerRadius: positiveNumber,
     itemStyler: callback,
-    label: seriesLabelOptionsDef,
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    label: seriesLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,

@@ -13,7 +13,7 @@ import { OhlcSeriesBaseProperties } from '../ohlc/ohlcSeriesProperties';
 const {
     BaseProperties,
     SeriesTooltip,
-    Validate,
+    TempValidate,
     COLOR_STRING,
     FUNCTION,
     LINE_DASH,
@@ -26,69 +26,69 @@ const {
 } = _ModuleSupport;
 
 class CandlestickSeriesWick extends BaseProperties {
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     stroke?: string;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth?: number;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity?: number;
 
-    @Validate(LINE_DASH, { optional: true })
+    @TempValidate(LINE_DASH, { optional: true })
     lineDash?: number[];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset?: number;
 }
 
 class CandlestickSeriesItem extends BaseProperties {
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
     fill: AgFillType = '#c16068';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity = 1;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = '#333';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly wick = new CandlestickSeriesWick();
 }
 
 class CandlestickSeriesItems extends BaseProperties {
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly up = new CandlestickSeriesItem();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly down = new CandlestickSeriesItem();
 }
 
 export class CandlestickSeriesProperties<T extends AgOhlcSeriesBaseOptions> extends OhlcSeriesBaseProperties<T> {
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly item = new CandlestickSeriesItems();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     override readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams<any>>();
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
 }

@@ -1,3 +1,4 @@
+import { clamp } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
 import { FocusIndicator } from '../../dom/focusIndicator';
@@ -8,7 +9,6 @@ import type { Point } from '../../scene/point';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
 import { createId } from '../../util/id';
-import { clamp } from '../../util/number';
 import { objectsEqual } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
@@ -705,7 +705,7 @@ export class SeriesAreaManager extends BaseManager {
             const tooltipContent = this.chart.getTooltipContent(focus.series, datum.datumIndex, datum);
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-            const tooltipEnabled = this.chart.tooltip.enabled && focus.series.tooltipEnabled;
+            const tooltipEnabled = focus.series.tooltipEnabled ?? this.chart.tooltip.enabled;
             if (tooltipEnabled) {
                 this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
             } else {
@@ -853,7 +853,7 @@ export class SeriesAreaManager extends BaseManager {
         pagination?: TooltipPaginationState
     ) {
         const content = this.chart.getTooltipContent(series, datumIndex, datum);
-        const tooltipEnabled = this.chart.tooltip.enabled && series.tooltipEnabled;
+        const tooltipEnabled = series.tooltipEnabled ?? this.chart.tooltip.enabled;
         const shouldUpdateTooltip = tooltipEnabled && content != null;
         if (shouldUpdateTooltip) {
             const meta = TooltipManager.makeTooltipMeta(

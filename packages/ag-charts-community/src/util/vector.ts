@@ -1,4 +1,4 @@
-import { round as roundNumber } from './number';
+import { roundTo } from 'ag-charts-core';
 
 export const Vec2 = {
     add,
@@ -175,7 +175,7 @@ function intersectAtX(gradient: number, coefficient: number, x: number = 0, refl
  * Round each component of the vector.
  */
 function round(a: Vec2, decimals: number = 2): Vec2 {
-    return { x: roundNumber(a.x, decimals), y: roundNumber(a.y, decimals) };
+    return { x: roundTo(a.x, decimals), y: roundTo(a.y, decimals) };
 }
 
 /**

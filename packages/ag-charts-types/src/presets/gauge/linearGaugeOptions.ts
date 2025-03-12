@@ -1,9 +1,5 @@
 import type { DatumCallbackParams } from '../../chart/callbackOptions';
-import type {
-    AgChartAutoSizedLabelOptions,
-    AgChartAutoSizedSecondaryLabelOptions,
-    AgChartLabelOptions,
-} from '../../chart/labelOptions';
+import type { AgChartAutoSizedLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgMarkerShape, Degree, Direction, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
@@ -80,26 +76,6 @@ export interface AgLinearGaugeTarget extends FillOptions, StrokeOptions, LineDas
     rotation?: Degree;
 }
 
-export interface AgLinearGaugeTargetLabelOptions extends AgChartLabelOptions<undefined, never> {
-    /** Spacing of the label. */
-    spacing?: PixelSize;
-}
-
-export interface AgLinearGaugeTargetOptions extends FillOptions, StrokeOptions, LineDashOptions {
-    /** The shape to use for the markers. You can also supply a custom marker by providing a `AgMarkerShapeFn` function. */
-    shape?: AgLinearGaugeMarkerShape;
-    /** Placement of target. */
-    placement?: AgLinearGaugeTargetPlacement;
-    /** Spacing of the target. Ignored when placement is 'middle'. */
-    spacing?: PixelSize;
-    /** Size of the target. */
-    size?: PixelSize;
-    /** Rotation of the target, in degrees. */
-    rotation?: Degree;
-    /** Label options for all targets. */
-    label?: AgLinearGaugeTargetLabelOptions;
-}
-
 export type AgLinearGaugeLabelPlacement =
     | 'inside-start'
     | 'outside-start'
@@ -125,12 +101,6 @@ export interface AgLinearGaugeLabelOptions
     avoidCollisions?: boolean;
     /** Placement of the label. */
     placement?: AgLinearGaugeLabelPlacement;
-}
-
-export interface AgLinearGaugeSecondaryLabelOptions
-    extends AgChartAutoSizedSecondaryLabelOptions<never, AgLinearGaugeLabelFormatterParams> {
-    /** Text to always display. */
-    text?: string;
 }
 
 export interface AgLinearGaugeThemeableOptions extends AgLinearGaugeStyle, AgBaseGaugeThemeableOptions {

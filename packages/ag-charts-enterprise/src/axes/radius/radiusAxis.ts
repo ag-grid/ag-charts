@@ -1,5 +1,6 @@
 import type { AgAxisCaptionFormatterParams } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNumberEqual } from 'ag-charts-core';
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
@@ -9,8 +10,7 @@ const {
     ZIndexMap,
     NUMBER,
     BOOLEAN,
-    Validate,
-    isNumberEqual,
+    TempValidate,
     normalizeAngle360,
     toRadians,
     Caption,
@@ -28,10 +28,10 @@ interface GeneratedTicks {
 }
 
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     autoRotate?: boolean;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     autoRotateAngle: number = 335;
 }
 
@@ -41,7 +41,7 @@ export abstract class RadiusAxis<
 > extends _ModuleSupport.PolarAxis<S, D, _ModuleSupport.TickDatum, _ModuleSupport.LabelNodeDatum> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     @Default(0)
     positionAngle: number = 0;
 

@@ -13,7 +13,7 @@ import {
     union,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, tooltipOptionsDef } = _ModuleSupport;
+const { commonSeriesOptionsDefs, autoSizedLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 export const heatmapSeriesOptionsDef: OptionsDefs<AgHeatmapSeriesOptions> = {
     type: required(constant('heatmap')),
@@ -30,14 +30,8 @@ export const heatmapSeriesOptionsDef: OptionsDefs<AgHeatmapSeriesOptions> = {
     itemPadding: positiveNumber,
     itemStyler: callback,
     showInMiniChart: boolean,
-    label: {
-        ...seriesLabelOptionsDef,
-        lineHeight: positiveNumber,
-        minimumFontSize: positiveNumber,
-        wrapping: union('never', 'always', 'hyphenate', 'on-space'),
-        overflowStrategy: union('ellipsis', 'hide'),
-    },
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
+    label: autoSizedLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...strokeOptionsDef,
 };

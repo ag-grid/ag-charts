@@ -1,3 +1,4 @@
+import { countFractionDigits } from 'ag-charts-core';
 import type { AgChartLegendPosition, CssColor, FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { LinearScale } from '../../scale/linearScale';
@@ -9,7 +10,7 @@ import { Selection } from '../../scene/selection';
 import { Text } from '../../scene/shape/text';
 import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
-import { countFractionDigits, findMinMax, findRangeExtent } from '../../util/number';
+import { findMinMax, findRangeExtent } from '../../util/number';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool } from '../../util/textMeasurer';
 import { estimateTickCount } from '../../util/ticks';
@@ -203,7 +204,8 @@ export class AxisTicks {
             if (!this.inRange(translate)) continue;
 
             const tickLabel =
-                this.label.formatter?.({ value: tick, index, fractionDigits, boundSeries }) ?? labelFormatter(tick);
+                this.label.formatter?.({ value: tick, index, domain: niceDomain, fractionDigits, boundSeries }) ??
+                labelFormatter(tick);
             const tickId = idGenerator(tickLabel);
 
             ticks.push({ tick, tickId, tickLabel, translate });

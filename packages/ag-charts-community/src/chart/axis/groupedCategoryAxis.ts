@@ -1,4 +1,4 @@
-import { countLines, isArray, isObject, iterate, sortBasedOnArray, toArray } from 'ag-charts-core';
+import { countLines, inRange, isArray, isObject, iterate, sortBasedOnArray, toArray } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -8,7 +8,6 @@ import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { getAngleRatioRadians, normalizeAngle360, toRadians } from '../../util/angle';
 import { extent } from '../../util/extent';
-import { inRange } from '../../util/number';
 import { BaseProperties, PropertiesArray } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
@@ -22,7 +21,7 @@ import {
     OBJECT_ARRAY,
     POSITIVE_NUMBER,
     STRING,
-    Validate,
+    TempValidate,
 } from '../../util/validation';
 import { createDatumId } from '../data/processors';
 import { calculateLabelRotation } from '../label';
@@ -45,47 +44,47 @@ interface ComputedGroupAxisLayout {
 }
 
 class DepthLabelProperties extends BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled = true;
 
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     avoidCollisions?: boolean;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     color?: string;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     spacing?: number;
 
-    @Validate(FONT_STYLE, { optional: true })
+    @TempValidate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle;
 
-    @Validate(FONT_WEIGHT, { optional: true })
+    @TempValidate(FONT_WEIGHT, { optional: true })
     fontWeight?: FontWeight;
 
-    @Validate(NUMBER.restrict({ min: 1 }), { optional: true })
+    @TempValidate(NUMBER.restrict({ min: 1 }), { optional: true })
     fontSize?: number;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     fontFamily?: string;
 }
 
 class DepthTickProperties extends BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled = true;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     width?: number;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     stroke?: string;
 }
 
 class DepthProperties extends BaseProperties {
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     label = new DepthLabelProperties();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     tick = new DepthTickProperties();
 }
 
@@ -100,7 +99,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private computedLayout?: ComputedGroupAxisLayout;
     private tickTreeLayout?: TreeLayout;
 
-    @Validate(OBJECT_ARRAY)
+    @TempValidate(OBJECT_ARRAY)
     depthOptions = new PropertiesArray(DepthProperties);
 
     constructor(moduleCtx: ModuleContext) {
@@ -216,7 +215,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 return false;
             }
 
-            const text = this.formatTick(datum.label, index - 1);
+            const text = this.formatTick(datum.label, index - 1, this.scale.domain);
             const labelStyles = this.getLabelStyles({ value: text, depth }, depthOptions[depth]?.label);
 
             tempText.setProperties({

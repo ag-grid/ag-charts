@@ -12,7 +12,8 @@ export {
     isAgTopologyChartOptions,
 } from './chart/mapping/types';
 export { ModuleRegistry } from 'ag-charts-core';
-export * from './chart/commonOptionsDef';
+export * from './chart/commonOptionsDefs';
+export * from './chart/axesOptionsDefs';
 
 export * from './util/angle';
 export * from './util/date';

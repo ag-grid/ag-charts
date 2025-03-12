@@ -6,7 +6,7 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Point } from '../../../scene/point';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { extent } from '../../../util/extent';
-import { DIRECTION, Validate } from '../../../util/validation';
+import { DIRECTION, TempValidate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
@@ -19,7 +19,7 @@ import { CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
 import { type QuadtreeCompatibleNode, addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 export abstract class AbstractBarSeriesProperties<T extends object> extends CartesianSeriesProperties<T> {
-    @Validate(DIRECTION)
+    @TempValidate(DIRECTION)
     direction: Direction = 'vertical';
 }
 

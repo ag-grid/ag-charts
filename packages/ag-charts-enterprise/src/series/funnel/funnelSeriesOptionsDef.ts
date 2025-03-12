@@ -19,7 +19,8 @@ import {
     union,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, seriesLabelOptionsDef, shadowOptionsDef, tooltipOptionsDef, without } = _ModuleSupport;
+const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, shadowOptionsDefs, tooltipOptionsDefs, without } =
+    _ModuleSupport;
 
 export const funnelSeriesOptionsDef: OptionsDefs<AgFunnelSeriesOptions> = {
     type: required(constant('funnel')),
@@ -46,12 +47,12 @@ export const funnelSeriesOptionsDef: OptionsDefs<AgFunnelSeriesOptions> = {
         avoidCollisions: boolean,
         itemStyler: callback,
         format: string,
-        ...seriesLabelOptionsDef,
+        ...seriesLabelOptionsDefs,
     },
-    label: seriesLabelOptionsDef,
-    tooltip: tooltipOptionsDef,
-    shadow: shadowOptionsDef,
-    ...commonSeriesOptionsDef,
+    label: seriesLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     ...lineDashOptionsDef,

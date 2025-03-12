@@ -20,7 +20,7 @@ import {
 import type { AgPieSeriesOptions } from 'ag-charts-types';
 
 import { without } from '../../../util/object';
-import { commonSeriesOptionsDef, shadowOptionsDef, tooltipOptionsDef } from '../../commonOptionsDef';
+import { commonSeriesOptionsDefs, shadowOptionsDefs, tooltipOptionsDefs } from '../../commonOptionsDefs';
 
 export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     type: required(constant('pie')),
@@ -71,9 +71,9 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     },
     fills: arrayOf(or(color, gradient)),
     strokes: arrayOf(color),
-    tooltip: tooltipOptionsDef,
-    shadow: shadowOptionsDef,
-    ...commonSeriesOptionsDef,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...lineDashOptionsDef,
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),

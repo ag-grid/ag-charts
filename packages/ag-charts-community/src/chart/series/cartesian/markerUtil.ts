@@ -1,3 +1,5 @@
+import { clamp } from 'ag-charts-core';
+
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
@@ -6,7 +8,6 @@ import type { Node } from '../../../scene/node';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Transformable } from '../../../scene/transformable';
-import { clamp } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { PickFocusInputs } from '../series';
 import type { ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';

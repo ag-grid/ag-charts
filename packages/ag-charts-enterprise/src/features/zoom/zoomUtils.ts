@@ -1,8 +1,9 @@
 import { type AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
+import { clamp, isNumberEqual, roundTo } from 'ag-charts-core';
 
 import type { DefinedZoomState } from './zoomTypes';
 
-const { UNION, clamp, isNumberEqual, round } = _ModuleSupport;
+const { UNION } = _ModuleSupport;
 
 export const UNIT = { min: 0, max: 1 };
 export const UNIT_SIZE = UNIT.max - UNIT.min;
@@ -33,8 +34,8 @@ export function isZoomEqual(left: DefinedZoomState, right: DefinedZoomState, eps
 }
 
 export function isZoomLess(zoom: DefinedZoomState, minRatioX: number, minRatioY: number) {
-    const isMinXZoom = round(dx(zoom), 10) <= minRatioX;
-    const isMinYZoom = round(dy(zoom), 10) <= minRatioY;
+    const isMinXZoom = roundTo(dx(zoom), 10) <= minRatioX;
+    const isMinYZoom = roundTo(dy(zoom), 10) <= minRatioY;
 
     return isMinXZoom || isMinYZoom;
 }

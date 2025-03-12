@@ -35,8 +35,8 @@ import {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    TempValidate,
     UNION,
-    Validate,
 } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
@@ -79,43 +79,43 @@ const CROSSLINE_LABEL_POSITION = UNION(
 );
 
 class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCrossLineLabelOptions {
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     enabled?: boolean;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     text?: string;
 
-    @Validate(FONT_STYLE, { optional: true })
+    @TempValidate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle;
 
-    @Validate(FONT_WEIGHT, { optional: true })
+    @TempValidate(FONT_WEIGHT, { optional: true })
     fontWeight?: FontWeight;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     fontSize: number = 14;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     fontFamily: string = 'Verdana, sans-serif';
 
     /**
      * The padding between the label and the line.
      */
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     padding: number = 5;
 
     /**
      * The color of the labels.
      */
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     color?: string = 'rgba(87, 87, 87, 1)';
 
-    @Validate(CROSSLINE_LABEL_POSITION, { optional: true })
+    @TempValidate(CROSSLINE_LABEL_POSITION, { optional: true })
     position?: CrossLineLabelPosition;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     rotation?: number;
 
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     parallel?: boolean;
 }
 
@@ -125,42 +125,42 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     static readonly className = 'CrossLine';
     readonly id = createId(this);
 
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     enabled?: boolean;
 
-    @Validate(UNION(['range', 'line'], 'a crossLine type'))
+    @TempValidate(UNION(['range', 'line'], 'a crossLine type'))
     type!: CrossLineType;
 
-    @Validate(AND(MATCHING_CROSSLINE_TYPE('range'), ARRAY.restrict({ length: 2 })), {
+    @TempValidate(AND(MATCHING_CROSSLINE_TYPE('range'), ARRAY.restrict({ length: 2 })), {
         optional: true,
     })
     range?: [unknown, unknown];
 
-    @Validate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
+    @TempValidate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
     value?: unknown;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgFillType = '#c16068';
 
-    @Validate(RATIO, { optional: true })
+    @TempValidate(RATIO, { optional: true })
     fillOpacity?: number;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     stroke?: string;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     strokeWidth?: number;
 
-    @Validate(RATIO, { optional: true })
+    @TempValidate(RATIO, { optional: true })
     strokeOpacity?: number;
 
-    @Validate(LINE_DASH, { optional: true })
+    @TempValidate(LINE_DASH, { optional: true })
     lineDash?: [];
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     label: CartesianCrossLineLabel = new CartesianCrossLineLabel();
 
     scale?: Scale<any, number> = undefined;
@@ -279,7 +279,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         this.data = [clampedYStart, clampedYEnd];
 
-        if (!this.label.enabled) return;
+        if (this.label.enabled === false || !this.label.text) return;
 
         const { c = POSITION_TOP_COORDINATES } = labelDirectionHandling[position] ?? {};
         const { x: labelX, y: labelY } = c({
@@ -299,7 +299,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private updateNodes() {
         this.updateRangeNode();
 
-        if (this.label.enabled) {
+        const { label } = this;
+        if (label.enabled !== false && label.text) {
             this.updateLabel();
             this.positionLabel();
         }
@@ -411,7 +412,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     private computeLabelBBox(): BBox | undefined {
         const { label } = this;
-        if (!label.enabled) return;
+        if (label.enabled === false || !label.text) return;
         const tempText = new TransformableText();
         tempText.fontFamily = label.fontFamily;
         tempText.fontSize = label.fontSize;

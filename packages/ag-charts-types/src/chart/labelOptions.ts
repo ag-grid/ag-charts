@@ -1,6 +1,6 @@
 import type { FontOptions, Toggleable } from '../series/cartesian/commonOptions';
 import type { AgChartCallbackParams, Formatter } from './callbackOptions';
-import type { FontSize, OverflowStrategy, TextWrap } from './types';
+import type { FontSize, OverflowStrategy, PixelSize, TextWrap } from './types';
 
 /**
  * Represents the configuration options for labels in an AgCharts.
@@ -54,7 +54,7 @@ export interface AgChartAutoSizedBaseLabelOptions<TDatum, TParams> extends AgCha
 export interface AgChartAutoSizedLabelOptions<TDatum, TParams>
     extends AgChartAutoSizedBaseLabelOptions<TDatum, TParams> {
     /** The distance between the label and secondary label, if both are present */
-    spacing?: number;
+    spacing?: PixelSize;
 }
 
 export interface AgChartAutoSizedSecondaryLabelOptions<TDatum, TParams>

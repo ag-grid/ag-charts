@@ -16,7 +16,7 @@ const {
     BaseProperties,
     PropertiesArray,
     SeriesTooltip,
-    Validate,
+    TempValidate,
     BOOLEAN,
     COLOR_STRING,
     FUNCTION,
@@ -36,126 +36,126 @@ const {
 } = _ModuleSupport;
 
 export class WaterfallSeriesTotal extends BaseProperties {
-    @Validate(UNION(['subtotal', 'total'], 'a total type'))
+    @TempValidate(UNION(['subtotal', 'total'], 'a total type'))
     totalType!: 'subtotal' | 'total';
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     index!: number;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     axisLabel!: string;
 }
 
 class WaterfallSeriesItemTooltip extends BaseProperties {
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
 class WaterfallSeriesLabel extends Label<AgWaterfallSeriesLabelFormatterParams> {
-    @Validate(UNION(['inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'], 'a placement'))
+    @TempValidate(UNION(['inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'], 'a placement'))
     placement: AgWaterfallSeriesLabelPlacement = 'outside-end';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     padding: number = 6;
 }
 
 export class WaterfallSeriesItem extends BaseProperties {
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     name?: string;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @Validate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgFillType = '#c16068';
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = '#c16068';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity = 1;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgWaterfallSeriesItemStylerParams<unknown>, AgWaterfallSeriesStyle>;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly shadow = new DropShadow().set({ enabled: false });
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new WaterfallSeriesLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new WaterfallSeriesItemTooltip();
 }
 
 class WaterfallSeriesConnectorLine extends BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled: boolean = true;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     stroke: string = 'black';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(LINE_DASH)
+    @TempValidate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     strokeWidth: number = 2;
 }
 
 class WaterfallSeriesItems extends BaseProperties {
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly positive = new WaterfallSeriesItem();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly negative = new WaterfallSeriesItem();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly total = new WaterfallSeriesItem();
 }
 
 export class WaterfallSeriesProperties extends AbstractBarSeriesProperties<AgWaterfallSeriesOptions> {
-    @Validate(STRING)
+    @TempValidate(STRING)
     xKey!: string;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     yKey!: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     xName?: string;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     yName?: string;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly item = new WaterfallSeriesItems();
 
-    @Validate(OBJECT_ARRAY)
+    @TempValidate(OBJECT_ARRAY)
     readonly totals: WaterfallSeriesTotal[] = new PropertiesArray(WaterfallSeriesTotal);
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly line = new WaterfallSeriesConnectorLine();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
 }

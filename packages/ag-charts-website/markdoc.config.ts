@@ -14,6 +14,7 @@ import { idea } from '@ag-website-shared/markdoc/tags/idea';
 import { image } from '@ag-website-shared/markdoc/tags/image';
 import { imageCaption } from '@ag-website-shared/markdoc/tags/imageCaption';
 import { kbd } from '@ag-website-shared/markdoc/tags/kbd';
+import { majorTable } from '@ag-website-shared/markdoc/tags/majorTable';
 import { note } from '@ag-website-shared/markdoc/tags/note';
 import { oneTrustCookies } from '@ag-website-shared/markdoc/tags/oneTrustCookies';
 import { tabItem, tabs } from '@ag-website-shared/markdoc/tags/tabs';
@@ -117,5 +118,6 @@ export default defineMarkdocConfig({
                 specialTypes: { type: 'Object' },
             },
         },
+        majorTable,
     },
 });

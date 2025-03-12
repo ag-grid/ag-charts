@@ -1,6 +1,5 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, clamp } from 'ag-charts-core';
 
-import { clamp } from '../util/number';
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
 import type { ScaleTickParams } from './scale';

@@ -1,5 +1,6 @@
 import type { AgAngleAxisLabelOrientation } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { countFractionDigits, isNumberEqual } from 'ag-charts-core';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
@@ -10,12 +11,10 @@ const {
     ProxyOnWrite,
     TextWrapper,
     TextUtils,
-    Validate,
-    isNumberEqual,
+    TempValidate,
     toRadians,
     normalizeAngle360,
     normalizeAngle360Inclusive,
-    countFractionDigits,
     Path,
     RotatableText,
     Transformable,
@@ -39,7 +38,7 @@ interface AngleAxisTickDatum<TDatum> {
 }
 
 class AngleAxisLabel extends _ModuleSupport.AxisLabel {
-    @Validate(UNION(['fixed', 'parallel', 'perpendicular'], 'a label orientation'))
+    @TempValidate(UNION(['fixed', 'parallel', 'perpendicular'], 'a label orientation'))
     orientation: AgAngleAxisLabelOrientation = 'fixed';
 }
 
@@ -50,10 +49,10 @@ export abstract class AngleAxis<
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
 
     @ProxyOnWrite('rotation')
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     startAngle: number = 0;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     endAngle: number | undefined = undefined;
 
     protected labelData: AngleAxisLabelDatum[] = [];
@@ -365,7 +364,7 @@ export abstract class AngleAxis<
 
             const rotation = this.getLabelRotation(angle);
 
-            let text = this.formatTick(value, index);
+            let text = this.formatTick(value, index, scale.domain);
 
             tempText.text = text;
             tempText.x = x;

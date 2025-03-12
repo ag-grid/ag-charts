@@ -12,7 +12,7 @@ import {
     stringifyValue,
 } from 'ag-charts-core';
 
-import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
+import { BREAK_TRANSFORM_CHAIN, addFakeTransformToInstanceProperty, addTransformToInstanceProperty } from './decorator';
 import { isProperties } from './properties';
 
 interface ValidateOptions {
@@ -48,8 +48,8 @@ export interface ValidateObjectPredicate extends ValidatePredicate {
     restrict(objectType: Function): ValidatePredicate;
 }
 
-export function Validate(predicate: ValidatePredicate, options: ValidateOptions & { property?: string } = {}) {
-    const { optional = false, property: overrideProperty } = options;
+export function Validate(predicate: ValidatePredicate, options: ValidateOptions = {}) {
+    const { optional = false } = options;
     return addTransformToInstanceProperty(
         (target, property, value: any) => {
             const context = { ...options, target, property };
@@ -61,14 +61,13 @@ export function Validate(predicate: ValidatePredicate, options: ValidateOptions 
                 return value;
             }
 
-            const cleanKey = overrideProperty ?? String(property).replace(/^_*/, '');
-            const targetName = target.constructor.className ?? target.constructor.name.replace(/Properties$/, '');
             const valueString = stringifyValue(value, 50);
+            const cleanKey = String(property).replace(/^_*/, '');
+            const targetName = target.constructor.className ?? target.constructor.name.replace(/Properties$/, '');
+            const expectedMessage = predicate.message ? `; expecting ${getPredicateMessage(predicate, context)}` : '';
 
             Logger.warn(
-                `Property [${cleanKey}] of [${targetName}] cannot be set to [${valueString}]${
-                    predicate.message ? `; expecting ${getPredicateMessage(predicate, context)}` : ''
-                }, ignoring.`
+                `Property [${cleanKey}] of [${targetName}] cannot be set to [${valueString}]${expectedMessage}, ignoring.`
             );
 
             return BREAK_TRANSFORM_CHAIN;
@@ -77,6 +76,40 @@ export function Validate(predicate: ValidatePredicate, options: ValidateOptions 
         { optional }
     );
 }
+
+const TestEnv = true;
+export const TempValidate = TestEnv
+    ? (predicate: ValidatePredicate, options: ValidateOptions = {}) => {
+          const { optional = false } = options;
+          return addTransformToInstanceProperty(
+              (target, property, value: any) => {
+                  const context = { ...options, target, property };
+                  if ((optional && typeof value === 'undefined') || predicate(value, context)) {
+                      if (isProperties(target[property]) && !isProperties(value)) {
+                          target[property].set(value);
+                          return target[property];
+                      }
+                  } else {
+                      const valueString = stringifyValue(value, 50);
+                      const cleanKey = String(property).replace(/^_*/, '');
+                      const targetName =
+                          target.constructor.className ?? target.constructor.name.replace(/Properties$/, '');
+                      const expectedMessage = predicate.message
+                          ? `; expecting ${getPredicateMessage(predicate, context)}`
+                          : '';
+
+                      Logger.warn(
+                          `TempValidation!!! Property [${cleanKey}] of [${targetName}] cannot be set to [${valueString}]${expectedMessage}, ignoring.`
+                      );
+                  }
+
+                  return value;
+              },
+              undefined,
+              { optional }
+          );
+      }
+    : () => addFakeTransformToInstanceProperty;
 
 export const AND = (...predicates: ValidatePredicate[]) => {
     const messages: (string | undefined)[] = [];

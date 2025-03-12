@@ -47,7 +47,9 @@ export function patchOptions(
     } as AgChartTheme;
 
     (options as any as AgCartesianChartOptions).axes?.forEach((axis) => {
-        axis.title = { enabled: false };
+        if (typeof axis.title !== 'undefined') {
+            axis.title = { enabled: false };
+        }
     });
 
     if (api === 'createGauge') {

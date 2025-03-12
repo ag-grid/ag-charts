@@ -109,7 +109,7 @@ export class GradientLegend {
     private onStartLayout(ctx: _ModuleSupport.LayoutContext) {
         const [data] = this.data;
 
-        if (!this.enabled || !data?.enabled) {
+        if (!this.enabled || !data?.enabled || data.legendType !== 'gradient') {
             this.legendGroup.visible = false;
             return;
         }

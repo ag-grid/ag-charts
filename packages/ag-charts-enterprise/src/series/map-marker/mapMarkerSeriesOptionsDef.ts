@@ -13,7 +13,8 @@ import {
     union,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDef, markerOptionsDef, seriesLabelOptionsDef, tooltipOptionsDef, without } = _ModuleSupport;
+const { commonSeriesOptionsDefs, markerOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs, without } =
+    _ModuleSupport;
 
 export const mapMarkerSeriesOptionsDef: OptionsDefs<AgMapMarkerSeriesOptions> = {
     type: required(constant('map-marker')),
@@ -39,13 +40,13 @@ export const mapMarkerSeriesOptionsDef: OptionsDefs<AgMapMarkerSeriesOptions> = 
     sizeDomain: arrayOf(positiveNumber),
     label: {
         placement: union('top', 'bottom', 'left', 'right'),
-        ...seriesLabelOptionsDef,
+        ...seriesLabelOptionsDefs,
     },
-    tooltip: tooltipOptionsDef,
-    ...commonSeriesOptionsDef,
-    ...without(markerOptionsDef, ['enabled']),
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
+    ...without(markerOptionsDefs, ['enabled']),
     highlightStyle: {
-        ...(commonSeriesOptionsDef.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
+        ...(commonSeriesOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
         ...fillOptionsDef,
         ...strokeOptionsDef,
     },

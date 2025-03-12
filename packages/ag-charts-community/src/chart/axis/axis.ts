@@ -31,7 +31,7 @@ import { createId } from '../../util/id';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import { ObserveChanges } from '../../util/proxy';
-import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
+import { BOOLEAN, OBJECT, STRING_ARRAY, TempValidate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -107,17 +107,17 @@ export abstract class Axis<
     // user pass-through option: no validation required.
     context?: unknown;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     nice: boolean = true;
 
     /** Reverse the axis scale domain. */
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     reverse: boolean = false;
 
-    @Validate(STRING_ARRAY)
+    @TempValidate(STRING_ARRAY)
     keys: string[] = [];
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly interval = new AxisInterval();
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
@@ -339,7 +339,7 @@ export abstract class Axis<
         return formatValue(datum, fractionDigits);
     }
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly title = new AxisTitle();
 
     /**
@@ -684,6 +684,7 @@ export abstract class Axis<
     formatTick(
         value: unknown,
         index: number,
+        domain: D[],
         fractionDigits?: number,
         defaultFormatter?: (datum: unknown) => string
     ): string {
@@ -696,7 +697,7 @@ export abstract class Axis<
         let result: string | undefined;
         if (formatter) {
             const boundSeries = this.getFormatterBoundSeries();
-            result = callbackCache.call(this, formatter, { value: value, index, fractionDigits, boundSeries });
+            result = callbackCache.call(this, formatter, { value, index, domain, fractionDigits, boundSeries });
         } else if (defaultFormatter) {
             result = defaultFormatter(value);
         } else if (labelFormatter) {
@@ -716,7 +717,7 @@ export abstract class Axis<
         let result: string | undefined;
         if (formatter) {
             const boundSeries = this.getFormatterBoundSeries();
-            result = callbackCache.call(this, formatter, { value: value, index: NaN, boundSeries });
+            result = callbackCache.call(this, formatter, { value: value, index: NaN, domain: [], boundSeries });
         } else if (valueFormatter) {
             result = callbackCache.call(this, valueFormatter, value);
         } else if (isArray(value)) {

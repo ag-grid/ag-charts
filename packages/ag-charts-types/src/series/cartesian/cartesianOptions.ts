@@ -28,6 +28,8 @@ export interface AgBaseCartesianAxisOptions<
     LabelType = AgCartesianAxisLabelOptions,
     CrosshairLabelType = AgCrosshairLabel,
 > extends AgBaseAxisOptions<LabelType> {
+    /** An array of keys determining which series are charted on this axis. */
+    keys?: string[];
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
     /** Add cross lines or regions corresponding to data values. */
@@ -94,7 +96,10 @@ export interface AgCategoryAxisOptions
 type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
 
 export interface AgGroupedCategoryAxisOptions
-    extends Omit<AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions>, 'crossLines' | 'tick'> {
+    extends Omit<
+        AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions, AgBaseCrosshairLabel>,
+        'crossLines' | 'tick'
+    > {
     type: 'grouped-category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;

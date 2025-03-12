@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNumberEqual } from 'ag-charts-core';
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
@@ -12,9 +13,8 @@ const {
     LESS_THAN,
     NUMBER_OR_NAN,
     OBJECT,
-    Validate,
+    TempValidate,
     angleBetween,
-    isNumberEqual,
     normalisedExtentWithMetadata,
     findMinMax,
 } = _ModuleSupport;
@@ -25,15 +25,15 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
 
     override shape = 'circle' as const;
 
-    @Validate(AND(NUMBER_OR_NAN, LESS_THAN('max')))
+    @TempValidate(AND(NUMBER_OR_NAN, LESS_THAN('max')))
     @Default(NaN)
     min: number = NaN;
 
-    @Validate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
+    @TempValidate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
     @Default(NaN)
     max: number = NaN;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     override interval = new AngleAxisInterval();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {

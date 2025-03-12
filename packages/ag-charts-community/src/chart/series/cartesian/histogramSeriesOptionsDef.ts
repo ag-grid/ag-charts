@@ -15,11 +15,11 @@ import {
 import type { AgHistogramSeriesOptions } from 'ag-charts-types';
 
 import {
-    commonSeriesOptionsDef,
-    seriesLabelOptionsDef,
-    shadowOptionsDef,
-    tooltipOptionsDef,
-} from '../../commonOptionsDef';
+    commonSeriesOptionsDefs,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
+    tooltipOptionsDefs,
+} from '../../commonOptionsDefs';
 
 export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = {
     type: required(constant('histogram')),
@@ -33,10 +33,10 @@ export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = 
     binCount: positiveNumber,
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
-    label: seriesLabelOptionsDef,
-    tooltip: tooltipOptionsDef,
-    shadow: shadowOptionsDef,
-    ...commonSeriesOptionsDef,
+    label: seriesLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,

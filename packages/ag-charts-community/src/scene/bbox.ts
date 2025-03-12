@@ -1,9 +1,10 @@
+import { clamp } from 'ag-charts-core';
+
 import type { BBoxContainsTester } from '../util/bboxinterface';
 import { BBoxValues } from '../util/bboxinterface';
 import { type Interpolating, interpolate } from '../util/interpolating';
 import type { DistantObject, NearestResult } from '../util/nearest';
 import { nearestSquared } from '../util/nearest';
-import { clamp } from '../util/number';
 
 // For small data structs like a bounding box, objects are superior to arrays
 // in terms of performance (by 3-4% in Chrome 71, Safari 12 and by 20% in Firefox 64).

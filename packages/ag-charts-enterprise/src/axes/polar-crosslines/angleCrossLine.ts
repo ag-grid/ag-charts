@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isArray } from 'ag-charts-core';
+import { isArray, isNumberEqual } from 'ag-charts-core';
 
 import { PolarCrossLine } from './polarCrossLine';
 
@@ -8,7 +8,6 @@ const {
     getCrossLineValue,
     validateCrossLineValue,
     normalizeAngle360,
-    isNumberEqual,
     Group,
     Path,
     Sector,
