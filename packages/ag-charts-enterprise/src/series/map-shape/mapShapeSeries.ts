@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
-import type { AgGradientFill, AgMapShapeSeriesStyle } from 'ag-charts-types';
+import type { AgMapShapeSeriesStyle } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
@@ -8,6 +8,7 @@ import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
+import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { formatSingleLabel } from '../util/labelFormatter';
@@ -31,8 +32,6 @@ const {
     Text,
     PointerEvents,
     applyShapeStyle,
-    isGradientFill,
-    BBox,
 } = _ModuleSupport;
 
 interface MapShapeNodeDataContext
@@ -510,7 +509,7 @@ export class MapShapeSeries
         const { datumSelection, isHighlight } = opts;
 
         const style = this.getItemBaseStyle(isHighlight);
-        const fillBBox = this.getFillBBox(style.fill);
+        const fillBBox = getTopologyShapeFillBBox(this.scale);
 
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { datum, datumIndex, colorValue, projectedGeometry } = nodeDatum;
@@ -527,26 +526,6 @@ export class MapShapeSeries
 
             applyShapeStyle(geoGeometry, style, overrides, fillBBox);
         });
-    }
-
-    protected override getFillBBox(fill: AgGradientFill | string | undefined) {
-        if (!isGradientFill(fill)) {
-            return;
-        }
-
-        const { bounds = 'item' } = fill;
-
-        if (bounds === 'item') {
-            return;
-        }
-
-        const range = this.scale?.range;
-        if (!range) return;
-
-        const width = range[1][0] - range[0][0];
-        const height = range[1][1] - range[0][1];
-
-        return new BBox(0, 0, width, height);
     }
 
     private updateLabelSelection(opts: {

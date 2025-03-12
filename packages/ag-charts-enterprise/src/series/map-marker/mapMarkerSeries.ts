@@ -6,6 +6,7 @@ import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { markerPositions } from '../map-util/markerUtil';
+import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
@@ -628,7 +629,7 @@ export class MapMarkerSeries
         const { markerSelection, isHighlight, highlightedDatum } = opts;
 
         const style = this.getMarkerItemBaseStyle(isHighlight);
-        const fillBBox = this.getFillBBox(style.fill);
+        const fillBBox = getTopologyShapeFillBBox(this.scale);
 
         markerSelection.each((marker, markerDatum) => {
             const { datumIndex, datum, point, colorValue, sizeValue } = markerDatum;
