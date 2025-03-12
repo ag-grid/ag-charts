@@ -31,6 +31,7 @@ export interface GeneratedContents {
     htmlFiles: string[];
     isEnterprise: boolean;
     hasLocale: boolean;
+    hasExampleConsoleLog: boolean;
     layout: Layout;
     sourceFileList: string[];
     boilerPlateFiles: FileContents;

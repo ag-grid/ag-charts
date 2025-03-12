@@ -11,6 +11,8 @@ import styles from './CodeViewer.module.scss';
 
 export const DARK_MODE_START = '/** DARK MODE START **/';
 export const DARK_MODE_END = '/** DARK MODE END **/';
+export const CONSOLE_LOG_START = '/** CONSOLE LOG START **/';
+export const CONSOLE_LOG_END = '/** CONSOLE LOG END **/';
 
 const ExtensionMap = {
     sh: 'bash',
@@ -32,7 +34,12 @@ export function stripOutExampleGeneratorCode(files: FileContents) {
     mainFiles.forEach((mainFile) => {
         if (files[mainFile]) {
             const darkModeRegex = getSnippetRegex({ startDelimiter: DARK_MODE_START, endDelimiter: DARK_MODE_END });
-            files[mainFile] = files[mainFile].replace(darkModeRegex, '').trim() + '\n';
+            const consoleLogRegex = getSnippetRegex({
+                startDelimiter: CONSOLE_LOG_START,
+                endDelimiter: CONSOLE_LOG_END,
+            });
+
+            files[mainFile] = files[mainFile].replace(darkModeRegex, '').replace(consoleLogRegex, '').trim() + '\n';
         }
     });
 }

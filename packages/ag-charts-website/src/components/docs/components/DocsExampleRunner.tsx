@@ -171,6 +171,7 @@ const DocsExampleRunnerInner = ({
         <ExampleRunner
             id={id}
             title={title}
+            exampleName={exampleName}
             exampleUrl={exampleUrl}
             exampleRunnerExampleUrl={exampleRunnerExampleUrl}
             exampleType={exampleType}
@@ -184,6 +185,8 @@ const DocsExampleRunnerInner = ({
             loadingIFrameId={loadingIFrameId}
             hideCode={hideCode}
             hideExternalLinks={hideExternalLinks}
+            hasExampleConsoleLog={contents?.hasExampleConsoleLog}
+            consoleBufferSize={options?.consoleBufferSize}
         />
     );
 };
