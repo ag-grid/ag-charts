@@ -5,15 +5,8 @@ import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
 import { RadialColumnSeriesProperties } from './radialColumnSeriesProperties';
 import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from './radialColumnUtil';
 
-const {
-    ChartAxisDirection,
-    PolarAxis,
-    RadialColumnShape,
-    getRadialColumnWidth,
-    isGradientFill,
-    getColorStops,
-    toDegrees,
-} = _ModuleSupport;
+const { ChartAxisDirection, PolarAxis, RadialColumnShape, getRadialColumnWidth, isGradientFill, getColorStops } =
+    _ModuleSupport;
 
 export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.RadialColumnShape> {
     static readonly className = 'RadialColumnSeries';
@@ -48,14 +41,14 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.Ra
         return radiusAxis instanceof PolarAxis ? radiusAxis.shape === 'circle' : false;
     }
 
-    protected getNodeFill(fill: AgFillType, angle: number): Required<AgFillType> {
+    protected getNodeFill(fill: AgFillType): Required<AgFillType> {
         if (!isGradientFill(fill)) return fill;
 
         return {
             ...fill,
-            gradient: fill.gradient ?? 'linear',
-            bounds: fill.bounds ?? 'item',
-            rotation: fill.rotation ?? toDegrees(angle) + 90,
+            gradient: fill.gradient ?? 'radial',
+            bounds: fill.bounds ?? 'series',
+            rotation: fill.rotation ?? 0,
             colorStops: getColorStops(fill.colorStops ?? [], this.properties.defaultColorRange, [0, 1]),
         };
     }

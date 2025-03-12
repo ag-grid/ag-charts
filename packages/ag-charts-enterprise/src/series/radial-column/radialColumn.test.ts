@@ -340,7 +340,7 @@ describe('RadialColumnSeries', () => {
             await compare();
         });
 
-        it('should render radial column series with a series bound gradient fill', async () => {
+        it('should render radial column series with an item bound gradient fill', async () => {
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [
@@ -350,7 +350,66 @@ describe('RadialColumnSeries', () => {
                         radiusKey: 'Mountain air',
                         fill: {
                             type: 'gradient',
-                            bounds: 'series',
+                            bounds: 'item',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render radial column series with a linear gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        type: 'radial-column',
+                        angleKey: 'quarter',
+                        radiusKey: 'Mountain air',
+                        fill: {
+                            type: 'gradient',
+                            gradient: 'linear',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render radial column series with an item bound linear gradient fill', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        type: 'radial-column',
+                        angleKey: 'quarter',
+                        radiusKey: 'Mountain air',
+                        fill: {
+                            type: 'gradient',
+                            gradient: 'linear',
+                            bounds: 'item',
                             colorStops: [
                                 {
                                     color: 'green',
