@@ -1,6 +1,5 @@
 import {
     type AgFillType,
-    type AgGradientFill,
     type AgPyramidSeriesLabelFormatterParams,
     type AgPyramidSeriesStyle,
     _ModuleSupport,
@@ -414,22 +413,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             this.contextNodeData = this.createNodeData();
             this.nodeDataRefresh = false;
         }
-    }
-
-    protected override getFillBBox(fill: AgGradientFill | string | undefined) {
-        if (!isGradientFill(fill)) {
-            return;
-        }
-
-        const { bounds = 'item' } = fill;
-
-        if (bounds === 'item') {
-            return;
-        }
-
-        const width = this._nodeDataDependencies?.seriesRectWidth ?? 0;
-        const height = this._nodeDataDependencies?.seriesRectHeight ?? 0;
-        return new BBox(0, 0, width, height);
     }
 
     override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {

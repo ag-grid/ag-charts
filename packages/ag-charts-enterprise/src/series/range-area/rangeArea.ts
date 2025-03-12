@@ -38,6 +38,7 @@ const {
     pathMotion,
     extent,
     createDatumId,
+    applyShapeFillBBox,
     PointerEvents,
     Group,
     BBox,
@@ -439,10 +440,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
 
         const seriesFill = this.getNodeFill(this.properties.fill, this.properties.defaultColorRange);
-        const fillBBox = this.getFillBBox(seriesFill);
+        const fillBBox = this.getShapeFillBBox();
+
+        applyShapeFillBBox(fill, seriesFill, fillBBox);
 
         fill.setProperties({
-            fillBBox,
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,

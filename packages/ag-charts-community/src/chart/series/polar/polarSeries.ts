@@ -7,7 +7,6 @@ import { type Node, PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
-import { type FillType, isGradientFill } from '../../../scene/util/fill';
 import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -213,20 +212,6 @@ export abstract class PolarSeries<
 
     computeLabelsBBox(_options: { hideWhenNecessary: boolean }, _seriesRect: BBox): BBox | null | Promise<BBox | null> {
         return null;
-    }
-
-    protected override getFillBBox(fill: FillType | undefined, radius: number = 1): BBox | undefined {
-        if (!isGradientFill(fill)) {
-            return;
-        }
-
-        const { bounds = 'series' } = fill;
-
-        if (bounds === 'item') {
-            return;
-        }
-
-        return new BBox(-radius, -radius, radius * 2, radius * 2);
     }
 
     protected getShapeFillBBox(): ShapeFillBBox {
