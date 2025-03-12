@@ -3,8 +3,12 @@ import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import { DocsNavFromLocalStorage } from '@ag-website-shared/components/docs-navigation/DocsNavFromLocalStorage';
 import { getDocsPages } from '../components/docs/utils/pageData';
+import { parseVersion } from '@ag-website-shared/utils/parseVersion';
+import { SideNavigation } from '@components/pages-navigation/components/SideNavigation';
+import MajorTable from '@ag-website-shared/components/major-table/MajorTable.astro';
+import docsStyles from '@ag-website-shared/components/page-styles/docs.module.scss';
+
 import type { Framework } from '@ag-grid-types';
-import DocumentationArchive from '@ag-website-shared/components/documentation-archive/DocumentationArchive.astro';
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
@@ -17,6 +21,21 @@ const versionsContent = (await getEntry('versions', 'ag-charts-versions')) as Co
 const versionsData: any[] = versionsContent ? versionsContent.data : [];
 
 const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEntry<'docsNav'>;
+
+const majors = versionsData.reduce((majors, version) => {
+    if (parseVersion(version.version).isMajor) {
+        majors.push(parseVersion(version.version).major);
+    }
+
+    return majors;
+}, []);
+
+const headings = [
+    { slug: 'top', depth: 1, text: 'Documentation Archive' },
+    ...majors.map((major) => {
+        return { slug: `version-${major}`, depth: 2, text: `Version ${major}` };
+    }),
+];
 ---
 
 <Layout
@@ -28,6 +47,27 @@ const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEn
     <div class:list={['contentViewport layout-grid']}>
         <DocsNavFromLocalStorage client:load menuData={docsNavData} pageName={pageName} />
 
-        <DocumentationArchive site="charts" versionsData={versionsData} />
+        <div id="doc-content" class={docsStyles.docPage}>
+            <h1>Documentation Archive</h1>
+
+            <div class={docsStyles.pageSections}>
+                <article>
+                    <p>Review documentation for previous AG grid versions.</p>
+
+                    {
+                        majors.map((major) => {
+                            return (
+                                <>
+                                    <h2 id={`version-${major}`}>Version {major}</h2>
+                                    <MajorTable library="charts" major={major} type="archive" />
+                                </>
+                            );
+                        })
+                    }
+                </article>
+            </div>
+        </div>
+
+        <SideNavigation client:load headings={headings} delayedScrollSpy={true} />
     </div>
 </Layout>
