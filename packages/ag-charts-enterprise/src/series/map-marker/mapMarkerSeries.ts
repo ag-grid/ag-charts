@@ -642,7 +642,7 @@ export class MapMarkerSeries
             marker.shape = overrides?.shape ?? style.shape;
             marker.size = overrides?.size ?? style.size;
 
-            applyShapeStyle(marker, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(marker, style, overrides, defaultColorRange, fillBBox);
 
             marker.x = point.x;
             marker.y = point.y;

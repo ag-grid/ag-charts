@@ -644,11 +644,11 @@ export class BarSeries extends AbstractBarSeries<
 
     private getItemBaseStyle(highlighted: boolean): Required<AgBarSeriesStyle> {
         const { properties } = this;
-        const { cornerRadius } = properties;
+        const { cornerRadius, defaultColorRange } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
-            fill: highlightStyle?.fill ?? properties.fill,
+            fill: this.getNodeFill(highlightStyle?.fill ?? properties.fill, defaultColorRange),
             fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
             stroke: highlightStyle?.stroke ?? properties.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
@@ -669,7 +669,7 @@ export class BarSeries extends AbstractBarSeries<
     ) {
         const { id: seriesId, properties } = this;
 
-        const { xKey, yKey, itemStyler } = properties;
+        const { xKey, yKey, itemStyler, defaultColorRange } = properties;
 
         if (itemStyler == null) return;
 
@@ -677,7 +677,7 @@ export class BarSeries extends AbstractBarSeries<
             xDomain: this.getSeriesDomain(ChartAxisDirection.X),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
         }))!;
-        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+        let overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
             return this.callWithContext(itemStyler, {
                 seriesId,
                 ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
@@ -688,6 +688,12 @@ export class BarSeries extends AbstractBarSeries<
                 ...format,
             });
         });
+
+        if (overrides?.fill != null) {
+            overrides = { ...overrides, fill: this.getNodeFill(overrides.fill, defaultColorRange) };
+        }
+
+        return overrides;
     }
 
     protected override updateDatumNodes(opts: { datumSelection: Selection<Rect, BarNodeDatum>; isHighlight: boolean }) {
@@ -695,7 +701,7 @@ export class BarSeries extends AbstractBarSeries<
             return;
         }
 
-        const { shadow, defaultColorRange } = this.properties;
+        const { shadow } = this.properties;
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
@@ -715,7 +721,7 @@ export class BarSeries extends AbstractBarSeries<
 
             rect.opacity = datum.opacity ?? 0;
 
-            applyShapeStyle(rect, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(rect, style, overrides, fillBBox);
 
             const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
             rect.topLeftCornerRadius = datum.topLeftCornerRadius ? cornerRadius : 0;

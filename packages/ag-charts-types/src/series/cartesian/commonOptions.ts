@@ -44,40 +44,20 @@ export interface AgGradientColorStop {
     stop?: Ratio;
 }
 
-export interface AgLinearGradientFill {
+export type AgGradientFill = {
     type: 'gradient';
-    /** Direction of the gradient, defaults to vertical. */
-    direction?: AgGradientFillDirection;
+    /** Format of the gradient */
+    gradient?: AgGradientType;
     /** Represents the position and color of stops in the gradient. */
     colorStops?: AgGradientColorStop[];
     /** The domain of the color gradient, defaults to item. */
     bounds?: AgGradientFillBounds;
     /** The rotation angle of the line along which the gradient is rendered. */
     rotation?: number;
-}
+};
 
-export interface AgRadialGradientFill {
-    type: 'radial-gradient';
-    /** Represents the position and color of stops in the gradient. */
-    colorStops?: AgGradientColorStop[];
-    /** The domain of the color gradient, defaults to item. */
-    bounds?: AgGradientFillBounds;
-}
-
-export interface AgConicGradientFill {
-    type: 'conic-gradient';
-    /** Represents the position and color of stops in the gradient. */
-    colorStops?: AgGradientColorStop[];
-    /** The domain of the color gradient, defaults to item. */
-    bounds?: AgGradientFillBounds;
-    /** The rotation angle of the line along which the gradient is rendered. */
-    rotation?: number;
-}
-
-export type AgGradientFill = AgLinearGradientFill | AgRadialGradientFill | AgConicGradientFill;
-
+export type AgGradientType = 'linear' | 'radial' | 'conic';
 export type AgGradientFillBounds = 'series' | 'item' | 'axis';
-export type AgGradientFillDirection = 'horizontal' | 'vertical';
 
 /**
  * Represents options for the strokes in a chart.

@@ -2,6 +2,7 @@ import { Logger } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
+    AgFillType,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesVisibilityChange,
@@ -524,25 +525,27 @@ export abstract class Series<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        const xRange = xAxis?.range ?? [0, 1];
-        const yRange = yAxis?.range ?? [0, 1];
+        let x1: number;
+        let x2: number;
+        let y1: number;
+        let y2: number;
 
-        const isHorizontal = fill.type === 'gradient' && fill.direction === 'horizontal';
-        const axisDirection = isHorizontal ? ChartAxisDirection.X : ChartAxisDirection.Y;
-        const axis = axes[axisDirection];
-        const seriesDomain = this.getSeriesDomain(axisDirection);
-
-        const seriesRange = [axis?.scale.convert(seriesDomain.at(0)), axis?.scale.convert(seriesDomain.at(-1))];
-
-        let [x1, x2] = findMinMax(xRange);
-        let [y1, y2] = findMinMax(yRange);
-
-        if (bounds === 'series') {
-            if (isHorizontal) {
-                [x1, x2] = findMinMax(seriesRange);
-            } else {
-                [y1, y2] = findMinMax(seriesRange);
-            }
+        if (bounds === 'axis') {
+            [x1, x2] = findMinMax(xAxis?.range ?? [0, 1]);
+            [y1, y2] = findMinMax(yAxis?.range ?? [0, 1]);
+        } else {
+            const xSeriesDomain = this.getSeriesDomain(ChartAxisDirection.X);
+            const xSeriesRange = [
+                xAxis?.scale.convert(xSeriesDomain.at(0)),
+                xAxis?.scale.convert(xSeriesDomain.at(-1)),
+            ];
+            const ySeriesDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+            const ySeriesRange = [
+                yAxis?.scale.convert(ySeriesDomain.at(0)),
+                yAxis?.scale.convert(ySeriesDomain.at(-1)),
+            ];
+            [x1, x2] = findMinMax(xSeriesRange);
+            [y1, y2] = findMinMax(ySeriesRange);
         }
 
         const width = x2 - x1;
@@ -849,6 +852,18 @@ export abstract class Series<
         return this.callWithContext(defaultFormatter, params.value);
     }
 
+    private getMarkerNodeFill(fill: AgFillType, defaultColorRange: string[]): Required<AgFillType> {
+        if (!isGradientFill(fill)) return fill;
+
+        return {
+            type: 'gradient',
+            gradient: fill.gradient ?? 'radial',
+            bounds: fill.bounds ?? 'item',
+            colorStops: fill.colorStops ?? defaultColorRange.map((color) => ({ color })).reverse(),
+            rotation: fill.rotation ?? 0,
+        };
+    }
+
     public getMarkerStyle<TParams>(
         marker: ISeriesMarker<TParams>,
         datum: any,
@@ -858,7 +873,12 @@ export abstract class Series<
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
         const defaultSize = { size };
-        const markerStyle = mergeDefaults(defaultSize, defaultStyle);
+
+        let markerStyle = mergeDefaults(defaultSize, defaultStyle);
+        if (isGradientFill(markerStyle.fill)) {
+            markerStyle = { ...markerStyle, fill: this.getMarkerNodeFill(markerStyle.fill, marker.defaultColorRange) };
+        }
+
         if (marker.itemStyler) {
             const style = this.ctx.callbackCache.call(this.properties, marker.itemStyler, {
                 seriesId: this.id,
@@ -867,7 +887,11 @@ export abstract class Series<
                 highlighted,
                 datum,
             });
-            return mergeDefaults(style, markerStyle);
+            return mergeDefaults(
+                style,
+                markerStyle,
+                style?.fill != null ? { fill: this.getMarkerNodeFill(style.fill, marker.defaultColorRange) } : undefined
+            );
         }
         return markerStyle;
     }
@@ -880,7 +904,6 @@ export abstract class Series<
         params: TParams,
         highlighted: boolean,
         defaultStyle: AgSeriesMarkerStyle,
-        defaultColorRange: string[],
         fillBBox?: BBox,
         { applyTranslation = true, selected = true } = {}
     ) {
@@ -893,14 +916,13 @@ export abstract class Series<
             markerNode.setProperties({
                 visible,
                 ...activeStyle,
-                defaultColorRange,
                 x: point?.x,
                 y: point?.y,
                 scalingCenterX: point?.x,
                 scalingCenterY: point?.y,
             });
         } else {
-            markerNode.setProperties({ visible, ...activeStyle, defaultColorRange });
+            markerNode.setProperties({ visible, ...activeStyle });
         }
 
         if (!selected) {

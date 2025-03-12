@@ -1,4 +1,4 @@
-import { type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgFillType, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { isDefined } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
@@ -357,12 +357,26 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         this.animationState.transition('update');
     }
 
+    protected getNodeFill(fill: AgFillType): Required<AgFillType> {
+        if (!_ModuleSupport.isGradientFill(fill)) return fill;
+
+        const angleScale = this.axes[ChartAxisDirection.X]?.scale;
+
+        return {
+            ...fill,
+            gradient: fill.gradient ?? 'conic',
+            bounds: fill.bounds ?? 'series',
+            rotation: fill.rotation ?? _ModuleSupport.toDegrees(angleScale!.range[0]) + 90,
+            colorStops: _ModuleSupport.getColorStops(fill.colorStops ?? [], this.properties.defaultColorRange, [0, 1]),
+        };
+    }
+
     private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
-            fill: highlightStyle?.fill ?? properties.fill,
+            fill: this.getNodeFill(highlightStyle?.fill ?? properties.fill),
             fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
             stroke: highlightStyle?.stroke ?? properties.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
@@ -377,18 +391,26 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const { id: seriesId, properties } = this;
         const { angleKey, radiusKey, itemStyler } = properties;
 
-        if (itemStyler == null) return;
+        let overrides: AgRadialSeriesStyle | undefined;
 
-        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return this.callWithContext(itemStyler, {
-                seriesId,
-                datum,
-                highlighted,
-                angleKey,
-                radiusKey,
-                ...format,
+        if (itemStyler != null) {
+            overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+                return this.callWithContext(itemStyler, {
+                    seriesId,
+                    datum,
+                    highlighted,
+                    angleKey,
+                    radiusKey,
+                    ...format,
+                });
             });
-        });
+        }
+
+        if (overrides != null) {
+            overrides = { ...overrides, fill: this.getNodeFill(format.fill) };
+        }
+
+        return overrides;
     }
 
     protected updateSectorSelection(
@@ -421,7 +443,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
                 const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
 
-                applyShapeStyle(node, { ...style, defaultColorRange }, overrides, fillBBox);
+                const fill = overrides?.fill ?? style.fill;
+                const fillParams: _ModuleSupport.GradientParams | undefined =
+                    _ModuleSupport.isGradientFill(fill) && fill.bounds !== 'item'
+                        ? { centerX: 0, centerY: 0 }
+                        : undefined;
+
+                applyShapeStyle(node, style, overrides, defaultColorRange, fillBBox, fillParams);
 
                 node.lineJoin = 'round';
                 node.inset = node.stroke != null ? node.strokeWidth / 2 : 0;

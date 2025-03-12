@@ -1,11 +1,19 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgFillType, _ModuleSupport } from 'ag-charts-community';
 
 import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
 import { RadialColumnSeriesProperties } from './radialColumnSeriesProperties';
 import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from './radialColumnUtil';
 
-const { ChartAxisDirection, PolarAxis, RadialColumnShape, getRadialColumnWidth } = _ModuleSupport;
+const {
+    ChartAxisDirection,
+    PolarAxis,
+    RadialColumnShape,
+    getRadialColumnWidth,
+    isGradientFill,
+    getColorStops,
+    toDegrees,
+} = _ModuleSupport;
 
 export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.RadialColumnShape> {
     static readonly className = 'RadialColumnSeries';
@@ -38,6 +46,18 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.Ra
     protected isRadiusAxisCircle() {
         const radiusAxis = this.axes[ChartAxisDirection.Y];
         return radiusAxis instanceof PolarAxis ? radiusAxis.shape === 'circle' : false;
+    }
+
+    protected getNodeFill(fill: AgFillType, angle: number): Required<AgFillType> {
+        if (!isGradientFill(fill)) return fill;
+
+        return {
+            ...fill,
+            gradient: fill.gradient ?? 'linear',
+            bounds: fill.bounds ?? 'item',
+            rotation: fill.rotation ?? toDegrees(angle) + 90,
+            colorStops: getColorStops(fill.colorStops ?? [], this.properties.defaultColorRange, [0, 1]),
+        };
     }
 
     protected override updateItemPath(

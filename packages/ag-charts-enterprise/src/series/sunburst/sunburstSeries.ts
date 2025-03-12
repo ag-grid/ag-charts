@@ -439,7 +439,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             const strokeWidth = overrides.strokeWidth ?? style.strokeWidth;
 
-            applyShapeStyle(sector, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(sector, style, overrides, defaultColorRange, fillBBox);
 
             sector.centerX = 0;
             sector.centerY = 0;

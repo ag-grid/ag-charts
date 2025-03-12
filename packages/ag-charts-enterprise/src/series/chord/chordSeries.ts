@@ -589,7 +589,7 @@ export class ChordSeries extends FlowProportionSeries<
             link.startAngle2 = datum.startAngle2;
             link.endAngle2 = datum.endAngle2;
 
-            applyShapeStyle(link, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(link, style, overrides, defaultColorRange, fillBBox);
 
             link.tension = overrides?.tension ?? style.tension;
         });

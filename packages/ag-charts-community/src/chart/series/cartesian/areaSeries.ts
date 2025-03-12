@@ -595,24 +595,19 @@ export class AreaSeries extends CartesianSeries<
             visible: visible || animationEnabled,
         });
 
-        const { fill: seriesFill } = this.properties;
-
-        if (isGradientFill(seriesFill)) {
-            seriesFill.bounds = !seriesFill.bounds || seriesFill.bounds == 'item' ? 'series' : 'axis';
-        }
+        const seriesFill = this.getNodeFill(this.properties.fill, this.properties.defaultColorRange);
         const fillBBox = this.getFillBBox(seriesFill);
 
         fill.setProperties({
+            fill: seriesFill,
             fillBBox,
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            fill: this.properties.fill,
             fillOpacity: this.properties.fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
-            defaultColorRange: this.properties.defaultColorRange,
         });
 
         updateClipPath(this, stroke);
@@ -689,7 +684,6 @@ export class AreaSeries extends CartesianSeries<
         });
 
         const fillBBox = this.getFillBBox(marker.fill);
-        const { defaultColorRange } = marker;
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
@@ -700,7 +694,6 @@ export class AreaSeries extends CartesianSeries<
                 datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
                 highlighted,
                 baseStyle,
-                defaultColorRange,
                 fillBBox,
                 { selected: datum.selected }
             );

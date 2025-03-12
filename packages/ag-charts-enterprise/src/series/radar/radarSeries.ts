@@ -346,8 +346,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
         const fillBBox = this.getFillBBox(fill, axisOuterRadius);
 
-        const { defaultColorRange } = marker;
-
         selection.update(selectionData).each((node, datum) => {
             this.updateMarkerStyle(
                 marker,
@@ -357,7 +355,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 this.getDatumStylerProperties(datum),
                 highlight,
                 baseStyle,
-                defaultColorRange,
                 fillBBox
             );
         });

@@ -19,5 +19,6 @@ export interface AgSeriesMarkerOptions<TDatum, TParams> extends AgSeriesMarkerSt
 }
 
 export interface ISeriesMarker<TParams> extends AgSeriesMarkerOptions<unknown, TParams> {
+    defaultColorRange: string[];
     getStyle: () => AgSeriesMarkerStyle;
 }

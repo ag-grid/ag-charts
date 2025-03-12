@@ -484,7 +484,7 @@ export class SankeySeries extends FlowProportionSeries<
             rect.width = Math.max(datum.width, 0);
             rect.height = Math.max(datum.height, 0);
 
-            applyShapeStyle(rect, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(rect, style, overrides, defaultColorRange, fillBBox);
         });
     }
 
@@ -593,7 +593,7 @@ export class SankeySeries extends FlowProportionSeries<
             link.y2 = datum.y2;
             link.height = datum.height;
 
-            applyShapeStyle(link, { ...style, defaultColorRange }, overrides);
+            applyShapeStyle(link, style, overrides, defaultColorRange);
 
             link.inset = link.strokeWidth / 2;
         });
