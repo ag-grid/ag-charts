@@ -170,6 +170,8 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fillParams?: GradientParams;
 
+    private cachedDefaultGradientFillBBox?: BBox;
+
     protected fillStroke(ctx: CanvasContext, path?: Path2D) {
         this.renderFill(ctx, path);
         this.renderStroke(ctx, path);
@@ -196,7 +198,7 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyFill(ctx: CanvasContext) {
-        const { fill, fillGradient, fillBBox = this.getBBox(), fillParams } = this;
+        const { fill, fillGradient, fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
         const gradientFill = fillBBox ? fillGradient?.createGradient(ctx as any, fillBBox, fillParams) : undefined;
         ctx.fillStyle = gradientFill ?? (typeof fill === 'string' ? fill : undefined) ?? 'black';
     }
@@ -260,6 +262,18 @@ export abstract class Shape<D = any> extends Node<D> {
         } else {
             ctx.stroke();
         }
+    }
+
+    getDefaultGradientFillBBox(): BBox {
+        if (this.cachedDefaultGradientFillBBox == null) {
+            this.cachedDefaultGradientFillBBox = Object.freeze(this.computeDefaultGradientFillBBox()) as BBox;
+        }
+
+        return this.cachedDefaultGradientFillBBox;
+    }
+
+    protected computeDefaultGradientFillBBox(): BBox | undefined {
+        return;
     }
 
     override containsPoint(x: number, y: number): boolean {

@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcBaseNode } from '../ohlc/ohlcNode';
 
-const { ScenePathChangeDetection, ExtendedPath2D } = _ModuleSupport;
+const { ScenePathChangeDetection, ExtendedPath2D, BBox } = _ModuleSupport;
 
 export class CandlestickNode extends OhlcBaseNode {
     private readonly wickPath = new ExtendedPath2D();
@@ -21,6 +21,19 @@ export class CandlestickNode extends OhlcBaseNode {
 
     @ScenePathChangeDetection()
     wickLineDashOffset: number | undefined;
+
+    protected override computeDefaultGradientFillBBox(): _ModuleSupport.BBox | undefined {
+        const { width, centerX, yOpen, yClose } = this;
+
+        const boxTop = Math.min(yOpen, yClose);
+        const boxBottom = Math.max(yOpen, yClose);
+        const rectHeight = boxBottom - boxTop;
+
+        const x0 = centerX - width / 2;
+        let x1 = centerX + width / 2;
+
+        return new BBox(x0, boxTop, x1 - x0, rectHeight);
+    }
 
     override updatePath() {
         const {
