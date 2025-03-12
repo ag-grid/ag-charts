@@ -15,10 +15,10 @@ export { ChartTheme } from './chart/themes/chartTheme';
 export { themes } from './chart/mapping/themes';
 export * from './chart/themes/symbols';
 
-export function resolveOperation(operation: Operation) {
+export function resolveOperation(operation: Operation): any {
     const params = ChartTheme.getDefaultPublicParameters();
     (params as any).__palette = ChartTheme.getDefaultColors();
     const source = { operation };
     jsonResolveOperations(source, params);
-    return source.operation;
+    return source.operation as any;
 }
