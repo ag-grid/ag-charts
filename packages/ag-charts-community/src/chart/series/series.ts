@@ -17,7 +17,7 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
-import { type FillType, isGradientFill } from '../../scene/util/fill';
+import { isGradientFill } from '../../scene/util/fill';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';
 import { formatValue } from '../../util/format.util';
@@ -26,7 +26,6 @@ import { jsonDiff } from '../../util/json';
 import { Listeners } from '../../util/listeners';
 import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
-import { findMinMax } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
@@ -510,50 +509,6 @@ export abstract class Series<
 
     // Needed for auto-scaling zoom
     abstract getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [number, number]): any[];
-
-    protected getFillBBox(fill: FillType | undefined): BBox | undefined {
-        if (!isGradientFill(fill)) {
-            return;
-        }
-
-        const { bounds = 'item' } = fill;
-
-        const { axes } = this;
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (bounds === 'item' || !xAxis || !yAxis) {
-            return;
-        }
-
-        let x1: number;
-        let x2: number;
-        let y1: number;
-        let y2: number;
-
-        if (bounds === 'axis') {
-            [x1, x2] = findMinMax(xAxis?.range ?? [0, 1]);
-            [y1, y2] = findMinMax(yAxis?.range ?? [0, 1]);
-        } else {
-            const xSeriesDomain = this.getSeriesDomain(ChartAxisDirection.X);
-            const xSeriesRange = [
-                xAxis?.scale.convert(xSeriesDomain.at(0)),
-                xAxis?.scale.convert(xSeriesDomain.at(-1)),
-            ];
-            const ySeriesDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-            const ySeriesRange = [
-                yAxis?.scale.convert(ySeriesDomain.at(0)),
-                yAxis?.scale.convert(ySeriesDomain.at(-1)),
-            ];
-            [x1, x2] = findMinMax(xSeriesRange);
-            [y1, y2] = findMinMax(ySeriesRange);
-        }
-
-        const width = x2 - x1;
-        const height = y2 - y1;
-
-        return new BBox(x1, y1, width, height);
-    }
 
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
     abstract processData(dataController: DataController): Promise<void> | void;

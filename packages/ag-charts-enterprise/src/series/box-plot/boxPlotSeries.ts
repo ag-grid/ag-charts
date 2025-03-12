@@ -487,7 +487,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    protected override getFillBBox(fill: AgGradientFill | string | undefined, boxPlotDatum?: BoxPlotNodeDatum) {
+    private getFillBBox(fill: AgGradientFill | string | undefined, boxPlotDatum?: BoxPlotNodeDatum) {
         if (!isGradientFill(fill) || !boxPlotDatum) {
             return;
         }
@@ -495,7 +495,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const { bounds = 'item' } = fill;
 
         if (bounds !== 'item') {
-            return super.getFillBBox(fill);
+            return super.getShapeFillBBox()[bounds];
         }
 
         const isVertical = this.isVertical();

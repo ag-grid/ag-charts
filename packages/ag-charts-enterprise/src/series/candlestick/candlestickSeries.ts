@@ -1,10 +1,10 @@
-import { type AgCandlestickSeriesItemOptions, type AgGradientFill, _ModuleSupport } from 'ag-charts-community';
+import { type AgCandlestickSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { createDatumId, isGradientFill, applyShapeFillBBox, BBox } = _ModuleSupport;
+const { createDatumId, isGradientFill, applyShapeFillBBox } = _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, CandlestickSeriesProperties<any>> {
     static readonly className = 'CandleStickSeries';
@@ -117,29 +117,6 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             // Ignore highlight style
             node.strokeAlignment = (style?.strokeWidth ?? risingStyle.strokeWidth) / 2;
         });
-    }
-
-    protected override getFillBBox(fill: AgGradientFill | string | undefined, candlestickNode?: CandlestickNode) {
-        if (!isGradientFill(fill) || !candlestickNode) {
-            return;
-        }
-
-        const { bounds = 'item' } = fill;
-
-        if (bounds !== 'item') {
-            return super.getFillBBox(fill);
-        }
-
-        const { width, centerX, yOpen, yClose } = candlestickNode;
-
-        const boxTop = Math.min(yOpen, yClose);
-        const boxBottom = Math.max(yOpen, yClose);
-        const rectHeight = boxBottom - boxTop;
-
-        const x0 = centerX - width / 2;
-        const x1 = centerX + width / 2;
-
-        return new BBox(x0, boxTop, x1 - x0, rectHeight);
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
