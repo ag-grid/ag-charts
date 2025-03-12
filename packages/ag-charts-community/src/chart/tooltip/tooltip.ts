@@ -458,6 +458,8 @@ export class Tooltip extends BaseProperties {
             // Avoid reading the tooltip size immediately after a DOM mutation, wait for
             // a natural layout before positioning the tooltip.
             SizeMonitor.singleShot(this.element, (size) => {
+                if (!this._visible) return;
+
                 this._elementSize = size;
 
                 // We can only measure the element when it's actually visible
