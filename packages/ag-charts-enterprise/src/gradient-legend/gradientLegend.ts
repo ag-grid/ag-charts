@@ -17,6 +17,7 @@ const {
     Marker,
     TranslatableGroup,
     LinearGradient,
+    BBox,
 } = _ModuleSupport;
 
 class GradientBar extends BaseProperties {
@@ -118,7 +119,7 @@ export class GradientLegend {
 
         this.updateGradientRect(ctx.layoutBox, colorRange);
 
-        const axisBBox = this.updateAxis(data);
+        const axisBBox = this.updateAxis(data) ?? new BBox(0, 0, 0, 0);
         const { left, top } = this.getMeasurements(ctx.layoutBox, axisBBox);
 
         this.updateArrow();
