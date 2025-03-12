@@ -94,7 +94,16 @@ export class Text<D = any> extends Shape<D> {
         const { fill, stroke, strokeWidth } = this;
         const { pixelRatio } = this.layerManager.canvas;
 
-        ctx.font = TextUtils.toFontString(this);
+        if (!fill && !(stroke != null && strokeWidth > 0)) {
+            // Short circuit early if nothing will be rendered.
+            return super.render(renderCtx);
+        }
+
+        const font = TextUtils.toFontString(this);
+        // Try to avoid this assignment, which typically always incurs a font switch cost.
+        if (ctx.font !== font) {
+            ctx.font = font;
+        }
         ctx.textAlign = this.textAlign;
         ctx.textBaseline = this.textBaseline;
 

@@ -5,6 +5,7 @@ import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import { type Bounds, type Placement, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
+import { SizeMonitor } from '../../util/sizeMonitor';
 import {
     ARRAY_OF,
     BOOLEAN,
@@ -372,7 +373,6 @@ export class Tooltip extends BaseProperties {
             }
 
             element.innerHTML = html;
-            this._elementSize = { width: element.clientWidth, height: element.clientHeight };
         } else if (element == null || element.innerHTML === '') {
             this.toggle(false);
             return;
@@ -454,9 +454,17 @@ export class Tooltip extends BaseProperties {
         }
 
         if (visible) {
-            // We can only measure the element when it's actually visible
-            // This removes a possible jump for the tooltip
-            this.updateTooltipPosition();
+            // Avoid reading the tooltip size immediately after a DOM mutation, wait for
+            // a natural layout before positioning the tooltip.
+            SizeMonitor.singleShot(this.element, (size) => {
+                if (!this._visible) return;
+
+                this._elementSize = size;
+
+                // We can only measure the element when it's actually visible
+                // This removes a possible jump for the tooltip
+                this.updateTooltipPosition();
+            });
         }
     }
 

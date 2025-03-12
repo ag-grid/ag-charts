@@ -889,7 +889,9 @@ export class DataModel<
             const columnScopes = new Set(def.scopes);
             const columnScope = first(def.scopes);
             const columnSource = sources.get(columnScope) as unknown[];
-            const column = columnSource.map((valueDatum, datumIndex) => {
+            const column = new Array<unknown>();
+            for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
+                const valueDatum = columnSource[datumIndex];
                 const invalidKey = invalidKeys.get(columnScope)?.[datumIndex];
 
                 const result = processValue(def, valueDatum, datumIndex, def.scopes);
@@ -907,8 +909,8 @@ export class DataModel<
                     value = invalidValue;
                 }
 
-                return value;
-            });
+                column[datumIndex] = value;
+            }
 
             columns.push(column);
             allColumnScopes.push(columnScopes);
