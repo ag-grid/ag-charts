@@ -51,6 +51,7 @@ interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Read
 interface PyramidNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<PyramidNodeDatum, PyramidNodeLabelDatum> {
     stageLabelData: PyramidNodeLabelDatum[] | undefined;
+    bounds: _ModuleSupport.BBox;
 }
 
 type ItemStyle = Pick<AgPyramidSeriesStyle, 'fill' | 'stroke'> &
@@ -404,6 +405,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             nodeData,
             labelData,
             stageLabelData,
+            bounds,
         };
     }
 
@@ -575,12 +577,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { shadow } = properties;
 
         const style = this.getItemBaseStyle(isHighlight);
+        const bounds = this.contextNodeData?.bounds;
+        const fillBBox: _ModuleSupport.ShapeFillBBox | undefined = bounds
+            ? { series: bounds, axis: bounds }
+            : undefined;
 
         datumSelection.each((connector, nodeDatum) => {
             const { datumIndex, datum } = nodeDatum;
             const overrides = this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, style, isHighlight);
-
-            const fillBBox = this.getFillBBox(overrides.fill);
 
             applyShapeStyle(connector, style, overrides, fillBBox);
 
