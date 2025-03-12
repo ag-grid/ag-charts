@@ -1,20 +1,33 @@
-import type { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, WithThemeParams } from 'ag-charts-types';
 
 import { Color } from '../../util/color';
 import { mapValues } from '../../util/object';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from './constants';
 
 type CartesianAxis = Exclude<AgCartesianChartOptions['axes'], undefined>[0];
 
-export function swapAxisCondition(axes: [CartesianAxis, CartesianAxis], swap: (series: any) => boolean) {
-    return (series: any) => {
-        if (!swap(series)) return axes;
-
-        return [
-            { ...axes[0], position: axes[1].position },
-            { ...axes[1], position: axes[0].position },
-        ];
-    };
-}
+export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]> = [
+    {
+        type: CARTESIAN_AXIS_TYPE.NUMBER,
+        position: {
+            $if: [
+                { $eq: [{ $path: ['/direction', undefined] }, 'horizontal'] },
+                CARTESIAN_POSITION.BOTTOM,
+                CARTESIAN_POSITION.LEFT,
+            ],
+        },
+    },
+    {
+        type: CARTESIAN_AXIS_TYPE.CATEGORY,
+        position: {
+            $if: [
+                { $eq: [{ $path: ['/direction', undefined] }, 'horizontal'] },
+                CARTESIAN_POSITION.LEFT,
+                CARTESIAN_POSITION.BOTTOM,
+            ],
+        },
+    },
+];
 
 export function getSequentialColors(colors: { [key: string]: string }) {
     return mapValues(colors, (value) => {

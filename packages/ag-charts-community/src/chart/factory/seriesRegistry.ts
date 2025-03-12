@@ -1,4 +1,5 @@
-import type { SeriesFactory, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
+import type { SeriesDefaultAxes, SeriesFactory, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
+import type { RequiredSeriesType } from '../../module/coreModulesTypes';
 import type { ModuleContext } from '../../module/moduleContext';
 import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
@@ -8,7 +9,7 @@ import { chartTypes, publicChartTypes } from './chartTypes';
 
 interface SeriesRegistryRecord {
     moduleFactory?: SeriesFactory;
-    defaultAxes?: object[] | ((opts: object) => object[]);
+    defaultAxes?: SeriesDefaultAxes<RequiredSeriesType>;
     tooltipDefaults?: SeriesTooltipDefaults;
     solo?: boolean;
     groupable?: boolean;
@@ -33,7 +34,7 @@ class SeriesRegistry {
             groupable,
             stackedByDefault,
             hidden,
-        }: SeriesModule<any, any>
+        }: SeriesModule
     ) {
         this.setThemeTemplate(seriesType, themeTemplate);
         this.seriesMap.set(seriesType, {
@@ -59,16 +60,10 @@ class SeriesRegistry {
         throw new Error(`AG Charts - unknown series type: ${seriesType}`);
     }
 
-    cloneDefaultAxes(seriesType: SeriesType, options: object) {
+    cloneDefaultAxes(seriesType: SeriesType) {
         const defaultAxes = this.seriesMap.get(seriesType)?.defaultAxes;
         if (defaultAxes == null) return null;
-
-        const axes = typeof defaultAxes === 'function' ? defaultAxes(options) : defaultAxes;
-        return { axes: deepClone(axes) };
-    }
-
-    isDerivedDefaultAxes(seriesType: SeriesType) {
-        return typeof this.seriesMap.get(seriesType)?.defaultAxes === 'function';
+        return { axes: deepClone(defaultAxes) };
     }
 
     setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: object) {

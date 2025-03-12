@@ -1,36 +1,53 @@
-import { type AgAxisLabelFormatterParams, type AgFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgAxisLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
     ThemeSymbols: { DEFAULT_SHADOW_COLOUR },
 } = _ModuleSupport;
 
-export function funnelSeriesAxes(series: Pick<AgFunnelSeriesOptions, 'direction' | 'stageLabel'>) {
-    const { placement, ...categoryLabel } = series?.stageLabel ?? {};
-    return series?.direction !== 'horizontal'
-        ? [
-              {
-                  type: CARTESIAN_AXIS_TYPE.CATEGORY,
-                  position: placement === 'after' ? CARTESIAN_POSITION.RIGHT : CARTESIAN_POSITION.LEFT,
-                  label: categoryLabel,
-              },
-              {
-                  type: CARTESIAN_AXIS_TYPE.NUMBER,
-                  position: CARTESIAN_POSITION.BOTTOM,
-              },
-          ]
-        : [
-              {
-                  type: CARTESIAN_AXIS_TYPE.NUMBER,
-                  position: CARTESIAN_POSITION.LEFT,
-              },
-              {
-                  type: CARTESIAN_AXIS_TYPE.CATEGORY,
-                  position: placement === 'before' ? CARTESIAN_POSITION.TOP : CARTESIAN_POSITION.BOTTOM,
-                  label: categoryLabel,
-              },
-          ];
-}
+// TODO: Fix `WithThemeParams` to handle top level operation when T = []
+// type CartesianAxis = Exclude<AgCartesianChartOptions['axes'], undefined>[0];
+// WithThemeParams<[CartesianAxis, CartesianAxis]>
+
+export const FUNNEL_SERIES_AXES: any = {
+    $if: [
+        { $eq: [{ $path: ['/direction', undefined] }, 'horizontal'] },
+        [
+            {
+                type: CARTESIAN_AXIS_TYPE.NUMBER,
+                position: CARTESIAN_POSITION.LEFT,
+            },
+            {
+                type: CARTESIAN_AXIS_TYPE.CATEGORY,
+                position: {
+                    $if: [
+                        { $eq: [{ $path: ['/stageLabel/placement', undefined] }, 'before'] },
+                        CARTESIAN_POSITION.TOP,
+                        CARTESIAN_POSITION.BOTTOM,
+                    ],
+                },
+                label: { $omit: [['placement'], { $path: ['/stageLabel', undefined] }] },
+            },
+        ],
+        [
+            {
+                type: CARTESIAN_AXIS_TYPE.CATEGORY,
+                position: {
+                    $if: [
+                        { $eq: [{ $path: ['/stageLabel/placement', undefined] }, 'after'] },
+                        CARTESIAN_POSITION.RIGHT,
+                        CARTESIAN_POSITION.LEFT,
+                    ],
+                },
+                label: { $omit: [['placement'], { $path: ['/stageLabel', undefined] }] },
+            },
+            {
+                type: CARTESIAN_AXIS_TYPE.NUMBER,
+                position: CARTESIAN_POSITION.BOTTOM,
+            },
+        ],
+    ],
+};
 
 export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTemplate'] = {
     series: {

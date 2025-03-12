@@ -15,7 +15,7 @@ import type { DeepPartial, PlainObject } from 'ag-charts-core';
 import type { AgGradientFill } from 'ag-charts-types';
 
 import { Color } from './color';
-import { SKIP_JS_BUILTINS, getPath, mergeDefaults } from './object';
+import { SKIP_JS_BUILTINS, getPath, mergeDefaults, without } from './object';
 import { isProperties } from './properties';
 
 type StringSet = { has(value: string): boolean };
@@ -313,12 +313,19 @@ function classify(value: any): Classification | null {
  * Resolve logical operations within a json object.
  *
  * @param source JSON object to walk and onto which to apply the resolved values.
- * @param params An object of parameters to use with the `ref` operation.
+ * @param params An object of parameters to use with the `$ref` operation.
+ * @param skip (optional) A set of keys to skip processing
+ * @param context (optional) A JSON object that is used as the context for operations, e.g. `$path`
  *
  * @returns An object of modified paths.
  */
-export function jsonResolveOperations<T extends object, P extends object>(source: T, params: P, skip?: Set<string>) {
-    return jsonResolveInner(source, params, source, { matches: new Map() }, skip);
+export function jsonResolveOperations<T extends object, P extends object>(
+    source: T,
+    params: P,
+    skip?: Set<string>,
+    context?: T
+) {
+    return jsonResolveInner(source, params, context ?? source, { matches: new Map() }, skip);
 }
 
 type OperationMeta = {
@@ -329,7 +336,7 @@ type OperationMeta = {
 const operationResolvedUndefined = Symbol('operation-resolved-undefined');
 
 function jsonResolveInner<T extends object, P extends object>(
-    json: T,
+    json: any,
     params: P,
     source: T,
     meta: OperationMeta,
@@ -350,8 +357,8 @@ function jsonResolveInner<T extends object, P extends object>(
             if (skip?.has(key)) {
                 continue;
             }
-            const value = json[key as keyof T] as T;
-            jsonResolveInner(value, params, source, meta, skip, [...path, key], modifiedPaths);
+            const node = json[key as keyof T];
+            jsonResolveInner(node, params, source, meta, skip, [...path, key], modifiedPaths);
         }
     }
 
@@ -372,8 +379,7 @@ function jsonResolveVisitor<T extends object, P extends object>(
         }
     } else {
         for (const name of Object.keys(node)) {
-            const value = node[name];
-            node[name] = jsonResolveVisitorValue(value, params, source, meta, [...path, name], modifiedPaths);
+            node[name] = jsonResolveVisitorValue(node[name], params, source, meta, [...path, name], modifiedPaths);
             if (node[name] === operationResolvedUndefined) {
                 delete node[name];
             }
@@ -390,7 +396,7 @@ function jsonResolveVisitorValue<T extends object, P extends object>(
     modifiedPaths: Record<string, any>
 ) {
     const operation = getOperation(value);
-    if (!operation || !isKey(operation.operation, operations)) return value;
+    if (!operation) return value;
     modifiedPaths[path.join('.')] = value;
 
     const resolved = resolveOperation(operation.operation, operation.values, params, source, path, meta);
@@ -424,6 +430,7 @@ enum TransformOperation {
     Merge = '$merge',
     Value = '$value',
     Find = '$find',
+    Omit = '$omit',
 }
 
 enum FontOperation {
@@ -556,6 +563,7 @@ const transformOperations: Record<TransformOperation, OperationFn> = {
     $map: map,
     $find: find,
     $merge: merge,
+    $omit: omit,
     $value: valueOperation,
 };
 
@@ -691,7 +699,7 @@ function pathOperation<T extends object, P extends object>(
         resolvedValue = resolvedValue[part];
     }
 
-    return resolvedValue;
+    return Object.isFrozen(resolvedValue) ? deepClone(resolvedValue) : resolvedValue;
 }
 
 function isOperationOperator<T extends object, P extends object>(
@@ -766,6 +774,11 @@ function merge(values: string | Array<unknown>) {
         if (!isPlainObject(value)) return;
     }
     return mergeDefaults(...(values as any));
+}
+
+function omit([keys, object]: string | Array<unknown>) {
+    if (!isArray(keys) || !isPlainObject(object)) return;
+    return without(object, keys as string[]);
 }
 
 function valueOperation(

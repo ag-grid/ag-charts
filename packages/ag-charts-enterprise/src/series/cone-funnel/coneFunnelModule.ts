@@ -1,7 +1,7 @@
 import { type AgConeFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
-import { funnelSeriesAxes } from '../funnel/funnelThemes';
+import { FUNNEL_SERIES_AXES } from '../funnel/funnelThemes';
 import { ConeFunnelSeries } from './coneFunnelSeries';
 import { coneFunnelSeriesOptionsDef } from './coneFunnelSeriesOptionsDef';
 import { CONE_FUNNEL_SERIES_THEME } from './coneFunnelThemes';
@@ -16,7 +16,7 @@ export const ConeFunnelModule: _ModuleSupport.SeriesModule<'cone-funnel'> = {
     moduleFactory: (ctx) => new ConeFunnelSeries(ctx),
     solo: true,
     tooltipDefaults: { range: 'nearest' },
-    defaultAxes: funnelSeriesAxes,
+    defaultAxes: FUNNEL_SERIES_AXES,
     themeTemplate: CONE_FUNNEL_SERIES_THEME,
 };
 
