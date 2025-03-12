@@ -306,17 +306,7 @@ export class Legend extends BaseProperties {
     }
 
     private getOrientation(): AgChartLegendOrientation {
-        if (this.orientation !== undefined) {
-            return this.orientation;
-        }
-        switch (this.position) {
-            case 'right':
-            case 'left':
-                return 'vertical';
-            case 'bottom':
-            case 'top':
-                return 'horizontal';
-        }
+        return this.orientation ?? 'horizontal';
     }
 
     readonly size: [number, number] = [0, 0];

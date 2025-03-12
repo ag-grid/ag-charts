@@ -290,6 +290,18 @@ export class ChartTheme {
             },
             legend: {
                 position: CARTESIAN_POSITION.BOTTOM,
+                orientation: {
+                    $if: [
+                        {
+                            $or: [
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.TOP] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.BOTTOM] },
+                            ],
+                        },
+                        'horizontal',
+                        'vertical',
+                    ],
+                },
                 spacing: 30,
                 listeners: {},
                 toggleSeries: true,
