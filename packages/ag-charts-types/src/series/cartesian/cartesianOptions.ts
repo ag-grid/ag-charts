@@ -24,8 +24,10 @@ import type { Degree, PixelSize, Ratio } from '../../chart/types';
 import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
 
 /** Configuration for axes in cartesian charts. */
-export interface AgBaseCartesianAxisOptions<LabelType, CrosshairLabelType = AgCrosshairLabel>
-    extends AgBaseAxisOptions<LabelType> {
+export interface AgBaseCartesianAxisOptions<
+    LabelType = AgCartesianAxisLabelOptions,
+    CrosshairLabelType = AgCrosshairLabel,
+> extends AgBaseAxisOptions<LabelType> {
     /** An array of keys determining which series are charted on this axis. */
     keys?: string[];
     /** The position on the chart where the axis should be rendered. */
@@ -40,16 +42,16 @@ export interface AgBaseCartesianAxisOptions<LabelType, CrosshairLabelType = AgCr
     crosshair?: AgCrosshairOptions<CrosshairLabelType>;
 }
 
-export interface AgCartesianAxisLabelOptions<D> extends AgBaseCartesianAxisLabelOptions<D>, FormattableLabel {}
+export interface AgCartesianAxisLabelOptions extends AgBaseCartesianAxisLabelOptions, FormattableLabel {}
 
-export interface AgBaseCartesianAxisLabelOptions<D> extends AgBaseAxisLabelOptions<D> {
+export interface AgBaseCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
     /** If specified and axis labels may collide, they are rotated so that they are positioned at the supplied angle. This is enabled by default for category. If the `rotation` property is specified, it takes precedence. */
     autoRotate?: boolean;
     /** If autoRotate is enabled, specifies the rotation angle to use when autoRotate is activated. Defaults to an angle of 335 degrees if unspecified. */
     autoRotateAngle?: Degree;
 }
 
-export interface AgGroupedCategoryAxisLabelOptions extends Omit<AgBaseAxisLabelOptions<any[]>, 'itemStyler'> {
+export interface AgGroupedCategoryAxisLabelOptions extends Omit<AgBaseAxisLabelOptions, 'itemStyler'> {
     /** Function used to style axis labels. */
     itemStyler?: Styler<AgGroupedCategoryAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
 }
@@ -81,7 +83,7 @@ export interface AgGroupedCategoryDepthOptions {
 }
 
 export interface AgCategoryAxisOptions
-    extends AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions<any>, AgBaseCrosshairLabel> {
+    extends AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions, AgBaseCrosshairLabel> {
     type: 'category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
@@ -109,8 +111,7 @@ export interface AgGroupedCategoryAxisOptions
     tick?: AgGroupedCategoryAxisTickOptions;
 }
 
-export interface AgOrdinalTimeAxisOptions
-    extends AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions<Date | number>> {
+export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'ordinal-time';
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisContinuousIntervalOptions<TimeInterval | number>;
@@ -122,22 +123,18 @@ export interface AgOrdinalTimeAxisOptions
     groupPaddingInner?: Ratio;
 }
 
-export interface AgNumberAxisOptions
-    extends Omit<AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions<number>>, 'interval'>,
-        AgContinuousAxisOptions {
+export interface AgNumberAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'interval'>, AgContinuousAxisOptions {
     type: 'number';
 }
 
-export interface AgLogAxisOptions
-    extends Omit<AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions<number>>, 'interval'>,
-        AgContinuousAxisOptions {
+export interface AgLogAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'interval'>, AgContinuousAxisOptions {
     type: 'log';
     /** The base of the logarithm used. */
     base?: number;
 }
 
 export interface AgTimeAxisOptions
-    extends Omit<AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions<Date | number>>, 'interval'>,
+    extends Omit<AgBaseCartesianAxisOptions, 'interval'>,
         AgContinuousAxisOptions<Date | number, TimeInterval | number> {
     type: 'time';
 }

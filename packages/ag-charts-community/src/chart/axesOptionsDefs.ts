@@ -102,7 +102,7 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     ...fontOptionsDef,
 };
 
-export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabelOptions<any>> = {
+export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabelOptions> = {
     autoRotate: boolean,
     autoRotateAngle: number,
     ...commonAxisLabelOptionsDefs,
