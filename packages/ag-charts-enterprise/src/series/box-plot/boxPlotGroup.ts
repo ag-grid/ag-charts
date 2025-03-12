@@ -4,7 +4,7 @@ import { type DeepRequired, Logger } from 'ag-charts-core';
 
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
-const { ScalableGroup, Rect, Line, BBox, Selection } = _ModuleSupport;
+const { ScalableGroup, Rect, Line, BBox, Selection, applyShapeFillBBox } = _ModuleSupport;
 
 enum GroupTags {
     Box,
@@ -18,7 +18,6 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
     constructor() {
         super();
         this.append([
-            new Rect({ tag: GroupTags.Box }),
             new Rect({ tag: GroupTags.Box }),
             new Rect({ tag: GroupTags.Outline }),
             new Rect({ tag: GroupTags.Median }),
@@ -34,7 +33,7 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
         activeStyles: DeepRequired<AgBoxPlotSeriesStyle>,
         isVertical: boolean,
         isReversedValueAxis: boolean | undefined,
-        fillBBox?: _ModuleSupport.BBox
+        fillBBox?: _ModuleSupport.ShapeFillBBox
     ) {
         const {
             bandwidth,
@@ -71,7 +70,7 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
         } = activeStyles;
 
         const selection = Selection.select(this, Rect);
-        const boxes = selection.selectByTag<_ModuleSupport.Rect>(GroupTags.Box);
+        const [box] = selection.selectByTag<_ModuleSupport.Rect>(GroupTags.Box);
         const [outline] = selection.selectByTag<_ModuleSupport.Rect>(GroupTags.Outline);
         const [median] = selection.selectByTag<_ModuleSupport.Rect>(GroupTags.Median);
         const whiskers = selection.selectByTag<_ModuleSupport.Line>(GroupTags.Whisker);
@@ -85,21 +84,9 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
 
         outline.setProperties(boxesPosition);
 
-        boxes[0].setProperties(boxesPosition);
-        boxes[0].setProperties({
+        box.setProperties(boxesPosition);
+        box.setProperties({
             cornerRadius,
-            clipBBox: bbox(q1Value, axisValue, Math.round(medianValue - q1Value + strokeWidth / 2), bandwidth),
-        });
-
-        boxes[1].setProperties(boxesPosition);
-        boxes[1].setProperties({
-            cornerRadius,
-            clipBBox: bbox(
-                Math.round(medianValue - strokeWidth / 2),
-                axisValue,
-                Math.floor(q3Value - medianValue + strokeWidth / 2),
-                bandwidth
-            ),
         });
 
         const medianStart = Math.max(Math.round(medianValue - strokeWidth / 2), q1Value + strokeWidth);
@@ -140,15 +127,13 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
         );
 
         // fill only elements
-        for (const element of boxes) {
-            element.setProperties({
-                fillBBox,
-                fill,
-                fillOpacity,
-                strokeWidth: strokeWidth * 2,
-                strokeOpacity: 0,
-            });
-        }
+        applyShapeFillBBox(box, fill, fillBBox);
+        box.setProperties({
+            fill,
+            fillOpacity,
+            strokeWidth: strokeWidth * 2,
+            strokeOpacity: 0,
+        });
 
         median.setProperties({ fill: stroke, fillOpacity: strokeOpacity, strokeWidth: 0 });
 

@@ -1,4 +1,4 @@
-import { type AgBoxPlotSeriesStyle, type AgGradientFill, _ModuleSupport } from 'ag-charts-community';
+import { type AgBoxPlotSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type { DeepRequired } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
@@ -22,7 +22,6 @@ const {
     ChartAxisDirection,
     motion,
     isGradientFill,
-    BBox,
 } = _ModuleSupport;
 
 class BoxPlotSeriesNodeEvent<
@@ -458,7 +457,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
-        const { fill, highlightStyle } = this.properties;
+        const { highlightStyle } = this.properties;
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted ? 'highlight' : 'node');
 
@@ -476,7 +475,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset,
             });
 
-            const fillBBox = this.getFillBBox(fill, nodeDatum);
+            const fillBBox = this.getShapeFillBBox();
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
                 activeStyles as DeepRequired<AgBoxPlotSeriesStyle>,
@@ -485,36 +484,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 fillBBox
             );
         });
-    }
-
-    private getFillBBox(fill: AgGradientFill | string | undefined, boxPlotDatum?: BoxPlotNodeDatum) {
-        if (!isGradientFill(fill) || !boxPlotDatum) {
-            return;
-        }
-
-        const { bounds = 'item' } = fill;
-
-        if (bounds !== 'item') {
-            return super.getShapeFillBBox()[bounds];
-        }
-
-        const isVertical = this.isVertical();
-        const isReversedValueAxis = this.getValueAxis()?.isReversed();
-
-        let { q1Value, q3Value } = boxPlotDatum.scaledValues;
-
-        if ((isVertical && !isReversedValueAxis) || (!isVertical && isReversedValueAxis)) {
-            [q3Value, q1Value] = [q1Value, q3Value];
-        }
-
-        const {
-            bandwidth,
-            scaledValues: { xValue: axisValue },
-        } = boxPlotDatum;
-
-        return isVertical
-            ? new BBox(axisValue, q1Value, bandwidth, q3Value - q1Value)
-            : new BBox(q1Value, axisValue, q3Value - q1Value, bandwidth);
     }
 
     protected updateLabelNodes() {
