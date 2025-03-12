@@ -890,7 +890,7 @@ export class DataModel<
             const columnScopes = new Set(def.scopes);
             const columnScope = first(def.scopes);
             const columnSource = sources.get(columnScope) as unknown[];
-            const column = new Array<unknown>(columnSource.length);
+            const column = new Array<unknown>();
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
                 const valueDatum = columnSource[datumIndex];
                 const invalidKey = invalidKeys.get(columnScope)?.[datumIndex];
