@@ -79,7 +79,7 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fill: ShapeFill | undefined = Shape.defaultStyles.fill;
 
-    private getGradient(pattern: Gradient | ShapeFill | undefined) {
+    private getGradient(pattern: ShapeFill | undefined) {
         if (pattern instanceof Gradient) {
             return pattern;
         } else if (typeof pattern !== 'string' && pattern?.type === 'gradient') {

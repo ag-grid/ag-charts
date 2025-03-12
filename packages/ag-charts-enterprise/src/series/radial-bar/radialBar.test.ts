@@ -330,10 +330,10 @@ describe('RadialBarSeries', () => {
                             type: 'gradient',
                             colorStops: [
                                 {
-                                    color: 'green',
+                                    color: '#080',
                                 },
                                 {
-                                    color: 'white',
+                                    color: '#fff',
                                 },
                             ],
                         },
@@ -359,10 +359,10 @@ describe('RadialBarSeries', () => {
                             bounds: 'series',
                             colorStops: [
                                 {
-                                    color: 'green',
+                                    color: '#080',
                                 },
                                 {
-                                    color: 'white',
+                                    color: '#fff',
                                 },
                             ],
                         },
