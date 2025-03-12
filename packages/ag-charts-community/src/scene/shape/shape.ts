@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 import { clamp } from 'ag-charts-core';
->>>>>>> 5c6aeb9e1b5105414a64810d553f5d082b85463a
 import type { AgGradientFill } from 'ag-charts-types';
 
 import { generateUUID } from '../../util/id';
@@ -82,11 +79,7 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fill: ShapeFill | undefined = Shape.defaultStyles.fill;
 
-<<<<<<< HEAD
     private getGradient(pattern: ShapeFill | undefined) {
-=======
-    private getGradient(pattern: Gradient | ShapeFill | undefined) {
->>>>>>> 5c6aeb9e1b5105414a64810d553f5d082b85463a
         if (pattern instanceof Gradient) {
             return pattern;
         } else if (typeof pattern !== 'string' && pattern?.type === 'gradient') {
@@ -177,11 +170,8 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fillParams?: GradientParams;
 
-<<<<<<< HEAD
-=======
     private cachedDefaultGradientFillBBox?: BBox;
 
->>>>>>> 5c6aeb9e1b5105414a64810d553f5d082b85463a
     protected fillStroke(ctx: CanvasContext, path?: Path2D) {
         this.renderFill(ctx, path);
         this.renderStroke(ctx, path);
@@ -208,11 +198,7 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyFill(ctx: CanvasContext) {
-<<<<<<< HEAD
-        const { fill, fillGradient, fillBBox = this.getBBox(), fillParams } = this;
-=======
         const { fill, fillGradient, fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
->>>>>>> 5c6aeb9e1b5105414a64810d553f5d082b85463a
         const gradientFill = fillBBox ? fillGradient?.createGradient(ctx as any, fillBBox, fillParams) : undefined;
         ctx.fillStyle = gradientFill ?? (typeof fill === 'string' ? fill : undefined) ?? 'black';
     }

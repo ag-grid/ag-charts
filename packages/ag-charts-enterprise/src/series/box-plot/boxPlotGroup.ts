@@ -127,17 +127,6 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
         );
 
         // fill only elements
-<<<<<<< HEAD
-        for (const element of boxes) {
-            element.setProperties({
-                fillBBox,
-                fill,
-                fillOpacity,
-                strokeWidth: strokeWidth * 2,
-                strokeOpacity: 0,
-            });
-        }
-=======
         applyShapeFillBBox(box, fill, fillBBox);
         box.setProperties({
             fill,
@@ -145,7 +134,6 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
             strokeWidth: strokeWidth * 2,
             strokeOpacity: 0,
         });
->>>>>>> 5c6aeb9e1b5105414a64810d553f5d082b85463a
 
         median.setProperties({ fill: stroke, fillOpacity: strokeOpacity, strokeWidth: 0 });
 
