@@ -12,12 +12,6 @@ import styles from './CodeViewer.module.scss';
 export const DARK_MODE_START = '/** DARK MODE START **/';
 export const DARK_MODE_END = '/** DARK MODE END **/';
 
-const startDelimiter = DARK_MODE_START;
-const endDelimiter = DARK_MODE_END;
-const escapedStart = startDelimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const escapedEnd = endDelimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const regex = new RegExp(`\\s*${escapedStart}[\\s\\S]*?${escapedEnd}\\s*`, 'g');
-
 const ExtensionMap = {
     sh: 'bash',
     vue: 'html',
@@ -25,11 +19,20 @@ const ExtensionMap = {
     json: 'js',
 };
 
+function getSnippetRegex({ startDelimiter, endDelimiter }: { startDelimiter: string; endDelimiter: string }) {
+    const escapedStart = startDelimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedEnd = endDelimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\s*${escapedStart}[\\s\\S]*?${escapedEnd}\\s*`, 'g');
+
+    return regex;
+}
+
 export function stripOutExampleGeneratorCode(files: FileContents) {
     const mainFiles = ['main.js', 'main.ts', 'index.tsx', 'index.jsx', 'app.component.ts'];
     mainFiles.forEach((mainFile) => {
         if (files[mainFile]) {
-            files[mainFile] = files[mainFile].replace(regex, '').trim() + '\n';
+            const darkModeRegex = getSnippetRegex({ startDelimiter: DARK_MODE_START, endDelimiter: DARK_MODE_END });
+            files[mainFile] = files[mainFile].replace(darkModeRegex, '').trim() + '\n';
         }
     });
 }

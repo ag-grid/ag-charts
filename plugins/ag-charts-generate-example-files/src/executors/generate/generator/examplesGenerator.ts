@@ -14,7 +14,7 @@ import {
     getProvidedExampleFolder,
     getTransformTsFileExt,
 } from './utils/fileUtils';
-import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
+import { type TransformEntryFile, frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import { getDarkModeSnippet } from './utils/getDarkModeSnippet';
 import { getExampleConfig } from './utils/getExampleConfig';
 import { getHtmlFiles } from './utils/getHtmlFiles';
@@ -124,6 +124,16 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         layout = 'none';
     }
 
+    const transformEntryFile: TransformEntryFile = ({ entryFile, chartAPI }) => {
+        let transformedEntryFile = entryFile;
+        // Add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
+        if (!ignoreDarkMode) {
+            transformedEntryFile = transformedEntryFile + '\n' + getDarkModeSnippet({ chartAPI });
+        }
+
+        return transformedEntryFile;
+    };
+
     const otherScriptFiles = await getOtherScriptFiles({
         folderPath,
         sourceFileList,
@@ -141,8 +151,8 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         providedExampleFileNames.map(async (fileName) => {
             let contents = (await fs.readFile(path.join(providedExampleBasePath, fileName))).toString('utf-8');
 
-            if (fileName === mainEntryFilename && !ignoreDarkMode) {
-                contents = contents + '\n' + getDarkModeSnippet();
+            if (fileName === mainEntryFilename) {
+                contents = transformEntryFile({ entryFile: contents });
             }
 
             return [fileName, contents];
@@ -183,7 +193,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         bindings,
         typedBindings,
         otherScriptFiles,
-        ignoreDarkMode,
+        transformEntryFile,
         isDev,
     });
 

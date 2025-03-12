@@ -10,7 +10,6 @@ import type { InternalFramework } from '../types';
 import type { FileContents } from '../types';
 import { deepCloneObject } from './deepCloneObject';
 import { getBoilerPlateFiles, getEntryFileName, getMainFileName } from './fileUtils';
-import { getDarkModeSnippet } from './getDarkModeSnippet';
 
 interface FrameworkFiles {
     files: FileContents;
@@ -27,6 +26,7 @@ interface FrameworkFiles {
     mainFileName: string;
 }
 
+export type TransformEntryFile = (params: { entryFile: string; chartAPI?: string }) => string;
 type ConfigGenerator = ({
     entryFile,
     indexHtml,
@@ -34,7 +34,7 @@ type ConfigGenerator = ({
     bindings,
     typedBindings,
     otherScriptFiles,
-    ignoreDarkMode,
+    transformEntryFile,
     isDev,
 }: {
     entryFile: string;
@@ -43,13 +43,13 @@ type ConfigGenerator = ({
     bindings: any;
     typedBindings: any;
     otherScriptFiles: FileContents;
-    ignoreDarkMode?: boolean;
+    transformEntryFile?: TransformEntryFile;
     isDev: boolean;
 }) => Promise<FrameworkFiles>;
 
 // noinspection TypeScriptValidateTypes
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
-    vanilla: async ({ entryFile, indexHtml, typedBindings, otherScriptFiles, ignoreDarkMode, isDev }) => {
+    vanilla: async ({ entryFile, indexHtml, typedBindings, otherScriptFiles, transformEntryFile, isDev }) => {
         const internalFramework: InternalFramework = 'vanilla';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -87,9 +87,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs = '\n' + mainJs;
         }
 
-        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
-        if (!ignoreDarkMode) {
-            mainJs = mainJs + '\n\n' + getDarkModeSnippet({ chartAPI: 'AgCharts' });
+        if (transformEntryFile) {
+            mainJs = transformEntryFile({ entryFile: mainJs, chartAPI: 'AgCharts' });
         }
 
         if (!isDev) {
@@ -110,7 +109,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, ignoreDarkMode, isDev }) => {
+    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, transformEntryFile, isDev }) => {
         const internalFramework: InternalFramework = 'typescript';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -138,9 +137,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainTs = mainTs.replace(`${chartAPI}.create(options);`, `const chart = ${chartAPI}.create(options);`);
         }
 
-        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
-        if (!ignoreDarkMode) {
-            mainTs = mainTs + '\n' + getDarkModeSnippet({ chartAPI });
+        if (transformEntryFile) {
+            mainTs = transformEntryFile({ entryFile: mainTs, chartAPI });
         }
 
         if (!isDev) {
@@ -162,7 +160,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    reactFunctional: async ({ bindings, indexHtml, otherScriptFiles, isDev, ignoreDarkMode }) => {
+    reactFunctional: async ({ bindings, indexHtml, otherScriptFiles, isDev, transformEntryFile }) => {
         const internalFramework = 'reactFunctional';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -170,9 +168,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         let indexJsx = await vanillaToReactFunctional(deepCloneObject(bindings), []);
 
-        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
-        if (!ignoreDarkMode) {
-            indexJsx = indexJsx + '\n' + getDarkModeSnippet();
+        if (transformEntryFile) {
+            indexJsx = transformEntryFile({ entryFile: indexJsx });
         }
 
         if (!isDev) {
@@ -195,7 +192,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    reactFunctionalTs: async ({ typedBindings, indexHtml, otherScriptFiles, ignoreDarkMode, isDev }) => {
+    reactFunctionalTs: async ({ typedBindings, indexHtml, otherScriptFiles, transformEntryFile, isDev }) => {
         const internalFramework: InternalFramework = 'reactFunctionalTs';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -203,9 +200,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         let indexTsx = await vanillaToReactFunctionalTs(deepCloneObject(typedBindings), []);
 
-        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
-        if (!ignoreDarkMode) {
-            indexTsx = indexTsx + '\n' + getDarkModeSnippet();
+        if (transformEntryFile) {
+            indexTsx = transformEntryFile({ entryFile: indexTsx });
         }
 
         if (!isDev) {
@@ -227,7 +223,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    angular: async ({ typedBindings, otherScriptFiles, isDev, ignoreDarkMode }) => {
+    angular: async ({ typedBindings, otherScriptFiles, isDev, transformEntryFile }) => {
         const internalFramework: InternalFramework = 'angular';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -235,9 +231,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         let appComponent = await vanillaToAngular(deepCloneObject(typedBindings), []);
 
-        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
-        if (!ignoreDarkMode) {
-            appComponent = appComponent + '\n' + getDarkModeSnippet();
+        if (transformEntryFile) {
+            appComponent = transformEntryFile({ entryFile: appComponent });
         }
 
         if (!isDev) {
@@ -262,15 +257,14 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    vue3: async ({ bindings, indexHtml, otherScriptFiles, isDev, ignoreDarkMode }) => {
+    vue3: async ({ bindings, indexHtml, otherScriptFiles, isDev, transformEntryFile }) => {
         const internalFramework: InternalFramework = 'vue3';
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         let mainJs = await vanillaToVue3(deepCloneObject(bindings), []);
 
-        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
-        if (!ignoreDarkMode) {
-            mainJs = mainJs + '\n' + getDarkModeSnippet();
+        if (transformEntryFile) {
+            mainJs = transformEntryFile({ entryFile: mainJs });
         }
 
         if (!isDev) {
