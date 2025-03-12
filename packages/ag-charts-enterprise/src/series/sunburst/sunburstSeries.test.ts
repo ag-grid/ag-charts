@@ -405,5 +405,99 @@ describe('SunburstSeries', () => {
             chart = deproxy(AgCharts.create(options as AgChartOptions));
             await compare();
         });
+
+        it('should render sunburst series with an item bound gradient fill', async () => {
+            const options = {
+                ...GALLERY_EXAMPLES.SIMPLE_SUNBURST_EXAMPLE.options,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        secondaryLabelKey: 'capacity',
+                        fills: [
+                            {
+                                type: 'gradient',
+                                bounds: 'item',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
+
+        it('should render sunburst series with a linear gradient fill', async () => {
+            const options = {
+                ...GALLERY_EXAMPLES.SIMPLE_SUNBURST_EXAMPLE.options,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        secondaryLabelKey: 'capacity',
+                        fills: [
+                            {
+                                type: 'gradient',
+                                gradient: 'linear',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
+
+        it('should render sunburst series with an item bound linear gradient fill', async () => {
+            const options = {
+                ...GALLERY_EXAMPLES.SIMPLE_SUNBURST_EXAMPLE.options,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        secondaryLabelKey: 'capacity',
+                        fills: [
+                            {
+                                type: 'gradient',
+                                gradient: 'linear',
+                                bounds: 'item',
+                                colorStops: [
+                                    {
+                                        color: 'green',
+                                    },
+                                    {
+                                        color: 'white',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
     });
 });
