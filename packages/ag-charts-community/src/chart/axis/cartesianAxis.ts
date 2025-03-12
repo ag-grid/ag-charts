@@ -9,6 +9,7 @@ import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { TransformableText } from '../../scene/shape/text';
+import { normalizeAngle360 } from '../../util/angle';
 import { StateMachine } from '../../util/stateMachine';
 import { POSITION, POSITIVE_NUMBER, TempValidate } from '../../util/validation';
 import { Caption } from '../caption';
@@ -189,7 +190,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                 niceDomain: domain,
                 primaryTickCount: initialPrimaryTickCount,
                 fractionDigits: 0,
-                bbox: this.tickBBox([], []),
+                bbox: this.tickBBox(domain, [], []),
             };
         }
 
@@ -208,7 +209,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const { ticks, tickDomain, rawTicks, fractionDigits, niceDomain = domain } = tickData;
 
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult));
-        const bbox = this.tickBBox(ticks, labels);
+        const bbox = this.tickBBox(tickDomain, ticks, labels);
 
         this.generatedTicks = { ticks, labels };
 
@@ -242,7 +243,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
         this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
 
-        this.updateTitle(!this.generatedTicks?.ticks.length);
+        this.updateTitle(this.scale.domain, !this.generatedTicks?.ticks.length);
     }
 
     protected override updatePosition(): void {
@@ -251,7 +252,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         this.axisGroup.datum = this.getAxisTransform();
     }
 
-    private tickBBox(ticks: TickDatum[], labels: LabelNodeDatum[]) {
+    private tickBBox(domain: D[], ticks: TickDatum[], labels: LabelNodeDatum[]) {
         const sideFlag = this.label.getSideFlag();
         const boxes: BBox[] = [];
 
@@ -291,7 +292,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         if (this.title?.enabled) {
             const spacing = BBox.merge(boxes).width;
-            this.setTitleProps(this.tempCaption, { spacing });
+            this.setTitleProps(this.tempCaption, { domain, spacing });
             const titleBox = this.tempCaption.node.getBBox();
             if (titleBox) {
                 boxes.push(titleBox);
@@ -300,6 +301,45 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const bbox = BBox.merge(boxes);
         return this.getTransformBox(bbox);
+    }
+
+    protected setTitleProps(caption: Caption, params: { domain: D[]; spacing: number }) {
+        const { title } = this;
+
+        if (!title.enabled) {
+            caption.enabled = false;
+            caption.node.visible = false;
+            return;
+        }
+
+        caption.enabled = true;
+        caption.color = title.color;
+        caption.fontFamily = title.fontFamily;
+        caption.fontSize = title.fontSize;
+        caption.fontStyle = title.fontStyle;
+        caption.fontWeight = title.fontWeight;
+        caption.wrapping = title.wrapping;
+
+        const titleNode = caption.node;
+        const padding = (title.spacing ?? 0) + params.spacing;
+        const sideFlag = this.label.getSideFlag();
+
+        const parallelFlipRotation = normalizeAngle360(this.rotation);
+        const titleRotationFlag =
+            sideFlag === -1 && parallelFlipRotation > Math.PI && parallelFlipRotation < Math.PI * 2 ? -1 : 1;
+        const rotation = (titleRotationFlag * sideFlag * Math.PI) / 2;
+        const textBaseline = titleRotationFlag === 1 ? 'bottom' : 'top';
+
+        const { range } = this;
+        const x = Math.floor((titleRotationFlag * sideFlag * (range[0] + range[1])) / 2);
+        const y = sideFlag === -1 ? Math.floor(titleRotationFlag * -padding) : Math.floor(-padding);
+
+        const { callbackCache } = this.moduleCtx;
+        const { formatter = (p) => p.defaultValue } = title;
+        const text = callbackCache.call(this, formatter, this.getTitleFormatterParams(params.domain));
+        caption.text = text;
+
+        titleNode.setProperties({ visible: true, text, textBaseline, x, y, rotation });
     }
 
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
@@ -349,7 +389,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         this.tickLabelGroupSelection.update(labels, undefined, getDatumId);
     }
 
-    protected updateTitle(noVisibleTicks?: boolean, spacing?: number): void {
+    protected updateTitle(domain: D[], noVisibleTicks?: boolean, spacing?: number): void {
         const { title, tickLineGroup, tickLabelGroup, lineNode } = this;
 
         if (title.enabled && !noVisibleTicks && spacing == null) {
@@ -358,7 +398,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
         spacing ??= 0;
 
-        this.setTitleProps(title.caption, { spacing });
+        this.setTitleProps(title.caption, { domain, spacing });
     }
 
     protected updateLabels() {
