@@ -21,9 +21,7 @@ function containsIgnoredMessage(log: Log) {
 }
 
 export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSize = 10 }) => {
-    const [logs, setLogs] = useState<Log[]>([
-        { type: 'console-log', exampleName, data: ['Console logs from the example shown here...'] },
-    ]);
+    const [logs, setLogs] = useState<Log[]>([]);
 
     useEffect(() => {
         const updateLogs = (event: MessageEvent) => {
@@ -44,6 +42,7 @@ export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSiz
 
     return (
         <pre className={styles.logger}>
+            {logs.length === 0 && <div className={styles.noLogs}>Console logs from the example shown here...</div>}
             {logs.map((log, i) => (
                 <div key={i}>{log.data}</div>
             ))}
