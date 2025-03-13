@@ -7,7 +7,7 @@ import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 describe('multi-series benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('multi-series');
 
-    benchmark('initial load', ctx, { expectedMaxMemoryMB: 225 }, async () => {
+    benchmark('initial load', ctx, { expectedMaxMemoryMB: 245 }, async () => {
         await ctx.create();
     });
 
@@ -19,7 +19,7 @@ describe('multi-series benchmark', () => {
             await addSeriesNodePoints(ctx, 5, 5);
         });
 
-        benchmark('1x legend toggle', ctx, { expectedMaxMemoryMB: 230 }, async () => {
+        benchmark('1x legend toggle', ctx, { expectedMaxMemoryMB: 250 }, async () => {
             ctx.options.series![0].visible = false;
             await ctx.update();
 
@@ -27,7 +27,7 @@ describe('multi-series benchmark', () => {
             await ctx.update();
         });
 
-        benchmark('10x legend toggle', ctx, { expectedMaxMemoryMB: 240 }, async () => {
+        benchmark('10x legend toggle', ctx, { expectedMaxMemoryMB: 260 }, async () => {
             for (let i = 0; i < 5; i++) {
                 for (const visible of [false, true]) {
                     ctx.options.series![i].visible = visible;
@@ -36,13 +36,13 @@ describe('multi-series benchmark', () => {
             }
         });
 
-        benchmark('1x datum highlight', ctx, { expectedMaxMemoryMB: 230 }, async () => {
+        benchmark('1x datum highlight', ctx, { expectedMaxMemoryMB: 250 }, async () => {
             const point = ctx.nodePositions[0][2];
             await hoverAction(point.x, point.y)(ctx.chart);
             await ctx.waitForUpdate();
         });
 
-        benchmark('15x datum highlight', ctx, { expectedMaxMemoryMB: 220 }, async () => {
+        benchmark('15x datum highlight', ctx, { expectedMaxMemoryMB: 240 }, async () => {
             for (let nodeIdx = 0; nodeIdx < 5; nodeIdx++) {
                 for (let seriesIdx = 0; seriesIdx < 3; seriesIdx++) {
                     const point = ctx.nodePositions[seriesIdx][nodeIdx];

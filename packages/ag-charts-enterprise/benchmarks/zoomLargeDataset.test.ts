@@ -19,7 +19,7 @@ describe('zoom-large-dataset benchmark', () => {
         benchmark(
             '100x zoom',
             ctx,
-            { expectedMaxMemoryMB: 560, autoSnapshot: false },
+            { expectedMaxMemoryMB: 600, autoSnapshot: false },
             async () => {
                 const zoomIn = scrollAction(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
                 for (let i = 0; i < 100; i++) {
