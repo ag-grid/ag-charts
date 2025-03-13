@@ -1,5 +1,7 @@
+$logger-height: 100px;
+
 .logger {
-    height: 6rem;
+    height: $logger-height;
     padding: 8px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -9,8 +11,13 @@
     flex-direction: column;
     gap: 3px;
     color: var(--color-text-primary);
-    background-color: var(--color-bg-primary);
+    background-color: var(--color-bg-secondary);
     border: 1px solid var(--color-border-primary);
     border-top: none;
     border-radius: 0 0 var(--radius-md) var(--radius-md);
+
+    div::before {
+        content: '> ';
+        color: var(--color-text-secondary);
+    }
 }

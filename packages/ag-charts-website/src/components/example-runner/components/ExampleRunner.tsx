@@ -65,7 +65,9 @@ export const ExampleRunner: FunctionComponent<Props> = ({
         <div id={id} className={styles.exampleOuter}>
             <div className={styles.tabsContainer}>
                 <div
-                    className={classnames(chartsStyles.content, styles.content)}
+                    className={classnames(chartsStyles.content, styles.content, {
+                        [styles.hasExampleConsoleLog]: hasExampleConsoleLog,
+                    })}
                     role="tabpanel"
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
                     style={{ height: Math.max(exampleHeight, MIN_HEIGHT) }}

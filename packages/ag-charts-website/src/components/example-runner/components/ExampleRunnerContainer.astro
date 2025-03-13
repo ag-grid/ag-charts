@@ -12,14 +12,23 @@ interface Props {
      * If inline, there is margin on the bottom
      */
     isInline?: boolean;
+    hasExampleConsoleLog?: boolean;
 }
 
 const DEFAULT_HEIGHT = 500;
 
-const { exampleHeight = DEFAULT_HEIGHT, exampleWidth, pageName, exampleName, isInline } = Astro.props as Props;
+const {
+    exampleHeight = DEFAULT_HEIGHT,
+    exampleWidth,
+    pageName,
+    exampleName,
+    isInline,
+    hasExampleConsoleLog,
+} = Astro.props as Props;
 const FRAME_WRAPPER_HEIGHT = isInline ? 42 + 16 : 0;
+const EXAMPLE_CONSOLE_LOG_HEIGHT = hasExampleConsoleLog ? 100 : 0;
 
-const minHeight = exampleHeight + FRAME_WRAPPER_HEIGHT;
+const minHeight = exampleHeight + FRAME_WRAPPER_HEIGHT + EXAMPLE_CONSOLE_LOG_HEIGHT;
 const maxWidth = exampleWidth;
 const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
 ---
@@ -30,6 +39,7 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
         'example-runner-outer',
         {
             isInline,
+            hasExampleConsoleLog,
         },
     ]}
     style={{ minHeight: `${minHeight}px`, maxWidth: maxWidth != null ? `${maxWidth}px` : undefined }}
@@ -41,6 +51,8 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
 <style lang="scss">
     @use 'design-system' as *;
 
+    $half-logger-height: 100px / 2;
+
     .container {
         position: relative;
 
@@ -49,6 +61,10 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
             top: 50%;
             left: 50%;
             transform: translate(-50%, -100%) scale(2);
+        }
+
+        &:global(.hasExampleConsoleLog) :global(.logomark) {
+            transform: translate(-50%, calc(-100% - #{$half-logger-height})) scale(2);
         }
     }
 

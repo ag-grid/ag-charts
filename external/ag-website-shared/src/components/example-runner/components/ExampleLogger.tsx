@@ -4,7 +4,7 @@ import styles from './ExampleLogger.module.scss';
 
 interface Log {
     type: 'console-log';
-    pageName: string;
+    pageName?: string;
     exampleName: string;
     data: any[];
 }
@@ -15,7 +15,9 @@ interface Props {
 }
 
 export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSize = 10 }) => {
-    const [logs, setLogs] = useState<Log[]>([]);
+    const [logs, setLogs] = useState<Log[]>([
+        { type: 'console-log', exampleName, data: ['Console logs from the example shown here...'] },
+    ]);
 
     useEffect(() => {
         const updateLogs = (event: MessageEvent) => {
