@@ -9,7 +9,6 @@ import {
     boolean,
     callback,
     defined,
-    fillOptionsDef,
     fontOptionsDef,
     greaterThan,
     isValidNumberFormat,
@@ -19,6 +18,7 @@ import {
     positiveNumber,
     required,
     string,
+    stringFillOptionsDef,
     strokeOptionsDef,
     union,
 } from 'ag-charts-core';
@@ -59,7 +59,7 @@ export const commonCrossLineOptionsDefs: OptionsDefs<AgBaseCrossLineOptions> = {
         defined
     ),
     label: commonCrossLineLabelOptionsDefs,
-    ...fillOptionsDef,
+    ...stringFillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
 };

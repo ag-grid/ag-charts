@@ -66,7 +66,7 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     direction: ChartAxisDirection;
     enabled?: boolean;
     defaultColorRange: string[];
-    fill?: AgFillType;
+    fill?: string;
     fillOpacity?: number;
     gridLength: number;
     lineGroup: Group;

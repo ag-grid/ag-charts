@@ -18,7 +18,6 @@ const {
     UNION,
     AND,
     OR,
-    COLOR_GRADIENT,
     COLOR_STRING_ARRAY,
     TempValidate,
     MATCHING_CROSSLINE_TYPE,
@@ -81,8 +80,8 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill?: AgFillType;
+    @TempValidate(COLOR_STRING, { optional: true })
+    fill?: string;
 
     @TempValidate(RATIO, { optional: true })
     fillOpacity?: number;

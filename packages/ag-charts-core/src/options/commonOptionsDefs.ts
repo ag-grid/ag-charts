@@ -85,6 +85,11 @@ export const fillOptionsDef: OptionsDefs<FillOptions> = {
     fillOpacity: ratio,
 };
 
+export const stringFillOptionsDef: OptionsDefs<{ fill: string; fillOpacity: number }> = {
+    fill: color,
+    fillOpacity: ratio,
+};
+
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
     stroke: color,
     strokeWidth: positiveNumber,
