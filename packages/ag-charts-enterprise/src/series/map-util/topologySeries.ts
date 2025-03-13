@@ -1,4 +1,4 @@
-import { type AgFillType, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 interface TopologySeriesNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {}
 
@@ -6,8 +6,6 @@ interface TopologySeriesNodeDataContext<
     TDatum extends TopologySeriesNodeDatum = TopologySeriesNodeDatum,
     TLabel extends object = object,
 > extends _ModuleSupport.DataModelSeriesNodeDataContext<TDatum, TLabel> {}
-
-const { isGradientFill } = _ModuleSupport;
 
 abstract class TopologySeriesProperties<T extends object> extends _ModuleSupport.SeriesProperties<T> {}
 
@@ -37,17 +35,5 @@ export abstract class TopologySeries<
         _visibleRange: [any, any]
     ): [number, number] {
         return [NaN, NaN];
-    }
-
-    protected getNodeFill(fill: AgFillType, defaultColorRange: string[]): Required<AgFillType> {
-        if (!isGradientFill(fill)) return fill;
-
-        return {
-            type: 'gradient',
-            gradient: fill.gradient ?? 'linear',
-            bounds: fill.bounds ?? 'item',
-            colorStops: fill.colorStops ?? defaultColorRange.map((color) => ({ color })),
-            rotation: fill.rotation ?? 0,
-        };
     }
 }

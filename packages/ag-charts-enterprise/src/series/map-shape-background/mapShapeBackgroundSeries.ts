@@ -43,6 +43,15 @@ export class MapShapeBackgroundSeries
         return false;
     }
 
+    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
+        return {
+            gradient: 'linear',
+            bounds: 'item',
+            rotation: 0,
+            colorStops: this.properties.defaultColorRange,
+        };
+    }
+
     override setOptionsData() {
         // Ignore data
     }
@@ -181,7 +190,7 @@ export class MapShapeBackgroundSeries
     }) {
         const { properties } = this;
         const { datumSelection } = opts;
-        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } = properties;
+        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
         datumSelection.each((geoGeometry, datum) => {
@@ -191,16 +200,13 @@ export class MapShapeBackgroundSeries
                 geoGeometry.projectedGeometry = undefined;
                 return;
             }
-
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
-            geoGeometry.fill = this.getNodeFill(fill, defaultColorRange);
-            geoGeometry.fillOpacity = fillOpacity;
-            geoGeometry.stroke = stroke;
-            geoGeometry.strokeWidth = strokeWidth;
-            geoGeometry.strokeOpacity = strokeOpacity;
-            geoGeometry.lineDash = lineDash;
-            geoGeometry.lineDashOffset = lineDashOffset;
+            const styles = _ModuleSupport.getShapeStyle(
+                { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset },
+                this.defaultShapeStyle
+            );
+            geoGeometry.setProperties(styles);
         });
     }
 

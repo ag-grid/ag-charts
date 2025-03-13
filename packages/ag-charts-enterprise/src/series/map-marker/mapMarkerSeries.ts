@@ -1,4 +1,4 @@
-import { type AgFillType, type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 import { extendBbox } from '../map-util/bboxUtil';
@@ -30,7 +30,6 @@ const {
     Text,
     Marker,
     applyShapeStyle,
-    isGradientFill,
 } = _ModuleSupport;
 
 interface MapMarkerNodeDataContext
@@ -98,6 +97,15 @@ export class MapMarkerSeries
     );
     private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
         Selection.select(this.highlightNode, Marker);
+
+    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
+        return {
+            gradient: 'radial',
+            bounds: 'item',
+            rotation: 0,
+            colorStops: this.properties.defaultColorRange.reverse(),
+        };
+    }
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
@@ -560,17 +568,20 @@ export class MapMarkerSeries
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return {
-            shape: properties.shape,
-            size: properties.size,
-            fill: highlightStyle?.fill ?? properties.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-        };
+        return _ModuleSupport.getShapeStyle(
+            {
+                shape: properties.shape,
+                size: properties.size,
+                fill: highlightStyle?.fill ?? properties.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke ?? properties.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            },
+            this.defaultShapeStyle
+        );
     }
 
     protected getMarkerItemStyleOverrides(
@@ -582,7 +593,7 @@ export class MapMarkerSeries
         highlighted: boolean
     ) {
         const { id: seriesId, properties, colorScale, sizeScale } = this;
-        const { colorRange, itemStyler, defaultColorRange } = properties;
+        const { colorRange, itemStyler } = properties;
 
         let overrides: Partial<ItemStyle> | undefined;
 
@@ -591,8 +602,6 @@ export class MapMarkerSeries
             overrides.fill = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? properties.fill;
-        } else {
-            overrides.fill = this.getNodeFill(format.fill, defaultColorRange);
         }
 
         if (sizeValue != null) {
@@ -618,18 +627,6 @@ export class MapMarkerSeries
         }
 
         return overrides;
-    }
-
-    protected override getNodeFill(fill: AgFillType, defaultColorRange: string[]): Required<AgFillType> {
-        if (!isGradientFill(fill)) return fill;
-
-        return {
-            type: 'gradient',
-            gradient: fill.gradient ?? 'radial',
-            bounds: fill.bounds ?? 'item',
-            colorStops: fill.colorStops ?? defaultColorRange.map((color) => ({ color })).reverse(),
-            rotation: fill.rotation ?? 0,
-        };
     }
 
     private updateMarkerNodes(opts: {
