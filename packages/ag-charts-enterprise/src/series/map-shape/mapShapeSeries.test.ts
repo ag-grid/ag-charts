@@ -393,5 +393,39 @@ describe('MapShapeSeries', () => {
                 failureThreshold: 1,
             });
         });
+
+        it('should render map shape series with a series bound gradient fill', async () => {
+            const options: AgChartOptions = {
+                data: usData,
+                topology: usTopology,
+                series: [
+                    {
+                        type: 'map-shape',
+                        idKey: 'name',
+                        labelKey: 'code',
+                        fill: {
+                            type: 'gradient',
+                            bounds: 'series',
+                            colorStops: [
+                                {
+                                    color: 'green',
+                                },
+                                {
+                                    color: 'white',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            await compare({
+                failureThreshold: 1,
+            });
+        });
     });
 });

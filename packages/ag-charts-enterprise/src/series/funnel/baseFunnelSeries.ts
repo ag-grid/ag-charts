@@ -27,6 +27,7 @@ const {
     motion,
     checkCrisp,
     createDatumId,
+    applyShapeFillBBox,
 } = _ModuleSupport;
 
 export type Bounds = {
@@ -482,17 +483,20 @@ export abstract class BaseFunnelSeries<
     private updateConnectorNodes(opts: {
         connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
-        const { fills, strokes } = this.properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
+        const { fills, strokes, defaultColorRange } = this.properties;
+        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
             this.connectorStyle();
+
+        const fillBBox = this.getShapeFillBBox();
 
         opts.connectorSelection.each((connector, datum) => {
             const { datumIndex } = datum;
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
 
-            connector.fill = fill ?? fills[datumIndex % fills.length];
+            const connectorFill = this.getNodeFill(fill ?? fills[datumIndex % fills.length], defaultColorRange);
+            connector.fill = connectorFill;
+            applyShapeFillBBox(connector, connectorFill, fillBBox);
             connector.fillOpacity = fillOpacity;
-            connector.defaultColorRange = defaultColorRange;
             connector.stroke = stroke ?? strokes[datumIndex % strokes.length];
             connector.strokeOpacity = strokeOpacity;
             connector.strokeWidth = strokeWidth;

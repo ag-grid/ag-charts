@@ -511,35 +511,37 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        const { itemStyler } = item;
+        const { itemStyler, defaultColorRange } = item;
         const { xKey, yKey } = properties;
 
-        const format = {
-            fill: highlightStyle?.fill ?? item.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,
-            stroke: highlightStyle?.stroke ?? item.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? item.strokeWidth,
-            strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? item.lineDash ?? [],
-            lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
-            cornerRadius: item.cornerRadius,
-        };
+        const format = this.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? item.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,
+                stroke: highlightStyle?.stroke ?? item.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? item.strokeWidth,
+                strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? item.lineDash ?? [],
+                lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
+                cornerRadius: item.cornerRadius,
+            },
+            defaultColorRange
+        );
 
         if (itemStyler != null) {
-            const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
-                () => {
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        itemId,
-                        datum,
-                        xKey,
-                        yKey,
-                        highlighted,
-                        ...format,
-                    });
-                }
-            );
+            let itemStyle = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+                return this.callWithContext(itemStyler, {
+                    seriesId,
+                    itemId,
+                    datum,
+                    xKey,
+                    yKey,
+                    highlighted,
+                    ...format,
+                });
+            });
+
+            itemStyle = this.getShapeStyle(itemStyle, defaultColorRange);
 
             Object.assign(format, itemStyle);
         }
@@ -554,16 +556,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { datumSelection, isHighlight } = opts;
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
-        const { item } = this.properties;
+        const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
             const seriesItemType = datum.itemId;
 
             const style = this.getItemStyle(String(datum.datumIndex), datum.datum, seriesItemType, isHighlight);
-            const fillBBox = this.getFillBBox(style.fill);
-            const { defaultColorRange } = item[seriesItemType === 'subtotal' ? 'total' : seriesItemType];
 
-            applyShapeStyle(rect, { ...style, defaultColorRange }, undefined, fillBBox);
+            applyShapeStyle(rect, style, undefined, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

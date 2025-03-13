@@ -1,5 +1,5 @@
 import {
-    type AgGradientFill,
+    type AgFillType,
     type AgPyramidSeriesLabelFormatterParams,
     type AgPyramidSeriesStyle,
     _ModuleSupport,
@@ -50,6 +50,7 @@ interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Read
 interface PyramidNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<PyramidNodeDatum, PyramidNodeLabelDatum> {
     stageLabelData: PyramidNodeLabelDatum[] | undefined;
+    bounds: _ModuleSupport.BBox;
 }
 
 type ItemStyle = Pick<AgPyramidSeriesStyle, 'fill' | 'stroke'> &
@@ -403,6 +404,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             nodeData,
             labelData,
             stageLabelData,
+            bounds,
         };
     }
 
@@ -411,22 +413,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             this.contextNodeData = this.createNodeData();
             this.nodeDataRefresh = false;
         }
-    }
-
-    protected override getFillBBox(fill: AgGradientFill | string | undefined) {
-        if (!isGradientFill(fill)) {
-            return;
-        }
-
-        const { bounds = 'item' } = fill;
-
-        if (bounds === 'item') {
-            return;
-        }
-
-        const width = this._nodeDataDependencies?.seriesRectWidth ?? 0;
-        const height = this._nodeDataDependencies?.seriesRectHeight ?? 0;
-        return new BBox(0, 0, width, height);
     }
 
     override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
@@ -475,20 +461,52 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }) {
         return opts.datumSelection.update(opts.nodeData);
     }
+    protected getNodeFill(fill: AgFillType, defaultColorStops: string[]): Required<AgFillType>;
+    protected getNodeFill(fill: AgFillType | undefined, defaultColorStops: string[]): Required<AgFillType> | undefined;
+    protected getNodeFill(fill: AgFillType | undefined, defaultColorStops: string[]): Required<AgFillType> | undefined {
+        if (!isGradientFill(fill)) return fill;
+
+        return {
+            ...fill,
+            gradient: fill.gradient ?? 'linear',
+            bounds: fill.bounds ?? 'item',
+            rotation: fill.rotation ?? 0,
+            colorStops: fill.colorStops ?? defaultColorStops.map((color) => ({ color })),
+        };
+    }
+
+    protected getShapeStyle<T extends { fill?: AgFillType }>(style: T, defaultColorRange: string[]): T;
+    protected getShapeStyle<T extends { fill?: AgFillType }>(
+        style: T | undefined,
+        defaultColorRange: string[]
+    ): T | undefined;
+    protected getShapeStyle<T extends { fill?: AgFillType }>(
+        style: T | undefined,
+        defaultColorRange: string[]
+    ): T | undefined {
+        if (!isGradientFill(style?.fill)) return style;
+        return {
+            ...style,
+            fill: this.getNodeFill(style.fill, defaultColorRange),
+        };
+    }
 
     private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return {
-            fill: highlightStyle?.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-        };
+        return this.getShapeStyle(
+            {
+                fill: highlightStyle?.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            },
+            properties.defaultColorRange
+        );
     }
 
     protected getItemStyleOverrides(
@@ -530,7 +548,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return overrides;
+        return this.getShapeStyle(overrides, properties.defaultColorRange);
     }
 
     private updateDatumNodes(opts: {
@@ -542,15 +560,16 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { shadow } = properties;
 
         const style = this.getItemBaseStyle(isHighlight);
-        const { defaultColorRange } = this.properties;
+        const bounds = this.contextNodeData?.bounds;
+        const fillBBox: _ModuleSupport.ShapeFillBBox | undefined = bounds
+            ? { series: bounds, axis: bounds }
+            : undefined;
 
         datumSelection.each((connector, nodeDatum) => {
             const { datumIndex, datum } = nodeDatum;
             const overrides = this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, style, isHighlight);
 
-            const fillBBox = this.getFillBBox(overrides.fill);
-
-            applyShapeStyle(connector, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(connector, style, overrides, fillBBox);
 
             applyPyramidDatum(connector, nodeDatum);
 

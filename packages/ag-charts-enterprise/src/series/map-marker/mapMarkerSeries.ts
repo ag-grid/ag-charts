@@ -6,6 +6,7 @@ import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { markerPositions } from '../map-util/markerUtil';
+import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
 import {
     type MapMarkerNodeDatum,
@@ -96,6 +97,15 @@ export class MapMarkerSeries
     );
     private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
         Selection.select(this.highlightNode, Marker);
+
+    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
+        return {
+            gradient: 'radial',
+            bounds: 'item',
+            rotation: 0,
+            colorStops: this.properties.defaultColorRange.toReversed(),
+        };
+    }
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
@@ -558,17 +568,20 @@ export class MapMarkerSeries
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return {
-            shape: properties.shape,
-            size: properties.size,
-            fill: highlightStyle?.fill ?? properties.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-        };
+        return _ModuleSupport.getShapeStyle(
+            {
+                shape: properties.shape,
+                size: properties.size,
+                fill: highlightStyle?.fill ?? properties.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke ?? properties.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            },
+            this.defaultShapeStyle
+        );
     }
 
     protected getMarkerItemStyleOverrides(
@@ -584,15 +597,14 @@ export class MapMarkerSeries
 
         let overrides: Partial<ItemStyle> | undefined;
 
+        overrides ??= {};
         if (!highlighted && colorValue != null) {
-            overrides ??= {};
             overrides.fill = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? properties.fill;
         }
 
         if (sizeValue != null) {
-            overrides ??= {};
             overrides.size = sizeScale.convert(sizeValue, true);
         }
 
@@ -625,8 +637,7 @@ export class MapMarkerSeries
         const { markerSelection, isHighlight, highlightedDatum } = opts;
 
         const style = this.getMarkerItemBaseStyle(isHighlight);
-        const fillBBox = this.getFillBBox(style.fill);
-        const { defaultColorRange } = this.properties;
+        const fillBBox = getTopologyShapeFillBBox(this.scale);
 
         markerSelection.each((marker, markerDatum) => {
             const { datumIndex, datum, point, colorValue, sizeValue } = markerDatum;
@@ -642,7 +653,7 @@ export class MapMarkerSeries
             marker.shape = overrides?.shape ?? style.shape;
             marker.size = overrides?.size ?? style.size;
 
-            applyShapeStyle(marker, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(marker, style, overrides, fillBBox);
 
             marker.x = point.x;
             marker.y = point.y;

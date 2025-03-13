@@ -3,7 +3,7 @@ import type { AgMarkerShape } from 'ag-charts-types';
 import type { Gradient } from '../../scene/gradient/gradient';
 import { Group } from '../../scene/group';
 import { Line } from '../../scene/shape/line';
-import type { FillType } from '../../scene/util/fill';
+import { type FillType, isGradientFill } from '../../scene/util/fill';
 import { Marker } from '../marker/marker';
 
 export interface LegendMarker {
@@ -60,8 +60,11 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         const marker = new Marker();
         marker.shape = shape ?? 'square';
         marker.size = size;
-        marker.fill = fill;
-        marker.defaultColorRange = defaultColorRange;
+        if (isGradientFill(fill) && fill.colorStops == null) {
+            marker.fill = { ...fill, colorStops: defaultColorRange?.map((color) => ({ color })) };
+        } else {
+            marker.fill = fill;
+        }
         marker.fillOpacity = fillOpacity;
         marker.stroke = stroke;
         marker.strokeOpacity = strokeOpacity;

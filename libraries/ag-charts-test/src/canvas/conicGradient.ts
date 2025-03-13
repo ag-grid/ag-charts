@@ -1,4 +1,4 @@
-import { Canvas, type CanvasRenderingContext2D as NodeCanvasRenderingContext2D } from 'canvas';
+import { Canvas, DOMMatrix, type CanvasRenderingContext2D as NodeCanvasRenderingContext2D } from 'canvas';
 
 interface ColorStop {
     offset: number;
@@ -56,6 +56,10 @@ export class ConicGradient {
         const externalCtx = externalCanvas.getContext('2d');
         const imageData = externalCtx.getImageData(0, 0, width, height);
 
+        const transform = ctx.getTransform();
+        const tx = transform.e;
+        const ty = transform.f;
+
         const resolvedColors = colorStops.map(({ offset, color }) => {
             const [r, g, b] = parseColor(color);
             return { offset, r, g, b };
@@ -63,23 +67,19 @@ export class ConicGradient {
 
         for (let x = 0; x < imageData.width; x += 1) {
             for (let y = 0; y < imageData.height; y += 1) {
-                const i = (y * imageData.width + x) * 4;
-
-                const angle = Math.atan2(y - cy, x - cx);
+                const angle = Math.atan2(y - cy - ty, x - cx - tx);
                 let offset = (angle - startAngle) / (2 * Math.PI);
                 offset = ((offset % 1) + 1) % 1;
                 const colorStopBefore = resolvedColors.findLast((c) => c.offset < offset) ?? resolvedColors.at(0)!;
-                const colorStopAfter = resolvedColors.find((c) => c.offset > offset) ?? resolvedColors.at(-1)!;
+                const colorStopAfter = resolvedColors.find((c) => c.offset >= offset) ?? resolvedColors.at(-1)!;
 
                 const offsetRange = colorStopAfter.offset - colorStopBefore.offset;
-                const delta =
-                    offsetRange > 0
-                        ? (offset - colorStopBefore.offset) / (colorStopAfter.offset - colorStopBefore.offset)
-                        : 0;
+                const delta = offsetRange > 0 ? (offset - colorStopBefore.offset) / offsetRange : 0;
                 const r = colorStopBefore.r * (1 - delta) + colorStopAfter.r * delta;
                 const g = colorStopBefore.g * (1 - delta) + colorStopAfter.g * delta;
                 const b = colorStopBefore.b * (1 - delta) + colorStopAfter.b * delta;
 
+                const i = (y * imageData.width + x) * 4;
                 imageData.data[i + 0] = r;
                 imageData.data[i + 1] = g;
                 imageData.data[i + 2] = b;
@@ -89,6 +89,9 @@ export class ConicGradient {
 
         externalCtx.putImageData(imageData, 0, 0);
 
-        return ctx.createPattern(externalCanvas, 'repeat');
+        const pattern = ctx.createPattern(externalCanvas, 'no-repeat');
+        pattern.setTransform(new DOMMatrix([1, 0, 0, 1, -tx, -ty]));
+
+        return pattern;
     }
 }

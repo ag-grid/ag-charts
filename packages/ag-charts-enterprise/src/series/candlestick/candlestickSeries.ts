@@ -1,10 +1,10 @@
-import { type AgCandlestickSeriesItemOptions, type AgGradientFill, _ModuleSupport } from 'ag-charts-community';
+import { type AgCandlestickSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { createDatumId, isGradientFill, BBox } = _ModuleSupport;
+const { createDatumId, isGradientFill, applyShapeFillBBox } = _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, CandlestickSeriesProperties<any>> {
     static readonly className = 'CandleStickSeries';
@@ -26,40 +26,30 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
         const { id: seriesId, properties } = this;
         const { xKey, highKey, lowKey, openKey, closeKey, item, itemStyler } = properties;
         const { up, down } = item;
-        const {
-            fill: upFill,
-            fillOpacity: upFillOpacity,
-            stroke: upStroke,
-            strokeWidth: upStrokeWidth,
-            strokeOpacity: upStrokeOpacity,
-            lineDash: upLineDash,
-            lineDashOffset: upLineDashOffset,
-            defaultColorRange: upDefaultColorRange,
-        } = up;
-        const {
-            stroke: upWickStroke,
-            strokeWidth: upWickStrokeWidth,
-            strokeOpacity: upWickStrokeOpacity,
-            lineDash: upWickLineDash,
-            lineDashOffset: upWickLineDashOffset,
-        } = up.wick;
-        const {
-            fill: downFill,
-            fillOpacity: downFillOpacity,
-            stroke: downStroke,
-            strokeWidth: downStrokeWidth,
-            strokeOpacity: downStrokeOpacity,
-            lineDash: downLineDash,
-            lineDashOffset: downLineDashOffset,
-            defaultColorRange: downDefaultColorRange,
-        } = down;
-        const {
-            stroke: downWickStroke,
-            strokeWidth: downWickStrokeWidth,
-            strokeOpacity: downWickStrokeOpacity,
-            lineDash: downWickLineDash,
-            lineDashOffset: downWickLineDashOffset,
-        } = down.wick;
+        const upStyle = this.getShapeStyle(
+            {
+                fill: up.fill,
+                fillOpacity: up.fillOpacity,
+                stroke: up.stroke,
+                strokeWidth: up.strokeWidth,
+                strokeOpacity: up.strokeOpacity,
+                lineDash: up.lineDash,
+                lineDashOffset: up.lineDashOffset,
+            },
+            up.defaultColorRange
+        );
+        const downStyle = this.getShapeStyle(
+            {
+                fill: down.fill,
+                fillOpacity: down.fillOpacity,
+                stroke: down.stroke,
+                strokeWidth: down.strokeWidth,
+                strokeOpacity: down.strokeOpacity,
+                lineDash: down.lineDash,
+                lineDashOffset: down.lineDashOffset,
+            },
+            down.defaultColorRange
+        );
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
 
         datumSelection.each((node, datum) => {
@@ -102,70 +92,31 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             node.yClose = yClose;
             node.crisp = crisp;
 
-            const upFillBBox = this.getFillBBox(upFill, node);
-            const downFillBBox = this.getFillBBox(downFill, node);
+            const risingStyle = isRising ? upStyle : downStyle;
+            const risingWickStyle = isRising ? up.wick : down.wick;
 
-            node.fillBBox = isRising ? upFillBBox : downFillBBox;
-            node.defaultColorRange = isRising ? upDefaultColorRange : downDefaultColorRange;
-            node.fill = highlightStyle?.fill ?? style?.fill ?? (isRising ? upFill : downFill);
-            node.fillOpacity =
-                highlightStyle?.fillOpacity ?? style?.fillOpacity ?? (isRising ? upFillOpacity : downFillOpacity);
-            node.stroke = highlightStyle?.stroke ?? style?.stroke ?? (isRising ? upStroke : downStroke);
-            node.strokeWidth =
-                highlightStyle?.strokeWidth ?? style?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth);
-            node.strokeOpacity =
-                highlightStyle?.strokeOpacity ??
-                style?.strokeOpacity ??
-                (isRising ? upStrokeOpacity : downStrokeOpacity);
-            node.lineDash = highlightStyle?.lineDash ?? style?.lineDash ?? (isRising ? upLineDash : downLineDash);
-            node.lineDashOffset =
-                highlightStyle?.lineDashOffset ??
-                style?.lineDashOffset ??
-                (isRising ? upLineDashOffset : downLineDashOffset);
+            const fill = highlightStyle?.fill ?? style?.fill ?? risingStyle.fill;
+            applyShapeFillBBox(node, fill, this.getShapeFillBBox());
+            node.fill = highlightStyle?.fill ?? style?.fill ?? risingStyle.fill;
+            node.fillOpacity = highlightStyle?.fillOpacity ?? style?.fillOpacity ?? risingStyle.fillOpacity;
+            node.stroke = highlightStyle?.stroke ?? style?.stroke ?? risingStyle.stroke;
+            node.strokeWidth = highlightStyle?.strokeWidth ?? style?.strokeWidth ?? risingStyle.strokeWidth;
+            node.strokeOpacity = highlightStyle?.strokeOpacity ?? style?.strokeOpacity ?? risingStyle.strokeOpacity;
+            node.lineDash = highlightStyle?.lineDash ?? style?.lineDash ?? risingStyle.lineDash;
+            node.lineDashOffset = highlightStyle?.lineDashOffset ?? style?.lineDashOffset ?? risingStyle.lineDashOffset;
 
             const styleWick = style?.wick;
-            node.wickStroke = highlightStyle?.stroke ?? styleWick?.stroke ?? (isRising ? upWickStroke : downWickStroke);
-            node.wickStrokeWidth =
-                highlightStyle?.strokeWidth ??
-                styleWick?.strokeWidth ??
-                (isRising ? upWickStrokeWidth : downWickStrokeWidth);
+            node.wickStroke = highlightStyle?.stroke ?? styleWick?.stroke ?? risingWickStyle.stroke;
+            node.wickStrokeWidth = highlightStyle?.strokeWidth ?? styleWick?.strokeWidth ?? risingWickStyle.strokeWidth;
             node.wickStrokeOpacity =
-                highlightStyle?.strokeOpacity ??
-                styleWick?.strokeOpacity ??
-                (isRising ? upWickStrokeOpacity : downWickStrokeOpacity);
-            node.wickLineDash =
-                highlightStyle?.lineDash ?? styleWick?.lineDash ?? (isRising ? upWickLineDash : downWickLineDash);
+                highlightStyle?.strokeOpacity ?? styleWick?.strokeOpacity ?? risingWickStyle.strokeOpacity;
+            node.wickLineDash = highlightStyle?.lineDash ?? styleWick?.lineDash ?? risingWickStyle.lineDash;
             node.wickLineDashOffset =
-                highlightStyle?.lineDashOffset ??
-                styleWick?.lineDashOffset ??
-                (isRising ? upWickLineDashOffset : downWickLineDashOffset);
+                highlightStyle?.lineDashOffset ?? styleWick?.lineDashOffset ?? risingWickStyle.lineDashOffset;
 
             // Ignore highlight style
-            node.strokeAlignment = (style?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth)) / 2;
+            node.strokeAlignment = (style?.strokeWidth ?? risingStyle.strokeWidth) / 2;
         });
-    }
-
-    protected override getFillBBox(fill: AgGradientFill | string | undefined, candlestickNode?: CandlestickNode) {
-        if (!isGradientFill(fill) || !candlestickNode) {
-            return;
-        }
-
-        const { bounds = 'item' } = fill;
-
-        if (bounds !== 'item') {
-            return super.getFillBBox(fill);
-        }
-
-        const { width, centerX, yOpen, yClose } = candlestickNode;
-
-        const boxTop = Math.min(yOpen, yClose);
-        const boxBottom = Math.max(yOpen, yClose);
-        const rectHeight = boxBottom - boxTop;
-
-        const x0 = centerX - width / 2;
-        const x1 = centerX + width / 2;
-
-        return new BBox(x0, boxTop, x1 - x0, rectHeight);
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {

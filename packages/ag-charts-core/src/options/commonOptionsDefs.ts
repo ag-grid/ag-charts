@@ -71,16 +71,7 @@ const gradientColorStops = and(
 export const gradient = typeUnion<AgGradientFill>(
     {
         gradient: {
-            bounds: gradientBounds,
-            colorStops: gradientColorStops,
-            direction: union('horizontal', 'vertical'),
-            rotation: number,
-        },
-        'radial-gradient': {
-            bounds: gradientBounds,
-            colorStops: gradientColorStops,
-        },
-        'conic-gradient': {
+            gradient: union('linear', 'radial', 'conic'),
             bounds: gradientBounds,
             colorStops: gradientColorStops,
             rotation: number,
@@ -91,6 +82,11 @@ export const gradient = typeUnion<AgGradientFill>(
 
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
     fill: or(color, gradient),
+    fillOpacity: ratio,
+};
+
+export const stringFillOptionsDef: OptionsDefs<{ fill: string; fillOpacity: number }> = {
+    fill: color,
     fillOpacity: ratio,
 };
 

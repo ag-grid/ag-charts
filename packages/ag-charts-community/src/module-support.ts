@@ -144,7 +144,7 @@ export { setAttribute, setAttributes, setElementStyle } from './util/attributeUt
 export { Debug } from './util/debug';
 export { isContinuous } from './util/value';
 export type { PlacedLabel, PointLabelDatum, LabelPlacement } from './scene/util/labelPlacement';
-export { isGradientFill, type DefaultFillStyle } from './scene/util/fill';
+export { isGradientFill } from './scene/util/fill';
 export * from './util/bboxinterface';
 export { Padding } from './util/padding';
 export { lineDistanceSquared } from './util/distance';
@@ -167,7 +167,7 @@ export type { RenderContext, ChildNodeCounts } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';
 export type { Point, SizedPoint } from './scene/point';
-export { Gradient } from './scene/gradient/gradient';
+export { Gradient, type GradientParams } from './scene/gradient/gradient';
 export * from './scene/gradient/stops';
 export { LinearGradient } from './scene/gradient/linearGradient';
 export { ConicGradient } from './scene/gradient/conicGradient';

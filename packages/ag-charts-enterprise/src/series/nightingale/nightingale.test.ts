@@ -332,7 +332,7 @@ describe('NightingaleSeries', () => {
             await compare();
         });
 
-        it('should render nightingale series with a series bound gradient fill', async () => {
+        it('should render nightingale series with an item bound gradient fill', async () => {
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [
@@ -342,7 +342,7 @@ describe('NightingaleSeries', () => {
                         radiusKey: 'Mountain air',
                         fill: {
                             type: 'gradient',
-                            bounds: 'series',
+                            bounds: 'item',
                             colorStops: [
                                 {
                                     color: 'green',
@@ -361,7 +361,7 @@ describe('NightingaleSeries', () => {
             await compare();
         });
 
-        it('should render nightingale series with a radial gradient fill', async () => {
+        it('should render nightingale series with a linear gradient fill', async () => {
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [
@@ -370,7 +370,8 @@ describe('NightingaleSeries', () => {
                         angleKey: 'quarter',
                         radiusKey: 'Mountain air',
                         fill: {
-                            type: 'radial-gradient',
+                            type: 'gradient',
+                            gradient: 'linear',
                             colorStops: [
                                 {
                                     color: 'green',
@@ -389,7 +390,7 @@ describe('NightingaleSeries', () => {
             await compare();
         });
 
-        it('should render nightingale series with a series bound radial gradient fill', async () => {
+        it('should render nightingale series with a series bound linear gradient fill', async () => {
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [
@@ -398,7 +399,8 @@ describe('NightingaleSeries', () => {
                         angleKey: 'quarter',
                         radiusKey: 'Mountain air',
                         fill: {
-                            type: 'radial-gradient',
+                            type: 'gradient',
+                            gradient: 'linear',
                             bounds: 'series',
                             colorStops: [
                                 {

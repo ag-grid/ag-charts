@@ -1,5 +1,3 @@
-import type { AgFillType } from 'ag-charts-types';
-
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -9,8 +7,6 @@ import { type Node, PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
-import { type FillType, isGradientFill } from '../../../scene/util/fill';
-import { normalizeAngle360, toDegrees } from '../../../util/angle';
 import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -21,6 +17,7 @@ import {
 } from '../dataModelSeries';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import type { SeriesProperties } from '../seriesProperties';
+import type { ShapeFillBBox } from '../shapeUtil';
 import { PolarZIndexMap } from './polarZIndexMap';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
@@ -217,36 +214,13 @@ export abstract class PolarSeries<
         return null;
     }
 
-    protected override getFillBBox(fill: FillType | undefined, radius: number = 1): BBox | undefined {
-        if (!isGradientFill(fill)) {
-            return;
-        }
+    protected getShapeFillBBox(): ShapeFillBBox {
+        const outerRadius = this.radius;
 
-        const { bounds = 'item' } = fill;
-
-        if (bounds === 'item') {
-            return;
-        }
-
-        return new BBox(-radius, -radius, radius * 2, radius * 2);
-    }
-
-    getNodeFill(fill?: AgFillType, angle?: number) {
-        if (
-            angle != null &&
-            isGradientFill(fill) &&
-            fill.type === 'gradient' &&
-            fill.bounds !== 'series' &&
-            fill.bounds !== 'axis' &&
-            fill.rotation == null &&
-            fill.direction == null
-        ) {
-            return {
-                ...fill,
-                rotation: toDegrees(normalizeAngle360(angle) + Math.PI / 2),
-            };
-        }
-        return fill;
+        return {
+            series: new BBox(-outerRadius, -outerRadius, outerRadius * 2, outerRadius * 2),
+            axis: new BBox(-outerRadius, -outerRadius, outerRadius * 2, outerRadius * 2),
+        };
     }
 
     protected resetAllAnimation() {

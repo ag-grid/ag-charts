@@ -8,6 +8,7 @@ import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
+import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
 import { formatSingleLabel } from '../util/labelFormatter';
 import {
@@ -91,6 +92,15 @@ export class MapShapeSeries
         this.highlightNode,
         () => this.nodeFactory()
     );
+
+    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
+        return {
+            gradient: 'linear',
+            bounds: 'series',
+            rotation: 0,
+            colorStops: this.properties.defaultColorRange,
+        };
+    }
 
     public contextNodeData?: MapShapeNodeDataContext;
 
@@ -435,15 +445,18 @@ export class MapShapeSeries
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return {
-            fill: highlightStyle?.fill ?? properties.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-        };
+        return _ModuleSupport.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? properties.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke ?? properties.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            },
+            this.defaultShapeStyle
+        );
     }
 
     protected getItemStyleOverrides(
@@ -483,7 +496,7 @@ export class MapShapeSeries
             Object.assign(overrides, itemStyle);
         }
 
-        return overrides;
+        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
     }
 
     private updateDatumNodes(opts: {
@@ -493,8 +506,7 @@ export class MapShapeSeries
         const { datumSelection, isHighlight } = opts;
 
         const style = this.getItemBaseStyle(isHighlight);
-        const fillBBox = this.getFillBBox(style.fill);
-        const { defaultColorRange } = this.properties;
+        const fillBBox = getTopologyShapeFillBBox(this.scale);
 
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { datum, datumIndex, colorValue, projectedGeometry } = nodeDatum;
@@ -509,7 +521,7 @@ export class MapShapeSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            applyShapeStyle(geoGeometry, { ...style, defaultColorRange }, overrides, fillBBox);
+            applyShapeStyle(geoGeometry, style, overrides, fillBBox);
         });
     }
 

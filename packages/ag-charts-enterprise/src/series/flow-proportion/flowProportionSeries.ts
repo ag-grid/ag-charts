@@ -378,6 +378,20 @@ export abstract class FlowProportionSeries<
         }
     }
 
+    protected getNodeFill(fill: AgFillType, defaultColorStops: string[]): Required<AgFillType>;
+    protected getNodeFill(fill: AgFillType | undefined, defaultColorStops: string[]): Required<AgFillType> | undefined;
+    protected getNodeFill(fill: AgFillType | undefined, defaultColorStops: string[]): Required<AgFillType> | undefined {
+        if (!_ModuleSupport.isGradientFill(fill)) return fill;
+
+        return {
+            ...fill,
+            gradient: fill.gradient ?? 'linear',
+            bounds: fill.bounds ?? 'item',
+            rotation: fill.rotation ?? 0,
+            colorStops: fill.colorStops ?? defaultColorStops.map((color) => ({ color })),
+        };
+    }
+
     override update(opts: { seriesRect?: _ModuleSupport.BBox }) {
         const { seriesRect } = opts;
         const newNodeDataDependencies = {

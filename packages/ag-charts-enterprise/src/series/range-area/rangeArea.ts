@@ -38,13 +38,13 @@ const {
     pathMotion,
     extent,
     createDatumId,
+    applyShapeFillBBox,
     PointerEvents,
     Group,
     BBox,
     ContinuousScale,
     OrdinalTimeScale,
     findMinMax,
-    isGradientFill,
 } = _ModuleSupport;
 
 class RangeAreaSeriesNodeEvent<
@@ -439,19 +439,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible: visible || animationEnabled,
         });
 
-        const { fill: seriesFill, defaultColorRange } = this.properties;
-        if (isGradientFill(seriesFill)) {
-            seriesFill.bounds = !seriesFill.bounds || seriesFill.bounds == 'item' ? 'series' : 'axis';
-        }
-        const fillBBox = this.getFillBBox(seriesFill);
+        const seriesFill = this.getNodeFill(this.properties.fill, this.properties.defaultColorRange);
+        const fillBBox = this.getShapeFillBBox();
+
+        applyShapeFillBBox(fill, seriesFill, fillBBox);
 
         fill.setProperties({
-            fillBBox,
-            defaultColorRange,
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            fill: this.properties.fill,
+            fill: seriesFill,
             fillOpacity: this.properties.fillOpacity,
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
@@ -567,8 +564,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeOpacity,
         });
 
-        const fillBBox = this.getFillBBox(marker.fill);
-        const { defaultColorRange } = marker;
+        const fillBBox = this.getShapeFillBBox();
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
@@ -579,7 +575,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 { xKey, yHighKey, yLowKey },
                 highlighted,
                 baseStyle,
-                defaultColorRange,
                 fillBBox
             );
         });

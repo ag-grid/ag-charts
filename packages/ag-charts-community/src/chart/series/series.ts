@@ -2,6 +2,7 @@ import { Logger } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
+    AgFillType,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesVisibilityChange,
@@ -16,7 +17,7 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
-import { type FillType, isGradientFill } from '../../scene/util/fill';
+import { isGradientFill } from '../../scene/util/fill';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';
 import { formatValue } from '../../util/format.util';
@@ -25,7 +26,6 @@ import { jsonDiff } from '../../util/json';
 import { Listeners } from '../../util/listeners';
 import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
-import { findMinMax } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
@@ -44,6 +44,7 @@ import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
+import { type ShapeFillBBox, applyShapeStyle } from './shapeUtil';
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -509,48 +510,6 @@ export abstract class Series<
     // Needed for auto-scaling zoom
     abstract getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [number, number]): any[];
 
-    protected getFillBBox(fill: FillType | undefined): BBox | undefined {
-        if (!isGradientFill(fill)) {
-            return;
-        }
-
-        const { bounds = 'item' } = fill;
-
-        if (bounds === 'item') {
-            return;
-        }
-
-        const { axes } = this;
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        const xRange = xAxis?.range ?? [0, 1];
-        const yRange = yAxis?.range ?? [0, 1];
-
-        const isHorizontal = fill.type === 'gradient' && fill.direction === 'horizontal';
-        const axisDirection = isHorizontal ? ChartAxisDirection.X : ChartAxisDirection.Y;
-        const axis = axes[axisDirection];
-        const seriesDomain = this.getSeriesDomain(axisDirection);
-
-        const seriesRange = [axis?.scale.convert(seriesDomain.at(0)), axis?.scale.convert(seriesDomain.at(-1))];
-
-        let [x1, x2] = findMinMax(xRange);
-        let [y1, y2] = findMinMax(yRange);
-
-        if (bounds === 'series') {
-            if (isHorizontal) {
-                [x1, x2] = findMinMax(seriesRange);
-            } else {
-                [y1, y2] = findMinMax(seriesRange);
-            }
-        }
-
-        const width = x2 - x1;
-        const height = y2 - y1;
-
-        return new BBox(x1, y1, width, height);
-    }
-
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
     abstract processData(dataController: DataController): Promise<void> | void;
 
@@ -849,8 +808,20 @@ export abstract class Series<
         return this.callWithContext(defaultFormatter, params.value);
     }
 
+    private getMarkerNodeFill(fill: AgFillType, defaultColorRange: string[]): Required<AgFillType> {
+        if (!isGradientFill(fill)) return fill;
+
+        return {
+            type: 'gradient',
+            gradient: fill.gradient ?? 'radial',
+            bounds: fill.bounds ?? 'item',
+            colorStops: fill.colorStops ?? defaultColorRange.map((color) => ({ color })).reverse(),
+            rotation: fill.rotation ?? 0,
+        };
+    }
+
     public getMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams>,
+        marker: ISeriesMarker<TParams> & { defaultColorRange: string[] },
         datum: any,
         params: TParams,
         highlighted = false,
@@ -858,7 +829,12 @@ export abstract class Series<
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
         const defaultSize = { size };
-        const markerStyle = mergeDefaults(defaultSize, defaultStyle);
+
+        let markerStyle = mergeDefaults(defaultSize, defaultStyle);
+        if (isGradientFill(markerStyle.fill)) {
+            markerStyle = { ...markerStyle, fill: this.getMarkerNodeFill(markerStyle.fill, marker.defaultColorRange) };
+        }
+
         if (marker.itemStyler) {
             const style = this.ctx.callbackCache.call(this.properties, marker.itemStyler, {
                 seriesId: this.id,
@@ -867,40 +843,42 @@ export abstract class Series<
                 highlighted,
                 datum,
             });
-            return mergeDefaults(style, markerStyle);
+            return mergeDefaults(
+                style,
+                markerStyle,
+                style?.fill != null ? { fill: this.getMarkerNodeFill(style.fill, marker.defaultColorRange) } : undefined
+            );
         }
         return markerStyle;
     }
 
     protected updateMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams>,
+        marker: ISeriesMarker<TParams> & { defaultColorRange: string[] },
         markerNode: Marker,
         datum: any,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
         params: TParams,
         highlighted: boolean,
         defaultStyle: AgSeriesMarkerStyle,
-        defaultColorRange: string[],
-        fillBBox?: BBox,
+        fillBBox?: ShapeFillBBox,
         { applyTranslation = true, selected = true } = {}
     ) {
         const activeStyle = this.getMarkerStyle(marker, datum, params, highlighted, point?.size, defaultStyle);
         const visible = this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
-        markerNode.fillBBox = fillBBox;
+        applyShapeStyle(markerNode, { fill: activeStyle.fill }, undefined, fillBBox);
 
         if (applyTranslation) {
             markerNode.setProperties({
                 visible,
                 ...activeStyle,
-                defaultColorRange,
                 x: point?.x,
                 y: point?.y,
                 scalingCenterX: point?.x,
                 scalingCenterY: point?.y,
             });
         } else {
-            markerNode.setProperties({ visible, ...activeStyle, defaultColorRange });
+            markerNode.setProperties({ visible, ...activeStyle });
         }
 
         if (!selected) {

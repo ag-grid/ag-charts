@@ -1,9 +1,9 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgFillType, _ModuleSupport } from 'ag-charts-community';
 
 import { type RadarPathPoint, RadarSeries } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
-const { Group, Path, PointerEvents, Selection, ChartAxisDirection, isGradientFill } = _ModuleSupport;
+const { Group, Path, PointerEvents, Selection, ChartAxisDirection, isGradientFill, applyShapeStyle } = _ModuleSupport;
 
 export class RadarAreaSeries extends RadarSeries {
     static override readonly className = 'RadarAreaSeries';
@@ -41,22 +41,27 @@ export class RadarAreaSeries extends RadarSeries {
 
         const areaNode = this.getAreaNode();
 
-        const { fill, defaultColorRange, fillOpacity } = this.properties;
+        let fill = this.properties.fill as Required<AgFillType>;
+        const { fillOpacity } = this.properties;
         if (isGradientFill(fill)) {
-            fill.bounds = !fill.bounds || fill.bounds == 'item' ? 'series' : 'axis';
+            fill = this.getNodeFill(fill);
         }
 
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
-        const radiusAxisReversed = radiusAxis?.isReversed();
-        const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
-        const fillBBox = this.getFillBBox(fill, axisOuterRadius);
-
-        areaNode.fillBBox = fillBBox;
-        areaNode.fill = fill;
-        areaNode.defaultColorRange = defaultColorRange;
-        areaNode.fillOpacity = fillOpacity;
+        applyShapeStyle(areaNode, { fill, fillOpacity }, undefined, this.getShapeFillBBox());
         areaNode.pointerEvents = PointerEvents.None;
         areaNode.stroke = undefined;
+    }
+
+    protected getNodeFill(fill: AgFillType): Required<AgFillType> {
+        if (!_ModuleSupport.isGradientFill(fill)) return fill;
+
+        return {
+            ...fill,
+            gradient: fill.gradient ?? 'radial',
+            bounds: fill.bounds ?? 'series',
+            rotation: fill.rotation ?? 0,
+            colorStops: fill.colorStops ?? this.properties.defaultColorRange.map((color) => ({ color })),
+        };
     }
 
     protected override animatePaths(ratio: number) {

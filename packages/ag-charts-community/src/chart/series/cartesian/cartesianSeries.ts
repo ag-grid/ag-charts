@@ -1,4 +1,5 @@
 import { findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
+import type { AgFillType } from 'ag-charts-types';
 
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -13,8 +14,10 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
+import { isGradientFill } from '../../../scene/util/fill';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
+import { findMinMax } from '../../../util/number';
 import { StateMachine } from '../../../util/stateMachine';
 import { BOOLEAN, STRING, TempValidate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
@@ -34,6 +37,7 @@ import type { SeriesDirectionKeysMapping, SeriesNodeEventTypes, SeriesNodePickMa
 import { SeriesNodeEvent } from '../series';
 import { SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
+import type { ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type { Scaling } from './scaling';
 
@@ -426,6 +430,57 @@ export abstract class CartesianSeries<
     }
 
     protected abstract nodeFactory(): TNode;
+
+    protected getNodeFill(fill: AgFillType, defaultColorStops: string[]): Required<AgFillType>;
+    protected getNodeFill(fill: AgFillType | undefined, defaultColorStops: string[]): Required<AgFillType> | undefined;
+    protected getNodeFill(fill: AgFillType | undefined, defaultColorStops: string[]): Required<AgFillType> | undefined {
+        if (!isGradientFill(fill)) return fill;
+
+        return {
+            ...fill,
+            gradient: fill.gradient ?? 'linear',
+            bounds: fill.bounds ?? 'item',
+            rotation: fill.rotation ?? 0,
+            colorStops: fill.colorStops ?? defaultColorStops.map((color) => ({ color })),
+        };
+    }
+
+    protected getShapeStyle<T extends { fill?: AgFillType }>(style: T, defaultColorRange: string[]): T;
+    protected getShapeStyle<T extends { fill?: AgFillType }>(
+        style: T | undefined,
+        defaultColorRange: string[]
+    ): T | undefined;
+    protected getShapeStyle<T extends { fill?: AgFillType }>(
+        style: T | undefined,
+        defaultColorRange: string[]
+    ): T | undefined {
+        if (!isGradientFill(style?.fill)) return style;
+        return {
+            ...style,
+            fill: this.getNodeFill(style.fill, defaultColorRange),
+        };
+    }
+
+    protected getShapeFillBBox(): ShapeFillBBox {
+        const { axes } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        const [axisX1, axisX2] = findMinMax(xAxis?.range ?? [0, 1]);
+        const [axisY1, axisY2] = findMinMax(yAxis?.range ?? [0, 1]);
+
+        const xSeriesDomain = this.getSeriesDomain(ChartAxisDirection.X);
+        const xSeriesRange = [xAxis?.scale.convert(xSeriesDomain.at(0)), xAxis?.scale.convert(xSeriesDomain.at(-1))];
+        const ySeriesDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const ySeriesRange = [yAxis?.scale.convert(ySeriesDomain.at(0)), yAxis?.scale.convert(ySeriesDomain.at(-1))];
+        const [seriesX1, seriesX2] = findMinMax(xSeriesRange);
+        const [seriesY1, seriesY2] = findMinMax(ySeriesRange);
+
+        return {
+            axis: new BBox(axisX1, axisY1, axisX2 - axisX1, axisY2 - axisY1),
+            series: new BBox(seriesX1, seriesY1, seriesX2 - seriesX1, seriesY2 - seriesY1),
+        };
+    }
 
     protected updateNodes(
         highlightedItems: TDatum[] | undefined,

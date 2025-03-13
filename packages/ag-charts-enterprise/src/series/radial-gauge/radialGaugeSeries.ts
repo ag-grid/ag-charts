@@ -405,7 +405,7 @@ export class RadialGaugeSeries
         return new ConicGradient(
             'oklch',
             stops,
-            toDegrees(conicAngle) - 90,
+            toDegrees(conicAngle) + 90,
             new BBox(centerX - radius, centerY - radius, 2 * radius, 2 * radius)
         );
     }

@@ -17,7 +17,10 @@ export const CANDLESTICK_SERIES_THEME: _ModuleSupport.SeriesModule<'candlestick'
                     ],
                 },
                 // @ts-expect-error undocumented option
-                defaultColorRange: { $palette: 'gradient' },
+                defaultColorRange: [
+                    { $mix: [{ $palette: 'up.fill' }, 'black', 0.15] },
+                    { $mix: [{ $palette: 'up.fill' }, 'white', 0.15] },
+                ],
             },
             down: {
                 fill: {
@@ -35,7 +38,10 @@ export const CANDLESTICK_SERIES_THEME: _ModuleSupport.SeriesModule<'candlestick'
                     ],
                 },
                 // @ts-expect-error undocumented option
-                defaultColorRange: { $palette: 'gradient' },
+                defaultColorRange: [
+                    { $mix: [{ $palette: 'down.fill' }, 'black', 0.15] },
+                    { $mix: [{ $palette: 'down.fill' }, 'white', 0.15] },
+                ],
             },
         },
         highlightStyle: {

@@ -39,6 +39,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
+import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
@@ -595,24 +596,25 @@ export class AreaSeries extends CartesianSeries<
             visible: visible || animationEnabled,
         });
 
-        const { fill: seriesFill } = this.properties;
+        const seriesFill = this.getNodeFill(this.properties.fill, this.properties.defaultColorRange);
 
-        if (isGradientFill(seriesFill)) {
-            seriesFill.bounds = !seriesFill.bounds || seriesFill.bounds == 'item' ? 'series' : 'axis';
-        }
-        const fillBBox = this.getFillBBox(seriesFill);
+        applyShapeStyle(
+            fill,
+            {
+                fill: seriesFill,
+                stroke: undefined,
+                fillOpacity: this.properties.fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
+            },
+            undefined,
+            this.getShapeFillBBox()
+        );
 
         fill.setProperties({
-            fillBBox,
-            stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            fill: this.properties.fill,
-            fillOpacity: this.properties.fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
-            defaultColorRange: this.properties.defaultColorRange,
         });
 
         updateClipPath(this, stroke);
@@ -688,8 +690,7 @@ export class AreaSeries extends CartesianSeries<
             strokeOpacity,
         });
 
-        const fillBBox = this.getFillBBox(marker.fill);
-        const { defaultColorRange } = marker;
+        const fillBBox = this.getShapeFillBBox();
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(
@@ -700,7 +701,6 @@ export class AreaSeries extends CartesianSeries<
                 datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
                 highlighted,
                 baseStyle,
-                defaultColorRange,
                 fillBBox,
                 { selected: datum.selected }
             );

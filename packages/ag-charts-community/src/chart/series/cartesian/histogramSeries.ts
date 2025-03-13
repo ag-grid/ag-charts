@@ -401,16 +401,19 @@ export class HistogramSeries extends CartesianSeries<
 
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return {
-            fill: highlightStyle?.fill ?? properties.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            cornerRadius: properties.cornerRadius,
-        };
+        return this.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? properties.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke ?? properties.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+                cornerRadius: properties.cornerRadius,
+            },
+            properties.defaultColorRange
+        );
     }
 
     protected override updateDatumNodes(opts: {
@@ -418,17 +421,17 @@ export class HistogramSeries extends CartesianSeries<
         isHighlight: boolean;
     }) {
         const { isHighlight: isDatumHighlighted } = opts;
-        const { shadow, defaultColorRange } = this.properties;
+        const { shadow } = this.properties;
 
         const style = this.getItemBaseStyle(isDatumHighlighted);
-        const fillBBox = this.getFillBBox(style.fill);
+        const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
             const { cornerRadius } = style;
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            applyShapeStyle(rect, { ...style, defaultColorRange }, undefined, fillBBox);
+            applyShapeStyle(rect, style, undefined, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;

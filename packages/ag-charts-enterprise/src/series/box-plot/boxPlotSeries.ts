@@ -1,4 +1,4 @@
-import { type AgBoxPlotSeriesStyle, type AgGradientFill, _ModuleSupport } from 'ag-charts-community';
+import { type AgBoxPlotSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type { DeepRequired } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
@@ -22,7 +22,6 @@ const {
     ChartAxisDirection,
     motion,
     isGradientFill,
-    BBox,
 } = _ModuleSupport;
 
 class BoxPlotSeriesNodeEvent<
@@ -396,25 +395,27 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return opts.datumSelection.update(data);
     }
 
-    private getItemBaseStyle(highlighted: boolean): Required<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle {
+    private getItemBaseStyle(highlighted: boolean): Required<AgBoxPlotSeriesStyle> {
         const { properties } = this;
         const { cornerRadius, cap, whisker, defaultColorRange } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
-        return {
-            fill: highlightStyle?.fill ?? properties.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            cornerRadius,
-            cap,
-            whisker,
-            defaultColorRange,
-        };
+        return this.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? properties.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke ?? properties.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
+                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+                cornerRadius,
+                cap,
+                whisker,
+            },
+            defaultColorRange
+        );
     }
 
     private getItemStyleOverrides(
@@ -425,11 +426,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     ) {
         const { id: seriesId, properties } = this;
 
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler } = properties;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, defaultColorRange, itemStyler } = properties;
 
         if (itemStyler == null) return;
 
-        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+        const overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
             return this.callWithContext(itemStyler, {
                 seriesId,
                 datum,
@@ -443,6 +444,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 ...format,
             });
         });
+
+        return this.getShapeStyle(overrides, defaultColorRange);
     }
 
     protected override updateDatumNodes({
@@ -454,11 +457,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
+        const { highlightStyle } = this.properties;
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted ? 'highlight' : 'node');
 
             if (highlighted) {
-                activeStyles = mergeDefaults(this.properties.highlightStyle.item, activeStyles);
+                activeStyles = mergeDefaults(highlightStyle.item, activeStyles);
             }
 
             const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = activeStyles;
@@ -471,45 +475,15 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset,
             });
 
-            const fillBBox = this.getFillBBox(this.properties.fill, nodeDatum);
+            const fillBBox = this.getShapeFillBBox();
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
-                activeStyles as DeepRequired<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle,
+                activeStyles as DeepRequired<AgBoxPlotSeriesStyle>,
                 isVertical,
                 isReversedValueAxis,
                 fillBBox
             );
         });
-    }
-
-    protected override getFillBBox(fill: AgGradientFill | string | undefined, boxPlotDatum?: BoxPlotNodeDatum) {
-        if (!isGradientFill(fill) || !boxPlotDatum) {
-            return;
-        }
-
-        const { bounds = 'item' } = fill;
-
-        if (bounds !== 'item') {
-            return super.getFillBBox(fill);
-        }
-
-        const isVertical = this.isVertical();
-        const isReversedValueAxis = this.getValueAxis()?.isReversed();
-
-        let { q1Value, q3Value } = boxPlotDatum.scaledValues;
-
-        if ((isVertical && !isReversedValueAxis) || (!isVertical && isReversedValueAxis)) {
-            [q3Value, q1Value] = [q1Value, q3Value];
-        }
-
-        const {
-            bandwidth,
-            scaledValues: { xValue: axisValue },
-        } = boxPlotDatum;
-
-        return isVertical
-            ? new BBox(axisValue, q1Value, bandwidth, q3Value - q1Value)
-            : new BBox(q1Value, axisValue, q3Value - q1Value, bandwidth);
     }
 
     protected updateLabelNodes() {
@@ -544,19 +518,21 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             fillOpacity = properties.fillOpacity;
         }
 
-        const activeStyles: Required<AgBoxPlotSeriesStyle> & _ModuleSupport.DefaultFillStyle = {
-            fill,
-            fillOpacity: fillOpacity!,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-            cap: extractDecoratedProperties(cap),
-            whisker: extractDecoratedProperties(whisker),
-            defaultColorRange,
-        };
+        let styles: Required<AgBoxPlotSeriesStyle> = this.getShapeStyle(
+            {
+                fill,
+                fillOpacity: fillOpacity!,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                cornerRadius,
+                cap: extractDecoratedProperties(cap),
+                whisker: extractDecoratedProperties(whisker),
+            },
+            defaultColorRange
+        );
 
         if (itemStyler) {
             const formatStyles = this.cachedDatumCallback(createDatumId(datum.index, scope), () =>
@@ -564,7 +540,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                     datum,
                     seriesId,
                     highlighted: scope === 'highlight',
-                    ...activeStyles,
+                    ...styles,
                     xKey,
                     minKey,
                     q1Key,
@@ -573,11 +549,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                     maxKey,
                 })
             );
+
             if (formatStyles) {
-                return mergeDefaults(formatStyles, activeStyles);
+                styles = this.getShapeStyle(mergeDefaults(formatStyles, styles), defaultColorRange);
             }
         }
-        return activeStyles;
+
+        return styles;
     }
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
