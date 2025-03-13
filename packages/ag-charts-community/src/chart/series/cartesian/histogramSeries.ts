@@ -528,13 +528,13 @@ export class HistogramSeries extends CartesianSeries<
             let label: string;
             switch (properties.aggregation) {
                 case 'sum':
-                    label = localeManager.t('seriesHistogramTooltipSum', { yName });
+                    label = localeManager.t('seriesHistogramTooltipSum', { yName: yName ?? yKey });
                     break;
                 case 'mean':
-                    label = localeManager.t('seriesHistogramTooltipMean', { yName });
+                    label = localeManager.t('seriesHistogramTooltipMean', { yName: yName ?? yKey });
                     break;
                 case 'count':
-                    label = localeManager.t('seriesHistogramTooltipCount', { yName });
+                    label = localeManager.t('seriesHistogramTooltipCount', { yName: yName ?? yKey });
                     break;
             }
 
