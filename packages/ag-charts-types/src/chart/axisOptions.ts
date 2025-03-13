@@ -15,6 +15,8 @@ export interface AgAxisCaptionFormatterParams {
     direction: 'x' | 'y';
     /** Metadata about series bound to the axis the title belongs to. */
     boundSeries: AgAxisBoundSeries[];
+    /** Computed domain of the axis */
+    domain: any[];
 }
 
 export interface AgAxisCaptionOptions {

@@ -361,7 +361,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const axisBoxes = [this.lineNode.getBBox(), new BBox(0, 0, separatorLayout[0].tickSize * sideFlag, 0)];
 
         if (title.enabled) {
-            this.updateTitle(false, separatorLayout[0].tickSize);
+            this.updateTitle(this.scale.domain, false, separatorLayout[0].tickSize);
             axisBoxes.push(title.caption.node.getBBox());
         }
 
@@ -417,7 +417,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.updateAxisLine();
         this.updateGridLines();
         this.updateTickLines();
-        this.updateTitle();
+        this.updateTitle(this.scale.domain);
 
         this.resetSelectionNodes();
     }

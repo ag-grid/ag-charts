@@ -32,7 +32,6 @@ import { findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, OBJECT, STRING_ARRAY, TempValidate } from '../../util/validation';
-import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -432,45 +431,6 @@ export abstract class Axis<
         return this.tick.enabled ? this.tick.size : 0;
     }
 
-    protected setTitleProps(caption: Caption, params: { spacing: number }) {
-        const { title } = this;
-
-        if (!title.enabled) {
-            caption.enabled = false;
-            caption.node.visible = false;
-            return;
-        }
-
-        caption.enabled = true;
-        caption.color = title.color;
-        caption.fontFamily = title.fontFamily;
-        caption.fontSize = title.fontSize;
-        caption.fontStyle = title.fontStyle;
-        caption.fontWeight = title.fontWeight;
-        caption.wrapping = title.wrapping;
-
-        const titleNode = caption.node;
-        const padding = (title.spacing ?? 0) + params.spacing;
-        const sideFlag = this.label.getSideFlag();
-
-        const parallelFlipRotation = normalizeAngle360(this.rotation);
-        const titleRotationFlag =
-            sideFlag === -1 && parallelFlipRotation > Math.PI && parallelFlipRotation < Math.PI * 2 ? -1 : 1;
-        const rotation = (titleRotationFlag * sideFlag * Math.PI) / 2;
-        const textBaseline = titleRotationFlag === 1 ? 'bottom' : 'top';
-
-        const { range } = this;
-        const x = Math.floor((titleRotationFlag * sideFlag * (range[0] + range[1])) / 2);
-        const y = sideFlag === -1 ? Math.floor(titleRotationFlag * -padding) : Math.floor(-padding);
-
-        const { callbackCache } = this.moduleCtx;
-        const { formatter = (p) => p.defaultValue } = title;
-        const text = callbackCache.call(this, formatter, this.getTitleFormatterParams());
-        caption.text = text;
-
-        titleNode.setProperties({ visible: true, text, textBaseline, x, y, rotation });
-    }
-
     processData() {
         const { includeInvisibleDomains, boundSeries, direction } = this;
         const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.isEnabled());
@@ -716,8 +676,9 @@ export abstract class Axis<
 
         let result: string | undefined;
         if (formatter) {
+            const { domain } = this.scale;
             const boundSeries = this.getFormatterBoundSeries();
-            result = callbackCache.call(this, formatter, { value: value, index: NaN, domain: [], boundSeries });
+            result = callbackCache.call(this, formatter, { value: value, index: NaN, domain, boundSeries });
         } else if (valueFormatter) {
             result = callbackCache.call(this, valueFormatter, value);
         } else if (isArray(value)) {
@@ -778,10 +739,10 @@ export abstract class Axis<
         return boundSeries;
     }
 
-    protected getTitleFormatterParams() {
+    protected getTitleFormatterParams(domain: D[]) {
         const { direction } = this;
         const boundSeries = this.getFormatterBoundSeries();
-        return { direction, boundSeries, defaultValue: this.title?.text };
+        return { domain, direction, boundSeries, defaultValue: this.title?.text };
     }
 
     protected normaliseDataDomain(d: D[]): { domain: D[]; clipped: boolean } {
