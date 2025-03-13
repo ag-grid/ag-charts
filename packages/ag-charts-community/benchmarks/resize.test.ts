@@ -4,10 +4,6 @@ import { AgCartesianChartOptions } from '../src/main';
 import { benchmark, setupBenchmark } from './benchmark';
 import { isAtOrAfterVersion } from './compatibility';
 
-const EXPECTATIONS = {
-    expectedMaxMemoryMB: 170,
-};
-
 describe('resize benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('resize');
 
