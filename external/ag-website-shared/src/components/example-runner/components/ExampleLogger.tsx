@@ -1,4 +1,4 @@
-import { type FunctionComponent, useEffect, useState } from 'react';
+import { type FunctionComponent, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import styles from './ExampleLogger.module.scss';
 
@@ -21,6 +21,7 @@ function containsIgnoredMessage(log: Log) {
 }
 
 export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSize = 10 }) => {
+    const containerRef = useRef<HTMLPreElement>(null);
     const [logs, setLogs] = useState<Log[]>([]);
 
     useEffect(() => {
@@ -28,7 +29,9 @@ export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSiz
             const log = event.data;
             if (log?.type === 'console-log' && log.exampleName === exampleName && !containsIgnoredMessage(log)) {
                 setLogs((prevLogs) => {
-                    return [log, ...prevLogs].slice(0, bufferSize);
+                    const bufferedLogs = prevLogs.length >= bufferSize ? prevLogs.slice(1) : prevLogs;
+
+                    return [...bufferedLogs, log];
                 });
             }
         };
@@ -40,8 +43,13 @@ export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSiz
         };
     }, []);
 
+    useLayoutEffect(() => {
+        // Scroll to the bottom of the logs, when new logs are added
+        containerRef.current!.scrollTo({ top: containerRef.current!.scrollHeight });
+    }, [logs]);
+
     return (
-        <pre className={styles.logger}>
+        <pre ref={containerRef} className={styles.logger}>
             {logs.length === 0 && <div className={styles.noLogs}>Console logs from the example shown here...</div>}
             {logs.map((log, i) => (
                 <div key={i}>{log.data}</div>
