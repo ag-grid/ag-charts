@@ -101,7 +101,7 @@ enum GroupingType {
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     public static readonly OPTIONS_CLONE_OPTS: CloneOptions = {
         shallow: new Set(['data', 'container']),
-        assign: new Set(['context']),
+        assign: new Set(['context', 'theme']),
     };
     public static readonly JSON_DIFF_OPTS = new Set<any>(['data']);
 
@@ -564,7 +564,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private resolveThemeOperations(params: WithThemeParams<AgChartThemeParams>, options: object) {
-        const modifiedPaths = jsonResolveOperations(options, params, new Set(['palette', 'data']));
+        const modifiedPaths = jsonResolveOperations(options, params, new Set(['palette', 'data', 'theme']));
         ChartOptions.debug('ChartOptions.resolveTheme()', modifiedPaths);
     }
 
