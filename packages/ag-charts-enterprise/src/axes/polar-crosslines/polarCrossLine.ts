@@ -1,4 +1,4 @@
-import type { AgBaseCrossLineLabelOptions, AgFillType, FontStyle, FontWeight } from 'ag-charts-community';
+import type { AgBaseCrossLineLabelOptions, FontStyle, FontWeight } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 const {
@@ -17,7 +17,6 @@ const {
     STRING,
     UNION,
     AND,
-    OR,
     COLOR_STRING_ARRAY,
     TempValidate,
     MATCHING_CROSSLINE_TYPE,

@@ -1,4 +1,3 @@
-import type { AgFillType } from '../series/cartesian/commonOptions';
 import type { AxisValue, CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
 
 export interface AgCrossLineThemeOptions extends Omit<AgBaseCrossLineOptions, 'type'> {}

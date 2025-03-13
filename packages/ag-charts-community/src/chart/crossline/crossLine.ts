@@ -1,5 +1,5 @@
 import { isArray } from 'ag-charts-core';
-import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition, AgFillType } from 'ag-charts-types';
+import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';

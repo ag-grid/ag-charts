@@ -1,7 +1,6 @@
 import type {
     AgCartesianCrossLineLabelOptions,
     AgCrossLineLabelPosition,
-    AgFillType,
     FontStyle,
     FontWeight,
 } from 'ag-charts-types';
