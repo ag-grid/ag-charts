@@ -821,7 +821,7 @@ export abstract class Series<
     }
 
     public getMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams>,
+        marker: ISeriesMarker<TParams> & { defaultColorRange: string[] },
         datum: any,
         params: TParams,
         highlighted = false,
@@ -853,7 +853,7 @@ export abstract class Series<
     }
 
     protected updateMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams>,
+        marker: ISeriesMarker<TParams> & { defaultColorRange: string[] },
         markerNode: Marker,
         datum: any,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
