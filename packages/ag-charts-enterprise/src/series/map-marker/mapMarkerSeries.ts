@@ -103,7 +103,7 @@ export class MapMarkerSeries
             gradient: 'radial',
             bounds: 'item',
             rotation: 0,
-            colorStops: this.properties.defaultColorRange.reverse(),
+            colorStops: this.properties.defaultColorRange.toReversed(),
         };
     }
 
