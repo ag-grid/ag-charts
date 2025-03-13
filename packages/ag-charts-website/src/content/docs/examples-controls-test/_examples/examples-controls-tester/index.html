@@ -1,1 +1,96 @@
+<!-- Example controls style guide styling -->
+<!-- Will not be included in docs examples -->
+<style>
+    .style-guide.toolbar {
+        display: block;
+    }
+
+    .style-guide-item {
+        margin-bottom: 24px;
+
+        > code:first-child {
+            display: block;
+            color: #f09;
+            margin-bottom: 8px;
+        }
+    }
+</style>
+
+<div class="style-guide toolbar">
+    <div class="style-guide-item">
+        <code>&lt;p&gt;</code>
+        <p>I'm a paragraph.</p>
+        <p>I'm a paragraph with <code>some code</code></p>
+    </div>
+
+    <div class="style-guide-item">
+        <code>&lt;label&gt;</code>
+        <label>I'm a label</label>
+    </div>
+
+    <div class="style-guide-item">
+        <code>&lt;pre&gt;</code>
+        <pre>I'm a pre</pre>
+    </div>
+
+    <div class="style-guide-item">
+        <code>&lt;button&gt;</code>
+        <button>I'm a button</button>
+        <button>I'm a button with <code>`some code`</code></button>
+    </div>
+
+    <div class="style-guide-item">
+        <code>&lt;input type=&quot;submit&quot; /&gt;</code>
+        <input type="submit" value="I'm a `submit` input" />
+    </div>
+
+    <div class="style-guide-item">
+        <code>&lt;input type=&quot;text&quot; /&gt;</code>
+        <input type="text" placeholder="I'm a text input" />
+    </div>
+
+    <div class="style-guide-item">
+        <code>&lt;input type=&quot;checkbox&quot; /&gt;</code>
+        <input type="checkbox" id="checked-c" name="checked" checked />
+        <label for="checked-c">I'm a checked checkbox with label</label>
+        <input type="checkbox" id="unchecked-c" name="unchecked" />
+        <label for="unchecked-c">I'm an unchecked checkbox with label</label>
+    </div>
+
+    <div class="style-guide-item">
+        <code>&lt;input type=&quot;radio&quot; /&gt;</code>
+        <input type="radio" id="checked-r" name="radio" checked />
+        <label for="checked-r">I'm a checked radio button with label</label>
+        <input type="radio" id="unchecked-r" name="radio" />
+        <label for="unchecked-r">I'm an unchecked radio button with label</label>
+    </div>
+
+    <div class="style-guide-item">
+        <code>&lt;input type=&quot;number&quot; /&gt;</code>
+        <input type="number" id="number" value="999" />
+        <label for="number">I'm a number input with label</label>
+    </div>
+
+    <div class="style-guide-item">
+        <code>&lt;input type=&quot;range&quot; /&gt;</code>
+        <input type="range" min="0" max="10" step="1" value="5" />
+        <label for="number">I'm a range input (slider) with label</label>
+    </div>
+
+    <div class="style-guide-item">
+        <code>&lt;textarea&gt;</code>
+        <textarea placeholder="I'm a textarea"></textarea>
+    </div>
+
+    <div class="style-guide-item">
+        <code>&lt;select&gt;</code>
+        <label for="select">I'm a select with a label</label>
+        <select name="select" id="select">
+            <option value="Alpha">Alpha</option>
+            <option value="Beta">Beta</option>
+            <option value="Gamma">Alpha</option>
+        </select>
+    </div>
+</div>
+
 <div id="myChart"></div>
