@@ -4,4 +4,5 @@ export interface ExampleOptions {
     showCode: boolean;
     noPlunker: boolean;
     noCodeSandbox: boolean;
+    consoleBufferSize: number;
 }

@@ -8,13 +8,15 @@ import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-pa
 import type { GeneratedContents, InternalFramework, Layout } from './types';
 import {
     getEntryFileName,
+    getHasExampleConsoleLog,
     getHasLocale,
     getIsEnterprise,
     getProvidedExampleFiles,
     getProvidedExampleFolder,
     getTransformTsFileExt,
 } from './utils/fileUtils';
-import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
+import { type TransformEntryFile, frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
+import { getConsoleLogSnippet } from './utils/getConsoleLogSnippet';
 import { getDarkModeSnippet } from './utils/getDarkModeSnippet';
 import { getExampleConfig } from './utils/getExampleConfig';
 import { getHtmlFiles } from './utils/getHtmlFiles';
@@ -88,6 +90,10 @@ type GeneratedContentParams = {
 export const getGeneratedContents = async (params: GeneratedContentParams): Promise<GeneratedContents | undefined> => {
     const { internalFramework, folderPath, ignoreDarkMode, isDev } = params;
     let { extractOptions = false } = params;
+    const folders = folderPath.split('/');
+    const pageName = folders[folders.length - 3];
+    const exampleName = folders[folders.length - 1];
+
     const sourceFileList = await fs.readdir(folderPath);
 
     if (!sourceFileList.includes(SOURCE_ENTRY_FILE_NAME)) {
@@ -124,6 +130,20 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         layout = 'none';
     }
 
+    const transformEntryFile: TransformEntryFile = ({ entryFile, chartAPI }) => {
+        let transformedEntryFile = entryFile;
+        // Add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
+        if (!ignoreDarkMode) {
+            transformedEntryFile = transformedEntryFile + '\n' + getDarkModeSnippet({ chartAPI });
+        }
+
+        if (hasExampleConsoleLog) {
+            transformedEntryFile = transformedEntryFile + '\n' + getConsoleLogSnippet({ pageName, exampleName });
+        }
+
+        return transformedEntryFile;
+    };
+
     const otherScriptFiles = await getOtherScriptFiles({
         folderPath,
         sourceFileList,
@@ -136,13 +156,14 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         folderPath,
         internalFramework,
     });
+    const hasExampleConsoleLog = getHasExampleConsoleLog({ entryFile });
     const mainEntryFilename = getEntryFileName(internalFramework);
     const providedExampleEntries = await Promise.all(
         providedExampleFileNames.map(async (fileName) => {
             let contents = (await fs.readFile(path.join(providedExampleBasePath, fileName))).toString('utf-8');
 
-            if (fileName === mainEntryFilename && !ignoreDarkMode) {
-                contents = contents + '\n' + getDarkModeSnippet();
+            if (fileName === mainEntryFilename) {
+                contents = transformEntryFile({ entryFile: contents });
             }
 
             return [fileName, contents];
@@ -183,7 +204,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         bindings,
         typedBindings,
         otherScriptFiles,
-        ignoreDarkMode,
+        transformEntryFile,
         isDev,
     });
 
@@ -207,6 +228,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         isEnterprise,
         layout,
         hasLocale,
+        hasExampleConsoleLog,
         exampleConfig,
         scriptFiles,
         styleFiles: Object.keys(styleFiles),

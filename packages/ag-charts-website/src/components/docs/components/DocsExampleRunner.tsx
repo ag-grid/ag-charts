@@ -26,6 +26,7 @@ interface Props {
     internalFrameworkOverride?: InternalFramework;
     hideCode?: boolean;
     hideExternalLinks?: boolean;
+    hasExampleConsoleLog?: boolean;
 }
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
@@ -48,6 +49,7 @@ const DocsExampleRunnerInner = ({
     internalFrameworkOverride,
     hideCode,
     hideExternalLinks,
+    hasExampleConsoleLog,
 }: Props) => {
     const storeInternalFramework = useStore($internalFramework);
     const internalFramework = internalFrameworkOverride ?? storeInternalFramework;
@@ -171,6 +173,7 @@ const DocsExampleRunnerInner = ({
         <ExampleRunner
             id={id}
             title={title}
+            exampleName={exampleName}
             exampleUrl={exampleUrl}
             exampleRunnerExampleUrl={exampleRunnerExampleUrl}
             exampleType={exampleType}
@@ -184,6 +187,8 @@ const DocsExampleRunnerInner = ({
             loadingIFrameId={loadingIFrameId}
             hideCode={hideCode}
             hideExternalLinks={hideExternalLinks}
+            hasExampleConsoleLog={hasExampleConsoleLog}
+            consoleBufferSize={options?.consoleBufferSize}
         />
     );
 };

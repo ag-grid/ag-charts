@@ -1,7 +1,5 @@
 import { AgChartLegendClickEvent, AgCharts, AgPolarChartOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
 
-import './alert';
-
 let counter = 1;
 
 let options: AgPolarChartOptions = {
@@ -29,7 +27,7 @@ let options: AgPolarChartOptions = {
     },
     listeners: {
         seriesVisibilityChange: ({ seriesId, itemId, legendItemName, visible }: AgSeriesVisibilityChange) => {
-            window.alert(
+            console.log(
                 `seriesId: ${seriesId}, itemId: ${itemId}, legendItemName: ${legendItemName}, visible: ${visible}`
             );
         },

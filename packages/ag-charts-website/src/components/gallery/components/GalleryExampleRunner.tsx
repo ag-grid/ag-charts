@@ -152,6 +152,7 @@ const GalleryExampleRunnerInner = ({
         <ExampleRunner
             id={id}
             title={title}
+            exampleName={exampleName}
             exampleUrl={exampleUrl}
             exampleRunnerExampleUrl={exampleRunnerExampleUrl}
             exampleType={exampleType}

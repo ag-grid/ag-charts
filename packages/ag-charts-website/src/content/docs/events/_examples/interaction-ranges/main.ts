@@ -1,7 +1,5 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
-import './alert';
-
 let options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [
@@ -32,7 +30,7 @@ let options: AgCartesianChartOptions = {
             yKey: 'petrol',
             nodeClickRange: 'exact',
             listeners: {
-                nodeClick: (event) => window.alert(`${event.yKey} - ${event.datum.petrol}`),
+                nodeClick: (event) => console.log(`${event.yKey} - ${event.datum.petrol}`),
             },
         },
         {
@@ -40,7 +38,7 @@ let options: AgCartesianChartOptions = {
             yKey: 'diesel',
             nodeClickRange: 'exact',
             listeners: {
-                nodeClick: (event) => window.alert(`${event.yKey} - ${event.datum.diesel}`),
+                nodeClick: (event) => console.log(`${event.yKey} - ${event.datum.diesel}`),
             },
         },
     ],

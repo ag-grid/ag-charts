@@ -1,4 +1,5 @@
 import type { InternalFramework } from '@ag-grid-types';
+import { ExampleLogger } from '@ag-website-shared/components/example-runner/components/ExampleLogger';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { OpenInCTA } from '@ag-website-shared/components/open-in-cta/OpenInCTA';
 import type { ExampleType, FileContents } from '@components/example-generator/types';
@@ -14,6 +15,7 @@ import chartsStyles from './LegacyExampleRunner.module.scss';
 interface Props {
     id: string;
     title: string;
+    exampleName: string;
     exampleUrl?: string;
     exampleRunnerExampleUrl?: string;
     exampleType?: ExampleType;
@@ -28,6 +30,8 @@ interface Props {
     internalFramework: InternalFramework;
     hideInternalFrameworkSelection?: boolean;
     loadingIFrameId: string;
+    hasExampleConsoleLog?: boolean;
+    consoleBufferSize?: number;
     footerChildren?: ReactElement;
 }
 
@@ -36,6 +40,7 @@ const MIN_HEIGHT = 320;
 export const ExampleRunner: FunctionComponent<Props> = ({
     id,
     title,
+    exampleName,
     exampleUrl,
     exampleRunnerExampleUrl,
     exampleType,
@@ -49,6 +54,8 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     internalFramework,
     hideInternalFrameworkSelection,
     loadingIFrameId,
+    hasExampleConsoleLog,
+    consoleBufferSize,
     footerChildren,
 }) => {
     const [showCode, setShowCode] = useState(initialShowCode);
@@ -58,7 +65,9 @@ export const ExampleRunner: FunctionComponent<Props> = ({
         <div id={id} className={styles.exampleOuter}>
             <div className={styles.tabsContainer}>
                 <div
-                    className={classnames(chartsStyles.content, styles.content)}
+                    className={classnames(chartsStyles.content, styles.content, {
+                        [styles.hasExampleConsoleLog]: hasExampleConsoleLog,
+                    })}
                     role="tabpanel"
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
                     style={{ height: Math.max(exampleHeight, MIN_HEIGHT) }}
@@ -81,6 +90,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                         />
                     )}
                 </div>
+                {hasExampleConsoleLog && <ExampleLogger exampleName={exampleName} bufferSize={consoleBufferSize} />}
                 {hideFooter && (
                     <footer className={styles.footer}>
                         {!hideCode && (

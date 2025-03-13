@@ -1,7 +1,5 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-import './alert';
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -23,7 +21,7 @@ const options: AgChartOptions = {
             listeners: {
                 nodeDoubleClick: (event: any) => {
                     var datum = event.datum;
-                    window.alert(
+                    console.log(
                         'Cars sold in ' +
                             datum[event.xKey] +
                             ': ' +

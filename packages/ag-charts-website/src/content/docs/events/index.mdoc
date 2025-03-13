@@ -51,7 +51,7 @@ This event contains:
 ```js
 listeners: {
     seriesVisibilityChange: ({ seriesId, visible }: AgSeriesVisibilityChange) => {
-        window.alert(`seriesId: ${seriesId}, visible: ${visible}`);
+        console.log(`seriesId: ${seriesId}, visible: ${visible}`);
     },
 }
 ```
@@ -123,7 +123,7 @@ These events contain:
 legend: {
     listeners: {
         legendItemClick: ({ seriesId, itemId, enabled }: AgChartLegendClickEvent) => {
-            window.alert(`seriesId: ${seriesId}, itemId: ${itemId}`);
+            console.log(`seriesId: ${seriesId}, itemId: ${itemId}`);
         },
     },
 }
