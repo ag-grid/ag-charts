@@ -206,6 +206,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     public postRenderUpdate() {
         if (this.mode === 'minimal') return;
+        if (this.pendingContainer == null || this.pendingContainer === this.container) return;
 
         if (DOMManager.batchedUpdateContainer.length === 0) {
             getWindow().setTimeout(this.applyBatchedUpdateContainer.bind(this), 0);
