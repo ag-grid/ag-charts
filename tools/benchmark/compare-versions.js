@@ -74,6 +74,20 @@ if (compareData == null) {
     process.exit(1);
 }
 
+function timeFormat(timeMs) {
+    if (Math.abs(timeMs) > 10) {
+        return Math.floor(timeMs);
+    } else if (Math.abs(timeMs) > 1) {
+        return Math.floor(timeMs * 10) / 10;
+    } else if (Math.abs(timeMs) > 0.1) {
+        return Math.floor(timeMs * 100) / 100;
+    } else if (Math.abs(timeMs) > 0.01) {
+        return Math.floor(timeMs * 1000) / 1000;
+    }
+
+    return timeMs;
+}
+
 console.log(`Comparing ${argv.base} (baseline) vs. ${argv.compare}`);
 const result = [];
 for (const test of Object.keys(baseData.results)) {
@@ -88,8 +102,10 @@ for (const test of Object.keys(baseData.results)) {
         pctMemoryChange: Math.round(((compare.memoryUsage - base.memoryUsage) / base.memoryUsage) * 1000) / 10,
         base,
         compare,
-        memoryUsageMB: Math.floor(compare.memoryUsage / 1024 ** 2),
-        timeMs: Math.floor(compare.timeMs),
+        beforeMB: Math.floor(base.memoryUsage / 1024 ** 2),
+        afterMB: Math.floor(compare.memoryUsage / 1024 ** 2),
+        beforeMs: timeFormat(base.timeMs),
+        afterMs: timeFormat(compare.timeMs),
     });
 }
 
@@ -97,11 +113,11 @@ const rankedByTime = result.toSorted((a, b) => a.pctTimeChange - b.pctTimeChange
 const rankedByMemory = result.toSorted((a, b) => a.pctMemoryChange - b.pctMemoryChange);
 
 console.log('Top 5 by time');
-console.table(rankedByTime.slice(0, 5), ['test', 'pctTimeChange', 'timeMs']);
+console.table(rankedByTime.slice(0, 5), ['test', 'pctTimeChange', 'beforeMs', 'afterMs']);
 console.log('Bottom 5 by time');
-console.table(rankedByTime.slice(-5), ['test', 'pctTimeChange', 'timeMs']);
+console.table(rankedByTime.slice(-5), ['test', 'pctTimeChange', 'beforeMs', 'afterMs']);
 
 console.log('Top 5 by memory');
-console.table(rankedByMemory.slice(0, 5), ['test', 'pctMemoryChange', 'memoryUsageMB']);
+console.table(rankedByMemory.slice(0, 5), ['test', 'pctMemoryChange', 'beforeMB', 'afterMB']);
 console.log('Bottom 5 by memory');
-console.table(rankedByMemory.slice(-5), ['test', 'pctMemoryChange', 'memoryUsageMB']);
+console.table(rankedByMemory.slice(-5), ['test', 'pctMemoryChange', 'beforeMB', 'afterMB']);
