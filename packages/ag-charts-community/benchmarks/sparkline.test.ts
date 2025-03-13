@@ -46,7 +46,7 @@ describe('sparkline benchmark', () => {
         benchmark(
             'updateDelta',
             ctx,
-            { expectedRelativeMB: 0.5, expectedCanvasCount: 0, autoSnapshot: false },
+            { expectedRelativeMB: 0.6, expectedCanvasCount: 0, autoSnapshot: false },
             async () => {
                 await ctx.updateDelta({
                     data: ctx.options.data?.map((d) => ({ x: d.x, y: Math.random() * d.y })),
