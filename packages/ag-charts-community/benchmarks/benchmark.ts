@@ -80,7 +80,7 @@ export function benchmark(
     ctx: BenchmarkContext,
     expectations: BenchmarkExpectations,
     callback: () => Promise<void>,
-    timeoutMs = 10000
+    timeoutMs = 10_000
 ) {
     if (!global.gc) {
         throw new Error('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');

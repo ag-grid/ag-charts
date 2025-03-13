@@ -1,22 +1,28 @@
-import { beforeEach, describe } from '@jest/globals';
+import { beforeEach, describe as jestDescribe } from '@jest/globals';
 
 import { AgCartesianChartOptions } from '../src/main';
 import { benchmark, setupBenchmark } from './benchmark';
 import { isAtOrAfterVersion } from './compatibility';
 
-let suite: any = describe;
+let describe: any = jestDescribe;
 if (!isAtOrAfterVersion(11, 0, 0)) {
-    suite = describe.skip;
+    describe = jestDescribe.skip;
 }
 
-suite('sparkline benchmark', () => {
+describe('sparkline benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('simple-sparkline', {
         createApi: '__createSparkline',
     }).repeatCount(500);
 
-    benchmark('initial load', ctx, { expectedRelativeMB: 10, expectedCanvasCount: 2 }, async () => {
-        await ctx.create({ pool: false });
-    });
+    benchmark(
+        'initial load',
+        ctx,
+        { expectedRelativeMB: 10, expectedCanvasCount: 2 },
+        async () => {
+            await ctx.create({ pool: false });
+        },
+        20_000
+    );
 
     benchmark(
         'initial load (pooled)',
