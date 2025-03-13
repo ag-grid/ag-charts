@@ -14,6 +14,12 @@ interface Props {
     bufferSize?: number;
 }
 
+const IGNORED_MESSAGES = ['Angular is running in development mode.'];
+
+function containsIgnoredMessage(log: Log) {
+    return log.data.some((message) => IGNORED_MESSAGES.some((ignoredMessage) => message.includes(ignoredMessage)));
+}
+
 export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSize = 10 }) => {
     const [logs, setLogs] = useState<Log[]>([
         { type: 'console-log', exampleName, data: ['Console logs from the example shown here...'] },
@@ -21,9 +27,10 @@ export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSiz
 
     useEffect(() => {
         const updateLogs = (event: MessageEvent) => {
-            if (event.data?.type === 'console-log' && event.data.exampleName === exampleName) {
+            const log = event.data;
+            if (log?.type === 'console-log' && log.exampleName === exampleName && !containsIgnoredMessage(log)) {
                 setLogs((prevLogs) => {
-                    return [event.data, ...prevLogs].slice(0, bufferSize);
+                    return [log, ...prevLogs].slice(0, bufferSize);
                 });
             }
         };
