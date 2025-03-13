@@ -467,15 +467,17 @@ export class MapShapeSeries
         highlighted: boolean
     ) {
         const { id: seriesId, properties, colorScale } = this;
-        const { colorRange, itemStyler } = properties;
+        const { colorRange, itemStyler, defaultColorRange } = properties;
 
         let overrides: Partial<ItemStyle> | undefined;
 
+        overrides ??= {};
         if (!highlighted && colorValue != null) {
-            overrides ??= {};
             overrides.fill = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? properties.fill;
+        } else {
+            overrides.fill = this.getNodeFill(format.fill, defaultColorRange);
         }
 
         if (itemStyler != null) {

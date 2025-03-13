@@ -1,4 +1,4 @@
-import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgFillType, type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 import { extendBbox } from '../map-util/bboxUtil';
@@ -30,6 +30,7 @@ const {
     Text,
     Marker,
     applyShapeStyle,
+    isGradientFill,
 } = _ModuleSupport;
 
 interface MapMarkerNodeDataContext
@@ -581,19 +582,20 @@ export class MapMarkerSeries
         highlighted: boolean
     ) {
         const { id: seriesId, properties, colorScale, sizeScale } = this;
-        const { colorRange, itemStyler } = properties;
+        const { colorRange, itemStyler, defaultColorRange } = properties;
 
         let overrides: Partial<ItemStyle> | undefined;
 
+        overrides ??= {};
         if (!highlighted && colorValue != null) {
-            overrides ??= {};
             overrides.fill = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? properties.fill;
+        } else {
+            overrides.fill = this.getNodeFill(format.fill, defaultColorRange);
         }
 
         if (sizeValue != null) {
-            overrides ??= {};
             overrides.size = sizeScale.convert(sizeValue, true);
         }
 
@@ -616,6 +618,18 @@ export class MapMarkerSeries
         }
 
         return overrides;
+    }
+
+    protected override getNodeFill(fill: AgFillType, defaultColorRange: string[]): Required<AgFillType> {
+        if (!isGradientFill(fill)) return fill;
+
+        return {
+            type: 'gradient',
+            gradient: fill.gradient ?? 'radial',
+            bounds: fill.bounds ?? 'item',
+            colorStops: fill.colorStops ?? defaultColorRange.map((color) => ({ color })).reverse(),
+            rotation: fill.rotation ?? 0,
+        };
     }
 
     private updateMarkerNodes(opts: {
