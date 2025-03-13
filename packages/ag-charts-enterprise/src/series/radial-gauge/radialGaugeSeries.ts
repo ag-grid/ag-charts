@@ -251,6 +251,8 @@ export class RadialGaugeSeries
 
         this.scaleGroup.pointerEvents = PointerEvents.None;
         this.tickGroup.pointerEvents = PointerEvents.None;
+        this.itemNeedleGroup.pointerEvents = PointerEvents.None;
+        this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
 
     override get hasData(): boolean {
