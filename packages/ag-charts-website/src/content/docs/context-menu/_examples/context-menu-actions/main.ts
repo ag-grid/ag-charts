@@ -1,7 +1,5 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import './alert';
-
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -12,7 +10,7 @@ const options: AgCartesianChartOptions = {
             {
                 label: 'Say hello',
                 action: () => {
-                    window.alert('Hello world!');
+                    console.log('Hello world!');
                 },
             },
         ],
@@ -20,7 +18,7 @@ const options: AgCartesianChartOptions = {
             {
                 label: 'Say hello in the series area',
                 action: () => {
-                    window.alert('Hello in the series area!');
+                    console.log('Hello in the series area!');
                 },
             },
         ],
@@ -28,7 +26,7 @@ const options: AgCartesianChartOptions = {
             {
                 label: 'Say hello to a node',
                 action: ({ datum, yKey }) => {
-                    window.alert(`Hello ${yKey} in ${datum.month}!`);
+                    console.log(`Hello ${yKey} in ${datum.month}!`);
                 },
             },
         ],
@@ -36,7 +34,7 @@ const options: AgCartesianChartOptions = {
             {
                 label: 'Say hello to a legend item',
                 action: ({ itemId }) => {
-                    window.alert(`Hello ${itemId}!`);
+                    console.log(`Hello ${itemId}!`);
                 },
             },
         ],

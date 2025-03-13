@@ -29,7 +29,7 @@ function renderer(params: AgBarSeriesTooltipRendererParams) {
             ${params.datum[params.xKey]}: ${params.datum[params.yKey]}
         </div>
         <div class="tooltip-body">
-            <a href="#" onclick="window.alert('Clicked within a tooltip')">Click here</a>
+            <a href="#" onclick="console.log('Clicked within a tooltip')">Click here</a>
         </div>
     </div>`;
 }

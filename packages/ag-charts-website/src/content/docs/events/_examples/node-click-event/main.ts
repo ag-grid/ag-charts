@@ -1,7 +1,5 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-import './alert';
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -21,8 +19,8 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'units',
             listeners: {
-                nodeClick: (event: any) => window.alert(makeMessage('[click]', event, event.datum)),
-                nodeDoubleClick: (event: any) => window.alert(makeMessage('[double click]', event, event.datum)),
+                nodeClick: (event: any) => console.log(makeMessage('[click]', event, event.datum)),
+                nodeDoubleClick: (event: any) => console.log(makeMessage('[double click]', event, event.datum)),
             },
         },
     ],

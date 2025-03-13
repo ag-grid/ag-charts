@@ -6,7 +6,6 @@ import {
     AgTooltipRendererResult,
 } from 'ag-charts-community';
 
-import './alert';
 import { getData } from './data';
 
 const customTooltipRenderer = (params: AgLineSeriesTooltipRendererParams<any>): AgTooltipRendererResult => {
@@ -283,16 +282,16 @@ const options: AgCartesianChartOptions = {
     ],
     listeners: {
         click: (_event) => {
-            alert('Chart Clicked');
+            console.log('Chart Clicked');
         },
         doubleClick: (_event) => {
-            alert('Chart Double Clicked');
+            console.log('Chart Double Clicked');
         },
         seriesNodeClick: ({}) => {
-            alert(`Node Clicked`);
+            console.log(`Node Clicked`);
         },
         seriesVisibilityChange: ({ visible }: AgSeriesVisibilityChange) => {
-            alert(`Series Visible: ${visible}`);
+            console.log(`Series Visible: ${visible}`);
         },
     },
     axes: [

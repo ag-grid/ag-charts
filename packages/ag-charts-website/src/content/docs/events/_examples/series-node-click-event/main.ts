@@ -1,7 +1,5 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-import './alert';
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -42,12 +40,12 @@ const options: AgChartOptions = {
     },
     listeners: {
         seriesNodeClick: ({ datum, xKey, yKey, seriesId }) => {
-            window.alert(`[click]\nTemperature in ${datum[xKey!]}: ${String(datum[yKey!])}°C\nSeries: ${seriesId}`);
+            console.log(`[click]\nTemperature in ${datum[xKey!]}: ${String(datum[yKey!])}°C\nSeries: ${seriesId}`);
         },
         seriesNodeDoubleClick: ({ datum, xKey, yKey, seriesId }) => {
             const celsius = Number(datum[yKey!]);
             const fahrenheit = (celsius * 9) / 5 + 32;
-            window.alert(
+            console.log(
                 `[double click]\nTemperature in ${datum[xKey!]}: ${fahrenheit.toFixed(2)}°F\nSeries: ${seriesId}`
             );
         },
