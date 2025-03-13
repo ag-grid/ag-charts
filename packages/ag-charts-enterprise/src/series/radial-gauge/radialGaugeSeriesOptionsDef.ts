@@ -1,6 +1,7 @@
 import { type AgRadialGaugePreset, type AgRadialGaugeTarget, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    and,
     arrayOf,
     arrayOfDefs,
     boolean,
@@ -8,6 +9,8 @@ import {
     constant,
     fillOptionsDef,
     fontOptionsDef,
+    greaterThan,
+    lessThan,
     lineDashOptionsDef,
     number,
     or,
@@ -42,8 +45,8 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
     cornerMode: union('container', 'item'),
     cornerRadius: positiveNumber,
     scale: {
-        min: number,
-        max: number,
+        min: and(number, lessThan('max')),
+        max: and(number, greaterThan('min')),
         label: {
             enabled: boolean,
             formatter: callback,

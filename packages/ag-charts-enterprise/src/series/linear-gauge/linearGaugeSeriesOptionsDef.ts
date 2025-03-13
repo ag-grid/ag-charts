@@ -18,6 +18,8 @@ import {
     constant,
     fillOptionsDef,
     fontOptionsDef,
+    greaterThan,
+    lessThan,
     lineDashOptionsDef,
     number,
     or,
@@ -49,8 +51,8 @@ export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
     cornerRadius: positiveNumber,
     thickness: positiveNumber,
     scale: {
-        min: number,
-        max: number,
+        min: and(number, lessThan('max')),
+        max: and(number, greaterThan('min')),
         label: {
             enabled: boolean,
             formatter: callback,
