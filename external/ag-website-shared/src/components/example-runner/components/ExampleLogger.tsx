@@ -34,12 +34,10 @@ export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSiz
     }, []);
 
     return (
-        logs.length > 0 && (
-            <div className={styles.logger}>
-                {logs.map((log, i) => (
-                    <div key={i}>{log.data}</div>
-                ))}
-            </div>
-        )
+        <pre className={styles.logger}>
+            {logs.map((log, i) => (
+                <div key={i}>{log.data}</div>
+            ))}
+        </pre>
     );
 };
