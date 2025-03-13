@@ -70,7 +70,7 @@ export class AxisTicks {
         axisNode.appendChild(this.axisGroup);
     }
 
-    calculateLayout(): BBox {
+    calculateLayout(): BBox | undefined {
         const boxes: BBox[] = [];
         const tickData = this.generateTicks();
         const { translationX, translationY } = this;
@@ -91,7 +91,7 @@ export class AxisTicks {
 
         this.axisGroup.setProperties({ translationX, translationY });
 
-        return BBox.merge(boxes);
+        return boxes.length > 0 ? BBox.merge(boxes) : undefined;
     }
 
     private getLabelParams(datum: TickDatum): LabelParams {
