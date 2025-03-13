@@ -11,7 +11,7 @@ const EXPECTATIONS = {
 describe('resize benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('resize');
 
-    benchmark('initial load', ctx, EXPECTATIONS, async () => {
+    benchmark('initial load', ctx, { expectedRelativeMB: 10, expectedCanvasCount: 11 }, async () => {
         await ctx.create();
     });
 
@@ -27,7 +27,7 @@ describe('resize benchmark', () => {
             await ctx.create();
         });
 
-        benchmark('10x resize', ctx, EXPECTATIONS, async () => {
+        benchmark('10x resize', ctx, { expectedRelativeMB: 3, expectedCanvasCount: 11 }, async () => {
             const height = 600;
             const ratios = [0.9, 0.8, 0.7, 0.6, 0.5];
             const method = isAtOrAfterVersion(10, 0, 0) ? 'parentResize' : 'rawResize';

@@ -6,7 +6,7 @@ import { benchmark, setupBenchmark } from './benchmark';
 describe('simple-chart benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('simple-chart').repeatCount(10);
 
-    benchmark('initial load', ctx, { expectedMaxMemoryMB: 180 }, async () => {
+    benchmark('initial load', ctx, { expectedRelativeMB: 18, expectedCanvasCount: 12 }, async () => {
         await ctx.create();
     });
 
@@ -15,7 +15,7 @@ describe('simple-chart benchmark', () => {
             await ctx.create();
         });
 
-        benchmark('1x legend toggle', ctx, { expectedMaxMemoryMB: 160 }, async () => {
+        benchmark('1x legend toggle', ctx, { expectedRelativeMB: 5, expectedCanvasCount: 11 }, async () => {
             ctx.options.series![0].visible = false;
             await ctx.update();
 
@@ -23,7 +23,7 @@ describe('simple-chart benchmark', () => {
             await ctx.update();
         });
 
-        benchmark('10x legend toggle', ctx, { expectedMaxMemoryMB: 160 }, async () => {
+        benchmark('10x legend toggle', ctx, { expectedRelativeMB: 5, expectedCanvasCount: 11 }, async () => {
             for (let i = 0; i < 5; i++) {
                 for (const visible of [false, true]) {
                     ctx.options.series![i].visible = visible;

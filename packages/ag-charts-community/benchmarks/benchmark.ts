@@ -19,7 +19,9 @@ if (isHistoricBenchmarkTest()) {
 }
 
 interface BenchmarkExpectations {
-    expectedMaxMemoryMB: number;
+    expectedMaxMemoryMB?: number;
+    expectedRelativeMB?: number;
+    expectedCanvasCount?: number;
     autoSnapshot?: boolean;
 }
 
@@ -97,7 +99,9 @@ export function benchmark(
             }
             const duration = (performance.now() - start) / runCount;
 
-            if (runCount > 1) global.gc?.();
+            await new Promise((r) => setTimeout(r, 100));
+            global.gc?.();
+
             const memoryUsageAfter = process.memoryUsage();
             const canvasInstances = (
                 ctx.canvasCtx.getActiveCanvasInstances() as { width: number; height: number }[]
@@ -130,13 +134,27 @@ export function benchmark(
                 return;
             }
 
-            if (expectations.autoSnapshot ?? true) {
+            const { autoSnapshot, ...expected } = expectations;
+            if (autoSnapshot ?? true) {
                 const newImageData = extractImageData(ctx.canvasCtx);
                 expect(newImageData).toMatchImageSnapshot({ failureThresholdType: 'pixel', failureThreshold: 5 });
             }
 
             const BYTES_PER_MB = 1024 ** 2;
-            expect(memory.totalMemoryUse / BYTES_PER_MB).toBeLessThanOrEqual(expectations.expectedMaxMemoryMB);
+            const actual = {
+                expectedMaxMemoryMB: memory.totalMemoryUse / BYTES_PER_MB,
+                expectedRelativeMB: memory.relativeMemoryUse / BYTES_PER_MB,
+                expectedCanvasCount: canvasInstances.length,
+            };
+
+            for (const key in expected) {
+                expect(actual[key]).toBeLessThanOrEqual(expected[key]);
+                if (actual[key] < expected[key] * 0.8) {
+                    console.log(
+                        `[${currentTestName}]: ${key} is much less than expected (expected: ${expected[key]}, actual: ${actual[key]})`
+                    );
+                }
+            }
         },
         timeoutMs
     );

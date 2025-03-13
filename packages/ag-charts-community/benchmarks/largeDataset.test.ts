@@ -7,7 +7,7 @@ import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 describe('large-dataset benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('large-dataset');
 
-    benchmark('initial load', ctx, { expectedMaxMemoryMB: 945 }, async () => {
+    benchmark('initial load', ctx, { expectedRelativeMB: 650, expectedCanvasCount: 9 }, async () => {
         await ctx.create();
     });
 
@@ -20,7 +20,7 @@ describe('large-dataset benchmark', () => {
         benchmark(
             '1x legend toggle',
             ctx,
-            { expectedMaxMemoryMB: 1500 },
+            { expectedRelativeMB: 160, expectedCanvasCount: 9 },
             async () => {
                 ctx.options.series![0].visible = false;
                 await ctx.update();
@@ -31,7 +31,7 @@ describe('large-dataset benchmark', () => {
             15_000
         );
 
-        benchmark('1x datum highlight', ctx, { expectedMaxMemoryMB: 970 }, async () => {
+        benchmark('1x datum highlight', ctx, { expectedRelativeMB: 45, expectedCanvasCount: 9 }, async () => {
             const point = ctx.nodePositions[0][1];
             await hoverAction(point.x, point.y)(ctx.chart);
             await ctx.waitForUpdate();
@@ -40,7 +40,7 @@ describe('large-dataset benchmark', () => {
         benchmark(
             '4x datum highlight',
             ctx,
-            { expectedMaxMemoryMB: 960 },
+            { expectedRelativeMB: 45, expectedCanvasCount: 9 },
             async () => {
                 for (const point of ctx.nodePositions[0]) {
                     await hoverAction(point.x, point.y)(ctx.chart);

@@ -14,28 +14,38 @@ suite('sparkline benchmark', () => {
         createApi: '__createSparkline',
     }).repeatCount(500);
 
-    benchmark('initial load', ctx, { expectedMaxMemoryMB: 1100 }, async () => {
+    benchmark('initial load', ctx, { expectedRelativeMB: 10, expectedCanvasCount: 2 }, async () => {
         await ctx.create({ pool: false });
     });
 
-    benchmark('initial load (pooled)', ctx, { expectedMaxMemoryMB: 155, autoSnapshot: false }, async () => {
-        await ctx.create({ container: document.createElement('div') });
-    });
+    benchmark(
+        'initial load (pooled)',
+        ctx,
+        { expectedRelativeMB: 2, expectedCanvasCount: 1, autoSnapshot: false },
+        async () => {
+            await ctx.create({ container: document.createElement('div') });
+        }
+    );
 
     describe('after load', () => {
         beforeEach(async () => {
             await ctx.create();
         });
 
-        benchmark('update', ctx, { expectedMaxMemoryMB: 155, autoSnapshot: false }, async () => {
+        benchmark('update', ctx, { expectedRelativeMB: 0.9, expectedCanvasCount: 0, autoSnapshot: false }, async () => {
             ctx.options.data = ctx.options.data?.map((d) => ({ x: d.x, y: Math.random() * d.y }));
             await ctx.update();
         });
 
-        benchmark('updateDelta', ctx, { expectedMaxMemoryMB: 155, autoSnapshot: false }, async () => {
-            await ctx.updateDelta({
-                data: ctx.options.data?.map((d) => ({ x: d.x, y: Math.random() * d.y })),
-            });
-        });
+        benchmark(
+            'updateDelta',
+            ctx,
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 0, autoSnapshot: false },
+            async () => {
+                await ctx.updateDelta({
+                    data: ctx.options.data?.map((d) => ({ x: d.x, y: Math.random() * d.y })),
+                });
+            }
+        );
     });
 });

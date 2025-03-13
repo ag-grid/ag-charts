@@ -46,6 +46,7 @@ export function logTimings() {
         time: formatMillis(measurement.timeMs),
         memoryUsage: measurement.memory ? formatBytes(getTotalMemoryUsage(measurement.memory)) : null,
         heapUsed: measurement.memory ? formatBytes(measurement.memory.after.heapUsed) : null,
+        relativeUsage: measurement.memory ? formatBytes(getRelativeMemoryUsage(measurement.memory)) : null,
         ...formatMemoryUse(measurement.memory),
     }));
     for (const [suitePath, results] of timings) {
@@ -59,6 +60,7 @@ export function flushTimings() {
         timeMs: measurement.timeMs,
         memoryUsage: measurement.memory ? getTotalMemoryUsage(measurement.memory) : null,
         heapUsed: measurement.memory ? measurement.memory.after.heapUsed : null,
+        relativeUsage: measurement.memory ? formatBytes(getRelativeMemoryUsage(measurement.memory)) : null,
         ...formatMemoryUse(measurement.memory),
     }));
     for (const [suitePath, results] of timings) {
@@ -88,7 +90,7 @@ function getTotalMemoryUsage(memoryStats: NonNullable<BenchmarkMeasurement['memo
 }
 
 function getRelativeMemoryUsage(memoryStats: NonNullable<BenchmarkMeasurement['memory']>): number {
-    const jsHeapSize = Math.max(0, memoryStats.before.heapUsed - memoryStats.after.heapUsed);
+    const jsHeapSize = Math.max(0, memoryStats.after.heapUsed - memoryStats.before.heapUsed);
     if (!memoryStats.nativeAllocations) return jsHeapSize;
     return Object.values(memoryStats.nativeAllocations).reduce(
         (totalBytes, { bytes }) => totalBytes + bytes,
