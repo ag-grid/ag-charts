@@ -60,7 +60,7 @@ export function flushTimings() {
         timeMs: measurement.timeMs,
         memoryUsage: measurement.memory ? getTotalMemoryUsage(measurement.memory) : null,
         heapUsed: measurement.memory ? measurement.memory.after.heapUsed : null,
-        relativeUsage: measurement.memory ? formatBytes(getRelativeMemoryUsage(measurement.memory)) : null,
+        relativeUsage: measurement.memory ? getRelativeMemoryUsage(measurement.memory) : null,
         ...formatMemoryUse(measurement.memory),
     }));
     for (const [suitePath, results] of timings) {
