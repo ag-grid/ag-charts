@@ -3,14 +3,10 @@ import { beforeEach, describe } from '@jest/globals';
 import { AgCartesianChartOptions } from '../src/main';
 import { benchmark, setupBenchmark } from './benchmark';
 
-const EXPECTATIONS = {
-    expectedMaxMemoryMB: 285,
-};
-
 describe('large-scale multi-series benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('large-scale-multi-series');
 
-    benchmark('initial load', ctx, EXPECTATIONS, async () => {
+    benchmark('initial load', ctx, { expectedRelativeMB: 110, expectedCanvasCount: 39 }, async () => {
         await ctx.create();
     });
 
@@ -19,7 +15,7 @@ describe('large-scale multi-series benchmark', () => {
             await ctx.create();
         });
 
-        benchmark('1x legend toggle', ctx, EXPECTATIONS, async () => {
+        benchmark('1x legend toggle', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 39 }, async () => {
             ctx.options.series![0].visible = false;
             await ctx.update();
 
@@ -27,7 +23,7 @@ describe('large-scale multi-series benchmark', () => {
             await ctx.update();
         });
 
-        benchmark('4x legend toggle', ctx, EXPECTATIONS, async () => {
+        benchmark('4x legend toggle', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 39 }, async () => {
             for (let i = 0; i < 2; i++) {
                 for (const visible of [false, true]) {
                     ctx.options.series![i].visible = visible;

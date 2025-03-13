@@ -4,17 +4,17 @@ import { scrollAction } from '../../ag-charts-community/src/chart/test/utils';
 import { AgCartesianChartOptions } from '../src/main';
 import { benchmark, setupBenchmark } from './benchmark';
 
-const EXPECTATIONS = {
-    expectedMaxMemoryMB: 450,
-    autoSnapshot: false,
-};
-
 describe('zoom-large-dataset benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('enterprise-1M-line-series', { isEnterprise: true });
 
-    benchmark('initial load', ctx, EXPECTATIONS, async () => {
-        await ctx.create();
-    });
+    benchmark(
+        'initial load',
+        ctx,
+        { expectedRelativeMB: 80, expectedCanvasCount: 9, autoSnapshot: false },
+        async () => {
+            await ctx.create();
+        }
+    );
 
     describe('after load', () => {
         beforeEach(async () => {
@@ -24,7 +24,7 @@ describe('zoom-large-dataset benchmark', () => {
         benchmark(
             '100x zoom',
             ctx,
-            EXPECTATIONS,
+            { expectedRelativeMB: 2, expectedCanvasCount: 7, autoSnapshot: false },
             async () => {
                 const zoomIn = scrollAction(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
                 for (let i = 0; i < 100; i++) {
