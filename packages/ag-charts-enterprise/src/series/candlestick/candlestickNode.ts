@@ -30,7 +30,7 @@ export class CandlestickNode extends OhlcBaseNode {
         const rectHeight = boxBottom - boxTop;
 
         const x0 = centerX - width / 2;
-        let x1 = centerX + width / 2;
+        const x1 = centerX + width / 2;
 
         return new BBox(x0, boxTop, x1 - x0, rectHeight);
     }
