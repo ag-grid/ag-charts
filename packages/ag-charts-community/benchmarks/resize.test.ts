@@ -5,7 +5,7 @@ import { benchmark, setupBenchmark } from './benchmark';
 import { isAtOrAfterVersion } from './compatibility';
 
 const EXPECTATIONS = {
-    expectedMaxMemoryMB: 270,
+    expectedMaxMemoryMB: 170,
 };
 
 describe('resize benchmark', () => {

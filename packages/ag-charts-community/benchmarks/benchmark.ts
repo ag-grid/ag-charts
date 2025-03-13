@@ -108,7 +108,7 @@ export function benchmark(
                 throw new Error('Unable to resolve current test name.');
             }
 
-            const memoryUse = recordTiming(testPath, currentTestName, {
+            const memory = recordTiming(testPath, currentTestName, {
                 timeMs: duration,
                 runCount,
                 memory: {
@@ -136,7 +136,7 @@ export function benchmark(
             }
 
             const BYTES_PER_MB = 1024 ** 2;
-            expect(memoryUse / BYTES_PER_MB).toBeLessThanOrEqual(expectations.expectedMaxMemoryMB);
+            expect(memory.totalMemoryUse / BYTES_PER_MB).toBeLessThanOrEqual(expectations.expectedMaxMemoryMB);
         },
         timeoutMs
     );

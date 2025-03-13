@@ -23,7 +23,10 @@ export function recordTiming(suitePath: string, name: string, measurement: Bench
     }
     records.get(suitePath)?.set(name, measurement);
 
-    return getRelativeMemoryUsage(measurement.memory);
+    return {
+        relativeMemoryUse: getRelativeMemoryUsage(measurement.memory),
+        totalMemoryUse: getTotalMemoryUsage(measurement.memory),
+    };
 }
 
 function formatMemoryUse(memory: BenchmarkMeasurement['memory']) {
