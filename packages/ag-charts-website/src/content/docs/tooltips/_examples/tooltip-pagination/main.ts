@@ -1,23 +1,36 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
-import { backgroundTopology } from './backgroundTopology';
-import { data } from './data';
-import { topology } from './topology';
+import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data,
-    topology,
+    data: getData(),
+    title: {
+        text: 'Most Populous Cities',
+    },
+    footnote: {
+        text: 'Source: Simple Maps',
+    },
     series: [
         {
-            type: 'map-shape-background',
-            topology: backgroundTopology,
-        },
-        {
-            type: 'map-marker',
-            idKey: 'name',
+            type: 'bubble',
+            title: 'Most populous cities',
+            xKey: 'lon',
+            xName: 'Longitude',
+            yKey: 'lat',
+            yName: 'Latitude',
             sizeKey: 'population',
             sizeName: 'Population',
+            labelKey: 'city',
+            labelName: 'City',
+            maxSize: 50,
+            tooltip: {
+                renderer({ datum, labelKey }) {
+                    return {
+                        title: datum[labelKey!],
+                    };
+                },
+            },
         },
     ],
     tooltip: {

@@ -27,11 +27,12 @@ The name keys mirror the data keys and differ between series types. See the seri
 
 ## Tooltip Modes
 
-By default, the tooltip will show a single value. The `mode` property can be set to `'shared'` to show values every series at the same x-value; or `'compact'` to show a single value with less information.
+By default, the tooltip will show a single value. The `mode` property can be set to `'shared'` to show values for every series sharing the same x-value; or `'compact'` to show a single value with less information.
 
 {% chartExampleRunner title="Tooltip Mode" name="tooltip-mode" type="generated" /%}
 
 ```js
+// Chart options only, cannot be customised per series
 tooltip: {
     mode: 'shared',
 }
@@ -60,7 +61,7 @@ tooltip: {
 
 In this configuration:
 
--   Instead of the tooltip being anchored to the highlighted marker node, it can be anchored to the chart or to the mouse pointer..
+-   Instead of the tooltip being anchored to the highlighted marker node, it can be anchored to the chart or to the mouse pointer.
 -   The tooltip is set to be placed above the node.
 
 The placement alternatively accepts an array of placement values, and the tooltip will be placed in the first position that has sufficient space.
@@ -103,6 +104,7 @@ Some series configurations may result in data values overlapping, making it diff
 Pagination will only become available when two or more data points are under the cursor. When available, the cursor will turn into a hand and the tooltip will display the number of data points under the cursor. Clicking in the current position will cycle through the data points.
 
 ```js
+// Chart options only, cannot be customised per series
 tooltip: {
     pagination: true,
 }
