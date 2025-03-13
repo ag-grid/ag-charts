@@ -42,6 +42,9 @@ const {
     STRING,
     NUMBER_ARRAY,
     UNION,
+    AND,
+    LESS_THAN,
+    GREATER_THAN,
     Label,
     AxisLabel,
 } = _ModuleSupport;
@@ -252,10 +255,10 @@ class LinearGaugeScaleLabelProperties extends AxisLabel {
 }
 
 class LinearGaugeScaleProperties extends BaseProperties {
-    @TempValidate(NUMBER)
+    @TempValidate(AND(NUMBER, LESS_THAN('max')))
     min: number = 0;
 
-    @TempValidate(NUMBER)
+    @TempValidate(AND(NUMBER, GREATER_THAN('min')))
     max: number = 1;
 
     @TempValidate(OBJECT_ARRAY)

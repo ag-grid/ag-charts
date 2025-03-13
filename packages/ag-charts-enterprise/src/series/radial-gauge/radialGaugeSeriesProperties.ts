@@ -40,6 +40,9 @@ const {
     RATIO,
     STRING,
     UNION,
+    AND,
+    LESS_THAN,
+    GREATER_THAN,
     Label,
 } = _ModuleSupport;
 
@@ -225,10 +228,10 @@ class RadialGaugeScaleIntervalProperties extends BaseProperties {
 class RadialGaugeScaleLabelProperties extends AxisLabel {}
 
 class RadialGaugeScaleProperties extends BaseProperties {
-    @TempValidate(NUMBER)
+    @TempValidate(AND(NUMBER, LESS_THAN('max')))
     min: number = 0;
 
-    @TempValidate(NUMBER)
+    @TempValidate(AND(NUMBER, GREATER_THAN('min')))
     max: number = 1;
 
     @TempValidate(OBJECT_ARRAY)
