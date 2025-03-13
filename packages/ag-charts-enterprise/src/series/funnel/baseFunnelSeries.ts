@@ -27,6 +27,7 @@ const {
     motion,
     checkCrisp,
     createDatumId,
+    applyShapeFillBBox,
 } = _ModuleSupport;
 
 export type Bounds = {
@@ -494,7 +495,7 @@ export abstract class BaseFunnelSeries<
 
             const connectorFill = this.getNodeFill(fill ?? fills[datumIndex % fills.length], defaultColorRange);
             connector.fill = connectorFill;
-            _ModuleSupport.applyShapeFillBBox(connector, fill, fillBBox);
+            applyShapeFillBBox(connector, connectorFill, fillBBox);
             connector.fillOpacity = fillOpacity;
             connector.stroke = stroke ?? strokes[datumIndex % strokes.length];
             connector.strokeOpacity = strokeOpacity;
