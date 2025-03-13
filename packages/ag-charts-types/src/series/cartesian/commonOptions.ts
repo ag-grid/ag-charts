@@ -44,7 +44,7 @@ export interface AgGradientColorStop {
     stop?: Ratio;
 }
 
-export type AgGradientFill = {
+export interface AgGradientFill {
     type: 'gradient';
     /** Format of the gradient */
     gradient?: AgGradientType;
@@ -54,7 +54,7 @@ export type AgGradientFill = {
     bounds?: AgGradientFillBounds;
     /** The rotation angle of the line along which the gradient is rendered. */
     rotation?: number;
-};
+}
 
 export type AgGradientType = 'linear' | 'radial' | 'conic';
 export type AgGradientFillBounds = 'series' | 'item' | 'axis';
