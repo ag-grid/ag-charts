@@ -5,7 +5,9 @@ import type { MementoOriginator } from '../../api/state/memento';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { BaseManager } from '../../util/baseManager';
+import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
+import type { TypedEvent } from '../../util/observable';
 
 interface AnnotationsRestoreEvent {
     type: 'restore-annotations';
@@ -23,7 +25,10 @@ export class AnnotationManager
     private annotations: AnnotationsMemento = [];
     private styles?: AgAnnotationsThemeableOptions;
 
-    constructor(private readonly annotationRoot: Group) {
+    constructor(
+        private readonly annotationRoot: Group,
+        private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
+    ) {
         super();
     }
 
@@ -51,6 +56,10 @@ export class AnnotationManager
 
     public updateData(annotations?: AnnotationsMemento) {
         this.annotations = this.cleanData(annotations ?? []);
+    }
+
+    public fireChangedEvent() {
+        this.fireChartEvent({ type: 'annotations', annotations: deepClone([...this.annotations]) });
     }
 
     public attachNode(node: Node) {
