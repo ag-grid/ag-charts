@@ -6,7 +6,7 @@ import {
     type AgChordSeriesNodeStyle,
     type AgChordSeriesOptions,
     type AgChordSeriesTooltipRendererParams,
-    type AgFillType,
+    type AgColorType,
     type Styler,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -41,7 +41,7 @@ class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams
 
 class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill: AgFillType | undefined = undefined;
+    fill: AgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity = 1;
@@ -76,7 +76,7 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
     width: number = 1;
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill: AgFillType | undefined = undefined;
+    fill: AgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity = 1;
@@ -132,7 +132,7 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     defaultColorRange: string[] = [];
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
-    fills: AgFillType[] = [];
+    fills: AgColorType[] = [];
 
     @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = [];

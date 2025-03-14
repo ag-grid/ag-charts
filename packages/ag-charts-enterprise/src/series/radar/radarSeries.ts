@@ -71,6 +71,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     protected resetInvalidToZero: boolean = false;
 
+    protected get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
+        return {
+            gradient: 'radial',
+            bounds: 'series',
+            rotation: 0,
+            colorStops: this.properties.marker.defaultColorRange,
+        };
+    }
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -419,18 +428,20 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
 
         return {
-            marker: {
-                shape: marker.shape,
-                fill: this.getMarkerFill() ?? marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                fillOpacity: marker.fillOpacity,
-                strokeOpacity: marker.strokeOpacity,
-                strokeWidth: marker.strokeWidth,
-                lineDash: marker.lineDash,
-                lineDashOffset: marker.lineDashOffset,
-                enabled: marker.enabled || strokeWidth <= 0,
-                defaultColorRange: marker.defaultColorRange,
-            },
+            marker: _ModuleSupport.getShapeStyle(
+                {
+                    shape: marker.shape,
+                    fill: this.getMarkerFill() ?? marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+                    stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+                    fillOpacity: marker.fillOpacity,
+                    strokeOpacity: marker.strokeOpacity,
+                    strokeWidth: marker.strokeWidth,
+                    lineDash: marker.lineDash,
+                    lineDashOffset: marker.lineDashOffset,
+                    enabled: marker.enabled || strokeWidth <= 0,
+                },
+                this.defaultShapeStyle
+            ),
             line: {
                 stroke,
                 strokeOpacity,

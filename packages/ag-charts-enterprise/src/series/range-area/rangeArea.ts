@@ -669,17 +669,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { fill, stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
 
         return {
-            marker: {
-                shape: marker.shape,
-                fill: marker.fill ?? fill,
-                stroke: marker.stroke ?? stroke,
-                fillOpacity: marker.fillOpacity,
-                strokeOpacity: marker.strokeOpacity,
-                strokeWidth: marker.strokeWidth,
-                lineDash: marker.lineDash,
-                lineDashOffset: marker.lineDashOffset,
-                defaultColorRange: marker.defaultColorRange,
-            },
+            marker: this.getShapeStyle(
+                {
+                    shape: marker.shape,
+                    fill: marker.fill ?? fill,
+                    stroke: marker.stroke ?? stroke,
+                    fillOpacity: marker.fillOpacity,
+                    strokeOpacity: marker.strokeOpacity,
+                    strokeWidth: marker.strokeWidth,
+                    lineDash: marker.lineDash,
+                    lineDashOffset: marker.lineDashOffset,
+                    defaultColorRange: marker.defaultColorRange,
+                },
+                marker.defaultColorRange
+            ),
             line: {
                 stroke,
                 strokeOpacity,

@@ -654,16 +654,18 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
             this.getItemConfig(item);
         return {
-            marker: {
-                fill,
-                stroke,
-                fillOpacity,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                defaultColorRange,
-            },
+            marker: this.getShapeStyle(
+                {
+                    fill,
+                    stroke,
+                    fillOpacity,
+                    strokeOpacity,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                },
+                defaultColorRange
+            ),
         };
     }
 

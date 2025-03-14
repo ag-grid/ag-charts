@@ -4,7 +4,7 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, Degree, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type {
-    AgFillType,
+    AgColorType,
     FillOptions,
     FontOptions,
     LineDashOptions,
@@ -67,7 +67,7 @@ export interface AgDonutInnerLabelThemeOptions extends Omit<AgDonutInnerLabel, '
 
 export interface AgDonutInnerCircle {
     /** The colour of the fill for the inner circle. */
-    fill: AgFillType;
+    fill: AgColorType;
     /** The opacity of the fill for the inner circle. */
     fillOpacity?: Opacity;
 }
@@ -84,7 +84,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgDonutSeriesCalloutOptions;
     /** The colours to cycle through for the fills of the sectors. */
-    fills?: AgFillType[];
+    fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the sectors. */
     strokes?: CssColor[];
     /** The opacity of the fill for the sectors. */

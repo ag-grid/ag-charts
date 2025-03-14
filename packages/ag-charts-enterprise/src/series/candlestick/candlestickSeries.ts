@@ -1,4 +1,4 @@
-import { type AgCandlestickSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgCandlestickSeriesItemOptions, type AgGradientColor, _ModuleSupport } from 'ag-charts-community';
 
 import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
@@ -125,37 +125,41 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
         const upFill = isGradientFill(up.fill) ? up.stroke : up.fill;
         const downFill = isGradientFill(down.fill) ? down.stroke : down.fill;
 
-        const fill = new _ModuleSupport.LinearGradient(
-            'rgb',
-            [
-                { color: upFill, offset: 0 },
-                { color: upFill, offset: 0.5 },
-                { color: downFill, offset: 0.5 },
+        const fill: AgGradientColor = {
+            type: 'gradient',
+            gradient: 'linear',
+            rotation: 90,
+            colorStops: [
+                { color: upFill, stop: 0 },
+                { color: upFill, stop: 0.5 },
+                { color: downFill, stop: 0.5 },
             ],
-            90
-        );
+        };
 
-        const stroke = new _ModuleSupport.LinearGradient(
-            'rgb',
-            [
-                { color: up.stroke, offset: 0 },
-                { color: up.stroke, offset: 0.5 },
-                { color: down.stroke, offset: 0.5 },
+        const stroke: AgGradientColor = {
+            type: 'gradient',
+            gradient: 'linear',
+            rotation: 90,
+            colorStops: [
+                { color: up.stroke, stop: 0 },
+                { color: up.stroke, stop: 0.5 },
+                { color: down.stroke, stop: 0.5 },
             ],
-            90
-        );
+        };
 
         return {
-            marker: {
-                fill,
-                fillOpacity: up.fillOpacity,
-                stroke: stroke,
-                strokeWidth: up.strokeWidth ?? 1,
-                strokeOpacity: up.strokeOpacity ?? 1,
-                lineDash: up.lineDash,
-                lineDashOffset: up.lineDashOffset,
-                defaultColorRange: up.defaultColorRange,
-            },
+            marker: this.getShapeStyle(
+                {
+                    fill,
+                    fillOpacity: up.fillOpacity,
+                    stroke,
+                    strokeWidth: up.strokeWidth ?? 1,
+                    strokeOpacity: up.strokeOpacity ?? 1,
+                    lineDash: up.lineDash,
+                    lineDashOffset: up.lineDashOffset,
+                },
+                up.defaultColorRange
+            ),
         };
     }
 

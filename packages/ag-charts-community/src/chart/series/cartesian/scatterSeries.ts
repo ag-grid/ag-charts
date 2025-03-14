@@ -356,30 +356,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const {
-            shape,
-            fill,
-            stroke,
-            fillOpacity,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            lineDashOffset,
-            defaultColorRange,
-        } = this.properties.marker;
-
+        const marker = this.getMarkerStyle(this.properties.marker);
         return {
-            marker: {
-                shape,
-                fill: fill ?? 'rgba(0, 0, 0, 0)',
-                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                fillOpacity,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                defaultColorRange,
-            },
+            marker,
         };
     }
 

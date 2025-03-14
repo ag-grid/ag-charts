@@ -4,7 +4,7 @@ import type {
     AgBubbleSeriesOptionsKeys,
     AgBubbleSeriesStyle,
     AgBubbleSeriesTooltipRendererParams,
-    AgFillType,
+    AgColorType,
     AgMarkerShape,
     BubbleSeriesItemStylerParams,
     LabelPlacement,
@@ -104,7 +104,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     defaultColorRange?: string[];
 
     @ProxyProperty('marker.fill', { optional: true })
-    fill?: AgFillType;
+    fill?: AgColorType;
 
     @ProxyProperty('marker.fillOpacity')
     fillOpacity!: number;

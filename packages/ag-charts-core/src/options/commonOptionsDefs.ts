@@ -1,6 +1,6 @@
 import type {
+    AgGradientColor,
     AgGradientColorStop,
-    AgGradientFill,
     FillOptions,
     FontOptions,
     LineDashOptions,
@@ -68,7 +68,7 @@ const gradientColorStops = and(
     colorStopsOrderValidator
 );
 
-export const gradient = typeUnion<AgGradientFill>(
+export const gradient = typeUnion<AgGradientColor>(
     {
         gradient: {
             gradient: union('linear', 'radial', 'conic'),

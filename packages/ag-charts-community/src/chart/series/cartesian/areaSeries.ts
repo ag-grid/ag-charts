@@ -801,10 +801,11 @@ export class AreaSeries extends CartesianSeries<
     }
 
     legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.properties;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker, defaultColorRange } =
+            this.properties;
         const useAreaFill = !marker.enabled || marker.fill === undefined;
 
-        let legendMarkerFill = useAreaFill ? fill : marker.fill;
+        let legendMarkerFill = useAreaFill ? this.getNodeFill(fill, defaultColorRange) : marker.fill;
         if (isGradientFill(marker.fill) && isGradientFill(fill)) {
             legendMarkerFill = {
                 ...fill,
@@ -812,17 +813,14 @@ export class AreaSeries extends CartesianSeries<
             };
         }
 
+        const markerStyle = this.getMarkerStyle(marker, undefined, undefined, false, undefined, {
+            fill: legendMarkerFill,
+            fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
+        });
+
         return {
             marker: {
-                shape: marker.shape,
-                fill: legendMarkerFill,
-                defaultColorRange: marker.defaultColorRange,
-                fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
-                stroke: marker.stroke ?? stroke,
-                strokeOpacity: marker.strokeOpacity,
-                strokeWidth: marker.strokeWidth,
-                lineDash: marker.lineDash,
-                lineDashOffset: marker.lineDashOffset,
+                ...markerStyle,
                 enabled: marker.enabled || strokeWidth <= 0,
             },
             line: {

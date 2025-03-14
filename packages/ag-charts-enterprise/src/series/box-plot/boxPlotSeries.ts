@@ -256,16 +256,18 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             this.properties;
 
         return {
-            marker: {
-                fill,
-                fillOpacity,
-                stroke,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                defaultColorRange,
-            },
+            marker: this.getShapeStyle(
+                {
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeOpacity,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                },
+                defaultColorRange
+            ),
         };
     }
 

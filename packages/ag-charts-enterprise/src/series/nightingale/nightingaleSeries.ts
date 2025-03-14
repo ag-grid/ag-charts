@@ -1,4 +1,4 @@
-import { type AgFillType, type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgColorType, type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
@@ -41,7 +41,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
         return new Sector();
     }
 
-    protected getNodeFill(fill: AgFillType): Required<AgFillType> {
+    protected getNodeFill(fill: AgColorType): Required<AgColorType> {
         if (!_ModuleSupport.isGradientFill(fill)) return fill;
 
         return {

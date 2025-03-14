@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
-    AgGradientFillMode,
+    AgGradientColorMode,
     AgLinearGaugeItemStylerParams,
     AgLinearGaugeLabelFormatterParams,
     AgLinearGaugeLabelPlacement,
@@ -87,7 +87,7 @@ export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<Lin
     topRightCornerRadius: number;
     bottomRightCornerRadius: number;
     bottomLeftCornerRadius: number;
-    fill: string | _ModuleSupport.Gradient | undefined;
+    fill: string | _ModuleSupport.ShapeColor | undefined;
     horizontalInset: number;
     verticalInset: number;
 }
@@ -211,7 +211,7 @@ class LinearGaugeBarProperties extends BaseProperties {
     fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
 
     @TempValidate(FILL_MODE)
-    fillMode: AgGradientFillMode = 'continuous';
+    fillMode: AgGradientColorMode = 'continuous';
 
     @TempValidate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -265,7 +265,7 @@ class LinearGaugeScaleProperties extends BaseProperties {
     fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
 
     @TempValidate(FILL_MODE)
-    fillMode: AgGradientFillMode = 'continuous';
+    fillMode: AgGradientColorMode = 'continuous';
 
     @TempValidate(COLOR_STRING, { optional: true })
     fill: string | undefined;

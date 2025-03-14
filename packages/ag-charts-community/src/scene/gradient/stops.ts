@@ -1,12 +1,12 @@
 import { Logger } from 'ag-charts-core';
-import type { AgGradientColorStop, AgGradientFillMode } from 'ag-charts-types';
+import type { AgGradientColorMode, AgGradientColorStop } from 'ag-charts-types';
 
 import { ColorScale } from '../../scale/colorScale';
 import { BaseProperties } from '../../util/properties';
 import { COLOR_STRING, NUMBER, Validate } from '../../util/validation';
 
 export interface GradientColorStop {
-    offset: number;
+    stop: number;
     color: string;
 }
 
@@ -33,18 +33,18 @@ function stopsAreAscending(fills: AgGradientColorStop[]) {
 
 function discreteColorStops(colorStops: GradientColorStop[]): GradientColorStop[] {
     return colorStops.flatMap((colorStop, i) => {
-        const { offset } = colorStop;
+        const { stop } = colorStop;
         const nextColor = colorStops.at(i + 1)?.color;
-        return nextColor != null ? [colorStop, { offset, color: nextColor }] : [colorStop];
+        return nextColor != null ? [colorStop, { stop, color: nextColor }] : [colorStop];
     });
 }
 
-function getDefaultColorStops(defaultColorStops: string[], fillMode: AgGradientFillMode) {
+function getDefaultColorStops(defaultColorStops: string[], fillMode: AgGradientColorMode) {
     const stopOffset = fillMode === 'discrete' ? 1 : 0;
 
     const colorStops = defaultColorStops.map(
         (color, index, { length }): GradientColorStop => ({
-            offset: (index + stopOffset) / (length - 1 + stopOffset),
+            stop: (index + stopOffset) / (length - 1 + stopOffset),
             color,
         })
     );
@@ -56,7 +56,7 @@ export function getColorStops(
     fills: AgGradientColorStop[],
     defaultColorStops: string[],
     domain: number[],
-    fillMode: AgGradientFillMode = 'continuous'
+    fillMode: AgGradientColorMode = 'continuous'
 ): GradientColorStop[] {
     if (fills.length === 0) {
         return getDefaultColorStops(defaultColorStops, fillMode);
@@ -68,7 +68,7 @@ export function getColorStops(
     const d0 = Math.min(...domain);
     const d1 = Math.max(...domain);
     const isDiscrete = fillMode === 'discrete';
-    const offsets = new Float64Array(fills.length);
+    const stops = new Float64Array(fills.length);
     let previousDefinedStopIndex = 0;
     let nextDefinedStopIndex = -1;
     for (let i = 0; i < fills.length; i += 1) {
@@ -101,7 +101,7 @@ export function getColorStops(
             previousDefinedStopIndex = i;
         }
 
-        offsets[i] = Math.max(0, Math.min(1, (stop - d0) / (d1 - d0)));
+        stops[i] = Math.max(0, Math.min(1, (stop - d0) / (d1 - d0)));
     }
 
     let lastDefinedColor = fills.find((c) => c.color != null)?.color;
@@ -109,7 +109,7 @@ export function getColorStops(
 
     const colorStops = fills.map((fill, i): GradientColorStop => {
         let color = fill?.color;
-        const offset = offsets[i];
+        const stop = stops[i];
 
         if (color != null) {
             lastDefinedColor = color;
@@ -122,10 +122,10 @@ export function getColorStops(
                 colorScale.range = defaultColorStops;
             }
 
-            color = colorScale.convert(offset);
+            color = colorScale.convert(stop);
         }
 
-        return { offset, color };
+        return { stop, color };
     });
 
     return fillMode === 'discrete' ? discreteColorStops(colorStops) : colorStops;

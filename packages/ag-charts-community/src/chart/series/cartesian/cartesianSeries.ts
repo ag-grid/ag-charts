@@ -1,5 +1,5 @@
 import { findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
-import type { AgFillType } from 'ag-charts-types';
+import type { AgColorType } from 'ag-charts-types';
 
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -431,9 +431,15 @@ export abstract class CartesianSeries<
 
     protected abstract nodeFactory(): TNode;
 
-    protected getNodeFill(fill: AgFillType, defaultColorStops: string[]): Required<AgFillType>;
-    protected getNodeFill(fill: AgFillType | undefined, defaultColorStops: string[]): Required<AgFillType> | undefined;
-    protected getNodeFill(fill: AgFillType | undefined, defaultColorStops: string[]): Required<AgFillType> | undefined {
+    protected getNodeFill(fill: AgColorType, defaultColorStops: string[]): Required<AgColorType>;
+    protected getNodeFill(
+        fill: AgColorType | undefined,
+        defaultColorStops: string[]
+    ): Required<AgColorType> | undefined;
+    protected getNodeFill(
+        fill: AgColorType | undefined,
+        defaultColorStops: string[]
+    ): Required<AgColorType> | undefined {
         if (!isGradientFill(fill)) return fill;
 
         return {
@@ -445,12 +451,12 @@ export abstract class CartesianSeries<
         };
     }
 
-    protected getShapeStyle<T extends { fill?: AgFillType }>(style: T, defaultColorRange: string[]): T;
-    protected getShapeStyle<T extends { fill?: AgFillType }>(
+    protected getShapeStyle<T extends { fill?: AgColorType }>(style: T, defaultColorRange: string[]): T;
+    protected getShapeStyle<T extends { fill?: AgColorType }>(
         style: T | undefined,
         defaultColorRange: string[]
     ): T | undefined;
-    protected getShapeStyle<T extends { fill?: AgFillType }>(
+    protected getShapeStyle<T extends { fill?: AgColorType }>(
         style: T | undefined,
         defaultColorRange: string[]
     ): T | undefined {

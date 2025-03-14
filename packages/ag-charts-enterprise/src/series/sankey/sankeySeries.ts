@@ -47,6 +47,15 @@ export class SankeySeries extends FlowProportionSeries<
 
     override properties = new SankeySeriesProperties();
 
+    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
+        return {
+            gradient: 'linear',
+            bounds: 'item',
+            rotation: 0,
+            colorStops: this.properties.defaultColorRange,
+        };
+    }
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -388,15 +397,18 @@ export class SankeySeries extends FlowProportionSeries<
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return {
-            fill: this.getNodeFill(highlightStyle?.fill ?? fill, properties.defaultColorRange),
-            fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
-            stroke: highlightStyle?.stroke ?? stroke,
-            strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.node.strokeWidth),
-            lineDash: highlightStyle?.lineDash ?? lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
-        };
+        return _ModuleSupport.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
+                stroke: highlightStyle?.stroke ?? stroke,
+                strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.node.strokeWidth),
+                lineDash: highlightStyle?.lineDash ?? lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
+            },
+            this.defaultShapeStyle
+        );
     }
 
     protected getNodeStyleOverrides(
@@ -409,7 +421,7 @@ export class SankeySeries extends FlowProportionSeries<
         highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
-        const { fills, strokes, defaultColorRange } = properties;
+        const { fills, strokes } = properties;
         const { itemStyler } = properties.node;
 
         const fill = format.fill ?? fills[datumIndex % fills.length];
@@ -456,11 +468,7 @@ export class SankeySeries extends FlowProportionSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        if (overrides?.fill) {
-            overrides = { ...overrides, fill: this.getNodeFill(overrides.fill, defaultColorRange) };
-        }
-
-        return overrides;
+        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
     }
 
     protected updateNodeNodes(opts: {
@@ -514,15 +522,18 @@ export class SankeySeries extends FlowProportionSeries<
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return {
-            fill: this.getNodeFill(highlightStyle?.fill ?? fill, properties.defaultColorRange),
-            fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
-            stroke: highlightStyle?.stroke ?? stroke,
-            strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.link.strokeWidth),
-            lineDash: highlightStyle?.lineDash ?? lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
-        };
+        return _ModuleSupport.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
+                stroke: highlightStyle?.stroke ?? stroke,
+                strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.link.strokeWidth),
+                lineDash: highlightStyle?.lineDash ?? lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
+            },
+            this.defaultShapeStyle
+        );
     }
 
     protected getLinkStyleOverrides(
@@ -578,11 +589,7 @@ export class SankeySeries extends FlowProportionSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        if (overrides?.fill) {
-            overrides = { ...overrides, fill: this.getNodeFill(overrides.fill, properties.defaultColorRange) };
-        }
-
-        return overrides;
+        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
     }
 
     protected updateLinkNodes(opts: {

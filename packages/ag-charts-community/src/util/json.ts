@@ -12,7 +12,7 @@ import {
     isString,
 } from 'ag-charts-core';
 import type { DeepPartial, PlainObject } from 'ag-charts-core';
-import type { AgGradientFill } from 'ag-charts-types';
+import type { AgGradientColor } from 'ag-charts-types';
 
 import { Color } from './color';
 import { SKIP_JS_BUILTINS, getPath, mergeDefaults, without } from './object';
@@ -492,7 +492,7 @@ function isRatio(value: unknown): value is number {
 }
 
 // Duplicates `isGradientFill()` from `../scene/util/fill` due to dependency violations
-function isGradientFill(fill: any): fill is AgGradientFill {
+function isGradientFill(fill: any): fill is AgGradientColor {
     return (
         fill !== null &&
         isObject(fill) &&

@@ -1,5 +1,5 @@
 import type {
-    AgFillType,
+    AgColorType,
     AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesOptions,
@@ -64,7 +64,7 @@ class PieSeriesSectorLabel extends Label<AgPieSeriesLabelFormatterParams> {
 
 class PieSeriesCalloutLine extends BaseProperties {
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)), { optional: true })
-    colors?: AgFillType[];
+    colors?: AgColorType[];
 
     @TempValidate(POSITIVE_NUMBER)
     length: number = 10;
@@ -114,7 +114,7 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     defaultColorRange: string[][] = [];
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
-    fills: AgFillType[] = Object.values(DEFAULT_FILLS);
+    fills: AgColorType[] = Object.values(DEFAULT_FILLS);
 
     @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);

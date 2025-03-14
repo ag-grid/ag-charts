@@ -1,5 +1,5 @@
 import { type Has, Logger, modulus } from 'ag-charts-core';
-import type { AgFillType, AgPieSeriesStyle } from 'ag-charts-types';
+import type { AgColorType, AgPieSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -552,7 +552,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getNodeFill(fill: AgFillType, defaultColorRange: string[]): Required<AgFillType> {
+    private getNodeFill(fill: AgColorType, defaultColorRange: string[]): Required<AgColorType> {
         if (!isGradientFill(fill)) return fill;
 
         return {
@@ -564,7 +564,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         };
     }
 
-    private getFillParams(fill: AgFillType, innerRadius: number, outerRadius: number): GradientParams | undefined {
+    private getFillParams(fill: AgColorType, innerRadius: number, outerRadius: number): GradientParams | undefined {
         if (!isGradientFill(fill) || fill.bounds === 'item') return;
 
         return {
@@ -603,7 +603,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         const defaultColors = defaultColorRange[datumIndex % defaultColorRange.length];
 
-        const sectorFill: AgFillType | undefined = fill ?? 'black';
+        const sectorFill: AgColorType | undefined = fill ?? 'black';
 
         let format: AgPieSeriesStyle | undefined;
         if (itemStyler) {
@@ -1376,20 +1376,17 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     private legendItemSymbol(datumIndex: number): LegendSymbolOptions {
         const datum = this.processedData?.dataSources.get(this.id)?.[datumIndex];
         const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
-        if (isGradientFill(sectorFormat.fill)) {
-            sectorFormat.fill = { ...sectorFormat.fill, gradient: 'linear' };
-        }
+        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
 
         return {
             marker: {
                 fill: sectorFormat.fill,
                 stroke: sectorFormat.stroke,
-                fillOpacity: this.properties.fillOpacity,
-                strokeOpacity: this.properties.strokeOpacity,
-                strokeWidth: this.properties.strokeWidth,
-                lineDash: this.properties.lineDash,
-                lineDashOffset: this.properties.lineDashOffset,
-                defaultColorRange: this.properties.defaultColorRange[datumIndex],
+                fillOpacity,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
             },
         };
     }
