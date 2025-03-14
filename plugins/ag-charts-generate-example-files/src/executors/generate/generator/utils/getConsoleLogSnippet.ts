@@ -13,12 +13,16 @@ export const getConsoleLogSnippet = ({ pageName, exampleName }: Params) =>
     `${CONSOLE_LOG_START}
 const originalConsoleLog = console.log;
 console.log = (...args) => {
-    window.parent.postMessage({
-        type: 'console-log',
-        pageName: '${pageName}',
-        exampleName: '${exampleName}',
-        data: args
-    });
+    try {
+        window.parent.postMessage({
+            type: 'console-log',
+            pageName: '${pageName}',
+            exampleName: '${exampleName}',
+            data: args
+        });
+    } catch {
+       // Posting is best-effort and shouldn't block normal console logging.
+    }
     originalConsoleLog(...args);
 };
 ${CONSOLE_LOG_END}`;
