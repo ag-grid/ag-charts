@@ -663,7 +663,7 @@ export abstract class Axis<
         } else if (labelFormatter) {
             result = labelFormatter(value);
         }
-        return String(result ?? value);
+        return result ?? (typeof value === 'string' ? value : String(value));
     }
 
     // For formatting arbitrary values between the ticks.

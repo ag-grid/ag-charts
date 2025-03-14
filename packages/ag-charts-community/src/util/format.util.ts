@@ -1,4 +1,3 @@
-const defaultNumberFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2, useGrouping: false });
 const percentFormatter = new Intl.NumberFormat('en-US', { style: 'percent' });
 
 /**
@@ -14,7 +13,7 @@ export function formatValue(value: unknown, maximumFractionDigits: number = 2): 
     if (typeof value === 'number') {
         return formatNumber(value, maximumFractionDigits);
     }
-    return String(value ?? '');
+    return typeof value === 'string' ? value : String(value ?? '');
 }
 
 /**
@@ -27,6 +26,10 @@ export function formatPercent(value: number): string {
     return percentFormatter.format(value);
 }
 
+const numberFormatters = new Map<number, Intl.NumberFormat>().set(
+    2,
+    new Intl.NumberFormat('en-US', { maximumFractionDigits: 2, useGrouping: false })
+);
 /**
  * Formats a number with a specified maximum number of fraction digits.
  *
@@ -39,8 +42,10 @@ export function formatPercent(value: number): string {
  * @returns A string representing the formatted number.
  */
 export function formatNumber(value: number, maximumFractionDigits: number): string {
-    if (maximumFractionDigits === 2) {
-        return defaultNumberFormatter.format(value);
+    let formatter = numberFormatters.get(maximumFractionDigits);
+    if (!formatter) {
+        formatter = new Intl.NumberFormat('en-US', { maximumFractionDigits, useGrouping: false });
+        numberFormatters.set(maximumFractionDigits, formatter);
     }
-    return new Intl.NumberFormat('en-US', { maximumFractionDigits, useGrouping: false }).format(value);
+    return formatter.format(value);
 }
