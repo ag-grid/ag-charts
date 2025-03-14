@@ -51,8 +51,8 @@ export class DonutInnerLabel<T extends object = any> extends Label<AgDonutSeries
 }
 
 class DonutInnerCircle extends BaseProperties {
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
-    fill: AgColorType = 'transparent';
+    @TempValidate(COLOR_STRING)
+    fill: string = 'transparent';
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;
