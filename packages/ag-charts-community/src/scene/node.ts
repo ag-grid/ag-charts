@@ -36,6 +36,7 @@ export interface NodeOptions {
     name?: string;
     tag?: number;
     zIndex?: ZIndex;
+    debugDirty?: boolean;
 }
 
 export type NodeWithOpacity = Node & { opacity: number };
@@ -46,6 +47,8 @@ export type ChildNodeCounts = {
     thisComplexity: number;
     complexity: number;
 };
+
+const DEBUG_IGNORE_DIRTY_SOURCES = new Set(['child', 'transform']);
 
 /**
  * Abstract scene graph node.
@@ -113,7 +116,7 @@ export abstract class Node<D = any> {
     private childNodes?: Set<Node>;
 
     private cachedBBox?: BBox;
-    private _debugDirtyProperties?: Set<string>;
+    private _debugDirtyProperties?: Map<string, string[]>;
 
     /**
      * To simplify the type system (especially in Selections) we don't have the `Parent` node
@@ -135,7 +138,9 @@ export abstract class Node<D = any> {
         this.tag = options?.tag ?? NaN;
         this.zIndex = options?.zIndex ?? 0;
 
-        Debug.inDevelopmentMode(() => (this._debugDirtyProperties = new Set()));
+        if (options?.debugDirty ?? true) {
+            Debug.inDevelopmentMode(() => (this._debugDirtyProperties = new Map([['__first__', []]])));
+        }
     }
 
     /**
@@ -193,6 +198,7 @@ export abstract class Node<D = any> {
         const { stats } = renderCtx;
 
         this._dirty = false;
+        this.debugDirtyProperties();
 
         if (renderCtx.debugNodeSearch) {
             const idOrName = this.name ?? this.id;
@@ -406,14 +412,8 @@ export abstract class Node<D = any> {
     markDirty(property: string) {
         const { _dirty } = this;
 
-        if (this._debugDirtyProperties) {
-            if (property === 'child') return;
-
-            if (this._debugDirtyProperties?.has(property)) {
-                console.error(`Property changed multiple times before render: ${this.constructor.name}.${property}`);
-            }
-
-            this._debugDirtyProperties?.add(property);
+        if (this._debugDirtyProperties && !DEBUG_IGNORE_DIRTY_SOURCES.has(property)) {
+            this.markDebugProperties(property);
         }
 
         const noParentCachedBBox = this.cachedBBox == null;
@@ -430,11 +430,48 @@ export abstract class Node<D = any> {
         if (!this._dirty) return;
 
         this._dirty = false;
-        this._debugDirtyProperties?.clear();
+        this.debugDirtyProperties();
 
         for (const child of this.children()) {
             child.markClean();
         }
+    }
+
+    private markDebugProperties(property: string) {
+        const sources = this._debugDirtyProperties?.get(property) ?? [];
+        const caller =
+            new Error().stack?.split('\n').filter((line) => {
+                return (
+                    line !== 'Error' &&
+                    !line.includes('.markDebugProperties') &&
+                    !line.includes('.markDirty') &&
+                    !line.includes('Object.assign ') &&
+                    !line.includes(`${this.constructor.name}.`)
+                );
+            }) ?? 'unknown';
+        sources.push(caller[0].replace(' at ', '').trim());
+        this._debugDirtyProperties?.set(property, sources);
+    }
+
+    private debugDirtyProperties() {
+        if (this._debugDirtyProperties == null) return;
+
+        if (!this._debugDirtyProperties.has('__first__')) {
+            // Construction cases aren't interesting - we only really care about update cases.
+            this._debugDirtyProperties.forEach((sources, property) => {
+                if (sources.length > 1) {
+                    // eslint-disable-next-line no-console
+                    console.groupCollapsed(
+                        `Property changed multiple times before render: ${this.constructor.name}.${property} (${sources.length}x)`
+                    );
+                    // eslint-disable-next-line no-console
+                    sources.forEach((source) => console.log(source));
+                    // eslint-disable-next-line no-console
+                    console.groupEnd();
+                }
+            });
+        }
+        this._debugDirtyProperties.clear();
     }
 
     protected onZIndexChange() {
