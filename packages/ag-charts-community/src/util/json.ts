@@ -376,6 +376,9 @@ function jsonResolveVisitor<T extends object, P extends object>(
     if (isArray(node)) {
         for (let i = 0; i < node.length; i++) {
             node[i] = jsonResolveVisitorValue(node[i], params, source, meta, [...path, `${i}`], modifiedPaths);
+            if (node[i] === operationResolvedUndefined) {
+                node[i] = undefined;
+            }
         }
     } else {
         for (const name of Object.keys(node)) {
@@ -421,6 +424,7 @@ enum LogicOperation {
 }
 
 enum NumericOperation {
+    IsEven = '$isEven',
     Mul = '$mul',
     Round = '$round',
 }
@@ -518,6 +522,9 @@ function resolvePath(root: string[], path: string) {
         } else if (part === '$index') {
             const index = root.findLast((v) => !isNaN(Number(v)));
             if (index != null) resolvedPath.push(index);
+        } else if (part === '$prevIndex') {
+            const index = root.findLast((v) => !isNaN(Number(v)));
+            if (index != null) resolvedPath.push(`${Number(index) - 1}`);
         } else if (part.length !== 0) {
             resolvedPath.push(part);
         }
@@ -555,6 +562,7 @@ const logicOperations: Record<LogicOperation, OperationFn> = {
 };
 
 const numericOperations: Record<NumericOperation, OperationFn> = {
+    $isEven: isEven,
     $mul: mul,
     $round: round,
 };
@@ -713,6 +721,11 @@ function isOperationOperator<T extends object, P extends object>(
     return getOperation(branch) != null;
 }
 
+function isEven([a]: string | Array<unknown>, path: string[]) {
+    if (typeof a === 'number') return a % 2 === 0;
+    Logger.warnOnce(`\`$isEven\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`);
+}
+
 function mul([a, b]: string | Array<unknown>, path: string[]) {
     if (typeof a === 'number' && typeof b === 'number') return a * b;
     Logger.warnOnce(
@@ -788,12 +801,14 @@ function valueOperation(
     _source: any,
     meta: OperationMeta
 ) {
-    if (value !== '$1') return value;
+    if (value !== '$1' && value !== '$index') return value;
 
     const indexIndex = path.findLastIndex((v) => !isNaN(Number(v)));
     if (indexIndex === -1) return value;
 
     const index = Number(path[indexIndex]);
+    if (value === '$index') return index;
+
     const key = path.slice(0, indexIndex).join('.');
     return meta.matches.get(key)?.at(index);
 }

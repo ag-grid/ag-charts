@@ -605,6 +605,46 @@ describe('json module', () => {
             ]);
         });
 
+        it('should resolve `$path` operations with `$index`', () => {
+            const source = {
+                a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
+                b: ['other', { $path: '/a/$index/greeting' }],
+            };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: [{ greeting: 'hello' }, { greeting: 'bonjour' }], b: ['other', 'bonjour'] });
+        });
+
+        it('should resolve `$path` operations with `$prevIndex`', () => {
+            const source = {
+                a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
+                b: [{ $path: ['/a/$prevIndex/greeting', undefined] }, { $path: '/a/$prevIndex/greeting' }],
+            };
+            jsonResolveOperations(source, {});
+
+            // Requires a default fallback value since `$prevIndex` does not handle circular indices
+            expect(source).toEqual({ a: [{ greeting: 'hello' }, { greeting: 'bonjour' }], b: [undefined, 'hello'] });
+        });
+
+        it("should resolve `$value: '$1'` operations", () => {
+            const source = {
+                a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
+                b: ['other', { $value: '$1' }],
+            };
+            jsonResolveOperations(source, {});
+
+            // Since this is outside a transform operation, `$value: '$1'` points to itself and so correctly resolves to `undefined`
+            expect(source).toEqual({ a: [{ greeting: 'hello' }, { greeting: 'bonjour' }], b: ['other', undefined] });
+        });
+
+        it("should resolve `$value: '$index'` operations", () => {
+            const source = {
+                a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
+                b: [{ $value: '$index' }, { $value: '$index' }],
+            };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: [{ greeting: 'hello' }, { greeting: 'bonjour' }], b: [0, 1] });
+        });
+
         // Logical operations
         it('should resolve `$eq` operation with strict equality', () => {
             const source = { a: { $eq: [1, 1] }, b: { $eq: [1, '1'] }, c: { $eq: ['hello', 'hello'] } };
@@ -645,6 +685,12 @@ describe('json module', () => {
         });
 
         // Numeric operations
+        it('should resolve `$isEven` operation', () => {
+            const source = { a: { $isEven: [0] }, b: { $isEven: [1] }, c: { $isEven: [2] } };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: true, b: false, c: true });
+        });
+
         it('should resolve `$mul` operation', () => {
             const source = { a: { $mul: [2, 4] } };
             jsonResolveOperations(source, {});
@@ -680,6 +726,15 @@ describe('json module', () => {
             };
             jsonResolveOperations(source, {});
             expect(source).toEqual({ a: [{ greeting: 'hello' }, { greeting: 'bonjour' }], b: ['hello', 'bonjour'] });
+        });
+
+        it('should resolve `$map` and `$path` operations with `$prevIndex`', () => {
+            const source = {
+                a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
+                b: { $map: [{ $path: ['/a/$prevIndex/greeting', undefined] }, { $path: '/a' }] },
+            };
+            jsonResolveOperations(source, {});
+            expect(source).toEqual({ a: [{ greeting: 'hello' }, { greeting: 'bonjour' }], b: [undefined, 'hello'] });
         });
 
         it('should resolve `$find` operations', () => {
