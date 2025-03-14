@@ -18,7 +18,6 @@ import type {
 import type { LayoutContext } from '../../module/baseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { Gradient } from '../../scene/gradient/gradient';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
@@ -804,7 +803,7 @@ export class Legend extends BaseProperties {
         const { stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
 
-        let fill: Required<AgColorType> | Gradient | undefined;
+        let fill: Required<AgColorType> | undefined;
         if (isGradientFill(marker.fill)) {
             fill = {
                 type: 'gradient',

@@ -80,9 +80,7 @@ export abstract class Shape<D = any> extends Node<D> {
     fill: ShapeColor | undefined = Shape.defaultStyles.fill;
 
     private getGradient(pattern: ShapeColor | undefined) {
-        if (pattern instanceof Gradient) {
-            return pattern;
-        } else if (typeof pattern !== 'string' && pattern?.type === 'gradient') {
+        if (typeof pattern !== 'string' && pattern?.type === 'gradient') {
             return this.createGradient(pattern);
         }
 

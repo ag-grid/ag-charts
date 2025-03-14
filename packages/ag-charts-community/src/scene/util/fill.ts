@@ -1,9 +1,5 @@
 import { isArray, isObject } from 'ag-charts-core';
-import type { AgColorType, AgGradientColor } from 'ag-charts-types';
-
-import type { Gradient } from '../gradient/gradient';
-
-export type FillType = AgColorType | Gradient;
+import type { AgGradientColor } from 'ag-charts-types';
 
 export function isGradientFill(fill: any): fill is AgGradientColor {
     return isObject(fill) && fill.type == 'gradient';
