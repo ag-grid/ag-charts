@@ -96,7 +96,7 @@ export class MapShapeSeries
     private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
         return {
             gradient: 'linear',
-            bounds: 'series',
+            bounds: 'item',
             rotation: 0,
             colorStops: this.properties.defaultColorRange,
         };
