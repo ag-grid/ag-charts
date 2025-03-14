@@ -705,7 +705,7 @@ export class LineSeries extends CartesianSeries<
             this.plotNodeDataPoints(lineNode.path, contextData.nodeData);
         }
 
-        lineNode.markDirty();
+        lineNode.markDirty('LineSeries');
     }
 
     protected override animateEmptyUpdateReady(animationData: LineAnimationData) {

@@ -1,5 +1,6 @@
 import { createSvgElement, toIterable } from 'ag-charts-core';
 
+import { Debug } from '../util/debug';
 import { createId } from '../util/id';
 import { BBox } from './bbox';
 import { SceneChangeDetection } from './changeDetectable';
@@ -112,6 +113,7 @@ export abstract class Node<D = any> {
     private childNodes?: Set<Node>;
 
     private cachedBBox?: BBox;
+    private _debugDirtyProperties?: Set<string>;
 
     /**
      * To simplify the type system (especially in Selections) we don't have the `Parent` node
@@ -132,6 +134,8 @@ export abstract class Node<D = any> {
         this.name = options?.name;
         this.tag = options?.tag ?? NaN;
         this.zIndex = options?.zIndex ?? 0;
+
+        Debug.inDevelopmentMode(() => (this._debugDirtyProperties = new Set()));
     }
 
     /**
@@ -282,7 +286,7 @@ export abstract class Node<D = any> {
 
         this.invalidateCachedBBox();
         this.dirtyZIndex = true;
-        this.markDirty();
+        this.markDirty('child');
     }
 
     appendChild<T extends Node>(node: T): T {
@@ -302,7 +306,7 @@ export abstract class Node<D = any> {
 
         this.invalidateCachedBBox();
         this.dirtyZIndex = true;
-        this.markDirty();
+        this.markDirty('child');
     }
 
     remove() {
@@ -399,8 +403,18 @@ export abstract class Node<D = any> {
         return;
     }
 
-    markDirty() {
+    markDirty(property: string) {
         const { _dirty } = this;
+
+        if (this._debugDirtyProperties) {
+            if (property === 'child') return;
+
+            if (this._debugDirtyProperties?.has(property)) {
+                console.error(`Property changed multiple times before render: ${this.constructor.name}.${property}`);
+            }
+
+            this._debugDirtyProperties?.add(property);
+        }
 
         const noParentCachedBBox = this.cachedBBox == null;
         if (noParentCachedBBox && _dirty) return;
@@ -408,7 +422,7 @@ export abstract class Node<D = any> {
         this.invalidateCachedBBox();
         this._dirty = true;
         if (this.parentNode) {
-            this.parentNode.markDirty();
+            this.parentNode.markDirty('child');
         }
     }
 
@@ -416,6 +430,7 @@ export abstract class Node<D = any> {
         if (!this._dirty) return;
 
         this._dirty = false;
+        this._debugDirtyProperties?.clear();
 
         for (const child of this.children()) {
             child.markClean();

@@ -59,7 +59,7 @@ export class CollidableLine extends _ModuleSupport.Line {
     public setClipMask(id: string, mask?: ShapeClipMask) {
         const cm = this.clipMask.get(id);
         if (_ModuleSupport.jsonDiff(cm, mask) != null) {
-            this.markDirty();
+            this.markDirty('CollidableLine');
         }
 
         if (!mask) {

@@ -21,7 +21,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     public setTextInputBBox(bbox?: _ModuleSupport.BBox) {
         this.textInputBBox = bbox;
-        this.markDirty();
+        this.markDirty('TextualPointScene');
     }
 
     public override update(datum: Datum, context: AnnotationContext) {
