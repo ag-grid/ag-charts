@@ -58,12 +58,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
 
-    private readonly lineGroup = this.contentGroup.appendChild(
-        new Group({
-            name: 'radar-line',
-            zIndex: _ModuleSupport.SeriesZIndexMap.ANY_CONTENT,
-        })
-    );
+    private readonly lineGroup = this.contentGroup.appendChild(new Group({ name: 'radar-line' }));
     protected lineSelection: _ModuleSupport.Selection<_ModuleSupport.Path, boolean> = Selection.select(
         this.lineGroup,
         Path
@@ -83,23 +78,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             },
             clipFocusBox: false,
         });
+
+        this.lineGroup.zIndex = 0;
+        this.itemGroup.zIndex = 1;
     }
 
     protected override nodeFactory(): _ModuleSupport.Marker {
         return new Marker();
-    }
-
-    override setSeriesIndex(index: number): boolean {
-        if (!super.setSeriesIndex(index)) return false;
-
-        this.lineGroup.zIndex = [
-            _ModuleSupport.SeriesZIndexMap.ANY_CONTENT,
-            index,
-            _ModuleSupport.SeriesContentZIndexMap.FOREGROUND,
-            1,
-        ];
-
-        return true;
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
