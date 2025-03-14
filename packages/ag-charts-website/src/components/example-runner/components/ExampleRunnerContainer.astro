@@ -50,8 +50,9 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
 
 <style lang="scss">
     @use 'design-system' as *;
+    @use 'sass:math';
 
-    $half-logger-height: 100px / 2;
+    $half-logger-height: math.div(100px, 2);
 
     .container {
         position: relative;
