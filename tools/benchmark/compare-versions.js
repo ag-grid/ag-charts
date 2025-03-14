@@ -88,6 +88,27 @@ function timeFormat(timeMs) {
     return timeMs;
 }
 
+function cleanTestName(name) {
+    if (name.indexOf(' after ') >= 0) {
+        name = name.replace(' after ', ' (');
+        name += ')';
+    }
+
+    return name.replace(' benchmark', '');
+}
+
+function isCritical(result) {
+    const { test, beforeMB, afterMB, beforeMs, afterMs } = result;
+    if (test.indexOf('sparkline') < 0) {
+        return false;
+    }
+
+    if (afterMs > beforeMs) return true;
+    if (afterMB > beforeMB) return true;
+
+    return false;
+}
+
 console.log(`Comparing ${argv.base} (baseline) vs. ${argv.compare}`);
 const result = [];
 for (const test of Object.keys(baseData.results)) {
@@ -97,7 +118,7 @@ for (const test of Object.keys(baseData.results)) {
     if (!compare) continue;
 
     result.push({
-        test,
+        test: cleanTestName(test),
         pctTimeChange: Math.round(((compare.timeMs - base.timeMs) / base.timeMs) * 1000) / 10,
         pctMemoryChange: Math.round(((compare.memoryUsage - base.memoryUsage) / base.memoryUsage) * 1000) / 10,
         base,
@@ -111,13 +132,22 @@ for (const test of Object.keys(baseData.results)) {
 
 const rankedByTime = result.toSorted((a, b) => a.pctTimeChange - b.pctTimeChange);
 const rankedByMemory = result.toSorted((a, b) => a.pctMemoryChange - b.pctMemoryChange);
+const critical = result.filter(isCritical);
 
-console.log('Top 5 by time');
-console.table(rankedByTime.slice(0, 5), ['test', 'pctTimeChange', 'beforeMs', 'afterMs']);
-console.log('Bottom 5 by time');
-console.table(rankedByTime.slice(-5), ['test', 'pctTimeChange', 'beforeMs', 'afterMs']);
+if (critical.length > 0) {
+    console.error('Critical Cases');
+    console.table(critical, ['test', 'beforeMs', 'afterMs', 'beforeMB', 'afterMB']);
+    process.exitCode = 1;
+}
 
-console.log('Top 5 by memory');
-console.table(rankedByMemory.slice(0, 5), ['test', 'pctMemoryChange', 'beforeMB', 'afterMB']);
-console.log('Bottom 5 by memory');
-console.table(rankedByMemory.slice(-5), ['test', 'pctMemoryChange', 'beforeMB', 'afterMB']);
+console.log('Time');
+console.table(
+    [...rankedByTime.slice(0, 5), {}, ...rankedByTime.slice(-5)],
+    ['test', 'pctTimeChange', 'beforeMs', 'afterMs']
+);
+
+console.log('Memory');
+console.table(
+    [...rankedByMemory.slice(0, 5), {}, ...rankedByMemory.slice(-5)],
+    ['test', 'pctMemoryChange', 'beforeMB', 'afterMB']
+);
