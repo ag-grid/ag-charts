@@ -4,6 +4,10 @@ import type { BBox } from './bbox';
 import { IDENTITY_MATRIX_ELEMENTS, Matrix } from './matrix';
 import { Node, type RenderContext, SceneChangeDetection } from './node';
 
+function changeCb(this: { markDirtyTransform(): void;} ) {
+    this.markDirtyTransform();
+}
+
 type Constructor<T> = new (...args: any[]) => T;
 
 interface LocalToParentCoordinateSpaceTransforms {
@@ -58,11 +62,6 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
         markDirtyTransform() {
             this._dirtyTransform = true;
             super.markDirty();
-        }
-
-        override onChangeDetection(property: string): void {
-            super.onChangeDetection(property);
-            this.markDirtyTransform();
         }
 
         updateMatrix(_matrix: Matrix) {
@@ -182,11 +181,11 @@ export function Rotatable<N extends Node>(Parent: Constructor<N>): Constructor<R
     class RotatableInternal extends MatrixTransform(ParentNode) {
         [ROTATABLE_MATRIX] = new Matrix();
 
-        @SceneChangeDetection()
+        @SceneChangeDetection({ changeCb })
         rotationCenterX: number | null = null;
-        @SceneChangeDetection()
+        @SceneChangeDetection({ changeCb })
         rotationCenterY: number | null = null;
-        @SceneChangeDetection()
+        @SceneChangeDetection({ changeCb })
         rotation: number = 0;
 
         override updateMatrix(matrix: Matrix) {
@@ -222,13 +221,13 @@ export function Scalable<N extends Node>(Parent: Constructor<N>): Constructor<Sc
     class ScalableInternal extends MatrixTransform(ParentNode) {
         [SCALABLE_MATRIX] = new Matrix();
 
-        @SceneChangeDetection()
+        @SceneChangeDetection({ changeCb })
         scalingX: number = 1;
-        @SceneChangeDetection()
+        @SceneChangeDetection({ changeCb })
         scalingY: number = 1;
-        @SceneChangeDetection()
+        @SceneChangeDetection({ changeCb })
         scalingCenterX: number | null = null;
-        @SceneChangeDetection()
+        @SceneChangeDetection({ changeCb })
         scalingCenterY: number | null = null;
 
         override updateMatrix(matrix: Matrix) {
@@ -262,9 +261,9 @@ export function Translatable<N extends Node>(Parent: Constructor<N>): Constructo
     class TranslatableInternal extends MatrixTransform(ParentNode) {
         [TRANSLATABLE_MATRIX] = new Matrix();
 
-        @SceneChangeDetection()
+        @SceneChangeDetection({ changeCb })
         translationX: number = 0;
-        @SceneChangeDetection()
+        @SceneChangeDetection({ changeCb })
         translationY: number = 0;
 
         override updateMatrix(matrix: Matrix) {
