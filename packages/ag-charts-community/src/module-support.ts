@@ -171,7 +171,6 @@ export { Gradient, type GradientParams } from './scene/gradient/gradient';
 export * from './scene/gradient/stops';
 export { LinearGradient } from './scene/gradient/linearGradient';
 export { ConicGradient } from './scene/gradient/conicGradient';
-export { ScenePathChangeDetection } from './scene/shape/path';
 export { sectorBox } from './scene/util/sector';
 export { drawCorner } from './scene/util/corner';
 export type { Corner } from './scene/util/corner';

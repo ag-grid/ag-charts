@@ -1,4 +1,5 @@
 import type { BBox } from '../bbox';
+import { SceneChangeDetection } from '../changeDetectable';
 import type { Point } from '../point';
 import { SectorBox } from '../sectorBox';
 import {
@@ -10,7 +11,7 @@ import {
     radiiScalingFactor,
     sectorBox,
 } from '../util/sector';
-import { Path, ScenePathChangeDetection } from './path';
+import { Path } from './path';
 
 class Arc {
     constructor(
@@ -59,43 +60,43 @@ class Arc {
 export class Sector<D = any> extends Path<D> {
     static override readonly className = 'Sector';
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     centerX: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     centerY: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     innerRadius: number = 10;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     outerRadius: number = 20;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     startAngle: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     endAngle: number = Math.PI * 2;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     clipSector: SectorBox | undefined = undefined;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     concentricEdgeInset: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     radialEdgeInset: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     startOuterCornerRadius: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     endOuterCornerRadius: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     startInnerCornerRadius: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     endInnerCornerRadius: number = 0;
 
     set inset(value: number) {

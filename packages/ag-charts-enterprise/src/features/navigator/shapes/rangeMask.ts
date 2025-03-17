@@ -1,13 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { Path, BBox, ExtendedPath2D, clippedRoundRect, POSITIVE_NUMBER, TempValidate, ScenePathChangeDetection } =
+const { Path, BBox, ExtendedPath2D, clippedRoundRect, POSITIVE_NUMBER, TempValidate, SceneChangeDetection } =
     _ModuleSupport;
 
 export class RangeMask<D = any> extends Path<D> {
     static override readonly className = 'RangeMask';
 
     @TempValidate(POSITIVE_NUMBER)
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     cornerRadius: number = 4;
 
     override zIndex = 2;
