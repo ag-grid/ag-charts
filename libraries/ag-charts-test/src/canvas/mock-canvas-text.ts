@@ -1,16 +1,10 @@
 import { CanvasRenderingContext2D } from 'canvas';
 
-const overrides: Record<string, any> = {
-    measureText,
-    fillText,
-};
-
 export function mockCanvasText(context: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    return new Proxy(context, {
-        get(target, prop, receiver) {
-            return overrides[prop as any] ?? Reflect.get(target, prop, receiver);
-        },
-    });
+    // Returning a proxy doesn't seem to work here
+    context.measureText = (text: string) => measureText(context, text);
+    context.fillText = (text: string, x: number, y: number) => fillText(context, text, x, y);
+    return context;
 }
 
 const replacements: Partial<Record<string, string>> = {

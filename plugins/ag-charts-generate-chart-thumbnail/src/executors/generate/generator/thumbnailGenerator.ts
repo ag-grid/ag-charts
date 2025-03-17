@@ -72,9 +72,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
             DEFAULT_THUMBNAIL_HEIGHT * dpi,
             document
         );
-        if (mockText) {
-            mockCtx.mockText();
-        }
+        mockCtx.mockText = mockText;
         mockCanvas.setup(mockCtx);
 
         const chartProxy = AgCharts[api]({

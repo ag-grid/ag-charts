@@ -53,7 +53,7 @@ export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT }
     getActiveOffscreenCanvasInstances: () => OffscreenCanvas[];
 } {
     const mockCtx: mockCanvas.MockContext = new mockCanvas.MockContext(width, height, document);
-    mockCtx.mockText();
+    mockCtx.mockText = true;
 
     beforeEach(() => {
         resetIds();

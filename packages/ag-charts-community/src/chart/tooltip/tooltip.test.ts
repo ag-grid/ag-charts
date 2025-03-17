@@ -19,7 +19,7 @@ import {
 
 describe('Tooltip', () => {
     setupMockConsole();
-    let ctx: ReturnType<typeof setupMockCanvas>;
+    const ctx = setupMockCanvas();
     let chart: AgChartProxy | Chart;
 
     afterEach(() => {
@@ -130,8 +130,6 @@ describe('Tooltip', () => {
     });
 
     describe('AG-11591 Range', () => {
-        ctx = setupMockCanvas();
-
         const testHover = async (x: number, y: number) => {
             await hoverAction(x, y)(chart);
             await compare();

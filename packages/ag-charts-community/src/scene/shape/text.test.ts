@@ -28,8 +28,9 @@ const BASE_OPTIONS = {
 };
 
 describe('Text', () => {
+    const canvasCtx = setupMockCanvas();
+
     describe('rendering', () => {
-        const canvasCtx = setupMockCanvas();
         const mockLayerManager = setUpMockLayerManager(canvasCtx);
 
         const GAP = 20;
