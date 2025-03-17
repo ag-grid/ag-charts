@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { ConsoleMessage, Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
@@ -60,5 +60,60 @@ test.describe('interactive-tooltip', () => {
 
         await page.touchscreen.tap(20, 20);
         await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
+    });
+
+    test.describe('AG-14347', () => {
+        const consoleMessages: ConsoleMessage[] = [];
+        test.beforeEach(async ({ page }) => {
+            consoleMessages.length = 0;
+            page.on('console', (msg) => consoleMessages.push(msg));
+        });
+        function joinConsoleMessages(): string {
+            return consoleMessages.map((msg) => `${msg.type()}: ${msg.text()}\n`).join('');
+        }
+
+        test.describe('click link', () => {
+            test('out of focus', async () => {
+                // skip straight to afterEach
+            });
+            test('in focus', async ({ page }) => {
+                await page.mouse.click(20, 20);
+            });
+            test.afterEach(async ({ page }) => {
+                await page.mouse.move(400, 150);
+                await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+                const expectedRenders: string = await getSceneRenders(page);
+
+                const bbox = await page.getByText('Click here').boundingBox();
+                await page.mouse.click(bbox.x, bbox.y);
+                await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+                const actualRenders: string = await getSceneRenders(page);
+                expect(actualRenders).toBe(expectedRenders);
+
+                expect(joinConsoleMessages()).toEqual(`log: Clicked within a tooltip\n`);
+            });
+        });
+
+        test.describe('click text', () => {
+            test('out of focus', async () => {
+                // skip straight to afterEach
+            });
+            test('in focus', async ({ page }) => {
+                await page.mouse.click(20, 20);
+            });
+            test.afterEach(async ({ page }) => {
+                await page.mouse.move(400, 150);
+                await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+                const expectedRenders: string = await getSceneRenders(page);
+
+                const bbox = await page.getByText(' Jul: 70 ').boundingBox();
+                await page.mouse.click(bbox.x, bbox.y);
+                await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+                const actualRenders: string = await getSceneRenders(page);
+                expect(actualRenders).toBe(expectedRenders);
+
+                expect(joinConsoleMessages()).toEqual('');
+            });
+        });
     });
 });
