@@ -283,7 +283,7 @@ const isValidDateValue = (value: unknown) =>
 export const array = attachDescription(isArray, 'an array');
 export const boolean = attachDescription(isBoolean, 'a boolean');
 export const callback = attachDescription(isFunction, 'a function');
-export const color = attachDescription(isColor, 'a color');
+export const color = attachDescription(isColor, 'a color string');
 export const date = attachDescription(isValidDateValue, 'a date');
 export const defined = attachDescription(isDefined, 'a defined value');
 export const number = attachDescription(isFiniteNumber, 'a number');
