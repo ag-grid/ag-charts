@@ -1,4 +1,4 @@
-import { type OptionsDefs, array, object } from 'ag-charts-core';
+import { type OptionsDefs, array, defined, object } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgFlowProportionChartOptions,
@@ -11,44 +11,58 @@ import type {
 
 import { commonChartOptionsDefs } from './commonOptionsDefs';
 
-export type OmitChartAddons<T> = Omit<
-    T,
-    'container' | 'theme' | 'axes' | 'series' | 'annotations' | 'navigator' | 'initialState'
->;
+// These options are being validated by other modules
+const commonChartOptions = {
+    container: defined,
+    theme: defined,
+    series: defined,
+    annotations: defined,
+    navigator: defined,
+    initialState: defined,
+};
 
-export const cartesianChartOptionsDefs: OptionsDefs<OmitChartAddons<AgCartesianChartOptions>> = {
+export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
     ...commonChartOptionsDefs,
+    ...commonChartOptions,
+    axes: defined,
     data: array,
 };
 
-export const polarChartOptionsDefs: OptionsDefs<OmitChartAddons<AgPolarChartOptions>> = {
+export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {
     ...commonChartOptionsDefs,
+    ...commonChartOptions,
+    axes: defined,
     data: array,
 };
 
-export const topologyChartOptionsDefs: OptionsDefs<OmitChartAddons<AgTopologyChartOptions>> = {
+export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions> = {
     ...commonChartOptionsDefs,
+    ...commonChartOptions,
     data: array,
     topology: object,
 };
 
-export const standaloneChartOptionsDefs: OptionsDefs<OmitChartAddons<AgStandaloneChartOptions>> = {
+export const standaloneChartOptionsDefs: OptionsDefs<AgStandaloneChartOptions> = {
     ...commonChartOptionsDefs,
+    ...commonChartOptions,
     data: array,
 };
 
-export const hierarchyChartOptionsDefs: OptionsDefs<OmitChartAddons<AgHierarchyChartOptions>> = {
+export const hierarchyChartOptionsDefs: OptionsDefs<AgHierarchyChartOptions> = {
     ...commonChartOptionsDefs,
+    ...commonChartOptions,
     data: array,
 };
 
-export const flowProportionChartOptionsDefs: OptionsDefs<OmitChartAddons<AgFlowProportionChartOptions>> = {
+export const flowProportionChartOptionsDefs: OptionsDefs<AgFlowProportionChartOptions> = {
     ...commonChartOptionsDefs,
+    ...commonChartOptions,
     data: array,
     nodes: array,
 };
 
-export const gaugeChartOptionsDefs: OptionsDefs<OmitChartAddons<AgGaugeChartOptions>> = {
+export const gaugeChartOptionsDefs: OptionsDefs<AgGaugeChartOptions> = {
     ...commonChartOptionsDefs,
+    ...commonChartOptions,
     data: array,
 };

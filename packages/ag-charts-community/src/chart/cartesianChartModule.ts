@@ -4,10 +4,10 @@ import type { AgCartesianChartOptions } from 'ag-charts-types';
 import type { ChartOptions } from '../module/optionsModule';
 import { CartesianChart } from './cartesianChart';
 import type { TransferableResources } from './chart';
-import { type OmitChartAddons, cartesianChartOptionsDefs } from './chartOptionsDefs';
+import { cartesianChartOptionsDefs } from './chartOptionsDefs';
 import { isAgCartesianChartOptions } from './mapping/types';
 
-export const CartesianChartModule: ChartModuleDefinition<OmitChartAddons<AgCartesianChartOptions>> = {
+export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions> = {
     type: 'chart',
     name: 'cartesian',
 

@@ -5,7 +5,7 @@ import { GaugeChart } from './gaugeChart';
 
 const { isAgGaugeChartOptions, gaugeChartOptionsDefs } = _ModuleSupport;
 
-export const GaugeChartModule: ChartModuleDefinition<_ModuleSupport.OmitChartAddons<AgGaugeChartOptions>> = {
+export const GaugeChartModule: ChartModuleDefinition<AgGaugeChartOptions> = {
     type: 'chart',
     name: 'gauge',
 

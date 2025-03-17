@@ -5,7 +5,7 @@ import { StandaloneChart } from './standaloneChart';
 
 const { isAgStandaloneChartOptions, standaloneChartOptionsDefs } = _ModuleSupport;
 
-export const StandaloneChartModule: ChartModuleDefinition<_ModuleSupport.OmitChartAddons<AgStandaloneChartOptions>> = {
+export const StandaloneChartModule: ChartModuleDefinition<AgStandaloneChartOptions> = {
     type: 'chart',
     name: 'standalone',
 

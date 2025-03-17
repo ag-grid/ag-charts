@@ -5,7 +5,7 @@ import { HierarchyChart } from './hierarchyChart';
 
 const { isAgHierarchyChartOptions, hierarchyChartOptionsDefs } = _ModuleSupport;
 
-export const HierarchyChartModule: ChartModuleDefinition<_ModuleSupport.OmitChartAddons<AgHierarchyChartOptions>> = {
+export const HierarchyChartModule: ChartModuleDefinition<AgHierarchyChartOptions> = {
     type: 'chart',
     name: 'hierarchy',
 

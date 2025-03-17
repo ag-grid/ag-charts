@@ -5,7 +5,7 @@ import { TopologyChart } from './topologyChart';
 
 const { isAgTopologyChartOptions, topologyChartOptionsDefs } = _ModuleSupport;
 
-export const TopologyChartModule: ChartModuleDefinition<_ModuleSupport.OmitChartAddons<AgTopologyChartOptions>> = {
+export const TopologyChartModule: ChartModuleDefinition<AgTopologyChartOptions> = {
     type: 'chart',
     name: 'topology',
 

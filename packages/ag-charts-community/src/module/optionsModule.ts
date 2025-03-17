@@ -166,7 +166,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         const chartDef = ModuleRegistry.detectChartDefinition(this.userOptions);
         if (chartDef.options) {
-            console.log(validate(this.userOptions, chartDef.options));
+            console.log(`Chart Type: ${chartDef.name}`, validate(this.userOptions, chartDef.options));
         }
 
         if (stripSymbols) {
