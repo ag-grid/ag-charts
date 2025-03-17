@@ -1,6 +1,5 @@
 import { createSvgElement, toIterable } from 'ag-charts-core';
 
-import { Debug } from '../util/debug';
 import { createId } from '../util/id';
 import { BBox } from './bbox';
 import { SceneChangeDetection } from './changeDetectable';
@@ -56,6 +55,8 @@ const DEBUG_IGNORE_DIRTY_SOURCES = new Set(['child', 'transform']);
  */
 export abstract class Node<D = any> {
     private static _nextSerialNumber = 0;
+    // eslint-disable-next-line sonarjs/public-static-readonly
+    public static _debugEnabled = false;
 
     static toSVG(node: Node, width: number, height: number) {
         const svg = node?.toSVG();
@@ -108,6 +109,7 @@ export abstract class Node<D = any> {
 
     protected _debug?: (...args: any[]) => void;
     protected _layerManager?: LayersManager;
+    private readonly _debugDirtyProperties?: Map<string, string[]>;
 
     protected _dirty: boolean = true;
     protected dirtyZIndex: boolean = false;
@@ -116,7 +118,6 @@ export abstract class Node<D = any> {
     private childNodes?: Set<Node>;
 
     private cachedBBox?: BBox;
-    private _debugDirtyProperties?: Map<string, string[]>;
 
     /**
      * To simplify the type system (especially in Selections) we don't have the `Parent` node
@@ -138,8 +139,8 @@ export abstract class Node<D = any> {
         this.tag = options?.tag ?? NaN;
         this.zIndex = options?.zIndex ?? 0;
 
-        if (options?.debugDirty ?? true) {
-            Debug.inDevelopmentMode(() => (this._debugDirtyProperties = new Map([['__first__', []]])));
+        if (options?.debugDirty ?? Node._debugEnabled) {
+            this._debugDirtyProperties = new Map([['__first__', []]]);
         }
     }
 
