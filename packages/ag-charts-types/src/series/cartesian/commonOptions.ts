@@ -34,6 +34,7 @@ export interface FillOptions {
 }
 
 export type AgColorType = CssColor | AgGradientColor;
+export type AgColorTypeStrict = CssColor | AgGradientColorStrict;
 
 export type AgGradientColorMode = 'continuous' | 'discrete';
 
@@ -54,6 +55,10 @@ export interface AgGradientColor {
     bounds?: AgGradientColorBounds;
     /** The rotation angle of the line along which the gradient is rendered. */
     rotation?: number;
+}
+
+export interface AgGradientColorStrict extends AgGradientColor {
+    colorStops: AgGradientColorStop[];
 }
 
 export type AgGradientType = 'linear' | 'radial' | 'conic';

@@ -1,48 +1,49 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgCandlestickSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
 const { CARTESIAN_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
+
+function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemOptions> {
+    return {
+        fill: {
+            $if: [
+                { $eq: [{ $palette: 'type' }, 'user-indexed'] },
+                key === 'up' ? 'transparent' : { $palette: 'fill' },
+                { $palette: `${key}.fill` },
+            ],
+        },
+        stroke: {
+            $if: [
+                { $eq: [{ $palette: 'type' }, 'user-indexed'] },
+                { $palette: 'stroke' },
+                { $palette: `${key}.stroke` },
+            ],
+        },
+        // @ts-expect-error undocumented-option
+        defaultColorRange: {
+            $if: [
+                { $isGradient: [{ $palette: `${key}.fill` }] },
+                {
+                    $map: [
+                        { $path: ['./color', undefined, { $value: '$1' }] },
+                        {
+                            $path: ['./colorStops', undefined, { $palette: `${key}.fill` }],
+                        },
+                    ],
+                },
+                [
+                    { $mix: [{ $palette: `${key}.fill` }, 'black', 0.15] },
+                    { $mix: [{ $palette: `${key}.fill` }, 'white', 0.15] },
+                ],
+            ],
+        },
+    };
+}
 
 export const CANDLESTICK_SERIES_THEME: _ModuleSupport.SeriesModule<'candlestick'>['themeTemplate'] = {
     series: {
         item: {
-            up: {
-                fill: {
-                    $if: [{ $eq: [{ $palette: 'type' }, 'user-indexed'] }, 'transparent', { $palette: 'up.fill' }],
-                },
-                stroke: {
-                    $if: [
-                        { $eq: [{ $palette: 'type' }, 'user-indexed'] },
-                        { $palette: 'stroke' },
-                        { $palette: 'up.stroke' },
-                    ],
-                },
-                // @ts-expect-error undocumented option
-                defaultColorRange: [
-                    { $mix: [{ $palette: 'up.fill' }, 'black', 0.15] },
-                    { $mix: [{ $palette: 'up.fill' }, 'white', 0.15] },
-                ],
-            },
-            down: {
-                fill: {
-                    $if: [
-                        { $eq: [{ $palette: 'type' }, 'user-indexed'] },
-                        { $palette: 'fill' },
-                        { $palette: 'down.fill' },
-                    ],
-                },
-                stroke: {
-                    $if: [
-                        { $eq: [{ $palette: 'type' }, 'user-indexed'] },
-                        { $palette: 'stroke' },
-                        { $palette: 'down.stroke' },
-                    ],
-                },
-                // @ts-expect-error undocumented option
-                defaultColorRange: [
-                    { $mix: [{ $palette: 'down.fill' }, 'black', 0.15] },
-                    { $mix: [{ $palette: 'down.fill' }, 'white', 0.15] },
-                ],
-            },
+            up: itemTheme('up'),
+            down: itemTheme('down'),
         },
         highlightStyle: {
             item: { strokeWidth: 3 },
