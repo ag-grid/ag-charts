@@ -57,7 +57,7 @@ export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, Li
 // Lines
 export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
-    text?: AgLineAnnotationTextOptions;
+    text?: AgLineAnnotationText;
 }
 
 export interface AgCrossLineAnnotationStyles extends AgLineAnnotationStyles {

@@ -11,6 +11,7 @@ import type { AgChartLegendOptions } from './legendOptions';
 import type { AgLocaleOptions } from './localeOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
 import type { AgRangesOptions } from './rangesOptions';
+import type { AgChartTheme, AgChartThemeName } from './themeOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextAlign, TextWrap } from './types';
 import type { AgZoomOptions } from './zoomOptions';
@@ -114,7 +115,7 @@ export interface AgChartBackground {
     image?: AgChartBackgroundImage;
 }
 
-type AgChartHighlightRange = 'tooltip' | 'node';
+export type AgChartHighlightRange = 'tooltip' | 'node';
 
 export interface AgChartHighlightOptions {
     /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight nodes when within the `series[].nodeClickRange`. */
@@ -225,14 +226,6 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     keyboard?: AgKeyboardOptions;
     /** Touch input options. */
     touch?: AgTouchOptions;
-
-    // Cartesian-specific options - special care required.
-    /** Configuration for the Navigator. */
-    navigator?: AgNavigatorOptions;
-    /** Configuration for synchronizing multiple charts. */
-    sync?: AgChartSyncOptions;
-    /** Configuration for the zoom options. */
-    zoom?: AgZoomOptions;
     /**
      * Suppress treatment of series keys as JavaScript paths when `true`.
      *
@@ -241,6 +234,14 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     suppressFieldDotNotation?: boolean;
     /** A map of event names to event listeners. */
     listeners?: AgBaseChartListeners<TDatum>;
+
+    // Cartesian-specific options - special care required.
+    /** Configuration for the Navigator. */
+    navigator?: AgNavigatorOptions;
+    /** Configuration for synchronizing multiple charts. */
+    sync?: AgChartSyncOptions;
+    /** Configuration for the zoom options. */
+    zoom?: AgZoomOptions;
 }
 
 /** Configuration common to all charts.  */
@@ -251,4 +252,10 @@ export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOp
     container?: HTMLElement | null;
     /** The initial state of the chart. This must be a serializable value. */
     initialState?: AgInitialStateOptions;
+    /**
+     * A predefined theme name or an object containing theme overrides.
+     *
+     * See: [Themes Reference](/themes-api/)
+     */
+    theme?: AgChartTheme | AgChartThemeName;
 }

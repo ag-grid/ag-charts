@@ -210,6 +210,7 @@ export type AgBaseGaugePresetThemeOptions = Pick<
     | 'title'
     | 'tooltip'
     | 'width'
+    | 'theme'
 >;
 
 // Interface needed for docs generation, but listeners conflicts using the extends clause

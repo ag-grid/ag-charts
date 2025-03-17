@@ -1,12 +1,7 @@
 /* eslint-disable sonarjs/class-name */
 import type { AgInitialStateOptions } from './api/initialStateOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
-import type {
-    AgBaseChartThemeOptions,
-    AgBaseGaugePresetThemeOptions,
-    AgChartTheme,
-    AgChartThemeName,
-} from './chart/themeOptions';
+import type { AgBaseChartThemeOptions, AgBaseGaugePresetThemeOptions } from './chart/themeOptions';
 import type { PixelSize } from './chart/types';
 import type { AgFinancialChartPresets } from './presets/financial/financialOptions';
 import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
@@ -28,33 +23,13 @@ import type { AgBaseTopologyChartOptions } from './series/topology/topologyOptio
 
 export interface AgChartThemeOptions extends AgBaseChartThemeOptions {}
 
-export interface AgCartesianChartOptions extends AgBaseCartesianChartOptions, AgBaseChartOptions {
-    /**
-     * A predefined theme name or an object containing theme overrides.
-     *
-     *
-     * See: [Themes Reference](/themes-api/)
-     */
-    theme?: AgChartTheme | AgChartThemeName;
-}
-export interface AgPolarChartOptions extends AgBasePolarChartOptions, AgBaseChartOptions {
-    theme?: AgChartTheme | AgChartThemeName;
-}
-export interface AgHierarchyChartOptions extends AgBaseHierarchyChartOptions, AgBaseChartOptions {
-    theme?: AgChartTheme | AgChartThemeName;
-}
-export interface AgTopologyChartOptions extends AgBaseTopologyChartOptions, AgBaseChartOptions {
-    theme?: AgChartTheme | AgChartThemeName;
-}
-export interface AgFlowProportionChartOptions extends AgBaseFlowProportionChartOptions, AgBaseChartOptions {
-    theme?: AgChartTheme | AgChartThemeName;
-}
-export interface AgStandaloneChartOptions extends AgBaseStandaloneChartOptions, AgBaseChartOptions {
-    theme?: AgChartTheme | AgChartThemeName;
-}
-export interface AgGaugeChartOptions extends AgBaseChartOptions {
-    theme?: AgChartTheme | AgChartThemeName;
-}
+export interface AgCartesianChartOptions extends AgBaseCartesianChartOptions, AgBaseChartOptions {}
+export interface AgPolarChartOptions extends AgBasePolarChartOptions, AgBaseChartOptions {}
+export interface AgHierarchyChartOptions extends AgBaseHierarchyChartOptions, AgBaseChartOptions {}
+export interface AgTopologyChartOptions extends AgBaseTopologyChartOptions, AgBaseChartOptions {}
+export interface AgFlowProportionChartOptions extends AgBaseFlowProportionChartOptions, AgBaseChartOptions {}
+export interface AgStandaloneChartOptions extends AgBaseStandaloneChartOptions, AgBaseChartOptions {}
+export interface AgGaugeChartOptions extends AgBaseChartOptions {}
 export type AgChartOptions =
     | AgCartesianChartOptions
     | AgPolarChartOptions
@@ -90,21 +65,18 @@ export type AgBaseSparklinePresetThemeOptions = AgSparklineBaseThemeableOptions 
         | 'padding'
         | 'width'
         | 'data'
+        | 'theme'
     >;
 
 export type AgFinancialChartOptions = AgBaseFinancialPresetOptions & AgFinancialChartPresets;
 
-export interface AgBaseGaugePresetOptions extends AgBaseGaugePresetThemeOptions {
-    theme?: AgChartTheme | AgChartThemeName;
-}
+export interface AgBaseGaugePresetOptions extends AgBaseGaugePresetThemeOptions {}
 
 export type AgLinearGaugeOptions = AgBaseGaugePresetOptions & AgLinearGaugePreset;
 export type AgRadialGaugeOptions = AgBaseGaugePresetOptions & AgRadialGaugePreset;
 export type AgGaugeOptions = AgBaseGaugePresetOptions & AgGaugePresets;
 
-export interface AgBaseSparklinePresetOptions extends AgBaseSparklinePresetThemeOptions {
-    theme?: AgChartTheme | AgChartThemeName;
-}
+export interface AgBaseSparklinePresetOptions extends AgBaseSparklinePresetThemeOptions {}
 
 export type AgBarSparklineOptions = AgBaseSparklinePresetOptions & AgBarSparklinePreset;
 export type AgLineSparklineOptions = AgBaseSparklinePresetOptions & AgLineSparklinePreset;

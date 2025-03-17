@@ -48,7 +48,7 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = any>
 
 export interface AgCandlestickSeriesOptions<TDatum = any>
     extends AgCandlestickSeriesThemeableOptions<TDatum>,
-        Omit<AgBaseSeriesOptions<TDatum>, 'showInLegend'>,
+        AgBaseSeriesOptions<TDatum>,
         AgOhlcSeriesBaseOptions,
         Omit<AxisOptions, 'yKey'> {
     /** Configuration for the Candlestick Series. */

@@ -59,7 +59,7 @@ export interface AgNavigatorMiniChartPadding {
     bottom?: number;
 }
 
-type CommonIgnoredProperties =
+export type CommonIgnoredProperties =
     | 'cursor'
     | 'highlightStyle'
     | 'listeners'
@@ -83,7 +83,7 @@ export interface AgBubbleMiniChartSeriesOptions
         AgBubbleSeriesOptions,
         CommonIgnoredProperties | 'title' | 'label' | 'labelKey' | 'labelName' | 'sizeName'
     > {}
-export interface AgAreaMiniChartSeriesOptions extends Omit<AgAreaSeriesOptions, CommonIgnoredProperties | 'area'> {}
+export interface AgAreaMiniChartSeriesOptions extends Omit<AgAreaSeriesOptions, CommonIgnoredProperties> {}
 export interface AgBarMiniChartSeriesOptions
     extends Omit<AgBarSeriesOptions, CommonIgnoredProperties | 'errorBar' | 'label' | 'legendItemName' | 'direction'> {}
 export interface AgBoxPlotMiniChartSeriesOptions
@@ -166,12 +166,12 @@ export interface AgNavigatorMiniChartOptions {
 export interface AgNavigatorMaskOptions {
     /** The fill colour used by the mask. */
     fill?: CssColor;
+    /** The opacity of the mask's fill in the `[0, 1]` interval, where `0` is effectively no masking. */
+    fillOpacity?: Opacity;
     /** The stroke colour used by the mask. */
     stroke?: CssColor;
     /** The stroke width used by the mask. */
     strokeWidth?: PixelSize;
-    /** The opacity of the mask's fill in the `[0, 1]` interval, where `0` is effectively no masking. */
-    fillOpacity?: Opacity;
 }
 
 export interface AgNavigatorHandleOptions {
