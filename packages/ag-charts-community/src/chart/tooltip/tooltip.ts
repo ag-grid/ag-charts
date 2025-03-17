@@ -182,7 +182,7 @@ export class TooltipPosition extends BaseProperties {
 
     get defaultAnchorTo(): AgTooltipAnchorTo {
         const { type, _seriesOverrideType } = this;
-        const defaultType = _seriesOverrideType ?? type ?? 'pointer';
+        const defaultType = type ?? _seriesOverrideType ?? 'pointer';
 
         if (defaultType === 'node' || defaultType === 'pointer') {
             return defaultType;
@@ -193,7 +193,7 @@ export class TooltipPosition extends BaseProperties {
 
     get defaultPlacement(): AgTooltipPlacement {
         const { type, _seriesOverrideType } = this;
-        const defaultType = _seriesOverrideType ?? type ?? 'pointer';
+        const defaultType = type ?? _seriesOverrideType ?? 'pointer';
 
         if (defaultType === 'node' || defaultType === 'pointer') {
             return 'top';
