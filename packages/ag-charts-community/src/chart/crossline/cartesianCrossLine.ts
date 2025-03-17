@@ -6,7 +6,6 @@ import type {
 } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
-import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
@@ -226,6 +225,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         if (!visible) return;
 
         const {
+            type,
+            range,
+            value,
             scale,
             gridLength,
             sideFlag,
@@ -241,20 +243,32 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         const bandwidth = scale.bandwidth ?? 0;
         const step = scale.step ?? 0;
-        const padding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
+        const rangePadding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
 
         const [xStart, xEnd] = [0, sideFlag * gridLength];
-        let [yStart, yEnd] = this.getRange();
 
-        const ordinalTimeScalePadding = yEnd === undefined && OrdinalTimeScale.is(scale) ? bandwidth / 2 + padding : 0;
+        let yStart: number;
+        let yEnd: number;
+        let clampedYStart: number;
+        let clampedYEnd: number;
+        if (type === 'line') {
+            const offset = bandwidth / 2;
+            yStart = scale.convert(value as any) + offset;
+            yEnd = NaN;
+            clampedYStart = scale.convert(value as any, true) + offset;
+            clampedYEnd = NaN;
+        } else if (range) {
+            const ordinalTimeScalePadding = OrdinalTimeScale.is(scale) ? bandwidth / 2 + rangePadding : 0;
+            yStart = scale.convert(range[0] as any) + ordinalTimeScalePadding;
+            yEnd = scale.convert(range[1] as any) + bandwidth;
+            clampedYStart = scale.convert(range[0] as any, true) - rangePadding + ordinalTimeScalePadding;
+            clampedYEnd = scale.convert(range[1] as any, true) + bandwidth + rangePadding;
+        } else {
+            return;
+        }
 
-        let [clampedYStart, clampedYEnd] = [
-            Number(scale.convert(yStart, true)) - padding + ordinalTimeScalePadding,
-            scale.convert(yEnd, true) + bandwidth + padding,
-        ];
         clampedYStart = clampArray(clampedYStart, clippedRange);
         clampedYEnd = clampArray(clampedYEnd, clippedRange);
-        [yStart, yEnd] = [Number(scale.convert(yStart)) + ordinalTimeScalePadding, scale.convert(yEnd) + bandwidth];
 
         const validRange =
             (yStart === clampedYStart || yEnd === clampedYEnd || clampedYStart !== clampedYEnd) &&
@@ -265,12 +279,12 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             [yStart, yEnd] = [yEnd, yStart];
         }
 
-        if (yStart - padding >= clampedYStart) yStart -= padding;
-        if (yEnd + padding <= clampedYEnd) yEnd += padding;
+        if (yStart - rangePadding >= clampedYStart) yStart -= rangePadding;
+        if (yEnd + rangePadding <= clampedYEnd) yEnd += rangePadding;
 
         this.isRange = validRange;
-        this.startLine = strokeWidth > 0 && yStart >= clampedYStart && yStart <= clampedYStart + padding;
-        this.endLine = strokeWidth > 0 && yEnd >= clampedYEnd - bandwidth - padding && yEnd <= clampedYEnd;
+        this.startLine = strokeWidth > 0 && yStart >= clampedYStart && yStart <= clampedYStart + rangePadding;
+        this.endLine = strokeWidth > 0 && yEnd >= clampedYEnd - bandwidth - rangePadding && yEnd <= clampedYEnd;
 
         if (!validRange && !this.startLine && !this.endLine) return;
 
@@ -387,24 +401,6 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         crossLineLabel.translationX = x + xTranslation;
         crossLineLabel.translationY = y + yTranslation;
-    }
-
-    private getRange(): [any, any] {
-        const { value, range, scale } = this;
-
-        const isContinuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
-        const start = range?.[0] ?? value;
-        let end = range?.[1];
-
-        if (!isContinuous && end === undefined) {
-            end = start;
-        }
-
-        if (isContinuous && start === end) {
-            end = undefined;
-        }
-
-        return [start, end];
     }
 
     private computeLabelBBox(): BBox | undefined {

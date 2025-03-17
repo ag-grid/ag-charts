@@ -11,11 +11,9 @@ const {
     validateCrossLineValue,
     normalizeAngle360,
     toRadians,
-
     Group,
     Path,
     Sector,
-    BandScale,
     RotatableText,
 } = _ModuleSupport;
 
@@ -49,17 +47,12 @@ export class RadiusCrossLine extends PolarCrossLine {
     }
 
     update(visible: boolean) {
-        const { scale, value } = this;
+        const { scale } = this;
         if (!scale || !this.isValid() || !validateCrossLineValue(getCrossLineValue(this), scale)) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
             this.labelGroup.visible = false;
             return;
-        }
-
-        if (this.type === 'line' && BandScale.is(scale)) {
-            this.type = 'range';
-            this.range = [value, value];
         }
 
         this.updateRadii();
