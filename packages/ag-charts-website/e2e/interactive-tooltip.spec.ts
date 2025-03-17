@@ -11,11 +11,12 @@ async function getSceneRenders(page: Page): Promise<string> {
 test.describe('interactive-tooltip', () => {
     setupIntrinsicAssertions();
 
-    test('hover 1 step', async ({ page }) => {
+    test.beforeEach(async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('tooltips', 'tooltip-interaction', 'vanilla').url);
-
         await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
+    });
 
+    test('hover 1 step', async ({ page }) => {
         await page.mouse.move(400, 150);
         await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
         const expectedRenders: string = await getSceneRenders(page);
@@ -34,10 +35,6 @@ test.describe('interactive-tooltip', () => {
     });
 
     test('hover 4 steps', async ({ page }) => {
-        await gotoExample(page, toExamplePageUrl('tooltips', 'tooltip-interaction', 'vanilla').url);
-
-        await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
-
         await page.mouse.move(400, 150);
         await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
         const expectedRenders: string = await getSceneRenders(page);
@@ -58,11 +55,6 @@ test.describe('interactive-tooltip', () => {
     test('tap', async ({ page }) => {
         // There is limited support for touch input in playwright, so just test that the tooltips are shown and hidden
         // correctly from taps.
-
-        await gotoExample(page, toExamplePageUrl('tooltips', 'tooltip-interaction', 'vanilla').url);
-
-        await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
-
         await page.touchscreen.tap(400, 150);
         await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
 
