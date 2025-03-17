@@ -468,7 +468,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.scale.domain = sortBasedOnArray(this.dataDomain.domain, orderedDomain);
         this.tickScale.domain = domain.concat([['']]);
 
-        return { animatable: true };
+        return { animatable: false };
     }
 
     protected override updateGridLines() {
