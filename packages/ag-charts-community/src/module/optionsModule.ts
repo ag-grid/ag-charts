@@ -3,8 +3,6 @@ import {
     Logger,
     ModuleRegistry,
     ModuleType,
-    type OptionsDefs,
-    color,
     getDocument,
     getWindow,
     groupBy,
@@ -15,11 +13,8 @@ import {
     isString,
     isSymbol,
     joinFormatted,
-    number,
-    or,
     setDocument,
     setWindow,
-    string,
     unique,
     validate,
 } from 'ag-charts-core';
@@ -40,7 +35,7 @@ import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
 import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
-import { getChartTheme } from '../chart/mapping/themes';
+import { getChartTheme, themeOptionsDef } from '../chart/mapping/themes';
 import {
     type SeriesOptionsTypes,
     isAgCartesianChartOptions,
@@ -527,34 +522,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return defaultParameters;
         }
 
-        const themeParamsOptionsDef: OptionsDefs<AgChartThemeParams> = {
-            accentColor: color,
-            axisColor: color,
-            backgroundColor: color,
-            borderColor: color,
-            foregroundColor: color,
-            fontFamily: string,
-            fontSize: number,
-            fontWeight: or(string, number),
-            gridLineColor: color,
-            padding: number,
-            subtleTextColor: color,
-            textColor: color,
-
-            chromeBackgroundColor: color,
-            chromeFontFamily: string,
-            chromeFontSize: number,
-            chromeFontWeight: or(string, number),
-            chromeSubtleTextColor: color,
-            chromeTextColor: color,
-
-            inputBackgroundColor: color,
-            inputTextColor: color,
-
-            crosshairLabelBackgroundColor: color,
-            crosshairLabelTextColor: color,
-        };
-        const { valid, errors } = validate(options.theme.params, themeParamsOptionsDef);
+        const { valid, errors } = validate(options.theme.params, themeOptionsDef.params);
 
         for (const { message } of errors) {
             Logger.warnOnce(message);
