@@ -71,6 +71,9 @@ describe('Tooltip', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
+    "AG Charts - Property [type] is deprecated. use anchorTo and/or placement options instead",
+  ],
+  [
     "AG Charts - Property [type] of [TooltipPosition] cannot be set to ["ponter"]; expecting a position type keyword such as 'pointer', 'node', 'top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-right' or 'bottom-left', ignoring.",
   ],
 ]
