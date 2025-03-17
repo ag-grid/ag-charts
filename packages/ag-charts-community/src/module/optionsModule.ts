@@ -310,6 +310,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const validatedAxesOptions: any[] = [];
             const axesCount = options.axes.length ?? 0;
             for (let index = 0; index < axesCount; index++) {
+                const keyPath = `axes[${index}]`;
                 const axisOptions = options.axes[index];
                 const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
@@ -317,13 +318,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     const validTypes = Array.from(ModuleRegistry.listModulesByType(ModuleType.Axis), (def) => def.name);
                     const expectedTypes = joinFormatted(validTypes, 'or', (value: string) => `'${value}'`);
                     Logger.warn(
-                        `Unknown axis type \`${axisOptions.type}\`; expected one of ${expectedTypes}, ignoring all axes options.\``
+                        `Option \`${keyPath}.type\` cannot be set to \`${axisOptions.type}\`; expecting one of ${expectedTypes}, ignoring all axes options.\``
                     );
                     delete options.axes;
                     break;
                 }
 
-                const keyPath = `axes[${index}]`;
                 const { validate: validateAxis = validate } = axisDef;
                 const { valid, errors } = validateAxis(axisOptions, axisDef.options, keyPath);
 

@@ -321,6 +321,7 @@ export const numberRange = (min: number, max: number) =>
     );
 
 export const positiveNumber = numberMin(0);
+export const positiveNumberNonZero = numberMin(0, false);
 
 export const ratio = numberRange(0, 1);
 
