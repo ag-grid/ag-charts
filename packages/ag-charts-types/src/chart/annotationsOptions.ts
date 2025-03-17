@@ -505,8 +505,11 @@ interface Extendable {
 }
 
 export type ValueType = string | number | AgStateSerializableDate;
-export type AgGroupingValueType = { value: ValueType; groupPercentage: number };
 export type AgAnnotationValue = ValueType | AgGroupingValueType;
+export interface AgGroupingValueType {
+    value: ValueType;
+    groupPercentage: number;
+}
 
 // ***********
 // * Toolbar *
