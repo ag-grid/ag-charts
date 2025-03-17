@@ -22,9 +22,26 @@ function containsIgnoredMessage(log: Log) {
     );
 }
 
+function safeStringify(obj: object, space: number = 2) {
+    const seen = new WeakSet();
+    return JSON.stringify(
+        obj,
+        (_, value) => {
+            if (typeof value === 'object' && value !== null) {
+                if (seen.has(value)) {
+                    return '[Circular]';
+                }
+                seen.add(value);
+            }
+            return value;
+        },
+        space
+    );
+}
+
 function safeLogData(data: unknown) {
     if (typeof data === 'string' || typeof data === 'number') return data;
-    return JSON.stringify(data, null, 2);
+    return safeStringify(data as object);
 }
 
 export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSize = 10 }) => {
