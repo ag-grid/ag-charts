@@ -64,7 +64,7 @@ test.describe('interactive-tooltip', () => {
 
     test.describe('AG-14347', () => {
         const consoleMessages: ConsoleMessage[] = [];
-        test.beforeEach(async ({ page }) => {
+        test.beforeEach(({ page }) => {
             consoleMessages.length = 0;
             page.on('console', (msg) => consoleMessages.push(msg));
         });
