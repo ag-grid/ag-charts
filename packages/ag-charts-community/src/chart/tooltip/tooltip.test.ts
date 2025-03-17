@@ -55,7 +55,7 @@ describe('Tooltip', () => {
 `);
         });
 
-        it('should show 1 warning for invalid tooltip position value', async () => {
+        it('should show 1 warning for invalid tooltip anchorTo value', async () => {
             await createChart({
                 data: [
                     { month: 'Jun', sweaters: 50 },
@@ -64,14 +64,14 @@ describe('Tooltip', () => {
                 ],
                 series: [{ type: 'line', xKey: 'month', yKey: 'sweaters', yName: 'Sweaters Made' }],
                 tooltip: {
-                    position: { type: 'ponter' as any, xOffset: 80, yOffset: 80 },
+                    position: { anchorTo: 'ponter' as any, xOffset: 80, yOffset: 80 },
                 },
             });
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Property [type] of [TooltipPosition] cannot be set to ["ponter"]; expecting a position type keyword such as 'pointer', 'node', 'top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-right' or 'bottom-left', ignoring.",
+    "AG Charts - Property [anchorTo] of [TooltipPosition] cannot be set to ["ponter"]; expecting an anchorTo keyword such as 'pointer', 'node' or 'chart', ignoring.",
   ],
 ]
 `);

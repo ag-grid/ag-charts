@@ -124,7 +124,8 @@ const options: AgChartOptions = {
     ],
     tooltip: {
         position: {
-            type: 'top-left',
+            anchorTo: 'chart',
+            placement: 'top-left',
             xOffset: 10,
             yOffset: 60,
         },

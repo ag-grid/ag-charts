@@ -30,7 +30,9 @@ import {
     type AgPolarAxisOptions,
     type AgPresetOptions,
     type AgPresetOverrides,
-    type AgTooltipPositionOptions,
+    AgTooltipAnchorToType,
+    AgTooltipPlacementType,
+    type AgTooltipPositionOptions, // eslint-disable-next-line sonarjs/deprecation
     AgTooltipPositionType,
     type WithThemeParams,
 } from 'ag-charts-types';
@@ -679,12 +681,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         // eslint-disable-next-line sonarjs/deprecation
-        const { type, xOffset, yOffset } = position;
+        const { type, anchorTo, placement, xOffset, yOffset } = position;
         const result: AgTooltipPositionOptions = {};
 
+        // eslint-disable-next-line sonarjs/deprecation
         if (isString(type) && isEnumValue(AgTooltipPositionType, type)) {
             // eslint-disable-next-line sonarjs/deprecation
             result.type = type;
+        }
+        if (isString(anchorTo) && isEnumValue(AgTooltipAnchorToType, anchorTo)) {
+            result.anchorTo = anchorTo;
+        }
+        if (isString(placement) && isEnumValue(AgTooltipPlacementType, placement)) {
+            result.placement = placement;
         }
         if (isFiniteNumber(xOffset)) {
             result.xOffset = xOffset;

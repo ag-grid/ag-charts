@@ -3,18 +3,27 @@ import type { DurationMs, InteractionRange, PixelSize, TextWrap } from './types'
 
 export type AgTooltipMode = 'single' | 'shared' | 'compact';
 
-export type AgTooltipAnchorTo = 'pointer' | 'node' | 'chart';
+export enum AgTooltipAnchorToType {
+    POINTER = 'pointer',
+    NODE = 'node',
+    CHART = 'chart',
+}
 
-export type AgTooltipPlacement =
-    | 'top'
-    | 'right'
-    | 'bottom'
-    | 'left'
-    | 'top-right'
-    | 'bottom-right'
-    | 'bottom-left'
-    | 'top-left'
-    | 'center';
+export enum AgTooltipPlacementType {
+    TOP = 'top',
+    RIGHT = 'right',
+    BOTTOM = 'bottom',
+    LEFT = 'left',
+    TOP_RIGHT = 'top-right',
+    BOTTOM_RIGHT = 'bottom-right',
+    BOTTOM_LEFT = 'bottom-left',
+    TOP_LEFT = 'top-left',
+    CENTER = 'center',
+}
+
+export type AgTooltipAnchorTo = `${AgTooltipAnchorToType}`;
+
+export type AgTooltipPlacement = `${AgTooltipPlacementType}`;
 
 export interface AgChartTooltipOptions {
     /** Set to `false` to disable tooltips for all series in the chart. */
@@ -43,6 +52,7 @@ export interface AgChartTooltipOptions {
     wrapping?: TextWrap;
 }
 
+/** @deprecated v11.2.0 use `anchorTo` and `placement` instead. */
 export enum AgTooltipPositionType {
     POINTER = 'pointer',
     NODE = 'node',
@@ -61,6 +71,7 @@ export interface AgTooltipPositionOptions {
      * The type of positioning for the tooltip. By default, the tooltip follows the mouse pointer for series without markers, and it is anchored to the highlighted marker node for series with markers.
      * @deprecated v11.2.0 use `anchorTo` and `placement` instead.
      */
+    // eslint-disable-next-line sonarjs/deprecation
     type?: `${AgTooltipPositionType}`;
     /** The element or point to position the tooltip relative to. */
     anchorTo?: AgTooltipAnchorTo;

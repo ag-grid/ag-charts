@@ -31,7 +31,8 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     themeTemplate: {
         series: {
             nodeClickRange: 'nearest',
-            tooltip: { position: { type: 'node' } },
+            // @ts-expect-error deprecated type field fallback value
+            tooltip: { position: { _seriesOverrideType: 'node' } },
             fill: { $palette: 'fill' },
             stroke: { $palette: 'stroke' },
             defaultColorRange: { $palette: 'gradient' },

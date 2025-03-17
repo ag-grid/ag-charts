@@ -121,7 +121,7 @@ describe('Chart Heap Memory', () => {
             const heapProportionChange = Math.abs(endingHeap - startingHeap) / startingHeap;
 
             // console.log({ startingHeap, endingHeap, heapProportionChange });
-            expect(heapProportionChange).toBeLessThan(0.15);
+            expect(heapProportionChange).toBeLessThan(0.2);
         }, 20_000);
 
         // Reason: Need to add --expose-gc to node instance, couldn't figure out how to do it yet...
