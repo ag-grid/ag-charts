@@ -181,11 +181,11 @@ export function Rotatable<N extends Node>(Parent: Constructor<N>): Constructor<R
     class RotatableInternal extends MatrixTransform(ParentNode) {
         [ROTATABLE_MATRIX] = new Matrix();
 
-        @SceneChangeDetection({ type: 'transform' })
+        @SceneChangeDetection()
         rotationCenterX: number | null = null;
-        @SceneChangeDetection({ type: 'transform' })
+        @SceneChangeDetection()
         rotationCenterY: number | null = null;
-        @SceneChangeDetection({ type: 'transform' })
+        @SceneChangeDetection()
         rotation: number = 0;
 
         override updateMatrix(matrix: Matrix) {
@@ -221,13 +221,13 @@ export function Scalable<N extends Node>(Parent: Constructor<N>): Constructor<Sc
     class ScalableInternal extends MatrixTransform(ParentNode) {
         [SCALABLE_MATRIX] = new Matrix();
 
-        @SceneChangeDetection({ type: 'transform' })
+        @SceneChangeDetection()
         scalingX: number = 1;
-        @SceneChangeDetection({ type: 'transform' })
+        @SceneChangeDetection()
         scalingY: number = 1;
-        @SceneChangeDetection({ type: 'transform' })
+        @SceneChangeDetection()
         scalingCenterX: number | null = null;
-        @SceneChangeDetection({ type: 'transform' })
+        @SceneChangeDetection()
         scalingCenterY: number | null = null;
 
         override updateMatrix(matrix: Matrix) {
@@ -261,9 +261,9 @@ export function Translatable<N extends Node>(Parent: Constructor<N>): Constructo
     class TranslatableInternal extends MatrixTransform(ParentNode) {
         [TRANSLATABLE_MATRIX] = new Matrix();
 
-        @SceneChangeDetection({ type: 'transform' })
+        @SceneChangeDetection()
         translationX: number = 0;
-        @SceneChangeDetection({ type: 'transform' })
+        @SceneChangeDetection()
         translationY: number = 0;
 
         override updateMatrix(matrix: Matrix) {

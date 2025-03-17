@@ -1,7 +1,7 @@
 type Target = { [K in string]: any } & { onChangeDetection(privateKey: string): void };
 
 type SceneChangeDetectionOptions<T = any> = {
-    type?: 'normal' | 'transform' | 'path';
+    type?: 'normal' | 'path';
     convertor?: (o: any) => any;
     changeCb?: (o: T) => any;
     checkDirtyOnAssignment?: boolean;
