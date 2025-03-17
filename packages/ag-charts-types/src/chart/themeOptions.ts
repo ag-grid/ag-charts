@@ -8,7 +8,7 @@ import type { AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleO
 import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/candlestickOptions';
 import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
-import type { AgColorType } from '../series/cartesian/commonOptions';
+import type { AgColorType, AgColorTypeStrict } from '../series/cartesian/commonOptions';
 import type { AgConeFunnelSeriesThemeableOptions } from '../series/cartesian/coneFunnelOptions';
 import type { AgFunnelSeriesThemeableOptions } from '../series/cartesian/funnelOptions';
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
@@ -63,7 +63,7 @@ export type AgChartThemeName =
     | 'ag-financial-dark';
 
 export interface AgPaletteColors {
-    fill?: CssColor;
+    fill?: AgColorTypeStrict;
     stroke?: CssColor;
 }
 

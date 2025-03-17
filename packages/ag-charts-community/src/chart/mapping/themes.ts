@@ -1,4 +1,15 @@
-import { Logger, type OptionsDefs, arrayOf, color, gradient, object, or, string, validate } from 'ag-charts-core';
+import {
+    Logger,
+    type OptionsDefs,
+    arrayOf,
+    color,
+    gradient,
+    gradientStrict,
+    object,
+    or,
+    string,
+    validate,
+} from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeName,
@@ -113,8 +124,8 @@ const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     palette: {
         fills: arrayOf(or(color, gradient)),
         strokes: arrayOf(color),
-        up: { fill: or(color, gradient), stroke: color },
-        down: { fill: or(color, gradient), stroke: color },
-        neutral: { fill: or(color, gradient), stroke: color },
+        up: { fill: or(color, gradientStrict), stroke: color },
+        down: { fill: or(color, gradientStrict), stroke: color },
+        neutral: { fill: or(color, gradientStrict), stroke: color },
     },
 };

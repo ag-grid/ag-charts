@@ -1,6 +1,7 @@
 import type {
     AgGradientColor,
     AgGradientColorStop,
+    AgGradientColorStrict,
     FillOptions,
     FontOptions,
     LineDashOptions,
@@ -19,6 +20,7 @@ import {
     or,
     positiveNumber,
     ratio,
+    required,
     string,
     typeUnion,
     union,
@@ -78,6 +80,18 @@ export const gradient = typeUnion<AgGradientColor>(
         },
     },
     'a gradient object'
+);
+
+export const gradientStrict = typeUnion<AgGradientColorStrict>(
+    {
+        gradient: {
+            gradient: union('linear', 'radial', 'conic'),
+            bounds: gradientBounds,
+            colorStops: required(gradientColorStops),
+            rotation: number,
+        },
+    },
+    'a gradient object with color stops'
 );
 
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
