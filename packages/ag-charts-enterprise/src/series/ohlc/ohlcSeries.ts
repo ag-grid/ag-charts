@@ -116,15 +116,17 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
             return [];
         }
 
-        const fill = new _ModuleSupport.LinearGradient(
-            'rgb',
-            [
-                { color: up.stroke, offset: 0 },
-                { color: up.stroke, offset: 0.5 },
-                { color: down.stroke, offset: 0.5 },
+        const fill: _ModuleSupport.ShapeColor = {
+            type: 'gradient',
+            gradient: 'linear',
+            colorSpace: 'rgb',
+            colorStops: [
+                { color: up.stroke, stop: 0 },
+                { color: up.stroke, stop: 0.5 },
+                { color: down.stroke, stop: 0.5 },
             ],
-            90
-        );
+            rotation: 90,
+        };
 
         return [
             {

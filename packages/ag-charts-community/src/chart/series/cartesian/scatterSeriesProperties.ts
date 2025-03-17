@@ -1,5 +1,5 @@
 import type {
-    AgFillType,
+    AgColorType,
     AgMarkerShape,
     AgScatterSeriesItemStylerParams,
     AgScatterSeriesLabelFormatterParams,
@@ -71,7 +71,7 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     defaultColorRange?: string[];
 
     @ProxyProperty('marker.fill', { optional: true })
-    fill?: AgFillType;
+    fill?: AgColorType;
 
     @ProxyProperty('marker.fillOpacity')
     fillOpacity!: number;

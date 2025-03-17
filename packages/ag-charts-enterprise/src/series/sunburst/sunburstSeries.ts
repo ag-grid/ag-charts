@@ -555,17 +555,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     override getTooltipContent(datumIndex: number[]): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
-        const {
-            labelKey,
-            secondaryLabelKey,
-            childrenKey,
-            sizeKey,
-            sizeName,
-            colorKey,
-            colorName,
-            tooltip,
-            defaultColorRange,
-        } = properties;
+        const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
+            properties;
         const nodeDatum = datumIndex.reduce((n, i) => n?.children[i], this.rootNode);
         if (nodeDatum == null) return;
         const { datum, depth } = nodeDatum;
@@ -593,17 +584,19 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             {
                 title: labelKey != null ? datum[labelKey] : undefined,
                 symbol: {
-                    marker: {
-                        shape: 'square',
-                        fill: color,
-                        fillOpacity: 1,
-                        stroke: undefined,
-                        strokeWidth: 0,
-                        strokeOpacity: 1,
-                        lineDash: [0],
-                        lineDashOffset: 0,
-                        defaultColorRange,
-                    },
+                    marker: _ModuleSupport.getShapeStyle(
+                        {
+                            shape: 'square',
+                            fill: color,
+                            fillOpacity: 1,
+                            stroke: undefined,
+                            strokeWidth: 0,
+                            strokeOpacity: 1,
+                            lineDash: [0],
+                            lineDashOffset: 0,
+                        },
+                        this.defaultShapeStyle
+                    ),
                 },
                 data,
             },

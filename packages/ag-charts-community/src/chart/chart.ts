@@ -1,5 +1,11 @@
 import { Logger, type ModuleInstance, entries, groupBy, isFiniteNumber, isFunction } from 'ag-charts-core';
-import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateLegendOptions } from 'ag-charts-types';
+import type {
+    AgBaseAxisOptions,
+    AgChartInstance,
+    AgChartOptions,
+    AgColorType,
+    AgInitialStateLegendOptions,
+} from 'ag-charts-types';
 
 import type { AxisOptionModule } from '../module/axisOptionModule';
 import type { LayoutContext } from '../module/baseModule';
@@ -11,7 +17,6 @@ import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
-import type { FillType } from '../scene/util/fill';
 import { AsyncAwaitQueue, pause } from '../util/async';
 import { Debug } from '../util/debug';
 import { isInputPending } from '../util/dom';
@@ -1029,7 +1034,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
         if (this.mode !== 'integrated') {
             // Validate each series that shares a legend item label uses the same fill colour
             const seriesMarkerFills: {
-                [key: string]: { [key: string]: FillType | undefined };
+                [key: string]: { [key: string]: AgColorType | undefined };
             } = {};
             const seriesTypeMap = new Map(this.series.map((s) => [s.id, s.type]));
 

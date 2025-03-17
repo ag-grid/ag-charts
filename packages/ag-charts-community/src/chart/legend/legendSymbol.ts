@@ -1,21 +1,11 @@
-import type { AgMarkerShape } from 'ag-charts-types';
+import type { AgColorType, AgSeriesMarkerStyle } from 'ag-charts-types';
 
-import type { Gradient } from '../../scene/gradient/gradient';
 import { Group } from '../../scene/group';
 import { Line } from '../../scene/shape/line';
-import { type FillType, isGradientFill } from '../../scene/util/fill';
 import { Marker } from '../marker/marker';
 
-export interface LegendMarker {
-    shape?: AgMarkerShape;
-    fill?: FillType;
-    defaultColorRange?: string[];
-    fillOpacity: number;
-    stroke?: string | Gradient;
-    strokeOpacity: number;
-    strokeWidth: number;
-    lineDash: number[];
-    lineDashOffset: number;
+export interface LegendMarker extends Omit<AgSeriesMarkerStyle, 'stroke'> {
+    stroke?: AgColorType;
     enabled?: boolean;
 }
 
@@ -34,7 +24,7 @@ export interface LegendSymbolOptions {
 export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineSize = size * (5 / 3)) {
     const group = new Group();
 
-    const markerStrokeWidth = Math.min(symbol.marker.strokeWidth, 2);
+    const markerStrokeWidth = Math.min(symbol.marker.strokeWidth ?? 1, 2);
     const lineStrokeWidth = Math.min(symbol.line?.strokeWidth ?? 0, 2);
 
     const width = Math.max(symbol.marker.enabled === false ? 0 : size, symbol.line == null ? 0 : lineSize);
@@ -55,22 +45,17 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
     }
 
     if (symbol.marker.enabled !== false) {
-        const { shape, fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
-            symbol.marker;
+        const { shape, fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = symbol.marker;
         const marker = new Marker();
         marker.shape = shape ?? 'square';
         marker.size = size;
-        if (isGradientFill(fill) && fill.colorStops == null) {
-            marker.fill = { ...fill, colorStops: defaultColorRange?.map((color) => ({ color })) };
-        } else {
-            marker.fill = fill;
-        }
-        marker.fillOpacity = fillOpacity;
+        marker.fill = fill;
+        marker.fillOpacity = fillOpacity ?? 1;
         marker.stroke = stroke;
-        marker.strokeOpacity = strokeOpacity;
+        marker.strokeOpacity = strokeOpacity ?? 1;
         marker.strokeWidth = markerStrokeWidth;
         marker.lineDash = lineDash;
-        marker.lineDashOffset = lineDashOffset;
+        marker.lineDashOffset = lineDashOffset ?? 0;
 
         const anchor = Marker.anchor(shape);
         const x = width / 2 + (anchor.x - 0.5) * size;

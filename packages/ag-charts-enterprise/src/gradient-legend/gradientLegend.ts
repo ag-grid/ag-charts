@@ -16,7 +16,6 @@ const {
     Rect,
     Marker,
     TranslatableGroup,
-    LinearGradient,
     BBox,
 } = _ModuleSupport;
 
@@ -170,14 +169,16 @@ export class GradientLegend {
             gradientRect.height = thickness;
         }
 
-        gradientRect.fill = new LinearGradient(
-            'oklch',
-            colorRange.map((color, i) => ({
-                offset: i / (colorRange.length - 1),
+        gradientRect.fill = {
+            type: 'gradient',
+            gradient: 'linear',
+            colorSpace: 'oklch',
+            colorStops: colorRange.map((color, i) => ({
+                stop: i / (colorRange.length - 1),
                 color,
             })),
-            angle
-        );
+            rotation: angle,
+        };
     }
 
     private updateAxis(data: _ModuleSupport.GradientLegendDatum) {

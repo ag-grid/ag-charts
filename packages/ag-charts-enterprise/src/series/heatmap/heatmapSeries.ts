@@ -1,5 +1,5 @@
 import type {
-    AgGradientFill,
+    AgGradientColor,
     AgHeatmapSeriesStyle,
     FontStyle,
     FontWeight,
@@ -473,7 +473,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        let fill: AgGradientFill | string;
+        let fill: AgGradientColor | string;
         if (colorValue == null) {
             fill = colorRange[0];
         } else {

@@ -2,7 +2,7 @@ import type {
     AgAreaSeriesLabelFormatterParams,
     AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesTooltipRendererParams,
-    AgFillType,
+    AgColorType,
     AgSeriesAreaOptions,
 } from 'ag-charts-types';
 
@@ -49,7 +49,7 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     defaultColorRange: string[] = [];
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
-    fill: AgFillType = '#c16068';
+    fill: AgColorType = '#c16068';
 
     @TempValidate(RATIO)
     fillOpacity = 1;

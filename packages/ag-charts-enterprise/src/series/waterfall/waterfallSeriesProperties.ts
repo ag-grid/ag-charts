@@ -1,5 +1,5 @@
 import type {
-    AgFillType,
+    AgColorType,
     AgTooltipRendererResult,
     AgWaterfallSeriesItemStylerParams,
     AgWaterfallSeriesLabelFormatterParams,
@@ -67,7 +67,7 @@ export class WaterfallSeriesItem extends BaseProperties {
     defaultColorRange: string[] = [];
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
-    fill: AgFillType = '#c16068';
+    fill: AgColorType = '#c16068';
 
     @TempValidate(COLOR_STRING)
     stroke: string = '#c16068';

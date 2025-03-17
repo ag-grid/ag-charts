@@ -1,5 +1,5 @@
 import type {
-    AgFillType,
+    AgColorType,
     AgFunnelSeriesItemStylerParams,
     AgFunnelSeriesLabelFormatterParams,
     AgFunnelSeriesOptions,
@@ -46,7 +46,7 @@ class FunnelDropOff extends BaseProperties {
     enabled: boolean = true;
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill: AgFillType | undefined = undefined;
+    fill: AgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;
@@ -81,7 +81,7 @@ export class FunnelProperties
     defaultColorRange: string[] = [];
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
-    fills: AgFillType[] = [];
+    fills: AgColorType[] = [];
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

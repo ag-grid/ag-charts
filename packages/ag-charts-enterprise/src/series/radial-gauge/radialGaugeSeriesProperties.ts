@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { Logger, type RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
-    AgGradientFillMode,
+    AgGradientColorMode,
     AgRadialGaugeItemStylerParams,
     AgRadialGaugeLabelFormatterParams,
     AgRadialGaugeMarkerShape,
@@ -72,7 +72,7 @@ export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<Rad
     clipEndAngle: number | undefined;
     startCornerRadius: number;
     endCornerRadius: number;
-    fill: string | _ModuleSupport.Gradient | undefined;
+    fill: string | _ModuleSupport.ShapeColor | undefined;
 }
 
 export interface RadialGaugeTargetDatumLabel {
@@ -187,7 +187,7 @@ class RadialGaugeBarProperties extends BaseProperties {
     fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
 
     @TempValidate(FILL_MODE)
-    fillMode: AgGradientFillMode = 'continuous';
+    fillMode: AgGradientColorMode = 'continuous';
 
     @TempValidate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -238,7 +238,7 @@ class RadialGaugeScaleProperties extends BaseProperties {
     fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
 
     @TempValidate(FILL_MODE)
-    fillMode: AgGradientFillMode = 'continuous';
+    fillMode: AgGradientColorMode = 'continuous';
 
     @TempValidate(COLOR_STRING, { optional: true })
     fill: string | undefined;

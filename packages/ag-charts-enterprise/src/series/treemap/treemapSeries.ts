@@ -841,17 +841,20 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
         const symbol: _ModuleSupport.LegendSymbolOptions | undefined = isLeaf
             ? {
-                  marker: {
-                      shape: 'square',
-                      fill: color,
-                      fillOpacity: 1,
-                      stroke: undefined,
-                      strokeWidth: 0,
-                      strokeOpacity: 1,
-                      lineDash: [0],
-                      lineDashOffset: 0,
-                      defaultColorRange,
-                  },
+                  marker: _ModuleSupport.getShapeStyle(
+                      {
+                          shape: 'square',
+                          fill: color,
+                          fillOpacity: 1,
+                          stroke: undefined,
+                          strokeWidth: 0,
+                          strokeOpacity: 1,
+                          lineDash: [0],
+                          lineDashOffset: 0,
+                          defaultColorRange,
+                      },
+                      this.defaultShapeStyle
+                  ),
               }
             : undefined;
 

@@ -7,7 +7,7 @@ import type {
     AgChartLegendListeners,
     AgChartLegendOrientation,
     AgChartLegendPosition,
-    AgFillType,
+    AgColorType,
     AgMarkerShape,
     AgMarkerShapeFn,
     FontStyle,
@@ -18,7 +18,6 @@ import type {
 import type { LayoutContext } from '../../module/baseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { Gradient } from '../../scene/gradient/gradient';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
@@ -801,24 +800,16 @@ export class Legend extends BaseProperties {
         };
     }
     private getMarkerStyles({ marker }: LegendSymbolOptions) {
-        const {
-            stroke,
-            strokeOpacity = 1,
-            fillOpacity = 1,
-            strokeWidth,
-            lineDash,
-            lineDashOffset,
-            defaultColorRange,
-        } = marker;
+        const { stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
 
-        let fill: Required<AgFillType> | Gradient | undefined;
+        let fill: Required<AgColorType> | undefined;
         if (isGradientFill(marker.fill)) {
             fill = {
                 type: 'gradient',
                 bounds: 'item',
                 gradient: marker.fill.gradient ?? 'linear',
-                colorStops: marker.fill.colorStops ?? marker.defaultColorRange?.map((color) => ({ color })) ?? [],
+                colorStops: marker.fill.colorStops ?? [],
                 rotation: marker.fill.rotation ?? 0,
             };
         } else {
@@ -826,7 +817,6 @@ export class Legend extends BaseProperties {
         }
 
         return {
-            // FIXME - use type: 'gradient' rather than passing in a direct gradient
             fill,
             stroke,
             strokeOpacity,
@@ -834,7 +824,6 @@ export class Legend extends BaseProperties {
             strokeWidth: this.item.marker.strokeWidth ?? defaultLineStrokeWidth,
             lineDash,
             lineDashOffset,
-            defaultColorRange,
         };
     }
 

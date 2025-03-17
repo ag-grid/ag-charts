@@ -1,4 +1,4 @@
-import { type AgCandlestickSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgCandlestickSeriesItemOptions, type AgGradientColor, _ModuleSupport } from 'ag-charts-community';
 
 import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
@@ -58,29 +58,32 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             let style: AgCandlestickSeriesItemOptions | undefined;
             if (itemStyler != null) {
                 const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = isRising
-                    ? up
-                    : down;
-                style = this.cachedDatumCallback(
-                    createDatumId(this.getDatumId(datum), isHighlight ? 'highlight' : 'node'),
-                    () =>
-                        this.callWithContext(itemStyler, {
-                            seriesId,
-                            itemId: datum.itemId,
-                            xKey,
-                            highKey,
-                            lowKey,
-                            openKey,
-                            closeKey,
-                            datum: datum.datum,
-                            fill,
-                            fillOpacity,
-                            strokeOpacity,
-                            stroke,
-                            strokeWidth,
-                            lineDash,
-                            lineDashOffset,
-                            highlighted: isHighlight,
-                        })
+                    ? upStyle
+                    : downStyle;
+                style = this.getShapeStyle(
+                    this.cachedDatumCallback(
+                        createDatumId(this.getDatumId(datum), isHighlight ? 'highlight' : 'node'),
+                        () =>
+                            this.callWithContext(itemStyler, {
+                                seriesId,
+                                itemId: datum.itemId,
+                                xKey,
+                                highKey,
+                                lowKey,
+                                openKey,
+                                closeKey,
+                                datum: datum.datum,
+                                fill,
+                                fillOpacity,
+                                strokeOpacity,
+                                stroke,
+                                strokeWidth,
+                                lineDash,
+                                lineDashOffset,
+                                highlighted: isHighlight,
+                            })
+                    ),
+                    isRising ? up.defaultColorRange : down.defaultColorRange
                 );
             }
 
@@ -122,40 +125,50 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { up, down } = this.properties.item;
 
-        const upFill = isGradientFill(up.fill) ? up.stroke : up.fill;
-        const downFill = isGradientFill(down.fill) ? down.stroke : down.fill;
+        const upFill = this.getNodeFill(up.fill, up.defaultColorRange);
+        const upColorStops = isGradientFill(upFill)
+            ? upFill.colorStops.map(({ color, stop }) => ({ color, stop: stop != null ? stop * 0.5 : undefined }))
+            : [
+                  { color: upFill, stop: 0 },
+                  { color: upFill, stop: 0.5 },
+              ];
 
-        const fill = new _ModuleSupport.LinearGradient(
-            'rgb',
-            [
-                { color: upFill, offset: 0 },
-                { color: upFill, offset: 0.5 },
-                { color: downFill, offset: 0.5 },
-            ],
-            90
-        );
+        const downFill = this.getNodeFill(down.fill, down.defaultColorRange);
+        const downColorStops = isGradientFill(downFill)
+            ? downFill.colorStops.map(({ color, stop }) => ({ color, stop: stop != null ? stop * 0.5 : undefined }))
+            : [{ color: downFill, stop: 0.5 }];
 
-        const stroke = new _ModuleSupport.LinearGradient(
-            'rgb',
-            [
-                { color: up.stroke, offset: 0 },
-                { color: up.stroke, offset: 0.5 },
-                { color: down.stroke, offset: 0.5 },
+        const fill: AgGradientColor = {
+            type: 'gradient',
+            gradient: 'linear',
+            rotation: 90,
+            colorStops: [...upColorStops, ...downColorStops],
+        };
+
+        const stroke: AgGradientColor = {
+            type: 'gradient',
+            gradient: 'linear',
+            rotation: 90,
+            colorStops: [
+                { color: up.stroke, stop: 0 },
+                { color: up.stroke, stop: 0.5 },
+                { color: down.stroke, stop: 0.5 },
             ],
-            90
-        );
+        };
 
         return {
-            marker: {
-                fill,
-                fillOpacity: up.fillOpacity,
-                stroke: stroke,
-                strokeWidth: up.strokeWidth ?? 1,
-                strokeOpacity: up.strokeOpacity ?? 1,
-                lineDash: up.lineDash,
-                lineDashOffset: up.lineDashOffset,
-                defaultColorRange: up.defaultColorRange,
-            },
+            marker: this.getShapeStyle(
+                {
+                    fill,
+                    fillOpacity: up.fillOpacity,
+                    stroke,
+                    strokeWidth: up.strokeWidth ?? 1,
+                    strokeOpacity: up.strokeOpacity ?? 1,
+                    lineDash: up.lineDash,
+                    lineDashOffset: up.lineDashOffset,
+                },
+                up.defaultColorRange
+            ),
         };
     }
 

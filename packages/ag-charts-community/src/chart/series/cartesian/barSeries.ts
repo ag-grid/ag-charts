@@ -799,16 +799,18 @@ export class BarSeries extends AbstractBarSeries<
             this.properties;
 
         return {
-            marker: {
-                fill: fill ?? 'rgba(0, 0, 0, 0)',
-                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                fillOpacity,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                defaultColorRange,
-            },
+            marker: this.getShapeStyle(
+                {
+                    fill: fill ?? 'rgba(0, 0, 0, 0)',
+                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                    fillOpacity,
+                    strokeOpacity,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                },
+                defaultColorRange
+            ),
         };
     }
 

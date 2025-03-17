@@ -1,5 +1,5 @@
 import type {
-    AgFillType,
+    AgColorType,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesTooltipRendererParams,
@@ -66,7 +66,7 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
     defaultColorRange: string[] = [];
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill?: AgFillType;
+    fill?: AgColorType;
 
     @TempValidate(RATIO)
     fillOpacity = 1;
