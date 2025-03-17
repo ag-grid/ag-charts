@@ -1,7 +1,6 @@
 type Target = { [K in string]: any } & { onChangeDetection(privateKey: string): void };
 
 type SceneChangeDetectionOptions<T = any> = {
-    type?: 'normal' | 'path';
     convertor?: (o: any) => any;
     changeCb?: (o: T) => any;
     checkDirtyOnAssignment?: boolean;
@@ -21,8 +20,8 @@ export function SceneChangeDetection<T extends Target = any>(opts?: SceneChangeD
 }
 
 function prepareGetSet(target: any, key: string, privateKey: string, opts?: SceneChangeDetectionOptions) {
-    const { type = 'normal', changeCb, convertor, checkDirtyOnAssignment = false } = opts ?? {};
-    const requiredOpts = { type, changeCb, checkDirtyOnAssignment, convertor };
+    const { changeCb, convertor, checkDirtyOnAssignment = false } = opts ?? {};
+    const requiredOpts = { changeCb, checkDirtyOnAssignment, convertor };
 
     // Select the correctly optimized setter with minimal branches/checks for the specific type
     // of change detection.
