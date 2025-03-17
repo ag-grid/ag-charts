@@ -35,6 +35,7 @@ export interface NodeOptions {
     name?: string;
     tag?: number;
     zIndex?: ZIndex;
+    debugDirty?: boolean;
 }
 
 export type NodeWithOpacity = Node & { opacity: number };
@@ -52,6 +53,8 @@ export type ChildNodeCounts = {
  */
 export abstract class Node<D = any> {
     private static _nextSerialNumber = 0;
+    // eslint-disable-next-line sonarjs/public-static-readonly
+    public static _debugEnabled = false;
 
     static toSVG(node: Node, width: number, height: number) {
         const svg = node?.toSVG();
@@ -104,6 +107,7 @@ export abstract class Node<D = any> {
 
     protected _debug?: (...args: any[]) => void;
     protected _layerManager?: LayersManager;
+    private readonly _debugDirtyProperties?: Map<string, string[]>;
 
     protected _dirty: boolean = true;
     protected dirtyZIndex: boolean = false;
@@ -132,6 +136,10 @@ export abstract class Node<D = any> {
         this.name = options?.name;
         this.tag = options?.tag ?? NaN;
         this.zIndex = options?.zIndex ?? 0;
+
+        if (options?.debugDirty ?? Node._debugEnabled) {
+            this._debugDirtyProperties = new Map([['__first__', []]]);
+        }
     }
 
     /**
@@ -189,6 +197,7 @@ export abstract class Node<D = any> {
         const { stats } = renderCtx;
 
         this._dirty = false;
+        this.debugDirtyProperties();
 
         if (renderCtx.debugNodeSearch) {
             const idOrName = this.name ?? this.id;
@@ -399,8 +408,12 @@ export abstract class Node<D = any> {
         return;
     }
 
-    markDirty() {
+    markDirty(property?: string) {
         const { _dirty } = this;
+
+        if (property != null && this._debugDirtyProperties) {
+            this.markDebugProperties(property);
+        }
 
         const noParentCachedBBox = this.cachedBBox == null;
         if (noParentCachedBBox && _dirty) return;
@@ -416,10 +429,48 @@ export abstract class Node<D = any> {
         if (!this._dirty) return;
 
         this._dirty = false;
+        this.debugDirtyProperties();
 
         for (const child of this.children()) {
             child.markClean();
         }
+    }
+
+    private markDebugProperties(property: string) {
+        const sources = this._debugDirtyProperties?.get(property) ?? [];
+        const caller =
+            new Error().stack?.split('\n').filter((line) => {
+                return (
+                    line !== 'Error' &&
+                    !line.includes('.markDebugProperties') &&
+                    !line.includes('.markDirty') &&
+                    !line.includes('Object.assign ') &&
+                    !line.includes(`${this.constructor.name}.`)
+                );
+            }) ?? 'unknown';
+        sources.push(caller[0].replace(' at ', '').trim());
+        this._debugDirtyProperties?.set(property, sources);
+    }
+
+    private debugDirtyProperties() {
+        if (this._debugDirtyProperties == null) return;
+
+        if (!this._debugDirtyProperties.has('__first__')) {
+            // Construction cases aren't interesting - we only really care about update cases.
+            this._debugDirtyProperties.forEach((sources, property) => {
+                if (sources.length > 1) {
+                    // eslint-disable-next-line no-console
+                    console.groupCollapsed(
+                        `Property changed multiple times before render: ${this.constructor.name}.${property} (${sources.length}x)`
+                    );
+                    // eslint-disable-next-line no-console
+                    sources.forEach((source) => console.log(source));
+                    // eslint-disable-next-line no-console
+                    console.groupEnd();
+                }
+            });
+        }
+        this._debugDirtyProperties.clear();
     }
 
     protected onZIndexChange() {

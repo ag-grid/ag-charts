@@ -33,7 +33,7 @@ export class RangeHandle extends _ModuleSupport.Path {
         if (this.centerX !== x || this.centerY !== y) {
             this.centerX = x;
             this.centerY = y;
-            this.markDirty();
+            this.markDirty('center');
         }
     }
 

@@ -636,7 +636,7 @@ export class AreaSeries extends CartesianSeries<
         } else {
             for (const path of paths) {
                 path.path.clear();
-                path.markDirty();
+                path.markDirty('AreaSeries');
             }
         }
     }
@@ -646,7 +646,7 @@ export class AreaSeries extends CartesianSeries<
 
         fill.path.clear();
         plotAreaPathFill(fill, contextData.fillData);
-        fill.markDirty();
+        fill.markDirty('AreaSeries');
     }
 
     private updateStrokePath(paths: Path[], contextData: AreaSeriesNodeDataContext) {
@@ -655,7 +655,7 @@ export class AreaSeries extends CartesianSeries<
 
         stroke.path.clear();
         plotLinePathStroke(stroke, spans);
-        stroke.markDirty();
+        stroke.markDirty('AreaSeries');
     }
 
     protected override updateMarkerSelection(opts: {

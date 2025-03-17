@@ -62,7 +62,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         })
     );
 
-    private readonly tempText = new TransformableText();
+    private readonly tempText = new TransformableText({ debugDirty: false });
     private readonly tempCaption = new Caption();
 
     private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);

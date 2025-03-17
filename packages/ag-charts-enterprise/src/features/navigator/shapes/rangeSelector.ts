@@ -28,7 +28,7 @@ export class RangeSelector extends _ModuleSupport.Group {
 
         this.background.translationX = x;
         this.background.translationY = y;
-        this.markDirty();
+        this.markDirty('RangeSelector');
     }
 
     updateBackground(oldGroup?: _ModuleSupport.Group, newGroup?: _ModuleSupport.Group) {
@@ -39,7 +39,7 @@ export class RangeSelector extends _ModuleSupport.Group {
         if (newGroup != null) {
             this.background.appendChild(newGroup);
         }
-        this.markDirty();
+        this.markDirty('RangeSelector');
     }
 
     protected override computeBBox() {

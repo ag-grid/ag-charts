@@ -37,6 +37,7 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
             break;
     }
     setter = buildCheckDirtyChain(
+        privateKey,
         buildChangeCallbackChain(buildConvertorChain(setter, requiredOpts), requiredOpts),
         requiredOpts
     );
@@ -81,14 +82,14 @@ function buildChangeCallbackChain(setterFn: Function, opts: SceneChangeDetection
     return setterFn;
 }
 
-function buildCheckDirtyChain(setterFn: Function, opts: SceneChangeDetectionOptions) {
+function buildCheckDirtyChain(privateKey: string, setterFn: Function, opts: SceneChangeDetectionOptions) {
     const { checkDirtyOnAssignment } = opts;
     if (checkDirtyOnAssignment) {
         return function (this: any, value: undefined | { _dirty: boolean }) {
             const change = setterFn.call(this, value);
 
             if (value?._dirty === true) {
-                this.markDirty();
+                this.markDirty(privateKey);
             }
 
             return change;
@@ -105,7 +106,7 @@ function buildNormalSetter(privateKey: string, opts: SceneChangeDetectionOptions
         const oldValue = this[privateKey];
         if (value !== oldValue) {
             this[privateKey] = value;
-            this.markDirty();
+            this.markDirty(privateKey);
             changeCb?.(this);
             return value;
         }
@@ -134,7 +135,7 @@ function buildPathSetter(privateKey: string) {
             this[privateKey] = value;
             if (!this._dirtyPath) {
                 this._dirtyPath = true;
-                this.markDirty();
+                this.markDirty(privateKey);
             }
             return value;
         }

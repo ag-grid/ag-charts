@@ -36,7 +36,7 @@ describe('Node', () => {
 
             expect(result).not.toBe(bboxRef);
 
-            testee.markDirty();
+            testee.markDirty('test');
             expect(testee.getBBox()).not.toBe(result);
         });
 
@@ -44,10 +44,10 @@ describe('Node', () => {
             const bboxRef = BBox.zero.clone().grow(20);
             const testee = new FixedTestNode(bboxRef);
             testee.getBBox(); // Populate cache.
-            testee.markDirty();
+            testee.markDirty('test');
 
             const result = testee.getBBox();
-            testee.markDirty();
+            testee.markDirty('test');
             expect(testee.getBBox()).not.toBe(result);
         });
 
@@ -87,7 +87,7 @@ describe('Node', () => {
                 expect(result).not.toBe(bboxRef);
                 expect(testee.getBBox()).toBe(result);
 
-                child.markDirty();
+                child.markDirty('test');
                 expect(testee.getBBox()).not.toBe(result);
             });
 
@@ -100,11 +100,11 @@ describe('Node', () => {
                 expect(result).not.toBe(bboxRef);
                 expect(testee.getBBox()).toBe(result);
 
-                child.markDirty();
+                child.markDirty('test');
                 const result2 = testee.getBBox();
                 expect(result2).not.toBe(result);
 
-                child.markDirty();
+                child.markDirty('test');
                 expect(testee.getBBox()).not.toBe(result);
                 expect(testee.getBBox()).not.toBe(result2);
             });

@@ -618,6 +618,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
             ctx.animationManager.onBatchStop(() => (this.chartAnimationPhase = 'ready'));
         }
 
+        this.ctx.scene.updateDebugFlags();
+
         this.debug('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
         let previousSplit = performance.now();
         splits.start ??= previousSplit;

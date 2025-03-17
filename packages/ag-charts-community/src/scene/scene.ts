@@ -29,6 +29,7 @@ export class Scene {
     private isDirty: boolean = false;
 
     constructor(canvasOptions: CanvasOptions) {
+        this.updateDebugFlags();
         this.canvas = new HdpiCanvas(canvasOptions);
         this.layersManager = new LayersManager(this.canvas);
     }
@@ -68,6 +69,10 @@ export class Scene {
         }
 
         return this;
+    }
+
+    updateDebugFlags() {
+        Debug.inDevelopmentMode(() => (Node._debugEnabled = true));
     }
 
     clear() {
