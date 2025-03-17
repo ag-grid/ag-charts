@@ -294,12 +294,12 @@ export class ChartTheme {
                     $if: [
                         {
                             $or: [
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.TOP] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.BOTTOM] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT] },
                             ],
                         },
-                        'horizontal',
                         'vertical',
+                        'horizontal',
                     ],
                 },
                 spacing: 30,
