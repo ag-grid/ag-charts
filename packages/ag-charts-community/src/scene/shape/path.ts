@@ -67,7 +67,7 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
     override onChangeDetection(property: string): void {
         if (!this._dirtyPath) {
             this._dirtyPath = true;
-            this.markDirty(property);
+            super.onChangeDetection(property);
         }
     }
 
