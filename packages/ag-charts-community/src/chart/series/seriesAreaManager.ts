@@ -188,7 +188,7 @@ export class SeriesAreaManager extends BaseManager {
         const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
         const label2 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label2');
         this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
-        this.swapChain.addListener('blur', () => this.onBlur());
+        this.swapChain.addListener('blur', (event) => this.onBlur(event));
         this.swapChain.addListener('focus', () => this.onFocus());
         if (chart.ctx.domManager.mode === 'normal') {
             this.focusIndicator = new FocusIndicator(this.swapChain);
@@ -349,7 +349,7 @@ export class SeriesAreaManager extends BaseManager {
         if (relatedTarget?.className === 'ag-charts-text-input__textarea') {
             return;
         }
-        if (this.chart.ctx.tooltipManager.isEnteringInteractiveTooltip(event)) {
+        if (this.chart.ctx.tooltipManager.isEnteringInteractiveTooltip(event.sourceEvent)) {
             return;
         }
 
@@ -450,10 +450,12 @@ export class SeriesAreaManager extends BaseManager {
         this.handleFocus(0, 0);
     }
 
-    private onBlur() {
+    private onBlur(event: FocusEvent) {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = 'pointer';
-        this.clearAll();
+        if (!this.chart.ctx.tooltipManager.isEnteringInteractiveTooltip(event)) {
+            this.clearAll();
+        }
         this.focusIndicator?.overrideFocusVisible(undefined);
     }
 
