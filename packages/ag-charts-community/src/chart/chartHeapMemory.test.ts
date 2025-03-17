@@ -132,7 +132,7 @@ describe('Chart Heap Memory', () => {
             const seriesFinalizationRegistry = new FinalizationRegistry<string>((id) => {
                 instantiatedSeries.delete(id);
             });
-            for (const series of chartProxy.chart.series) {
+            for (const series of chartProxy.chart?.series ?? []) {
                 instantiatedSeries.add(series.id);
                 seriesFinalizationRegistry.register(series, series.id);
             }
