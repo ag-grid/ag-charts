@@ -25,11 +25,9 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
 
     // Select the correctly optimized setter with minimal branches/checks for the specific type
     // of change detection.
-    let setter;
-    setter = buildSetter(privateKey, requiredOpts);
-    setter = buildCheckDirtyChain(
+    const setter = buildCheckDirtyChain(
         privateKey,
-        buildChangeCallbackChain(buildConvertorChain(setter, requiredOpts), requiredOpts),
+        buildChangeCallbackChain(buildConvertorChain(buildSetter(privateKey), requiredOpts), requiredOpts),
         requiredOpts
     );
 
@@ -90,15 +88,12 @@ function buildCheckDirtyChain(privateKey: string, setterFn: Function, opts: Scen
     return setterFn;
 }
 
-function buildSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
-    const { changeCb } = opts;
-
+function buildSetter(privateKey: string) {
     return function (this: Target, value: unknown) {
         const oldValue = this[privateKey];
         if (value !== oldValue) {
             this[privateKey] = value;
             this.onChangeDetection(privateKey);
-            changeCb?.(this);
             return value;
         }
 
