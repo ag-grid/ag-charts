@@ -381,10 +381,22 @@ function jsonResolveVisitor<T extends object, P extends object>(
             }
         }
     } else {
+        let hasOperation = false;
         for (const name of Object.keys(node)) {
             node[name] = jsonResolveVisitorValue(node[name], params, source, meta, [...path, name], modifiedPaths);
+            hasOperation ||= isKey(name, operations);
             if (node[name] === operationResolvedUndefined) {
                 delete node[name];
+            }
+        }
+
+        // Purge excess unused operations to prevent leaks. These occur when the default operation object is merged an
+        // object at the option key.
+        if (hasOperation && Object.keys(node).length > 1) {
+            for (const key of Object.keys(node)) {
+                if (isKey(key, operations)) {
+                    delete node[key];
+                }
             }
         }
     }
