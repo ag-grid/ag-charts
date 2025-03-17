@@ -47,8 +47,6 @@ export type ChildNodeCounts = {
     complexity: number;
 };
 
-const DEBUG_IGNORE_DIRTY_SOURCES = new Set(['child', 'transform']);
-
 /**
  * Abstract scene graph node.
  * Each node can have zero or one parent and belong to zero or one scene.
@@ -293,7 +291,7 @@ export abstract class Node<D = any> {
 
         this.invalidateCachedBBox();
         this.dirtyZIndex = true;
-        this.markDirty('child');
+        this.markDirty();
     }
 
     appendChild<T extends Node>(node: T): T {
@@ -313,7 +311,7 @@ export abstract class Node<D = any> {
 
         this.invalidateCachedBBox();
         this.dirtyZIndex = true;
-        this.markDirty('child');
+        this.markDirty();
     }
 
     remove() {
@@ -410,10 +408,10 @@ export abstract class Node<D = any> {
         return;
     }
 
-    markDirty(property: string) {
+    markDirty(property?: string) {
         const { _dirty } = this;
 
-        if (this._debugDirtyProperties && !DEBUG_IGNORE_DIRTY_SOURCES.has(property)) {
+        if (property != null && this._debugDirtyProperties) {
             this.markDebugProperties(property);
         }
 
@@ -423,7 +421,7 @@ export abstract class Node<D = any> {
         this.invalidateCachedBBox();
         this._dirty = true;
         if (this.parentNode) {
-            this.parentNode.markDirty('child');
+            this.parentNode.markDirty();
         }
     }
 
