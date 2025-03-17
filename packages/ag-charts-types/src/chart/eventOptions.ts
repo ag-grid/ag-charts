@@ -1,3 +1,4 @@
+import type { AgAnnotation } from './annotationsOptions';
 import type { Ratio } from './types';
 import type { AgAutoScaledAxes } from './zoomOptions';
 
@@ -51,6 +52,11 @@ export interface AgSeriesVisibilityChange {
     visible: boolean;
 }
 
+export interface AgAnnotationsEvent {
+    type: 'annotations';
+    annotations?: AgAnnotation[];
+}
+
 export interface AgZoomEvent {
     type: 'zoom';
     rangeX?: AgZoomEventRange;
@@ -90,6 +96,8 @@ export interface AgBaseChartListeners<TDatum> {
     click?: (event: AgChartClickEvent) => any;
     /** The listener to call when the chart is double clicked. */
     doubleClick?: (event: AgChartDoubleClickEvent) => any;
+    /** The listener to call when the annotations are changed. */
+    annotations?: (event: AgAnnotationsEvent) => void;
     /** The listener to call when the zoom is changed. */
     zoom?: (event: AgZoomEvent) => void;
 }

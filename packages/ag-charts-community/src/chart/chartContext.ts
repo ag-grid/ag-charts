@@ -110,7 +110,7 @@ export class ChartContext implements ModuleContext {
 
         this.axisManager = new AxisManager(root);
         this.legendManager = new LegendManager();
-        this.annotationManager = new AnnotationManager(chart.annotationRoot);
+        this.annotationManager = new AnnotationManager(chart.annotationRoot, fireEvent);
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.interactionManager = new InteractionManager();
         this.contextMenuRegistry = new ContextMenuRegistry();

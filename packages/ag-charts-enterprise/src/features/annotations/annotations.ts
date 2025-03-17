@@ -697,6 +697,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.annotationData.set(event.annotations);
 
         this.isRestoringAnnotations = true;
+        this.postUpdateFns.push(() => {
+            this.ctx.annotationManager.fireChangedEvent();
+        });
         this.update();
     }
 
@@ -812,6 +815,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
         this.postUpdateFns.push(() => {
             historyManager.record(label, ...originators);
+            annotationManager.fireChangedEvent();
         });
     }
 
