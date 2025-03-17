@@ -679,12 +679,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         // eslint-disable-next-line sonarjs/deprecation
-        const { type, xOffset, yOffset } = position;
+        const { type, anchorTo, placement, xOffset, yOffset } = position;
         const result: AgTooltipPositionOptions = {};
 
         if (isString(type) && isEnumValue(AgTooltipPositionType, type)) {
             // eslint-disable-next-line sonarjs/deprecation
             result.type = type;
+        }
+        if (isString(anchorTo)) {
+            result.anchorTo = anchorTo;
+        }
+        if (isString(placement)) {
+            result.placement = placement;
         }
         if (isFiniteNumber(xOffset)) {
             result.xOffset = xOffset;

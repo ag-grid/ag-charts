@@ -3,6 +3,7 @@ import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionR
 
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
+import { Deprecated } from '../../util/deprecation';
 import { type Bounds, type Placement, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
 import { SizeMonitor } from '../../util/sizeMonitor';
@@ -158,6 +159,7 @@ export class TooltipPosition extends BaseProperties {
      * theme, and we'll make sure they are applied normally.
      */
     @Validate(POSITION_TYPE, { optional: true })
+    @Deprecated('use anchorTo and/or placement options instead')
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
     protected type?: TooltipPositionType;
 
@@ -176,17 +178,19 @@ export class TooltipPosition extends BaseProperties {
     placement?: AgTooltipPlacement | AgTooltipPlacement[];
 
     get defaultAnchorTo(): AgTooltipAnchorTo {
-        const { type = 'pointer' } = this;
-        if (type === 'node' || type === 'pointer') {
+        const { type } = this;
+        if (type === 'node') {
             return type;
+        } else if (type === 'pointer' || type == null) {
+            return 'pointer';
         } else {
             return 'chart';
         }
     }
 
     get defaultPlacement(): AgTooltipPlacement {
-        const { type = 'pointer' } = this;
-        if (type === 'node' || type === 'pointer') {
+        const { type } = this;
+        if (type === 'node' || type === 'pointer' || type == null) {
             return 'top';
         } else {
             return type;

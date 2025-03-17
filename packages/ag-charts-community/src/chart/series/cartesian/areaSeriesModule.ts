@@ -31,7 +31,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     themeTemplate: {
         series: {
             nodeClickRange: 'nearest',
-            tooltip: { position: { type: 'node' } },
+            tooltip: { position: { anchorTo: 'node' } },
             fill: { $palette: 'fill' },
             stroke: { $palette: 'stroke' },
             defaultColorRange: { $palette: 'gradient' },

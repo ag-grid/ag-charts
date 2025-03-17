@@ -29,7 +29,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     ],
     themeTemplate: {
         series: {
-            tooltip: { position: { type: 'node' } },
+            tooltip: { position: { anchorTo: 'node' } },
             stroke: { $palette: 'fill' },
             strokeWidth: 2,
             strokeOpacity: 1,

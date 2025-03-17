@@ -35,7 +35,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             // @ts-expect-error undocumented option
             defaultColorRange: { $palette: 'gradient' },
             fillOpacity: 0.8,
-            tooltip: { position: { type: 'node' } },
+            tooltip: { position: { anchorTo: 'node' } },
             label: {
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },
