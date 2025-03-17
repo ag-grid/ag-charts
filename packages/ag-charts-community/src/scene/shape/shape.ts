@@ -9,7 +9,7 @@ import { type ColorSpace, Gradient, type GradientParams } from '../gradient/grad
 import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
-import { Node, SceneChangeDetection } from '../node';
+import { Node, type RenderContext, SceneChangeDetection } from '../node';
 import { isGradientFill } from '../util/fill';
 import { align } from '../util/pixel';
 
@@ -169,6 +169,13 @@ export abstract class Shape<D = any> extends Node<D> {
     fillParams?: GradientParams;
 
     private cachedDefaultGradientFillBBox?: BBox;
+
+    override preRender(renderCtx: RenderContext, thisComplexity?: number) {
+        if (this.dirty) {
+            this.cachedDefaultGradientFillBBox = undefined;
+        }
+        return super.preRender(renderCtx, thisComplexity);
+    }
 
     protected fillStroke(ctx: CanvasContext, path?: Path2D) {
         this.renderFill(ctx, path);
