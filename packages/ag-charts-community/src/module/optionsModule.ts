@@ -164,10 +164,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
 
-        // const chartDef = ModuleRegistry.detectChartDefinition(this.userOptions);
-        // if (chartDef.options) {
-        //     console.log(validate(this.userOptions, chartDef.options));
-        // }
+        const chartDef = ModuleRegistry.detectChartDefinition(this.userOptions);
+        if (chartDef.options) {
+            console.log(validate(this.userOptions, chartDef.options));
+        }
 
         if (stripSymbols) {
             this.removeLeftoverSymbols(this.userOptions);
@@ -283,60 +283,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             activeTheme.templateTheme(options, false);
         }
 
-        const validatedSeriesOptions: any[] = [];
-        const seriesCount = options.series?.length ?? 0;
-        for (let index = 0; index < seriesCount; index++) {
-            const seriesOptions = options.series![index];
-            const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type ?? 'line');
-
-            if (seriesDef == null) {
-                Logger.warn(`Unknown series type \`${seriesOptions.type}\`, ignoring.\``);
-                continue;
-            }
-
-            const keyPath = `series[${index}]`;
-            const { validate: validateSeries = validate } = seriesDef;
-            const { valid, errors } = validateSeries(seriesOptions, seriesDef.options, keyPath);
-
-            errors.forEach((error) => Logger.warn(error));
-
-            if (!errors.some((e) => e.required && e.path === keyPath)) {
-                validatedSeriesOptions.push(valid);
-            }
-        }
-        options.series = validatedSeriesOptions;
-
-        if ('axes' in options && options.axes) {
-            const validatedAxesOptions: any[] = [];
-            const axesCount = options.axes.length ?? 0;
-            for (let index = 0; index < axesCount; index++) {
-                const keyPath = `axes[${index}]`;
-                const axisOptions = options.axes[index];
-                const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
-
-                if (axisDef == null) {
-                    const validTypes = Array.from(ModuleRegistry.listModulesByType(ModuleType.Axis), (def) => def.name);
-                    const expectedTypes = joinFormatted(validTypes, 'or', (value: string) => `'${value}'`);
-                    Logger.warn(
-                        `Option \`${keyPath}.type\` cannot be set to \`${axisOptions.type}\`; expecting one of ${expectedTypes}, ignoring all axes options.\``
-                    );
-                    delete options.axes;
-                    break;
-                }
-
-                const { validate: validateAxis = validate } = axisDef;
-                const { valid, errors } = validateAxis(axisOptions, axisDef.options, keyPath);
-
-                errors.forEach((error) => Logger.warn(error));
-
-                if (!errors.some((e) => e.required && e.path === keyPath)) {
-                    validatedAxesOptions.push(valid);
-                }
-            }
-            if (options.axes) {
-                options.axes = validatedAxesOptions;
-            }
-        }
+        this.validateSeriesOptions(options);
+        this.validateAxesOptions(options);
 
         this.removeDisabledOptions(options);
 
@@ -400,6 +348,65 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
         return { activeTheme, processedOptions, defaultAxes, themeParameters, annotationThemes };
+    }
+
+    validateSeriesOptions(options: T): void {
+        const validatedSeriesOptions: any[] = [];
+        const seriesCount = options.series?.length ?? 0;
+        for (let index = 0; index < seriesCount; index++) {
+            const seriesOptions = options.series![index];
+            const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type ?? 'line');
+
+            if (seriesDef == null) {
+                Logger.warn(`Unknown series type \`${seriesOptions.type}\`, ignoring.\``);
+                continue;
+            }
+
+            const keyPath = `series[${index}]`;
+            const { validate: validateSeries = validate } = seriesDef;
+            const { valid, errors } = validateSeries(seriesOptions, seriesDef.options, keyPath);
+
+            errors.forEach((error) => Logger.warn(error));
+
+            if (!errors.some((e) => e.required && e.path === keyPath)) {
+                validatedSeriesOptions.push(valid);
+            }
+        }
+        options.series = validatedSeriesOptions;
+    }
+
+    validateAxesOptions(options: T) {
+        if (!('axes' in options) || !options.axes) return;
+
+        const validatedAxesOptions: any[] = [];
+        const axesCount = options.axes.length ?? 0;
+        for (let index = 0; index < axesCount; index++) {
+            const keyPath = `axes[${index}]`;
+            const axisOptions = options.axes[index];
+            const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
+
+            if (axisDef == null) {
+                const validTypes = Array.from(ModuleRegistry.listModulesByType(ModuleType.Axis))
+                    .filter((def) => def.chartType)
+                    .map((def) => def.name);
+                const expectedTypes = joinFormatted(validTypes, 'or', (value: string) => `'${value}'`);
+                Logger.warn(
+                    `Option \`${keyPath}.type\` cannot be set to \`${axisOptions.type}\`; expecting one of ${expectedTypes}, ignoring all axes options.\``
+                );
+                delete options.axes;
+                break;
+            }
+
+            const { validate: validateAxis = validate } = axisDef;
+            const { valid, errors } = validateAxis(axisOptions, axisDef.options, keyPath);
+
+            errors.forEach((error) => Logger.warn(error));
+
+            if (!errors.some((e) => e.required && e.path === keyPath)) {
+                validatedAxesOptions.push(valid);
+            }
+        }
+        options.axes = validatedAxesOptions;
     }
 
     diffOptions(other?: ChartOptions): Partial<T> {

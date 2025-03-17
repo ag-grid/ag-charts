@@ -7,6 +7,8 @@ import {
     type AgChannelAnnotationText,
     type AgFibonacciAnnotationStyles,
     type AgGroupingValueType,
+    type AgInitialStateLegendOptions,
+    type AgInitialStateOptions,
     type AgLineAnnotationText,
     type LineOptions,
     _ModuleSupport,
@@ -26,6 +28,7 @@ import {
     optionsDefs,
     or,
     positiveNumber,
+    ratio,
     required,
     string,
     strokeOptionsDef,
@@ -99,16 +102,15 @@ export const AnnotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     },
 };
 
-const xValue = or(
-    string,
-    number,
-    optionsDefs<AgStateSerializableDate>({
+const serializableDate = optionsDefs<AgStateSerializableDate>(
+    {
         __type: required(constant('date')),
         value: or(string, number),
-    })
+    },
+    'a serializable date object'
 );
-
-const anootationValue = or(
+const xValue = or(string, number, serializableDate);
+const annotationValue = or(
     xValue,
     optionsDefs<AgGroupingValueType>({
         value: xValue,
@@ -147,7 +149,7 @@ const annotationHandleOptionsDef: OptionsDefs<AgAnnotationHandle> = {
 };
 
 const annotationPointOptionsDef: OptionsDefs<AgAnnotationPoint> = {
-    x: anootationValue,
+    x: annotationValue,
     y: number,
 };
 
@@ -173,7 +175,7 @@ const fibonacciAnnotationStylesOptionsDef: OptionsDefs<AgFibonacciAnnotationStyl
     ...annotationLineOptionsDef,
 };
 
-export const AnnotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
+export const annotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
     line: {
         visible: boolean,
         extendStart: boolean,
@@ -189,7 +191,7 @@ export const AnnotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
     'horizontal-line': {
         visible: boolean,
         locked: boolean,
-        value: anootationValue,
+        value: annotationValue,
         axisLabel: annotationAxisLabelOptionsDef,
         text: lineAnnotationTextOptionsDef,
         handle: annotationHandleOptionsDef,
@@ -199,7 +201,7 @@ export const AnnotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
     'vertical-line': {
         visible: boolean,
         locked: boolean,
-        value: anootationValue,
+        value: annotationValue,
         axisLabel: annotationAxisLabelOptionsDef,
         text: lineAnnotationTextOptionsDef,
         handle: annotationHandleOptionsDef,
@@ -375,3 +377,33 @@ export const AnnotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
         ...annotationLineOptionsDef,
     },
 });
+
+export const initialStateOptionsDef: OptionsDefs<AgInitialStateOptions> = {
+    chartType: union('candlestick', 'hollow-candlestick', 'ohlc', 'line', 'step-line', 'hlc', 'high-low'),
+    annotations: annotationInitialStateOptionsDef,
+    legend: arrayOfDefs<AgInitialStateLegendOptions>({
+        visible: boolean,
+        seriesId: string,
+        itemId: string,
+        legendItemName: string,
+    }),
+    zoom: {
+        rangeX: {
+            start: or(number, serializableDate),
+            end: or(number, serializableDate),
+        },
+        rangeY: {
+            start: or(number, serializableDate),
+            end: or(number, serializableDate),
+        },
+        ratioX: {
+            start: ratio,
+            end: ratio,
+        },
+        ratioY: {
+            start: ratio,
+            end: ratio,
+        },
+        autoScaledAxes: arrayOf(constant('y')),
+    },
+};
