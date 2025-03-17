@@ -12,8 +12,7 @@
                 "path": "./tooltips/#tooltip-pagination"
             },
             {
-                "text": "Gradient and Pattern Fills",
-                "path": "./fills"
+                "text": "Gradient and Pattern Fills"
             },
             {
                 "text": "Options Validation and Suggestions"
