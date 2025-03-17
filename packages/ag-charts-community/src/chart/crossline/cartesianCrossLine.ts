@@ -115,7 +115,7 @@ class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCross
     parallel?: boolean;
 }
 
-type NodeData = number[];
+type NodeData = [number, number];
 
 export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
     static readonly className = 'CrossLine';
@@ -174,10 +174,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private readonly crossLineLabel = new TransformableText();
     private labelPoint?: Point = undefined;
 
-    private data: NodeData = [];
+    private data: NodeData | undefined = undefined;
     private startLine: boolean = false;
     private endLine: boolean = false;
-    private isRange: boolean = false;
 
     constructor() {
         super();
@@ -190,14 +189,14 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     private _isRange: boolean | undefined = undefined;
     update(visible: boolean) {
-        const { enabled, data, scale } = this;
+        const { enabled, type, data, scale } = this;
         if (
             !scale ||
             !enabled ||
             !visible ||
             !this.isValid() ||
             !validateCrossLineValue(getCrossLineValue(this), scale) ||
-            data.length === 0
+            data == null
         ) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
@@ -210,7 +209,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         this.labelGroup.visible = visible;
         this.updateNodes();
 
-        const { isRange } = this;
+        const isRange = type === 'range';
         if (isRange !== this._isRange) {
             if (isRange) {
                 this.rangeGroup.appendChild(this.crossLineRange);
@@ -237,7 +236,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             strokeWidth = 0,
         } = this;
 
-        this.data = [];
+        this.data = undefined;
 
         if (!scale) return;
 
@@ -258,11 +257,13 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             clampedYStart = scale.convert(value as any, true) + offset;
             clampedYEnd = NaN;
         } else if (range) {
-            const ordinalTimeScalePadding = OrdinalTimeScale.is(scale) ? bandwidth / 2 + rangePadding : 0;
-            yStart = scale.convert(range[0] as any) + ordinalTimeScalePadding;
-            yEnd = scale.convert(range[1] as any) + bandwidth;
-            clampedYStart = scale.convert(range[0] as any, true) - rangePadding + ordinalTimeScalePadding;
-            clampedYEnd = scale.convert(range[1] as any, true) + bandwidth + rangePadding;
+            const [r0, r1] = range;
+            const ordinalTimeScalePadding =
+                r0?.valueOf() === r1?.valueOf() && OrdinalTimeScale.is(scale) ? bandwidth / 2 + rangePadding : 0;
+            yStart = scale.convert(r0 as any) + ordinalTimeScalePadding;
+            yEnd = scale.convert(r1 as any) + bandwidth;
+            clampedYStart = scale.convert(r0 as any, true) + ordinalTimeScalePadding - rangePadding;
+            clampedYEnd = scale.convert(r1 as any, true) + bandwidth + rangePadding;
         } else {
             return;
         }
@@ -282,11 +283,10 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         if (yStart - rangePadding >= clampedYStart) yStart -= rangePadding;
         if (yEnd + rangePadding <= clampedYEnd) yEnd += rangePadding;
 
-        this.isRange = validRange;
         this.startLine = strokeWidth > 0 && yStart >= clampedYStart && yStart <= clampedYStart + rangePadding;
         this.endLine = strokeWidth > 0 && yEnd >= clampedYEnd - bandwidth - rangePadding && yEnd <= clampedYEnd;
 
-        if (!validRange && !this.startLine && !this.endLine) return;
+        if (type === 'range' && !validRange && !this.startLine && !this.endLine) return;
 
         this.data = [clampedYStart, clampedYEnd];
 
@@ -319,13 +319,13 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     private updateRangeNode() {
         const {
+            type,
             crossLineRange,
             sideFlag,
             gridLength,
             data,
             startLine,
             endLine,
-            isRange,
             fill,
             fillOpacity,
             stroke,
@@ -335,11 +335,11 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         crossLineRange.x1 = 0;
         crossLineRange.x2 = sideFlag * gridLength;
-        crossLineRange.y1 = data[0];
-        crossLineRange.y2 = data[1];
+        crossLineRange.y1 = data?.[0] ?? 0;
+        crossLineRange.y2 = data?.[1] ?? 0;
         crossLineRange.startLine = startLine;
         crossLineRange.endLine = endLine;
-        crossLineRange.isRange = isRange;
+        crossLineRange.isRange = type === 'range';
 
         crossLineRange.fill = fill;
         crossLineRange.fillOpacity = fillOpacity ?? 1;
@@ -454,13 +454,11 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     calculatePadding(padding: Partial<Record<AgCrossLineLabelPosition, number>>) {
         const {
-            isRange,
-            startLine,
-            endLine,
+            data,
             direction,
             label: { padding: labelPadding = 0, position = 'top' },
         } = this;
-        if (!isRange && !startLine && !endLine) return;
+        if (data == null) return;
 
         const crossLineLabelBBox = this.computeLabelBBox();
         if (crossLineLabelBBox?.x == null || crossLineLabelBBox?.y == null) return;

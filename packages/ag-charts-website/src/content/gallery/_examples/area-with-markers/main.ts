@@ -52,8 +52,8 @@ const options: AgChartOptions = {
             },
             crossLines: [
                 {
-                    type: 'line',
-                    value: 'Technology',
+                    type: 'range',
+                    range: ['Technology', 'Technology'],
                     lineDash: [5, 6],
                     strokeOpacity: 0.6,
                     label: {
@@ -61,8 +61,8 @@ const options: AgChartOptions = {
                     },
                 },
                 {
-                    type: 'line',
-                    value: 'Healthcare',
+                    type: 'range',
+                    range: ['Healthcare', 'Healthcare'],
                     lineDash: [5, 6],
                     strokeOpacity: 0.6,
                     label: {
@@ -70,8 +70,8 @@ const options: AgChartOptions = {
                     },
                 },
                 {
-                    type: 'line',
-                    value: 'Energy',
+                    type: 'range',
+                    range: ['Energy', 'Energy'],
                     lineDash: [5, 6],
                     strokeOpacity: 0.6,
                     label: {
