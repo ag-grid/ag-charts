@@ -7,7 +7,7 @@ Tooltips allow users to see extra contextual information without overcrowding th
 
 ## Default Tooltip
 
-The tooltip content is based on the data values and keys of the series. Additionally, a title or heading will be shown if name properties are provided for the data keys.
+The tooltip content is based on the data values and keys of the series. Additionally, a title or heading will be shown if `_Name` properties are provided for the data keys.
 
 {% chartExampleRunner title="Default Tooltip" name="default-tooltip" type="generated" /%}
 
@@ -23,30 +23,30 @@ In this example:
 -   The tooltip header is visible when `yName` is provided on the series, and hidden when the `yName` is omitted.
 -   The `yName` changes are reflected in the legend as well.
 
-The name keys mirror the data keys and differ between series types. See the series specific [API Reference](/options/#reference-AgChartOptions-series/) for more details.
+The `_Name` keys mirror the data keys and differ between series types. See the series specific [API Reference](/options/#reference-AgChartOptions-series/) for more details.
 
 ## Tooltip Modes
 
-By default, the tooltip will show a single value. The `mode` property can be set to `'shared'` to show values for every series sharing the same x-value; or `'compact'` to show a single value with less information.
+By default, the tooltip will show the data for a single node. Use the `mode` option to show a `shared` or `compact` tooltip.
 
 {% chartExampleRunner title="Tooltip Mode" name="tooltip-mode" type="generated" /%}
 
 ```js
-// Chart options only, cannot be customised per series
+// Chart options only
 tooltip: {
-    mode: 'shared',
+    mode: 'shared', // or 'single' or 'compact'
 }
 ```
 
-The options for mode are:
+The options for `mode` are:
 
--   `single`, which will show a title and symbol for the series, and both the highlighted data's x- and y- values.
--   `shared`, which will show the highlighted data's x-value, every series' name along with their symbols, and the y value for the corresponding x value in each series.
--   `compact`, which will show both a title for the series, and the highlighted data's y value.
+-   `single` - shows a title, symbol and data values for a single series.
+-   `shared` - shows a merged tooltip, combining the tooltips of all series sharing the same x-value.
+-   `compact` - shows fewer data fields and uses less padding.
 
 ## Tooltip Position
 
-The point the tooltip connects is set with the `tooltip.position.anchorTo` property, and the placement around that point is set with the `tooltip.position.placement` property.
+The tooltip is anchored to the node. Use `tooltip.position.anchorTo`, and optionally `tooltip.position.placement`, to change this.
 
 {% chartExampleRunner title="Tooltip Position" name="tooltip-position" type="generated" /%}
 
@@ -59,12 +59,7 @@ tooltip: {
 },
 ```
 
-In this configuration:
-
--   Instead of the tooltip being anchored to the highlighted marker node, it can be anchored to the chart or to the mouse pointer.
--   The tooltip is set to be placed above the node.
-
-The placement alternatively accepts an array of placement values, and the tooltip will be placed in the first position that has sufficient space.
+Fallback positions can be provided in an array of `placement` values. The tooltip will use the first position that has sufficient space.
 
 ```js
 tooltip: {
@@ -75,9 +70,16 @@ tooltip: {
 },
 ```
 
-In this configuration:
+In the above example:
 
--   The tooltip will prefer to be placed to the left of the node, unless there is no space, in which case it will be placed to the right.
+-   Change the 'Placement' dropdown to 'Left + Right fallback'.
+-   Hover the leftmost datapoint and see that the tooltip goes to the right of the marker as there is no room on the left.
+
+The options for `anchorTo` are:
+
+-   `node` - the datapoint, such as the marker or bar.
+-   `pointer` - the mouse pointer or [single finger touch](./touch/#single-finger-touch-dragging) position.
+-   `chart` - the chart container.
 
 The tooltip position can be further customised by setting the `tooltip.position.xOffset` and `tooltip.position.yOffset` properties, which will move the tooltip by the specified number of pixels in the x and y directions, respectively.
 
@@ -97,18 +99,24 @@ tooltip: {
 
 ## Tooltip Pagination
 
-Some series configurations may result in data values overlapping, making it difficult or sometimes impossible to highlight specific data values. Pagination provides a method to cycle through the data values by clicking on the mouse. It is disabled by default.
+Pagination allows cycling through overlapping datapoints by hovering and then clicking on the mouse. Use `pagination: true` to enable.
 
 {% chartExampleRunner title="Tooltip Pagination" name="tooltip-pagination" type="generated" /%}
 
-Pagination will only become available when two or more data points are under the cursor. When available, the cursor will turn into a hand and the tooltip will display the number of data points under the cursor. Clicking in the current position will cycle through the data points.
+Pagination will only become available when two or more data points are under the cursor.
 
 ```js
-// Chart options only, cannot be customised per series
+// Chart options only
 tooltip: {
     pagination: true,
 }
 ```
+
+In the above example:
+
+-   Hover overlapping bubbles.
+-   The cursor turns into a hand and the tooltip displays the number of data points under the cursor.
+-   Click in the current position to cycle through the data points, highlighting and displaying the tooltip for each in turn.
 
 ## Customisation
 

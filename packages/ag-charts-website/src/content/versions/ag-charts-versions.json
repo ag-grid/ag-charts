@@ -1,5 +1,25 @@
 [
     {
+        "version": "11.2.0",
+        "date": "March 26th 2025",
+        "highlights": [
+            {
+                "text": "Shared and Compact Tooltip Modes",
+                "path": "./tooltips/#tooltip-modes"
+            },
+            {
+                "text": "Tooltip Pagination",
+                "path": "./tooltips/#tooltip-pagination"
+            },
+            {
+                "text": "Gradient and Pattern Fills"
+            },
+            {
+                "text": "Options Validation and Suggestions"
+            }
+        ]
+    },
+    {
         "version": "11.1.1",
         "date": "February 20th, 2025"
     },
