@@ -1,0 +1,21 @@
+.style-guide.toolbar {
+    display: block;
+}
+
+.style-guide-item {
+    margin-bottom: 24px;
+}
+
+.style-guide-item > code:first-child {
+    display: block;
+    color: #f09;
+    margin-bottom: 8px;
+
+    &::before {
+        content: '<';
+    }
+
+    &::after {
+        content: '>';
+    }
+}
