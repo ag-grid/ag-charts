@@ -38,29 +38,25 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     }
 
     override normalizeDomains(...domains: Date[][]): NormalizedDomain<Date> {
-        const sortedDomains = domains
-            .filter((domain) => domain.length > 0)
-            .map((domain) => {
-                let sortOrder = datesSortOrder(domain);
-                if (sortOrder == null) {
-                    domain = sortAndUniqueDates(domain.slice());
-                    sortOrder = 1;
-                }
+        const sortedDomains = domains.filter((domain) => domain.length > 0);
 
-                return { domain, sortOrder };
-            });
-
-        if (sortedDomains.length === 0) return { domain: [], animatable: false };
-        if (sortedDomains.length === 1) return { domain: sortedDomains[0].domain, animatable: true };
-
-        let domain = sortedDomains.flatMap((s) => s.domain);
-        domain = sortAndUniqueDates(domain);
-
-        if (sortedDomains.every((s) => s.sortOrder === -1)) {
-            domain.reverse();
+        if (sortedDomains.length === 0) {
+            return { domain: [], animatable: false };
+        } else if (sortedDomains.length === 1) {
+            let domain = sortedDomains[0];
+            const sortOrder = datesSortOrder(domain);
+            if (sortOrder === -1) {
+                domain = domain.slice().reverse();
+            } else if (sortOrder == null) {
+                domain = sortAndUniqueDates(domain.slice());
+            }
+            return { domain, animatable: true };
         }
 
-        return { domain, animatable: true };
+        return {
+            domain: sortAndUniqueDates(sortedDomains.flat()),
+            animatable: true,
+        };
     }
 
     override ticks(
