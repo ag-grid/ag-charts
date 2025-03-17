@@ -1,11 +1,11 @@
 [
     {
         "version": "11.1.1",
-        "date": "February 20th 2025"
+        "date": "February 20th, 2025"
     },
     {
         "version": "11.1.0",
-        "date": "February 12th 2025",
+        "date": "February 12th, 2025",
         "highlights": [
             {
                 "text": "Y Axis Auto Scaling",
@@ -28,15 +28,15 @@
     },
     {
         "version": "11.0.4",
-        "date": "January 15th 2025"
+        "date": "January 15th, 2025"
     },
     {
         "version": "11.0.3",
-        "date": "December 18th 2024"
+        "date": "December 18th, 2024"
     },
     {
         "version": "11.0.0",
-        "date": "December 11th 2024",
+        "date": "December 11th, 2024",
         "highlights": [
             {
                 "text": "Fibonacci Tools",
@@ -55,15 +55,15 @@
     },
     {
         "version": "10.3.3",
-        "date": "November 12th 2024"
+        "date": "November 12th, 2024"
     },
     {
         "version": "10.3.1",
-        "date": "October 28th 2024"
+        "date": "October 28th, 2024"
     },
     {
         "version": "10.3.0",
-        "date": "October 22nd 2024",
+        "date": "October 22nd, 2024",
         "highlights": [
             {
                 "text": "Funnel Series",
@@ -86,7 +86,7 @@
     },
     {
         "version": "10.2.0",
-        "date": "September 17th 2024",
+        "date": "September 17th, 2024",
         "highlights": [
             {
                 "text": "Radial Gauge",
@@ -117,7 +117,7 @@
     },
     {
         "version": "10.1.0",
-        "date": "August 8th 2024",
+        "date": "August 8th, 2024",
         "highlights": [
             {
                 "text": "Financial Chart Type Selection",
@@ -144,15 +144,15 @@
     },
     {
         "version": "10.0.2",
-        "date": "July 14th 2024"
+        "date": "July 14th, 2024"
     },
     {
         "version": "10.0.1",
-        "date": "July 9th 2024"
+        "date": "July 9th, 2024"
     },
     {
         "version": "10.0.0",
-        "date": "July 1st 2024",
+        "date": "July 1st, 2024",
         "highlights": [
             {
                 "text": "Financial Charts",
@@ -183,11 +183,11 @@
     },
     {
         "version": "9.3.2",
-        "date": "July 16th 2024"
+        "date": "July 16th, 2024"
     },
     {
         "version": "9.3.1",
-        "date": "April 30th 2024",
+        "date": "April 30th, 2024",
         "highlights": [
             {
                 "text": "Accessibility",
@@ -215,11 +215,11 @@
     },
     {
         "version": "9.3.0",
-        "date": "April 30th 2024"
+        "date": "April 30th, 2024"
     },
     {
         "version": "9.2.0",
-        "date": "March 20th 2024",
+        "date": "March 20th, 2024",
         "highlights": [
             {
                 "text": "New Map Series Types",
@@ -246,12 +246,12 @@
     },
     {
         "version": "9.1.1",
-        "date": "February 22nd 2024",
+        "date": "February 22nd, 2024",
         "noDocs": true
     },
     {
         "version": "9.1.0",
-        "date": "February 20th 2024",
+        "date": "February 20th, 2024",
         "highlights": [
             {
                 "text": "Synchronised Charts",
@@ -270,15 +270,15 @@
     },
     {
         "version": "9.0.2",
-        "date": "December 6th 2023"
+        "date": "December 6th, 2023"
     },
     {
         "version": "9.0.1",
-        "date": "December 5th 2023"
+        "date": "December 5th, 2023"
     },
     {
         "version": "9.0.0",
-        "date": "November 29th 2023",
+        "date": "November 29th, 2023",
         "highlights": [
             {
                 "text": "New Enterprise Series Types",
