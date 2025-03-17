@@ -53,12 +53,17 @@ if (Astro.props.extraStyles != null) {
 const extraStyles = extraStylesArray.join('\n\n');
 
 const startFile = pathJoin(appLocation, entryFileName);
+
+import exampleControlsStyles from '@ag-website-shared/components/example-runner/example-controls.css?raw';
 ---
 
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Angular Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle rootSelector="my-app" layout={layout} extraStyles={extraStyles} />
+
+        <!-- Example control styles -->
+        <style set:html={exampleControlsStyles}></style>
+
         <Styles
             baseUrl={appLocation}
             files={isDev ? styleFiles.map((file: string) => getCacheBustingUrl(file, modifiedTimeMs)) : styleFiles}

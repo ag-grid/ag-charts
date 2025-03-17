@@ -39,19 +39,25 @@ const {
 } = Astro.props as Props;
 
 const startFile = pathJoin(appLocation, entryFileName);
+
+import exampleControlsStyles from '@ag-website-shared/components/example-runner/example-controls.css?raw';
 ---
 
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Typescript Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle layout={layout} extraStyles={extraStyles} />
+
+        <!-- Example control styles -->
+        <style set:html={exampleControlsStyles}></style>
+
         <Styles
             baseUrl={appLocation}
             files={isDev ? styleFiles.map((file: string) => getCacheBustingUrl(file, modifiedTimeMs)) : styleFiles}
         />
         <Fragment set:html={headFragment} />
     </head>
-    <body>
+
+    <body id="root">
         <Fragment set:html={indexFragment} />
         <SystemJs
             isDev={isDev}

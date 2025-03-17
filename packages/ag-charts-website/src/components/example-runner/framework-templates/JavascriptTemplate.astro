@@ -58,6 +58,7 @@ const chartScriptLocalePath = getCacheBustingUrl(getChartLocaleScriptPath(siteUr
     <head>
         <MetaData isDev={isDev} title={`JavaScript Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
 
+        <!-- Example control styles -->
         <style set:html={exampleControlsStyles}></style>
 
         <Styles
@@ -66,7 +67,8 @@ const chartScriptLocalePath = getCacheBustingUrl(getChartLocaleScriptPath(siteUr
         />
         <Fragment set:html={headFragment} />
     </head>
-    <body>
+
+    <body id="root">
         <Fragment set:html={indexFragment} />
         <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath}></script>
         {hasLocale && <script src={chartScriptLocalePath} />}
