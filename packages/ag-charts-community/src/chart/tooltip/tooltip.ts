@@ -162,6 +162,9 @@ export class TooltipPosition extends BaseProperties {
     @Deprecated('use anchorTo and/or placement options instead')
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
     protected type?: TooltipPositionType;
+    /** @todo Remove this when type is removed. */
+    @Validate(POSITION_TYPE, { optional: true })
+    protected _seriesOverrideType?: TooltipPositionType;
 
     @Validate(NUMBER)
     /** The horizontal offset in pixels for the position of the tooltip. */
@@ -178,10 +181,12 @@ export class TooltipPosition extends BaseProperties {
     placement?: AgTooltipPlacement | AgTooltipPlacement[];
 
     get defaultAnchorTo(): AgTooltipAnchorTo {
-        const { type } = this;
-        if (type === 'node') {
-            return type;
-        } else if (type === 'pointer' || type == null) {
+        const { type, _seriesOverrideType } = this;
+        const defaultType = _seriesOverrideType ?? type ?? 'pointer';
+
+        if (defaultType === 'node') {
+            return 'node';
+        } else if (defaultType === 'pointer') {
             return 'pointer';
         } else {
             return 'chart';
@@ -189,12 +194,14 @@ export class TooltipPosition extends BaseProperties {
     }
 
     get defaultPlacement(): AgTooltipPlacement {
-        const { type } = this;
-        if (type === 'node' || type === 'pointer' || type == null) {
+        const { type, _seriesOverrideType } = this;
+        const defaultType = _seriesOverrideType ?? type ?? 'pointer';
+
+        if (defaultType === 'node' || defaultType === 'pointer') {
             return 'top';
-        } else {
-            return type;
         }
+
+        return defaultType;
     }
 }
 

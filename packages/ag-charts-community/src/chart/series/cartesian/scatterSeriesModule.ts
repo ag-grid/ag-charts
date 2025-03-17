@@ -1,5 +1,5 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgScatterSeriesOptions } from 'ag-charts-types';
+import type { AgScatterSeriesOptions, AgTooltipPositionOptions } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -35,7 +35,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             // @ts-expect-error undocumented option
             defaultColorRange: { $palette: 'gradient' },
             fillOpacity: 0.8,
-            tooltip: { position: { anchorTo: 'node' } },
+            tooltip: { position: { _seriesOverrideType: 'node' } as AgTooltipPositionOptions },
             label: {
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },

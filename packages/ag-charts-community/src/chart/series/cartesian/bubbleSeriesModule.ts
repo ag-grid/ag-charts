@@ -1,5 +1,5 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgBubbleSeriesOptions } from 'ag-charts-types';
+import type { AgBubbleSeriesOptions, AgTooltipPositionOptions } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -36,7 +36,7 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
             // @ts-expect-error undocumented option
             defaultColorRange: { $palette: 'gradient' },
             fillOpacity: 0.8,
-            tooltip: { position: { anchorTo: 'node' } },
+            tooltip: { position: { _seriesOverrideType: 'node' } as AgTooltipPositionOptions },
             label: {
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },

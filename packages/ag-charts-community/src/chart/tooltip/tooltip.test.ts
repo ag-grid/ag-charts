@@ -73,9 +73,6 @@ describe('Tooltip', () => {
   [
     "AG Charts - Property [anchorTo] of [TooltipPosition] cannot be set to ["ponter"]; expecting an anchorTo keyword such as 'pointer', 'node' or 'chart', ignoring.",
   ],
-  [
-    "AG Charts - Property [anchorTo] of [TooltipPosition] cannot be set to ["ponter"]; expecting an anchorTo keyword such as 'pointer', 'node' or 'chart', ignoring.",
-  ],
 ]
 `);
         });
