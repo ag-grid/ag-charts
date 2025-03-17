@@ -17,7 +17,14 @@ interface Props {
 const IGNORED_MESSAGES = ['Angular is running in development mode.'];
 
 function containsIgnoredMessage(log: Log) {
-    return log.data.some((message) => IGNORED_MESSAGES.some((ignoredMessage) => message.includes(ignoredMessage)));
+    return log.data.some((message) =>
+        IGNORED_MESSAGES.some((ignoredMessage) => typeof message === 'string' && message.includes(ignoredMessage))
+    );
+}
+
+function safeLogData(data: unknown) {
+    if (typeof data === 'string' || typeof data === 'number') return data;
+    return JSON.stringify(data, null, 2);
 }
 
 export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSize = 10 }) => {
@@ -52,7 +59,7 @@ export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSiz
         <pre ref={containerRef} className={styles.logger}>
             {logs.length === 0 && <div className={styles.noLogs}>Console logs from the example shown here...</div>}
             {logs.map((log, i) => (
-                <div key={i}>{log.data}</div>
+                <div key={i}>{safeLogData(log.data)}</div>
             ))}
         </pre>
     );
