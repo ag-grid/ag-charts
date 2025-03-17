@@ -2,7 +2,6 @@ import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { StateTracker } from '../../util/stateTracker';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { SeriesTooltip } from '../series/seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 import { getDatumRefPoint } from '../series/util';
@@ -123,9 +122,9 @@ export class TooltipManager {
         return meta;
     }
 
-    public isEnteringInteractiveTooltip(event: MouseWidgetEvent<'mouseleave'>): boolean {
+    public isEnteringInteractiveTooltip(event: Pick<FocusEvent | MouseEvent, 'relatedTarget'>): boolean {
         const { tooltip } = this;
-        const relatedTarget = event.sourceEvent.relatedTarget as Node | null;
+        const relatedTarget = event.relatedTarget as Node | null;
         return tooltip.interactive && tooltip.enabled && tooltip.isVisible() && tooltip.contains(relatedTarget);
     }
 }
