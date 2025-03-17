@@ -864,21 +864,23 @@ export abstract class Series<
         { applyTranslation = true, selected = true } = {}
     ) {
         const activeStyle = this.getMarkerStyle(marker, datum, params, highlighted, point?.size, defaultStyle);
-        const visible = this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
+        const { shape, size } = activeStyle;
+        const visible = this.visible && size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
-        applyShapeStyle(markerNode, { fill: activeStyle.fill }, undefined, fillBBox);
+        applyShapeStyle(markerNode, activeStyle, undefined, fillBBox);
 
         if (applyTranslation) {
             markerNode.setProperties({
                 visible,
-                ...activeStyle,
+                shape,
+                size,
                 x: point?.x,
                 y: point?.y,
                 scalingCenterX: point?.x,
                 scalingCenterY: point?.y,
             });
         } else {
-            markerNode.setProperties({ visible, ...activeStyle });
+            markerNode.setProperties({ visible, shape, size });
         }
 
         if (!selected) {
