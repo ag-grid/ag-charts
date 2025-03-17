@@ -184,10 +184,8 @@ export class TooltipPosition extends BaseProperties {
         const { type, _seriesOverrideType } = this;
         const defaultType = _seriesOverrideType ?? type ?? 'pointer';
 
-        if (defaultType === 'node') {
-            return 'node';
-        } else if (defaultType === 'pointer') {
-            return 'pointer';
+        if (defaultType === 'node' || defaultType === 'pointer') {
+            return defaultType;
         } else {
             return 'chart';
         }
