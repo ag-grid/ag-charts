@@ -264,6 +264,10 @@ export class Tooltip extends BaseProperties {
             this.element = domManager.addChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
             this.element.setAttribute('popover', 'manual');
             this.element.className = DEFAULT_TOOLTIP_CLASS;
+            // AG-14347 Allow interactive tooltips to receive focus
+            if (this.interactive) {
+                this.element.tabIndex = -1;
+            }
             // @ts-expect-error Typings need updating
             this.element.style.positionAnchor = domManager.anchorName;
         }
@@ -411,10 +415,12 @@ export class Tooltip extends BaseProperties {
             this.enableInteraction = true;
             element.style.pointerEvents = 'auto';
             element.removeAttribute('aria-hidden');
+            element.tabIndex = -1; // AG-14347 Allow interactive tooltips to receive focus
         } else {
             this.enableInteraction = false;
             element.style.pointerEvents = 'none';
             element.setAttribute('aria-hidden', 'true');
+            element.removeAttribute('tabindex');
         }
 
         element.style.setProperty('--top', `${canvasRect.top}px`);
