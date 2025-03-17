@@ -1,3 +1,5 @@
+type Target = { [K in string]: any } & { onChangeDetection(privateKey: string): void };
+
 type SceneChangeDetectionOptions<T = any> = {
     type?: 'normal' | 'transform' | 'path';
     convertor?: (o: any) => any;
@@ -5,7 +7,7 @@ type SceneChangeDetectionOptions<T = any> = {
     checkDirtyOnAssignment?: boolean;
 };
 
-export function SceneChangeDetection<T = any>(opts?: SceneChangeDetectionOptions<T>) {
+export function SceneChangeDetection<T extends Target = any>(opts?: SceneChangeDetectionOptions) {
     return function (target: T, key: string) {
         // `target` is either a constructor (static member) or prototype (instance member)
         const privateKey = `__${key}`;
@@ -25,17 +27,7 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
     // Select the correctly optimized setter with minimal branches/checks for the specific type
     // of change detection.
     let setter;
-    switch (type) {
-        case 'normal':
-            setter = buildNormalSetter(privateKey, requiredOpts);
-            break;
-        case 'transform':
-            setter = buildTransformSetter(privateKey);
-            break;
-        case 'path':
-            setter = buildPathSetter(privateKey);
-            break;
-    }
+    setter = buildSetter(privateKey, requiredOpts);
     setter = buildCheckDirtyChain(
         privateKey,
         buildChangeCallbackChain(buildConvertorChain(setter, requiredOpts), requiredOpts),
@@ -99,44 +91,15 @@ function buildCheckDirtyChain(privateKey: string, setterFn: Function, opts: Scen
     return setterFn;
 }
 
-function buildNormalSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
+function buildSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
     const { changeCb } = opts;
 
-    return function (this: any, value: unknown) {
+    return function (this: Target, value: unknown) {
         const oldValue = this[privateKey];
         if (value !== oldValue) {
             this[privateKey] = value;
-            this.markDirty(privateKey);
+            this.onChangeDetection(privateKey);
             changeCb?.(this);
-            return value;
-        }
-
-        return NO_CHANGE;
-    };
-}
-
-function buildTransformSetter(privateKey: string) {
-    return function (this: any, value: unknown) {
-        const oldValue = this[privateKey];
-        if (value !== oldValue) {
-            this[privateKey] = value;
-            this.markDirtyTransform();
-            return value;
-        }
-
-        return NO_CHANGE;
-    };
-}
-
-function buildPathSetter(privateKey: string) {
-    return function (this: any, value: unknown) {
-        const oldValue = this[privateKey];
-        if (value !== oldValue) {
-            this[privateKey] = value;
-            if (!this._dirtyPath) {
-                this._dirtyPath = true;
-                this.markDirty(privateKey);
-            }
             return value;
         }
 

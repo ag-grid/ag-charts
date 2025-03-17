@@ -60,6 +60,10 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             super.markDirty();
         }
 
+        override onChangeDetection(_property: string): void {
+            this.markDirtyTransform();
+        }
+
         updateMatrix(_matrix: Matrix) {
             // For override by sub-classes.
         }
