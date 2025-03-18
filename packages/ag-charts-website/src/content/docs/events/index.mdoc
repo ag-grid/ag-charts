@@ -63,6 +63,20 @@ In this example:
 -   When the counter hits zero, the series toggle is allowed to occur.
 -   The series visibility change is fired, and a transient overlay is shown with relevant information.
 
+### annotations
+
+This is fired when the [annotations](./annotations/) are changed, added or removed in either cartesian charts or with the [financial charts toolbar](./financial-charts-toolbar/).
+
+{% chartExampleRunner title="Annotations" name="annotations-event" type="generated" /%}
+
+This event contains:
+
+-   The array of `annotations`.
+
+In this example:
+
+-   When an annotation is changed, added or removed, the event is output to the console.
+
 ### zoom
 
 This is fired when the zoom level or position changes. This is triggered when [zooming in or out of the chart](./zoom/), [panning](./zoom/#panning) or using the [Navigator](./navigator/).
