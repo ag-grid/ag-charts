@@ -187,6 +187,12 @@ export const COLOR_GRADIENT = attachObjectRestrictions(
     predicateWithMessage((value) => isObject(value) && value.type === 'gradient', 'a color gradient object')
 );
 
+export const COLOR_PATTERN = attachObjectRestrictions(
+    predicateWithMessage((value) => {
+        return isObject(value) && value.type === 'pattern';
+    }, 'a color pattern object')
+);
+
 export const COLOR_STRING_ARRAY = predicateWithMessage(ARRAY_OF(COLOR_STRING), `color strings. ${colorMessage}`);
 
 export const BOOLEAN_ARRAY = ARRAY_OF(BOOLEAN, 'boolean values');

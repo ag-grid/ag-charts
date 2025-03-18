@@ -20,6 +20,7 @@ const {
     COLOR_GRADIENT,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
+    COLOR_PATTERN,
     LINE_DASH,
     OBJECT,
     POSITIVE_NUMBER,
@@ -53,7 +54,7 @@ export class ConeFunnelProperties
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: AgColorType[] = [];
 
     @TempValidate(RATIO)

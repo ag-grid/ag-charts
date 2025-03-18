@@ -362,7 +362,7 @@ export abstract class RadialColumnSeriesBase<
         return NaN;
     }
 
-    protected abstract getNodeFill(fill: AgColorType, angle: number): Required<AgColorType>;
+    protected abstract getNodeFill(fill: AgColorType, angle: number): AgColorType;
 
     private getShapeStyle<T extends { fill?: AgColorType }>(style: T, angle: number): T;
     private getShapeStyle<T extends { fill?: AgColorType }>(style: T | undefined, angle: number): T | undefined;

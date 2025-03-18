@@ -22,6 +22,7 @@ const {
     OBJECT,
     OR,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -119,7 +120,7 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
     fill: AgColorType = 'black';
 
     @TempValidate(RATIO)

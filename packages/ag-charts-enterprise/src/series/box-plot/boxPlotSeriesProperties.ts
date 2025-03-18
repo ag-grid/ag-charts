@@ -23,6 +23,7 @@ const {
     mergeDefaults,
     COLOR_STRING_ARRAY,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     OR,
 } = _ModuleSupport;
 
@@ -91,7 +92,7 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
     fill: AgColorType = '#c16068';
 
     @TempValidate(RATIO)

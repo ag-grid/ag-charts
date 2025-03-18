@@ -3,6 +3,7 @@ import type { AgColorType } from 'ag-charts-types';
 import {
     ARRAY_OF,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
     OR,
@@ -28,7 +29,7 @@ export abstract class HierarchySeriesProperties<T extends object> extends Series
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: AgColorType[] = Object.values(DEFAULT_FILLS);
 
     @TempValidate(COLOR_STRING_ARRAY)

@@ -32,6 +32,7 @@ const {
     POSITIVE_NUMBER,
     COLOR_GRADIENT,
     COLOR_STRING_ARRAY,
+    COLOR_PATTERN,
     OR,
     RATIO,
     STRING,
@@ -72,7 +73,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
     fill: AgColorType = '#99CCFF';
 
     @TempValidate(RATIO)

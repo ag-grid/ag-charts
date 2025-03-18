@@ -18,6 +18,7 @@ const {
     COLOR_STRING,
     COLOR_STRING_ARRAY,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     FUNCTION,
     LINE_DASH,
     OR,
@@ -82,7 +83,7 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
     fill: AgColorType = 'black';
 
     @TempValidate(RATIO)

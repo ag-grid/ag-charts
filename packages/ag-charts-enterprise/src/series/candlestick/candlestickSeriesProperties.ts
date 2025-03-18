@@ -22,6 +22,7 @@ const {
     RATIO,
     COLOR_GRADIENT,
     COLOR_STRING_ARRAY,
+    COLOR_PATTERN,
     OR,
 } = _ModuleSupport;
 
@@ -46,7 +47,7 @@ class CandlestickSeriesItem extends BaseProperties {
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
     fill: AgColorType = '#c16068';
 
     @TempValidate(RATIO)
