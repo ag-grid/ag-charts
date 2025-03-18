@@ -22,6 +22,7 @@
     "cheerio": "^1.0.0-rc.12",
     "chokidar": "^3.5.3",
     "classnames": "^2.3.2",
+    "clean-css": "~5.3.3",
     "codesandbox": "2.2.3",
     "dotenv-expand": "10.0.0",
     "esprima": "4.0.1",

@@ -31,6 +31,8 @@ const {
     headFragment,
 } = Astro.props as Props;
 
+import CleanCSS from 'clean-css';
+
 import { MetaData } from './lib/MetaData';
 import { Styles } from './lib/Styles';
 import { Scripts } from './lib/Scripts';
@@ -68,15 +70,16 @@ const frameworkStyles = `
     }
 `;
 
-const genericExampleStyles = frameworkStyles.concat(exampleControlsStyles);
+const cssMinifier = new CleanCSS({ format: { wrapAt: 120 } });
+const minGenericExampleStyles = cssMinifier.minify(exampleControlsStyles.concat(frameworkStyles)).styles;
 ---
 
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`JavaScript Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
 
-        <!-- Generic Example Styles -->
-        <style set:html={genericExampleStyles}></style>
+        <!-- Generic example styles must be first <style> tag in head, to skip prettier formatting in the middleware -->
+        <style set:html={minGenericExampleStyles}></style>
 
         <Styles
             baseUrl={appLocation}
