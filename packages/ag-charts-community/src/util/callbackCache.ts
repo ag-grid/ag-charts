@@ -20,7 +20,7 @@ export function callWithContext<F extends AnyFn>(
     fn: F,
     params: Parameters<F>
 ): ReturnType<F> {
-    maybeSetContext(caller1, params) || maybeSetContext(caller2, params);
+    if (!maybeSetContext(caller1, params)) maybeSetContext(caller2, params);
     return fn(...params);
 }
 
