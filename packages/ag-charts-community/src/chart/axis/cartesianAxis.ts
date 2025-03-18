@@ -334,9 +334,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const x = Math.floor((titleRotationFlag * sideFlag * (range[0] + range[1])) / 2);
         const y = sideFlag === -1 ? Math.floor(titleRotationFlag * -padding) : Math.floor(-padding);
 
-        const { callbackCache } = this.moduleCtx;
         const { formatter = (p) => p.defaultValue } = title;
-        const text = callbackCache.call(this, formatter, this.getTitleFormatterParams(params.domain));
+        const text = this.callWithContext(formatter, this.getTitleFormatterParams(params.domain));
         caption.text = text;
 
         titleNode.setProperties({ visible: true, text, textBaseline, x, y, rotation });

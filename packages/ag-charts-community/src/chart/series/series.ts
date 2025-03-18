@@ -800,7 +800,7 @@ export abstract class Series<
     ) {
         if (label.formatter) {
             return (
-                this.ctx.callbackCache.call(this.properties, label.formatter, { seriesId: this.id, ...params }) ??
+                this.cachedCallWithContext(label.formatter, { seriesId: this.id, ...params }) ??
                 this.callWithContext(defaultFormatter, params.value)
             );
         }
@@ -824,7 +824,7 @@ export abstract class Series<
         );
 
         if (itemStyler && params) {
-            const style = this.ctx.callbackCache.call(this.properties, itemStyler, {
+            const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,
@@ -929,6 +929,13 @@ export abstract class Series<
         } catch (error) {
             Logger.error(String(error));
         }
+    }
+
+    private cachedCallWithContext<F extends (...args: any[]) => any>(
+        fn: F,
+        ...params: Parameters<F>
+    ): ReturnType<F> | undefined {
+        return this.ctx.callbackCache.call(this.properties, fn, ...params);
     }
 
     public callWithContext<F extends (...args: any[]) => any>(fn: F, ...params: Parameters<F>): ReturnType<F> {

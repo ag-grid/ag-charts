@@ -267,11 +267,7 @@ export abstract class RadiusAxis<
 
     private updateTitle() {
         const identityFormatter = (params: AgAxisCaptionFormatterParams) => params.defaultValue;
-        const {
-            title,
-            range: requestedRange,
-            moduleCtx: { callbackCache },
-        } = this;
+        const { title, range: requestedRange } = this;
         const { formatter = identityFormatter } = this.title;
 
         title.caption.enabled = title.enabled;
@@ -293,7 +289,7 @@ export abstract class RadiusAxis<
             titleNode.textAlign = 'center';
             titleNode.textBaseline = 'bottom';
 
-            titleNode.text = callbackCache.call(this, formatter, this.getTitleFormatterParams(this.scale.domain));
+            titleNode.text = this.callWithContext(formatter, this.getTitleFormatterParams(this.scale.domain));
         }
 
         titleNode.visible = titleVisible;

@@ -339,13 +339,10 @@ export class Legend extends BaseProperties {
     }
 
     getItemLabel(datum: CategoryLegendDatum) {
-        const {
-            ctx: { callbackCache },
-        } = this;
         const { formatter } = this.item.label;
         if (formatter) {
             const seriesDatum = datum.datum;
-            return callbackCache.call(this, formatter, {
+            return this.cachedCallWithContext(formatter, {
                 itemId: datum.itemId,
                 value: datum.label.text,
                 seriesId: datum.seriesId,
@@ -1171,5 +1168,13 @@ export class Legend extends BaseProperties {
         }
 
         return [legendWidth, legendHeight];
+    }
+
+    private cachedCallWithContext<F extends (...args: any[]) => any>(
+        fn: F,
+        ...params: Parameters<F>
+    ): ReturnType<F> | undefined {
+        const { callbackCache } = this.ctx;
+        return callbackCache.call(this, fn, ...params);
     }
 }

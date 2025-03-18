@@ -197,14 +197,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private formatValue(value: unknown): string {
-        const {
-            labelFormatter,
-            axisLayout,
-            ctx: { callbackCache },
-        } = this;
+        const { labelFormatter, axisLayout } = this;
 
         if (labelFormatter) {
-            const result = callbackCache.call(this.axisCtx, labelFormatter, value);
+            const result = this.cachedCallWithContext(labelFormatter, value);
             if (result != null) {
                 return result;
             }
@@ -411,5 +407,13 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private hideLabel(key: string) {
         this.labels[key]?.toggle(false);
+    }
+
+    private cachedCallWithContext<F extends (...args: any[]) => any>(
+        fn: F,
+        ...params: Parameters<F>
+    ): ReturnType<F> | undefined {
+        const { callbackCache } = this.ctx;
+        return callbackCache.call(this.axisCtx, fn, ...params);
     }
 }
