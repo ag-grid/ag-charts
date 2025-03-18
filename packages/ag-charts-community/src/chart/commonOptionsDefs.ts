@@ -317,10 +317,10 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     contextMenu: {
         enabled: boolean,
-        extraActions: contextMenuActionOptionsDefs,
-        extraSeriesAreaActions: contextMenuActionOptionsDefs,
-        extraNodeActions: contextMenuActionOptionsDefs,
-        extraLegendItemActions: contextMenuActionOptionsDefs,
+        extraActions: arrayOfDefs(contextMenuActionOptionsDefs),
+        extraSeriesAreaActions: arrayOfDefs(contextMenuActionOptionsDefs),
+        extraNodeActions: arrayOfDefs(contextMenuActionOptionsDefs),
+        extraLegendItemActions: arrayOfDefs(contextMenuActionOptionsDefs),
     },
     dataSource: {
         getData: callback,
