@@ -4,7 +4,7 @@ import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { createDatumId, isGradientFill, applyShapeFillBBox } = _ModuleSupport;
+const { createDatumId, isGradientFill, isPatternFill, applyShapeFillBBox } = _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, CandlestickSeriesProperties<any>> {
     static readonly className = 'CandleStickSeries';
@@ -127,16 +127,22 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
 
         const upFill = this.getNodeFill(up.fill, up.defaultColorRange);
         const upColorStops = isGradientFill(upFill)
-            ? upFill.colorStops.map(({ color, stop }) => ({ color, stop: stop != null ? stop * 0.5 : undefined }))
+            ? (upFill.colorStops ?? []).map(({ color, stop }) => ({
+                  color,
+                  stop: stop != null ? stop * 0.5 : undefined,
+              }))
             : [
-                  { color: upFill, stop: 0 },
-                  { color: upFill, stop: 0.5 },
+                  { color: isPatternFill(upFill) ? up.stroke : upFill, stop: 0 },
+                  { color: isPatternFill(upFill) ? up.stroke : upFill, stop: 0.5 },
               ];
 
         const downFill = this.getNodeFill(down.fill, down.defaultColorRange);
         const downColorStops = isGradientFill(downFill)
-            ? downFill.colorStops.map(({ color, stop }) => ({ color, stop: stop != null ? stop * 0.5 : undefined }))
-            : [{ color: downFill, stop: 0.5 }];
+            ? (downFill.colorStops ?? []).map(({ color, stop }) => ({
+                  color,
+                  stop: stop != null ? stop * 0.5 : undefined,
+              }))
+            : [{ color: isPatternFill(downFill) ? down.stroke : downFill, stop: 0.5 }];
 
         const fill: AgGradientColor = {
             type: 'gradient',

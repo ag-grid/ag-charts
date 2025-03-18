@@ -803,7 +803,7 @@ export class Legend extends BaseProperties {
         const { stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
 
-        let fill: Required<AgColorType> | undefined;
+        let fill: AgColorType | undefined;
         if (isGradientFill(marker.fill)) {
             fill = {
                 type: 'gradient',

@@ -21,7 +21,7 @@ const {
     ContinuousScale,
     ChartAxisDirection,
     motion,
-    isGradientFill,
+    isGradientOrPatternFill,
 } = _ModuleSupport;
 
 class BoxPlotSeriesNodeEvent<
@@ -513,7 +513,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         let fill;
         let fillOpacity: number | undefined;
 
-        if (isGradientFill(nodeDatum.fill)) {
+        // @todo(AG-11876) Use fillOpacity to match area, range area, radar area, chord, and sankey series
+        const useFakeFill = true;
+        if (useFakeFill) {
+            fill = nodeDatum.fill;
+            fillOpacity = properties.fillOpacity;
+        } else if (isGradientOrPatternFill(nodeDatum.fill)) {
             fill = nodeDatum.fill;
         } else {
             fill = nodeDatum.fill;

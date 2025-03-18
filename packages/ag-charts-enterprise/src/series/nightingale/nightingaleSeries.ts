@@ -41,7 +41,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
         return new Sector();
     }
 
-    protected getNodeFill(fill: AgColorType): Required<AgColorType> {
+    protected getNodeFill(fill: AgColorType): AgColorType {
         if (!_ModuleSupport.isGradientFill(fill)) return fill;
 
         return {

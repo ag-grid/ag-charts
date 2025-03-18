@@ -808,7 +808,7 @@ export abstract class Series<
         return this.callWithContext(defaultFormatter, params.value);
     }
 
-    private getMarkerNodeFill(fill: AgColorType, defaultColorRange: string[]): Required<AgColorType> {
+    private getMarkerNodeFill(fill: AgColorType, defaultColorRange: string[]): AgColorType {
         if (!isGradientFill(fill)) return fill;
 
         return {
