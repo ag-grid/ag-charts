@@ -24,6 +24,7 @@ export * from './chart/polarAxisOptions';
 export * from './chart/radiusAxisOptions';
 export * from './chart/rangesOptions';
 export * from './chart/themeOptions';
+export * from './chart/themableOptions';
 export * from './chart/themeParamsOptions';
 export * from './chart/tooltipOptions';
 export * from './chart/types';
