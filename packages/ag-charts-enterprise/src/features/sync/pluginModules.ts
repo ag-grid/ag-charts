@@ -7,6 +7,7 @@ import { navigatorOptionsDef } from '../navigator/navigatorOptionsDefs';
 export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions> = {
     type: 'plugin',
     name: 'annotations',
+    chartType: 'cartesian',
 
     options: annotationOptionsDef,
     create() {
@@ -17,6 +18,7 @@ export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions> = {
 export const NavigatorModule: PluginModuleDefinition<AgNavigatorOptions> = {
     type: 'plugin',
     name: 'navigator',
+    chartType: 'cartesian',
 
     options: navigatorOptionsDef,
     create() {

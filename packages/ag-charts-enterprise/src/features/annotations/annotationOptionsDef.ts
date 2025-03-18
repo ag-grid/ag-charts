@@ -15,6 +15,7 @@ import {
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    array,
     arrayOf,
     arrayOfDefs,
     boolean,
@@ -52,6 +53,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     },
     toolbar: {
         enabled: boolean,
+        padding: positiveNumber,
         buttons: arrayOfDefs<AgAnnotationsToolbarButton>({
             ...toolbarButtonOptionsDefs,
             value: union(
@@ -101,6 +103,15 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
         ),
     },
 };
+
+// @ts-expect-error undocumented option
+annotationOptionsDef.data = array;
+// @ts-expect-error undocumented option
+annotationOptionsDef.xKey = string;
+// @ts-expect-error undocumented option
+annotationOptionsDef.volumeKey = string;
+// @ts-expect-error undocumented option
+annotationOptionsDef.snap = boolean;
 
 const serializableDate = optionsDefs<AgStateSerializableDate>(
     {
@@ -380,7 +391,7 @@ export const annotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
 
 export const initialStateOptionsDef: OptionsDefs<AgInitialStateOptions> = {
     chartType: union('candlestick', 'hollow-candlestick', 'ohlc', 'line', 'step-line', 'hlc', 'high-low'),
-    annotations: annotationInitialStateOptionsDef,
+    annotations: arrayOf(annotationInitialStateOptionsDef),
     legend: arrayOfDefs<AgInitialStateLegendOptions>({
         visible: boolean,
         seriesId: string,

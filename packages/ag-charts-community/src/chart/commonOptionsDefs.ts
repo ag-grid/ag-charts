@@ -8,7 +8,6 @@ import {
     boolean,
     callback,
     color,
-    constant,
     date,
     defined,
     fillOptionsDef,
@@ -354,10 +353,10 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         // enterprise
         image: {
             url: string,
-            top: positiveNumber,
-            right: positiveNumber,
-            bottom: positiveNumber,
-            left: positiveNumber,
+            top: number,
+            right: number,
+            bottom: number,
+            left: number,
             width: positiveNumber,
             height: positiveNumber,
             opacity: ratio,
@@ -388,7 +387,10 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         minVisibleItemsY: positiveNumber,
         panKey: union('alt', 'ctrl', 'meta', 'shift'),
         scrollingStep: ratio,
-        autoScaling: arrayOf(constant('y')),
+        autoScaling: {
+            enabled: boolean,
+            padding: ratio,
+        },
         buttons: {
             enabled: boolean,
             buttons: arrayOfDefs<AgZoomButton>({
@@ -399,6 +401,36 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             visible: union('always', 'zoomed', 'hover'),
         },
     },
+};
+
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.dataSource.requestThrottle = positiveNumber;
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.dataSource.updateThrottle = positiveNumber;
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.dataSource.updateDuringInteraction = boolean;
+
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.zoom.enableIndependentAxes = boolean;
+
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.statusBar = defined;
+
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.foreground = {
+    visible: boolean,
+    text: string,
+    image: {
+        url: string,
+        top: number,
+        right: number,
+        bottom: number,
+        left: number,
+        width: positiveNumber,
+        height: positiveNumber,
+        opacity: ratio,
+    },
+    ...fillOptionsDef,
 };
 
 export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {

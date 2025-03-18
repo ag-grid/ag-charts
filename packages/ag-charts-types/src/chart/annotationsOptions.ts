@@ -516,7 +516,8 @@ export interface AgGroupingValueType {
 // ***********/
 
 export interface AgAnnotationsToolbar extends Toggleable {
-    buttons?: Array<AgAnnotationsToolbarButton>;
+    buttons?: AgAnnotationsToolbarButton[];
+    padding?: number;
 }
 
 export interface AgAnnotationsToolbarButton extends ToolbarButton {

@@ -291,10 +291,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
-            if (pluginDef.name in options && (!pluginDef.chartType || pluginDef.chartType === this.chartDef.name)) {
-                const { valid, errors } = validate(options, this.chartDef.options);
+            const pluginKey = pluginDef.name as keyof T;
+            if (pluginKey in options && (!pluginDef.chartType || pluginDef.chartType === this.chartDef.name)) {
+                const { valid, errors } = validate(options[pluginKey], pluginDef.options, pluginDef.name);
                 errors.forEach((error) => Logger.warn(error));
-                options[pluginDef.name as keyof T] = valid as T[keyof T];
+                options[pluginKey] = valid as T[keyof T];
             }
         }
 
