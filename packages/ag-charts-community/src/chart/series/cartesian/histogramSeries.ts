@@ -509,7 +509,7 @@ export class HistogramSeries extends CartesianSeries<
         const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
         const frequency = datumIndices.length;
         const domain = keys;
-        const [rangeMin, rangeMax] = domain;
+        const [rangeMin, rangeMax]: number[] = domain;
         const aggregatedValue = negativeAgg + positiveAgg;
         const datum: AgHistogramBinDatum<any> = {
             data: [...dataModel.forEachDatum(this, processedData, group)],
@@ -558,7 +558,7 @@ export class HistogramSeries extends CartesianSeries<
                 xName,
                 yKey,
                 yName,
-                xRange: [rangeMin, rangeMax],
+                xRange: [rangeMin, rangeMax] satisfies [number, number],
                 frequency,
                 ...this.getItemBaseStyle(false),
             }
