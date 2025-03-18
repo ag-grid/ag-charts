@@ -1,4 +1,4 @@
-import type { AgFillType } from '../series/cartesian/commonOptions';
+import type { AgColorType } from '../series/cartesian/commonOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
 import type { AgMarkerShape, CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
@@ -140,7 +140,7 @@ export interface AgPaginationMarkerOptions {
 
 export interface AgPaginationMarkerStyle {
     /** The fill colour to use for the pagination button markers. */
-    fill?: AgFillType;
+    fill?: AgColorType;
     /** Opacity of the pagination buttons. */
     fillOpacity?: Opacity;
     /** The colour to use for the button strokes. */
