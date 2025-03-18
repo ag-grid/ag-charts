@@ -85,7 +85,7 @@ class DonutSeriesSectorLabel extends Label<AgDonutSeriesLabelFormatterParams> {
 }
 
 class DonutSeriesCalloutLine extends BaseProperties {
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)), { optional: true })
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)), { optional: true })
     colors?: AgColorType[];
 
     @TempValidate(POSITIVE_NUMBER)

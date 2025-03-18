@@ -2,6 +2,8 @@ import type {
     AgCartesianChartOptions,
     AgGaugeOptions,
     AgHierarchyChartOptions,
+    AgPatternColor,
+    AgPatternName,
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
@@ -2223,6 +2225,90 @@ const colorStops = [
     },
 ];
 
+export const AREA_SERIES_PATTERN_FILL: AgCartesianChartOptions = {
+    data: DATA_APPLE_REVENUE_BY_PRODUCT,
+    series: [
+        {
+            type: 'area',
+            xKey: 'quarter',
+            yKey: 'iphone',
+            strokeWidth: 1,
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+};
+
+function setPattern(
+    options: AgCartesianChartOptions,
+    pattern?: AgPatternName,
+    path?: string,
+    fillOptions?: Omit<AgPatternColor, 'type'>
+): AgCartesianChartOptions {
+    return {
+        ...options,
+        theme: {
+            overrides: {
+                area: {
+                    series: {
+                        fill: {
+                            type: 'pattern',
+                            pattern,
+                            path,
+                            ...fillOptions,
+                        } as any, // FIXME not in the options for now
+                    },
+                },
+            },
+        },
+    };
+}
+
+export const AREA_SERIES_DEFAULT_PATTERN_FILL = setPattern(AREA_SERIES_PATTERN_FILL);
+export const AREA_SERIES_VERTICAL_LINES_PATTERN_FILL = setPattern(AREA_SERIES_PATTERN_FILL, 'vertical-lines');
+export const AREA_SERIES_HORIZONTAL_LINES_PATTERN_FILL = setPattern(AREA_SERIES_PATTERN_FILL, 'horizontal-lines');
+export const AREA_SERIES_FORWARD_SLANTED_LINES_PATTERN_FILL = setPattern(
+    AREA_SERIES_PATTERN_FILL,
+    'forward-slanted-lines'
+);
+export const AREA_SERIES_BACKWARD_SLANTED_LINES_PATTERN_FILL = setPattern(
+    AREA_SERIES_PATTERN_FILL,
+    'backward-slanted-lines'
+);
+export const AREA_SERIES_CIRCLES_PATTERN_FILL = setPattern(AREA_SERIES_PATTERN_FILL, 'circles');
+export const AREA_SERIES_SQUARES_PATTERN_FILL = setPattern(AREA_SERIES_PATTERN_FILL, 'squares');
+export const AREA_SERIES_TRIANGLES_PATTERN_FILL = setPattern(AREA_SERIES_PATTERN_FILL, 'triangles');
+export const AREA_SERIES_DIAMONDS_PATTERN_FILL = setPattern(AREA_SERIES_PATTERN_FILL, 'diamonds');
+export const AREA_SERIES_STARS_PATTERN_FILL = setPattern(AREA_SERIES_PATTERN_FILL, 'stars');
+export const AREA_SERIES_HEARTS_PATTERN_FILL = setPattern(AREA_SERIES_PATTERN_FILL, 'hearts');
+export const AREA_SERIES_CROSSES_PATTERN_FILL = setPattern(AREA_SERIES_PATTERN_FILL, 'crosses');
+export const AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL = setPattern(
+    AREA_SERIES_PATTERN_FILL,
+    'custom' as any, // FIXME not in the options for now
+    'M 21.1841 20 C 21.5411 19.8697 21.9037 19.7359 22.2724 19.5983 C 22.6346 19.4632 23.8705 19 24.0399 18.9367 C 33.6397 15.3476 39.6469 14 50 14 C 60.2711 14 65.3618 15.2218 74.6286 18.9285 C 75.5844 19.3108 76.4979 19.6675 77.3788 20 L 83.604 20 C 81.0931 19.2694 78.465 18.309 75.3714 17.0715 C 65.8882 13.2782 60.5622 12 50 12 C 39.3741 12 33.1448 13.3974 23.3395 17.0633 C 23.1689 17.1271 21.9339 17.59 21.5733 17.7245 C 19.0985 18.6479 16.9127 19.3995 14.8494 20 L 21.1841 20 L 21.1841 20 Z M 21.1841 0 C 13.2575 2.89195 8.07673 4 7.87150e-14 4 L 7.81597e-14 4 L 0 2 C 5.74392 2 9.9514 1.42564 14.8494 1.40166e-15 L 21.1841 6.93889e-17 L 21.1841 0 Z M 77.3788 2.21706e-12 C 85.2386 2.96643 90.5023 4 100 4 L 100 2 C 93.1577 2 88.6144 1.45781 83.604 1.04805e-13 L 77.3788 0 L 77.3788 2.21706e-12 Z M 7.87150e-14 14 C 8.4405 14 13.7183 12.7899 22.2724 9.59833 C 22.6346 9.46317 23.8705 9 24.0399 8.93668 C 33.6397 5.34755 39.6469 4 50 4 C 60.2711 4 65.3618 5.22177 74.6286 8.92848 C 84.1118 12.7218 89.4378 14 100 14 L 100 12 C 89.7289 12 84.6382 10.7782 75.3714 7.07152 C 65.8882 3.27823 60.5622 2 50 2 C 39.3741 2 33.1448 3.39739 23.3395 7.06332 C 23.1689 7.12712 21.9339 7.58996 21.5733 7.7245 C 13.2235 10.8398 8.16351 12 0 12 L 7.81597e-14 14 L 7.87150e-14 14 L 7.87150e-14 14 Z',
+    { width: 100, height: 20 }
+);
+
+export const AREA_SERIES_CUSTOMISED_PATTERN_FILL = setPattern(AREA_SERIES_PATTERN_FILL, 'circles', undefined, {
+    width: 20,
+    height: 20,
+    fill: 'cyan',
+    stroke: 'yellow',
+    strokeWidth: 2,
+    padding: 4,
+    backgroundFill: 'black',
+    backgroundFillOpacity: 0.4,
+    fillOpacity: 0.9,
+});
+
 export const AREA_SERIES_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
     data: DATA_APPLE_REVENUE_BY_PRODUCT,
     theme: {
@@ -3042,6 +3128,111 @@ export const STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions
         {
             type: 'number',
             position: 'left',
+        },
+    ],
+};
+
+export const STACKED_COLUMN_PATTERN_FILL: AgCartesianChartOptions = {
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: { type: 'pattern', pattern: 'backward-slanted-lines' },
+                },
+            },
+        },
+    },
+    title: {
+        text: "Apple's revenue by product category",
+    },
+    subtitle: {
+        text: 'in billion U.S. dollars',
+    },
+    data: DATA_APPLE_REVENUE_BY_PRODUCT,
+    series: [
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'mac',
+            yName: 'Mac',
+            stacked: true,
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'ipad',
+            yName: 'iPad',
+            stacked: true,
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'wearables',
+            yName: 'Wearables',
+            stacked: true,
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'services',
+            yName: 'Services',
+            stacked: true,
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+    ],
+};
+
+export const GROUPED_COLUMN_PATTERN_FILL: AgCartesianChartOptions = {
+    ...STACKED_COLUMN_PATTERN_FILL,
+    series: [
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'mac',
+            yName: 'Mac',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'ipad',
+            yName: 'iPad',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'wearables',
+            yName: 'Wearables',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'services',
+            yName: 'Services',
+            strokeWidth: 1,
+            stroke: 'black',
         },
     ],
 };
