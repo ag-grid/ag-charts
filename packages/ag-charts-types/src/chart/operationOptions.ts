@@ -1,4 +1,4 @@
-import type { AgGradientFill } from '../series/cartesian/commonOptions';
+import type { AgGradientColor } from '../series/cartesian/commonOptions';
 import type { AgChartThemeParams } from './themeParamsOptions';
 
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, Operation, ExcludeLeaves>;
@@ -13,7 +13,7 @@ export type Operation =
 
 type Leaf<T = ExcludeLeaves> = Operation | T;
 
-type ExcludeLeaves = string | symbol | number | undefined | AgGradientFill;
+type ExcludeLeaves = string | symbol | number | undefined | AgGradientColor;
 
 /**
  * Modify a type T by extending it's leaves with the type V, excluding any leaf that extends E.

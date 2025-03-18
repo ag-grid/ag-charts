@@ -1,4 +1,4 @@
-import { type AgFillType, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgColorType, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -98,7 +98,7 @@ class FunnelSeriesNodeEvent<
 }
 
 export interface FunnelSeriesShapeStyle {
-    fill?: AgFillType;
+    fill?: AgColorType;
     defaultColorRange: string[];
     fillOpacity: number;
     stroke?: string;
@@ -603,14 +603,13 @@ export abstract class BaseFunnelSeries<
 
         return {
             marker: {
-                fill,
+                fill: this.getNodeFill(fill, defaultColorRange),
                 fillOpacity,
                 stroke,
                 strokeWidth,
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
-                defaultColorRange,
             },
         };
     }

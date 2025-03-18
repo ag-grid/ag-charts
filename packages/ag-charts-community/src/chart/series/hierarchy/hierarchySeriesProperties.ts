@@ -1,4 +1,4 @@
-import type { AgFillType } from 'ag-charts-types';
+import type { AgColorType } from 'ag-charts-types';
 
 import {
     ARRAY_OF,
@@ -29,7 +29,7 @@ export abstract class HierarchySeriesProperties<T extends object> extends Series
     defaultColorRange: string[] = [];
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
-    fills: AgFillType[] = Object.values(DEFAULT_FILLS);
+    fills: AgColorType[] = Object.values(DEFAULT_FILLS);
 
     @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);

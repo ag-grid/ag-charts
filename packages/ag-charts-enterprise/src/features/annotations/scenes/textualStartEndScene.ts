@@ -22,7 +22,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
 
     public setTextInputBBox(bbox?: _ModuleSupport.BBox) {
         this.textInputBBox = bbox;
-        this.markDirty();
+        this.markDirty('TextualStartEndScene');
     }
 
     public override update(datum: Datum, context: AnnotationContext) {

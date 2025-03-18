@@ -1,4 +1,4 @@
-import type { AgFillType, AgRadialSeriesStyle } from 'ag-charts-community';
+import type { AgColorType, AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { isDefined } from 'ag-charts-core';
 
@@ -362,11 +362,11 @@ export abstract class RadialColumnSeriesBase<
         return NaN;
     }
 
-    protected abstract getNodeFill(fill: AgFillType, angle: number): Required<AgFillType>;
+    protected abstract getNodeFill(fill: AgColorType, angle: number): Required<AgColorType>;
 
-    private getShapeStyle<T extends { fill?: AgFillType }>(style: T, angle: number): T;
-    private getShapeStyle<T extends { fill?: AgFillType }>(style: T | undefined, angle: number): T | undefined;
-    private getShapeStyle<T extends { fill?: AgFillType }>(style: T | undefined, angle: number): T | undefined {
+    private getShapeStyle<T extends { fill?: AgColorType }>(style: T, angle: number): T;
+    private getShapeStyle<T extends { fill?: AgColorType }>(style: T | undefined, angle: number): T | undefined;
+    private getShapeStyle<T extends { fill?: AgColorType }>(style: T | undefined, angle: number): T | undefined {
         if (!isGradientFill(style?.fill)) return style;
         return {
             ...style,
@@ -583,16 +583,19 @@ export abstract class RadialColumnSeriesBase<
             this.properties;
 
         return {
-            marker: {
-                fill: fill ?? 'rgba(0, 0, 0, 0)',
-                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                fillOpacity,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                defaultColorRange,
-            },
+            marker: this.getShapeStyle(
+                {
+                    fill: fill ?? 'rgba(0, 0, 0, 0)',
+                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                    fillOpacity,
+                    strokeOpacity,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                    defaultColorRange,
+                },
+                -Math.PI / 2
+            ),
         };
     }
 

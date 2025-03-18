@@ -626,16 +626,18 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
             this.properties;
         return {
-            marker: {
-                fill,
-                stroke,
-                fillOpacity,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                defaultColorRange,
-            },
+            marker: this.getShapeStyle(
+                {
+                    fill,
+                    stroke,
+                    fillOpacity,
+                    strokeOpacity,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                },
+                defaultColorRange
+            ),
         };
     }
 

@@ -1,5 +1,5 @@
 import {
-    type AgGradientFillMode,
+    type AgGradientColorMode,
     type AgRadialGaugeMarkerShape,
     type AgRadialGaugeTargetPlacement,
     type FontStyle,
@@ -53,7 +53,6 @@ const {
     Sector,
     SectorBox,
     Text,
-    ConicGradient,
     Marker,
     getColorStops,
 } = _ModuleSupport;
@@ -383,8 +382,11 @@ export class RadialGaugeSeries
         return tickData;
     }
 
-    private createConicGradient(fills: _ModuleSupport.StopProperties[], fillMode: AgGradientFillMode) {
-        const { centerX, centerY, radius, scale } = this;
+    private createConicGradient(
+        fills: _ModuleSupport.StopProperties[],
+        fillMode: AgGradientColorMode
+    ): _ModuleSupport.ShapeColor {
+        const { scale } = this;
         const { domain, range } = scale;
         const [startAngle, endAngle] = range;
         const { defaultColorRange } = this.properties;
@@ -392,22 +394,28 @@ export class RadialGaugeSeries
         const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
         const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
 
-        const stops = getColorStops(fills, defaultColorRange, domain, fillMode).map(
-            ({ color, offset }): _ModuleSupport.GradientColorStop => {
-                offset = Math.min(Math.max(offset, 0), 1);
-                const angle = startAngle + sweepAngle * offset;
-                offset = (angle - conicAngle) / (2 * Math.PI);
-                offset = ((offset % 1) + 1) % 1;
-                return { offset, color };
+        const colorStops = getColorStops(fills, defaultColorRange, domain, fillMode).map(
+            ({ color, stop }): _ModuleSupport.GradientColorStop => {
+                stop = Math.min(Math.max(stop, 0), 1);
+                const angle = startAngle + sweepAngle * stop;
+                stop = (angle - conicAngle) / (2 * Math.PI);
+                stop = ((stop % 1) + 1) % 1;
+                return { stop, color };
             }
         );
 
-        return new ConicGradient(
-            'oklch',
-            stops,
-            toDegrees(conicAngle) + 90,
-            new BBox(centerX - radius, centerY - radius, 2 * radius, 2 * radius)
-        );
+        return {
+            type: 'gradient',
+            gradient: 'conic',
+            colorSpace: 'oklch',
+            colorStops,
+            rotation: toDegrees(conicAngle) + 90,
+        };
+    }
+
+    protected getShapeFillBBox(): _ModuleSupport.BBox {
+        const { centerX, centerY, radius } = this;
+        return new BBox(centerX - radius, centerY - radius, 2 * radius, 2 * radius);
     }
 
     private getTargets(): Target[] {
@@ -905,6 +913,8 @@ export class RadialGaugeSeries
         const strokeWidth = this.getStrokeWidth(bar.strokeWidth);
         const animationDisabled = ctx.animationManager.isSkipped();
 
+        const fillBBox = this.getShapeFillBBox();
+
         datumSelection.each((sector, datum) => {
             const { centerX, centerY, innerRadius, outerRadius, startCornerRadius, endCornerRadius, fill } = datum;
             sector.centerX = centerX;
@@ -916,6 +926,7 @@ export class RadialGaugeSeries
                 : _ModuleSupport.PointerEvents.None;
 
             sector.fill = fill;
+            sector.fillBBox = fillBBox;
             sector.fillOpacity = fillOpacity;
             sector.stroke = stroke;
             sector.strokeOpacity = strokeOpacity;
@@ -969,6 +980,8 @@ export class RadialGaugeSeries
         const sectorSpacing = segmentation.spacing ?? 0;
         const { fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = scale;
 
+        const fillBBox = this.getShapeFillBBox();
+
         scaleSelection.each((sector, datum) => {
             const { centerX, centerY, innerRadius, outerRadius, startCornerRadius, endCornerRadius, fill } = datum;
             sector.centerX = centerX;
@@ -977,6 +990,7 @@ export class RadialGaugeSeries
             sector.outerRadius = outerRadius;
 
             sector.fill = fill;
+            sector.fillBBox = fillBBox;
             sector.fillOpacity = fillOpacity;
             sector.stroke = stroke;
             sector.strokeOpacity = strokeOpacity;

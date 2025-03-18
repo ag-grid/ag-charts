@@ -1,4 +1,4 @@
-import { type AgFillType, type AgRadarAreaSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgColorType, type AgRadarAreaSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { RadarSeriesProperties } from '../radar/radarSeriesProperties';
 
@@ -9,7 +9,7 @@ export class RadarAreaSeriesProperties extends RadarSeriesProperties<AgRadarArea
     defaultColorRange: string[] = [];
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
-    fill: AgFillType = 'black';
+    fill: AgColorType = 'black';
 
     @TempValidate(RATIO)
     fillOpacity = 1;

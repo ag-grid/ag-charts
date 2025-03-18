@@ -1,8 +1,8 @@
 import type {
+    AgColorType,
     AgConeFunnelSeriesLabelFormatterParams,
     AgConeFunnelSeriesOptions,
     AgConeFunnelSeriesTooltipRendererParams,
-    AgFillType,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
@@ -54,7 +54,7 @@ export class ConeFunnelProperties
     defaultColorRange: string[] = [];
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
-    fills: AgFillType[] = [];
+    fills: AgColorType[] = [];
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

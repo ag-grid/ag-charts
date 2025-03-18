@@ -478,7 +478,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         } else {
             for (const path of paths) {
                 path.path.clear();
-                path.markDirty();
+                path.markDirty('RangeArea');
             }
         }
     }
@@ -487,7 +487,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const [fill] = paths;
         fill.path.clear();
         plotAreaPathFill(fill, contextData.fillData);
-        fill.markDirty();
+        fill.markDirty('RangeArea');
     }
 
     private updateStrokePath(paths: _ModuleSupport.Path[], contextData: RangeAreaContext) {
@@ -495,7 +495,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         stroke.path.clear();
         plotLinePathStroke(stroke, contextData.highStrokeData.spans);
         plotLinePathStroke(stroke, contextData.lowStrokeData.spans);
-        stroke.markDirty();
+        stroke.markDirty('RangeArea');
     }
 
     protected override updateMarkerSelection(opts: {
@@ -669,17 +669,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { fill, stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
 
         return {
-            marker: {
-                shape: marker.shape,
-                fill: marker.fill ?? fill,
-                stroke: marker.stroke ?? stroke,
-                fillOpacity: marker.fillOpacity,
-                strokeOpacity: marker.strokeOpacity,
-                strokeWidth: marker.strokeWidth,
-                lineDash: marker.lineDash,
-                lineDashOffset: marker.lineDashOffset,
-                defaultColorRange: marker.defaultColorRange,
-            },
+            marker: this.getShapeStyle(
+                {
+                    shape: marker.shape,
+                    fill: marker.fill ?? fill,
+                    stroke: marker.stroke ?? stroke,
+                    fillOpacity: marker.fillOpacity,
+                    strokeOpacity: marker.strokeOpacity,
+                    strokeWidth: marker.strokeWidth,
+                    lineDash: marker.lineDash,
+                    lineDashOffset: marker.lineDashOffset,
+                    defaultColorRange: marker.defaultColorRange,
+                },
+                marker.defaultColorRange
+            ),
             line: {
                 stroke,
                 strokeOpacity,

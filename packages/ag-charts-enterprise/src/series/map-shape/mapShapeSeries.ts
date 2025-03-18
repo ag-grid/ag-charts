@@ -96,7 +96,7 @@ export class MapShapeSeries
     private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
         return {
             gradient: 'linear',
-            bounds: 'series',
+            bounds: 'item',
             rotation: 0,
             colorStops: this.properties.defaultColorRange,
         };
@@ -595,8 +595,7 @@ export class MapShapeSeries
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
         const { dataModel, processedData, properties } = this;
-        const { fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
-            properties;
+        const { fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = properties;
 
         let { fill } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
@@ -606,16 +605,18 @@ export class MapShapeSeries
         }
 
         return {
-            marker: {
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                defaultColorRange,
-            },
+            marker: _ModuleSupport.getShapeStyle(
+                {
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                    lineDash,
+                    lineDashOffset,
+                },
+                this.defaultShapeStyle
+            ),
         };
     }
 

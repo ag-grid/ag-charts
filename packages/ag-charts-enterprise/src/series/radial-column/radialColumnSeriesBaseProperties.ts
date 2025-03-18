@@ -1,6 +1,6 @@
 import type {
     AgBaseRadialColumnSeriesOptions,
-    AgFillType,
+    AgColorType,
     AgRadialSeriesItemStylerParams,
     AgRadialSeriesLabelFormatterParams,
     AgRadialSeriesStyle,
@@ -44,7 +44,7 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
     defaultColorRange: string[] = [];
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
-    fill: AgFillType = 'black';
+    fill: AgColorType = 'black';
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

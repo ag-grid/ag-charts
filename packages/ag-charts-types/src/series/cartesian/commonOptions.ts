@@ -28,14 +28,15 @@ export interface AxisOptions {
  */
 export interface FillOptions {
     /** The colour for filling shapes. */
-    fill?: AgFillType;
+    fill?: AgColorType;
     /** The opacity of the fill colour. */
     fillOpacity?: Opacity;
 }
 
-export type AgFillType = CssColor | AgGradientFill;
+export type AgColorType = CssColor | AgGradientColor;
+export type AgColorTypeStrict = CssColor | AgGradientColorStrict;
 
-export type AgGradientFillMode = 'continuous' | 'discrete';
+export type AgGradientColorMode = 'continuous' | 'discrete';
 
 export interface AgGradientColorStop {
     /** Colour of this category. */
@@ -44,20 +45,24 @@ export interface AgGradientColorStop {
     stop?: Ratio;
 }
 
-export interface AgGradientFill {
+export interface AgGradientColor {
     type: 'gradient';
     /** Format of the gradient */
     gradient?: AgGradientType;
     /** Represents the position and color of stops in the gradient. */
     colorStops?: AgGradientColorStop[];
     /** The domain of the color gradient, defaults to item. */
-    bounds?: AgGradientFillBounds;
+    bounds?: AgGradientColorBounds;
     /** The rotation angle of the line along which the gradient is rendered. */
     rotation?: number;
 }
 
+export interface AgGradientColorStrict extends AgGradientColor {
+    colorStops: AgGradientColorStop[];
+}
+
 export type AgGradientType = 'linear' | 'radial' | 'conic';
-export type AgGradientFillBounds = 'series' | 'item' | 'axis';
+export type AgGradientColorBounds = 'series' | 'item' | 'axis';
 
 /**
  * Represents options for the strokes in a chart.

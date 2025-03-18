@@ -1,5 +1,4 @@
 import {
-    type AgFillType,
     type AgPyramidSeriesLabelFormatterParams,
     type AgPyramidSeriesStyle,
     _ModuleSupport,
@@ -24,7 +23,6 @@ const {
     applyShapeStyle,
     fromToMotion,
     seriesLabelFadeInAnimation,
-    isGradientFill,
 } = _ModuleSupport;
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
@@ -78,6 +76,15 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
     private readonly stageLabelGroup = this.contentGroup.appendChild(new Group({ name: 'stageLabelGroup' }));
+
+    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
+        return {
+            gradient: 'linear',
+            bounds: 'item',
+            rotation: 0,
+            colorStops: this.properties.defaultColorRange,
+        };
+    }
 
     public datumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum> = Selection.select(
         this.itemGroup,
@@ -461,41 +468,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }) {
         return opts.datumSelection.update(opts.nodeData);
     }
-    protected getNodeFill(fill: AgFillType, defaultColorStops: string[]): Required<AgFillType>;
-    protected getNodeFill(fill: AgFillType | undefined, defaultColorStops: string[]): Required<AgFillType> | undefined;
-    protected getNodeFill(fill: AgFillType | undefined, defaultColorStops: string[]): Required<AgFillType> | undefined {
-        if (!isGradientFill(fill)) return fill;
-
-        return {
-            ...fill,
-            gradient: fill.gradient ?? 'linear',
-            bounds: fill.bounds ?? 'item',
-            rotation: fill.rotation ?? 0,
-            colorStops: fill.colorStops ?? defaultColorStops.map((color) => ({ color })),
-        };
-    }
-
-    protected getShapeStyle<T extends { fill?: AgFillType }>(style: T, defaultColorRange: string[]): T;
-    protected getShapeStyle<T extends { fill?: AgFillType }>(
-        style: T | undefined,
-        defaultColorRange: string[]
-    ): T | undefined;
-    protected getShapeStyle<T extends { fill?: AgFillType }>(
-        style: T | undefined,
-        defaultColorRange: string[]
-    ): T | undefined {
-        if (!isGradientFill(style?.fill)) return style;
-        return {
-            ...style,
-            fill: this.getNodeFill(style.fill, defaultColorRange),
-        };
-    }
 
     private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return this.getShapeStyle(
+        return _ModuleSupport.getShapeStyle(
             {
                 fill: highlightStyle?.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -505,7 +483,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
-            properties.defaultColorRange
+            this.defaultShapeStyle
         );
     }
 
@@ -548,7 +526,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return this.getShapeStyle(overrides, properties.defaultColorRange);
+        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
     }
 
     private updateDatumNodes(opts: {
@@ -702,16 +680,19 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const fill = fills[datumIndex % fills.length] ?? 'black';
         const stroke = strokes[datumIndex % strokes.length] ?? 'black';
         return {
-            marker: {
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                defaultColorRange,
-            },
+            marker: _ModuleSupport.getShapeStyle(
+                {
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                    lineDash,
+                    lineDashOffset,
+                    defaultColorRange,
+                },
+                this.defaultShapeStyle
+            ),
         };
     }
 

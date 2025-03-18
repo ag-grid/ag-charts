@@ -629,18 +629,15 @@ export class LineSeries extends CartesianSeries<
         const color0 = 'rgba(0, 0, 0, 0)';
         const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.properties;
 
+        const markerStyle = this.getMarkerStyle(marker, undefined, undefined, false, undefined, {
+            fill: marker.fill ?? color0,
+            stroke: marker.stroke ?? stroke ?? color0,
+        });
+
         return {
             marker: {
-                shape: marker.shape,
-                fill: marker.fill ?? color0,
-                stroke: marker.stroke ?? stroke ?? color0,
-                fillOpacity: marker.fillOpacity,
-                strokeOpacity: marker.strokeOpacity,
-                strokeWidth: marker.strokeWidth,
-                lineDash: marker.lineDash,
-                lineDashOffset: marker.lineDashOffset,
+                ...markerStyle,
                 enabled: marker.enabled,
-                defaultColorRange: marker.defaultColorRange,
             },
             line: {
                 stroke: stroke ?? color0,
@@ -708,7 +705,7 @@ export class LineSeries extends CartesianSeries<
             this.plotNodeDataPoints(lineNode.path, contextData.nodeData);
         }
 
-        lineNode.markDirty();
+        lineNode.markDirty('LineSeries');
     }
 
     protected override animateEmptyUpdateReady(animationData: LineAnimationData) {

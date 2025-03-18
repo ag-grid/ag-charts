@@ -1,5 +1,5 @@
 import type {
-    AgFillType,
+    AgColorType,
     AgPyramidSeriesItemStylerParams,
     AgPyramidSeriesLabelFormatterParams,
     AgPyramidSeriesOptions,
@@ -54,7 +54,7 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
     defaultColorRange: string[] = [];
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
-    fills: AgFillType[] = [];
+    fills: AgColorType[] = [];
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

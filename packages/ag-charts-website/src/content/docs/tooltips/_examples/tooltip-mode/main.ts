@@ -6,7 +6,7 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     tooltip: {
-        mode: 'shared',
+        mode: 'single',
     },
     series: [
         {

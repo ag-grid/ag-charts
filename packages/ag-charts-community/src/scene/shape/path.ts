@@ -53,7 +53,7 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
         if (this._dirtyPath !== value) {
             this._dirtyPath = value;
             if (value) {
-                this.markDirty();
+                this.markDirty('path');
             }
         }
     }

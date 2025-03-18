@@ -1,4 +1,4 @@
-import { type AgFillType, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { isDefined } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
@@ -76,6 +76,16 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     protected override readonly NodeEvent = RadialBarSeriesNodeEvent;
 
     private readonly groupScale = new CategoryScale<string>();
+
+    protected get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
+        const angleScale = this.axes[ChartAxisDirection.X]?.scale;
+        return {
+            gradient: 'conic',
+            bounds: 'series',
+            rotation: _ModuleSupport.toDegrees(angleScale!.range[0]) + 90,
+            colorStops: this.properties.defaultColorRange,
+        };
+    }
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -357,34 +367,23 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         this.animationState.transition('update');
     }
 
-    protected getNodeFill(fill: AgFillType): Required<AgFillType> {
-        if (!_ModuleSupport.isGradientFill(fill)) return fill;
-
-        const angleScale = this.axes[ChartAxisDirection.X]?.scale;
-
-        return {
-            ...fill,
-            gradient: fill.gradient ?? 'conic',
-            bounds: fill.bounds ?? 'series',
-            rotation: fill.rotation ?? _ModuleSupport.toDegrees(angleScale!.range[0]) + 90,
-            colorStops: _ModuleSupport.getColorStops(fill.colorStops ?? [], this.properties.defaultColorRange, [0, 1]),
-        };
-    }
-
     private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return {
-            fill: this.getNodeFill(highlightStyle?.fill ?? properties.fill),
-            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            cornerRadius: properties.cornerRadius,
-        };
+        return _ModuleSupport.getShapeStyle(
+            {
+                fill: highlightStyle?.fill ?? properties.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                stroke: highlightStyle?.stroke ?? properties.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+                cornerRadius: properties.cornerRadius,
+            },
+            this.defaultShapeStyle
+        );
     }
 
     protected getItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
@@ -406,11 +405,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             });
         }
 
-        if (overrides != null) {
-            overrides = { ...overrides, fill: this.getNodeFill(format.fill) };
-        }
-
-        return overrides;
+        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
     }
 
     protected updateSectorSelection(
@@ -566,20 +561,21 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     private legendItemSymbol() {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
-            this.properties;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
 
         return {
-            marker: {
-                fill: fill ?? 'rgba(0, 0, 0, 0)',
-                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                fillOpacity,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                defaultColorRange,
-            },
+            marker: _ModuleSupport.getShapeStyle(
+                {
+                    fill: fill ?? 'rgba(0, 0, 0, 0)',
+                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                    fillOpacity,
+                    strokeOpacity,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                },
+                this.defaultShapeStyle
+            ),
         };
     }
 

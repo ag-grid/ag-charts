@@ -4,6 +4,7 @@ import {
     arrayOf,
     color,
     gradient,
+    gradientStrict,
     number,
     object,
     or,
@@ -150,8 +151,8 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     palette: {
         fills: arrayOf(or(color, gradient)),
         strokes: arrayOf(color),
-        up: { fill: or(color, gradient), stroke: color },
-        down: { fill: or(color, gradient), stroke: color },
-        neutral: { fill: or(color, gradient), stroke: color },
+        up: { fill: or(color, gradientStrict), stroke: color },
+        down: { fill: or(color, gradientStrict), stroke: color },
+        neutral: { fill: or(color, gradientStrict), stroke: color },
     },
 };

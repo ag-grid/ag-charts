@@ -52,12 +52,13 @@ export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT }
     getActiveCanvasInstances: () => Canvas[];
     getActiveOffscreenCanvasInstances: () => OffscreenCanvas[];
 } {
-    const mockCtx: mockCanvas.MockContext = new mockCanvas.MockContext(CANVAS_WIDTH, CANVAS_HEIGHT, document);
+    const mockCtx: mockCanvas.MockContext = new mockCanvas.MockContext(width, height, document);
+    mockCtx.mockText = true;
 
     beforeEach(() => {
         resetIds();
 
-        mockCanvas.setup({ mockCtx, width, height, mockText: true });
+        mockCanvas.setup(mockCtx);
     });
 
     afterEach(() => {

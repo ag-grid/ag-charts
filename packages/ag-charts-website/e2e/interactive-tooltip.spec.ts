@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { ConsoleMessage, Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
@@ -11,11 +11,12 @@ async function getSceneRenders(page: Page): Promise<string> {
 test.describe('interactive-tooltip', () => {
     setupIntrinsicAssertions();
 
-    test('hover 1 step', async ({ page }) => {
+    test.beforeEach(async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('tooltips', 'tooltip-interaction', 'vanilla').url);
-
         await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
+    });
 
+    test('hover 1 step', async ({ page }) => {
         await page.mouse.move(400, 150);
         await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
         const expectedRenders: string = await getSceneRenders(page);
@@ -34,10 +35,6 @@ test.describe('interactive-tooltip', () => {
     });
 
     test('hover 4 steps', async ({ page }) => {
-        await gotoExample(page, toExamplePageUrl('tooltips', 'tooltip-interaction', 'vanilla').url);
-
-        await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
-
         await page.mouse.move(400, 150);
         await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
         const expectedRenders: string = await getSceneRenders(page);
@@ -58,15 +55,65 @@ test.describe('interactive-tooltip', () => {
     test('tap', async ({ page }) => {
         // There is limited support for touch input in playwright, so just test that the tooltips are shown and hidden
         // correctly from taps.
-
-        await gotoExample(page, toExamplePageUrl('tooltips', 'tooltip-interaction', 'vanilla').url);
-
-        await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
-
         await page.touchscreen.tap(400, 150);
         await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
 
         await page.touchscreen.tap(20, 20);
         await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
+    });
+
+    test.describe('AG-14347', () => {
+        const consoleMessages: ConsoleMessage[] = [];
+        test.beforeEach(({ page }) => {
+            consoleMessages.length = 0;
+            page.on('console', (msg) => consoleMessages.push(msg));
+        });
+        function joinConsoleMessages(): string {
+            return consoleMessages.map((msg) => `${msg.type()}: ${msg.text()}\n`).join('');
+        }
+
+        test.describe('click link', () => {
+            test('out of focus', async () => {
+                // skip straight to afterEach
+            });
+            test('in focus', async ({ page }) => {
+                await page.mouse.click(20, 20);
+            });
+            test.afterEach(async ({ page }) => {
+                await page.mouse.move(400, 150);
+                await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+                const expectedRenders: string = await getSceneRenders(page);
+
+                const bbox = await page.getByText('Click here').boundingBox();
+                await page.mouse.click(bbox.x, bbox.y);
+                await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+                const actualRenders: string = await getSceneRenders(page);
+                expect(actualRenders).toBe(expectedRenders);
+
+                expect(joinConsoleMessages()).toEqual(`log: Clicked within a tooltip\n`);
+            });
+        });
+
+        test.describe('click text', () => {
+            test('out of focus', async () => {
+                // skip straight to afterEach
+            });
+            test('in focus', async ({ page }) => {
+                await page.mouse.click(20, 20);
+            });
+            test.afterEach(async ({ page }) => {
+                await page.mouse.move(400, 150);
+                await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+                const expectedRenders: string = await getSceneRenders(page);
+
+                const bbox = await page.getByText(' Jul: 70 ').boundingBox();
+                await page.mouse.click(bbox.x, bbox.y);
+                await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+                const actualRenders: string = await getSceneRenders(page);
+                expect(actualRenders).toBe(expectedRenders);
+
+                expect(joinConsoleMessages()).toEqual('');
+            });
+        });
     });
 });

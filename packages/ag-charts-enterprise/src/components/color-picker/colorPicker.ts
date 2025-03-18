@@ -111,10 +111,10 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             currentTarget.focus();
             const rect = currentTarget.getBoundingClientRect();
 
-            const pointerMove = ({ pageX, pageY }: PointerEvent) => {
+            const pointerMove = ({ clientX, clientY }: PointerEvent) => {
                 isMultiColor = false;
-                s = Math.min(Math.max((pageX - rect.left) / rect.width, 0), 1);
-                v = 1 - Math.min(Math.max((pageY - rect.top) / rect.height, 0), 1);
+                s = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
+                v = 1 - Math.min(Math.max((clientY - rect.top) / rect.height, 0), 1);
                 update();
             };
             const pointerUp = () => {

@@ -1,8 +1,8 @@
-import type { AgFillType, AgGradientFillBounds, AgGradientType } from 'ag-charts-types';
+import type { AgColorType, AgGradientColorBounds, AgGradientType } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import { type GradientParams } from '../../scene/gradient/gradient';
-import type { Shape, ShapeFill } from '../../scene/shape/shape';
+import type { Shape, ShapeColor } from '../../scene/shape/shape';
 import { isGradientFill } from '../../scene/util/fill';
 
 export type ShapeStyle = Partial<
@@ -16,20 +16,20 @@ export interface ShapeFillBBox {
 
 export interface ShapeFillDefaults {
     gradient: AgGradientType;
-    bounds: AgGradientFillBounds;
+    bounds: AgGradientColorBounds;
     rotation: number;
     colorStops: string[];
 }
 
-export function getShapeFill(fill: AgFillType, defaults: ShapeFillDefaults): Required<AgFillType>;
+export function getShapeFill(fill: AgColorType, defaults: ShapeFillDefaults): Required<AgColorType>;
 export function getShapeFill(
-    fill: AgFillType | undefined,
+    fill: AgColorType | undefined,
     defaults: ShapeFillDefaults
-): Required<AgFillType> | undefined;
+): Required<AgColorType> | undefined;
 export function getShapeFill(
-    fill: AgFillType | undefined,
+    fill: AgColorType | undefined,
     defaults: ShapeFillDefaults
-): Required<AgFillType> | undefined {
+): Required<AgColorType> | undefined {
     if (!isGradientFill(fill)) return fill;
 
     return {
@@ -41,12 +41,12 @@ export function getShapeFill(
     };
 }
 
-export function getShapeStyle<T extends { fill?: AgFillType }>(style: T, defaults: ShapeFillDefaults): T;
-export function getShapeStyle<T extends { fill?: AgFillType }>(
+export function getShapeStyle<T extends { fill?: AgColorType }>(style: T, defaults: ShapeFillDefaults): T;
+export function getShapeStyle<T extends { fill?: AgColorType }>(
     style: T | undefined,
     defaults: ShapeFillDefaults
 ): T | undefined;
-export function getShapeStyle<T extends { fill?: AgFillType }>(
+export function getShapeStyle<T extends { fill?: AgColorType }>(
     style: T | undefined,
     defaults: ShapeFillDefaults
 ): T | undefined {
@@ -59,7 +59,7 @@ export function getShapeStyle<T extends { fill?: AgFillType }>(
 
 export function applyShapeFillBBox(
     shape: Shape,
-    fill: ShapeFill | undefined,
+    fill: ShapeColor | undefined,
     fillBBox?: ShapeFillBBox,
     fillParams?: GradientParams
 ) {

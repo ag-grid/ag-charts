@@ -2,7 +2,7 @@ import { Logger } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
-    AgFillType,
+    AgColorType,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesVisibilityChange,
@@ -808,7 +808,7 @@ export abstract class Series<
         return this.callWithContext(defaultFormatter, params.value);
     }
 
-    private getMarkerNodeFill(fill: AgFillType, defaultColorRange: string[]): Required<AgFillType> {
+    private getMarkerNodeFill(fill: AgColorType, defaultColorRange: string[]): Required<AgColorType> {
         if (!isGradientFill(fill)) return fill;
 
         return {
@@ -822,20 +822,20 @@ export abstract class Series<
 
     public getMarkerStyle<TParams>(
         marker: ISeriesMarker<TParams> & { defaultColorRange: string[] },
-        datum: any,
-        params: TParams,
+        datum?: any,
+        params?: TParams,
         highlighted = false,
         size = marker.size ?? 0,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
         const defaultSize = { size };
 
-        let markerStyle = mergeDefaults(defaultSize, defaultStyle);
+        let markerStyle = mergeDefaults(defaultSize, defaultStyle, marker.getStyle());
         if (isGradientFill(markerStyle.fill)) {
             markerStyle = { ...markerStyle, fill: this.getMarkerNodeFill(markerStyle.fill, marker.defaultColorRange) };
         }
 
-        if (marker.itemStyler) {
+        if (marker.itemStyler && params) {
             const style = this.ctx.callbackCache.call(this.properties, marker.itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
@@ -864,21 +864,23 @@ export abstract class Series<
         { applyTranslation = true, selected = true } = {}
     ) {
         const activeStyle = this.getMarkerStyle(marker, datum, params, highlighted, point?.size, defaultStyle);
-        const visible = this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
+        const { shape, size } = activeStyle;
+        const visible = this.visible && size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
-        applyShapeStyle(markerNode, { fill: activeStyle.fill }, undefined, fillBBox);
+        applyShapeStyle(markerNode, activeStyle, undefined, fillBBox);
 
         if (applyTranslation) {
             markerNode.setProperties({
                 visible,
-                ...activeStyle,
+                shape,
+                size,
                 x: point?.x,
                 y: point?.y,
                 scalingCenterX: point?.x,
                 scalingCenterY: point?.y,
             });
         } else {
-            markerNode.setProperties({ visible, ...activeStyle });
+            markerNode.setProperties({ visible, shape, size });
         }
 
         if (!selected) {

@@ -219,7 +219,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "strokeWidth": 5,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -264,7 +264,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "strokeWidth": 5,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -309,7 +309,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "strokeWidth": 5,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -724,7 +724,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "strokeWidth": 5,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -1009,7 +1009,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "title": "Still wine",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -1059,7 +1059,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "title": "Sparkling wine",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -1109,7 +1109,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "title": "Made-wine",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -1159,7 +1159,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "title": "Whisky",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -1209,7 +1209,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "title": "Potable spirits",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -1259,7 +1259,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "title": "Beer",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -1309,7 +1309,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "title": "Cider",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -2132,7 +2132,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -2381,7 +2381,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "title": "Southern California Seismic Network",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -2426,7 +2426,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "title": "Hawaiian Volcano Observatory Network",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -2471,7 +2471,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "title": "USGS Northern California Network",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -2516,7 +2516,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "title": "Oklahoma Seismic Network",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -2814,7 +2814,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -2880,7 +2880,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -2946,7 +2946,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -3012,7 +3012,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -3078,7 +3078,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -3742,7 +3742,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "title": "Punch Card",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -3946,7 +3946,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "title": "Most populous cities",
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -5465,7 +5465,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -5516,7 +5516,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -5567,7 +5567,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -5618,7 +5618,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -5669,7 +5669,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -5720,7 +5720,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -5771,7 +5771,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -5822,7 +5822,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -5873,7 +5873,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -5924,7 +5924,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -5970,7 +5970,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -6016,7 +6016,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -6062,7 +6062,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -6108,7 +6108,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -6154,7 +6154,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -6200,7 +6200,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -6464,7 +6464,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -6741,7 +6741,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -6815,7 +6815,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -6889,7 +6889,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -6963,7 +6963,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -7037,7 +7037,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -7111,7 +7111,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -7185,7 +7185,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -8407,7 +8407,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -8467,7 +8467,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -8527,7 +8527,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -8587,7 +8587,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -9352,7 +9352,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -9401,7 +9401,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "strokeWidth": 2,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -9830,7 +9830,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "strokeOpacity": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -10112,7 +10112,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -10184,7 +10184,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -10256,7 +10256,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -10328,7 +10328,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -10400,7 +10400,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },
@@ -10472,7 +10472,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "strokeWidth": 0,
       "tooltip": {
         "position": {
-          "type": "node",
+          "_seriesOverrideType": "node",
         },
         "range": "nearest",
       },

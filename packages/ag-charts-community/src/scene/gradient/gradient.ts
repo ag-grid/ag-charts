@@ -56,20 +56,20 @@ export abstract class Gradient {
 
         const step = 0.05;
         let c0 = stops[0];
-        gradient.addColorStop(c0.offset, c0.color);
+        gradient.addColorStop(c0.stop, c0.color);
         for (let i = 1; i < stops.length; i += 1) {
             const c1 = stops[i];
 
             if (isOkLch) {
                 const scale = new ColorScale();
-                scale.domain = [c0.offset, c1.offset];
+                scale.domain = [c0.stop, c1.stop];
                 scale.range = [c0.color, c1.color];
-                for (let offset = c0.offset + step; offset < c1.offset; offset += step) {
-                    gradient.addColorStop(offset, scale.convert(offset));
+                for (let stop = c0.stop + step; stop < c1.stop; stop += step) {
+                    gradient.addColorStop(stop, scale.convert(stop));
                 }
             }
 
-            gradient.addColorStop(c1.offset, c1.color);
+            gradient.addColorStop(c1.stop, c1.color);
 
             c0 = c1;
         }
@@ -89,7 +89,7 @@ export abstract class Gradient {
         const bbox = this.bbox ?? shapeBbox;
 
         const gradient = this.createSvgGradient(bbox);
-        this.stops.forEach(({ offset, color }) => {
+        this.stops.forEach(({ stop: offset, color }) => {
             const stop = createSvgElement('stop');
 
             stop.setAttribute('offset', `${offset}`);

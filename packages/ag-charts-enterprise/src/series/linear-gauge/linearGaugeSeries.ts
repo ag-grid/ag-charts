@@ -1,5 +1,5 @@
 import {
-    type AgGradientFillMode,
+    type AgGradientColorMode,
     type AgLinearGaugeMarkerShape,
     type AgLinearGaugeTargetPlacement,
     type FontStyle,
@@ -43,7 +43,6 @@ const {
     Rect,
     Text,
     TransformableText,
-    LinearGradient,
     Marker,
     LinearScale,
     AxisTickGenerator,
@@ -299,21 +298,27 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     private createLinearGradient(
         scale: _ModuleSupport.LinearScale,
         fills: _ModuleSupport.StopProperties[],
-        fillMode: AgGradientFillMode
-    ) {
-        const { properties, originX, originY, horizontal } = this;
-        const { thickness, defaultColorRange } = properties;
+        fillMode: AgGradientColorMode
+    ): _ModuleSupport.ShapeColor {
+        const { properties, horizontal } = this;
+        const { defaultColorRange } = properties;
+        const colorStops = getColorStops(fills, defaultColorRange, scale.domain, fillMode);
+        return {
+            type: 'gradient',
+            gradient: 'linear',
+            colorSpace: 'oklch',
+            colorStops,
+            rotation: horizontal ? 90 : 0,
+        };
+    }
+
+    protected getShapeFillBBox(): _ModuleSupport.BBox {
+        const { properties, originX, originY, horizontal, scale } = this;
+        const { thickness } = properties;
 
         const length = findRangeExtent(scale.range);
 
-        const stops = getColorStops(fills, defaultColorRange, scale.domain, fillMode);
-
-        return new LinearGradient(
-            'oklch',
-            stops,
-            horizontal ? 90 : 0,
-            new BBox(originX, originY, horizontal ? length : thickness, horizontal ? thickness : length)
-        );
+        return new BBox(originX, originY, horizontal ? length : thickness, horizontal ? thickness : length);
     }
 
     private getTargets(): Target[] {
@@ -918,12 +923,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = bar;
         const strokeWidth = this.getStrokeWidth(bar.strokeWidth);
         const animationDisabled = ctx.animationManager.isSkipped();
-
+        const fillBBox = this.getShapeFillBBox();
         datumSelection.each((rect, datum) => {
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius, fill } =
                 datum;
 
             rect.fill = fill;
+            rect.fillBBox = fillBBox;
             rect.fillOpacity = fillOpacity;
             rect.stroke = stroke;
             rect.strokeOpacity = strokeOpacity;
@@ -985,12 +991,14 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { scaleSelection } = opts;
         const { scale } = this.properties;
         const { fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = scale;
+        const fillBBox = this.getShapeFillBBox();
 
         scaleSelection.each((rect, datum) => {
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius, fill } =
                 datum;
 
             rect.fill = fill;
+            rect.fillBBox = fillBBox;
             rect.fillOpacity = fillOpacity;
             rect.stroke = stroke;
             rect.strokeOpacity = strokeOpacity;

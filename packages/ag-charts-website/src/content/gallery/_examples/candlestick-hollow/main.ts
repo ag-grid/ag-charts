@@ -75,7 +75,7 @@ const options: AgChartOptions = {
     ],
     tooltip: {
         position: {
-            type: 'pointer',
+            anchorTo: 'pointer',
             yOffset: -20,
         },
     },

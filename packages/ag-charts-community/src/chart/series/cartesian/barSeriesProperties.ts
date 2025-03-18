@@ -5,7 +5,7 @@ import type {
     AgBarSeriesOptions,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
-    AgFillType,
+    AgColorType,
     Styler,
 } from 'ag-charts-types';
 
@@ -64,7 +64,7 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     defaultColorRange: string[] = [];
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
-    fill: AgFillType = '#c16068';
+    fill: AgColorType = '#c16068';
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

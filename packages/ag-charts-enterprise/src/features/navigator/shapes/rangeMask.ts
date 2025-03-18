@@ -40,7 +40,7 @@ export class RangeMask<D = any> extends Path<D> {
             this.min = min;
             this.max = max;
             this.dirtyPath = true;
-            this.markDirty();
+            this.markDirty('RangeMask.layout');
         }
     }
 

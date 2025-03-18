@@ -4,7 +4,7 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, Degree, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type {
-    AgFillType,
+    AgColorType,
     FillOptions,
     FontOptions,
     LineDashOptions,
@@ -68,7 +68,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = any>
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgPieSeriesCalloutOptions;
     /** The colours to cycle through for the fills of the sectors. */
-    fills?: AgFillType[];
+    fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the sectors. */
     strokes?: CssColor[];
     /** The opacity of the fill for the sectors. */

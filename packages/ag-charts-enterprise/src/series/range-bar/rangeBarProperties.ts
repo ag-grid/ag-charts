@@ -1,5 +1,5 @@
 import type {
-    AgFillType,
+    AgColorType,
     AgRangeBarSeriesItemStylerParams,
     AgRangeBarSeriesLabelFormatterParams,
     AgRangeBarSeriesLabelPlacement,
@@ -64,7 +64,7 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
     defaultColorRange: string[] = [];
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
-    fill: AgFillType = '#99CCFF';
+    fill: AgColorType = '#99CCFF';
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

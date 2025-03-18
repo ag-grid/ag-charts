@@ -6,7 +6,6 @@ import type {
 } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
-import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
@@ -116,7 +115,7 @@ class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCross
     parallel?: boolean;
 }
 
-type NodeData = number[];
+type NodeData = [number, number];
 
 export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
     static readonly className = 'CrossLine';
@@ -175,10 +174,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private readonly crossLineLabel = new TransformableText();
     private labelPoint?: Point = undefined;
 
-    private data: NodeData = [];
+    private data: NodeData | undefined = undefined;
     private startLine: boolean = false;
     private endLine: boolean = false;
-    private isRange: boolean = false;
 
     constructor() {
         super();
@@ -191,14 +189,14 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     private _isRange: boolean | undefined = undefined;
     update(visible: boolean) {
-        const { enabled, data, scale } = this;
+        const { enabled, type, data, scale } = this;
         if (
             !scale ||
             !enabled ||
             !visible ||
             !this.isValid() ||
             !validateCrossLineValue(getCrossLineValue(this), scale) ||
-            data.length === 0
+            data == null
         ) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
@@ -211,7 +209,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         this.labelGroup.visible = visible;
         this.updateNodes();
 
-        const { isRange } = this;
+        const isRange = type === 'range';
         if (isRange !== this._isRange) {
             if (isRange) {
                 this.rangeGroup.appendChild(this.crossLineRange);
@@ -226,6 +224,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         if (!visible) return;
 
         const {
+            type,
+            range,
+            value,
             scale,
             gridLength,
             sideFlag,
@@ -235,26 +236,40 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             strokeWidth = 0,
         } = this;
 
-        this.data = [];
+        this.data = undefined;
 
         if (!scale) return;
 
         const bandwidth = scale.bandwidth ?? 0;
         const step = scale.step ?? 0;
-        const padding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
+        const rangePadding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
 
         const [xStart, xEnd] = [0, sideFlag * gridLength];
-        let [yStart, yEnd] = this.getRange();
 
-        const ordinalTimeScalePadding = yEnd === undefined && OrdinalTimeScale.is(scale) ? bandwidth / 2 + padding : 0;
+        let yStart: number;
+        let yEnd: number;
+        let clampedYStart: number;
+        let clampedYEnd: number;
+        if (type === 'line') {
+            const offset = bandwidth / 2;
+            yStart = scale.convert(value as any) + offset;
+            yEnd = NaN;
+            clampedYStart = scale.convert(value as any, true) + offset;
+            clampedYEnd = NaN;
+        } else if (range) {
+            const [r0, r1] = range;
+            const ordinalTimeScalePadding =
+                r0?.valueOf() === r1?.valueOf() && OrdinalTimeScale.is(scale) ? bandwidth / 2 + rangePadding : 0;
+            yStart = scale.convert(r0 as any) + ordinalTimeScalePadding;
+            yEnd = scale.convert(r1 as any) + bandwidth;
+            clampedYStart = scale.convert(r0 as any, true) + ordinalTimeScalePadding - rangePadding;
+            clampedYEnd = scale.convert(r1 as any, true) + bandwidth + rangePadding;
+        } else {
+            return;
+        }
 
-        let [clampedYStart, clampedYEnd] = [
-            Number(scale.convert(yStart, true)) - padding + ordinalTimeScalePadding,
-            scale.convert(yEnd, true) + bandwidth + padding,
-        ];
         clampedYStart = clampArray(clampedYStart, clippedRange);
         clampedYEnd = clampArray(clampedYEnd, clippedRange);
-        [yStart, yEnd] = [Number(scale.convert(yStart)) + ordinalTimeScalePadding, scale.convert(yEnd) + bandwidth];
 
         const validRange =
             (yStart === clampedYStart || yEnd === clampedYEnd || clampedYStart !== clampedYEnd) &&
@@ -265,14 +280,13 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             [yStart, yEnd] = [yEnd, yStart];
         }
 
-        if (yStart - padding >= clampedYStart) yStart -= padding;
-        if (yEnd + padding <= clampedYEnd) yEnd += padding;
+        if (yStart - rangePadding >= clampedYStart) yStart -= rangePadding;
+        if (yEnd + rangePadding <= clampedYEnd) yEnd += rangePadding;
 
-        this.isRange = validRange;
-        this.startLine = strokeWidth > 0 && yStart >= clampedYStart && yStart <= clampedYStart + padding;
-        this.endLine = strokeWidth > 0 && yEnd >= clampedYEnd - bandwidth - padding && yEnd <= clampedYEnd;
+        this.startLine = strokeWidth > 0 && yStart >= clampedYStart && yStart <= clampedYStart + rangePadding;
+        this.endLine = strokeWidth > 0 && yEnd >= clampedYEnd - bandwidth - rangePadding && yEnd <= clampedYEnd;
 
-        if (!validRange && !this.startLine && !this.endLine) return;
+        if (type === 'range' && !validRange && !this.startLine && !this.endLine) return;
 
         this.data = [clampedYStart, clampedYEnd];
 
@@ -305,13 +319,13 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     private updateRangeNode() {
         const {
+            type,
             crossLineRange,
             sideFlag,
             gridLength,
             data,
             startLine,
             endLine,
-            isRange,
             fill,
             fillOpacity,
             stroke,
@@ -321,11 +335,11 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         crossLineRange.x1 = 0;
         crossLineRange.x2 = sideFlag * gridLength;
-        crossLineRange.y1 = data[0];
-        crossLineRange.y2 = data[1];
+        crossLineRange.y1 = data?.[0] ?? 0;
+        crossLineRange.y2 = data?.[1] ?? 0;
         crossLineRange.startLine = startLine;
         crossLineRange.endLine = endLine;
-        crossLineRange.isRange = isRange;
+        crossLineRange.isRange = type === 'range';
 
         crossLineRange.fill = fill;
         crossLineRange.fillOpacity = fillOpacity ?? 1;
@@ -389,24 +403,6 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         crossLineLabel.translationY = y + yTranslation;
     }
 
-    private getRange(): [any, any] {
-        const { value, range, scale } = this;
-
-        const isContinuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
-        const start = range?.[0] ?? value;
-        let end = range?.[1];
-
-        if (!isContinuous && end === undefined) {
-            end = start;
-        }
-
-        if (isContinuous && start === end) {
-            end = undefined;
-        }
-
-        return [start, end];
-    }
-
     private computeLabelBBox(): BBox | undefined {
         const { label } = this;
         if (label.enabled === false || !label.text) return;
@@ -458,13 +454,11 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     calculatePadding(padding: Partial<Record<AgCrossLineLabelPosition, number>>) {
         const {
-            isRange,
-            startLine,
-            endLine,
+            data,
             direction,
             label: { padding: labelPadding = 0, position = 'top' },
         } = this;
-        if (!isRange && !startLine && !endLine) return;
+        if (data == null) return;
 
         const crossLineLabelBBox = this.computeLabelBBox();
         if (crossLineLabelBBox?.x == null || crossLineLabelBBox?.y == null) return;

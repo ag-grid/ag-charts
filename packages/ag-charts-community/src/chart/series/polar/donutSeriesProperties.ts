@@ -1,10 +1,10 @@
 import type {
+    AgColorType,
     AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
     AgDonutSeriesStyle,
     AgDonutSeriesTooltipRendererParams,
-    AgFillType,
     Styler,
 } from 'ag-charts-types';
 
@@ -51,8 +51,8 @@ export class DonutInnerLabel<T extends object = any> extends Label<AgDonutSeries
 }
 
 class DonutInnerCircle extends BaseProperties {
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
-    fill: AgFillType = 'transparent';
+    @TempValidate(COLOR_STRING)
+    fill: string = 'transparent';
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;
@@ -85,7 +85,7 @@ class DonutSeriesSectorLabel extends Label<AgDonutSeriesLabelFormatterParams> {
 
 class DonutSeriesCalloutLine extends BaseProperties {
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)), { optional: true })
-    colors?: AgFillType[];
+    colors?: AgColorType[];
 
     @TempValidate(POSITIVE_NUMBER)
     length: number = 10;
@@ -135,7 +135,7 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     defaultColorRange: string[][] = [];
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
-    fills: AgFillType[] = Object.values(DEFAULT_FILLS);
+    fills: AgColorType[] = Object.values(DEFAULT_FILLS);
 
     @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);

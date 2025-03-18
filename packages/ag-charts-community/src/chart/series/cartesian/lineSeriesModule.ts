@@ -1,5 +1,5 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgLineSeriesOptions } from 'ag-charts-types';
+import type { AgLineSeriesOptions, AgTooltipPositionOptions } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -29,7 +29,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     ],
     themeTemplate: {
         series: {
-            tooltip: { position: { type: 'node' } },
+            tooltip: { position: { _seriesOverrideType: 'node' } as AgTooltipPositionOptions },
             stroke: { $palette: 'fill' },
             strokeWidth: 2,
             strokeOpacity: 1,

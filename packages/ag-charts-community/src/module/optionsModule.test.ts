@@ -652,7 +652,7 @@ describe('ChartOptions', () => {
     "strokeWidth": 2,
     "tooltip": {
       "position": {
-        "type": "node",
+        "_seriesOverrideType": "node",
       },
       "range": "nearest",
     },
@@ -696,7 +696,7 @@ describe('ChartOptions', () => {
     "strokeWidth": 2,
     "tooltip": {
       "position": {
-        "type": "node",
+        "_seriesOverrideType": "node",
       },
       "range": "nearest",
     },
@@ -939,7 +939,7 @@ describe('ChartOptions', () => {
     "strokeWidth": 2,
     "tooltip": {
       "position": {
-        "type": "node",
+        "_seriesOverrideType": "node",
       },
       "range": "nearest",
     },
@@ -983,7 +983,7 @@ describe('ChartOptions', () => {
     "strokeWidth": 2,
     "tooltip": {
       "position": {
-        "type": "node",
+        "_seriesOverrideType": "node",
       },
       "range": "nearest",
     },
@@ -1226,7 +1226,7 @@ describe('ChartOptions', () => {
     "strokeWidth": 2,
     "tooltip": {
       "position": {
-        "type": "node",
+        "_seriesOverrideType": "node",
       },
       "range": "nearest",
     },
@@ -1270,7 +1270,7 @@ describe('ChartOptions', () => {
     "strokeWidth": 2,
     "tooltip": {
       "position": {
-        "type": "node",
+        "_seriesOverrideType": "node",
       },
       "range": "nearest",
     },

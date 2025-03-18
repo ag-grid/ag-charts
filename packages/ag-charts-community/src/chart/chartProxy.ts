@@ -18,9 +18,10 @@ import type { Chart } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
 
 const debug = Debug.create(true, 'opts');
+const DESTROYED_ERROR = 'AG Charts - Chart was destroyed, cannot perform request.';
 
 export interface AgChartProxy extends AgChartInstance {
-    chart: Chart;
+    chart?: Chart;
 }
 
 export interface FactoryApi {
@@ -56,7 +57,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             AgChartInstanceProxy.chartInstances.set(chart, this);
         },
     })
-    chart: Chart;
+    chart?: Chart;
     releaseChart?: () => void;
 
     constructor(
@@ -68,20 +69,26 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     async update(options: AgChartOptions) {
+        if (!this.chart) throw new Error(DESTROYED_ERROR);
+
         return debug.group('AgChartInstance.update()', async () => {
             this.factoryApi.update(options, this);
-            await this.chart.waitForUpdate();
+            await this.chart?.waitForUpdate();
         });
     }
 
     async updateDelta(deltaOptions: DeepPartial<AgChartOptions>) {
+        if (!this.chart) throw new Error(DESTROYED_ERROR);
+
         return debug.group('AgChartInstance.updateDelta()', async () => {
             this.factoryApi.updateUserDelta(this, deltaOptions);
-            await this.chart.waitForUpdate();
+            await this.chart?.waitForUpdate();
         });
     }
 
     getOptions() {
+        if (!this.chart) throw new Error(DESTROYED_ERROR);
+
         const options = deepClone(this.chart.getOptions());
         for (const key of Object.keys(options)) {
             if (key.startsWith('_')) {
@@ -92,31 +99,39 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     waitForUpdate() {
+        if (!this.chart) throw new Error(DESTROYED_ERROR);
+
         return this.chart.waitForUpdate();
     }
 
     async download(opts?: DownloadOptions) {
-        const clone = await this.prepareResizedChart(this, opts);
+        if (!this.chart) throw new Error(DESTROYED_ERROR);
+
+        const clone = await this.prepareResizedChart(this, this.chart, opts);
         try {
-            clone.chart.download(opts?.fileName, opts?.fileFormat);
+            clone.chart?.download(opts?.fileName, opts?.fileFormat);
         } finally {
             clone.destroy();
         }
     }
 
     async __toSVG(opts?: DownloadOptions) {
-        const clone = await this.prepareResizedChart(this, { width: 600, height: 300, ...opts });
+        if (!this.chart) throw new Error(DESTROYED_ERROR);
+
+        const clone = await this.prepareResizedChart(this, this.chart, { width: 600, height: 300, ...opts });
         try {
-            return clone.chart.toSVG();
+            return clone?.chart?.toSVG();
         } finally {
-            clone.destroy();
+            clone?.destroy();
         }
     }
 
     async getImageDataURL(opts?: ImageDataUrlOptions) {
-        const clone = await this.prepareResizedChart(this, opts);
+        if (!this.chart) throw new Error(DESTROYED_ERROR);
+
+        const clone = await this.prepareResizedChart(this, this.chart, opts);
         try {
-            return clone.chart.getCanvasDataURL(opts?.fileFormat);
+            return clone.chart!.getCanvasDataURL(opts?.fileFormat);
         } finally {
             clone.destroy();
         }
@@ -127,9 +142,12 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     async setState(state: AgChartState) {
+        const { chart } = this;
+        if (!chart) return;
+
         const originators = this.getEnabledOriginators();
 
-        if (!originators.includes(this.chart.ctx.legendManager)) {
+        if (!originators.includes(chart.ctx.legendManager)) {
             await this.setStateOriginators(state, originators);
             return;
         }
@@ -138,17 +156,17 @@ export class AgChartInstanceProxy implements AgChartProxy {
         // has updated the axis scale domains.
         await this.setStateOriginators(
             state,
-            originators.filter((originator) => originator !== this.chart.ctx.zoomManager)
+            originators.filter((originator) => originator !== chart.ctx.zoomManager)
         );
-        await this.setStateOriginators(state, [this.chart.ctx.zoomManager]);
+        await this.setStateOriginators(state, [chart.ctx.zoomManager]);
     }
 
     resetAnimations(): void {
-        this.chart.resetAnimations();
+        this.chart?.resetAnimations();
     }
 
     skipAnimations(): void {
-        this.chart.skipAnimations();
+        this.chart?.skipAnimations();
     }
 
     destroy() {
@@ -159,11 +177,14 @@ export class AgChartInstanceProxy implements AgChartProxy {
             this.chart.publicApi = undefined;
             this.chart.destroy();
         }
-        (this as any).chart = null;
+        this.chart = undefined;
     }
 
-    private async prepareResizedChart(proxy: AgChartInstanceProxy, opts: DownloadOptions = {}) {
-        const { chart } = proxy;
+    private async prepareResizedChart(
+        proxy: AgChartInstanceProxy,
+        chart: NonNullable<AgChartInstanceProxy['chart']>,
+        opts: DownloadOptions = {}
+    ) {
         const width: number = opts.width ?? chart.width ?? chart.ctx.scene.canvas.width;
         const height: number = opts.height ?? chart.height ?? chart.ctx.scene.canvas.height;
         const state = proxy.getState();
@@ -209,15 +230,15 @@ export class AgChartInstanceProxy implements AgChartProxy {
         await cloneProxy.setState(state);
 
         // sync zoom
-        cloneProxy.chart.ctx.zoomManager.updateZoom('chartProxy', chart.ctx.zoomManager.getZoom());
+        cloneProxy.chart?.ctx.zoomManager.updateZoom('chartProxy', chart.ctx.zoomManager.getZoom());
 
         // sync legend
-        cloneProxy.chart.ctx.legendManager.clearData();
-        cloneProxy.chart.ctx.legendManager.update(chart.ctx.legendManager.getData());
+        cloneProxy.chart?.ctx.legendManager.clearData();
+        cloneProxy.chart?.ctx.legendManager.update(chart.ctx.legendManager.getData());
 
         chart.series.forEach((series, index) => {
             if (!series.visible) {
-                cloneProxy.chart.series[index].visible = false; // sync series visibility
+                cloneProxy.chart!.series[index].visible = false; // sync series visibility
             }
         });
 
@@ -226,18 +247,20 @@ export class AgChartInstanceProxy implements AgChartProxy {
         for (const legend of chart.modulesManager.legends()) {
             legendPages.push(legend.legend.pagination?.currentPage ?? 0);
         }
-        for (const legend of cloneProxy.chart.modulesManager.legends()) {
+        for (const legend of cloneProxy.chart!.modulesManager.legends()) {
             const page = legendPages.shift() ?? 0;
             if (!legend.legend.pagination) continue;
             legend.legend.pagination.setPage(page);
         }
 
-        cloneProxy.chart.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
+        cloneProxy.chart?.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
         await cloneProxy.waitForUpdate();
         return cloneProxy;
     }
 
     private getEnabledOriginators() {
+        if (!this.chart) return [];
+
         const {
             chartOptions: { processedOptions, optionMetadata },
             ctx: { annotationManager, chartTypeOriginator, zoomManager, legendManager },
@@ -267,7 +290,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
     private async setStateOriginators(state: AgChartState, originators: MementoOriginator[]) {
         this.factoryApi.caretaker.restore(state, ...originators);
-        this.chart.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
-        await this.chart.waitForUpdate();
+        this.chart?.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
+        await this.chart?.waitForUpdate();
     }
 }

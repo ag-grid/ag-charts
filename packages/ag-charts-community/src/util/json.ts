@@ -12,7 +12,7 @@ import {
     isString,
 } from 'ag-charts-core';
 import type { DeepPartial, PlainObject } from 'ag-charts-core';
-import type { AgGradientFill } from 'ag-charts-types';
+import type { AgGradientColor } from 'ag-charts-types';
 
 import { Color } from './color';
 import { SKIP_JS_BUILTINS, getPath, mergeDefaults, without } from './object';
@@ -381,10 +381,22 @@ function jsonResolveVisitor<T extends object, P extends object>(
             }
         }
     } else {
+        let hasOperation = false;
         for (const name of Object.keys(node)) {
             node[name] = jsonResolveVisitorValue(node[name], params, source, meta, [...path, name], modifiedPaths);
+            hasOperation ||= isKey(name, operations);
             if (node[name] === operationResolvedUndefined) {
                 delete node[name];
+            }
+        }
+
+        // Purge excess unused operations to prevent leaks. These occur when the default operation object is merged an
+        // object at the option key.
+        if (hasOperation && Object.keys(node).length > 1) {
+            for (const key of Object.keys(node)) {
+                if (isKey(key, operations)) {
+                    delete node[key];
+                }
             }
         }
     }
@@ -496,7 +508,7 @@ function isRatio(value: unknown): value is number {
 }
 
 // Duplicates `isGradientFill()` from `../scene/util/fill` due to dependency violations
-function isGradientFill(fill: any): fill is AgGradientFill {
+function isGradientFill(fill: any): fill is AgGradientColor {
     return (
         fill !== null &&
         isObject(fill) &&
