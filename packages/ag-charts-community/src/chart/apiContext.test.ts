@@ -34,7 +34,7 @@ describe('API context', () => {
     const seriesLabelFormatter = newFreezableMock<MockSeriesLabelFormatter>((_params) => undefined);
     const tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
 
-    beforeEach(async () => {
+    beforeEach(() => {
         seriesContext0 = { name: '[0]: toyota' };
         seriesContext1 = { name: '[1]: ford' };
         seriesContext2 = { name: '[2]: bmw' };
