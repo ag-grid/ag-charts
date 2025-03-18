@@ -1090,7 +1090,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const ctrlMeta = ctrlKey || metaKey;
         const ctrlShift = ctrlKey || shiftKey;
 
-        this.state.transition('keyDown', { shiftKey, context });
+        state.transition('keyDown', { shiftKey, context });
 
         const translation = { x: 0, y: 0 };
 

@@ -22,6 +22,7 @@ const { ActionOnSet, ParallelStateMachine, StateMachine, StateMachineProperty, D
 enum States {
     Idle = 'idle',
     Dragging = 'dragging',
+    Translating = 'translating',
     TextInput = 'text-input',
 }
 
@@ -85,6 +86,7 @@ class SnappingStateMachine extends StateMachine<States, AnnotationStateEvents> {
                 drag: ({ shiftKey }) => setSnapping(shiftKey),
             },
             [States.Dragging]: {},
+            [States.Translating]: {},
             [States.TextInput]: {},
         });
     }
@@ -98,6 +100,10 @@ class UpdateMachine extends StateMachine<States, AnnotationStateEvents> {
                 render: update,
             },
             [States.Dragging]: {
+                onEnter: update,
+                render: update,
+            },
+            [States.Translating]: {
                 onEnter: update,
                 render: update,
             },
@@ -289,17 +295,11 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
                 translate: {
                     guard: guardActive,
+                    target: States.Translating,
                     action: ({ translation }) => {
                         ctx.startInteracting();
                         ctx.translate(this.active!, translation);
                         ctx.update();
-                    },
-                },
-
-                translateEnd: {
-                    guard: guardActive,
-                    action: () => {
-                        ctx.stopInteracting();
                     },
                 },
 
@@ -471,6 +471,29 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                 },
 
                 ...dragStateMachines,
+            },
+
+            [States.Translating]: {
+                onEnter: () => {},
+                translate: {
+                    guard: guardActive,
+                    target: States.Translating,
+                    action: ({ translation }) => {
+                        ctx.startInteracting();
+                        ctx.translate(this.active!, translation);
+                        ctx.update();
+                    },
+                },
+                translateEnd: {
+                    guard: guardActive,
+                    target: States.Idle,
+                },
+                onExit: () => {
+                    // Exit the state and prevent additional keyUp events from triggering secondary updates and records
+                    ctx.stopInteracting();
+                    ctx.update();
+                    ctx.recordAction('Translate annotation');
+                },
             },
 
             [States.TextInput]: {
