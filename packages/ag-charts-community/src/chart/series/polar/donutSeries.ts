@@ -570,7 +570,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getNodeFill(fill: AgColorType, defaultColorRange: string[]): Required<AgColorType> {
+    private getNodeFill(fill: AgColorType, defaultColorRange: string[]): AgColorType {
         if (!isGradientFill(fill)) return fill;
 
         return {

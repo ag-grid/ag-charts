@@ -21,15 +21,9 @@ export interface ShapeFillDefaults {
     colorStops: string[];
 }
 
-export function getShapeFill(fill: AgColorType, defaults: ShapeFillDefaults): Required<AgColorType>;
-export function getShapeFill(
-    fill: AgColorType | undefined,
-    defaults: ShapeFillDefaults
-): Required<AgColorType> | undefined;
-export function getShapeFill(
-    fill: AgColorType | undefined,
-    defaults: ShapeFillDefaults
-): Required<AgColorType> | undefined {
+export function getShapeFill(fill: AgColorType, defaults: ShapeFillDefaults): AgColorType;
+export function getShapeFill(fill: AgColorType | undefined, defaults: ShapeFillDefaults): AgColorType | undefined;
+export function getShapeFill(fill: AgColorType | undefined, defaults: ShapeFillDefaults): AgColorType | undefined {
     if (!isGradientFill(fill)) return fill;
 
     return {

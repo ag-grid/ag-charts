@@ -11,6 +11,7 @@ import {
     lineDashOptionsDef,
     number,
     or,
+    pattern,
     positiveNumber,
     required,
     string,
@@ -25,7 +26,7 @@ export const coneFunnelSeriesOptionsDef: OptionsDefs<AgConeFunnelSeriesOptions> 
     stageKey: required(string),
     valueKey: required(string),
     direction: union('horizontal', 'vertical'),
-    fills: arrayOf(or(color, gradient)),
+    fills: arrayOf(or(color, gradient, pattern)),
     strokes: arrayOf(color),
     showInMiniChart: boolean,
     label: {

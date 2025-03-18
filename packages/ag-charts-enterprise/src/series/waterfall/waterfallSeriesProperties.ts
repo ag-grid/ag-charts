@@ -28,6 +28,7 @@ const {
     OR,
     COLOR_GRADIENT,
     COLOR_STRING_ARRAY,
+    COLOR_PATTERN,
     RATIO,
     STRING,
     UNION,
@@ -66,7 +67,7 @@ export class WaterfallSeriesItem extends BaseProperties {
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
     fill: AgColorType = '#c16068';
 
     @TempValidate(COLOR_STRING)

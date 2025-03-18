@@ -137,6 +137,95 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('pattern fill', () => {
+        it('should render donut series with pattern fills', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { cat: 1, fox: 20, dog: 37 },
+                    { cat: 3, fox: 10, dog: 32 },
+                    { cat: 7, fox: 15, dog: 35 },
+                    { cat: 8, fox: 17, dog: 36 },
+                    { cat: 3, fox: 11, dog: 30 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        radiusKey: 'dog',
+                        angleKey: 'fox',
+                        sectorLabelKey: 'fox',
+                        innerRadiusRatio: 0.5,
+                        fills: [
+                            {
+                                type: 'pattern',
+                                pattern: 'hearts',
+                                fill: 'red',
+                                stroke: 'red',
+                                backgroundFill: 'cyan',
+                                backgroundFillOpacity: 0.6,
+                                fillOpacity: 1,
+                                strokeWidth: 1,
+                                width: 60,
+                                height: 60,
+                            },
+                            {
+                                type: 'pattern',
+                                pattern: 'stars',
+                                fill: 'cyan',
+                                stroke: 'blue',
+                                backgroundFill: 'yellow',
+                                backgroundFillOpacity: 0.6,
+                                fillOpacity: 1,
+                                strokeWidth: 1,
+                                width: 20,
+                                height: 20,
+                            },
+                            {
+                                type: 'pattern',
+                                pattern: 'circles',
+                                fill: 'cyan',
+                                stroke: 'blue',
+                                backgroundFill: 'yellow',
+                                backgroundFillOpacity: 0.6,
+                                fillOpacity: 1,
+                                strokeWidth: 2,
+                                width: 50,
+                                height: 50,
+                            },
+                            {
+                                type: 'pattern',
+                                pattern: 'custom',
+                                fill: 'cyan',
+                                stroke: 'blue',
+                                backgroundFill: 'yellow',
+                                backgroundFillOpacity: 0.6,
+                                fillOpacity: 1,
+                                strokeWidth: 2,
+                                path: 'M 0 17.83 V 0 h 17.83 a 3 3 0 0 1 -5.66 2 H 5.9 A 5 5 0 0 1 2 5.9 v 6.27 a 3 3 0 0 1 -2 5.66 Z m 0 18.34 a 3 3 0 0 1 2 5.66 v 6.27 A 5 5 0 0 1 5.9 52 h 6.27 a 3 3 0 0 1 5.66 0 H 0 V 36.17 Z M 36.17 52 a 3 3 0 0 1 5.66 0 h 6.27 a 5 5 0 0 1 3.9 -3.9 v -6.27 a 3 3 0 0 1 0 -5.66 V 52 H 36.17 Z M 0 31.93 v -9.78 a 5 5 0 0 1 3.8 0.72 l 4.43 -4.43 a 3 3 0 1 1 1.42 1.41 L 5.2 24.28 a 5 5 0 0 1 0 5.52 l 4.44 4.43 a 3 3 0 1 1 -1.42 1.42 L 3.8 31.2 a 5 5 0 0 1 -3.8 0.72 Z m 52 -14.1 a 3 3 0 0 1 0 -5.66 V 5.9 A 5 5 0 0 1 48.1 2 h -6.27 a 3 3 0 0 1 -5.66 -2 H 52 v 17.83 Z m 0 14.1 a 4.97 4.97 0 0 1 -1.72 -0.72 l -4.43 4.44 a 3 3 0 1 1 -1.41 -1.42 l 4.43 -4.43 a 5 5 0 0 1 0 -5.52 l -4.43 -4.43 a 3 3 0 1 1 1.41 -1.41 l 4.43 4.43 c 0.53 -0.35 1.12 -0.6 1.72 -0.72 v 9.78 Z M 22.15 0 h 9.78 a 5 5 0 0 1 -0.72 3.8 l 4.44 4.43 a 3 3 0 1 1 -1.42 1.42 L 29.8 5.2 a 5 5 0 0 1 -5.52 0 l -4.43 4.44 a 3 3 0 1 1 -1.41 -1.42 l 4.43 -4.43 a 5 5 0 0 1 -0.72 -3.8 Z m 0 52 c 0.13 -0.6 0.37 -1.19 0.72 -1.72 l -4.43 -4.43 a 3 3 0 1 1 1.41 -1.41 l 4.43 4.43 a 5 5 0 0 1 5.52 0 l 4.43 -4.43 a 3 3 0 1 1 1.42 1.41 l -4.44 4.43 c 0.36 0.53 0.6 1.12 0.72 1.72 h -9.78 Z m 9.75 -24 a 5 5 0 0 1 -3.9 3.9 v 6.27 a 3 3 0 1 1 -2 0 V 31.9 a 5 5 0 0 1 -3.9 -3.9 h -6.27 a 3 3 0 1 1 0 -2 h 6.27 a 5 5 0 0 1 3.9 -3.9 v -6.27 a 3 3 0 1 1 2 0 v 6.27 a 5 5 0 0 1 3.9 3.9 h 6.27 a 3 3 0 1 1 0 2 H 31.9 Z',
+                                width: 50,
+                                height: 50,
+                            } as any,
+                            {
+                                type: 'pattern',
+                                pattern: 'crosses',
+                                fill: 'orange',
+                                stroke: 'red',
+                                backgroundFill: 'cyan',
+                                backgroundFillOpacity: 0.6,
+                                fillOpacity: 1,
+                                strokeWidth: 1,
+                                padding: 5,
+                                width: 40,
+                                height: 40,
+                            },
+                        ],
+                    },
+                ],
+            });
+            await compare();
+        });
+    });
+
     describe('gradient fill', () => {
         it('should render donut series with a default radial gradient fill', async () => {
             chart = await createChart({

@@ -28,6 +28,7 @@ const {
     OR,
     COLOR_GRADIENT,
     TempValidate,
+    COLOR_PATTERN,
     Label,
 } = _ModuleSupport;
 
@@ -40,7 +41,7 @@ class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams
 }
 
 class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
     fill: AgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
@@ -75,7 +76,7 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
     @TempValidate(POSITIVE_NUMBER)
     width: number = 1;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
     fill: AgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
@@ -131,7 +132,7 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: AgColorType[] = [];
 
     @TempValidate(COLOR_STRING_ARRAY)

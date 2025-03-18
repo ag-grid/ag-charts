@@ -21,7 +21,6 @@ const {
     ContinuousScale,
     ChartAxisDirection,
     motion,
-    isGradientFill,
 } = _ModuleSupport;
 
 class BoxPlotSeriesNodeEvent<
@@ -507,23 +506,24 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     getFormattedStyles(nodeDatum: BoxPlotNodeDatum, scope: 'tooltip' | 'node' | 'highlight'): AgBoxPlotSeriesStyle {
         const { id: seriesId, properties } = this;
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler, cornerRadius, defaultColorRange } =
-            properties;
-        const { datum, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
-        let fill;
-        let fillOpacity: number | undefined;
-
-        if (isGradientFill(nodeDatum.fill)) {
-            fill = nodeDatum.fill;
-        } else {
-            fill = nodeDatum.fill;
-            fillOpacity = properties.fillOpacity;
-        }
+        const {
+            xKey,
+            minKey,
+            q1Key,
+            medianKey,
+            q3Key,
+            maxKey,
+            itemStyler,
+            cornerRadius,
+            defaultColorRange,
+            fillOpacity,
+        } = properties;
+        const { datum, fill, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
 
         let styles: Required<AgBoxPlotSeriesStyle> = this.getShapeStyle(
             {
                 fill,
-                fillOpacity: fillOpacity!,
+                fillOpacity,
                 stroke,
                 strokeWidth,
                 strokeOpacity,

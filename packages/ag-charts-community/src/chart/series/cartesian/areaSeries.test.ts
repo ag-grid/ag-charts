@@ -196,6 +196,62 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
             assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 2) }),
         },
     }),
+    AREA_SERIES_DEFAULT_PATTERN_FILL: {
+        options: examples.AREA_SERIES_DEFAULT_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_VERTICAL_LINES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_VERTICAL_LINES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_HORIZONTAL_LINES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_HORIZONTAL_LINES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_FORWARD_SLANTED_LINES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_FORWARD_SLANTED_LINES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_BACKWARD_SLANTED_LINES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_BACKWARD_SLANTED_LINES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_CIRCLES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_CIRCLES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_SQUARES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_SQUARES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_TRIANGLES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_TRIANGLES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_DIAMONDS_PATTERN_FILL: {
+        options: examples.AREA_SERIES_DIAMONDS_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_STARS_PATTERN_FILL: {
+        options: examples.AREA_SERIES_STARS_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_HEARTS_PATTERN_FILL: {
+        options: examples.AREA_SERIES_HEARTS_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_CROSSES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_CROSSES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL: {
+        options: examples.AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_CUSTOMISED_PATTERN_FILL: {
+        options: examples.AREA_SERIES_CUSTOMISED_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, TestCase> = {

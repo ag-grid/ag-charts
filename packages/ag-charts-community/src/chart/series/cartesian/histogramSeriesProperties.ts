@@ -11,6 +11,7 @@ import {
     ARRAY,
     BOOLEAN,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
     LINE_DASH,
@@ -65,7 +66,7 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING), { optional: true })
     fill?: AgColorType;
 
     @TempValidate(RATIO)
