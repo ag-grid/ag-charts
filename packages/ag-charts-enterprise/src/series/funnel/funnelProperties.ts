@@ -25,6 +25,7 @@ const {
     ARRAY_OF,
     COLOR_GRADIENT,
     COLOR_STRING_ARRAY,
+    COLOR_PATTERN,
     COLOR_STRING,
     FUNCTION,
     LINE_DASH,
@@ -45,7 +46,7 @@ class FunnelDropOff extends BaseProperties {
     @TempValidate(BOOLEAN)
     enabled: boolean = true;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
     fill: AgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
@@ -80,7 +81,7 @@ export class FunnelProperties
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: AgColorType[] = [];
 
     @TempValidate(RATIO)

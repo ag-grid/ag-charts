@@ -1,5 +1,5 @@
 import { clamp } from 'ag-charts-core';
-import type { AgGradientColor } from 'ag-charts-types';
+import type { AgGradientColor, AgPatternColor } from 'ag-charts-types';
 
 import { generateUUID } from '../../util/id';
 import type { BBox } from '../bbox';
@@ -10,7 +10,8 @@ import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Node, type RenderContext, SceneChangeDetection } from '../node';
-import { isGradientFill } from '../util/fill';
+import { Pattern } from '../pattern/pattern';
+import { isGradientFill, isPatternFill } from '../util/fill';
 import { align } from '../util/pixel';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
@@ -27,7 +28,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
 
 export type ShapeGradientColor = Omit<AgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
 
-export type ShapeColor = string | ShapeGradientColor;
+export type ShapeColor = string | ShapeGradientColor | AgPatternColor;
 
 export interface DefaultStyles {
     fill?: ShapeColor;
@@ -79,12 +80,8 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fill: ShapeColor | undefined = Shape.defaultStyles.fill;
 
-    private getGradient(pattern: ShapeColor | undefined) {
-        if (typeof pattern !== 'string' && pattern?.type === 'gradient') {
-            return this.createGradient(pattern);
-        }
-
-        return undefined;
+    private getGradient(fill: ShapeColor | undefined) {
+        if (isGradientFill(fill)) return this.createGradient(fill);
     }
 
     private createGradient(fill: ShapeGradientColor) {
@@ -103,11 +100,23 @@ export abstract class Shape<D = any> extends Node<D> {
         }
     }
 
+    private getPattern(fill: ShapeColor | undefined) {
+        if (isPatternFill(fill)) return this.createPattern(fill);
+    }
+
+    private createPattern(fill: AgPatternColor) {
+        const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
+
+        return new Pattern(fill, pixelRatio);
+    }
+
     protected onFillChange() {
         this.fillGradient = this.getGradient(this.fill);
+        this.fillPattern = this.getPattern(this.fill);
     }
 
     protected fillGradient: Gradient | undefined;
+    protected fillPattern: Pattern | undefined;
 
     /**
      * Note that `strokeStyle = null` means invisible stroke,
@@ -205,7 +214,8 @@ export abstract class Shape<D = any> extends Node<D> {
     protected applyFill(ctx: CanvasContext) {
         const { fill, fillGradient, fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
         const gradientFill = fillBBox ? fillGradient?.createGradient(ctx as any, fillBBox, fillParams) : undefined;
-        ctx.fillStyle = gradientFill ?? (typeof fill === 'string' ? fill : undefined) ?? 'black';
+        const patternFill = this.fillPattern?.createPattern(ctx as any);
+        ctx.fillStyle = patternFill ?? gradientFill ?? (typeof fill === 'string' ? fill : undefined) ?? 'black';
     }
 
     protected applyStroke(ctx: CanvasContext) {

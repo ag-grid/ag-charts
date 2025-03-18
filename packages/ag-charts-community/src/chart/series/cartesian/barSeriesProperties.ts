@@ -13,6 +13,7 @@ import { DropShadow } from '../../../scene/dropShadow';
 import {
     BOOLEAN,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
     FUNCTION,
@@ -63,7 +64,7 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#c16068';
 
     @TempValidate(RATIO)

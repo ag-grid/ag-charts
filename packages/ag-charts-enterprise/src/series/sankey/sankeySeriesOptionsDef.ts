@@ -9,6 +9,7 @@ import {
     gradient,
     lineDashOptionsDef,
     or,
+    pattern,
     positiveNumber,
     required,
     string,
@@ -24,7 +25,7 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     toKey: required(string),
     sizeKey: string,
     sizeName: string,
-    fills: arrayOf(or(color, gradient)),
+    fills: arrayOf(or(color, gradient, pattern)),
     strokes: arrayOf(color),
     label: {
         ...seriesLabelOptionsDefs,

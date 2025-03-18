@@ -27,6 +27,7 @@ const {
     OBJECT,
     NUMBER,
     POSITIVE_NUMBER,
+    COLOR_PATTERN,
     RATIO,
     STRING,
     Label,
@@ -53,7 +54,7 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: AgColorType[] = [];
 
     @TempValidate(RATIO)

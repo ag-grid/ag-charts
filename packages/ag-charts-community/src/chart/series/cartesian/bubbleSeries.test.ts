@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgPatternName } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import * as examples from '../../test/examples';
@@ -89,6 +89,48 @@ describe('BubbleSeries', () => {
                         reverse: true,
                     },
                 ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('pattern fill', () => {
+        it.each([
+            'vertical-lines',
+            'horizontal-lines',
+            'forward-slanted-lines',
+            'backward-slanted-lines',
+            'circles',
+            'squares',
+            'triangles',
+            'diamonds',
+            'stars',
+            'hearts',
+            'crosses',
+        ] as AgPatternName[])('it should create a chart with %s pattern', async (pattern) => {
+            const options: AgChartOptions = {
+                theme: {
+                    overrides: {
+                        bubble: {
+                            series: {
+                                fill: {
+                                    type: 'pattern',
+                                    pattern,
+                                    stroke: 'green',
+                                    fill: 'orange',
+                                    backgroundFill: 'yellow',
+                                    strokeWidth: 2,
+                                    padding: 2,
+                                },
+                            },
+                        },
+                    },
+                },
+                ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
             };
 
             prepareTestOptions(options);

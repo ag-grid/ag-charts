@@ -25,6 +25,7 @@ const {
     OR,
     COLOR_GRADIENT,
     COLOR_STRING_ARRAY,
+    COLOR_PATTERN,
 } = _ModuleSupport;
 
 export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeriesOptions> extends SeriesProperties<T> {
@@ -43,7 +44,7 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
     @TempValidate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
     fill: AgColorType = 'black';
 
     @TempValidate(RATIO)

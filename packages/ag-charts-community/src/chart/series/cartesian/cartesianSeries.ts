@@ -431,15 +431,9 @@ export abstract class CartesianSeries<
 
     protected abstract nodeFactory(): TNode;
 
-    protected getNodeFill(fill: AgColorType, defaultColorStops: string[]): Required<AgColorType>;
-    protected getNodeFill(
-        fill: AgColorType | undefined,
-        defaultColorStops: string[]
-    ): Required<AgColorType> | undefined;
-    protected getNodeFill(
-        fill: AgColorType | undefined,
-        defaultColorStops: string[]
-    ): Required<AgColorType> | undefined {
+    protected getNodeFill(fill: AgColorType, defaultColorStops: string[]): AgColorType;
+    protected getNodeFill(fill: AgColorType | undefined, defaultColorStops: string[]): AgColorType | undefined;
+    protected getNodeFill(fill: AgColorType | undefined, defaultColorStops: string[]): AgColorType | undefined {
         if (!isGradientFill(fill)) return fill;
 
         return {

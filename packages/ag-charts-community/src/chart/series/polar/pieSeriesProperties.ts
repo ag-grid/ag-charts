@@ -14,6 +14,7 @@ import {
     ARRAY_OF,
     BOOLEAN,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
     FUNCTION,
@@ -63,7 +64,7 @@ class PieSeriesSectorLabel extends Label<AgPieSeriesLabelFormatterParams> {
 }
 
 class PieSeriesCalloutLine extends BaseProperties {
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)), { optional: true })
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)), { optional: true })
     colors?: AgColorType[];
 
     @TempValidate(POSITIVE_NUMBER)
@@ -113,7 +114,7 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     @TempValidate(ARRAY_OF(COLOR_STRING_ARRAY))
     defaultColorRange: string[][] = [];
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: AgColorType[] = Object.values(DEFAULT_FILLS);
 
     @TempValidate(COLOR_STRING_ARRAY)

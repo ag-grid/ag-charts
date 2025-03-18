@@ -8,6 +8,7 @@ import {
     number,
     object,
     or,
+    pattern,
     string,
     validate,
 } from 'ag-charts-core';
@@ -149,7 +150,7 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         crosshairLabelTextColor: color,
     },
     palette: {
-        fills: arrayOf(or(color, gradient)),
+        fills: arrayOf(or(color, gradient, pattern)),
         strokes: arrayOf(color),
         up: { fill: or(color, gradientStrict), stroke: color },
         down: { fill: or(color, gradientStrict), stroke: color },

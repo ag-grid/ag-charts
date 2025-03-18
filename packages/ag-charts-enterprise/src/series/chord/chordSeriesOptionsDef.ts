@@ -9,6 +9,7 @@ import {
     gradient,
     lineDashOptionsDef,
     or,
+    pattern,
     positiveNumber,
     ratio,
     required,
@@ -24,7 +25,7 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     toKey: required(string),
     sizeKey: string,
     sizeName: string,
-    fills: arrayOf(or(color, gradient)),
+    fills: arrayOf(or(color, gradient, pattern)),
     strokes: arrayOf(color),
     label: {
         spacing: positiveNumber,

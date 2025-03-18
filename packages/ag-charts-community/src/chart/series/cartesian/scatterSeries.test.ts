@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgPatternName } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import * as examples from '../../test/examples';
@@ -341,6 +341,44 @@ describe('ScatterSeries', () => {
                         },
                         size: 30,
                         strokeWidth: 0,
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('pattern fill', () => {
+        it.each([
+            'vertical-lines',
+            'horizontal-lines',
+            'forward-slanted-lines',
+            'backward-slanted-lines',
+            'circles',
+            'squares',
+            'triangles',
+            'diamonds',
+            'stars',
+            'hearts',
+            'crosses',
+        ] as AgPatternName[])('it should create a chart with %s pattern', async (pattern) => {
+            const options: AgChartOptions = {
+                ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'weight',
+                        yKey: 'height',
+                        fill: {
+                            type: 'pattern',
+                            pattern,
+                        },
+                        size: 20,
+                        stroke: 'orange',
                     },
                 ],
             };
