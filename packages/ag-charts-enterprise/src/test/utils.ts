@@ -15,7 +15,7 @@ export function prepareEnterpriseTestOptions<T extends AgChartOptions>(options: 
 
 export async function createEnterpriseChart<T extends AgChartOptions>(options: T): Promise<Chart> {
     options = prepareEnterpriseTestOptions({ ...options });
-    const chart = deproxy(AgCharts.create(options));
+    const chart = deproxy(AgCharts.create(options as any));
     await waitForChartStability(chart);
     return chart;
 }

@@ -77,7 +77,7 @@ export abstract class AgCharts {
 
             if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
                 enterpriseModule.injectWatermark?.(
-                    chart.chart.ctx.domManager,
+                    chart.chart!.ctx.domManager,
                     this.licenseManager.getWatermarkMessage()
                 );
             }
@@ -159,9 +159,9 @@ class AgChartsInternal {
         const {
             userOptions,
             licenseManager,
-            processedOverrides = proxy?.chart.chartOptions.processedOverrides ?? {},
-            specialOverrides = proxy?.chart.chartOptions.specialOverrides ?? {},
-            optionsMetadata = proxy?.chart.chartOptions.optionMetadata ?? {},
+            processedOverrides = proxy?.chart?.chartOptions.processedOverrides ?? {},
+            specialOverrides = proxy?.chart?.chartOptions.specialOverrides ?? {},
+            optionsMetadata = proxy?.chart?.chartOptions.optionMetadata ?? {},
             deltaOptions,
             stripSymbols = false,
         } = opts;
