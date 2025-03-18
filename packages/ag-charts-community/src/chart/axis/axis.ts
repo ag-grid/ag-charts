@@ -803,7 +803,7 @@ export abstract class Axis<
     }
 
     protected callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
-        const { callbackCache } = this.moduleCtx;
-        return callbackCache.call(this, fn, ...params);
+        const { callbackCache, chartService } = this.moduleCtx;
+        return callbackCache.call(this, chartService, fn, ...params);
     }
 }

@@ -36,11 +36,13 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
     class?: string = undefined;
 
     public formatTooltip(
-        caller: { context?: unknown },
+        caller1: { context?: unknown },
+        caller2: { context?: unknown },
         content: TooltipStructuredContent,
         params: RequireOptional<P>
     ): TooltipContent {
-        const overrides = this.renderer == null ? undefined : callWithContext(caller, this.renderer, [params]);
+        const overrides =
+            this.renderer == null ? undefined : callWithContext(caller1, caller2, this.renderer, [params]);
         if (typeof overrides === 'string') return { type: 'raw', rawHtmlString: overrides };
         if (overrides != null) return { type: 'structured', ...content, ...overrides };
         return { type: 'structured', ...content };

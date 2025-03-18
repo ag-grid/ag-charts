@@ -1,4 +1,4 @@
-import { Logger, type AnyFn, type RequireOptional } from 'ag-charts-core';
+import { type AnyFn, Logger, type RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -934,11 +934,11 @@ export abstract class Series<
     }
 
     private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
-        return this.ctx.callbackCache.call(this.properties, fn, ...params);
+        return this.ctx.callbackCache.call(this.properties, this.ctx.chartService, fn, ...params);
     }
 
     public callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> {
-        return callWithContext(this.properties, fn, params);
+        return callWithContext(this.properties, this.ctx.chartService, fn, params);
     }
 
     protected formatTooltipWithContext<P extends AgSeriesTooltipRendererParams<any>, Tooltip extends SeriesTooltip<P>>(
@@ -946,7 +946,7 @@ export abstract class Series<
         content: TooltipStructuredContent,
         params: RequireOptional<P>
     ) {
-        return tooltip.formatTooltip(this.properties, content, params);
+        return tooltip.formatTooltip(this.properties, this.ctx.chartService, content, params);
     }
 
     abstract getCategoryValue(datumIndex: TDatumIndex): any;

@@ -410,7 +410,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
-        const { callbackCache } = this.ctx;
-        return callbackCache.call(this.axisCtx, fn, ...params);
+        const { callbackCache, chartService } = this.ctx;
+        return callbackCache.call(this.axisCtx, chartService, fn, ...params);
     }
 }
