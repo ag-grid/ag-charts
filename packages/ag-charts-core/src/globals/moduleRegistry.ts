@@ -3,6 +3,7 @@ import {
     type ChartModuleDefinition,
     type ModuleDefinition,
     ModuleType,
+    type ModuleTypeSwitch,
     type SeriesModuleDefinition,
 } from '../interfaces/moduleDefinition';
 
@@ -31,15 +32,15 @@ export function hasModule(moduleName: string): boolean {
     return registeredModules.has(moduleName);
 }
 
-export function* listModulesByType<T extends ModuleType>(moduleType: T) {
+export function* listModulesByType<T extends ModuleType>(moduleType: T): Generator<ModuleTypeSwitch<T>> {
     for (const definition of registeredModules.values()) {
         if (definition.type === moduleType) {
-            yield definition as ModuleDefinition<T>;
+            yield definition as ModuleTypeSwitch<T>;
         }
     }
 }
 
-export function detectChartDefinition(options: object): ChartModuleDefinition {
+export function detectChartDefinition(options: object): ChartModuleDefinition<any> {
     for (const definition of registeredModules.values()) {
         if (isChartModule(definition) && definition.detect(options)) {
             return definition;
@@ -64,7 +65,7 @@ export function getAxisModule(moduleName: string): AxisModuleDefinition<any> | u
     }
 }
 
-function isChartModule(definition?: ModuleDefinition): definition is ChartModuleDefinition {
+function isChartModule(definition?: ModuleDefinition): definition is ChartModuleDefinition<any> {
     return definition?.type === ModuleType.Chart;
 }
 

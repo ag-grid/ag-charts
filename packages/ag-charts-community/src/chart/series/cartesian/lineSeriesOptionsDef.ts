@@ -2,7 +2,6 @@ import {
     type OptionsDefs,
     boolean,
     constant,
-    fillOptionsDef,
     lineDashOptionsDef,
     number,
     required,
@@ -39,7 +38,6 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     tooltip: tooltipOptionsDefs,
     errorBar: errorBarOptionsDefs,
     ...commonSeriesOptionsDefs,
-    ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
 };

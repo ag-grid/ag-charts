@@ -36,10 +36,10 @@ describe('Overlay', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - unable to set Overlay - expecting a properties object",
+    "AG Charts - Option \`overlays.noData\` cannot be set to \`0\`; expecting an object, ignoring.",
   ],
   [
-    "AG Charts - unable to set Overlay - expecting a properties object",
+    "AG Charts - Option \`overlays.noVisibleSeries\` cannot be set to \`0\`; expecting an object, ignoring.",
   ],
 ]
 `);
@@ -51,10 +51,10 @@ describe('Overlay', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.",
+    "AG Charts - Option \`overlays.noData.text\` cannot be set to \`0\`; expecting a string, ignoring.",
   ],
   [
-    "AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.",
+    "AG Charts - Option \`overlays.noVisibleSeries.text\` cannot be set to \`0\`; expecting a string, ignoring.",
   ],
 ]
 `);
@@ -66,10 +66,10 @@ describe('Overlay', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.",
+    "AG Charts - Option \`overlays.noData.renderer\` cannot be set to \`0\`; expecting a function, ignoring.",
   ],
   [
-    "AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.",
+    "AG Charts - Option \`overlays.noVisibleSeries.renderer\` cannot be set to \`0\`; expecting a function, ignoring.",
   ],
 ]
 `);

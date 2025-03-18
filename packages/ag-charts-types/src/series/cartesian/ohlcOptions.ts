@@ -40,7 +40,7 @@ export interface AgOhlcSeriesThemeableOptions<TDatum = any>
 
 export interface AgOhlcSeriesOptions<TDatum = any>
     extends AgOhlcSeriesThemeableOptions<TDatum>,
-        Omit<AgBaseSeriesOptions<TDatum>, 'showInLegend'>,
+        AgBaseSeriesOptions<TDatum>,
         AgOhlcSeriesBaseOptions,
         Omit<AxisOptions, 'yKey'> {
     /** Configuration for the OHLC Series. */

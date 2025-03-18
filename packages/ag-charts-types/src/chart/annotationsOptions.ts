@@ -57,7 +57,7 @@ export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, Li
 // Lines
 export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
-    text?: AgLineAnnotationTextOptions;
+    text?: AgLineAnnotationText;
 }
 
 export interface AgCrossLineAnnotationStyles extends AgLineAnnotationStyles {
@@ -505,15 +505,19 @@ interface Extendable {
 }
 
 export type ValueType = string | number | AgStateSerializableDate;
-export type AgGroupingValueType = { value: ValueType; groupPercentage: number };
 export type AgAnnotationValue = ValueType | AgGroupingValueType;
+export interface AgGroupingValueType {
+    value: ValueType;
+    groupPercentage: number;
+}
 
 // ***********
 // * Toolbar *
 // ***********/
 
 export interface AgAnnotationsToolbar extends Toggleable {
-    buttons?: Array<AgAnnotationsToolbarButton>;
+    buttons?: AgAnnotationsToolbarButton[];
+    padding?: number;
 }
 
 export interface AgAnnotationsToolbarButton extends ToolbarButton {

@@ -1,13 +1,16 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgStandaloneChartOptions, _ModuleSupport } from 'ag-charts-community';
 import type { ChartModuleDefinition } from 'ag-charts-core';
 
 import { StandaloneChart } from './standaloneChart';
 
-const { isAgStandaloneChartOptions } = _ModuleSupport;
+const { isAgStandaloneChartOptions, standaloneChartOptionsDefs } = _ModuleSupport;
 
-export const StandaloneChartModule: ChartModuleDefinition = {
+export const StandaloneChartModule: ChartModuleDefinition<AgStandaloneChartOptions> = {
     type: 'chart',
     name: 'standalone',
+    enterprise: true,
+
+    options: standaloneChartOptionsDefs,
 
     detect: isAgStandaloneChartOptions,
     create(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {

@@ -129,11 +129,11 @@ export function priceVolume(
             optionsToolbar: {
                 enabled: toolbar,
             },
+            // @ts-expect-error undocumented option
             snap: true,
             toolbar: {
                 enabled: toolbar,
                 buttons: toolbarButtons,
-                // @ts-expect-error undocumented option
                 padding: 0,
             },
             data,

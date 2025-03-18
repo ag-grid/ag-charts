@@ -9,11 +9,10 @@ import {
     constant,
     date,
     fontOptionsDef,
-    instanceOf,
     number,
-    numberMin,
     or,
     positiveNumber,
+    positiveNumberNonZero,
     required,
     string,
 } from 'ag-charts-core';
@@ -38,7 +37,6 @@ import { GroupedCategoryAxis } from '../chart/axis/groupedCategoryAxis';
 import { LogAxis } from '../chart/axis/logAxis';
 import { NumberAxis } from '../chart/axis/numberAxis';
 import { TimeAxis } from '../chart/axis/timeAxis';
-import { TimeInterval } from '../util/time';
 import type { ModuleContext } from './moduleContext';
 
 export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
@@ -57,7 +55,7 @@ export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
     ...continuousAxisOptions(number),
     type: required(constant('log')),
     base: and(
-        numberMin(0, false),
+        positiveNumberNonZero,
         attachDescription((value) => value !== 1, 'not equal to 1')
     ),
     label: {
@@ -69,7 +67,7 @@ export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
 
 export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
-    ...continuousAxisOptions(or(number, date), or(number, date, instanceOf(TimeInterval))),
+    ...continuousAxisOptions(or(number, date), true),
     type: required(constant('time')),
     label: {
         ...cartesianAxisLabelOptionsDefs,

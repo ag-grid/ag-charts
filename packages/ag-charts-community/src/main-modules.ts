@@ -1,5 +1,12 @@
 // Entry point to implement and test our tree-shaking abilities
 import { CartesianChartModule } from './chart/cartesianChartModule';
+import {
+    FlowProportionChartModule,
+    GaugeChartModule,
+    HierarchyChartModule,
+    StandaloneChartModule,
+    TopologyChartModule,
+} from './chart/enterpriseChartModules';
 import { PolarChartModule } from './chart/polarChartModule';
 import { NewAreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
 import { NewBarSeriesModule } from './chart/series/cartesian/barSeriesModule';
@@ -54,4 +61,14 @@ export const AllCartesianCommunityModules = [
 
 export const AllPolarCommunityModules = [PolarChartModule, NewDonutSeriesModule, NewPieSeriesModule];
 
-export const AllCommunityModules = [...AllCartesianCommunityModules, ...AllPolarCommunityModules];
+export const AllCommunityModules = [
+    ...AllCartesianCommunityModules,
+    ...AllPolarCommunityModules,
+
+    // Enterprise placeholders
+    FlowProportionChartModule,
+    GaugeChartModule,
+    HierarchyChartModule,
+    StandaloneChartModule,
+    TopologyChartModule,
+];
