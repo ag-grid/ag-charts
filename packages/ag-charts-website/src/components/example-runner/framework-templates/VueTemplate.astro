@@ -1,6 +1,5 @@
 ---
 import type { Library } from '@ag-grid-types';
-import { ExampleStyle } from './lib/ExampleStyle';
 import { MetaData } from './lib/MetaData';
 import { Scripts } from './lib/Scripts';
 import { Styles } from './lib/Styles';
@@ -15,8 +14,6 @@ interface Props {
     modifiedTimeMs: number;
     entryFileName: string;
 
-    layout: 'grid' | 'toolbar' | 'none';
-
     /**
      * Extra script file names (not including entry file)
      */
@@ -24,7 +21,6 @@ interface Props {
     styleFiles?: string[];
     appLocation: string;
     boilerplatePath: string;
-    extraStyles?: string;
     children?: any;
     headFragment?: string;
 }
@@ -36,10 +32,8 @@ const {
     boilerplatePath,
     appLocation,
     entryFileName,
-    layout,
     scriptFiles = [],
     styleFiles = [],
-    extraStyles,
     headFragment,
 } = Astro.props as Props;
 

@@ -1,6 +1,5 @@
 ---
 import { MetaData } from './lib/MetaData';
-import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
 import { pathJoin } from '@utils/pathJoin';
@@ -13,13 +12,10 @@ interface Props {
     modifiedTimeMs: number;
     entryFileName: string;
 
-    layout: 'grid' | 'toolbar' | 'none';
-
     styleFiles?: string[];
     indexFragment: string;
     appLocation: string;
     boilerplatePath: string;
-    extraStyles?: string;
     children?: any;
     headFragment?: string;
 }
@@ -30,11 +26,9 @@ const {
     modifiedTimeMs,
     appLocation,
     entryFileName,
-    layout,
     styleFiles = [],
     indexFragment,
     boilerplatePath,
-    extraStyles,
     headFragment,
 } = Astro.props as Props;
 
