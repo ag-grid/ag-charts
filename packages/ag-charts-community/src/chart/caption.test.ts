@@ -75,13 +75,13 @@ describe('Caption', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Property [textAlign] of [Caption] cannot be set to ["LEFT"]; expecting a text align keyword such as 'left', 'center' or 'right', ignoring.",
+    "AG Charts - Option \`title.textAlign\` cannot be set to \`"LEFT"\`; expecting a keyword such as 'left', 'center' or 'right', ignoring.",
   ],
   [
-    "AG Charts - Property [textAlign] of [Caption] cannot be set to ["centre"]; expecting a text align keyword such as 'left', 'center' or 'right', ignoring.",
+    "AG Charts - Option \`subtitle.textAlign\` cannot be set to \`"centre"\`; expecting a keyword such as 'left', 'center' or 'right', ignoring.",
   ],
   [
-    "AG Charts - Property [textAlign] of [Caption] cannot be set to ["abc"]; expecting a text align keyword such as 'left', 'center' or 'right', ignoring.",
+    "AG Charts - Option \`footnote.textAlign\` cannot be set to \`"abc"\`; expecting a keyword such as 'left', 'center' or 'right', ignoring.",
   ],
 ]
 `);

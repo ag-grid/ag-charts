@@ -127,7 +127,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     themeParameters: AgChartThemeParams = {};
     annotationThemes: any;
     fastDelta?: DeepPartial<T>;
-    chartDef: ChartModuleDefinition<any>;
+    chartDef?: ChartModuleDefinition<any>;
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -167,8 +167,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.userOptions = deepClone(currentUserOptions ?? newUserOptions, ChartOptions.OPTIONS_CLONE_OPTS);
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
-
-        this.chartDef = ModuleRegistry.detectChartDefinition(this.userOptions);
 
         if (stripSymbols) {
             this.removeLeftoverSymbols(this.userOptions);
@@ -284,15 +282,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             activeTheme.templateTheme(options, false);
         }
 
+        this.chartDef = ModuleRegistry.detectChartDefinition(options);
+
         if (!this.chartDef.placeholder) {
-            const { valid, errors } = validate(this.userOptions, this.chartDef.options);
+            const { valid, errors } = validate(options, this.chartDef.options);
             errors.forEach((error) => Logger.warn(error));
             options = valid as T;
         }
 
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
-            if (pluginDef.name in options) {
-                const { valid, errors } = validate(this.userOptions, this.chartDef.options);
+            if (pluginDef.name in options && (!pluginDef.chartType || pluginDef.chartType === this.chartDef.name)) {
+                const { valid, errors } = validate(options, this.chartDef.options);
                 errors.forEach((error) => Logger.warn(error));
                 options[pluginDef.name as keyof T] = valid as T[keyof T];
             }
@@ -300,7 +300,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.validateSeriesOptions(options);
         this.validateAxesOptions(options);
-
         this.removeDisabledOptions(options);
 
         const seriesType = this.optionsType(options);
@@ -366,7 +365,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     validateSeriesOptions(options: T): void {
-        const chartType = this.chartDef.name;
+        const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
         for (let index = 0; index < seriesCount; index++) {
@@ -399,7 +398,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     validateAxesOptions(options: T) {
         if (!('axes' in options) || !options.axes) return;
 
-        const chartType = this.chartDef.name;
+        const chartType = this.chartDef?.name;
         const validatedAxesOptions: any[] = [];
         const axesCount = options.axes.length ?? 0;
         for (let index = 0; index < axesCount; index++) {
