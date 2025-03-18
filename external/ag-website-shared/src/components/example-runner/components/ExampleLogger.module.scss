@@ -1,21 +1,21 @@
 @use 'design-system' as *;
 
-$logger-height: 100px;
+$logger-height: 150px;
 
 .logger {
     height: $logger-height;
-    padding: $spacing-size-2;
+    padding: 0;
     margin: 0;
     overflow-y: auto;
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
     color: var(--color-text-primary);
-    background-color: var(--color-bg-secondary);
+    background-color: var(--color-bg-primary);
     border: 1px solid var(--color-border-primary);
     border-top: none;
     border-radius: 0 0 var(--radius-md) var(--radius-md);
-
+    font-size: 13px;
     div {
         padding: $spacing-size-2;
         border-top: 1px solid var(--color-border-secondary);
@@ -30,7 +30,6 @@ $logger-height: 100px;
         }
 
         &::before {
-            content: '> ';
             color: var(--color-text-secondary);
         }
     }
@@ -41,6 +40,21 @@ $logger-height: 100px;
     }
 }
 
+.logger > div:nth-child(even) {
+    background-color: var(--color-bg-secondary);
+}
+
 .noLogs {
     font-style: italic;
+    margin-top: 12px;
+}
+
+.consoleHeader {
+    top: 0;
+    position: sticky;
+    font-size: 12px;
+    background-color: var(--color-bg-primary);
+    padding-top: 8px !important;
+    border-bottom: 1px solid var(--color-border-secondary);
+    font-weight: 600;
 }
