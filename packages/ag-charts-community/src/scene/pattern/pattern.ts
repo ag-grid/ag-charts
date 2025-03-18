@@ -5,7 +5,7 @@ import { PATTERNS } from './patterns';
 
 export class Pattern {
     constructor(
-        public patternOptions: AgPatternColor,
+        public patternOptions: AgPatternColor & { path?: string },
         public pixelRatio = 1
     ) {}
 

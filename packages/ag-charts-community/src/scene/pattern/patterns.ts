@@ -65,7 +65,7 @@ function drawSlant({
     ctx.stroke();
 }
 
-export const PATTERNS: Record<AgPatternName, (params: PatternFnParams) => void> = {
+export const PATTERNS: Record<AgPatternName | 'custom', (params: PatternFnParams) => void> = {
     circles({ ctx, width, strokeWidth, padding }) {
         const c = width / 2;
         const r = c - padding - strokeWidth / 2;
