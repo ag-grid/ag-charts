@@ -37,16 +37,12 @@ touch: {
 In this example:
 
 -   `dragAction: 'none'` disables the chart's Single Finger input handling, scrolling the entire page.
--   `dragAction: 'drag'` emulates mouse dragging, updating the view's pan.
--   `dragAction: 'hover'` emulates mouse movements, updating the tooltip & highlighted node.
-
-{% note %}
-When emulating mouse dragging, Touch event will page through if Zoom is disabled or if the chart cannot be panned.
-{% /note %}
+-   `dragAction: 'drag'` emulates mouse dragging, panning the viewport if possible.
+-   `dragAction: 'hover'` emulates mouse movements, updating the tooltip and highlighted node.
 
 ## Two Finger Zoom-Pan
 
-By default, charts with the [Zoom](./zoom) feature enabled still update the viewport's zoom and pan when using two fingers. To disable, use `enableTwoFingerZoom: false`.
+By default, charts use two finger gestures to zoom and pan. To pass this gesture to the underlying page, set `enableTwoFingerZoom: false`.
 
 {% chartExampleRunner
     title="Two Finger Zoom-Pan"
@@ -57,7 +53,7 @@ By default, charts with the [Zoom](./zoom) feature enabled still update the view
 
 ## Long Tap
 
-Long Tapping the chart will expand the [Context Menu](./context-menu), if available.
+Long Tapping the chart will open the [Context Menu](./context-menu), if available.
 
 {% chartExampleRunner
     title="Long Tap"
