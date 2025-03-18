@@ -68,8 +68,8 @@ export interface AgZoomEvent {
 }
 
 export interface AgZoomEventRange {
-    start?: Date | number;
-    end?: Date | number;
+    start?: Date | string | number;
+    end?: Date | string | number;
 }
 
 export interface AgZoomEventRatio {

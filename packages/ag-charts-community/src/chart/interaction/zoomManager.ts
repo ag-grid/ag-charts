@@ -13,6 +13,7 @@ import {
     number,
     or,
     ratio as ratioValidator,
+    string,
     union,
     validate,
 } from 'ag-charts-core';
@@ -164,8 +165,8 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         const primaryY = this.getPrimaryAxis(ChartAxisDirection.Y);
 
         const zoomMementoDefs: OptionsDefs<ZoomMemento> = {
-            rangeX: { start: and(or(number, date), rangeValidator(primaryX)), end: or(number, date) },
-            rangeY: { start: and(or(number, date), rangeValidator(primaryY)), end: or(number, date) },
+            rangeX: { start: and(or(number, string, date), rangeValidator(primaryX)), end: or(number, string, date) },
+            rangeY: { start: and(or(number, string, date), rangeValidator(primaryY)), end: or(number, string, date) },
             ratioX: { start: and(ratioValidator, lessThan('end')), end: ratioValidator },
             ratioY: { start: and(ratioValidator, lessThan('end')), end: ratioValidator },
             autoScaledAxes: arrayOf(union('y')),
