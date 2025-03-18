@@ -1,5 +1,6 @@
 import {
     type AgColorType,
+    type AgGradientColor,
     type AgSankeySeriesLabelFormatterParams,
     type AgSankeySeriesLinkItemStylerParams,
     type AgSankeySeriesLinkOptions,
@@ -156,8 +157,8 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     @TempValidate(STRING, { optional: true })
     sizeName: string | undefined = undefined;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
+    @TempValidate(COLOR_GRADIENT)
+    fillGradientDefaults!: Required<AgGradientColor>;
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
     fills: AgColorType[] = [];

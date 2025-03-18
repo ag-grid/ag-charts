@@ -1,4 +1,4 @@
-import { type AgMapMarkerSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientColor, type AgMapMarkerSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import { type SeriesModuleDefinition, ValidationError, validate } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
@@ -29,7 +29,14 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 ],
             },
             // @ts-expect-error undocumented option
-            defaultColorRange: { $palette: 'gradient' },
+            fillGradientDefaults: {
+                type: 'gradient',
+                gradient: 'radial',
+                bounds: 'item',
+                colorStops: { $palette: 'gradient' } as any,
+                rotation: 0,
+                reverse: true,
+            } satisfies Required<AgGradientColor>,
             fillOpacity: 0.5,
             label: {
                 color: { $ref: 'textColor' },

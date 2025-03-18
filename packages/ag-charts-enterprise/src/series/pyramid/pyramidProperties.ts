@@ -1,5 +1,6 @@
 import type {
     AgColorType,
+    AgGradientColor,
     AgPyramidSeriesItemStylerParams,
     AgPyramidSeriesLabelFormatterParams,
     AgPyramidSeriesOptions,
@@ -50,11 +51,11 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
     @TempValidate(STRING)
     valueKey!: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
     fills: AgColorType[] = [];
+
+    @TempValidate(COLOR_GRADIENT)
+    fillGradientDefaults!: Required<AgGradientColor>;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

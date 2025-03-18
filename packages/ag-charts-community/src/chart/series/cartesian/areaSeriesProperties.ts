@@ -3,6 +3,7 @@ import type {
     AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesTooltipRendererParams,
     AgColorType,
+    AgGradientColor,
     AgSeriesAreaOptions,
 } from 'ag-charts-types';
 
@@ -11,7 +12,6 @@ import {
     BOOLEAN,
     COLOR_GRADIENT,
     COLOR_STRING,
-    COLOR_STRING_ARRAY,
     LINE_DASH,
     OBJECT,
     OR,
@@ -45,11 +45,11 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     @TempValidate(POSITIVE_NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgColorType = '#c16068';
+
+    @TempValidate(COLOR_GRADIENT)
+    fillGradientDefaults!: Required<AgGradientColor>;
 
     @TempValidate(RATIO)
     fillOpacity = 1;

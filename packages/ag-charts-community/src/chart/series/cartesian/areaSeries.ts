@@ -14,7 +14,6 @@ import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
-import { isGradientFill } from '../../../scene/util/fill';
 import { extent } from '../../../util/extent';
 import { mergeDefaults } from '../../../util/object';
 import { isContinuous } from '../../../util/value';
@@ -39,7 +38,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
-import { applyShapeStyle } from '../shapeUtil';
+import { applyShapeStyle, getShapeFill } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
@@ -596,7 +595,7 @@ export class AreaSeries extends CartesianSeries<
             visible: visible || animationEnabled,
         });
 
-        const seriesFill = this.getNodeFill(this.properties.fill, this.properties.defaultColorRange);
+        const seriesFill = getShapeFill(this.properties.fill, this.properties.fillGradientDefaults);
 
         applyShapeStyle(
             fill,
@@ -801,17 +800,13 @@ export class AreaSeries extends CartesianSeries<
     }
 
     legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker, defaultColorRange } =
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker, fillGradientDefaults } =
             this.properties;
         const useAreaFill = !marker.enabled || marker.fill === undefined;
 
-        let legendMarkerFill = useAreaFill ? this.getNodeFill(fill, defaultColorRange) : marker.fill;
-        if (isGradientFill(marker.fill) && isGradientFill(fill)) {
-            legendMarkerFill = {
-                ...fill,
-                ...marker.fill,
-            };
-        }
+        const legendMarkerFill = useAreaFill
+            ? getShapeFill(fill, fillGradientDefaults)
+            : getShapeFill(marker.fill, marker.fillGradientDefaults);
 
         const markerStyle = this.getMarkerStyle(marker, undefined, undefined, false, undefined, {
             fill: legendMarkerFill,

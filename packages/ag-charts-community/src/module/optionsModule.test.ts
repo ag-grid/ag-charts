@@ -431,13 +431,20 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
 [
   {
-    "defaultColorRange": [
-      "#2162aa",
-      "#5090dc",
-      "#7ec0ff",
-    ],
     "direction": "vertical",
     "fill": "pink",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#2162aa",
+        "#5090dc",
+        "#7ec0ff",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -478,13 +485,20 @@ describe('ChartOptions', () => {
     "yName": "IPhone",
   },
   {
-    "defaultColorRange": [
-      "#cc7100",
-      "#ffa03a",
-      "#ffd171",
-    ],
     "direction": "vertical",
     "fill": "red",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -525,13 +539,20 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
-    "defaultColorRange": [
-      "#076f29",
-      "#459d55",
-      "#75cd82",
-    ],
     "direction": "vertical",
     "fill": "#459d55",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#076f29",
+        "#459d55",
+        "#75cd82",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -572,13 +593,20 @@ describe('ChartOptions', () => {
     "yName": "Wearables",
   },
   {
-    "defaultColorRange": [
-      "#008fb0",
-      "#34bfe1",
-      "#70f1ff",
-    ],
     "direction": "vertical",
     "fill": "#34bfe1",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -636,12 +664,19 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "defaultColorRange": [
-        "#b19c00",
-        "#e1cc00",
-        "#fffe5d",
-      ],
       "fill": "#e1cc00",
+      "fillGradientDefaults": {
+        "bounds": "item",
+        "colorStops": [
+          "#b19c00",
+          "#e1cc00",
+          "#fffe5d",
+        ],
+        "gradient": "radial",
+        "reverse": true,
+        "rotation": 0,
+        "type": "gradient",
+      },
       "shape": "circle",
       "size": 7,
       "stroke": "#a69400",
@@ -680,12 +715,19 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "defaultColorRange": [
-        "#6a3c9a",
-        "#9669cb",
-        "#c597fe",
-      ],
       "fill": "#9669cb",
+      "fillGradientDefaults": {
+        "bounds": "item",
+        "colorStops": [
+          "#6a3c9a",
+          "#9669cb",
+          "#c597fe",
+        ],
+        "gradient": "radial",
+        "reverse": true,
+        "rotation": 0,
+        "type": "gradient",
+      },
       "shape": "circle",
       "size": 7,
       "stroke": "#603c88",
@@ -718,13 +760,20 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
 [
   {
-    "defaultColorRange": [
-      "#2162aa",
-      "#5090dc",
-      "#7ec0ff",
-    ],
     "direction": "vertical",
     "fill": "pink",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#2162aa",
+        "#5090dc",
+        "#7ec0ff",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -765,13 +814,20 @@ describe('ChartOptions', () => {
     "yName": "IPhone",
   },
   {
-    "defaultColorRange": [
-      "#cc7100",
-      "#ffa03a",
-      "#ffd171",
-    ],
     "direction": "vertical",
     "fill": "red",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -812,13 +868,20 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
-    "defaultColorRange": [
-      "#076f29",
-      "#459d55",
-      "#75cd82",
-    ],
     "direction": "vertical",
     "fill": "#459d55",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#076f29",
+        "#459d55",
+        "#75cd82",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -859,13 +922,20 @@ describe('ChartOptions', () => {
     "yName": "Wearables",
   },
   {
-    "defaultColorRange": [
-      "#008fb0",
-      "#34bfe1",
-      "#70f1ff",
-    ],
     "direction": "vertical",
     "fill": "#34bfe1",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -923,12 +993,19 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "defaultColorRange": [
-        "#b19c00",
-        "#e1cc00",
-        "#fffe5d",
-      ],
       "fill": "#e1cc00",
+      "fillGradientDefaults": {
+        "bounds": "item",
+        "colorStops": [
+          "#b19c00",
+          "#e1cc00",
+          "#fffe5d",
+        ],
+        "gradient": "radial",
+        "reverse": true,
+        "rotation": 0,
+        "type": "gradient",
+      },
       "shape": "circle",
       "size": 7,
       "stroke": "#a69400",
@@ -967,12 +1044,19 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "defaultColorRange": [
-        "#6a3c9a",
-        "#9669cb",
-        "#c597fe",
-      ],
       "fill": "#9669cb",
+      "fillGradientDefaults": {
+        "bounds": "item",
+        "colorStops": [
+          "#6a3c9a",
+          "#9669cb",
+          "#c597fe",
+        ],
+        "gradient": "radial",
+        "reverse": true,
+        "rotation": 0,
+        "type": "gradient",
+      },
       "shape": "circle",
       "size": 7,
       "stroke": "#603c88",
@@ -1005,13 +1089,20 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
 [
   {
-    "defaultColorRange": [
-      "#2162aa",
-      "#5090dc",
-      "#7ec0ff",
-    ],
     "direction": "vertical",
     "fill": "pink",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#2162aa",
+        "#5090dc",
+        "#7ec0ff",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -1052,13 +1143,20 @@ describe('ChartOptions', () => {
     "yName": "IPhone",
   },
   {
-    "defaultColorRange": [
-      "#cc7100",
-      "#ffa03a",
-      "#ffd171",
-    ],
     "direction": "vertical",
     "fill": "red",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -1099,13 +1197,20 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
-    "defaultColorRange": [
-      "#076f29",
-      "#459d55",
-      "#75cd82",
-    ],
     "direction": "vertical",
     "fill": "#459d55",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#076f29",
+        "#459d55",
+        "#75cd82",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -1146,13 +1251,20 @@ describe('ChartOptions', () => {
     "yName": "Wearables",
   },
   {
-    "defaultColorRange": [
-      "#008fb0",
-      "#34bfe1",
-      "#70f1ff",
-    ],
     "direction": "vertical",
     "fill": "#34bfe1",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
     "label": {
       "color": "white",
@@ -1210,12 +1322,19 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "defaultColorRange": [
-        "#b19c00",
-        "#e1cc00",
-        "#fffe5d",
-      ],
       "fill": "#e1cc00",
+      "fillGradientDefaults": {
+        "bounds": "item",
+        "colorStops": [
+          "#b19c00",
+          "#e1cc00",
+          "#fffe5d",
+        ],
+        "gradient": "radial",
+        "reverse": true,
+        "rotation": 0,
+        "type": "gradient",
+      },
       "shape": "circle",
       "size": 7,
       "stroke": "#a69400",
@@ -1254,12 +1373,19 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "defaultColorRange": [
-        "#6a3c9a",
-        "#9669cb",
-        "#c597fe",
-      ],
       "fill": "#9669cb",
+      "fillGradientDefaults": {
+        "bounds": "item",
+        "colorStops": [
+          "#6a3c9a",
+          "#9669cb",
+          "#c597fe",
+        ],
+        "gradient": "radial",
+        "reverse": true,
+        "rotation": 0,
+        "type": "gradient",
+      },
       "shape": "circle",
       "size": 7,
       "stroke": "#603c88",

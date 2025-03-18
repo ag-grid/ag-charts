@@ -1,4 +1,4 @@
-import { type AgSankeySeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientColor, type AgSankeySeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { SankeySeries } from './sankeySeries';
@@ -26,7 +26,14 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
             // @ts-expect-error undocumented option
-            defaultColorRange: { $palette: 'gradient' }, // TODO: update sankey to handle 'gradients'
+            fillGradientDefaults: {
+                type: 'gradient',
+                gradient: 'linear',
+                bounds: 'item',
+                colorStops: { $palette: 'gradient' } as any,
+                rotation: 0,
+                reverse: false,
+            } satisfies Required<AgGradientColor>,
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,

@@ -1,4 +1,9 @@
-import { type AgWaterfallSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgGradientColor,
+    type AgWaterfallSeriesItemOptions,
+    type WithThemeParams,
+    _ModuleSupport,
+} from 'ag-charts-community';
 
 function itemTheme(
     key: 'altUp' | 'altDown' | 'neutral',
@@ -12,6 +17,31 @@ function itemTheme(
                 { $palette: `${key}.fill` },
             ],
         },
+        // @ts-expect-error undocumented option
+        fillGradientDefaults: {
+            type: 'gradient',
+            gradient: 'linear',
+            bounds: 'item',
+            colorStops: {
+                $if: [
+                    { $isGradient: [{ $palette: `${key}.fill` }] },
+                    {
+                        $map: [
+                            { $path: ['./color', undefined, { $value: '$1' }] },
+                            {
+                                $path: ['./colorStops', undefined, { $palette: `${key}.fill` }],
+                            },
+                        ],
+                    },
+                    [
+                        { $mix: [{ $palette: `${key}.fill` }, 'black', 0.15] },
+                        { $mix: [{ $palette: `${key}.fill` }, 'white', 0.15] },
+                    ],
+                ],
+            } as any,
+            rotation: 0,
+            reverse: false,
+        } satisfies Required<AgGradientColor>,
         stroke: { $palette: `${key}.stroke` },
         strokeWidth: 0,
         label: {
@@ -23,24 +53,6 @@ function itemTheme(
             color: { $ref: 'textColor' as const },
             formatter: undefined,
             placement: 'outside-end' as const,
-        },
-        // @ts-expect-error undocumented-option
-        defaultColorRange: {
-            $if: [
-                { $isGradient: [{ $palette: `${key}.fill` }] },
-                {
-                    $map: [
-                        { $path: ['./color', undefined, { $value: '$1' }] },
-                        {
-                            $path: ['./colorStops', undefined, { $palette: `${key}.fill` }],
-                        },
-                    ],
-                },
-                [
-                    { $mix: [{ $palette: `${key}.fill` }, 'black', 0.15] },
-                    { $mix: [{ $palette: `${key}.fill` }, 'white', 0.15] },
-                ],
-            ],
         },
     };
 }

@@ -1,5 +1,6 @@
 import type {
     AgColorType,
+    AgGradientColor,
     AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesOptions,
@@ -31,7 +32,6 @@ const {
     PLACEMENT,
     POSITIVE_NUMBER,
     COLOR_GRADIENT,
-    COLOR_STRING_ARRAY,
     OR,
     RATIO,
     STRING,
@@ -69,11 +69,11 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     @TempValidate(STRING, { optional: true })
     yHighName?: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgColorType = '#99CCFF';
+
+    @TempValidate(COLOR_GRADIENT)
+    fillGradientDefaults!: Required<AgGradientColor>;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

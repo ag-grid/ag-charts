@@ -15,6 +15,7 @@ const {
     TransformableText,
     BBox,
     applyShapeStyle,
+    getShapeStyle,
 } = _ModuleSupport;
 
 class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
@@ -104,15 +105,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         Sector
     );
 
-    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
-        return {
-            gradient: 'radial',
-            bounds: 'series',
-            rotation: 0,
-            colorStops: this.properties.defaultColorRange,
-        };
-    }
-
     override processData() {
         super.processData();
 
@@ -151,7 +143,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle : undefined;
 
-        return _ModuleSupport.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -159,7 +151,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             },
-            this.defaultShapeStyle
+            this.properties.fillGradientDefaults
         );
     }
 
@@ -205,7 +197,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
     }
 
     updateNodes() {
@@ -579,24 +571,30 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const color = format.fill;
 
+        const markerStyle = getShapeStyle(
+            {
+                shape: 'square' as const,
+                fill: color,
+                fillOpacity: 1,
+                stroke: undefined,
+                strokeWidth: 0,
+                strokeOpacity: 1,
+                lineDash: [0],
+                lineDashOffset: 0,
+            },
+            this.properties.fillGradientDefaults
+        );
+
+        if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
+            markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };
+        }
+
         return tooltip.formatTooltip(
             this.properties,
             {
                 title: labelKey != null ? datum[labelKey] : undefined,
                 symbol: {
-                    marker: _ModuleSupport.getShapeStyle(
-                        {
-                            shape: 'square',
-                            fill: color,
-                            fillOpacity: 1,
-                            stroke: undefined,
-                            strokeWidth: 0,
-                            strokeOpacity: 1,
-                            lineDash: [0],
-                            lineDashOffset: 0,
-                        },
-                        this.defaultShapeStyle
-                    ),
+                    marker: markerStyle,
                 },
                 data,
             },

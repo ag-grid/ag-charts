@@ -1,5 +1,6 @@
 import type {
     AgColorType,
+    AgGradientColor,
     AgRadialBarSeriesOptions,
     AgRadialSeriesItemStylerParams,
     AgRadialSeriesLabelFormatterParams,
@@ -23,7 +24,6 @@ const {
     STRING,
     Label,
     COLOR_GRADIENT,
-    COLOR_STRING_ARRAY,
     OR,
 } = _ModuleSupport;
 
@@ -40,11 +40,11 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
     @TempValidate(STRING, { optional: true })
     radiusName?: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgColorType = 'black';
+
+    @TempValidate(COLOR_GRADIENT)
+    fillGradientDefaults!: Required<AgGradientColor>;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

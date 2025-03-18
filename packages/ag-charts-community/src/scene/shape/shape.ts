@@ -88,10 +88,13 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     private createGradient(fill: ShapeGradientColor) {
-        const { colorSpace = 'rgb', gradient = 'linear', colorStops, rotation = 0 } = fill;
+        const { colorSpace = 'rgb', gradient = 'linear', colorStops, rotation = 0, reverse = false } = fill;
         if (colorStops == null) return;
 
-        const stops = getColorStops(colorStops, ['black'], [0, 1]);
+        let stops = getColorStops(colorStops, ['black'], [0, 1]);
+        if (reverse) {
+            stops = stops.map((s) => ({ color: s.color, stop: 1 - s.stop })).reverse();
+        }
 
         switch (gradient) {
             case 'linear':

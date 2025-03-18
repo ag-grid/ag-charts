@@ -15,6 +15,7 @@ import {
     arrayOf,
     arrayOfDefs,
     attachDescription,
+    boolean,
     color,
     number,
     or,
@@ -64,10 +65,13 @@ export const colorStopsOrderValidator = attachDescription((value) => {
 }, 'stops to be defined in ascending order');
 
 const gradientBounds = union('axis', 'item', 'series');
-const gradientColorStops = and(
-    arrayLength(2),
-    arrayOfDefs<AgGradientColorStop>({ color: color, stop: ratio }, 'color stops'),
-    colorStopsOrderValidator
+const gradientColorStops = or(
+    and(
+        arrayLength(2),
+        arrayOfDefs<AgGradientColorStop>({ color: color, stop: ratio }, 'color stops'),
+        colorStopsOrderValidator
+    ),
+    and(arrayLength(2), arrayOf(color, 'color stops'))
 );
 
 export const gradient = typeUnion<AgGradientColor>(
@@ -77,6 +81,7 @@ export const gradient = typeUnion<AgGradientColor>(
             bounds: gradientBounds,
             colorStops: gradientColorStops,
             rotation: number,
+            reverse: boolean,
         },
     },
     'a gradient object'
@@ -89,6 +94,7 @@ export const gradientStrict = typeUnion<AgGradientColorStrict>(
             bounds: gradientBounds,
             colorStops: required(gradientColorStops),
             rotation: number,
+            reverse: boolean,
         },
     },
     'a gradient object with color stops'

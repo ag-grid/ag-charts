@@ -1,4 +1,4 @@
-import { type AgMapShapeBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientColor, type AgMapShapeBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
@@ -21,7 +21,29 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
             stroke: { $ref: 'backgroundColor' },
             strokeWidth: 1,
             // @ts-expect-error undocumented-option
-            defaultColorRange: { $palette: 'gradient' },
+            fillGradientDefaults: {
+                type: 'gradient',
+                gradient: 'linear',
+                bounds: 'item',
+                colorStops: [
+                    {
+                        $mix: [
+                            { $path: ['./1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
+                            'black',
+                            0.15,
+                        ],
+                    },
+                    {
+                        $mix: [
+                            { $path: ['./1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
+                            'white',
+                            0.15,
+                        ],
+                    },
+                ] as any,
+                rotation: 0,
+                reverse: false,
+            } satisfies Required<AgGradientColor>,
         },
     },
 };

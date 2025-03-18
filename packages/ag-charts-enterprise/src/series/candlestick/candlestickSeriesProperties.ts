@@ -3,6 +3,7 @@ import type {
     AgCandlestickSeriesItemStylerParams,
     AgCandlestickSeriesTooltipRendererParams,
     AgColorType,
+    AgGradientColor,
     AgOhlcSeriesBaseOptions,
     Styler,
 } from 'ag-charts-community';
@@ -21,7 +22,6 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     COLOR_GRADIENT,
-    COLOR_STRING_ARRAY,
     OR,
 } = _ModuleSupport;
 
@@ -43,11 +43,11 @@ class CandlestickSeriesWick extends BaseProperties {
 }
 
 class CandlestickSeriesItem extends BaseProperties {
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
     fill: AgColorType = '#c16068';
+
+    @TempValidate(COLOR_GRADIENT)
+    fillGradientDefaults!: Required<AgGradientColor>;
 
     @TempValidate(RATIO)
     fillOpacity = 1;

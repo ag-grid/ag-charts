@@ -1,4 +1,4 @@
-import { type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientColor, type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { SunburstSeries } from './sunburstSeries';
@@ -22,7 +22,14 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             strokes: { $palette: 'strokes' },
             colorRange: { $palette: 'divergingColors' },
             // @ts-expect-error undocumented option
-            defaultColorRange: { $palette: 'gradient' }, // TODO: update sunburst to handle 'gradients'
+            fillGradientDefaults: {
+                type: 'gradient',
+                gradient: 'radial',
+                bounds: 'series',
+                colorStops: { $palette: 'gradient' } as any,
+                rotation: 0,
+                reverse: true,
+            } satisfies Required<AgGradientColor>,
             label: {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },

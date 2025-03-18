@@ -1,4 +1,4 @@
-import { type AgAxisLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
+import { type AgAxisLabelFormatterParams, type AgGradientColor, _ModuleSupport } from 'ag-charts-community';
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
@@ -22,7 +22,14 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
             ],
         },
         // @ts-expect-error undocumented option
-        defaultColorRange: { $palette: 'gradient' }, // TODO: update cone funnel to handle 'gradients'
+        fillGradientDefaults: {
+            type: 'gradient',
+            gradient: 'linear',
+            bounds: 'item',
+            colorStops: { $palette: 'gradient' } as any,
+            rotation: 0,
+            reverse: false,
+        } satisfies Required<AgGradientColor>,
         strokeWidth: 0,
         label: {
             enabled: true,

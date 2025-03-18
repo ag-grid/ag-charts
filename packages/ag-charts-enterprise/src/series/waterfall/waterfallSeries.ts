@@ -29,6 +29,7 @@ const {
     Rect,
     motion,
     applyShapeStyle,
+    getShapeStyle,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
@@ -511,10 +512,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        const { itemStyler, defaultColorRange } = item;
+        const { itemStyler, fillGradientDefaults } = item;
         const { xKey, yKey } = properties;
 
-        const format = this.getShapeStyle(
+        const format = getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? item.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,
@@ -525,7 +526,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
                 cornerRadius: item.cornerRadius,
             },
-            defaultColorRange
+            fillGradientDefaults
         );
 
         if (itemStyler != null) {
@@ -541,7 +542,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 });
             });
 
-            itemStyle = this.getShapeStyle(itemStyle, defaultColorRange);
+            itemStyle = getShapeStyle(itemStyle, fillGradientDefaults);
 
             Object.assign(format, itemStyle);
         }
@@ -651,10 +652,18 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(item: AgWaterfallSeriesItemType): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
-            this.getItemConfig(item);
+        const {
+            fill,
+            stroke,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            fillGradientDefaults,
+        } = this.getItemConfig(item);
         return {
-            marker: this.getShapeStyle(
+            marker: getShapeStyle(
                 {
                     fill,
                     stroke,
@@ -664,7 +673,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                defaultColorRange
+                fillGradientDefaults
             ),
         };
     }

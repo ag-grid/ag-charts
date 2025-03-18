@@ -1,4 +1,4 @@
-import type { AgColorType, AgRadialSeriesStyle } from 'ag-charts-community';
+import type { AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { isDefined } from 'ag-charts-core';
 
@@ -25,6 +25,7 @@ const {
     motion,
     applyShapeStyle,
     isGradientFill,
+    getShapeStyle,
 } = _ModuleSupport;
 
 class RadialColumnSeriesNodeEvent<
@@ -362,18 +363,6 @@ export abstract class RadialColumnSeriesBase<
         return NaN;
     }
 
-    protected abstract getNodeFill(fill: AgColorType, angle: number): Required<AgColorType>;
-
-    private getShapeStyle<T extends { fill?: AgColorType }>(style: T, angle: number): T;
-    private getShapeStyle<T extends { fill?: AgColorType }>(style: T | undefined, angle: number): T | undefined;
-    private getShapeStyle<T extends { fill?: AgColorType }>(style: T | undefined, angle: number): T | undefined {
-        if (!isGradientFill(style?.fill)) return style;
-        return {
-            ...style,
-            fill: this.getNodeFill(style.fill, angle),
-        };
-    }
-
     update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         const resize = this.checkResize(seriesRect);
         this.maybeRefreshNodeData();
@@ -399,11 +388,11 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
 
-    private getItemBaseStyle(angle: number, highlighted: boolean): ItemStyle {
+    private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return this.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -414,19 +403,13 @@ export abstract class RadialColumnSeriesBase<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius: properties.cornerRadius,
             },
-            angle
+            properties.fillGradientDefaults
         );
     }
 
-    protected getItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        format: ItemStyle,
-        angle: number,
-        highlighted: boolean
-    ) {
+    protected getItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
         const { id: seriesId, properties } = this;
-        const { angleKey, radiusKey, itemStyler } = properties;
+        const { angleKey, radiusKey, itemStyler, fillGradientDefaults } = properties;
 
         if (itemStyler == null) return;
 
@@ -441,7 +424,7 @@ export abstract class RadialColumnSeriesBase<
             });
         });
 
-        return this.getShapeStyle(overrides, angle);
+        return getShapeStyle(overrides, fillGradientDefaults);
     }
 
     protected updateSectorSelection(
@@ -463,15 +446,14 @@ export abstract class RadialColumnSeriesBase<
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
 
         const fillBBox = this.getShapeFillBBox();
+        const style = this.getItemBaseStyle(highlighted);
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const { datum, datumIndex, midPoint } = nodeDatum;
-                const angle = nodeDatum.midAngle;
 
-                const style = this.getItemBaseStyle(angle, highlighted);
-                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, angle, highlighted);
+                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, highlighted);
 
                 const fill = overrides?.fill ?? style.fill;
                 const itemBounds = isGradientFill(fill) && fill.bounds === 'item';
@@ -549,8 +531,8 @@ export abstract class RadialColumnSeriesBase<
 
         if (angleValue == null) return;
 
-        const format = this.getItemBaseStyle(-Math.PI / 2, false);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, -Math.PI / 2, false));
+        const format = this.getItemBaseStyle(false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
         return tooltip.formatTooltip(
             this.properties,
@@ -579,23 +561,36 @@ export abstract class RadialColumnSeriesBase<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
-            this.properties;
+        const {
+            fill,
+            stroke,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            fillGradientDefaults,
+        } = this.properties;
+
+        const markerStyle = getShapeStyle(
+            {
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            },
+            fillGradientDefaults
+        );
+
+        if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
+            markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };
+        }
 
         return {
-            marker: this.getShapeStyle(
-                {
-                    fill: fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity,
-                    strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                    defaultColorRange,
-                },
-                -Math.PI / 2
-            ),
+            marker: markerStyle,
         };
     }
 

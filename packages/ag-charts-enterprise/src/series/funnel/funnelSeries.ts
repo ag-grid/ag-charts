@@ -20,6 +20,7 @@ const {
     Rect,
     motion,
     applyShapeStyle,
+    getShapeStyle,
 } = _ModuleSupport;
 
 type ItemStyle = Pick<AgFunnelSeriesStyle, 'fill' | 'stroke'> & Required<Omit<AgFunnelSeriesStyle, 'fill' | 'stroke'>>;
@@ -47,7 +48,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
     }
 
     protected override barStyle(): FunnelSeriesShapeStyle {
-        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
+        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, fillGradientDefaults } =
             this.properties;
         return {
             fillOpacity,
@@ -55,7 +56,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             strokeWidth,
             lineDash,
             lineDashOffset,
-            defaultColorRange,
+            fillGradientDefaults,
         };
     }
 
@@ -70,7 +71,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             strokeWidth,
             lineDash,
             lineDashOffset,
-            defaultColorRange: this.properties.defaultColorRange,
+            fillGradientDefaults: this.properties.fillGradientDefaults,
         };
     }
 
@@ -114,7 +115,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return this.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -124,7 +125,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
-            properties.defaultColorRange
+            properties.fillGradientDefaults
         );
     }
 
@@ -173,7 +174,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             Object.assign(overrides, itemStyle);
         }
 
-        return this.getShapeStyle(overrides, properties.defaultColorRange);
+        return getShapeStyle(overrides, properties.fillGradientDefaults);
     }
 
     protected override updateDatumNodes(opts: {

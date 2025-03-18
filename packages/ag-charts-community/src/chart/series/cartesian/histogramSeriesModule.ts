@@ -1,5 +1,5 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgHistogramSeriesOptions } from 'ag-charts-types';
+import type { AgGradientColor, AgHistogramSeriesOptions } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -32,7 +32,14 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
             fill: { $palette: 'fill' },
             stroke: { $palette: 'stroke' },
             // @ts-expect-error undocumented option
-            defaultColorRange: { $palette: 'gradient' },
+            fillGradientDefaults: {
+                type: 'gradient',
+                gradient: 'linear',
+                bounds: 'item',
+                colorStops: { $palette: 'gradient' } as any,
+                rotation: 0,
+                reverse: false,
+            } satisfies Required<AgGradientColor>,
             strokeWidth: 1,
             fillOpacity: 1,
             strokeOpacity: 1,

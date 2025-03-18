@@ -1,4 +1,4 @@
-import { type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientColor, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { isDefined } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
@@ -26,6 +26,7 @@ const {
     SectorBox,
     motion,
     applyShapeStyle,
+    getShapeStyle,
 } = _ModuleSupport;
 
 class RadialBarSeriesNodeEvent<
@@ -77,13 +78,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     private readonly groupScale = new CategoryScale<string>();
 
-    protected get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
+    protected get defaultShapeStyle(): Required<AgGradientColor> {
         const angleScale = this.axes[ChartAxisDirection.X]?.scale;
         return {
-            gradient: 'conic',
-            bounds: 'series',
+            ...this.properties.fillGradientDefaults,
             rotation: _ModuleSupport.toDegrees(angleScale!.range[0]) + 90,
-            colorStops: this.properties.defaultColorRange,
         };
     }
 
@@ -371,7 +370,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return _ModuleSupport.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -405,7 +404,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             });
         }
 
-        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
+        return getShapeStyle(overrides, this.defaultShapeStyle);
     }
 
     protected updateSectorSelection(
@@ -563,19 +562,25 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     private legendItemSymbol() {
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
 
+        const markerStyle = getShapeStyle(
+            {
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            },
+            this.defaultShapeStyle
+        );
+
+        if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
+            markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };
+        }
+
         return {
-            marker: _ModuleSupport.getShapeStyle(
-                {
-                    fill: fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity,
-                    strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                },
-                this.defaultShapeStyle
-            ),
+            marker: markerStyle,
         };
     }
 

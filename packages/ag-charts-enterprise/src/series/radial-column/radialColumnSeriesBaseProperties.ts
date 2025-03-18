@@ -1,6 +1,7 @@
 import type {
     AgBaseRadialColumnSeriesOptions,
     AgColorType,
+    AgGradientColor,
     AgRadialSeriesItemStylerParams,
     AgRadialSeriesLabelFormatterParams,
     AgRadialSeriesStyle,
@@ -24,7 +25,6 @@ const {
     Label,
     OR,
     COLOR_GRADIENT,
-    COLOR_STRING_ARRAY,
 } = _ModuleSupport;
 
 export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeriesOptions> extends SeriesProperties<T> {
@@ -40,11 +40,11 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
     @TempValidate(STRING, { optional: true })
     radiusName?: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgColorType = 'black';
+
+    @TempValidate(COLOR_GRADIENT)
+    fillGradientDefaults!: Required<AgGradientColor>;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

@@ -1,5 +1,6 @@
 import type {
     AgColorType,
+    AgGradientColor,
     AgMapMarkerSeriesItemStylerParams,
     AgMapMarkerSeriesLabelFormatterParams,
     AgMapMarkerSeriesOptions,
@@ -116,11 +117,11 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     @TempValidate(NUMBER_ARRAY, { optional: true })
     sizeDomain?: [number, number];
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgColorType = 'black';
+
+    @TempValidate(COLOR_GRADIENT)
+    fillGradientDefaults!: Required<AgGradientColor>;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

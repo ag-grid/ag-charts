@@ -2,6 +2,7 @@ import type {
     AgCandlestickSeriesItemOptions,
     AgCandlestickSeriesItemStylerParams,
     AgCandlestickSeriesTooltipRendererParams,
+    AgGradientColor,
     AgOhlcSeriesBaseOptions,
     AgOhlcSeriesItemOptions,
     AgOhlcSeriesItemStylerParams,
@@ -58,7 +59,7 @@ export abstract class OhlcSeriesBaseProperties<
 > extends AbstractBarSeriesProperties<T> {
     abstract item: Record<
         'up' | 'down',
-        FillOptions & StrokeOptions & LineDashOptions & { defaultColorRange?: string[] }
+        FillOptions & StrokeOptions & LineDashOptions & { fillGradientDefaults?: Required<AgGradientColor> }
     >;
 
     @TempValidate(STRING)

@@ -10,7 +10,7 @@ import {
     MapShapeBackgroundSeriesProperties,
 } from './mapShapeBackgroundSeriesProperties';
 
-const { createDatumId, SeriesNodePickMode, Selection, Group, PointerEvents } = _ModuleSupport;
+const { createDatumId, SeriesNodePickMode, Selection, Group, PointerEvents, getShapeStyle } = _ModuleSupport;
 
 interface MapShapeBackgroundNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
@@ -41,15 +41,6 @@ export class MapShapeBackgroundSeries
 
     override get focusable() {
         return false;
-    }
-
-    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
-        return {
-            gradient: 'linear',
-            bounds: 'item',
-            rotation: 0,
-            colorStops: this.properties.defaultColorRange,
-        };
     }
 
     override setOptionsData() {
@@ -202,9 +193,9 @@ export class MapShapeBackgroundSeries
             }
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
-            const styles = _ModuleSupport.getShapeStyle(
+            const styles = getShapeStyle(
                 { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset },
-                this.defaultShapeStyle
+                this.properties.fillGradientDefaults
             );
             geoGeometry.setProperties(styles);
         });

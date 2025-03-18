@@ -558,9 +558,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return {
             ...fill,
             bounds: fill.bounds ?? 'series',
+            colorStops: fill.colorStops ?? (defaultColorRange as any),
             gradient: fill.gradient ?? 'radial',
             rotation: fill.rotation ?? 0,
-            colorStops: fill.colorStops ?? defaultColorRange.map((color) => ({ color })),
+            reverse: fill.reverse ?? true,
         };
     }
 
@@ -1378,10 +1379,16 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
         const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
 
+        let { fill } = sectorFormat;
+        const { stroke } = sectorFormat;
+        if (isGradientFill(fill)) {
+            fill = { ...fill, gradient: 'linear', rotation: 0, reverse: false };
+        }
+
         return {
             marker: {
-                fill: sectorFormat.fill,
-                stroke: sectorFormat.stroke,
+                fill,
+                stroke,
                 fillOpacity,
                 strokeOpacity,
                 strokeWidth,

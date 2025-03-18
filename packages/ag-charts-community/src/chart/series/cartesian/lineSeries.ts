@@ -34,6 +34,7 @@ import type { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { getShapeStyle } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
@@ -463,17 +464,20 @@ export class LineSeries extends CartesianSeries<
 
         const { marker } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-        return {
-            size: marker.size,
-            shape: marker.shape,
-            fill: highlightStyle?.fill ?? marker.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
-            stroke: highlightStyle?.stroke ?? marker.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
-            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? marker.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
-        };
+        return getShapeStyle(
+            {
+                size: marker.size,
+                shape: marker.shape,
+                fill: highlightStyle?.fill ?? marker.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
+                stroke: highlightStyle?.stroke ?? marker.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
+                strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? marker.lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
+            },
+            marker.fillGradientDefaults
+        );
     }
 
     private getMarkerItemStyleOverrides(

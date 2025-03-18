@@ -30,6 +30,7 @@ const {
     Text,
     PointerEvents,
     applyShapeStyle,
+    getShapeStyle,
 } = _ModuleSupport;
 
 interface MapShapeNodeDataContext
@@ -92,15 +93,6 @@ export class MapShapeSeries
         this.highlightNode,
         () => this.nodeFactory()
     );
-
-    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
-        return {
-            gradient: 'linear',
-            bounds: 'item',
-            rotation: 0,
-            colorStops: this.properties.defaultColorRange,
-        };
-    }
 
     public contextNodeData?: MapShapeNodeDataContext;
 
@@ -445,7 +437,7 @@ export class MapShapeSeries
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return _ModuleSupport.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -455,7 +447,7 @@ export class MapShapeSeries
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
-            this.defaultShapeStyle
+            this.properties.fillGradientDefaults
         );
     }
 
@@ -496,7 +488,7 @@ export class MapShapeSeries
             Object.assign(overrides, itemStyle);
         }
 
-        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
     }
 
     private updateDatumNodes(opts: {
@@ -605,7 +597,7 @@ export class MapShapeSeries
         }
 
         return {
-            marker: _ModuleSupport.getShapeStyle(
+            marker: getShapeStyle(
                 {
                     fill,
                     fillOpacity,
@@ -615,7 +607,7 @@ export class MapShapeSeries
                     lineDash,
                     lineDashOffset,
                 },
-                this.defaultShapeStyle
+                this.properties.fillGradientDefaults
             ),
         };
     }

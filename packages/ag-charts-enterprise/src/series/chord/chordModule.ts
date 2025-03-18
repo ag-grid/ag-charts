@@ -1,4 +1,4 @@
-import { type AgChordSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgChordSeriesOptions, type AgGradientColor, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { ChordSeries } from './chordSeries';
@@ -20,7 +20,14 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
             // @ts-expect-error undocumented option
-            defaultColorRange: { $palette: 'gradient' }, // TODO: fix chord to handle 'gradients'
+            fillGradientDefaults: {
+                type: 'gradient',
+                gradient: 'linear',
+                bounds: 'item',
+                colorStops: { $palette: 'gradient' } as any,
+                rotation: 0,
+                reverse: false,
+            } satisfies Required<AgGradientColor>,
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,

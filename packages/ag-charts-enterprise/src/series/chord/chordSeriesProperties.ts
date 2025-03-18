@@ -7,6 +7,7 @@ import {
     type AgChordSeriesOptions,
     type AgChordSeriesTooltipRendererParams,
     type AgColorType,
+    type AgGradientColor,
     type Styler,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -128,8 +129,8 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     @TempValidate(ARRAY, { optional: true })
     nodes: any[] | undefined = undefined;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
+    @TempValidate(COLOR_GRADIENT)
+    fillGradientDefaults!: Required<AgGradientColor>;
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
     fills: AgColorType[] = [];

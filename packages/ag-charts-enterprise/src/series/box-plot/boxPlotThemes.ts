@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientColor, _ModuleSupport } from 'ag-charts-community';
 
 const { CARTESIAN_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
@@ -8,7 +8,14 @@ export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['the
         fill: { $mix: [{ $palette: 'fill' }, { $ref: 'backgroundColor' }, 0.7] },
         stroke: { $palette: 'stroke' },
         // @ts-expect-error undocumented option
-        defaultColorRange: { $palette: 'gradient' },
+        fillGradientDefaults: {
+            type: 'gradient',
+            gradient: 'linear',
+            bounds: 'item',
+            colorStops: { $palette: 'gradient' } as any,
+            rotation: 0,
+            reverse: false,
+        } satisfies Required<AgGradientColor>,
         strokeWidth: 2,
     },
     axes: {

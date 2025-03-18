@@ -4,6 +4,7 @@ import type {
     AgBoxPlotSeriesStyle,
     AgBoxPlotSeriesTooltipRendererParams,
     AgColorType,
+    AgGradientColor,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -21,7 +22,6 @@ const {
     RATIO,
     STRING,
     mergeDefaults,
-    COLOR_STRING_ARRAY,
     COLOR_GRADIENT,
     OR,
 } = _ModuleSupport;
@@ -88,11 +88,11 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     @TempValidate(STRING, { optional: true })
     maxName?: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
     fill: AgColorType = '#c16068';
+
+    @TempValidate(COLOR_GRADIENT)
+    fillGradientDefaults!: Required<AgGradientColor>;
 
     @TempValidate(RATIO)
     fillOpacity = 1;

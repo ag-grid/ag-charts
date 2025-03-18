@@ -6,6 +6,7 @@ import type {
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
     AgColorType,
+    AgGradientColor,
     Styler,
 } from 'ag-charts-types';
 
@@ -14,7 +15,6 @@ import {
     BOOLEAN,
     COLOR_GRADIENT,
     COLOR_STRING,
-    COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
     NUMBER,
@@ -60,11 +60,11 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     @TempValidate(NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
     fill: AgColorType = '#c16068';
+
+    @TempValidate(COLOR_GRADIENT)
+    fillGradientDefaults!: Required<AgGradientColor>;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;
