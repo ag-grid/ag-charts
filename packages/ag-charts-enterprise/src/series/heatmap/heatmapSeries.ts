@@ -1,11 +1,4 @@
-import type {
-    AgColorType,
-    AgHeatmapSeriesStyle,
-    FontStyle,
-    FontWeight,
-    TextAlign,
-    VerticalAlign,
-} from 'ag-charts-community';
+import type { AgHeatmapSeriesStyle, FontStyle, FontWeight, TextAlign, VerticalAlign } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
@@ -473,7 +466,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        let fill: AgColorType;
+        let fill: _ModuleSupport.InternalAgColorType;
         if (colorValue == null) {
             fill = colorRange[0];
         } else {

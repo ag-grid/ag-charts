@@ -7,7 +7,6 @@ import type {
     AgChartLegendListeners,
     AgChartLegendOrientation,
     AgChartLegendPosition,
-    AgColorType,
     AgMarkerShape,
     AgMarkerShapeFn,
     FontStyle,
@@ -22,7 +21,7 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
-import { isGradientFill } from '../../scene/util/fill';
+import { type InternalAgColorType, isGradientFill } from '../../scene/util/fill';
 import { createId } from '../../util/id';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
@@ -803,7 +802,7 @@ export class Legend extends BaseProperties {
         const { stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
 
-        let fill: AgColorType | undefined;
+        let fill: InternalAgColorType | undefined;
         if (isGradientFill(marker.fill)) {
             fill = {
                 type: 'gradient',

@@ -2,7 +2,6 @@ import type {
     AgCandlestickSeriesItemOptions,
     AgCandlestickSeriesItemStylerParams,
     AgCandlestickSeriesTooltipRendererParams,
-    AgColorType,
     AgOhlcSeriesBaseOptions,
     Styler,
 } from 'ag-charts-community';
@@ -48,7 +47,7 @@ class CandlestickSeriesItem extends BaseProperties {
     defaultColorRange: string[] = [];
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
-    fill: AgColorType = '#c16068';
+    fill: _ModuleSupport.InternalAgColorType = '#c16068';
 
     @TempValidate(RATIO)
     fillOpacity = 1;

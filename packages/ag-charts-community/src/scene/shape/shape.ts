@@ -1,5 +1,5 @@
 import { clamp } from 'ag-charts-core';
-import type { AgGradientColor, AgPatternColor } from 'ag-charts-types';
+import type { AgPatternColor } from 'ag-charts-types';
 
 import { generateUUID } from '../../util/id';
 import type { BBox } from '../bbox';
@@ -11,7 +11,7 @@ import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Node, type RenderContext, SceneChangeDetection } from '../node';
 import { Pattern } from '../pattern/pattern';
-import { isGradientFill, isPatternFill } from '../util/fill';
+import { type InternalAgGradientColor, isGradientFill, isPatternFill } from '../util/fill';
 import { align } from '../util/pixel';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
@@ -26,7 +26,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasTransform &
     CanvasState;
 
-export type ShapeGradientColor = Omit<AgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
+export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
 
 export type ShapeColor = string | ShapeGradientColor | AgPatternColor;
 

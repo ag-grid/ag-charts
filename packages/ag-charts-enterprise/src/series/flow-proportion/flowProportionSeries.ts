@@ -1,4 +1,4 @@
-import { type AgColorType, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
@@ -531,7 +531,7 @@ export abstract class FlowProportionSeries<
         _type: FlowProportionDatumType,
         nodeIndex: number,
         format: {
-            fill?: AgColorType;
+            fill?: _ModuleSupport.InternalAgColorType;
             fillOpacity?: number;
             stroke?: string;
             strokeWidth?: number;

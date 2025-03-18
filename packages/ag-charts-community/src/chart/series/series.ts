@@ -2,7 +2,6 @@ import { Logger } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
-    AgColorType,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesVisibilityChange,
@@ -17,7 +16,7 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
-import { isGradientFill } from '../../scene/util/fill';
+import { type InternalAgColorType, isGradientFill } from '../../scene/util/fill';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';
 import { formatValue } from '../../util/format.util';
@@ -808,7 +807,7 @@ export abstract class Series<
         return this.callWithContext(defaultFormatter, params.value);
     }
 
-    private getMarkerNodeFill(fill: AgColorType, defaultColorRange: string[]): AgColorType {
+    private getMarkerNodeFill(fill: InternalAgColorType, defaultColorRange: string[]): InternalAgColorType {
         if (!isGradientFill(fill)) return fill;
 
         return {

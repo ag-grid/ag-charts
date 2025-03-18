@@ -1,5 +1,4 @@
 import { findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
-import type { AgColorType } from 'ag-charts-types';
 
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -14,7 +13,7 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
-import { isGradientFill } from '../../../scene/util/fill';
+import { type InternalAgColorType, isGradientFill } from '../../../scene/util/fill';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { findMinMax } from '../../../util/number';
@@ -431,9 +430,15 @@ export abstract class CartesianSeries<
 
     protected abstract nodeFactory(): TNode;
 
-    protected getNodeFill(fill: AgColorType, defaultColorStops: string[]): AgColorType;
-    protected getNodeFill(fill: AgColorType | undefined, defaultColorStops: string[]): AgColorType | undefined;
-    protected getNodeFill(fill: AgColorType | undefined, defaultColorStops: string[]): AgColorType | undefined {
+    protected getNodeFill(fill: InternalAgColorType, defaultColorStops: string[]): InternalAgColorType;
+    protected getNodeFill(
+        fill: InternalAgColorType | undefined,
+        defaultColorStops: string[]
+    ): InternalAgColorType | undefined;
+    protected getNodeFill(
+        fill: InternalAgColorType | undefined,
+        defaultColorStops: string[]
+    ): InternalAgColorType | undefined {
         if (!isGradientFill(fill)) return fill;
 
         return {
@@ -445,12 +450,12 @@ export abstract class CartesianSeries<
         };
     }
 
-    protected getShapeStyle<T extends { fill?: AgColorType }>(style: T, defaultColorRange: string[]): T;
-    protected getShapeStyle<T extends { fill?: AgColorType }>(
+    protected getShapeStyle<T extends { fill?: InternalAgColorType }>(style: T, defaultColorRange: string[]): T;
+    protected getShapeStyle<T extends { fill?: InternalAgColorType }>(
         style: T | undefined,
         defaultColorRange: string[]
     ): T | undefined;
-    protected getShapeStyle<T extends { fill?: AgColorType }>(
+    protected getShapeStyle<T extends { fill?: InternalAgColorType }>(
         style: T | undefined,
         defaultColorRange: string[]
     ): T | undefined {

@@ -1,5 +1,4 @@
 import {
-    type AgColorType,
     type AgSankeySeriesLabelFormatterParams,
     type AgSankeySeriesLinkItemStylerParams,
     type AgSankeySeriesLinkOptions,
@@ -70,7 +69,7 @@ class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterPara
 
 class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill: AgColorType | undefined = undefined;
+    fill: _ModuleSupport.InternalAgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity = 1;
@@ -105,7 +104,7 @@ class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOption
     alignment: 'left' | 'right' | 'center' | 'justify' = 'justify';
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill: AgColorType | undefined = undefined;
+    fill: _ModuleSupport.InternalAgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity = 1;
@@ -161,7 +160,7 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     defaultColorRange: string[] = [];
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
-    fills: AgColorType[] = [];
+    fills: _ModuleSupport.InternalAgColorType[] = [];
 
     @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = [];

@@ -1,9 +1,9 @@
-import type { AgColorType, AgGradientColorBounds, AgGradientType } from 'ag-charts-types';
+import type { AgGradientColorBounds, AgGradientType } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import { type GradientParams } from '../../scene/gradient/gradient';
 import type { Shape, ShapeColor } from '../../scene/shape/shape';
-import { isGradientFill } from '../../scene/util/fill';
+import { type InternalAgColorType, isGradientFill } from '../../scene/util/fill';
 
 export type ShapeStyle = Partial<
     Pick<Shape, 'fill' | 'fillOpacity' | 'stroke' | 'strokeOpacity' | 'strokeWidth' | 'lineDash' | 'lineDashOffset'>
@@ -21,9 +21,15 @@ export interface ShapeFillDefaults {
     colorStops: string[];
 }
 
-export function getShapeFill(fill: AgColorType, defaults: ShapeFillDefaults): AgColorType;
-export function getShapeFill(fill: AgColorType | undefined, defaults: ShapeFillDefaults): AgColorType | undefined;
-export function getShapeFill(fill: AgColorType | undefined, defaults: ShapeFillDefaults): AgColorType | undefined {
+export function getShapeFill(fill: InternalAgColorType, defaults: ShapeFillDefaults): InternalAgColorType;
+export function getShapeFill(
+    fill: InternalAgColorType | undefined,
+    defaults: ShapeFillDefaults
+): InternalAgColorType | undefined;
+export function getShapeFill(
+    fill: InternalAgColorType | undefined,
+    defaults: ShapeFillDefaults
+): InternalAgColorType | undefined {
     if (!isGradientFill(fill)) return fill;
 
     return {
@@ -35,12 +41,12 @@ export function getShapeFill(fill: AgColorType | undefined, defaults: ShapeFillD
     };
 }
 
-export function getShapeStyle<T extends { fill?: AgColorType }>(style: T, defaults: ShapeFillDefaults): T;
-export function getShapeStyle<T extends { fill?: AgColorType }>(
+export function getShapeStyle<T extends { fill?: InternalAgColorType }>(style: T, defaults: ShapeFillDefaults): T;
+export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T | undefined,
     defaults: ShapeFillDefaults
 ): T | undefined;
-export function getShapeStyle<T extends { fill?: AgColorType }>(
+export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T | undefined,
     defaults: ShapeFillDefaults
 ): T | undefined {

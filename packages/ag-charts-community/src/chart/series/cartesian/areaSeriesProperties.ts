@@ -2,11 +2,11 @@ import type {
     AgAreaSeriesLabelFormatterParams,
     AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesTooltipRendererParams,
-    AgColorType,
     AgSeriesAreaOptions,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
+import type { InternalAgColorType } from '../../../scene/util/fill';
 import {
     BOOLEAN,
     COLOR_GRADIENT,
@@ -50,7 +50,7 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     defaultColorRange: string[] = [];
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
-    fill: AgColorType = '#c16068';
+    fill: InternalAgColorType = '#c16068';
 
     @TempValidate(RATIO)
     fillOpacity = 1;

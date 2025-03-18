@@ -1,6 +1,5 @@
 import type {
     AgChordSeriesTooltipRendererParams,
-    AgColorType,
     AgSankeySeriesTooltipRendererParams,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -16,7 +15,7 @@ export interface FlowProportionSeriesProperties<SeriesOptions extends object>
     labelName: string | undefined;
     sizeKey: string | undefined;
     sizeName: string | undefined;
-    fills: AgColorType[];
+    fills: _ModuleSupport.InternalAgColorType[];
     strokes: string[];
     tooltip: _ModuleSupport.SeriesTooltip<
         AgChordSeriesTooltipRendererParams<any> & AgSankeySeriesTooltipRendererParams<any>

@@ -1,5 +1,4 @@
 import type {
-    AgColorType,
     AgConeFunnelSeriesLabelFormatterParams,
     AgConeFunnelSeriesOptions,
     AgConeFunnelSeriesTooltipRendererParams,
@@ -55,7 +54,7 @@ export class ConeFunnelProperties
     defaultColorRange: string[] = [];
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
-    fills: AgColorType[] = [];
+    fills: _ModuleSupport.InternalAgColorType[] = [];
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

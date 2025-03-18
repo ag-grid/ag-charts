@@ -66,7 +66,7 @@ export const colorStopsOrderValidator = attachDescription((value) => {
     return true;
 }, 'stops to be defined in ascending order');
 
-const gradientBounds = union('axis', 'item', 'series');
+// const gradientBounds = union('axis', 'item', 'series');
 const gradientColorStops = and(
     arrayLength(2),
     arrayOfDefs<AgGradientColorStop>({ color: color, stop: ratio }, 'color stops'),
@@ -76,8 +76,8 @@ const gradientColorStops = and(
 export const gradient = typeUnion<AgGradientColor>(
     {
         gradient: {
-            gradient: union('linear', 'radial', 'conic'),
-            bounds: gradientBounds,
+            // gradient: union('linear', 'radial', 'conic'),
+            // bounds: gradientBounds,
             colorStops: gradientColorStops,
             rotation: number,
         },
@@ -88,8 +88,8 @@ export const gradient = typeUnion<AgGradientColor>(
 export const gradientStrict = typeUnion<AgGradientColorStrict>(
     {
         gradient: {
-            gradient: union('linear', 'radial', 'conic'),
-            bounds: gradientBounds,
+            // gradient: union('linear', 'radial', 'conic'),
+            // bounds: gradientBounds,
             colorStops: required(gradientColorStops),
             rotation: number,
         },

@@ -1,4 +1,4 @@
-import type { AgColorType, AgRadialSeriesStyle } from 'ag-charts-community';
+import type { AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { isDefined } from 'ag-charts-core';
 
@@ -362,11 +362,20 @@ export abstract class RadialColumnSeriesBase<
         return NaN;
     }
 
-    protected abstract getNodeFill(fill: AgColorType, angle: number): AgColorType;
+    protected abstract getNodeFill(
+        fill: _ModuleSupport.InternalAgColorType,
+        angle: number
+    ): _ModuleSupport.InternalAgColorType;
 
-    private getShapeStyle<T extends { fill?: AgColorType }>(style: T, angle: number): T;
-    private getShapeStyle<T extends { fill?: AgColorType }>(style: T | undefined, angle: number): T | undefined;
-    private getShapeStyle<T extends { fill?: AgColorType }>(style: T | undefined, angle: number): T | undefined {
+    private getShapeStyle<T extends { fill?: _ModuleSupport.InternalAgColorType }>(style: T, angle: number): T;
+    private getShapeStyle<T extends { fill?: _ModuleSupport.InternalAgColorType }>(
+        style: T | undefined,
+        angle: number
+    ): T | undefined;
+    private getShapeStyle<T extends { fill?: _ModuleSupport.InternalAgColorType }>(
+        style: T | undefined,
+        angle: number
+    ): T | undefined {
         if (!isGradientFill(style?.fill)) return style;
         return {
             ...style,

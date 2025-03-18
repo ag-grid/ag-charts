@@ -1,4 +1,4 @@
-import type { AgColorType, AgMapShapeBackgroundOptions } from 'ag-charts-community';
+import type { AgMapShapeBackgroundOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
@@ -31,7 +31,7 @@ export class MapShapeBackgroundSeriesProperties extends SeriesProperties<AgMapSh
     defaultColorRange: string[] = [];
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
-    fill: AgColorType = 'black';
+    fill: _ModuleSupport.InternalAgColorType = 'black';
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

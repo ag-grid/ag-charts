@@ -1,5 +1,5 @@
 import { type Has, Logger, modulus } from 'ag-charts-core';
-import type { AgColorType, AgPieSeriesStyle } from 'ag-charts-types';
+import type { AgPieSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -13,7 +13,7 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
-import { isGradientFill, isStringFillArray } from '../../../scene/util/fill';
+import { type InternalAgColorType, isGradientFill, isStringFillArray } from '../../../scene/util/fill';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
 import { formatValue } from '../../../util/format.util';
@@ -89,7 +89,9 @@ interface PieNodeDatum extends DataModelSeriesNodeDatum {
         readonly text: string;
     };
 
-    readonly sectorFormat: { [key in keyof Required<AgPieSeriesStyle>]: AgPieSeriesStyle[key] };
+    readonly sectorFormat: { [key in keyof Omit<Required<AgPieSeriesStyle>, 'fill'>]: AgPieSeriesStyle[key] } & {
+        fill?: InternalAgColorType;
+    };
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
     enabled: boolean;
@@ -552,7 +554,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getNodeFill(fill: AgColorType, defaultColorRange: string[]): AgColorType {
+    private getNodeFill(fill: InternalAgColorType, defaultColorRange: string[]): InternalAgColorType {
         if (!isGradientFill(fill)) return fill;
 
         return {
@@ -564,7 +566,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         };
     }
 
-    private getFillParams(fill: AgColorType, innerRadius: number, outerRadius: number): GradientParams | undefined {
+    private getFillParams(
+        fill: InternalAgColorType,
+        innerRadius: number,
+        outerRadius: number
+    ): GradientParams | undefined {
         if (!isGradientFill(fill) || fill.bounds === 'item') return;
 
         return {
@@ -603,7 +609,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         const defaultColors = defaultColorRange[datumIndex % defaultColorRange.length];
 
-        const sectorFill: AgColorType | undefined = fill ?? 'black';
+        const sectorFill: InternalAgColorType | undefined = fill ?? 'black';
 
         let format: AgPieSeriesStyle | undefined;
         if (itemStyler) {

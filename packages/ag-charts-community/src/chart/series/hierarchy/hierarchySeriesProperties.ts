@@ -1,5 +1,4 @@
-import type { AgColorType } from 'ag-charts-types';
-
+import type { InternalAgColorType } from '../../../scene/util/fill';
 import {
     ARRAY_OF,
     COLOR_GRADIENT,
@@ -30,7 +29,7 @@ export abstract class HierarchySeriesProperties<T extends object> extends Series
     defaultColorRange: string[] = [];
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
-    fills: AgColorType[] = Object.values(DEFAULT_FILLS);
+    fills: InternalAgColorType[] = Object.values(DEFAULT_FILLS);
 
     @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);

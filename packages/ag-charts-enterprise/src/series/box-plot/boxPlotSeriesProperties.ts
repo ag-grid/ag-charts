@@ -3,7 +3,6 @@ import type {
     AgBoxPlotSeriesOptions,
     AgBoxPlotSeriesStyle,
     AgBoxPlotSeriesTooltipRendererParams,
-    AgColorType,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -93,7 +92,7 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     defaultColorRange: string[] = [];
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
-    fill: AgColorType = '#c16068';
+    fill: _ModuleSupport.InternalAgColorType = '#c16068';
 
     @TempValidate(RATIO)
     fillOpacity = 1;

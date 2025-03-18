@@ -7,10 +7,10 @@ import type {
     AgChartTheme,
     AgChartThemeName,
     AgChartThemePalette,
-    AgColorType,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { InternalAgColorType } from '../../scene/util/fill';
 import {
     deproxy,
     expectWarningsCalls,
@@ -33,7 +33,7 @@ describe('themes module', () => {
     const getActualPalette = (chart: AgChartInstance) => {
         let result = undefined;
         for (const series of deproxy(chart).chartOptions.processedOptions.series ?? []) {
-            result ??= { fills: [] as AgColorType[], strokes: [] as string[] };
+            result ??= { fills: [] as InternalAgColorType[], strokes: [] as string[] };
 
             expect(series.type).toEqual('bar');
             const barseries = series as AgBarSeriesOptions;

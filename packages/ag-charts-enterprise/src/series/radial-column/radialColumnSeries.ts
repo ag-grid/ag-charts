@@ -1,4 +1,4 @@
-import { type AgColorType, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
@@ -41,7 +41,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.Ra
         return radiusAxis instanceof PolarAxis ? radiusAxis.shape === 'circle' : false;
     }
 
-    protected getNodeFill(fill: AgColorType): AgColorType {
+    protected getNodeFill(fill: _ModuleSupport.InternalAgColorType): _ModuleSupport.InternalAgColorType {
         if (!isGradientFill(fill)) return fill;
 
         return {
