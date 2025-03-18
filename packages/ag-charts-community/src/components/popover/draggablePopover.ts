@@ -53,11 +53,11 @@ export abstract class DraggablePopover<Options extends PopoverOptions = PopoverO
 
         const partialPosition: Partial<Vec2> = {};
 
-        if (position.x >= bounds.x && position.x + popover.offsetWidth <= bounds.width) {
+        if (position.x >= 0 && position.x + popover.offsetWidth <= bounds.width) {
             partialPosition.x = position.x;
         }
 
-        if (position.y >= bounds.y && position.y + popover.offsetHeight <= bounds.height) {
+        if (position.y >= 0 && position.y + popover.offsetHeight <= bounds.height) {
             partialPosition.y = position.y;
         }
 

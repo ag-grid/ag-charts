@@ -6,6 +6,7 @@ import { GEOJSON_OBJECT } from '../map-util/validation';
 const {
     COLOR_STRING,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     OR,
     LINE_DASH,
     OBJECT,
@@ -25,7 +26,7 @@ export class MapShapeBackgroundSeriesProperties extends SeriesProperties<AgMapSh
     @TempValidate(GEOJSON_OBJECT, { optional: true })
     topology?: _ModuleSupport.FeatureCollection = undefined;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = 'black';
 
     @TempValidate(COLOR_GRADIENT)

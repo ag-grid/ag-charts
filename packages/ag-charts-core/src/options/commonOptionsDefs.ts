@@ -2,6 +2,7 @@ import type {
     AgGradientColor,
     AgGradientColorStop,
     AgGradientColorStrict,
+    AgPatternColor,
     FillOptions,
     FontOptions,
     LineDashOptions,
@@ -17,7 +18,9 @@ import {
     attachDescription,
     boolean,
     color,
+    constant,
     number,
+    optionsDefs,
     or,
     positiveNumber,
     ratio,
@@ -100,11 +103,6 @@ export const gradientStrict = typeUnion<AgGradientColorStrict>(
     'a gradient object with color stops'
 );
 
-export const fillOptionsDef: OptionsDefs<FillOptions> = {
-    fill: or(color, gradient),
-    fillOpacity: ratio,
-};
-
 export const stringFillOptionsDef: OptionsDefs<{ fill: string; fillOpacity: number }> = {
     fill: color,
     fillOpacity: ratio,
@@ -114,6 +112,38 @@ export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
     stroke: color,
     strokeWidth: positiveNumber,
     strokeOpacity: ratio,
+};
+
+const patternOptionsDef: OptionsDefs<AgPatternColor> = {
+    type: required(constant('pattern')),
+    pattern: union(
+        'vertical-lines',
+        'horizontal-lines',
+        'forward-slanted-lines',
+        'backward-slanted-lines',
+        'circles',
+        'squares',
+        'triangles',
+        'diamonds',
+        'stars',
+        'hearts',
+        'crosses'
+    ),
+    width: number,
+    height: number,
+    padding: number,
+    fill: string,
+    fillOpacity: ratio,
+    backgroundFill: string,
+    backgroundFillOpacity: ratio,
+    ...strokeOptionsDef,
+};
+
+export const pattern = optionsDefs(patternOptionsDef, 'a pattern');
+
+export const fillOptionsDef: OptionsDefs<FillOptions> = {
+    fill: or(string, gradient, pattern),
+    fillOpacity: ratio,
 };
 
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {

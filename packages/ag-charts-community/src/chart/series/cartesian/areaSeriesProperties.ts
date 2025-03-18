@@ -11,6 +11,7 @@ import { DropShadow } from '../../../scene/dropShadow';
 import {
     BOOLEAN,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     COLOR_STRING,
     LINE_DASH,
     OBJECT,
@@ -45,7 +46,7 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     @TempValidate(POSITIVE_NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#c16068';
 
     @TempValidate(COLOR_GRADIENT)

@@ -24,6 +24,7 @@ const {
     STRING,
     Label,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     OR,
 } = _ModuleSupport;
 
@@ -40,7 +41,7 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
     @TempValidate(STRING, { optional: true })
     radiusName?: string;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = 'black';
 
     @TempValidate(COLOR_GRADIENT)

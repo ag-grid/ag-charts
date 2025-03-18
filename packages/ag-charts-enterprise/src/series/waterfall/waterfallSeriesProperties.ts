@@ -20,6 +20,7 @@ const {
     TempValidate,
     BOOLEAN,
     COLOR_STRING,
+    COLOR_PATTERN,
     FUNCTION,
     LINE_DASH,
     NUMBER,
@@ -63,7 +64,7 @@ export class WaterfallSeriesItem extends BaseProperties {
     @TempValidate(STRING, { optional: true })
     name?: string;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
     fill: AgColorType = '#c16068';
 
     @TempValidate(COLOR_GRADIENT)

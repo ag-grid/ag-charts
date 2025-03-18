@@ -14,6 +14,7 @@ import { DropShadow } from '../../../scene/dropShadow';
 import {
     BOOLEAN,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     COLOR_STRING,
     FUNCTION,
     LINE_DASH,
@@ -60,7 +61,7 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     @TempValidate(NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#c16068';
 
     @TempValidate(COLOR_GRADIENT)

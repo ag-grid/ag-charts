@@ -25,6 +25,7 @@ const {
     STRING,
     BOOLEAN,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     OR,
     DropShadow,
     Label,
@@ -60,7 +61,7 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
     @TempValidate(STRING, { optional: true })
     yHighName?: string;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#99CCFF';
 
     @TempValidate(COLOR_GRADIENT)

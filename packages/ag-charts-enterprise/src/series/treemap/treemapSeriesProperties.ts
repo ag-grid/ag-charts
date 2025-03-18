@@ -31,6 +31,7 @@ const {
     TEXT_ALIGN,
     VERTICAL_ALIGN,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     OR,
     Label,
 } = _ModuleSupport;
@@ -41,7 +42,7 @@ class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
 }
 
 class TreemapSeriesGroup extends BaseProperties {
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
     fill: AgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
@@ -76,7 +77,7 @@ class TreemapSeriesGroup extends BaseProperties {
 }
 
 class TreemapSeriesTile extends BaseProperties {
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
     fill: AgColorType | undefined = undefined;
 
     @TempValidate(RATIO)

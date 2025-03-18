@@ -4,7 +4,8 @@ import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { createDatumId, isGradientFill, applyShapeFillBBox, getShapeFill, getShapeStyle } = _ModuleSupport;
+const { createDatumId, isGradientFill, isPatternFill, applyShapeFillBBox, getShapeFill, getShapeStyle } =
+    _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, CandlestickSeriesProperties<any>> {
     static readonly className = 'CandleStickSeries';
@@ -131,8 +132,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                   typeof c === 'string' ? c : { color: c.color, stop: c.stop != null ? c.stop * 0.5 : undefined }
               )
             : [
-                  { color: upFill, stop: 0 },
-                  { color: upFill, stop: 0.5 },
+                  { color: isPatternFill(upFill) ? up.stroke : upFill, stop: 0 },
+                  { color: isPatternFill(upFill) ? up.stroke : upFill, stop: 0.5 },
               ];
 
         const downFill = getShapeFill(down.fill, down.fillGradientDefaults);
@@ -140,7 +141,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             ? downFill.colorStops.map((c) =>
                   typeof c === 'string' ? c : { color: c.color, stop: c.stop != null ? c.stop * 0.5 : undefined }
               )
-            : [{ color: downFill, stop: 0.5 }];
+            : [{ color: isPatternFill(downFill) ? down.stroke : downFill, stop: 0.5 }];
 
         const fill: AgGradientColor = {
             type: 'gradient',

@@ -520,7 +520,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             properties;
         const { datum, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
         let fill;
-        let fillOpacity: number | undefined;
+        let fillOpacity: number = 1;
 
         if (isGradientFill(nodeDatum.fill)) {
             fill = nodeDatum.fill;
@@ -532,7 +532,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         let styles: Required<AgBoxPlotSeriesStyle> = getShapeStyle(
             {
                 fill,
-                fillOpacity: fillOpacity!,
+                fillOpacity,
                 stroke,
                 strokeWidth,
                 strokeOpacity,

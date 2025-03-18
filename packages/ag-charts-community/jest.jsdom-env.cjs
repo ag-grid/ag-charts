@@ -1,5 +1,5 @@
 const { TestEnvironment } = require('jest-environment-jsdom');
-const { Canvas } = require('canvas');
+const { Canvas, DOMMatrix } = require('canvas');
 const timezoneMock = require('timezone-mock');
 
 /**
@@ -15,6 +15,7 @@ module.exports = class TimezoneAwareJSDOMEnvironment extends TestEnvironment {
         super(config, context);
 
         this.global.OffscreenCanvas = Canvas;
+        this.global.DOMMatrix = DOMMatrix;
     }
 
     async teardown() {

@@ -158,7 +158,7 @@ describe('themes module', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Option \`theme.palette.fills\` cannot be set to \`"red"\`; expecting a color or a gradient object array, ignoring.",
+    "AG Charts - Option \`theme.palette.fills\` cannot be set to \`"red"\`; expecting a color or a gradient object or a pattern array, ignoring.",
   ],
   [
     "AG Charts - Option \`theme.palette.strokes\` cannot be set to \`"black"\`; expecting a color array, ignoring.",

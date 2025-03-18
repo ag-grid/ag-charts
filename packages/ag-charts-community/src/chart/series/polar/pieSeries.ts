@@ -552,7 +552,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getNodeFill(fill: AgColorType, defaultColorRange: string[]): Required<AgColorType> {
+    private getNodeFill(fill: AgColorType, defaultColorRange: string[]): AgColorType {
         if (!isGradientFill(fill)) return fill;
 
         return {

@@ -30,7 +30,7 @@ export function getShapeFill(
     fill: AgColorType | undefined,
     defaults: Required<AgGradientColor>
 ): Required<AgColorType> | undefined {
-    if (!isGradientFill(fill)) return fill;
+    if (!isGradientFill(fill)) return fill as any;
 
     return {
         ...fill,

@@ -7,6 +7,7 @@ import {
     gradientStrict,
     object,
     or,
+    pattern,
     string,
     validate,
 } from 'ag-charts-core';
@@ -122,7 +123,7 @@ const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     overrides: object,
     params: object,
     palette: {
-        fills: arrayOf(or(color, gradient)),
+        fills: arrayOf(or(color, gradient, pattern)),
         strokes: arrayOf(color),
         up: { fill: or(color, gradientStrict), stroke: color },
         down: { fill: or(color, gradientStrict), stroke: color },

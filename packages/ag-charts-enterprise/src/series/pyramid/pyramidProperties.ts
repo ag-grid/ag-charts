@@ -19,7 +19,6 @@ const {
     OR,
     COLOR_GRADIENT,
     COLOR_STRING,
-    ARRAY_OF,
     COLOR_STRING_ARRAY,
     FUNCTION,
     DIRECTION,
@@ -28,6 +27,7 @@ const {
     OBJECT,
     NUMBER,
     POSITIVE_NUMBER,
+    COLOR_PATTERN,
     RATIO,
     STRING,
     Label,
@@ -51,7 +51,7 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
     @TempValidate(STRING)
     valueKey!: string;
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fills: AgColorType[] = [];
 
     @TempValidate(COLOR_GRADIENT)

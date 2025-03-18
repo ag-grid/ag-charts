@@ -16,11 +16,11 @@ const {
     AxisLabel,
     TempValidate,
     UNION,
-    ARRAY_OF,
     OR,
     COLOR_GRADIENT,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
+    COLOR_PATTERN,
     LINE_DASH,
     OBJECT,
     POSITIVE_NUMBER,
@@ -51,7 +51,7 @@ export class ConeFunnelProperties
     @TempValidate(STRING)
     valueKey!: string;
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fills: AgColorType[] = [];
 
     @TempValidate(COLOR_GRADIENT)

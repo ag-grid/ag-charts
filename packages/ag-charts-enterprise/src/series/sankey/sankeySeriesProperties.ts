@@ -30,6 +30,7 @@ const {
     POSITIVE_NUMBER,
     OR,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     RATIO,
     STRING,
     UNION,
@@ -160,7 +161,7 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     @TempValidate(COLOR_GRADIENT)
     fillGradientDefaults!: Required<AgGradientColor>;
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: AgColorType[] = [];
 
     @TempValidate(COLOR_STRING_ARRAY)

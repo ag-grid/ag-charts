@@ -22,6 +22,7 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     OR,
 } = _ModuleSupport;
 
@@ -43,7 +44,7 @@ class CandlestickSeriesWick extends BaseProperties {
 }
 
 class CandlestickSeriesItem extends BaseProperties {
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#c16068';
 
     @TempValidate(COLOR_GRADIENT)

@@ -32,6 +32,7 @@ const {
     PLACEMENT,
     POSITIVE_NUMBER,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     OR,
     RATIO,
     STRING,
@@ -69,7 +70,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     @TempValidate(STRING, { optional: true })
     yHighName?: string;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#99CCFF';
 
     @TempValidate(COLOR_GRADIENT)

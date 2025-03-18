@@ -14,6 +14,7 @@ import { ChangeDetectableProperties } from '../../scene/util/changeDetectablePro
 import {
     BOOLEAN,
     COLOR_GRADIENT,
+    COLOR_PATTERN,
     COLOR_STRING,
     FUNCTION,
     LINE_DASH,
@@ -47,7 +48,7 @@ export class SeriesMarker<TParams = never>
     @SceneChangeDetection()
     size: number = 6;
 
-    @TempValidate(OR(COLOR_STRING, COLOR_GRADIENT), { optional: true })
+    @TempValidate(OR(COLOR_STRING, COLOR_PATTERN, COLOR_GRADIENT), { optional: true })
     @SceneChangeDetection()
     fill?: AgColorType;
 
