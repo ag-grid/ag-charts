@@ -73,9 +73,12 @@ export class ContextMenuRegistry {
         position?: { x: number; y: number }
     ) {
         const { sourceEvent } = pointerEvent;
+        if (sourceEvent.defaultPrevented) {
+            // AG-12894 'contextmenu' event bubbles, do not re-dispatch ContextMenuEvent if we're already draw own menu
+            return;
+        }
         const x = position?.x ?? pointerEvent.canvasX;
         const y = position?.y ?? pointerEvent.canvasY;
-        sourceEvent.stopPropagation();
         const event: ContextMenuEvent = { type, x, y, context, sourceEvent };
         this.listeners.dispatch('', event);
     }
