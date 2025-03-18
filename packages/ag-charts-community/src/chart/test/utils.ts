@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import { getDocument } from 'ag-charts-core';
+import { type AnyFn, getDocument } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -733,7 +733,7 @@ export async function createChart(options: AgChartOptions) {
 
 let activeAnimateCb: ((totalDuration: number, ratio: number) => Promise<void>) | undefined;
 export function spyOnAnimationManager() {
-    const mocks: jest.SpiedFunction<(...args: any[]) => any>[] = [];
+    const mocks: jest.SpiedFunction<AnyFn>[] = [];
     const rafCbs: Map<number, Parameters<typeof requestAnimationFrame>[0]> = new Map();
     let nextRafId = 1;
     const animateParameters = [0, 0];

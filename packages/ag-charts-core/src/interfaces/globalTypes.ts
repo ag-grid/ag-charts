@@ -1,3 +1,5 @@
+export type AnyFn = (...args: any[]) => any;
+
 export type Nullable<T> = T | null | undefined;
 
 export type PlainObject = { [key: string | number | symbol]: any };
@@ -8,7 +10,7 @@ export type Mutable<T> = T extends object ? { -readonly [K in keyof T]: Mutable<
 
 export type Defined<T> = T extends undefined ? never : T;
 
-export type DeepRequired<T> = T extends (...args: any[]) => any
+export type DeepRequired<T> = T extends AnyFn
     ? T
     : T extends any[]
       ? _DeepRequiredArray<T[number]>

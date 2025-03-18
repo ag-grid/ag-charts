@@ -1,4 +1,4 @@
-import { Logger, isArray } from 'ag-charts-core';
+import { type AnyFn, Logger, isArray } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -802,10 +802,7 @@ export abstract class Axis<
         return this.reverse;
     }
 
-    protected callWithContext<F extends (...args: any[]) => any>(
-        fn: F,
-        ...params: Parameters<F>
-    ): ReturnType<F> | undefined {
+    protected callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         const { callbackCache } = this.moduleCtx;
         return callbackCache.call(this, fn, ...params);
     }

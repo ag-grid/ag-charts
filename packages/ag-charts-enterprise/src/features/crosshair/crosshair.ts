@@ -1,5 +1,5 @@
 import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { isInteger } from 'ag-charts-core';
+import { type AnyFn, isInteger } from 'ag-charts-core';
 
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
@@ -409,10 +409,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.labels[key]?.toggle(false);
     }
 
-    private cachedCallWithContext<F extends (...args: any[]) => any>(
-        fn: F,
-        ...params: Parameters<F>
-    ): ReturnType<F> | undefined {
+    private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         const { callbackCache } = this.ctx;
         return callbackCache.call(this.axisCtx, fn, ...params);
     }

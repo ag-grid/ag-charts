@@ -1,4 +1,4 @@
-import { Logger, clamp } from 'ag-charts-core';
+import { type AnyFn, Logger, clamp } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -1170,10 +1170,7 @@ export class Legend extends BaseProperties {
         return [legendWidth, legendHeight];
     }
 
-    private cachedCallWithContext<F extends (...args: any[]) => any>(
-        fn: F,
-        ...params: Parameters<F>
-    ): ReturnType<F> | undefined {
+    private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         const { callbackCache } = this.ctx;
         return callbackCache.call(this, fn, ...params);
     }

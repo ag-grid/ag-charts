@@ -1,4 +1,4 @@
-import { Logger, type RequireOptional } from 'ag-charts-core';
+import { Logger, type AnyFn, type RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -933,14 +933,11 @@ export abstract class Series<
         }
     }
 
-    private cachedCallWithContext<F extends (...args: any[]) => any>(
-        fn: F,
-        ...params: Parameters<F>
-    ): ReturnType<F> | undefined {
+    private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         return this.ctx.callbackCache.call(this.properties, fn, ...params);
     }
 
-    public callWithContext<F extends (...args: any[]) => any>(fn: F, ...params: Parameters<F>): ReturnType<F> {
+    public callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> {
         return callWithContext(this.properties, fn, params);
     }
 

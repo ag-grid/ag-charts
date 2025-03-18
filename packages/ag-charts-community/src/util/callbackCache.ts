@@ -1,7 +1,6 @@
-import { Logger } from 'ag-charts-core';
+import { type AnyFn, Logger } from 'ag-charts-core';
 
 type Caller = { context?: unknown };
-type AnyFn = (...args: any[]) => any;
 
 function needsContext<I>(caller: Caller, _params: I[]): _params is (I & { context: unknown })[] {
     return 'context' in caller;
