@@ -154,8 +154,6 @@ describe('API context', () => {
         });
         test('no pass-through', async () => {
             chart = await createChart(options);
-            await hoverAction(130, 363)(chart); // datum 1, series 1
-            await waitForChartStability(chart);
             itemStyler.expect().toHaveBeenCalledTimes(12);
             itemStyler.expect().nthCalledWithContext(0, seriesContext0);
             itemStyler.expect().nthCalledWithContext(1, seriesContext0);
@@ -183,6 +181,9 @@ describe('API context', () => {
             seriesLabelFormatter.expect().nthCalledWithContext(10, seriesContext2);
             seriesLabelFormatter.expect().nthCalledWithContext(11, seriesContext2);
             axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(axisContext);
+
+            await hoverAction(130, 363)(chart); // datum 1, series 1
+            await waitForChartStability(chart);
             tooltipRenderer.expect().toHaveBeenCalledTimes(2);
             tooltipRenderer.expect().nthCalledWithContext(0, seriesContext0);
             tooltipRenderer.expect().nthCalledWithContext(1, seriesContext0);
@@ -193,11 +194,12 @@ describe('API context', () => {
             delete options.series![2].context;
             delete options.axes![0].context;
             chart = await createChart(options);
-            await hoverAction(130, 363)(chart); // datum 1, series 1
-            await waitForChartStability(chart);
             itemStyler.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
             seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
             axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(rootContext);
+
+            await hoverAction(130, 363)(chart); // datum 1, series 1
+            await waitForChartStability(chart);
             tooltipRenderer.expect().toHaveBeenCalledTimes(2).withContext(rootContext);
         });
     });
