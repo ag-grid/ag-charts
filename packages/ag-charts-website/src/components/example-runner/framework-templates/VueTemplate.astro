@@ -46,14 +46,33 @@ const {
 const startFile = pathJoin(appLocation, entryFileName);
 
 import exampleControlsStyles from '@ag-website-shared/components/example-runner/example-controls.css?raw';
+
+const frameworkStyles = `
+    #app {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        gap: 8px;
+    }
+
+    #app > div:last-of-type {
+        padding: 1rem;
+        height: 100%;
+        border-radius: 8px;
+        background-color: var(--chart-bg);
+        border: 1px solid var(--chart-border);
+    }
+`;
+
+const genericExampleStyles = frameworkStyles.concat(exampleControlsStyles);
 ---
 
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Vue 3 Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
 
-        <!-- Example control styles -->
-        <style set:html={exampleControlsStyles}></style>
+        <!-- Generic Example Styles -->
+        <style set:html={genericExampleStyles}></style>
 
         <Styles
             baseUrl={appLocation}
