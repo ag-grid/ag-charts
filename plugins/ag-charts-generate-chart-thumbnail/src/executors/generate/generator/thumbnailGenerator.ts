@@ -67,12 +67,13 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
         window.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 
         // Note - we'll need one instance per DPI setting
-        const mockCtx = mockCanvas.setup({
-            width: DEFAULT_THUMBNAIL_WIDTH * dpi,
-            height: DEFAULT_THUMBNAIL_HEIGHT * dpi,
-            document,
-            mockText,
-        });
+        const mockCtx = new mockCanvas.MockContext(
+            DEFAULT_THUMBNAIL_WIDTH * dpi,
+            DEFAULT_THUMBNAIL_HEIGHT * dpi,
+            document
+        );
+        mockCtx.mockText = mockText;
+        mockCanvas.setup(mockCtx);
 
         const chartProxy = AgCharts[api]({
             animation: { enabled: false },

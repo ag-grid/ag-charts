@@ -1,13 +1,10 @@
 import { CanvasRenderingContext2D } from 'canvas';
 
-export function mockCanvasText() {
-    CanvasRenderingContext2D.prototype.measureText = function (text: string) {
-        return measureText(this, text);
-    };
-
-    CanvasRenderingContext2D.prototype.fillText = function (text: string, x: number, y: number) {
-        fillText(this, text, x, y);
-    };
+export function mockCanvasText(context: CanvasRenderingContext2D): CanvasRenderingContext2D {
+    // Returning a proxy doesn't seem to work here
+    context.measureText = (text: string) => measureText(context, text);
+    context.fillText = (text: string, x: number, y: number) => fillText(context, text, x, y);
+    return context;
 }
 
 const replacements: Partial<Record<string, string>> = {
