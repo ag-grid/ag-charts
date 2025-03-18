@@ -1,5 +1,5 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgAreaSeriesOptions, AgGradientColor } from 'ag-charts-types';
+import type { AgAreaSeriesOptions, AgGradientColor, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -38,10 +38,10 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 type: 'gradient',
                 gradient: 'linear',
                 bounds: 'item',
-                colorStops: { $palette: 'gradient' } as any,
+                colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: false,
-            } satisfies Required<AgGradientColor>,
+            } satisfies WithThemeParams<Required<AgGradientColor>>,
             stroke: { $palette: 'stroke' },
             fillOpacity: 0.8,
             strokeOpacity: 1,
@@ -72,10 +72,10 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                     type: 'gradient',
                     gradient: 'radial',
                     bounds: 'item',
-                    colorStops: { $palette: 'gradient' } as any,
+                    colorStops: { $palette: 'gradient' },
                     rotation: 0,
                     reverse: true,
-                } satisfies Required<AgGradientColor>,
+                } satisfies WithThemeParams<Required<AgGradientColor>>,
             },
             label: {
                 enabled: false,

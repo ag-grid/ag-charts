@@ -1,4 +1,9 @@
-import { type AgGradientColor, type AgMapShapeSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgGradientColor,
+    type AgMapShapeSeriesOptions,
+    type WithThemeParams,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
@@ -31,10 +36,10 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 type: 'gradient',
                 gradient: 'linear',
                 bounds: 'item',
-                colorStops: { $palette: 'gradient' } as any,
+                colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: false,
-            } satisfies Required<AgGradientColor>,
+            } satisfies WithThemeParams<Required<AgGradientColor>>,
             fillOpacity: 1,
             strokeWidth: 1,
             lineDash: [0],

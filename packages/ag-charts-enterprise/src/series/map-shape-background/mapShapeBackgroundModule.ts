@@ -1,4 +1,9 @@
-import { type AgGradientColor, type AgMapShapeBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgGradientColor,
+    type AgMapShapeBackgroundOptions,
+    type WithThemeParams,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
@@ -43,7 +48,7 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
                 ] as any,
                 rotation: 0,
                 reverse: false,
-            } satisfies Required<AgGradientColor>,
+            } satisfies WithThemeParams<Required<AgGradientColor>>,
         },
     },
 };

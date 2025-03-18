@@ -1,4 +1,9 @@
-import { type AgChordSeriesOptions, type AgGradientColor, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgChordSeriesOptions,
+    type AgGradientColor,
+    type WithThemeParams,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { ChordSeries } from './chordSeries';
@@ -24,10 +29,10 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
                 type: 'gradient',
                 gradient: 'linear',
                 bounds: 'item',
-                colorStops: { $palette: 'gradient' } as any,
+                colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: false,
-            } satisfies Required<AgGradientColor>,
+            } satisfies WithThemeParams<Required<AgGradientColor>>,
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,

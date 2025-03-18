@@ -1,4 +1,9 @@
-import { type AgGradientColor, type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgGradientColor,
+    type AgSunburstSeriesOptions,
+    type WithThemeParams,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { SunburstSeries } from './sunburstSeries';
@@ -26,10 +31,10 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
                 type: 'gradient',
                 gradient: 'radial',
                 bounds: 'series',
-                colorStops: { $palette: 'gradient' } as any,
+                colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: true,
-            } satisfies Required<AgGradientColor>,
+            } satisfies WithThemeParams<Required<AgGradientColor>>,
             label: {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },

@@ -1,4 +1,4 @@
-import { type AgGradientColor, _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientColor, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
 const {
     ThemeSymbols: { DEFAULT_SHADOW_COLOUR },
@@ -16,10 +16,10 @@ export const PYRAMID_SERIES_THEME: _ModuleSupport.SeriesModule<'pyramid'>['theme
             type: 'gradient',
             gradient: 'linear',
             bounds: 'item',
-            colorStops: { $palette: 'gradient' } as any,
+            colorStops: { $palette: 'gradient' },
             rotation: 0,
             reverse: false,
-        } satisfies Required<AgGradientColor>,
+        } satisfies WithThemeParams<Required<AgGradientColor>>,
         label: {
             enabled: true,
             fontSize: { $ref: 'fontSize' },

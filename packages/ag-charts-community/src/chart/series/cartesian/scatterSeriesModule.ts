@@ -1,5 +1,10 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgGradientColor, AgScatterSeriesOptions, AgTooltipPositionOptions } from 'ag-charts-types';
+import type {
+    AgGradientColor,
+    AgScatterSeriesOptions,
+    AgTooltipPositionOptions,
+    WithThemeParams,
+} from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -37,10 +42,10 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
                 type: 'gradient',
                 gradient: 'radial',
                 bounds: 'item',
-                colorStops: { $palette: 'gradient' } as any,
+                colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: true,
-            } satisfies Required<AgGradientColor>,
+            } satisfies WithThemeParams<Required<AgGradientColor>>,
             fillOpacity: 0.8,
             tooltip: { position: { _seriesOverrideType: 'node' } as AgTooltipPositionOptions },
             label: {

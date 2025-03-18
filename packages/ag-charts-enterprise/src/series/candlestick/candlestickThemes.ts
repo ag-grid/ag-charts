@@ -47,7 +47,7 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
             } as any,
             rotation: 0,
             reverse: false,
-        } satisfies Required<AgGradientColor>,
+        } satisfies WithThemeParams<Required<AgGradientColor>>,
     };
 }
 

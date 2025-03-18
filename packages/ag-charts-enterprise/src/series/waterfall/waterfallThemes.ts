@@ -41,7 +41,7 @@ function itemTheme(
             } as any,
             rotation: 0,
             reverse: false,
-        } satisfies Required<AgGradientColor>,
+        } satisfies WithThemeParams<Required<AgGradientColor>>,
         stroke: { $palette: `${key}.stroke` },
         strokeWidth: 0,
         label: {

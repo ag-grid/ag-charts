@@ -1,5 +1,5 @@
 import { type SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgBarSeriesOptions, AgGradientColor } from 'ag-charts-types';
+import type { AgBarSeriesOptions, AgGradientColor, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -30,10 +30,10 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                 type: 'gradient',
                 gradient: 'linear',
                 bounds: 'item',
-                colorStops: { $palette: 'gradient' } as any,
+                colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: false,
-            } satisfies Required<AgGradientColor>,
+            } satisfies WithThemeParams<Required<AgGradientColor>>,
             fillOpacity: 1,
             strokeWidth: 0,
             lineDash: [0],

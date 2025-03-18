@@ -1,4 +1,4 @@
-import { type AgGradientColor, _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientColor, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE },
@@ -23,10 +23,10 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
                 type: 'gradient',
                 gradient: 'radial',
                 bounds: 'item',
-                colorStops: { $palette: 'gradient' } as any,
+                colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: true,
-            } satisfies Required<AgGradientColor>,
+            } satisfies WithThemeParams<Required<AgGradientColor>>,
             fillOpacity: 1,
             shape: 'circle',
             size: 6,
@@ -63,10 +63,10 @@ export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>[
                     type: 'gradient',
                     gradient: 'linear',
                     bounds: 'item',
-                    colorStops: { $palette: 'gradient' } as any,
+                    colorStops: { $palette: 'gradient' },
                     rotation: 0,
                     reverse: false,
-                } satisfies Required<AgGradientColor>,
+                } satisfies WithThemeParams<Required<AgGradientColor>>,
                 fillOpacity: 0.8,
                 strokeWidth: 2,
                 marker: {
@@ -75,10 +75,10 @@ export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>[
                         type: 'gradient',
                         gradient: 'radial',
                         bounds: 'item',
-                        colorStops: { $palette: 'gradient' } as any,
+                        colorStops: { $palette: 'gradient' },
                         rotation: 0,
                         reverse: true,
-                    } satisfies Required<AgGradientColor>,
+                    } satisfies WithThemeParams<Required<AgGradientColor>>,
                 },
             },
         },

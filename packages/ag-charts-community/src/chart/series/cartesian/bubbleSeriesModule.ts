@@ -1,5 +1,10 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgBubbleSeriesOptions, AgGradientColor, AgTooltipPositionOptions } from 'ag-charts-types';
+import type {
+    AgBubbleSeriesOptions,
+    AgGradientColor,
+    AgTooltipPositionOptions,
+    WithThemeParams,
+} from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -38,10 +43,10 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
                 type: 'gradient',
                 gradient: 'radial',
                 bounds: 'item',
-                colorStops: { $palette: 'gradient' } as any,
+                colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: true,
-            } satisfies Required<AgGradientColor>,
+            } satisfies WithThemeParams<Required<AgGradientColor>>,
             fillOpacity: 0.8,
             tooltip: { position: { _seriesOverrideType: 'node' } as AgTooltipPositionOptions },
             label: {
