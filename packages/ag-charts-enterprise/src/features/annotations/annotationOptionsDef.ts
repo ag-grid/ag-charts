@@ -44,7 +44,7 @@ import type {
 
 const { toolbarButtonOptionsDefs } = _ModuleSupport;
 
-export const AnnotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
+export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     enabled: boolean,
     axesButtons: {
         enabled: boolean,

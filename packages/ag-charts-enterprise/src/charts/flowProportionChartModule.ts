@@ -8,6 +8,7 @@ const { isAgFlowProportionChartOptions, flowProportionChartOptionsDefs } = _Modu
 export const FlowProportionChartModule: ChartModuleDefinition<AgFlowProportionChartOptions> = {
     type: 'chart',
     name: 'flow-proportion',
+    enterprise: true,
 
     options: flowProportionChartOptionsDefs,
 

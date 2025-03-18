@@ -22,6 +22,7 @@ import {
     ratio,
     required,
     string,
+    typeUnion,
     union,
     validate,
 } from './validation';
@@ -175,6 +176,23 @@ describe('Validation utils', () => {
         test('validates objects against provided definitions', () => {
             expect(optionDefsValidator({ key1: 'value', key2: 42 }, mockContext())).toBe(true);
             expect(optionDefsValidator({ key1: 'value', key2: 'not a number' }, mockContext())).toBe(false);
+        });
+    });
+
+    describe('TypeUnion Validator', () => {
+        test('validates an object by the `type` property', () => {
+            const isTypeUnionOfFoo = typeUnion<{ type: 'a'; aa?: boolean } | { type: 'b'; bb: number }>({
+                a: { aa: boolean },
+                b: { bb: required(number) },
+            });
+            expect(isTypeUnionOfFoo({ type: 'a', aa: true }, mockContext())).toBe(true);
+            expect(isTypeUnionOfFoo({ type: 'a' }, mockContext())).toBe(true);
+            expect(isTypeUnionOfFoo({ type: 'b', bb: 1 }, mockContext())).toBe(true);
+            expect(isTypeUnionOfFoo({ type: 'b' }, mockContext())).toBe(false);
+            expect(isTypeUnionOfFoo({ type: 'b', bb: false }, mockContext())).toBe(false);
+            expect(isTypeUnionOfFoo({ type: 'a', aa: 'not a boolean' }, mockContext())).toBe(true);
+            expect(isTypeUnionOfFoo({ type: 'a', bb: 1 }, mockContext())).toBe(true);
+            expect(isTypeUnionOfFoo({ type: 'c', aa: 1 }, mockContext())).toBe(false);
         });
     });
 

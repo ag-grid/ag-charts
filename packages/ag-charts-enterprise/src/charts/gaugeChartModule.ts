@@ -8,6 +8,7 @@ const { isAgGaugeChartOptions, gaugeChartOptionsDefs } = _ModuleSupport;
 export const GaugeChartModule: ChartModuleDefinition<AgGaugeChartOptions> = {
     type: 'chart',
     name: 'gauge',
+    enterprise: true,
 
     options: gaugeChartOptionsDefs,
 

@@ -12,16 +12,19 @@ export type ModuleTypeSwitch<TModule extends ModuleType, TOptions = any> = TModu
     ? AxisModuleDefinition<TOptions>
     : TModule extends ModuleType.Chart
       ? ChartModuleDefinition<TOptions>
-      : TModule extends ModuleType.Series
-        ? SeriesModuleDefinition<TOptions>
-        : never;
+      : TModule extends ModuleType.Plugin
+        ? PluginModuleDefinition<TOptions>
+        : TModule extends ModuleType.Series
+          ? SeriesModuleDefinition<TOptions>
+          : never;
 
 export interface ModuleInstance {}
 
 export interface ModuleDefinition<TModule extends ModuleType = ModuleType, TOptions = any> {
     type: `${TModule}` | TModule;
-    enterprise?: boolean;
     name: string;
+    enterprise?: boolean;
+    placeholder?: boolean;
 
     style?: string; // css string to inject into a style element
     themeTemplate?: object; // module's default theme template
@@ -47,4 +50,8 @@ export interface AxisModuleDefinition<TOptions> extends ModuleDefinition<ModuleT
 
 export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Series, TOptions> {
     chartType: string;
+}
+
+export interface PluginModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Plugin, TOptions> {
+    chartType?: string;
 }

@@ -8,6 +8,7 @@ const { isAgHierarchyChartOptions, hierarchyChartOptionsDefs } = _ModuleSupport;
 export const HierarchyChartModule: ChartModuleDefinition<AgHierarchyChartOptions> = {
     type: 'chart',
     name: 'hierarchy',
+    enterprise: true,
 
     options: hierarchyChartOptionsDefs,
 

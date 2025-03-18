@@ -1,4 +1,5 @@
 import {
+    type ChartModuleDefinition,
     type DeepPartial,
     Logger,
     ModuleRegistry,
@@ -124,6 +125,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     themeParameters: AgChartThemeParams = {};
     annotationThemes: any;
     fastDelta?: DeepPartial<T>;
+    chartDef: ChartModuleDefinition<any>;
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -164,10 +166,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
 
-        const chartDef = ModuleRegistry.detectChartDefinition(this.userOptions);
-        if (chartDef.options) {
-            console.log(`Chart Type: ${chartDef.name}`, validate(this.userOptions, chartDef.options));
-        }
+        this.chartDef = ModuleRegistry.detectChartDefinition(this.userOptions);
 
         if (stripSymbols) {
             this.removeLeftoverSymbols(this.userOptions);
@@ -283,6 +282,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             activeTheme.templateTheme(options, false);
         }
 
+        if (!this.chartDef.placeholder) {
+            const { valid, errors } = validate(this.userOptions, this.chartDef.options);
+            errors.forEach((error) => Logger.warn(error));
+            options = valid as T;
+        }
+
+        for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
+            if (pluginDef.name in options) {
+                const { valid, errors } = validate(this.userOptions, this.chartDef.options);
+                errors.forEach((error) => Logger.warn(error));
+                options[pluginDef.name as keyof T] = valid as T[keyof T];
+            }
+        }
+
         this.validateSeriesOptions(options);
         this.validateAxesOptions(options);
 
@@ -351,6 +364,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     validateSeriesOptions(options: T): void {
+        const chartType = this.chartDef.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
         for (let index = 0; index < seriesCount; index++) {
@@ -359,6 +373,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             if (seriesDef == null) {
                 Logger.warn(`Unknown series type \`${seriesOptions.type}\`, ignoring.\``);
+                continue;
+            } else if (seriesDef.chartType !== chartType) {
+                Logger.warn(
+                    `Series type \`${seriesDef.name}\` is not supported by chart type \`${chartType}\`, ignoring.\``
+                );
                 continue;
             }
 
@@ -378,6 +397,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     validateAxesOptions(options: T) {
         if (!('axes' in options) || !options.axes) return;
 
+        const chartType = this.chartDef.name;
         const validatedAxesOptions: any[] = [];
         const axesCount = options.axes.length ?? 0;
         for (let index = 0; index < axesCount; index++) {
@@ -387,13 +407,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             if (axisDef == null) {
                 const validTypes = Array.from(ModuleRegistry.listModulesByType(ModuleType.Axis))
-                    .filter((def) => def.chartType)
+                    .filter((def) => def.chartType === chartType)
                     .map((def) => def.name);
                 const expectedTypes = joinFormatted(validTypes, 'or', (value: string) => `'${value}'`);
                 Logger.warn(
                     `Option \`${keyPath}.type\` cannot be set to \`${axisOptions.type}\`; expecting one of ${expectedTypes}, ignoring all axes options.\``
                 );
                 delete options.axes;
+                break;
+            } else if (axisDef.chartType !== chartType) {
+                Logger.warn(
+                    `Axis type \`${axisDef.name}\` is not supported by chart type \`${chartType}\`, ignoring.\``
+                );
                 break;
             }
 

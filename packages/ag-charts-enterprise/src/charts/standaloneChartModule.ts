@@ -8,6 +8,7 @@ const { isAgStandaloneChartOptions, standaloneChartOptionsDefs } = _ModuleSuppor
 export const StandaloneChartModule: ChartModuleDefinition<AgStandaloneChartOptions> = {
     type: 'chart',
     name: 'standalone',
+    enterprise: true,
 
     options: standaloneChartOptionsDefs,
 
