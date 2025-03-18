@@ -1,5 +1,4 @@
 import type {
-    AgColorType,
     AgFunnelSeriesItemStylerParams,
     AgFunnelSeriesLabelFormatterParams,
     AgFunnelSeriesStyle,
@@ -16,7 +15,7 @@ export interface BaseFunnelProperties<SeriesOptions extends object>
     stageKey: string;
     valueKey: string;
     valueName?: string;
-    fills: AgColorType[];
+    fills: _ModuleSupport.InternalAgColorType[];
     strokes: string[];
     fillGradientDefaults: Required<AgGradientColor>;
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;

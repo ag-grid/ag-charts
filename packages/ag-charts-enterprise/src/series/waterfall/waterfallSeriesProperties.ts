@@ -1,5 +1,4 @@
 import type {
-    AgColorType,
     AgTooltipRendererResult,
     AgWaterfallSeriesItemStylerParams,
     AgWaterfallSeriesLabelFormatterParams,
@@ -65,7 +64,7 @@ export class WaterfallSeriesItem extends BaseProperties {
     name?: string;
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
-    fill: AgColorType = '#c16068';
+    fill: _ModuleSupport.InternalAgColorType = '#c16068';
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();

@@ -1,5 +1,4 @@
 import type {
-    AgColorType,
     AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesOptions,
@@ -9,6 +8,7 @@ import type {
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
+import type { InternalAgColorType } from '../../../scene/util/fill';
 import { BaseProperties } from '../../../util/properties';
 import {
     ARRAY_OF,
@@ -65,7 +65,7 @@ class PieSeriesSectorLabel extends Label<AgPieSeriesLabelFormatterParams> {
 
 class PieSeriesCalloutLine extends BaseProperties {
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)), { optional: true })
-    colors?: AgColorType[];
+    colors?: InternalAgColorType[];
 
     @TempValidate(POSITIVE_NUMBER)
     length: number = 10;
@@ -115,7 +115,7 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     defaultColorRange: string[][] = [];
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
-    fills: AgColorType[] = Object.values(DEFAULT_FILLS);
+    fills: InternalAgColorType[] = Object.values(DEFAULT_FILLS);
 
     @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);
