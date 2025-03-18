@@ -1,6 +1,5 @@
 import type {
     AgColorType,
-    AgGradientColor,
     AgRadialBarSeriesOptions,
     AgRadialSeriesItemStylerParams,
     AgRadialSeriesLabelFormatterParams,
@@ -12,6 +11,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const {
     SeriesProperties,
+    FillGradientDefaults,
     SeriesTooltip,
     TempValidate,
     COLOR_STRING,
@@ -44,8 +44,8 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = 'black';
 
-    @TempValidate(COLOR_GRADIENT)
-    fillGradientDefaults!: Required<AgGradientColor>;
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

@@ -3,7 +3,6 @@ import type {
     AgCandlestickSeriesItemStylerParams,
     AgCandlestickSeriesTooltipRendererParams,
     AgColorType,
-    AgGradientColor,
     AgOhlcSeriesBaseOptions,
     Styler,
 } from 'ag-charts-community';
@@ -12,6 +11,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { OhlcSeriesBaseProperties } from '../ohlc/ohlcSeriesProperties';
 
 const {
+    FillGradientDefaults,
     BaseProperties,
     SeriesTooltip,
     TempValidate,
@@ -47,8 +47,8 @@ class CandlestickSeriesItem extends BaseProperties {
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#c16068';
 
-    @TempValidate(COLOR_GRADIENT)
-    fillGradientDefaults!: Required<AgGradientColor>;
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity = 1;

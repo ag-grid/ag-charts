@@ -33,7 +33,7 @@ export function getShapeFill(
     if (!isGradientFill(fill)) return fill as any;
 
     return {
-        ...fill,
+        type: 'gradient',
         gradient: fill.gradient ?? defaults.gradient,
         colorStops: fill.colorStops ?? defaults.colorStops,
         bounds: fill.bounds ?? defaults.bounds,

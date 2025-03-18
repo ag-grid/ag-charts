@@ -3,7 +3,6 @@ import type {
     AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesTooltipRendererParams,
     AgColorType,
-    AgGradientColor,
     AgSeriesAreaOptions,
 } from 'ag-charts-types';
 
@@ -23,6 +22,7 @@ import {
 } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
+import { FillGradientDefaults } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
@@ -49,8 +49,8 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#c16068';
 
-    @TempValidate(COLOR_GRADIENT)
-    fillGradientDefaults!: Required<AgGradientColor>;
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity = 1;

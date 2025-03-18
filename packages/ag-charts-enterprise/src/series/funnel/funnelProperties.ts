@@ -5,7 +5,6 @@ import type {
     AgFunnelSeriesOptions,
     AgFunnelSeriesStyle,
     AgFunnelSeriesTooltipRendererParams,
-    AgGradientColor,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -13,6 +12,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 
 const {
+    FillGradientDefaults,
     Label,
     DropShadow,
     AbstractBarSeriesProperties,
@@ -22,6 +22,7 @@ const {
     TempValidate,
     UNION,
     BOOLEAN,
+    ARRAY_OF,
     OR,
     COLOR_GRADIENT,
     COLOR_STRING_ARRAY,
@@ -78,11 +79,11 @@ export class FunnelProperties
     @TempValidate(STRING)
     valueKey!: string;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING)))
     fills: AgColorType[] = [];
 
-    @TempValidate(COLOR_GRADIENT)
-    fillGradientDefaults!: Required<AgGradientColor>;
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

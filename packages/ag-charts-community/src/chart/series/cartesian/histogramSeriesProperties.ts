@@ -1,6 +1,5 @@
 import type {
     AgColorType,
-    AgGradientColor,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesTooltipRendererParams,
@@ -24,6 +23,7 @@ import {
     UNION,
 } from '../../../util/validation';
 import { Label } from '../../label';
+import { FillGradientDefaults } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
@@ -66,8 +66,8 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill?: AgColorType;
 
-    @TempValidate(COLOR_GRADIENT)
-    fillGradientDefaults!: Required<AgGradientColor>;
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity = 1;

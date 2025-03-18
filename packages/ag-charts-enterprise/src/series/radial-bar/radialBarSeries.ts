@@ -25,6 +25,7 @@ const {
     Sector,
     SectorBox,
     motion,
+    isGradientFill,
     applyShapeStyle,
     getShapeStyle,
 } = _ModuleSupport;
@@ -81,7 +82,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     protected get defaultShapeStyle(): Required<AgGradientColor> {
         const angleScale = this.axes[ChartAxisDirection.X]?.scale;
         return {
-            ...this.properties.fillGradientDefaults,
+            ...this.properties.fillGradientDefaults.toJson(),
             rotation: _ModuleSupport.toDegrees(angleScale!.range[0]) + 90,
         };
     }
@@ -575,7 +576,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             this.defaultShapeStyle
         );
 
-        if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
+        if (isGradientFill(markerStyle.fill)) {
             markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };
         }
 

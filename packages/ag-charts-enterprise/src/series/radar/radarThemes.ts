@@ -71,7 +71,14 @@ export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>[
                 strokeWidth: 2,
                 marker: {
                     enabled: false,
-                    defaultColorRange: { $palette: 'gradient' },
+                    fillGradientDefaults: {
+                        type: 'gradient',
+                        gradient: 'radial',
+                        bounds: 'item',
+                        colorStops: { $palette: 'gradient' } as any,
+                        rotation: 0,
+                        reverse: true,
+                    } satisfies Required<AgGradientColor>,
                 },
             },
         },

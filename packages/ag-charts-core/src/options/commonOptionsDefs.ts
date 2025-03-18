@@ -146,6 +146,9 @@ export const fillOptionsDef: OptionsDefs<FillOptions> = {
     fillOpacity: ratio,
 };
 
+// @ts-expect-error undocumented option
+fillOptionsDef.fillGradientDefaults = gradientStrict;
+
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDash: arrayOf(positiveNumber),
     lineDashOffset: number,

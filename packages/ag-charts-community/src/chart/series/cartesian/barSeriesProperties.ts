@@ -6,7 +6,6 @@ import type {
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
     AgColorType,
-    AgGradientColor,
     Styler,
 } from 'ag-charts-types';
 
@@ -28,6 +27,7 @@ import {
     UNION,
 } from '../../../util/validation';
 import { Label } from '../../label';
+import { FillGradientDefaults } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import { AbstractBarSeriesProperties } from './abstractBarSeries';
 
@@ -64,8 +64,8 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#c16068';
 
-    @TempValidate(COLOR_GRADIENT)
-    fillGradientDefaults!: Required<AgGradientColor>;
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

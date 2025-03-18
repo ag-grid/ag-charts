@@ -1,6 +1,5 @@
 import type {
     AgColorType,
-    AgGradientColor,
     AgTooltipRendererResult,
     AgWaterfallSeriesItemStylerParams,
     AgWaterfallSeriesLabelFormatterParams,
@@ -15,6 +14,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 const {
     AbstractBarSeriesProperties,
     BaseProperties,
+    FillGradientDefaults,
     PropertiesArray,
     SeriesTooltip,
     TempValidate,
@@ -67,8 +67,8 @@ export class WaterfallSeriesItem extends BaseProperties {
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
     fill: AgColorType = '#c16068';
 
-    @TempValidate(COLOR_GRADIENT)
-    fillGradientDefaults!: Required<AgGradientColor>;
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(COLOR_STRING)
     stroke: string = '#c16068';

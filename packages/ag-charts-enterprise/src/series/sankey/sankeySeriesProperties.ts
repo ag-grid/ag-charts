@@ -1,6 +1,5 @@
 import {
     type AgColorType,
-    type AgGradientColor,
     type AgSankeySeriesLabelFormatterParams,
     type AgSankeySeriesLinkItemStylerParams,
     type AgSankeySeriesLinkOptions,
@@ -18,6 +17,7 @@ import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-p
 
 const {
     BaseProperties,
+    FillGradientDefaults,
     SeriesTooltip,
     SeriesProperties,
     ARRAY,
@@ -158,8 +158,8 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     @TempValidate(STRING, { optional: true })
     sizeName: string | undefined = undefined;
 
-    @TempValidate(COLOR_GRADIENT)
-    fillGradientDefaults!: Required<AgGradientColor>;
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: AgColorType[] = [];

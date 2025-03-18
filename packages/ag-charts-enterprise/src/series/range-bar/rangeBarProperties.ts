@@ -1,6 +1,5 @@
 import type {
     AgColorType,
-    AgGradientColor,
     AgRangeBarSeriesItemStylerParams,
     AgRangeBarSeriesLabelFormatterParams,
     AgRangeBarSeriesLabelPlacement,
@@ -13,6 +12,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const {
     AbstractBarSeriesProperties,
+    FillGradientDefaults,
     SeriesTooltip,
     TempValidate,
     COLOR_STRING,
@@ -64,8 +64,8 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#99CCFF';
 
-    @TempValidate(COLOR_GRADIENT)
-    fillGradientDefaults!: Required<AgGradientColor>;
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

@@ -1,6 +1,5 @@
 import type {
     AgColorType,
-    AgGradientColor,
     AgMapMarkerSeriesItemStylerParams,
     AgMapMarkerSeriesLabelFormatterParams,
     AgMapMarkerSeriesOptions,
@@ -14,6 +13,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
 const {
+    FillGradientDefaults,
     AND,
     ARRAY,
     COLOR_STRING,
@@ -121,8 +121,8 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = 'black';
 
-    @TempValidate(COLOR_GRADIENT)
-    fillGradientDefaults!: Required<AgGradientColor>;
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

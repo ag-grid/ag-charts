@@ -1,6 +1,5 @@
 import type {
     AgColorType,
-    AgGradientColor,
     AgMapShapeSeriesItemStylerParams,
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
@@ -30,6 +29,7 @@ const {
     TempValidate,
     SeriesProperties,
     SeriesTooltip,
+    FillGradientDefaults,
 } = _ModuleSupport;
 
 export interface MapShapeNodeLabelDatum {
@@ -84,8 +84,8 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = 'black';
 
-    @TempValidate(COLOR_GRADIENT)
-    fillGradientDefaults!: Required<AgGradientColor>;
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

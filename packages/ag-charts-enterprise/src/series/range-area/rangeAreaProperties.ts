@@ -1,6 +1,5 @@
 import type {
     AgColorType,
-    AgGradientColor,
     AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesOptions,
@@ -21,6 +20,7 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
 
 const {
     CartesianSeriesProperties,
+    FillGradientDefaults,
     InterpolationProperties,
     SeriesMarker,
     SeriesTooltip,
@@ -73,8 +73,8 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#99CCFF';
 
-    @TempValidate(COLOR_GRADIENT)
-    fillGradientDefaults!: Required<AgGradientColor>;
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

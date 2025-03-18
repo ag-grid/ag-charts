@@ -1,11 +1,19 @@
-import type { InteractionRange } from 'ag-charts-types';
+import type {
+    AgGradientColor,
+    AgGradientColorBounds,
+    AgGradientColorStop,
+    AgGradientType,
+    InteractionRange,
+} from 'ag-charts-types';
 
 import { BaseProperties } from '../../util/properties';
 import {
+    ARRAY,
     BOOLEAN,
     COLOR_STRING,
     INTERACTION_RANGE,
     LINE_DASH,
+    NUMBER,
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
@@ -57,6 +65,29 @@ class TextHighlightStyle extends BaseProperties {
 export class HighlightProperties extends BaseProperties {
     @TempValidate(BOOLEAN, { optional: true })
     enabled = true;
+}
+
+export class FillGradientDefaults
+    extends BaseProperties<Required<AgGradientColor>>
+    implements Required<AgGradientColor>
+{
+    @TempValidate(STRING)
+    type: 'gradient' = 'gradient' as const;
+
+    @TempValidate(ARRAY)
+    colorStops: AgGradientColorStop[] = [];
+
+    @TempValidate(STRING)
+    bounds: AgGradientColorBounds = 'item';
+
+    @TempValidate(STRING)
+    gradient: AgGradientType = 'linear';
+
+    @TempValidate(NUMBER)
+    rotation: number = 0;
+
+    @TempValidate(BOOLEAN)
+    reverse: boolean = false;
 }
 
 export class HighlightStyle extends BaseProperties {
