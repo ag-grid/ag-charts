@@ -16,6 +16,7 @@ $logger-height: 150px;
     border-top: none;
     border-radius: 0 0 var(--radius-md) var(--radius-md);
     font-size: 13px;
+
     div {
         padding: $spacing-size-2;
         border-top: 1px solid var(--color-border-secondary);
@@ -42,6 +43,10 @@ $logger-height: 150px;
 
 .logger > div:nth-child(even) {
     background-color: var(--color-bg-secondary);
+
+    #{$selector-darkmode} & {
+        background-color: color-mix(in srgb, var(--color-bg-secondary), var(--color-bg-primary) 90%);
+    }
 }
 
 .noLogs {
@@ -57,4 +62,11 @@ $logger-height: 150px;
     padding-top: 8px !important;
     border-bottom: 1px solid var(--color-border-secondary);
     font-weight: 600;
+
+    span {
+        background: var(--color-bg-primary);
+        border-radius: var(--radius-lg);
+        padding: 0 $spacing-size-1;
+        color: var(--color-fg-secondary);
+    }
 }
