@@ -534,8 +534,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const format = this.getItemBaseStyle(false);
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: radiusAxis.formatDatum(radiusValue),
                 symbol: this.legendItemSymbol(),

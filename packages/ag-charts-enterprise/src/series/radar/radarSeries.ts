@@ -381,8 +381,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         const activeStyle = this.getMarkerStyle(marker, datum, this.getDatumStylerProperties(datum), false);
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: angleAxis.formatDatum(angleValue),
                 symbol: this.legendItemSymbol(),

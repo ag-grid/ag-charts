@@ -1349,8 +1349,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             (sectorLabelKey === angleKey ? undefined : sectorLabelValues?.[datumIndex]) ??
             angleName;
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 title,
                 symbol: this.legendItemSymbol(datumIndex),

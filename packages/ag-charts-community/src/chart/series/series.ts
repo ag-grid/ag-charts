@@ -1,9 +1,10 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, type RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
+    AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
     ISeriesMarker,
 } from 'ag-charts-types';
@@ -37,10 +38,11 @@ import type { DataController } from '../data/dataController';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../interaction/chartEventManager';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
-import type { TooltipContent } from '../tooltip/tooltip';
+import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import type { SeriesEventType } from './seriesEvents';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
+import type { SeriesTooltip } from './seriesTooltip';
 import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 import { type ShapeFillBBox, applyShapeStyle, getShapeStyle } from './shapeUtil';
@@ -940,6 +942,14 @@ export abstract class Series<
 
     public callWithContext<F extends (...args: any[]) => any>(fn: F, ...params: Parameters<F>): ReturnType<F> {
         return callWithContext(this.properties, fn, params);
+    }
+
+    protected formatTooltipWithContext<P extends AgSeriesTooltipRendererParams<any>, Tooltip extends SeriesTooltip<P>>(
+        tooltip: Tooltip,
+        content: TooltipStructuredContent,
+        params: RequireOptional<P>
+    ) {
+        return tooltip.formatTooltip(this.properties, content, params);
     }
 
     abstract getCategoryValue(datumIndex: TDatumIndex): any;

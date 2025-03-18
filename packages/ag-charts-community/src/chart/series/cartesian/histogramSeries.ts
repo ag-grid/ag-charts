@@ -544,8 +544,8 @@ export class HistogramSeries extends CartesianSeries<
             data.push({ label, value: yAxis.formatDatum(aggregatedValue) });
         }
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 symbol: this.legendItemSymbol(),
                 data,

@@ -415,8 +415,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             style
         );
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 title,
                 symbol: this.legendItemSymbol(),

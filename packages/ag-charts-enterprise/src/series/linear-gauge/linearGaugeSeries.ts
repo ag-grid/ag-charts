@@ -1317,8 +1317,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         if (value == null) return;
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 data: [{ label: text, fallbackLabel: 'Value', value: this.formatLabel(value) }],
             },

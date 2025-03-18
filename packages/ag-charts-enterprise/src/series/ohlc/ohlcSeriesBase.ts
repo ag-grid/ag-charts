@@ -517,8 +517,8 @@ export abstract class OhlcSeriesBase<
             marker = getShapeStyle(marker, item.fillGradientDefaults);
         }
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: xAxis.formatDatum(xValue),
                 title: legendItemName,
@@ -549,7 +549,7 @@ export abstract class OhlcSeriesBase<
                 closeKey,
                 closeName,
                 ...format,
-            }
+            } as const
         );
     }
 
