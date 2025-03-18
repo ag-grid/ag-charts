@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { datesSortOrder } from '../util/date';
 import { day, hour, minute, month, year } from '../util/time';
 import {
     durationDay,
@@ -513,5 +514,22 @@ describe('OrdinalTimeScale', () => {
                 expect(scale.ticks(ticks)).toMatchSnapshot();
             });
         });
+    });
+
+    it('should sort domains', () => {
+        const scale = new OrdinalTimeScale();
+        const { domain } = scale.normalizeDomains(
+            [
+                new Date(2024, 1, 26),
+                new Date(2024, 1, 27),
+                new Date(2024, 1, 28),
+                new Date(2024, 1, 29),
+                new Date(2024, 2, 1),
+                new Date(2024, 2, 4),
+                new Date(2024, 2, 5),
+                new Date(2024, 2, 6),
+            ].reverse()
+        );
+        expect(datesSortOrder(domain)).toBe(1);
     });
 });
