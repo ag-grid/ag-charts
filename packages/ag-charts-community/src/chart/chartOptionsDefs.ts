@@ -1,4 +1,4 @@
-import { type OptionsDefs, array, defined, object } from 'ag-charts-core';
+import { type OptionsDefs, array, defined, object, union } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgFlowProportionChartOptions,
@@ -13,6 +13,7 @@ import { commonChartOptionsDefs } from './commonOptionsDefs';
 
 // These options are being validated by other modules
 const commonChartOptions = {
+    mode: union('integrated', 'standalone'),
     container: defined,
     theme: defined,
     series: defined,
