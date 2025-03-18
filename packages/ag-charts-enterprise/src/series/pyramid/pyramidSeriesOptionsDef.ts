@@ -10,6 +10,7 @@ import {
     gradient,
     lineDashOptionsDef,
     or,
+    pattern,
     positiveNumber,
     required,
     string,
@@ -29,7 +30,7 @@ export const pyramidSeriesOptionsDef: OptionsDefs<AgPyramidSeriesOptions> = {
     spacing: positiveNumber,
     reverse: boolean,
     itemStyler: callback,
-    fills: arrayOf(or(color, gradient)),
+    fills: arrayOf(or(color, gradient, pattern)),
     strokes: arrayOf(color),
     label: seriesLabelOptionsDefs,
     stageLabel: {

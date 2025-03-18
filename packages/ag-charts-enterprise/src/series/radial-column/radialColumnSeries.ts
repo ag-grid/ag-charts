@@ -41,7 +41,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.Ra
         return radiusAxis instanceof PolarAxis ? radiusAxis.shape === 'circle' : false;
     }
 
-    protected getNodeFill(fill: AgColorType): Required<AgColorType> {
+    protected getNodeFill(fill: AgColorType): AgColorType {
         if (!isGradientFill(fill)) return fill;
 
         return {
