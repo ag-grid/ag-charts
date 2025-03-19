@@ -2,10 +2,10 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { Image } from '../image/image';
 
-const { ActionOnSet, OBJECT, Validate } = _ModuleSupport;
+const { ActionOnSet, OBJECT, TempValidate } = _ModuleSupport;
 
 export class Background extends _ModuleSupport.Background<Image> {
-    @Validate(OBJECT, { optional: true })
+    @TempValidate(OBJECT, { optional: true })
     @ActionOnSet<Background>({
         newValue(image: Image) {
             this.node.appendChild(image.node);

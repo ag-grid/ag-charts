@@ -38,8 +38,8 @@ import {
     POSITION,
     POSITIVE_NUMBER,
     STRING,
+    TempValidate,
     UNION,
-    Validate,
 } from '../../util/validation';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import { ChartUpdateType } from '../chartUpdateType';
@@ -62,25 +62,25 @@ import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
 
 class LegendLabel extends BaseProperties {
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     maxLength?: number = undefined;
 
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     color: string = 'black';
 
-    @Validate(FONT_STYLE, { optional: true })
+    @TempValidate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle = undefined;
 
-    @Validate(FONT_WEIGHT, { optional: true })
+    @TempValidate(FONT_WEIGHT, { optional: true })
     fontWeight?: FontWeight = undefined;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     fontSize: number = 12;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     fontFamily: string = 'Verdana, sans-serif';
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     formatter?: Formatter<AgChartLegendLabelFormatterParams>;
 }
 
@@ -89,70 +89,70 @@ class LegendMarker extends BaseProperties {
      * If the marker type is set, the legend will always use that marker type for all its items,
      * regardless of the type that comes from the `data`.
      */
-    @Validate(MARKER_SHAPE, { optional: true })
+    @TempValidate(MARKER_SHAPE, { optional: true })
     shape?: AgMarkerShape = undefined;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     size = 15;
 
     /**
      * Padding between the marker and the label within each legend item.
      */
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     padding: number = 8;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     strokeWidth?: number;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled?: boolean;
 }
 
 class LegendLine extends BaseProperties {
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     strokeWidth?: number;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     length?: number;
 }
 
 class LegendItem extends BaseProperties {
     /** Used to constrain the width of legend items. */
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     maxWidth?: number;
     /**
      * The legend uses grid layout for its items, occupying as few columns as possible when positioned to left or right,
      * and as few rows as possible when positioned to top or bottom. This config specifies the amount of horizontal
      * padding between legend items.
      */
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     paddingX: number = 16;
     /**
      * The legend uses grid layout for its items, occupying as few columns as possible when positioned to left or right,
      * and as few rows as possible when positioned to top or bottom. This config specifies the amount of vertical
      * padding between legend items.
      */
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     paddingY: number = 8;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     showSeriesStroke: boolean = false;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly marker = new LegendMarker();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly label = new LegendLabel();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly line = new LegendLine();
 }
 
 class LegendListeners extends BaseProperties implements AgChartLegendListeners {
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     legendItemClick?: (event: AgChartLegendClickEvent) => void;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void;
 }
 
@@ -203,16 +203,16 @@ export class Legend extends BaseProperties {
 
     context!: never;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     toggleSeries: boolean = true;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly pagination: Pagination;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly item = new LegendItem();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly listeners = new LegendListeners();
 
     @ObserveChanges<Legend>((target, newValue?: boolean, oldValue?: boolean) => {
@@ -230,34 +230,34 @@ export class Legend extends BaseProperties {
             stateManager.restoreState(legendManager);
         }
     })
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled: boolean = true;
 
-    @Validate(POSITION)
+    @TempValidate(POSITION)
     position: AgChartLegendPosition = 'bottom';
 
     /** Used to constrain the width of the legend. */
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     maxWidth?: number;
 
     /** Used to constrain the height of the legend. */
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     maxHeight?: number;
 
     /** Reverse the display order of legend items if `true`. */
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     reverseOrder?: boolean;
 
-    @Validate(UNION(['horizontal', 'vertical'], 'an orientation'), { optional: true })
+    @TempValidate(UNION(['horizontal', 'vertical'], 'an orientation'), { optional: true })
     orientation?: AgChartLegendOrientation;
 
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     preventHidingAll?: boolean;
 
     /**
      * Spacing between the legend and the edge of the chart's element.
      */
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     spacing = 20;
 
     private readonly destroyFns: Function[] = [];

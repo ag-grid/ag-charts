@@ -37,7 +37,7 @@ const {
     TEXT_ALIGN,
     UNION,
     BaseProperties,
-    Validate,
+    TempValidate,
     predicateWithMessage,
     generateUUID,
 } = _ModuleSupport;
@@ -53,20 +53,20 @@ const GROUPING_VALUE = predicateWithMessage(
 );
 
 export class PointProperties extends BaseProperties {
-    @Validate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
+    @TempValidate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
     x?: PointType;
 
-    @Validate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
+    @TempValidate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
     y?: PointType;
 }
 
 export class ChannelAnnotationMiddleProperties extends Stroke(LineStyle(Visible(BaseProperties))) {}
 
 export class AxisLabelProperties extends Stroke(LineStyle(Fill(Label(Font(BaseProperties))))) {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled?: boolean;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     cornerRadius: number = 2;
 }
 
@@ -75,26 +75,26 @@ class BackgroundProperties extends Fill(BaseProperties) {}
 class HandleProperties extends Stroke(LineStyle(Fill(BaseProperties))) {}
 
 export class LineTextProperties extends Font(BaseProperties) {
-    @Validate(STRING)
+    @TempValidate(STRING)
     label: string = '';
 
-    @Validate(UNION(['top', 'center', 'bottom']), { optional: true })
+    @TempValidate(UNION(['top', 'center', 'bottom']), { optional: true })
     position?: LineTextPosition = 'top';
 
-    @Validate(UNION(['left', 'center', 'right']), { optional: true })
+    @TempValidate(UNION(['left', 'center', 'right']), { optional: true })
     alignment?: LineTextAlignment = 'left';
 }
 
 export class LabelTextProperties extends Font(BaseProperties) {}
 
 export class ChannelTextProperties extends Font(BaseProperties) {
-    @Validate(STRING)
+    @TempValidate(STRING)
     label: string = '';
 
-    @Validate(UNION(['top', 'inside', 'bottom']), { optional: true })
+    @TempValidate(UNION(['top', 'inside', 'bottom']), { optional: true })
     position?: ChannelTextPosition;
 
-    @Validate(UNION(['left', 'center', 'right']), { optional: true })
+    @TempValidate(UNION(['left', 'center', 'right']), { optional: true })
     alignment?: LineTextAlignment;
 }
 
@@ -124,10 +124,10 @@ export function Annotation<U extends Constructor<_ModuleSupport.BaseProperties>>
 
 export function Line<T extends Constructor>(Parent: T) {
     class LineInternal extends Parent {
-        @Validate(OBJECT)
+        @TempValidate(OBJECT)
         start = new PointProperties();
 
-        @Validate(OBJECT)
+        @TempValidate(OBJECT)
         end = new PointProperties();
     }
     return LineInternal;
@@ -135,10 +135,10 @@ export function Line<T extends Constructor>(Parent: T) {
 
 export function Point<T extends Constructor>(Parent: T) {
     class PointInternal extends Parent {
-        @Validate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
+        @TempValidate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
         x?: PointType;
 
-        @Validate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
+        @TempValidate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
         y?: PointType;
     }
     return PointInternal;
@@ -146,7 +146,7 @@ export function Point<T extends Constructor>(Parent: T) {
 
 export function Value<T extends Constructor>(Parent: T) {
     class ValueInternal extends Parent {
-        @Validate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
+        @TempValidate(OR(STRING, NUMBER, DATE, GROUPING_VALUE))
         value?: PointType;
     }
     return ValueInternal;
@@ -154,7 +154,7 @@ export function Value<T extends Constructor>(Parent: T) {
 
 export function Background<T extends Constructor>(Parent: T) {
     class BackgroundInternal extends Parent {
-        @Validate(OBJECT, { optional: true })
+        @TempValidate(OBJECT, { optional: true })
         background = new BackgroundProperties();
     }
     return BackgroundInternal;
@@ -162,7 +162,7 @@ export function Background<T extends Constructor>(Parent: T) {
 
 export function Handle<T extends Constructor>(Parent: T) {
     class HandleInternal extends Parent {
-        @Validate(OBJECT, { optional: true })
+        @TempValidate(OBJECT, { optional: true })
         handle = new HandleProperties();
     }
     return HandleInternal;
@@ -170,7 +170,7 @@ export function Handle<T extends Constructor>(Parent: T) {
 
 export function AxisLabel<T extends Constructor>(Parent: T) {
     class AxisLabelInternal extends Parent {
-        @Validate(OBJECT, { optional: true })
+        @TempValidate(OBJECT, { optional: true })
         axisLabel = new AxisLabelProperties();
     }
     return AxisLabelInternal;
@@ -178,13 +178,13 @@ export function AxisLabel<T extends Constructor>(Parent: T) {
 
 export function Label<T extends Constructor>(Parent: T) {
     class LabelInternal extends Parent {
-        @Validate(POSITIVE_NUMBER, { optional: true })
+        @TempValidate(POSITIVE_NUMBER, { optional: true })
         padding?: number = undefined;
 
-        @Validate(TEXT_ALIGN, { optional: true })
+        @TempValidate(TEXT_ALIGN, { optional: true })
         textAlign: TextAlign = 'center';
 
-        @Validate(FUNCTION, { optional: true })
+        @TempValidate(FUNCTION, { optional: true })
         formatter?: Formatter<AxisLabelFormatterParams> = undefined; // TODO: making this generic causes issues with mixins sequence
     }
     return LabelInternal;
@@ -200,10 +200,10 @@ export function Cappable<T extends Constructor>(Parent: T) {
 
 export function Extendable<T extends Constructor>(Parent: T) {
     class ExtendableInternal extends Parent {
-        @Validate(BOOLEAN, { optional: true })
+        @TempValidate(BOOLEAN, { optional: true })
         extendStart?: boolean;
 
-        @Validate(BOOLEAN, { optional: true })
+        @TempValidate(BOOLEAN, { optional: true })
         extendEnd?: boolean;
     }
     return ExtendableInternal;
@@ -211,7 +211,7 @@ export function Extendable<T extends Constructor>(Parent: T) {
 
 function Lockable<T extends Constructor>(Parent: T) {
     class LockableInternal extends Parent {
-        @Validate(BOOLEAN, { optional: true })
+        @TempValidate(BOOLEAN, { optional: true })
         locked?: boolean;
     }
     return LockableInternal;
@@ -233,7 +233,7 @@ export function Localisable<T extends Constructor>(Parent: T) {
  ******************/
 function Visible<T extends Constructor>(Parent: T) {
     class VisibleInternal extends Parent {
-        @Validate(BOOLEAN, { optional: true })
+        @TempValidate(BOOLEAN, { optional: true })
         visible?: boolean;
     }
     return VisibleInternal;
@@ -241,10 +241,10 @@ function Visible<T extends Constructor>(Parent: T) {
 
 export function Fill<T extends Constructor>(Parent: T) {
     class FillInternal extends Parent {
-        @Validate(COLOR_STRING, { optional: true })
+        @TempValidate(COLOR_STRING, { optional: true })
         fill?: string;
 
-        @Validate(RATIO, { optional: true })
+        @TempValidate(RATIO, { optional: true })
         fillOpacity?: number;
     }
     return FillInternal;
@@ -252,13 +252,13 @@ export function Fill<T extends Constructor>(Parent: T) {
 
 export function Stroke<T extends Constructor>(Parent: T) {
     class StrokeInternal extends Parent {
-        @Validate(COLOR_STRING, { optional: true })
+        @TempValidate(COLOR_STRING, { optional: true })
         stroke?: string;
 
-        @Validate(RATIO, { optional: true })
+        @TempValidate(RATIO, { optional: true })
         strokeOpacity?: number;
 
-        @Validate(NUMBER, { optional: true })
+        @TempValidate(NUMBER, { optional: true })
         strokeWidth?: number;
     }
     return StrokeInternal;
@@ -269,13 +269,13 @@ export function LineStyle<T extends Constructor>(Parent: T) {
         lineCap?: _ModuleSupport.ShapeLineCap = undefined;
         computedLineDash?: PixelSize[] = undefined;
 
-        @Validate(LINE_DASH, { optional: true })
+        @TempValidate(LINE_DASH, { optional: true })
         lineDash?: number[];
 
-        @Validate(NUMBER, { optional: true })
+        @TempValidate(NUMBER, { optional: true })
         lineDashOffset?: number;
 
-        @Validate(LINE_STYLE, { optional: true })
+        @TempValidate(LINE_STYLE, { optional: true })
         lineStyle?: AgAnnotationLineStyleType;
     }
     return LineDashInternal;
@@ -283,19 +283,19 @@ export function LineStyle<T extends Constructor>(Parent: T) {
 
 export function Font<T extends Constructor>(Parent: T) {
     class FontInternal extends Parent {
-        @Validate(FONT_STYLE, { optional: true })
+        @TempValidate(FONT_STYLE, { optional: true })
         fontStyle?: FontStyle;
 
-        @Validate(FONT_WEIGHT, { optional: true })
+        @TempValidate(FONT_WEIGHT, { optional: true })
         fontWeight?: FontWeight;
 
-        @Validate(POSITIVE_NUMBER)
+        @TempValidate(POSITIVE_NUMBER)
         fontSize: number = 12;
 
-        @Validate(STRING)
+        @TempValidate(STRING)
         fontFamily: string = 'Verdana, sans-serif';
 
-        @Validate(COLOR_STRING, { optional: true })
+        @TempValidate(COLOR_STRING, { optional: true })
         color?: string;
     }
     return FontInternal;

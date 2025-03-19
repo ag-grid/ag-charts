@@ -30,14 +30,14 @@ const {
     PropertiesArray,
     Toolbar,
     ToolbarButtonProperties,
-    Validate,
+    TempValidate,
 } = _ModuleSupport;
 
 class ZoomButtonProperties extends ToolbarButtonProperties {
-    @Validate(UNION(['reset', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right', 'pan-start', 'pan-end']))
+    @TempValidate(UNION(['reset', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right', 'pan-start', 'pan-end']))
     value!: 'reset' | 'zoom-in' | 'zoom-out' | 'pan-left' | 'pan-right' | 'pan-start' | 'pan-end';
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     section!: string;
 }
 
@@ -48,7 +48,7 @@ interface ZoomToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
 type ZoomButtonsVisible = 'always' | 'zoomed' | 'hover';
 
 export class ZoomToolbar extends BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     @ActionOnSet<ZoomToolbar>({
         changeValue(enabled) {
             this.toolbar?.setHidden(!enabled);
@@ -56,10 +56,10 @@ export class ZoomToolbar extends BaseProperties {
     })
     public enabled?: boolean = false;
 
-    @Validate(ARRAY)
+    @TempValidate(ARRAY)
     public buttons = new PropertiesArray(ZoomButtonProperties);
 
-    @Validate(UNION(['always', 'zoomed', 'hover']))
+    @TempValidate(UNION(['always', 'zoomed', 'hover']))
     @ActionOnSet<ZoomToolbar>({
         changeValue(visible: ZoomButtonsVisible, oldValue: any) {
             if (oldValue == null) return;
@@ -68,10 +68,10 @@ export class ZoomToolbar extends BaseProperties {
     })
     public visible: ZoomButtonsVisible = 'hover';
 
-    @Validate(ANCHOR_POINT)
+    @TempValidate(ANCHOR_POINT)
     public anchorPointX?: AgZoomAnchorPoint;
 
-    @Validate(ANCHOR_POINT)
+    @TempValidate(ANCHOR_POINT)
     public anchorPointY?: AgZoomAnchorPoint;
 
     private readonly verticalSpacing = 10;

@@ -32,7 +32,7 @@ const {
     PropertiesArray,
     ToolbarButtonProperties,
     ToolbarButtonWidget,
-    Validate,
+    TempValidate,
 } = _ModuleSupport;
 
 interface EventMap {
@@ -59,7 +59,7 @@ interface EventMap {
 }
 
 class AnnotationOptionsButtonProperties extends ToolbarButtonProperties {
-    @Validate(
+    @TempValidate(
         UNION([
             'line-stroke-width',
             'line-style-type',
@@ -74,16 +74,16 @@ class AnnotationOptionsButtonProperties extends ToolbarButtonProperties {
     )
     value!: AnnotationOptions;
 
-    @Validate(OBJECT, { optional: true })
+    @TempValidate(OBJECT, { optional: true })
     checkedOverrides = new ToolbarButtonProperties();
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     color?: string;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     strokeWidth?: number;
 
-    @Validate(Boolean, { optional: true })
+    @TempValidate(Boolean, { optional: true })
     isMultiColor?: boolean;
 }
 
@@ -135,10 +135,10 @@ class FloatingAnnotationOptionsToolbar extends FloatingToolbar<
 }
 
 export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public enabled?: boolean = true;
 
-    @Validate(ARRAY)
+    @TempValidate(ARRAY)
     public buttons = new PropertiesArray(AnnotationOptionsButtonProperties);
 
     private readonly destroyFns: (() => void)[] = [];

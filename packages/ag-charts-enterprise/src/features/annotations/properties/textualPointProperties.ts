@@ -5,10 +5,10 @@ import { type AnnotationContext, type AnnotationOptionsColorPickerType, type Pad
 import type { AnnotationTextAlignment, AnnotationTextPosition } from '../text/util';
 import { convertPoint } from '../utils/values';
 
-const { STRING, BaseProperties, Validate } = _ModuleSupport;
+const { STRING, BaseProperties, TempValidate } = _ModuleSupport;
 
 export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(BaseProperties))))) {
-    @Validate(STRING)
+    @TempValidate(STRING)
     text: string = '';
 
     position: AnnotationTextPosition = 'top';

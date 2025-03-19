@@ -22,7 +22,6 @@ export { NewScatterSeriesModule } from './chart/series/cartesian/scatterSeriesMo
 
 export * from './util/angle';
 export * from './util/date';
-export * from './util/default';
 export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties } from './util/decorator';
 export * from './util/dom';
 export * from './util/deprecation';

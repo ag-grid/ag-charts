@@ -39,7 +39,7 @@ const {
     ChartAxisDirection,
     ChartUpdateType,
     Deprecated,
-    Validate,
+    TempValidate,
     InteractionState,
     ProxyProperty,
 } = _ModuleSupport;
@@ -67,7 +67,7 @@ class ZoomAutoScaling extends _ModuleSupport.BaseProperties implements ZoomAutoS
         super();
     }
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     @ActionOnSet<ZoomAutoScaling>({
         changeValue(enabled) {
             this.onChange({ enabled, padding: this.padding });
@@ -75,7 +75,7 @@ class ZoomAutoScaling extends _ModuleSupport.BaseProperties implements ZoomAutoS
     })
     enabled = false;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     @ActionOnSet<ZoomAutoScaling>({
         changeValue(padding) {
             this.onChange({ enabled: this.enabled, padding });
@@ -90,13 +90,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.onEnabledChange(enabled);
         },
     })
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public enabled = false;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public enableAxisDragging = true;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public enableDoubleClickToReset = true;
 
     @ActionOnSet<Zoom>({
@@ -104,56 +104,56 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.ctx.zoomManager.setIndependentAxes(Boolean(newValue));
         },
     })
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     public enableIndependentAxes?: boolean;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public enablePanning = true;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public enableScrolling = true;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public enableSelecting = false;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public enableTwoFingerZoom = true;
 
-    @Validate(UNION(['alt', 'ctrl', 'meta', 'shift'], 'a pan key'))
+    @TempValidate(UNION(['alt', 'ctrl', 'meta', 'shift'], 'a pan key'))
     public panKey: 'alt' | 'ctrl' | 'meta' | 'shift' = 'alt';
 
-    @Validate(UNION(['x', 'y', 'xy'], 'an axis'))
+    @TempValidate(UNION(['x', 'y', 'xy'], 'an axis'))
     public axes: 'x' | 'y' | 'xy' = 'x';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     public scrollingStep = UNIT_SIZE / 10;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public keepAspectRatio = false;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     public minVisibleItems = 2;
 
     @Deprecated('Use [minVisibleItems] instead.')
-    @Validate(NUMBER.restrict({ min: 1 }))
+    @TempValidate(NUMBER.restrict({ min: 1 }))
     public minVisibleItemsX?: number;
 
     @Deprecated('Use [minVisibleItems] instead.')
-    @Validate(NUMBER.restrict({ min: 1 }))
+    @TempValidate(NUMBER.restrict({ min: 1 }))
     public minVisibleItemsY?: number;
 
-    @Validate(ANCHOR_POINT)
+    @TempValidate(ANCHOR_POINT)
     public anchorPointX: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_X;
 
-    @Validate(ANCHOR_POINT)
+    @TempValidate(ANCHOR_POINT)
     public anchorPointY: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_Y;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     public readonly autoScaling = new ZoomAutoScaling((newValue) => {
         this.ctx.zoomManager.setAutoScaleYAxis(newValue.enabled, newValue.padding);
     });
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     public buttons = new ZoomToolbar(
         this.ctx,
         this.getModuleProperties.bind(this),
@@ -179,7 +179,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly domProxy: ZoomDOMProxy;
 
     @ProxyProperty('panner.deceleration')
-    @Validate(OR(RATIO, UNION(['off', 'short', 'long'], 'a deceleration')))
+    @TempValidate(OR(RATIO, UNION(['off', 'short', 'long'], 'a deceleration')))
     public deceleration: number | 'off' | 'short' | 'long' = 'short';
 
     // State

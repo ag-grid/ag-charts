@@ -3,20 +3,20 @@ import { createElement } from 'ag-charts-core';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
 import { BaseProperties } from '../../util/properties';
-import { BOOLEAN, FUNCTION, STRING, Validate } from '../../util/validation';
+import { BOOLEAN, FUNCTION, STRING, TempValidate } from '../../util/validation';
 import type { AnimationManager } from '../interaction/animationManager';
 
 export const DEFAULT_OVERLAY_CLASS = 'ag-charts-overlay';
 export const DEFAULT_OVERLAY_DARK_CLASS = 'ag-charts-dark-overlay';
 
 export class Overlay extends BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled = true;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     text?: string;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     renderer?: () => string | HTMLElement;
 
     private content?: HTMLElement;

@@ -2,7 +2,6 @@ import { Logger, isNumber } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { LogScale } from '../../scale/logScale';
-import { Default } from '../../util/default';
 import { normalisedExtentWithMetadata } from '../../util/extent';
 import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, TempValidate, predicateWithMessage } from '../../util/validation';
 import { NumberAxis } from './numberAxis';
@@ -34,11 +33,9 @@ export class LogAxis extends NumberAxis {
     }
 
     @TempValidate(AND(NUMBER_OR_NAN, NON_ZERO_NUMBER, LESS_THAN('max')))
-    @Default(NaN)
     override min: number = NaN;
 
     @TempValidate(AND(NUMBER_OR_NAN, NON_ZERO_NUMBER, GREATER_THAN('min')))
-    @Default(NaN)
     override max: number = NaN;
 
     set base(value: number) {

@@ -7,6 +7,7 @@ import {
     getDocument,
     getWindow,
     groupBy,
+    isArray,
     isEnumValue,
     isFiniteNumber,
     isObject,
@@ -28,14 +29,12 @@ import {
     type AgPresetOverrides,
     AgTooltipAnchorToType,
     AgTooltipPlacementType,
-    type AgTooltipPositionOptions, // eslint-disable-next-line sonarjs/deprecation
-    AgTooltipPositionType,
+    type AgTooltipPositionOptions,
+    AgTooltipPositionType, // eslint-disable-line sonarjs/deprecation
     type WithThemeParams,
 } from 'ag-charts-types';
 
 import { PRESETS, PRESET_DATA_PROCESSORS } from '../api/preset/presets';
-import { publicChartTypes } from '../chart/factory/chartTypes';
-import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
 import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import { getChartTheme, themeOptionsDef } from '../chart/mapping/themes';
@@ -44,7 +43,6 @@ import {
     isAgCartesianChartOptions,
     isAgPolarChartOptionsWithSeriesBasedLegend,
     isAgStandaloneChartOptions,
-    isSeriesOptionType,
 } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
 import { Debug } from '../util/debug';
@@ -270,13 +268,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             options = presetConstructor?.(presetParams, presetTheme, () => this.activeTheme) ?? options;
         }
 
+        this.soloSeriesIntegrity(options);
+
         if (!enterpriseModule.isEnterprise) {
             removeUsedEnterpriseOptions(options);
         }
 
         const activeTheme = getChartTheme(options.theme);
-
-        this.sanityCheck(options);
 
         if (presetType != null) {
             activeTheme.templateTheme(options, false);
@@ -369,21 +367,32 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
+
+        let validSeriesTypes: string | undefined;
         for (let index = 0; index < seriesCount; index++) {
+            const keyPath = `series[${index}]`;
             const seriesOptions = options.series![index];
             const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type ?? 'line');
 
             if (seriesDef == null) {
-                Logger.warn(`Unknown series type \`${seriesOptions.type}\`, ignoring.\``);
+                validSeriesTypes ??= joinFormatted(
+                    Array.from(ModuleRegistry.listModulesByType(ModuleType.Series))
+                        .filter((def) => def.chartType === chartType)
+                        .map((def) => def.name),
+                    'or',
+                    (value) => `'${value}'`
+                );
+                Logger.warn(
+                    `Unknown series type \`${seriesOptions.type}\` at \`${keyPath}\`; expecting ${validSeriesTypes}, ignoring.\``
+                );
                 continue;
             } else if (seriesDef.chartType !== chartType) {
                 Logger.warn(
-                    `Series type \`${seriesDef.name}\` is not supported by chart type \`${chartType}\`, ignoring.\``
+                    `Series type \`${seriesDef.name}\` at \`${keyPath}\` is not supported by chart type \`${chartType}\`, ignoring.\``
                 );
                 continue;
             }
 
-            const keyPath = `series[${index}]`;
             const { validate: validateSeries = validate } = seriesDef;
             const { valid, errors } = validateSeries(seriesOptions, seriesDef.options, keyPath);
 
@@ -461,12 +470,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private optionsType(options: Partial<T>) {
         return options.series?.[0]?.type ?? 'line';
-    }
-
-    private sanityCheck(options: Partial<T>) {
-        // output warnings and correct options when required
-        this.seriesTypeIntegrity(options);
-        this.soloSeriesIntegrity(options);
     }
 
     private splitAnnotationsOptions(annotations: any) {
@@ -720,18 +723,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         };
     }
 
-    private seriesTypeIntegrity(options: Partial<T>) {
-        options.series = options.series?.filter(({ type }) => {
-            if (type == null || isSeriesOptionType(type) || isEnterpriseSeriesType(type)) {
-                return true;
-            }
-            Logger.warnOnce(
-                `unknown series type: ${JSON.stringify(type)}; expected one of: ${publicChartTypes.seriesTypes.join(', ')}`
-            );
-        }) as T['series'];
-    }
-
     private soloSeriesIntegrity(options: Partial<T>) {
+        if (!isArray(options.series as unknown)) return;
         const allSeries: SeriesOptionsTypes[] | undefined = options.series;
         if (allSeries && allSeries.length > 1 && allSeries.some((series) => seriesRegistry.isSolo(series.type))) {
             const mainSeriesType = this.optionsType(options);

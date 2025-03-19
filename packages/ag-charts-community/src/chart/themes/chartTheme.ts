@@ -197,6 +197,7 @@ export class ChartTheme {
                 spacing: 11,
                 color: { $ref: 'textColor' },
                 avoidCollisions: true,
+                minSpacing: NaN,
             },
             line: {
                 enabled: true,
@@ -228,6 +229,10 @@ export class ChartTheme {
             },
             crosshair: {
                 enabled: true,
+            },
+            interval: {
+                minSpacing: NaN,
+                maxSpacing: NaN,
             },
         });
     }
@@ -339,12 +344,15 @@ export class ChartTheme {
 
     private static readonly axisDefault = {
         [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({
+            min: NaN,
+            max: NaN,
             line: { enabled: false },
         }),
         [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({
             base: 10,
+            min: NaN,
+            max: NaN,
             line: { enabled: false },
-            interval: { minSpacing: NaN },
         }),
         [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0.1,
@@ -373,6 +381,8 @@ export class ChartTheme {
             },
         }),
         [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({
+            min: NaN,
+            max: NaN,
             label: { spacing: 5 },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
             shape: {
@@ -380,12 +390,16 @@ export class ChartTheme {
             },
         }),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({
+            positionAngle: 0,
             line: { enabled: false },
             shape: {
                 $path: ['./shape', undefined, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],
             },
         }),
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({
+            min: NaN,
+            max: NaN,
+            positionAngle: 0,
             line: { enabled: false },
             shape: {
                 $path: ['./shape', undefined, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],

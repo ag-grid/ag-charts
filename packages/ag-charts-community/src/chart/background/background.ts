@@ -5,7 +5,7 @@ import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
 import { Text } from '../../scene/shape/text';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
-import { BOOLEAN, COLOR_STRING, OBJECT, STRING, Validate } from '../../util/validation';
+import { BOOLEAN, COLOR_STRING, OBJECT, STRING, TempValidate } from '../../util/validation';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import { ZIndexMap } from '../zIndexMap';
 
@@ -14,20 +14,20 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
     protected readonly rectNode = new Rect();
     protected readonly textNode = new Text();
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     @ProxyPropertyOnWrite('node', 'visible')
     visible: boolean;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     @ProxyPropertyOnWrite('rectNode', 'fill')
     fill?: string = 'white';
 
     // placeholder for enterprise module
-    @Validate(OBJECT, { optional: true })
+    @TempValidate(OBJECT, { optional: true })
     image?: TImage;
 
     // placeholder for enterprise module
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     @ProxyPropertyOnWrite('textNode')
     text?: string;
 

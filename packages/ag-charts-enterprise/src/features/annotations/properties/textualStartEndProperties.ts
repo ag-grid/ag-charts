@@ -6,10 +6,10 @@ import type { AnnotationTextAlignment, AnnotationTextPosition } from '../text/ut
 import { convertPoint } from '../utils/values';
 import { StartEndProperties } from './startEndProperties';
 
-const { STRING, Validate } = _ModuleSupport;
+const { STRING, TempValidate } = _ModuleSupport;
 
 export class TextualStartEndProperties extends Localisable(Label(Font(StartEndProperties))) {
-    @Validate(STRING)
+    @TempValidate(STRING)
     text: string = '';
 
     position: AnnotationTextPosition = 'top';

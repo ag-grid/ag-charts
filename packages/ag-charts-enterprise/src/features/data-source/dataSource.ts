@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { BOOLEAN, FUNCTION, ActionOnSet, Validate } = _ModuleSupport;
+const { BOOLEAN, FUNCTION, ActionOnSet, TempValidate } = _ModuleSupport;
 
 interface DataSourceGetDataCallbackParams {
     windowStart?: Date;
@@ -13,7 +13,7 @@ export class DataSource extends _ModuleSupport.BaseModuleInstance implements _Mo
             this.updateCallback(enabled, this.getData);
         },
     })
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public enabled = false;
 
     @ActionOnSet<DataSource>({
@@ -21,7 +21,7 @@ export class DataSource extends _ModuleSupport.BaseModuleInstance implements _Mo
             this.updateCallback(this.enabled, getData);
         },
     })
-    @Validate(FUNCTION)
+    @TempValidate(FUNCTION)
     public getData: (params: DataSourceGetDataCallbackParams) => Promise<unknown> = () => Promise.resolve();
 
     @ActionOnSet<DataSource>({

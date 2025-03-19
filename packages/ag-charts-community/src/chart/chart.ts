@@ -30,7 +30,7 @@ import { Padding } from '../util/padding';
 import { BaseProperties } from '../util/properties';
 import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
-import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
+import { BOOLEAN, OBJECT, TempValidate, UNION } from '../util/validation';
 import { Widget } from '../widget/widget';
 import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import { Caption } from './caption';
@@ -90,10 +90,10 @@ type SeriesChangeType =
     | 'updated';
 
 class SeriesArea extends BaseProperties {
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     clip?: boolean;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     padding = new Padding(0);
 }
 
@@ -199,19 +199,19 @@ export abstract class Chart extends Observable implements ModuleInstance {
         return this.ctx.scene.toSVG();
     }
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly padding = new Padding(20);
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly seriesArea = new SeriesArea();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly keyboard = new Keyboard();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly touch = new Touch();
 
-    @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
+    @TempValidate(UNION(['standalone', 'integrated'], 'a chart mode'))
     mode: ChartMode = 'standalone';
 
     private readonly chartCaptions = new ChartCaptions();
@@ -225,7 +225,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
     @ProxyProperty('chartCaptions.footnote')
     readonly footnote!: Caption;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     suppressFieldDotNotation: boolean = false;
 
     public destroyed = false;

@@ -2,13 +2,13 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { RangesButtonProperties } from './rangesButtonProperties';
 
-const { BOOLEAN, OBJECT, ChartAxisDirection, LayoutElement, PropertiesArray, Toolbar, Validate } = _ModuleSupport;
+const { BOOLEAN, OBJECT, ChartAxisDirection, LayoutElement, PropertiesArray, Toolbar, TempValidate } = _ModuleSupport;
 
 export class Ranges extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public enabled = false;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     public buttons = new PropertiesArray(RangesButtonProperties);
 
     private readonly container: HTMLElement;

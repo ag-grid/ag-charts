@@ -21,7 +21,7 @@ import {
     FUNCTION,
     POSITIVE_NUMBER,
     STRING,
-    Validate,
+    TempValidate,
 } from '../util/validation';
 import type { ChartAxisLabelFlipFlag } from './chartAxis';
 
@@ -29,25 +29,25 @@ export class Label<TParams = never, TDatum = any>
     extends BaseProperties
     implements AgChartLabelOptions<TDatum, RequireOptional<TParams>>
 {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled = true;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     color?: string;
 
-    @Validate(FONT_STYLE, { optional: true })
+    @TempValidate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle;
 
-    @Validate(FONT_WEIGHT, { optional: true })
+    @TempValidate(FONT_WEIGHT, { optional: true })
     fontWeight?: FontWeight;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     fontSize!: number;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     fontFamily!: string;
 
-    @Validate(FUNCTION, { optional: true })
+    @TempValidate(FUNCTION, { optional: true })
     formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     getFont(): string {

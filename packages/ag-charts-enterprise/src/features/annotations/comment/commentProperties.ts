@@ -10,7 +10,7 @@ import {
 } from '../annotationTypes';
 import { TextualPointProperties } from '../properties/textualPointProperties';
 
-const { STRING, Validate, Color } = _ModuleSupport;
+const { STRING, TempValidate, Color } = _ModuleSupport;
 
 const DEFAULT_COMMENT_PADDING = {
     top: 8,
@@ -24,7 +24,7 @@ export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
         return isObject(value) && value.type === AnnotationType.Comment;
     }
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     type = AnnotationType.Comment as const;
 
     override position = 'bottom' as const;

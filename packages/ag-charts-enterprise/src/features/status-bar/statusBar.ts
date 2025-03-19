@@ -4,7 +4,7 @@ const {
     CachedTextMeasurerPool,
     ZIndexMap,
     LayoutElement,
-    Validate,
+    TempValidate,
     BaseProperties,
     OBJECT,
     BOOLEAN,
@@ -66,10 +66,10 @@ const neutralColorMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'altNe
 };
 
 class StatusBarBackground extends BaseProperties {
-    @Validate(COLOR_STRING)
+    @TempValidate(COLOR_STRING)
     fill: string = 'black';
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     fillOpacity: number = 1;
 }
 
@@ -77,43 +77,43 @@ export class StatusBar
     extends _ModuleSupport.BaseModuleInstance
     implements _ModuleSupport.ModuleInstance, _ModuleSupport.ScopeProvider
 {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled: boolean = false;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     openKey?: string = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     highKey?: string = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     lowKey?: string = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     closeKey?: string = undefined;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     volumeKey?: string = undefined;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly title = new Label();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly positive = new Label();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly negative = new Label();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly neutral = new Label();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly altNeutral = new Label();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly background = new StatusBarBackground();
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     layoutStyle: 'block' | 'overlay' = 'block';
 
     readonly id = 'status-bar';
