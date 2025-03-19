@@ -15,6 +15,7 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
     backgroundFill: CssColor;
     backgroundFillOpacity: number;
     stroke: CssColor;
+    strokeOpacity: number;
     strokeWidth: number;
 
     constructor(
@@ -28,6 +29,7 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
         this.backgroundFill = patternOptions.backgroundFill ?? 'transparent';
         this.backgroundFillOpacity = patternOptions.backgroundFillOpacity ?? 1;
         this.stroke = patternOptions.stroke ?? 'black';
+        this.strokeOpacity = patternOptions.strokeOpacity ?? 1;
         this.strokeWidth = patternOptions.strokeWidth ?? 1;
         this.padding = patternOptions.padding ?? 1;
         this.pattern = patternOptions.pattern ?? 'forward-slanted-lines';
@@ -41,18 +43,25 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
         return path;
     }
 
+    private renderStroke(path2d: Path2D, ctx: OffscreenCanvasRenderingContext2D) {
+        const { stroke, strokeWidth, strokeOpacity } = this;
+        if (!strokeWidth) return;
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = strokeWidth;
+        ctx.globalAlpha = strokeOpacity;
+        ctx.stroke(path2d);
+    }
+
+    private renderFill(path2d: Path2D, ctx: OffscreenCanvasRenderingContext2D) {
+        const { fill, fillOpacity } = this;
+
+        ctx.fillStyle = fill;
+        ctx.globalAlpha = fillOpacity;
+        ctx.fill(path2d);
+    }
+
     protected createCanvasPattern(ctx: CanvasRenderingContext2D): CanvasPattern | null {
-        const {
-            width,
-            height,
-            fill,
-            fillOpacity,
-            backgroundFill,
-            backgroundFillOpacity,
-            stroke,
-            strokeWidth,
-            pixelRatio,
-        } = this;
+        const { width, height, backgroundFill, backgroundFillOpacity, pixelRatio } = this;
 
         const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio });
         const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
@@ -68,8 +77,8 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
 
         const path2d = this.getPath().getPath2D();
 
-        offscreenPatternCtx.fill(path2d);
-        offscreenPatternCtx.stroke(path2d);
+        this.renderFill(path2d, offscreenPatternCtx);
+        this.renderStroke(path2d, offscreenPatternCtx);
 
         const pattern = ctx.createPattern(offscreenPattern.canvas, 'repeat');
 

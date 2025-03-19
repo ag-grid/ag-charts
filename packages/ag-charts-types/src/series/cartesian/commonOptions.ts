@@ -80,6 +80,8 @@ export interface AgPatternColor {
     backgroundFillOpacity?: Opacity;
     /** The colour for the strokes of shapes in the pattern. */
     stroke?: CssColor;
+    /** The opacity of the shapes stroke colour. */
+    strokeOpacity?: Opacity;
     /** The width of the stroke of shapes in pixels. */
     strokeWidth?: PixelSize;
 }
