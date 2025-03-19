@@ -279,6 +279,7 @@ describe('PieSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                /* @ts-expect-error internal option */
                                 gradient: 'linear',
                                 bounds: 'item',
                                 colorStops: [
@@ -291,7 +292,7 @@ describe('PieSeries', () => {
                                 ],
                             },
                         ],
-                    },
+                    } as AgPieSeriesOptions,
                 ],
             });
             await compare();
@@ -315,6 +316,7 @@ describe('PieSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                /* @ts-expect-error internal option */
                                 gradient: 'linear',
                                 bounds: 'series',
                                 colorStops: [
@@ -327,7 +329,7 @@ describe('PieSeries', () => {
                                 ],
                             },
                         ],
-                    },
+                    } as AgPieSeriesOptions,
                 ],
             });
             await compare();
@@ -351,6 +353,7 @@ describe('PieSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                /* @ts-expect-error internal option */
                                 gradient: 'radial',
                                 bounds: 'series',
                                 colorStops: [
@@ -363,7 +366,7 @@ describe('PieSeries', () => {
                                 ],
                             },
                         ],
-                    },
+                    } as AgPieSeriesOptions,
                 ],
             });
             await compare();
@@ -387,6 +390,7 @@ describe('PieSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                /* @ts-expect-error internal option */
                                 gradient: 'radial',
                                 bounds: 'item',
                                 colorStops: [
@@ -399,7 +403,7 @@ describe('PieSeries', () => {
                                 ],
                             },
                         ],
-                    },
+                    } as AgPieSeriesOptions,
                 ],
             });
             await compare();
