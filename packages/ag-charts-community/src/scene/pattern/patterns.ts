@@ -112,27 +112,35 @@ export const PATTERNS: Record<AgPatternName, (path: ExtendedPath2D, params: Patt
         ]);
     },
     'vertical-lines'(path, { width, height, pixelRatio, strokeWidth }) {
-        path.moveTo(align(pixelRatio, width / 2) - strokeWidth / 2, align(pixelRatio, 0));
-        path.lineTo(align(pixelRatio, width / 2) - strokeWidth / 2, align(pixelRatio, height));
+        const x = align(pixelRatio, width / 2) - (strokeWidth % 2) / 2;
+        path.moveTo(x, 0);
+        path.lineTo(x, height);
     },
     'horizontal-lines'(path, { width, height, pixelRatio, strokeWidth }) {
-        path.moveTo(align(pixelRatio, 0), align(pixelRatio, height / 2) - strokeWidth / 2);
-        path.lineTo(align(pixelRatio, width), align(pixelRatio, height / 2) - strokeWidth / 2);
+        const y = align(pixelRatio, height / 2) - (strokeWidth % 2) / 2;
+        path.moveTo(0, y);
+        path.lineTo(width, y);
     },
     'forward-slanted-lines'(path, { width, height, strokeWidth }) {
-        path.moveTo(-strokeWidth, strokeWidth);
-        path.lineTo(strokeWidth, -strokeWidth);
-        path.moveTo(-strokeWidth, height + strokeWidth);
-        path.lineTo(width + strokeWidth, -strokeWidth);
-        path.moveTo(width - strokeWidth, height + strokeWidth);
-        path.lineTo(width + strokeWidth, height - strokeWidth);
+        const angle = Math.atan2(height, width);
+        const insetX = strokeWidth * Math.cos(angle);
+        const insetY = strokeWidth * Math.sin(angle);
+        path.moveTo(-insetX, insetY);
+        path.lineTo(insetX, -insetY);
+        path.moveTo(-insetX, height + insetY);
+        path.lineTo(width + insetX, -insetY);
+        path.moveTo(width - insetX, height + insetY);
+        path.lineTo(width + insetX, height - insetY);
     },
     'backward-slanted-lines'(path, { width, height, strokeWidth }) {
-        path.moveTo(width - strokeWidth, -strokeWidth);
-        path.lineTo(width + strokeWidth, strokeWidth);
-        path.moveTo(-strokeWidth, -strokeWidth);
-        path.lineTo(width + strokeWidth, height + strokeWidth);
-        path.moveTo(-strokeWidth, height - strokeWidth);
-        path.lineTo(strokeWidth, height + strokeWidth);
+        const angle = Math.atan2(height, width);
+        const insetX = strokeWidth * Math.cos(angle);
+        const insetY = strokeWidth * Math.sin(angle);
+        path.moveTo(width - insetX, -insetY);
+        path.lineTo(width + insetX, insetY);
+        path.moveTo(-insetX, -insetY);
+        path.lineTo(width + insetX, height + insetY);
+        path.moveTo(-insetX, height - insetY);
+        path.lineTo(insetX, height + insetY);
     },
 };
