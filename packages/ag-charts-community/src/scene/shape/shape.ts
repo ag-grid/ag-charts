@@ -2,6 +2,7 @@ import { type InternalAgGradientColor, clamp } from 'ag-charts-core';
 import type { AgPatternColor } from 'ag-charts-types';
 
 import { generateUUID } from '../../util/id';
+import { jsonDiff } from '../../util/json';
 import type { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
 import { ConicGradient } from '../gradient/conicGradient';
@@ -113,9 +114,17 @@ export abstract class Shape<D = any> extends Node<D> {
         return new Pattern(fill, pixelRatio);
     }
 
+    private _cachedFill?: ShapeColor;
     protected onFillChange() {
+        if (typeof this.fill === 'object') {
+            if (jsonDiff(this._cachedFill ?? {}, this.fill) == null) {
+                return;
+            }
+        }
+
         this.fillGradient = this.getGradient(this.fill);
         this.fillPattern = this.getPattern(this.fill);
+        this._cachedFill = this.fill;
     }
 
     protected fillGradient: Gradient | undefined;
