@@ -1,5 +1,3 @@
-import type { AgGradientColorBounds, AgGradientType } from 'ag-charts-types';
-
 import type { BBox } from '../../scene/bbox';
 import { type GradientParams } from '../../scene/gradient/gradient';
 import type { Shape, ShapeColor } from '../../scene/shape/shape';
@@ -12,13 +10,6 @@ export type ShapeStyle = Partial<
 export interface ShapeFillBBox {
     series: BBox;
     axis: BBox;
-}
-
-export interface ShapeFillDefaults {
-    gradient: AgGradientType;
-    bounds: AgGradientColorBounds;
-    rotation: number;
-    colorStops: string[];
 }
 
 export function getShapeFill(

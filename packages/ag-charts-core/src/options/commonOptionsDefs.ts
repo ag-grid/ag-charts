@@ -1,7 +1,9 @@
 import type {
     AgGradientColor,
+    AgGradientColorBounds,
     AgGradientColorStop,
     AgGradientColorStrict,
+    AgGradientType,
     AgPatternColor,
     FillOptions,
     FontOptions,
@@ -68,13 +70,10 @@ export const colorStopsOrderValidator = attachDescription((value) => {
 }, 'stops to be defined in ascending order');
 
 const gradientBounds = union('axis', 'item', 'series');
-const gradientColorStops = or(
-    and(
-        arrayLength(2),
-        arrayOfDefs<AgGradientColorStop>({ color: color, stop: ratio }, 'color stops'),
-        colorStopsOrderValidator
-    ),
-    and(arrayLength(2), arrayOf(color, 'color stops'))
+const gradientColorStops = and(
+    arrayLength(2),
+    arrayOfDefs<AgGradientColorStop>({ color: color, stop: ratio }, 'color stops'),
+    colorStopsOrderValidator
 );
 
 export const gradient = typeUnion<AgGradientColor>(
@@ -104,6 +103,24 @@ export const gradientStrict = typeUnion<AgGradientColorStrict>(
     },
     'a gradient object with color stops'
 );
+
+interface InternalAgGradientColor extends AgGradientColor {
+    /** Format of the gradient */
+    gradient?: AgGradientType;
+    /** The domain of the color gradient, defaults to item. */
+    bounds?: AgGradientColorBounds;
+    /** Reverse the order of colour stops. */
+    reverse?: boolean;
+}
+
+export const fillGradientDefaults = optionsDefs<Required<InternalAgGradientColor>>({
+    type: required(constant('gradient')),
+    gradient: required(union('linear', 'radial', 'conic')),
+    bounds: required(gradientBounds),
+    colorStops: required(gradientColorStops),
+    rotation: required(number),
+    reverse: required(boolean),
+});
 
 export const stringFillOptionsDef: OptionsDefs<{ fill: string; fillOpacity: number }> = {
     fill: color,
@@ -149,7 +166,7 @@ export const fillOptionsDef: OptionsDefs<FillOptions> = {
 };
 
 // @ts-expect-error undocumented option
-fillOptionsDef.fillGradientDefaults = gradientStrict;
+fillOptionsDef.fillGradientDefaults = fillGradientDefaults;
 
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDash: arrayOf(positiveNumber),
