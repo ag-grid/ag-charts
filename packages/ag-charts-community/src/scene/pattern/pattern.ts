@@ -1,6 +1,7 @@
 import { createSvgElement } from 'ag-charts-core';
 import type { AgPatternColor, AgPatternName, CssColor } from 'ag-charts-types';
 
+import { normalizeAngle360, toRadians } from '../../util/angle';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { PATTERNS } from './patterns';
@@ -17,6 +18,7 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
     stroke: CssColor;
     strokeOpacity: number;
     strokeWidth: number;
+    rotation: number;
 
     constructor(
         patternOptions: AgPatternColor,
@@ -33,6 +35,7 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
         this.strokeWidth = patternOptions.strokeWidth ?? 1;
         this.padding = patternOptions.padding ?? 1;
         this.pattern = patternOptions.pattern ?? 'forward-slanted-lines';
+        this.rotation = patternOptions.rotation ?? 0;
     }
 
     private getPath() {
@@ -61,7 +64,7 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
     }
 
     protected createCanvasPattern(ctx: CanvasRenderingContext2D): CanvasPattern | null {
-        const { width, height, backgroundFill, backgroundFillOpacity, pixelRatio } = this;
+        const { width, height, backgroundFill, backgroundFillOpacity, pixelRatio, rotation } = this;
 
         const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio });
         const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
@@ -70,11 +73,6 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
         offscreenPatternCtx.globalAlpha = backgroundFillOpacity;
         offscreenPatternCtx.fillRect(0, 0, width, height);
 
-        offscreenPatternCtx.fillStyle = fill;
-        offscreenPatternCtx.strokeStyle = stroke;
-        offscreenPatternCtx.globalAlpha = fillOpacity;
-        offscreenPatternCtx.lineWidth = strokeWidth;
-
         const path2d = this.getPath().getPath2D();
 
         this.renderFill(path2d, offscreenPatternCtx);
@@ -82,7 +80,12 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
 
         const pattern = ctx.createPattern(offscreenPattern.canvas, 'repeat');
 
-        pattern?.setTransform(new DOMMatrix([1 / pixelRatio, 0, 0, 1 / pixelRatio, 0, 0]));
+        const angle = normalizeAngle360(toRadians(rotation));
+        const scale = 1 / pixelRatio;
+        const cos = Math.cos(angle) * scale;
+        const sin = Math.sin(angle) * scale;
+
+        pattern?.setTransform(new DOMMatrix([cos, sin, -sin, cos, 0, 0]));
 
         offscreenPattern.destroy();
 
