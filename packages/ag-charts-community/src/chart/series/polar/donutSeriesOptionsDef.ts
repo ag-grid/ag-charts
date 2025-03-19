@@ -8,7 +8,6 @@ import {
     ratio,
     required,
     string,
-    stringFillOptionsDef,
 } from 'ag-charts-core';
 import type { AgDonutInnerLabel, AgDonutSeriesOptions } from 'ag-charts-types';
 
@@ -19,7 +18,10 @@ export const donutSeriesOptionsDef: OptionsDefs<AgDonutSeriesOptions> = {
     type: required(constant('donut')),
     innerRadiusOffset: number,
     innerRadiusRatio: ratio,
-    innerCircle: stringFillOptionsDef,
+    innerCircle: {
+        fill: string,
+        fillOpacity: ratio,
+    },
     innerLabels: arrayOfDefs<AgDonutInnerLabel>(
         {
             text: required(string),
