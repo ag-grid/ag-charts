@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Sleepwerkbalk',
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Fib Retracement',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Fib Trend Gebaseerd',
     toolbarAnnotationsFillColor: 'Vulkleur',
     toolbarAnnotationsHorizontalLine: 'Horizontale lijn',
     toolbarAnnotationsLineAnnotations: 'Trendlijnen',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     toolbarZoomReset: 'Zoom resetten',
     toolbarZoomZoomIn: 'Inzoomen',
     toolbarZoomZoomOut: 'Uitzoomen',
+    tooltipPaginationStatus: '${index}[number] van ${count}[number]',
 };

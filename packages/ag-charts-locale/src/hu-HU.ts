@@ -108,6 +108,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Eszköztár húzása',
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Fibo visszahúzódás',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Trend alapú Fibonacci',
     toolbarAnnotationsFillColor: 'Kitöltési Szín',
     toolbarAnnotationsHorizontalLine: 'Vízszintes vonal',
     toolbarAnnotationsLineAnnotations: 'Trendvonalak',
@@ -157,4 +158,5 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     toolbarZoomReset: 'Nagyítás visszaállítása',
     toolbarZoomZoomIn: 'Nagyítás',
     toolbarZoomZoomOut: 'Kicsinyítés',
+    tooltipPaginationStatus: '${index}[number] a(z) ${count}[number]',
 };

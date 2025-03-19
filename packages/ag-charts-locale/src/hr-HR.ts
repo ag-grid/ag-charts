@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Povuci alatnu traku',
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Fib Povlačenje',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Fib temeljen na trendu',
     toolbarAnnotationsFillColor: 'Boja ispune',
     toolbarAnnotationsHorizontalLine: 'Horizontalna linija',
     toolbarAnnotationsLineAnnotations: 'Linije trendova',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     toolbarZoomReset: 'Resetiraj povećanje',
     toolbarZoomZoomIn: 'Povećaj',
     toolbarZoomZoomOut: 'Umanji',
+    tooltipPaginationStatus: '${index}[number] od ${count}[number]',
 };

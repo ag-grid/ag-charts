@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
     toolbarAnnotationsDragHandle: '工具欄拖曳',
     toolbarAnnotationsFibonacciAnnotations: '斐波那契',
     toolbarAnnotationsFibonacciRetracement: '斐波那契回撤',
+    toolbarAnnotationsFibonacciRetracementTrendBased: '斐波那契趨勢基線',
     toolbarAnnotationsFillColor: '填充顏色',
     toolbarAnnotationsHorizontalLine: '水平線',
     toolbarAnnotationsLineAnnotations: '趨勢線',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
     toolbarZoomReset: '重設縮放',
     toolbarZoomZoomIn: '放大',
     toolbarZoomZoomOut: '縮小',
+    tooltipPaginationStatus: '${index}[number]中的${count}[number]',
 };

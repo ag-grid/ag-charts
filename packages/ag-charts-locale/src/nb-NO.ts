@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Dra-verktøylinje',
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Fibonnaci Retracement',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Fib Trend Basert',
     toolbarAnnotationsFillColor: 'Fargefyll',
     toolbarAnnotationsHorizontalLine: 'Horisontal linje',
     toolbarAnnotationsLineAnnotations: 'Trendlinjer',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     toolbarZoomReset: 'Tilbakestill zoom',
     toolbarZoomZoomIn: 'Zoom inn',
     toolbarZoomZoomOut: 'Zoom ut',
+    tooltipPaginationStatus: '${index}[number] av ${count}[number]',
 };

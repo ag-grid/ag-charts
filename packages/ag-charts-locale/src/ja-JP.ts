@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'ツールバーをドラッグ',
     toolbarAnnotationsFibonacciAnnotations: 'フィボナッチ',
     toolbarAnnotationsFibonacciRetracement: 'フィボナッチ・リトレースメント',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'フィボナッチトレンドベース',
     toolbarAnnotationsFillColor: '塗りつぶしの色',
     toolbarAnnotationsHorizontalLine: '水平線',
     toolbarAnnotationsLineAnnotations: 'トレンドライン',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     toolbarZoomReset: 'ズームをリセット',
     toolbarZoomZoomIn: 'ズームイン',
     toolbarZoomZoomOut: 'ズームアウト',
+    tooltipPaginationStatus: '${index}[number] の ${count}[number]',
 };

@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_DE_DE: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Werkzeugleiste ziehen',
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Fib-Retracement',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Fib retracement basierend auf Trend',
     toolbarAnnotationsFillColor: 'Füllfarbe',
     toolbarAnnotationsHorizontalLine: 'Horizontale Linie',
     toolbarAnnotationsLineAnnotations: 'Trendlinien',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_DE_DE: Record<string, string> = {
     toolbarZoomReset: 'Zoom zurücksetzen',
     toolbarZoomZoomIn: 'Vergrößern',
     toolbarZoomZoomOut: 'Verkleinern',
+    tooltipPaginationStatus: '${index}[number] von ${count}[number]',
 };

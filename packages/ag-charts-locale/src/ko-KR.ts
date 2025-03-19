@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     toolbarAnnotationsDragHandle: '도구 모음 끌기',
     toolbarAnnotationsFibonacciAnnotations: '피보나치',
     toolbarAnnotationsFibonacciRetracement: '피보나치 되돌림',
+    toolbarAnnotationsFibonacciRetracementTrendBased: '피보나치 추세 기반',
     toolbarAnnotationsFillColor: '채우기 색상',
     toolbarAnnotationsHorizontalLine: '수평선',
     toolbarAnnotationsLineAnnotations: '추세선',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     toolbarZoomReset: '줌 리셋',
     toolbarZoomZoomIn: '확대',
     toolbarZoomZoomOut: '축소',
+    tooltipPaginationStatus: '${index}[number] / ${count}[number]',
 };
