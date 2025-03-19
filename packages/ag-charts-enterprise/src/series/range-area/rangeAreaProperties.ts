@@ -1,5 +1,4 @@
 import type {
-    AgColorType,
     AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesOptions,
@@ -71,7 +70,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     yHighName?: string;
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
-    fill: AgColorType = '#99CCFF';
+    fill: _ModuleSupport.InternalAgColorType = '#99CCFF';
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();

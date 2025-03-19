@@ -1,8 +1,9 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgAreaSeriesOptions, AgGradientColor, WithThemeParams } from 'ag-charts-types';
+import type { AgAreaSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { InternalAgGradientColor } from '../../../scene/util/fill';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { AreaSeries } from './areaSeries';
@@ -41,7 +42,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: false,
-            } satisfies WithThemeParams<Required<AgGradientColor>>,
+            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
             stroke: { $palette: 'stroke' },
             fillOpacity: 0.8,
             strokeOpacity: 1,
@@ -75,7 +76,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                     colorStops: { $palette: 'gradient' },
                     rotation: 0,
                     reverse: true,
-                } satisfies WithThemeParams<Required<AgGradientColor>>,
+                } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
             },
             label: {
                 enabled: false,

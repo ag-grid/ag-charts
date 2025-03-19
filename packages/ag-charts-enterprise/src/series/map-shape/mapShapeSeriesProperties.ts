@@ -1,5 +1,4 @@
 import type {
-    AgColorType,
     AgMapShapeSeriesItemStylerParams,
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
@@ -82,7 +81,7 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     colorRange: string[] | undefined = undefined;
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
-    fill: AgColorType = 'black';
+    fill: _ModuleSupport.InternalAgColorType = 'black';
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();

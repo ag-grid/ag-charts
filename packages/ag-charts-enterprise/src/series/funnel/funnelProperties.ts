@@ -48,7 +48,7 @@ class FunnelDropOff extends BaseProperties {
     enabled: boolean = true;
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
-    fill: AgColorType | undefined = undefined;
+    fill: _ModuleSupport.InternalAgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

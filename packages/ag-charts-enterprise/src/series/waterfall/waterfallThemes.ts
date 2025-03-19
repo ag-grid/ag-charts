@@ -1,9 +1,4 @@
-import {
-    type AgGradientColor,
-    type AgWaterfallSeriesItemOptions,
-    type WithThemeParams,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgWaterfallSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
 function itemTheme(
     key: 'altUp' | 'altDown' | 'neutral',
@@ -41,7 +36,7 @@ function itemTheme(
             } as any,
             rotation: 0,
             reverse: false,
-        } satisfies WithThemeParams<Required<AgGradientColor>>,
+        } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
         stroke: { $palette: `${key}.stroke` },
         strokeWidth: 0,
         label: {

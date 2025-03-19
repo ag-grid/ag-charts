@@ -1,5 +1,4 @@
 import type {
-    AgColorType,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesTooltipRendererParams,
@@ -7,6 +6,7 @@ import type {
 
 import type { BBox } from '../../../scene/bbox';
 import { DropShadow } from '../../../scene/dropShadow';
+import type { InternalAgColorType } from '../../../scene/util/fill';
 import {
     ARRAY,
     BOOLEAN,
@@ -64,7 +64,7 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
     yName?: string;
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
-    fill?: AgColorType;
+    fill?: InternalAgColorType;
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();

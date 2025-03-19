@@ -1,4 +1,4 @@
-import { type AgGradientColor, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import { type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
 export const RANGE_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'range-bar'>['themeTemplate'] = {
     series: {
@@ -13,7 +13,7 @@ export const RANGE_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'range-bar'>['t
             colorStops: { $palette: 'gradient' },
             rotation: 0,
             reverse: false,
-        } satisfies WithThemeParams<Required<AgGradientColor>>,
+        } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
         strokeWidth: 0,
         label: {
             enabled: false,
