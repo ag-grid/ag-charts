@@ -24,6 +24,7 @@ import {
     strokeOptionsDef,
     typeUnion,
     union,
+    unknown,
 } from 'ag-charts-core';
 import type {
     AgBaseSeriesOptions,
@@ -433,6 +434,9 @@ commonChartOptionsDefs.foreground = {
     ...fillOptionsDef,
 };
 
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.context = unknown;
+
 export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     id: string,
     cursor: string,
@@ -455,7 +459,7 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
 };
 
 // @ts-expect-error undocumented option
-commonSeriesOptionsDefs.context = defined;
+commonSeriesOptionsDefs.context = unknown;
 
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.highlight = {
