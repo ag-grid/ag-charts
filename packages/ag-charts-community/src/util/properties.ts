@@ -1,6 +1,7 @@
-import { Logger, isArray } from 'ag-charts-core';
+import { Logger, isArray, isPlainObject } from 'ag-charts-core';
 
 import { extractDecoratedPropertyMetadata, listDecoratedProperties } from './decorator';
+import { merge } from './object';
 
 export class BaseProperties<T extends object = object> {
     handleUnknownProperties(_unknownKeys: Set<string>, _properties: T) {
@@ -32,6 +33,8 @@ export class BaseProperties<T extends object = object> {
                     } else {
                         self[propertyKey].set(value);
                     }
+                } else if (isPlainObject(value)) {
+                    self[propertyKey] = merge(value, self[propertyKey] ?? {});
                 } else {
                     self[propertyKey] = value;
                 }
