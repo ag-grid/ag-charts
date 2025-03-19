@@ -316,6 +316,19 @@ export abstract class Shape<D = any> extends Node<D> {
             defs.push(gradient);
 
             element.setAttribute('fill', `url(#${id})`);
+        } else if (isPatternFill(fill) && this.fillPattern) {
+            defs ??= [];
+
+            const pattern = this.fillPattern.toSvg();
+
+            const id = generateUUID();
+            pattern.setAttribute('id', id);
+
+            defs.push(pattern);
+
+            element.setAttribute('fill', `url(#${id})`);
+        } else {
+            element.setAttribute('fill', 'none');
         }
 
         element.setAttribute('fill-opacity', String(fillOpacity));

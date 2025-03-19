@@ -1,35 +1,61 @@
-import type { AgPatternColor } from 'ag-charts-types';
+import { createSvgElement } from 'ag-charts-core';
+import type { AgPatternColor, AgPatternName, CssColor } from 'ag-charts-types';
 
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
+import { ExtendedPath2D } from '../extendedPath2D';
 import { PATTERNS } from './patterns';
 
-export class Pattern {
+export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
+    pattern: AgPatternName;
+    width: number;
+    height: number;
+    padding: number;
+    fill: CssColor;
+    fillOpacity: number;
+    backgroundFill: CssColor;
+    backgroundFillOpacity: number;
+    stroke: CssColor;
+    strokeWidth: number;
+
     constructor(
-        public patternOptions: AgPatternColor & { path?: string },
+        patternOptions: AgPatternColor,
         public pixelRatio = 1
-    ) {}
+    ) {
+        this.width = Math.max(patternOptions?.width ?? 10, 1);
+        this.height = Math.max(patternOptions?.height ?? 10, 1);
+        this.fill = patternOptions.fill ?? 'transparent';
+        this.fillOpacity = patternOptions.fillOpacity ?? 1;
+        this.backgroundFill = patternOptions.backgroundFill ?? 'transparent';
+        this.backgroundFillOpacity = patternOptions.backgroundFillOpacity ?? 1;
+        this.stroke = patternOptions.stroke ?? 'black';
+        this.strokeWidth = patternOptions.strokeWidth ?? 1;
+        this.padding = patternOptions.padding ?? 1;
+        this.pattern = patternOptions.pattern ?? 'forward-slanted-lines';
+    }
+
+    private getPath() {
+        const { pattern, width, height, padding, strokeWidth, pixelRatio } = this;
+
+        const path = new ExtendedPath2D();
+        PATTERNS[pattern](path, { width, height, pixelRatio, strokeWidth, padding });
+        return path;
+    }
 
     protected createCanvasPattern(ctx: CanvasRenderingContext2D): CanvasPattern | null {
-        const { pixelRatio, patternOptions } = this;
-
-        const width = Math.max(patternOptions?.width ?? 10, 1);
-        const height = Math.max(patternOptions?.height ?? 10, 1);
+        const {
+            width,
+            height,
+            fill,
+            fillOpacity,
+            backgroundFill,
+            backgroundFillOpacity,
+            stroke,
+            strokeWidth,
+            pixelRatio,
+        } = this;
 
         const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio });
-
         const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
-
-        const {
-            fill = 'transparent',
-            fillOpacity = 1,
-            backgroundFill = 'transparent',
-            backgroundFillOpacity = 1,
-            stroke = 'black',
-            strokeWidth = 1,
-            path,
-            padding = 1,
-            pattern: patternName = 'forward-slanted-lines',
-        } = patternOptions;
 
         offscreenPatternCtx.fillStyle = backgroundFill;
         offscreenPatternCtx.globalAlpha = backgroundFillOpacity;
@@ -40,17 +66,10 @@ export class Pattern {
         offscreenPatternCtx.globalAlpha = fillOpacity;
         offscreenPatternCtx.lineWidth = strokeWidth;
 
-        const drawParams = {
-            ctx: offscreenPatternCtx,
-            path,
-            width,
-            height,
-            pixelRatio,
-            strokeWidth,
-            padding,
-        };
+        const path2d = this.getPath().getPath2D();
 
-        PATTERNS[patternName](drawParams);
+        offscreenPatternCtx.fill(path2d);
+        offscreenPatternCtx.stroke(path2d);
 
         const pattern = ctx.createPattern(offscreenPattern.canvas, 'repeat');
 
@@ -61,12 +80,7 @@ export class Pattern {
         return pattern;
     }
 
-    private _cache:
-        | {
-              ctx: CanvasRenderingContext2D;
-              pattern: CanvasPattern | undefined;
-          }
-        | undefined = undefined;
+    private _cache: { ctx: CanvasRenderingContext2D; pattern: CanvasPattern | undefined } | undefined = undefined;
     createPattern(ctx: CanvasRenderingContext2D): CanvasPattern | undefined {
         if (this._cache != null && this._cache.ctx === ctx) {
             return this._cache.pattern;
@@ -76,6 +90,35 @@ export class Pattern {
         if (pattern == null) return;
 
         this._cache = { ctx, pattern };
+
+        return pattern;
+    }
+
+    toSvg(): SVGElement {
+        const { width, height, fill, fillOpacity, backgroundFill, backgroundFillOpacity, stroke, strokeWidth } = this;
+
+        const pattern = createSvgElement('pattern');
+        pattern.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        pattern.setAttribute('width', String(width));
+        pattern.setAttribute('height', String(height));
+        pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+
+        const rect = createSvgElement('rect');
+        rect.setAttribute('x', '0');
+        rect.setAttribute('y', '0');
+        rect.setAttribute('width', String(width));
+        rect.setAttribute('height', String(height));
+        rect.setAttribute('fill', backgroundFill);
+        rect.setAttribute('fill-opacity', String(backgroundFillOpacity));
+        pattern.appendChild(rect);
+
+        const path = createSvgElement('path');
+        path.setAttribute('fill', fill);
+        path.setAttribute('fill-opacity', String(fillOpacity));
+        path.setAttribute('stroke', stroke);
+        path.setAttribute('stroke-width', String(strokeWidth));
+        path.setAttribute('d', this.getPath().toSVG());
+        pattern.appendChild(path);
 
         return pattern;
     }
