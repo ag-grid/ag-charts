@@ -433,6 +433,9 @@ commonChartOptionsDefs.foreground = {
     ...fillOptionsDef,
 };
 
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.overrideDevicePixelRatio = number;
+
 export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     id: string,
     cursor: string,
