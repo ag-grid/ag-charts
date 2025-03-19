@@ -21,8 +21,8 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
         patternOptions: AgPatternColor,
         public pixelRatio = 1
     ) {
-        this.width = Math.max(patternOptions?.width ?? 26, 1);
-        this.height = Math.max(patternOptions?.height ?? 26, 1);
+        this.width = Math.max(patternOptions?.width ?? 10, 1);
+        this.height = Math.max(patternOptions?.height ?? 10, 1);
         this.fill = patternOptions.fill ?? 'transparent';
         this.fillOpacity = patternOptions.fillOpacity ?? 1;
         this.backgroundFill = patternOptions.backgroundFill ?? 'transparent';
