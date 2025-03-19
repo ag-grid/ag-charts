@@ -112,12 +112,14 @@ export const PATTERNS: Record<AgPatternName, (path: ExtendedPath2D, params: Patt
         ]);
     },
     'vertical-lines'(path, { width, height, pixelRatio, strokeWidth }) {
-        path.moveTo(align(pixelRatio, width / 2) - strokeWidth / 2, align(pixelRatio, 0));
-        path.lineTo(align(pixelRatio, width / 2) - strokeWidth / 2, align(pixelRatio, height));
+        const x = align(pixelRatio, width / 2) - (strokeWidth % 2) / 2;
+        path.moveTo(x, 0);
+        path.lineTo(x, height);
     },
     'horizontal-lines'(path, { width, height, pixelRatio, strokeWidth }) {
-        path.moveTo(align(pixelRatio, 0), align(pixelRatio, height / 2) - strokeWidth / 2);
-        path.lineTo(align(pixelRatio, width), align(pixelRatio, height / 2) - strokeWidth / 2);
+        const y = align(pixelRatio, height / 2) - (strokeWidth % 2) / 2;
+        path.moveTo(0, y);
+        path.lineTo(width, y);
     },
     'forward-slanted-lines'(path, { width, height, strokeWidth }) {
         const angle = Math.atan2(height, width);
