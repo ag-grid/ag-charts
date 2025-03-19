@@ -1,17 +1,17 @@
 import { BaseProperties } from './properties';
-import { POSITIVE_NUMBER, Validate } from './validation';
+import { POSITIVE_NUMBER, TempValidate } from './validation';
 
 export class Padding extends BaseProperties {
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     top: number;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     right: number;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     bottom: number;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     left: number;
 
     constructor(top: number = 0, right: number = top, bottom: number = top, left: number = right) {

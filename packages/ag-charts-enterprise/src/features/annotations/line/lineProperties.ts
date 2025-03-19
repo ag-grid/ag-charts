@@ -7,12 +7,12 @@ import { StartEndProperties } from '../properties/startEndProperties';
 import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumLine } from '../utils/validation';
 
-const { OBJECT, STRING, Validate } = _ModuleSupport;
+const { OBJECT, STRING, TempValidate } = _ModuleSupport;
 
 export abstract class LineTypeProperties extends Localisable(
     Cappable(Extendable(Stroke(LineStyle(StartEndProperties))))
 ) {
-    @Validate(OBJECT, { optional: true })
+    @TempValidate(OBJECT, { optional: true })
     text = new LineTextProperties();
 
     override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
@@ -46,7 +46,7 @@ export class ArrowProperties extends LineTypeProperties {
         return isObject(value) && value.type === AnnotationType.Arrow;
     }
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     type = AnnotationType.Arrow as const;
 
     override endCap = 'arrow' as const;
@@ -57,6 +57,6 @@ export class LineProperties extends LineTypeProperties {
         return isObject(value) && value.type === AnnotationType.Line;
     }
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     type = AnnotationType.Line as const;
 }

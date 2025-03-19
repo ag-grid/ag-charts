@@ -1,4 +1,4 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, isArray } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { LegendModule, RootModule } from '../../module/coreModules';
@@ -27,13 +27,24 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
                 delete optionValue[module.optionsInnerKey];
             }
         } else if (module.type === 'axis') {
-            if (!('axes' in options) || !options.axes?.some((axis) => axis.type === module.identifier)) continue;
+            if (
+                !('axes' in options) ||
+                !isArray(options.axes as unknown) ||
+                !options.axes?.some((axis) => axis.type === module.identifier)
+            ) {
+                continue;
+            }
 
             usedOptions.push(`axis[type=${module.identifier}]`);
             options.axes = (options.axes as any).filter((axis: any) => axis.type !== module.identifier);
         } else if (module.type === 'axis-option') {
-            if (!('axes' in options) || !options.axes?.some((axis) => axis[module.optionsKey as keyof typeof axis]))
+            if (
+                !('axes' in options) ||
+                !isArray(options.axes as unknown) ||
+                !options.axes?.some((axis) => axis[module.optionsKey as keyof typeof axis])
+            ) {
                 continue;
+            }
 
             usedOptions.push(`axis.${module.optionsKey}`);
             options.axes.forEach((axis) => {
@@ -43,12 +54,22 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
             });
         } else if (module.type === 'series') {
             if (module.community) continue;
-            if (!options.series?.some((series) => series.type === module.identifier)) continue;
+            if (
+                !isArray(options.series as unknown) ||
+                !options.series?.some((series) => series.type === module.identifier)
+            ) {
+                continue;
+            }
 
             usedOptions.push(`series[type=${module.identifier}]`);
             options.series = (options.series as any).filter((series: any) => series.type !== module.identifier);
         } else if (module.type === 'series-option') {
-            if (!options.series?.some((series) => series[module.optionsKey as keyof typeof series])) continue;
+            if (
+                !isArray(options.series as unknown) ||
+                !options.series?.some((series) => series[module.optionsKey as keyof typeof series])
+            ) {
+                continue;
+            }
 
             usedOptions.push(`series.${module.optionsKey}`);
             options.series.forEach((series) => {

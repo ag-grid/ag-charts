@@ -16,8 +16,8 @@ import {
     OR,
     POSITIVE_NUMBER,
     TEXT_WRAP,
+    TempValidate,
     UNION,
-    Validate,
 } from '../../util/validation';
 import { SpringAnimation } from './springAnimation';
 import {
@@ -158,26 +158,26 @@ export class TooltipPosition extends BaseProperties {
      * derive their defaults from this property. Eventually those properties will be set via the
      * theme, and we'll make sure they are applied normally.
      */
-    @Validate(POSITION_TYPE, { optional: true })
+    @TempValidate(POSITION_TYPE, { optional: true })
     @Deprecated('Use `anchorTo` and/or `placement` options instead.')
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
     protected type?: TooltipPositionType;
     /** @todo Remove this when type is removed. */
-    @Validate(POSITION_TYPE, { optional: true })
+    @TempValidate(POSITION_TYPE, { optional: true })
     protected _seriesOverrideType?: TooltipPositionType;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     /** The horizontal offset in pixels for the position of the tooltip. */
     xOffset: number = 0;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     /** The vertical offset in pixels for the position of the tooltip. */
     yOffset: number = 0;
 
-    @Validate(ANCHOR_TO, { optional: true })
+    @TempValidate(ANCHOR_TO, { optional: true })
     anchorTo?: AgTooltipAnchorTo;
 
-    @Validate(PLACEMENT, { optional: true })
+    @TempValidate(PLACEMENT, { optional: true })
     placement?: AgTooltipPlacement | AgTooltipPlacement[];
 
     get defaultAnchorTo(): AgTooltipAnchorTo {
@@ -204,35 +204,35 @@ export class TooltipPosition extends BaseProperties {
 }
 
 export class Tooltip extends BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled: boolean = true;
 
-    @Validate(TOOLTIP_MODE)
+    @TempValidate(TOOLTIP_MODE)
     mode: AgTooltipMode = 'single';
 
-    @Validate(BOOLEAN, { optional: true })
+    @TempValidate(BOOLEAN, { optional: true })
     showArrow?: boolean;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     delay: number = 0;
 
-    @Validate(INTERACTION_RANGE, { optional: true })
+    @TempValidate(INTERACTION_RANGE, { optional: true })
     range?: InteractionRange = undefined;
 
-    @Validate(TEXT_WRAP)
+    @TempValidate(TEXT_WRAP)
     wrapping: TextWrap = 'hyphenate';
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly position = new TooltipPosition();
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     readonly pagination = false;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     darkTheme = false;
 
     /** Escape-hatch for changes in AG-11645. */
-    @Validate(UNION(['extended', 'canvas']))
+    @TempValidate(UNION(['extended', 'canvas']))
     bounds: 'extended' | 'canvas' = 'extended';
 
     private readonly destroyFns: Array<() => void> = [];

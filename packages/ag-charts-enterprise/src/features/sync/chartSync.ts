@@ -10,7 +10,7 @@ const {
     ChartUpdateType,
     ObserveChanges,
     TooltipManager,
-    Validate,
+    TempValidate,
 } = _ModuleSupport;
 
 interface ChartLike {
@@ -29,23 +29,23 @@ interface ChartLike {
 export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
     static readonly className = 'Sync';
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     @ObserveChanges<ChartSync>((target) => target.onEnabledChange())
     enabled: boolean = false;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     @ObserveChanges<ChartSync>((target, newValue, oldValue) => target.onGroupIdChange(newValue, oldValue))
     groupId?: string;
 
-    @Validate(UNION(['x', 'y', 'xy'], 'an axis'))
+    @TempValidate(UNION(['x', 'y', 'xy'], 'an axis'))
     @ObserveChanges<ChartSync>((target) => target.onAxesChange())
     axes: 'x' | 'y' | 'xy' = 'x';
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     @ObserveChanges<ChartSync>((target) => target.onNodeInteractionChange())
     nodeInteraction: boolean = true;
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     @ObserveChanges<ChartSync>((target) => target.onZoomChange())
     zoom: boolean = true;
 

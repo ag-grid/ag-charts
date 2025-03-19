@@ -6,7 +6,7 @@ import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { FibonacciProperties } from '../properties/fibonacciProperties';
 import { validateDatumLine } from '../utils/validation';
 
-const { STRING, OBJECT, Validate } = _ModuleSupport;
+const { STRING, OBJECT, TempValidate } = _ModuleSupport;
 
 export class FibonacciRetracementTrendBasedProperties extends FibonacciProperties {
     static is(this: void, value: unknown): value is FibonacciRetracementTrendBasedProperties {
@@ -17,9 +17,9 @@ export class FibonacciRetracementTrendBasedProperties extends FibonacciPropertie
         return validateDatumLine(context, this, { overflowContinuous: true }, warningPrefix);
     }
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     type = AnnotationType.FibonacciRetracementTrendBased as const;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     endRetracement = new PointProperties();
 }

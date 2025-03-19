@@ -1,6 +1,5 @@
 import { isFiniteNumber } from 'ag-charts-core';
 
-import { Default } from '../../util/default';
 import { BaseProperties } from '../../util/properties';
 import { TimeInterval } from '../../util/time';
 import { ARRAY, MAX_SPACING, MIN_SPACING, TempValidate, predicateWithMessage } from '../../util/validation';
@@ -19,10 +18,8 @@ export class AxisInterval<S> extends BaseProperties {
     values?: any[];
 
     @TempValidate(MIN_SPACING)
-    @Default(NaN)
     minSpacing: number = NaN;
 
     @TempValidate(MAX_SPACING)
-    @Default(NaN)
     maxSpacing: number = NaN;
 }

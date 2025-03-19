@@ -20,7 +20,7 @@ const {
     Menu,
     PropertiesArray,
     ToolbarButtonProperties,
-    Validate,
+    TempValidate,
     ChartAxisDirection,
 } = _ModuleSupport;
 
@@ -45,12 +45,12 @@ type AnnotationsToolbarButtonValue =
     | 'clear';
 
 class AnnotationsToolbarButtonProperties extends ToolbarButtonProperties {
-    @Validate(UNION(['line-menu', 'fibonacci-menu', 'text-menu', 'shape-menu', 'measurer-menu', 'clear']))
+    @TempValidate(UNION(['line-menu', 'fibonacci-menu', 'text-menu', 'shape-menu', 'measurer-menu', 'clear']))
     value!: AnnotationsToolbarButtonValue;
 }
 
 export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     @ActionOnSet<AnnotationsToolbar>({
         changeValue(enabled) {
             this.toolbar?.setHidden(!enabled);
@@ -61,10 +61,10 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     /**
      * The padding between the toolbar and the chart area.
      */
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     padding: number = 20;
 
-    @Validate(ARRAY)
+    @TempValidate(ARRAY)
     public buttons = new PropertiesArray(AnnotationsToolbarButtonProperties);
 
     private readonly events = new _ModuleSupport.Listeners<keyof EventMap, any>();

@@ -9,7 +9,7 @@ const {
     AxisTicks,
     ZIndexMap,
     ProxyProperty,
-    Validate,
+    TempValidate,
     LayoutElement,
     createId,
     Group,
@@ -20,10 +20,10 @@ const {
 } = _ModuleSupport;
 
 class GradientBar extends BaseProperties {
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     thickness = 16;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     preferredLength = 100;
 }
 
@@ -55,16 +55,16 @@ export class GradientLegend {
     private readonly ticksGroup = new Group({ name: 'legend-axis-group' });
     private readonly destroyFns: Function[] = [];
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     enabled = false;
 
-    @Validate(POSITION)
+    @TempValidate(POSITION)
     position: AgChartLegendPosition = 'bottom';
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     reverseOrder: boolean = false;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly gradient = new GradientBar();
 
     private isVertical(): boolean {
@@ -74,7 +74,7 @@ export class GradientLegend {
     /**
      * Spacing between the legend and the edge of the chart's element.
      */
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     spacing = 20;
 
     scale: GradientLegendScale;

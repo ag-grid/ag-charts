@@ -15,7 +15,7 @@ import { type AnnotationContext, type AnnotationOptionsColorPickerType, Annotati
 import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumLine } from '../utils/validation';
 
-const { NUMBER, OBJECT, STRING, BaseProperties, Validate } = _ModuleSupport;
+const { NUMBER, OBJECT, STRING, BaseProperties, TempValidate } = _ModuleSupport;
 
 export class DisjointChannelProperties extends Annotation(
     Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))
@@ -24,16 +24,16 @@ export class DisjointChannelProperties extends Annotation(
         return isObject(value) && value.type === AnnotationType.DisjointChannel;
     }
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     type = AnnotationType.DisjointChannel as const;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     startHeight!: number;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     endHeight!: number;
 
-    @Validate(OBJECT, { optional: true })
+    @TempValidate(OBJECT, { optional: true })
     text = new ChannelTextProperties();
 
     snapToAngle: number = 45;

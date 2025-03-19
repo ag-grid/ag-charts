@@ -3,18 +3,18 @@ import type { TextAlign } from 'ag-charts-types';
 import type { LayoutContext } from '../module/baseModule';
 import type { BBox } from '../scene/bbox';
 import { TextUtils } from '../util/textMeasurer';
-import { OBJECT, Validate } from '../util/validation';
+import { OBJECT, TempValidate } from '../util/validation';
 import { Caption } from './caption';
 import { type LayoutCompleteEvent } from './layout/layoutManager';
 
 export class ChartCaptions {
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly title = new Caption();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly subtitle = new Caption();
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly footnote = new Caption();
 
     positionCaptions(ctx: LayoutContext) {

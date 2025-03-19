@@ -1,29 +1,37 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { createElement } from 'ag-charts-core';
 
-const { BaseProperties, ObserveChanges, ProxyProperty, Validate, NUMBER, POSITIVE_NUMBER, RATIO, calculatePlacement } =
-    _ModuleSupport;
+const {
+    BaseProperties,
+    ObserveChanges,
+    ProxyProperty,
+    TempValidate,
+    NUMBER,
+    POSITIVE_NUMBER,
+    RATIO,
+    calculatePlacement,
+} = _ModuleSupport;
 
 export class Image extends BaseProperties {
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     top?: number;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     right?: number;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     bottom?: number;
 
-    @Validate(NUMBER, { optional: true })
+    @TempValidate(NUMBER, { optional: true })
     left?: number;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     width?: number;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     height?: number;
 
-    @Validate(RATIO)
+    @TempValidate(RATIO)
     opacity: number = 1;
 
     @ProxyProperty('imageElement.src')

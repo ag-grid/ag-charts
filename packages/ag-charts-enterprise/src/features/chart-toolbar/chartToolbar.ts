@@ -3,7 +3,7 @@ import { Logger } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 
-const { BOOLEAN, ActionOnSet, LayoutElement, Menu, Validate } = _ModuleSupport;
+const { BOOLEAN, ActionOnSet, LayoutElement, Menu, TempValidate } = _ModuleSupport;
 
 const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
     { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series', value: 'ohlc' },
@@ -16,7 +16,7 @@ const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
 ];
 
 export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     @ActionOnSet<ChartToolbar>({
         changeValue(enabled) {
             this.toolbar?.setHidden(!enabled);

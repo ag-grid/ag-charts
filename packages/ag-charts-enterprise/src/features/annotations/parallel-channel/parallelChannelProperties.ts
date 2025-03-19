@@ -16,7 +16,7 @@ import { type AnnotationContext, type AnnotationOptionsColorPickerType, Annotati
 import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumLine } from '../utils/validation';
 
-const { NUMBER, STRING, OBJECT, BaseProperties, Validate } = _ModuleSupport;
+const { NUMBER, STRING, OBJECT, BaseProperties, TempValidate } = _ModuleSupport;
 
 export class ParallelChannelProperties extends Annotation(
     Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))
@@ -25,16 +25,16 @@ export class ParallelChannelProperties extends Annotation(
         return isObject(value) && value.type === AnnotationType.ParallelChannel;
     }
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     type = AnnotationType.ParallelChannel as const;
 
-    @Validate(NUMBER)
+    @TempValidate(NUMBER)
     height!: number;
 
-    @Validate(OBJECT, { optional: true })
+    @TempValidate(OBJECT, { optional: true })
     middle = new ChannelAnnotationMiddleProperties();
 
-    @Validate(OBJECT, { optional: true })
+    @TempValidate(OBJECT, { optional: true })
     text = new ChannelTextProperties();
 
     snapToAngle: number = 45;

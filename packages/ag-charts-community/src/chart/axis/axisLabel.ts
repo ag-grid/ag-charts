@@ -8,7 +8,6 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { Default } from '../../util/default';
 import { BaseProperties } from '../../util/properties';
 import { TextUtils } from '../../util/textMeasurer';
 import {
@@ -51,7 +50,6 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
      * Minimum gap in pixels between the axis labels before being removed to avoid collisions.
      */
     @TempValidate(NUMBER_OR_NAN)
-    @Default(NaN)
     minSpacing: number = NaN;
 
     /**

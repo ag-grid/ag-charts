@@ -1,7 +1,6 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { LinearScale } from '../../scale/linearScale';
 import type { LogScale } from '../../scale/logScale';
-import { Default } from '../../util/default';
 import { normalisedExtentWithMetadata } from '../../util/extent';
 import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, TempValidate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
@@ -22,10 +21,8 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     }
 
     @TempValidate(AND(NUMBER_OR_NAN, LESS_THAN('max')))
-    @Default(NaN)
     min: number = NaN;
 
     @TempValidate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
-    @Default(NaN)
     max: number = NaN;
 }

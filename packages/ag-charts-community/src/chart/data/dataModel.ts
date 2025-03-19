@@ -823,6 +823,8 @@ export class DataModel<
                 let invalidScopeKeys;
                 let invalidScopeData;
                 for (let datumIndex = 0; datumIndex < data.length; datumIndex++) {
+                    if (data[datumIndex] == null || typeof data[datumIndex] !== 'object') continue;
+
                     const result = processValue(keyDef, data[datumIndex], datumIndex, scope);
 
                     if (result.valid) {
@@ -891,6 +893,8 @@ export class DataModel<
             const columnSource = sources.get(columnScope) as unknown[];
             const column = new Array<unknown>();
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
+                if (columnSource[datumIndex] == null || typeof columnSource[datumIndex] !== 'object') continue;
+
                 const valueDatum = columnSource[datumIndex];
                 const invalidKey = invalidKeys.get(columnScope)?.[datumIndex];
 
@@ -1192,7 +1196,7 @@ export class DataModel<
         };
         const processValue = (
             def: InternalDatumPropertyDefinition<K>,
-            datum: any,
+            datum: Record<string, any>,
             idx: number,
             valueScopes: string | string[]
         ): ProcessedValue => {

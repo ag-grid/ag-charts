@@ -1,23 +1,23 @@
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
 import { BaseProperties } from '../../util/properties';
-import { BOOLEAN, OBJECT, Validate } from '../../util/validation';
+import { BOOLEAN, OBJECT, TempValidate } from '../../util/validation';
 import { Overlay } from './overlay';
 
 export class ChartOverlays extends BaseProperties {
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     darkTheme = false;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly loading = new Overlay('ag-charts-loading-overlay', 'overlayLoadingData');
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly noData = new Overlay('ag-charts-no-data-overlay', 'overlayNoData');
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly noVisibleSeries = new Overlay('ag-charts-no-visible-series', 'overlayNoVisibleSeries');
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     readonly unsupportedBrowser = new Overlay('ag-charts-unsupported-browser', 'overlayUnsupportedBrowser');
 
     getFocusInfo(localeManager: LocaleManager): { text: string; rect: BBox } | undefined {

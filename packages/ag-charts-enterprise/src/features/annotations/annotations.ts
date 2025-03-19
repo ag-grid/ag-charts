@@ -40,7 +40,7 @@ const {
     InteractionState,
     ObserveChanges,
     PropertiesArray,
-    Validate,
+    TempValidate,
     ChartAxisDirection,
     Vec2,
     keyProperty,
@@ -75,23 +75,23 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             target.clear();
         }
     })
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public enabled: boolean = true;
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     public readonly toolbar = new AnnotationsToolbar(this.ctx);
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     public optionsToolbar = new AnnotationOptionsToolbar(this.ctx, () => {
         const active = this.state.getActive();
         if (active == null) return;
         return getTypedDatum(this.annotationData.at(active));
     });
 
-    @Validate(OBJECT)
+    @TempValidate(OBJECT)
     public axesButtons = new AxesButtons();
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     public snap: boolean = false;
 
     // Hidden options for use with measurer statistics

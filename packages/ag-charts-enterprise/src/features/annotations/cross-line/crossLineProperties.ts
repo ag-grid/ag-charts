@@ -6,7 +6,7 @@ import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumValue } from '../utils/validation';
 
-const { OBJECT, STRING, BaseProperties, Validate } = _ModuleSupport;
+const { OBJECT, STRING, BaseProperties, TempValidate } = _ModuleSupport;
 
 export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(Stroke(LineStyle(BaseProperties)))))) {
     readonly direction = 'horizontal';
@@ -15,10 +15,10 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
         return isObject(value) && value.type === AnnotationType.HorizontalLine;
     }
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     type = AnnotationType.HorizontalLine as const;
 
-    @Validate(OBJECT, { optional: true })
+    @TempValidate(OBJECT, { optional: true })
     text = new LineTextProperties();
 
     override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
@@ -49,10 +49,10 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
         return isObject(value) && value.type === AnnotationType.VerticalLine;
     }
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     type = AnnotationType.VerticalLine as const;
 
-    @Validate(OBJECT, { optional: true })
+    @TempValidate(OBJECT, { optional: true })
     text = new LineTextProperties();
 
     override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {

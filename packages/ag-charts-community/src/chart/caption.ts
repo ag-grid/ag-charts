@@ -18,7 +18,7 @@ import {
     STRING,
     TEXT_ALIGN,
     TEXT_WRAP,
-    Validate,
+    TempValidate,
 } from '../util/validation';
 import type { BoundedTextWidget } from '../widget/boundedTextWidget';
 import type { MouseWidgetEvent } from '../widget/widgetEvents';
@@ -33,54 +33,54 @@ export class Caption extends BaseProperties implements CaptionLike {
         pointerEvents: PointerEvents.None,
     });
 
-    @Validate(BOOLEAN)
+    @TempValidate(BOOLEAN)
     @ProxyPropertyOnWrite('node', 'visible')
     enabled: boolean = false;
 
-    @Validate(STRING, { optional: true })
+    @TempValidate(STRING, { optional: true })
     @ProxyPropertyOnWrite('node')
     text?: string;
 
-    @Validate(TEXT_ALIGN, { optional: true })
+    @TempValidate(TEXT_ALIGN, { optional: true })
     @ProxyPropertyOnWrite('node')
     textAlign: TextAlign = 'center';
 
-    @Validate(FONT_STYLE, { optional: true })
+    @TempValidate(FONT_STYLE, { optional: true })
     @ProxyPropertyOnWrite('node')
     fontStyle?: FontStyle;
 
-    @Validate(FONT_WEIGHT, { optional: true })
+    @TempValidate(FONT_WEIGHT, { optional: true })
     @ProxyPropertyOnWrite('node')
     fontWeight?: FontWeight;
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     @ProxyPropertyOnWrite('node')
     fontSize: number = 10;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     @ProxyPropertyOnWrite('node')
     fontFamily: string = 'sans-serif';
 
-    @Validate(COLOR_STRING, { optional: true })
+    @TempValidate(COLOR_STRING, { optional: true })
     @ProxyPropertyOnWrite('node', 'fill')
     color?: string;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     spacing?: number;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     maxWidth?: number;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @TempValidate(POSITIVE_NUMBER, { optional: true })
     maxHeight?: number;
 
-    @Validate(TEXT_WRAP)
+    @TempValidate(TEXT_WRAP)
     wrapping: TextWrap = 'always';
 
-    @Validate(POSITIVE_NUMBER)
+    @TempValidate(POSITIVE_NUMBER)
     padding: number = 0;
 
-    @Validate(STRING)
+    @TempValidate(STRING)
     layoutStyle: 'block' | 'overlay' = 'block';
 
     private truncated = false;

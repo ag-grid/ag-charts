@@ -6,7 +6,6 @@ import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
 const {
     ChartAxisDirection,
-    Default,
     ZIndexMap,
     NUMBER,
     BOOLEAN,
@@ -42,7 +41,6 @@ export abstract class RadiusAxis<
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
     @TempValidate(NUMBER)
-    @Default(0)
     positionAngle: number = 0;
 
     private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);
