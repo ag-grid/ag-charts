@@ -30,7 +30,7 @@ import {
     AgTooltipAnchorToType,
     AgTooltipPlacementType,
     type AgTooltipPositionOptions,
-    AgTooltipPositionType,
+    AgTooltipPositionType, // eslint-disable-line sonarjs/deprecation
     type WithThemeParams,
 } from 'ag-charts-types';
 
