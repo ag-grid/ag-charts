@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'ٹول بار کو گھسیٹیں',
     toolbarAnnotationsFibonacciAnnotations: 'فیبوناچی',
     toolbarAnnotationsFibonacciRetracement: 'فبونیکی ریٹریسمنٹ',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'فب ٹرینڈ پر مبنی',
     toolbarAnnotationsFillColor: 'رنگ بھریں',
     toolbarAnnotationsHorizontalLine: 'افقی لکیر',
     toolbarAnnotationsLineAnnotations: 'رجحان لائنیں',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     toolbarZoomReset: 'زوم ری سیٹ کریں',
     toolbarZoomZoomIn: 'زوم ان',
     toolbarZoomZoomOut: 'زوم آؤٹ',
+    tooltipPaginationStatus: '${index}[number] میں سے ${count}[number]'
 };

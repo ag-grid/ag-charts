@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Плъзнете лентата с инструменти',
     toolbarAnnotationsFibonacciAnnotations: 'Фибоначи',
     toolbarAnnotationsFibonacciRetracement: 'Фиб Отклонение',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Фиб трендово базирано',
     toolbarAnnotationsFillColor: 'Цвят на запълване',
     toolbarAnnotationsHorizontalLine: 'Хоризонтална линия',
     toolbarAnnotationsLineAnnotations: 'Тенденции',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     toolbarZoomReset: 'Нулиране на увеличението',
     toolbarZoomZoomIn: 'Приближаване',
     toolbarZoomZoomOut: 'Намаляване на мащаба',
+    tooltipPaginationStatus: '${index}[number] от ${count}[number]'
 };

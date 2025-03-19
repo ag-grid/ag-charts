@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Ťahať panel nástrojov',
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Fib Retracement',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Fib Trend Based na základe trendu',
     toolbarAnnotationsFillColor: 'Farba výplne',
     toolbarAnnotationsHorizontalLine: 'Horizontálna čiara',
     toolbarAnnotationsLineAnnotations: 'Trendové čiary',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     toolbarZoomReset: 'Obnoviť priblíženie',
     toolbarZoomZoomIn: 'Priblížiť',
     toolbarZoomZoomOut: 'Oddialiť',
+    tooltipPaginationStatus: '${index}[number] z ${count}[number]'
 };

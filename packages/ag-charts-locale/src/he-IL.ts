@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'גרור סרגל כלים',
     toolbarAnnotationsFibonacciAnnotations: "פיבונאצ'י",
     toolbarAnnotationsFibonacciRetracement: "תיקון פיבונאצ'י",
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'פיב טרנד מבוסס',
     toolbarAnnotationsFillColor: 'צבע מילוי',
     toolbarAnnotationsHorizontalLine: 'קו אופקי',
     toolbarAnnotationsLineAnnotations: 'קווי מגמה',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     toolbarZoomReset: 'אפס זום',
     toolbarZoomZoomIn: 'התקרב',
     toolbarZoomZoomOut: 'התרחק',
+    tooltipPaginationStatus: '${index}[number] מתוך ${count}[number]'
 };
