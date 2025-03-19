@@ -115,6 +115,7 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
             width: positiveNumber,
             height: positiveNumber,
             padding: positiveNumber,
+            rotation: number,
             fill: color,
             fillOpacity: ratio,
             backgroundFill: color,
