@@ -1,4 +1,4 @@
-import { TickIntervals, getTickInterval, isDenseInterval } from '../util/ticks';
+import { TickIntervals, getTickTimeInterval, isDenseInterval } from '../util/ticks';
 import { TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
@@ -28,10 +28,11 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     override niceDomain(ticks: ScaleTickParams<TimeInterval | number>, domain: Date[] = this.domain): Date[] {
         if (domain.length < 2) return [];
 
-        const maxAttempts = 4;
         let [d0, d1] = domain;
+        const maxAttempts = 4;
+        const availableRange = this.getPixelRange();
         for (let i = 0; i < maxAttempts; i++) {
-            const [n0, n1] = updateNiceDomainIteration(d0, d1, ticks);
+            const [n0, n1] = updateNiceDomainIteration(d0, d1, ticks, availableRange);
             if (dateToNumber(d0) === dateToNumber(n0) && dateToNumber(d1) === dateToNumber(n1)) {
                 break;
             }
@@ -107,7 +108,7 @@ function getDefaultDateTicks({
     maxTickCount: number;
     visibleRange: [number, number];
 }) {
-    const t = getTickInterval(start, stop, tickCount, minTickCount, maxTickCount);
+    const t = getTickTimeInterval(start, stop, tickCount, minTickCount, maxTickCount);
     return t ? t.range(new Date(start), new Date(stop), { visibleRange }) : []; // inclusive stop
 }
 
@@ -160,31 +161,38 @@ export function getDateTicksForInterval({
     return ticks;
 }
 
-function updateNiceDomainIteration(d0: Date, d1: Date, ticks: ScaleTickParams<TimeInterval | number>): [Date, Date] {
+function updateNiceDomainIteration(
+    d0: Date,
+    d1: Date,
+    ticks: ScaleTickParams<TimeInterval | number>,
+    availableRange: number
+): [Date, Date] {
     const { interval } = ticks;
     const start = Math.min(dateToNumber(d0), dateToNumber(d1));
     const stop = Math.max(dateToNumber(d0), dateToNumber(d1));
-
-    const isReversed = d0 > d1;
 
     let i;
 
     if (interval instanceof TimeInterval) {
         i = interval;
     } else {
-        const tickCount =
-            typeof interval === 'number'
-                ? (stop - start) / Math.max(interval, 1)
-                : ticks.tickCount ?? ContinuousScale.defaultTickCount;
-        i = getTickInterval(start, stop, tickCount, ticks.minTickCount, ticks.maxTickCount);
+        let tickCount: number | null;
+        if (typeof interval === 'number') {
+            tickCount = (stop - start) / Math.max(interval, 1);
+            if (isDenseInterval(tickCount, availableRange)) {
+                tickCount = null;
+            }
+        }
+        tickCount ??= ticks.tickCount ?? ContinuousScale.defaultTickCount;
+        i = getTickTimeInterval(start, stop, tickCount, ticks.minTickCount, ticks.maxTickCount);
     }
 
     if (i) {
-        const intervalRange = i.range(new Date(start), new Date(stop), { extend: true });
-        const domain = isReversed ? [...intervalRange].reverse() : intervalRange;
-        const n0 = domain[0];
-        const n1 = domain.at(-1)!;
-        return [n0, n1];
+        const domain = i.range(new Date(start), new Date(stop), { extend: true });
+        if (d0 > d1) {
+            domain.reverse();
+        }
+        return [domain[0], domain.at(-1)!];
     } else {
         return [d0, d1];
     }

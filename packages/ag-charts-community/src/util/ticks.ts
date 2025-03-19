@@ -80,7 +80,7 @@ export function createTicks(
     return range(start, stop, step);
 }
 
-export function getTickInterval(
+export function getTickTimeInterval(
     start: number,
     stop: number,
     count: number,
