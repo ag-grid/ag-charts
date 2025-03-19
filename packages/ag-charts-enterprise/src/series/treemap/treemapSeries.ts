@@ -830,7 +830,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             Object.assign(format, this.getGroupStyleOverrides(datumIndex, datum, depth, format, false));
         }
 
-        const color = format.fill;
+        const color = format.fill as _ModuleSupport.InternalAgColorType;
 
         const markerStyle = getShapeStyle(
             {

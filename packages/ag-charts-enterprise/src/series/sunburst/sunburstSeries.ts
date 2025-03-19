@@ -569,7 +569,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const format = this.getItemBaseStyle(false) as Required<ItemStyle>;
         Object.assign(format, this.getItemStyleOverrides(datumIndex, datum, depth, datumColor, format, false));
 
-        const color = format.fill;
+        const color = format.fill as _ModuleSupport.InternalAgColorType;
 
         const markerStyle = getShapeStyle(
             {

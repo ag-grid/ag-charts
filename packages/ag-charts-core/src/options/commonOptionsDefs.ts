@@ -80,6 +80,7 @@ const gradientColorStops = or(
 export const gradient = typeUnion<AgGradientColor>(
     {
         gradient: {
+            /* @ts-expect-error undocumented options */
             gradient: union('linear', 'radial', 'conic'),
             bounds: gradientBounds,
             colorStops: gradientColorStops,
@@ -93,6 +94,7 @@ export const gradient = typeUnion<AgGradientColor>(
 export const gradientStrict = typeUnion<AgGradientColorStrict>(
     {
         gradient: {
+            /* @ts-expect-error undocumented options */
             gradient: union('linear', 'radial', 'conic'),
             bounds: gradientBounds,
             colorStops: required(gradientColorStops),

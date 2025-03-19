@@ -1,5 +1,4 @@
 import type {
-    AgColorType,
     AgGradientColor,
     AgMarkerShape,
     AgScatterSeriesItemStylerParams,
@@ -12,6 +11,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { Point, SizedPoint } from '../../../scene/point';
+import type { InternalAgColorType } from '../../../scene/util/fill';
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
 import { LABEL_PLACEMENT, OBJECT, STRING, TempValidate } from '../../../util/validation';
@@ -69,7 +69,7 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     size!: number;
 
     @ProxyProperty('marker.fill', { optional: true })
-    fill?: AgColorType;
+    fill?: InternalAgColorType;
 
     @ProxyProperty('marker.fillGradientDefaults')
     fillGradientDefaults!: Required<AgGradientColor>;

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, AgRadialColumnSeriesOptions } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -360,7 +360,7 @@ describe('RadialColumnSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgRadialColumnSeriesOptions,
                 ],
             };
             prepareEnterpriseTestOptions(options);
@@ -389,7 +389,7 @@ describe('RadialColumnSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgRadialColumnSeriesOptions,
                 ],
             };
             prepareEnterpriseTestOptions(options);
@@ -419,7 +419,7 @@ describe('RadialColumnSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgRadialColumnSeriesOptions,
                 ],
             };
             prepareEnterpriseTestOptions(options);

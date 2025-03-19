@@ -47,16 +47,10 @@ export interface AgGradientColorStop {
 
 export interface AgGradientColor {
     type: 'gradient';
-    /** Format of the gradient */
-    gradient?: AgGradientType;
     /** Represents the position and color of stops in the gradient. */
     colorStops?: AgGradientColorStop[];
-    /** The domain of the color gradient, defaults to item. */
-    bounds?: AgGradientColorBounds;
     /** The rotation angle of the line along which the gradient is rendered. */
     rotation?: number;
-    /** Reverse the order of colour stops. */
-    reverse?: boolean;
 }
 
 export interface AgGradientColorStrict extends AgGradientColor {
@@ -77,15 +71,15 @@ export interface AgPatternColor {
     /** Padding for the shape in the pattern unit. */
     padding?: number;
     /** The colour for filling closed shapes in the pattern. */
-    fill?: string;
+    fill?: CssColor;
     /** The opacity of the shapes fill colour. */
     fillOpacity?: Opacity;
     /** The colour for filling the background in the pattern. */
-    backgroundFill?: string;
+    backgroundFill?: CssColor;
     /** The opacity of the background fill colour. */
     backgroundFillOpacity?: Opacity;
     /** The colour for the strokes of shapes in the pattern. */
-    stroke?: string;
+    stroke?: CssColor;
     /** The width of the stroke of shapes in pixels. */
     strokeWidth?: PixelSize;
 }

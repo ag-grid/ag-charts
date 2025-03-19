@@ -1,11 +1,6 @@
-import type {
-    AgGradientColor,
-    AgGradientColorBounds,
-    AgGradientColorStop,
-    AgGradientType,
-    InteractionRange,
-} from 'ag-charts-types';
+import type { AgGradientColorBounds, AgGradientColorStop, AgGradientType, InteractionRange } from 'ag-charts-types';
 
+import type { InternalAgGradientColor } from '../../scene/util/fill';
 import { BaseProperties } from '../../util/properties';
 import {
     ARRAY,
@@ -68,8 +63,8 @@ export class HighlightProperties extends BaseProperties {
 }
 
 export class FillGradientDefaults
-    extends BaseProperties<Required<AgGradientColor>>
-    implements Required<AgGradientColor>
+    extends BaseProperties<Required<InternalAgGradientColor>>
+    implements Required<InternalAgGradientColor>
 {
     @TempValidate(STRING)
     type: 'gradient' = 'gradient' as const;

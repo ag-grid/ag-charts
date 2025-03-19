@@ -149,7 +149,13 @@ export { setAttribute, setAttributes, setElementStyle } from './util/attributeUt
 export { Debug } from './util/debug';
 export { isContinuous } from './util/value';
 export type { PlacedLabel, PointLabelDatum, LabelPlacement } from './scene/util/labelPlacement';
-export { isGradientFill, isPatternFill, isGradientOrPatternFill } from './scene/util/fill';
+export {
+    isGradientFill,
+    isPatternFill,
+    isGradientOrPatternFill,
+    type InternalAgColorType,
+    type InternalAgGradientColor,
+} from './scene/util/fill';
 export * from './util/bboxinterface';
 export { Padding } from './util/padding';
 export { lineDistanceSquared } from './util/distance';

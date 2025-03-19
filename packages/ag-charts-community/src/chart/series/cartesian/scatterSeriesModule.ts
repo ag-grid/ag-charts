@@ -1,13 +1,9 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type {
-    AgGradientColor,
-    AgScatterSeriesOptions,
-    AgTooltipPositionOptions,
-    WithThemeParams,
-} from 'ag-charts-types';
+import type { AgScatterSeriesOptions, AgTooltipPositionOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { InternalAgGradientColor } from '../../../scene/util/fill';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { ScatterSeries } from './scatterSeries';
 import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
@@ -45,7 +41,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: true,
-            } satisfies WithThemeParams<Required<AgGradientColor>>,
+            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
             fillOpacity: 0.8,
             tooltip: { position: { _seriesOverrideType: 'node' } as AgTooltipPositionOptions },
             label: {

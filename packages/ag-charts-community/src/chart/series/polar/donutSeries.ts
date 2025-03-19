@@ -1,5 +1,5 @@
 import { type Has, Logger, modulus } from 'ag-charts-core';
-import type { AgColorType, AgDonutSeriesStyle } from 'ag-charts-types';
+import type { AgDonutSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -13,7 +13,7 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
-import { isGradientFill, isStringFillArray } from '../../../scene/util/fill';
+import { type InternalAgColorType, isGradientFill, isStringFillArray } from '../../../scene/util/fill';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
 import { formatValue } from '../../../util/format.util';
@@ -92,7 +92,9 @@ interface DonutNodeDatum extends DataModelSeriesNodeDatum {
         readonly text: string;
     };
 
-    readonly sectorFormat: { [key in keyof Required<AgDonutSeriesStyle>]: AgDonutSeriesStyle[key] };
+    readonly sectorFormat: { [key in keyof Omit<Required<AgDonutSeriesStyle>, 'fill'>]: AgDonutSeriesStyle[key] } & {
+        fill?: InternalAgColorType;
+    };
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
     enabled: boolean;
@@ -570,7 +572,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getNodeFill(fill: AgColorType, defaultColorRange: string[]): AgColorType {
+    private getNodeFill(fill: InternalAgColorType, defaultColorRange: string[]): InternalAgColorType {
         if (!isGradientFill(fill)) return fill;
 
         return {
@@ -583,7 +585,11 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         };
     }
 
-    private getFillParams(fill: AgColorType, innerRadius: number, outerRadius: number): GradientParams | undefined {
+    private getFillParams(
+        fill: InternalAgColorType,
+        innerRadius: number,
+        outerRadius: number
+    ): GradientParams | undefined {
         if (!isGradientFill(fill) || fill.bounds === 'item') return;
 
         return {
@@ -622,7 +628,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         const defaultColors = defaultColorRange[datumIndex % defaultColorRange.length];
 
-        const sectorFill: AgColorType | undefined = fill ?? 'black';
+        const sectorFill: InternalAgColorType | undefined = fill ?? 'black';
 
         let format: AgDonutSeriesStyle | undefined;
         if (itemStyler) {

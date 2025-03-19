@@ -7,7 +7,6 @@ import type {
     AgChartLegendListeners,
     AgChartLegendOrientation,
     AgChartLegendPosition,
-    AgGradientColor,
     AgMarkerShape,
     AgMarkerShapeFn,
     FontStyle,
@@ -22,6 +21,7 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
+import type { InternalAgGradientColor } from '../../scene/util/fill';
 import { createId } from '../../util/id';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
@@ -159,7 +159,7 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
 const ID_LEGEND_VISIBILITY = 'legend-visibility';
 const ID_LEGEND_OTHER_SERIES = 'legend-other-series';
 
-const fillGradientDefaults: Required<AgGradientColor> = {
+const fillGradientDefaults: Required<InternalAgGradientColor> = {
     type: 'gradient',
     bounds: 'item',
     gradient: 'linear',

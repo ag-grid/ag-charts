@@ -4,7 +4,6 @@ import type {
     AgBubbleSeriesOptionsKeys,
     AgBubbleSeriesStyle,
     AgBubbleSeriesTooltipRendererParams,
-    AgColorType,
     AgGradientColor,
     AgMarkerShape,
     BubbleSeriesItemStylerParams,
@@ -14,6 +13,7 @@ import type {
 
 import { SceneChangeDetection } from '../../../scene/changeDetectable';
 import type { Point, SizedPoint } from '../../../scene/point';
+import type { InternalAgColorType } from '../../../scene/util/fill';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
 import { LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, POSITIVE_NUMBER, STRING, TempValidate } from '../../../util/validation';
@@ -105,7 +105,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     fillGradientDefaults!: Required<AgGradientColor>;
 
     @ProxyProperty('marker.fill', { optional: true })
-    fill?: AgColorType;
+    fill?: InternalAgColorType;
 
     @ProxyProperty('marker.fillOpacity')
     fillOpacity!: number;

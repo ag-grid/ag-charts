@@ -1,4 +1,4 @@
-import { type AgGradientColor, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { isDefined } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
@@ -79,7 +79,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     private readonly groupScale = new CategoryScale<string>();
 
-    protected get defaultShapeStyle(): Required<AgGradientColor> {
+    protected get defaultShapeStyle(): Required<_ModuleSupport.InternalAgGradientColor> {
         const angleScale = this.axes[ChartAxisDirection.X]?.scale;
         return {
             ...this.properties.fillGradientDefaults.toJson(),
