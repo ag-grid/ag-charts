@@ -107,7 +107,18 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
     }
 
     toSvg(): SVGElement {
-        const { width, height, fill, fillOpacity, backgroundFill, backgroundFillOpacity, stroke, strokeWidth } = this;
+        const {
+            width,
+            height,
+            fill,
+            fillOpacity,
+            backgroundFill,
+            backgroundFillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            rotation,
+        } = this;
 
         const pattern = createSvgElement('pattern');
         pattern.setAttribute('viewBox', `0 0 ${width} ${height}`);
@@ -127,8 +138,10 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
         const path = createSvgElement('path');
         path.setAttribute('fill', fill);
         path.setAttribute('fill-opacity', String(fillOpacity));
+        path.setAttribute('stroke-opacity', String(strokeOpacity));
         path.setAttribute('stroke', stroke);
         path.setAttribute('stroke-width', String(strokeWidth));
+        path.setAttribute('transform', `rotate(${rotation})`);
         path.setAttribute('d', this.getPath().toSVG());
         pattern.appendChild(path);
 
