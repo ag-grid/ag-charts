@@ -512,7 +512,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        const { itemStyler, fillGradientDefaults } = item;
+        const { itemStyler, fillGradientDefaults, fillPatternDefaults } = item;
         const { xKey, yKey } = properties;
 
         const format = getShapeStyle(
@@ -526,7 +526,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
                 cornerRadius: item.cornerRadius,
             },
-            fillGradientDefaults
+            fillGradientDefaults,
+            fillPatternDefaults
         );
 
         if (itemStyler != null) {
@@ -542,7 +543,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 });
             });
 
-            itemStyle = getShapeStyle(itemStyle, fillGradientDefaults);
+            itemStyle = getShapeStyle(itemStyle, fillGradientDefaults, fillPatternDefaults);
 
             Object.assign(format, itemStyle);
         }
@@ -661,6 +662,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             lineDash,
             lineDashOffset,
             fillGradientDefaults,
+            fillPatternDefaults,
         } = this.getItemConfig(item);
         return {
             marker: getShapeStyle(
@@ -673,7 +675,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                fillGradientDefaults
+                fillGradientDefaults,
+                fillPatternDefaults
             ),
         };
     }

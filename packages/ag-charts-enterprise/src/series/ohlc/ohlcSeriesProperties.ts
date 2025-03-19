@@ -7,6 +7,7 @@ import type {
     AgOhlcSeriesItemStylerParams,
     AgOhlcSeriesOptions,
     AgOhlcSeriesTooltipRendererParams,
+    AgPatternColor,
     FillOptions,
     LineDashOptions,
     StrokeOptions,
@@ -59,7 +60,12 @@ export abstract class OhlcSeriesBaseProperties<
 > extends AbstractBarSeriesProperties<T> {
     abstract item: Record<
         'up' | 'down',
-        FillOptions & StrokeOptions & LineDashOptions & { fillGradientDefaults?: Required<InternalAgGradientColor> }
+        FillOptions &
+            StrokeOptions &
+            LineDashOptions & {
+                fillGradientDefaults?: Required<InternalAgGradientColor>;
+                fillPatternDefaults?: Required<AgPatternColor>;
+            }
     >;
 
     @TempValidate(STRING)

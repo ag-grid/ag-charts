@@ -1,7 +1,7 @@
-import type { InternalAgColorType } from 'ag-charts-core';
+import type { InternalAgColorType, InternalAgGradientColor } from 'ag-charts-core';
 import type {
-    AgGradientColor,
     AgMarkerShape,
+    AgPatternColor,
     AgScatterSeriesItemStylerParams,
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesOptions,
@@ -72,7 +72,10 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     fill?: InternalAgColorType;
 
     @ProxyProperty('marker.fillGradientDefaults')
-    fillGradientDefaults!: Required<AgGradientColor>;
+    fillGradientDefaults!: Required<InternalAgGradientColor>;
+
+    @ProxyProperty('marker.fillPatternDefaults')
+    fillPatternDefaults!: Required<AgPatternColor>;
 
     @ProxyProperty('marker.fillOpacity')
     fillOpacity!: number;

@@ -13,6 +13,7 @@ import type { InternalAgColorType } from 'ag-charts-core';
 
 const {
     FillGradientDefaults,
+    FillPatternDefaults,
     BaseProperties,
     SeriesTooltip,
     SeriesProperties,
@@ -132,6 +133,9 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: InternalAgColorType[] = [];

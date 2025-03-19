@@ -13,6 +13,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 const {
     SeriesProperties,
     FillGradientDefaults,
+    FillPatternDefaults,
     SeriesTooltip,
     TempValidate,
     UNION,
@@ -57,6 +58,9 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

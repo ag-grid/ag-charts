@@ -4,6 +4,7 @@ import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
     AgInitialStateLegendOptions,
+    AgPatternColor,
     AgSeriesMarkerStyle,
     AgSeriesVisibilityChange,
     ISeriesMarker,
@@ -808,19 +809,23 @@ export abstract class Series<
     }
 
     public getMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams> & { fillGradientDefaults: Required<InternalAgGradientColor> },
+        marker: ISeriesMarker<TParams> & {
+            fillGradientDefaults: Required<InternalAgGradientColor>;
+            fillPatternDefaults: Required<AgPatternColor>;
+        },
         datum?: any,
         params?: TParams,
         highlighted = false,
         size = marker.size ?? 0,
         defaultStyle?: AgSeriesMarkerStyle
     ) {
-        const { itemStyler, fillGradientDefaults } = marker;
+        const { itemStyler, fillGradientDefaults, fillPatternDefaults } = marker;
         const defaultSize = { size };
 
         let markerStyle = getShapeStyle(
             mergeDefaults(defaultSize, defaultStyle, marker.getStyle()),
-            fillGradientDefaults
+            fillGradientDefaults,
+            fillPatternDefaults
         );
 
         if (itemStyler && params) {
@@ -831,14 +836,17 @@ export abstract class Series<
                 highlighted,
                 datum,
             });
-            markerStyle = getShapeStyle(mergeDefaults(style, markerStyle), fillGradientDefaults);
+            markerStyle = getShapeStyle(mergeDefaults(style, markerStyle), fillGradientDefaults, fillPatternDefaults);
         }
 
         return markerStyle;
     }
 
     protected updateMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams> & { fillGradientDefaults: Required<InternalAgGradientColor> },
+        marker: ISeriesMarker<TParams> & {
+            fillGradientDefaults: Required<InternalAgGradientColor>;
+            fillPatternDefaults: Required<AgPatternColor>;
+        },
         markerNode: Marker,
         datum: any,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,

@@ -28,6 +28,7 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
                 rotation: 0,
                 reverse: true,
             } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillOpacity: 1,
             shape: 'circle',
             size: 6,
@@ -68,6 +69,7 @@ export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>[
                     rotation: 0,
                     reverse: false,
                 } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+                fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
                 fillOpacity: 0.8,
                 strokeWidth: 2,
                 marker: {
@@ -80,6 +82,7 @@ export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>[
                         rotation: 0,
                         reverse: true,
                     } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+                    fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
                 },
             },
         },

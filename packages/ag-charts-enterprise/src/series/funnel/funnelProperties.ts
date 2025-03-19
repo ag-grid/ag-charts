@@ -14,6 +14,7 @@ import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 
 const {
     FillGradientDefaults,
+    FillPatternDefaults,
     Label,
     DropShadow,
     AbstractBarSeriesProperties,
@@ -85,6 +86,9 @@ export class FunnelProperties
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

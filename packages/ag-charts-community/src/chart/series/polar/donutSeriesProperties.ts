@@ -135,6 +135,9 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     @TempValidate(ARRAY_OF(COLOR_STRING_ARRAY))
     defaultColorRange: string[][] = [];
 
+    @TempValidate(ARRAY_OF(COLOR_STRING))
+    defaultPatternFills: string[] = [];
+
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: InternalAgColorType[] = Object.values(DEFAULT_FILLS);
 

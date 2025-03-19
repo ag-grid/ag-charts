@@ -4,6 +4,7 @@ import type { AgLineSeriesOptions, AgTooltipPositionOptions, WithThemeParams } f
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
+import { FILL_PATTERN_DEFAULTS } from '../../themes/util';
 import { LineSeries } from './lineSeries';
 import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
 
@@ -55,6 +56,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
                     rotation: 0,
                     reverse: true,
                 } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+                fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             },
             label: {
                 enabled: false,

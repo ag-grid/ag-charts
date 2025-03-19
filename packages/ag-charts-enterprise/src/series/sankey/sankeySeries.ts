@@ -399,7 +399,8 @@ export class SankeySeries extends FlowProportionSeries<
                 lineDash: highlightStyle?.lineDash ?? lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
             },
-            this.properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -460,7 +461,7 @@ export class SankeySeries extends FlowProportionSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     protected updateNodeNodes(opts: {
@@ -524,7 +525,8 @@ export class SankeySeries extends FlowProportionSeries<
                 lineDash: highlightStyle?.lineDash ?? lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
             },
-            this.properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -581,7 +583,7 @@ export class SankeySeries extends FlowProportionSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     protected updateLinkNodes(opts: {

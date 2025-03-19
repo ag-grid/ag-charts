@@ -12,7 +12,7 @@ import {
     TempValidate,
 } from '../../../util/validation';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
-import { FillGradientDefaults, SeriesProperties } from '../seriesProperties';
+import { FillGradientDefaults, FillPatternDefaults, SeriesProperties } from '../seriesProperties';
 
 export abstract class HierarchySeriesProperties<T extends object> extends SeriesProperties<T> {
     @TempValidate(STRING)
@@ -32,6 +32,9 @@ export abstract class HierarchySeriesProperties<T extends object> extends Series
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);

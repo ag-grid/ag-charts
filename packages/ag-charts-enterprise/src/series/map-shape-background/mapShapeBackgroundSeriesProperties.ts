@@ -6,6 +6,7 @@ import { GEOJSON_OBJECT } from '../map-util/validation';
 
 const {
     FillGradientDefaults,
+    FillPatternDefaults,
     COLOR_STRING,
     COLOR_GRADIENT,
     COLOR_PATTERN,
@@ -33,6 +34,9 @@ export class MapShapeBackgroundSeriesProperties extends SeriesProperties<AgMapSh
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

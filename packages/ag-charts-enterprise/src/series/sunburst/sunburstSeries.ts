@@ -152,7 +152,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             },
-            this.properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -198,7 +199,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     updateNodes() {
@@ -583,7 +584,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 lineDash: [0],
                 lineDashOffset: 0,
             },
-            this.properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
 
         if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
@@ -591,7 +593,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         }
 
         return tooltip.formatTooltip(
-            this.properties,
+            properties,
             {
                 title: labelKey != null ? datum[labelKey] : undefined,
                 symbol: {

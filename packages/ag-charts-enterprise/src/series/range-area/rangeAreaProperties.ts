@@ -21,6 +21,7 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
 const {
     CartesianSeriesProperties,
     FillGradientDefaults,
+    FillPatternDefaults,
     InterpolationProperties,
     SeriesMarker,
     SeriesTooltip,
@@ -75,6 +76,9 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

@@ -18,6 +18,7 @@ import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-p
 const {
     BaseProperties,
     FillGradientDefaults,
+    FillPatternDefaults,
     SeriesTooltip,
     SeriesProperties,
     ARRAY,
@@ -160,6 +161,9 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: InternalAgColorType[] = [];

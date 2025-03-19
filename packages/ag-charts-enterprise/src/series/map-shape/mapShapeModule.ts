@@ -35,6 +35,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 rotation: 0,
                 reverse: false,
             } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillOpacity: 1,
             strokeWidth: 1,
             lineDash: [0],

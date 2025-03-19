@@ -412,7 +412,8 @@ export class HistogramSeries extends CartesianSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius: properties.cornerRadius,
             },
-            properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -575,6 +576,7 @@ export class HistogramSeries extends CartesianSeries<
             lineDash,
             lineDashOffset,
             fillGradientDefaults,
+            fillPatternDefaults,
         } = this.properties;
 
         return {
@@ -588,7 +590,8 @@ export class HistogramSeries extends CartesianSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                fillGradientDefaults
+                fillGradientDefaults,
+                fillPatternDefaults
             ),
         };
     }

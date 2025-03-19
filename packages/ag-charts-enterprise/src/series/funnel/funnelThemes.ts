@@ -66,6 +66,7 @@ export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTe
             rotation: 0,
             reverse: false,
         } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         label: {
             enabled: true,
             fontSize: { $ref: 'fontSize' },
