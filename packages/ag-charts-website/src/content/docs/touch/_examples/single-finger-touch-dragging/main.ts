@@ -17,7 +17,7 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(1e3),
     animation: initAnimation(),
-    touch: { dragAction: 'hover' },
+    touch: { dragAction: 'none' },
     zoom: {
         enabled: true,
         enableAxisDragging: false,

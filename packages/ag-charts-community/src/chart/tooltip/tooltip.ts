@@ -159,7 +159,7 @@ export class TooltipPosition extends BaseProperties {
      * theme, and we'll make sure they are applied normally.
      */
     @Validate(POSITION_TYPE, { optional: true })
-    @Deprecated('use anchorTo and/or placement options instead')
+    @Deprecated('Use `anchorTo` and/or `placement` options instead.')
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
     protected type?: TooltipPositionType;
     /** @todo Remove this when type is removed. */
