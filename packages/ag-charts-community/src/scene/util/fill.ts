@@ -7,6 +7,8 @@ export interface InternalAgGradientColor extends AgGradientColor {
     gradient?: AgGradientType;
     /** The domain of the color gradient, defaults to item. */
     bounds?: AgGradientColorBounds;
+    /** Reverse the order of colour stops. */
+    reverse?: boolean;
 }
 
 export type InternalAgColorType = CssColor | InternalAgGradientColor | AgPatternColor;

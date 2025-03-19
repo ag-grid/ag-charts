@@ -51,8 +51,6 @@ export interface AgGradientColor {
     colorStops?: AgGradientColorStop[];
     /** The rotation angle of the line along which the gradient is rendered. */
     rotation?: number;
-    /** Reverse the order of colour stops. */
-    reverse?: boolean;
 }
 
 export interface AgGradientColorStrict extends AgGradientColor {
