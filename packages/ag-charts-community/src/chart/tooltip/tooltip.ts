@@ -242,6 +242,7 @@ export class Tooltip extends BaseProperties {
     private readonly wrapTypes = ['always', 'hyphenate', 'on-space', 'never'];
 
     private element?: HTMLElement;
+    private readonly sizeMonitor = new SizeMonitor();
 
     // Reading the element size is expensive, so cache the result
     private _elementSize: { width: number; height: number } | undefined = undefined;
@@ -275,12 +276,21 @@ export class Tooltip extends BaseProperties {
             this.element.className = DEFAULT_TOOLTIP_CLASS;
             // @ts-expect-error Typings need updating
             this.element.style.positionAnchor = domManager.anchorName;
+
+            this.sizeMonitor.observe(this.element, (size) => {
+                this._elementSize = size;
+                this.updateTooltipPosition();
+            });
         }
         this.localeManager = localeManager;
 
         return () => {
             domManager.removeChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
             this.destroyFns.forEach((f) => f());
+
+            if (this.element) {
+                this.sizeMonitor.unobserve(this.element);
+            }
         };
     }
 
@@ -329,6 +339,7 @@ export class Tooltip extends BaseProperties {
             i += 1;
 
             const tooltipBounds = this.getTooltipBounds({
+                elementSize,
                 placement,
                 anchorTo,
                 canvasX,
@@ -454,7 +465,6 @@ export class Tooltip extends BaseProperties {
         }
     }
 
-    private removeDeferredTooltipPositionUpdate: (() => void) | undefined = undefined;
     private toggleCallback(visible: boolean) {
         if (!this.element?.isConnected) return;
 
@@ -464,19 +474,10 @@ export class Tooltip extends BaseProperties {
 
         this.element.togglePopover(visible);
 
-        this.removeDeferredTooltipPositionUpdate?.();
-        this.removeDeferredTooltipPositionUpdate = undefined;
-
         if (visible) {
-            // Avoid reading the tooltip size immediately after a DOM mutation, wait for
-            // a natural layout before positioning the tooltip.
-            this.removeDeferredTooltipPositionUpdate = SizeMonitor.singleShot(this.element, (size) => {
-                this._elementSize = size;
-
-                // We can only measure the element when it's actually visible
-                // This removes a possible jump for the tooltip
-                this.updateTooltipPosition();
-            });
+            // We can only measure the element when it's actually visible
+            // This removes a possible jump for the tooltip
+            this.updateTooltipPosition();
         } else {
             this.springAnimation.reset();
         }
@@ -505,6 +506,7 @@ export class Tooltip extends BaseProperties {
     }
 
     private getTooltipBounds(opts: {
+        elementSize: { width: number; height: number };
         anchorTo: AgTooltipAnchorTo;
         placement: AgTooltipPlacement;
         canvasX: number;
@@ -513,11 +515,9 @@ export class Tooltip extends BaseProperties {
         xOffset: number;
         canvasRect: DOMRect;
     }): Bounds {
-        if (!this.element || !this._elementSize) return {};
+        const { elementSize, anchorTo, placement, canvasX, canvasY, yOffset, xOffset, canvasRect } = opts;
 
-        const { anchorTo, placement, canvasX, canvasY, yOffset, xOffset, canvasRect } = opts;
-
-        const { width: tooltipWidth, height: tooltipHeight } = this._elementSize;
+        const { width: tooltipWidth, height: tooltipHeight } = elementSize;
         const bounds: Bounds = { width: tooltipWidth, height: tooltipHeight };
 
         if (anchorTo === 'node' || anchorTo === 'pointer') {
