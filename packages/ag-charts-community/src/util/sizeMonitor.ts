@@ -20,11 +20,11 @@ export class SizeMonitor {
     private documentReady = false;
     private queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
 
-    static singleShot(element: HTMLElement, cb: OnSizeChange) {
+    static singleShot(element: HTMLElement, cb: OnSizeChange): () => void {
         if (typeof ResizeObserver === 'undefined') {
             // Fallback to using clientWidth + clientHeight, which will force a layout.
             cb({ width: element.clientWidth, height: element.clientHeight, pixelRatio: 1 }, element);
-            return;
+            return () => {};
         }
 
         const observer = new ResizeObserver((entries) => {
@@ -41,6 +41,10 @@ export class SizeMonitor {
             }
         });
         observer.observe(element);
+
+        return () => {
+            observer.disconnect();
+        };
     }
 
     constructor() {

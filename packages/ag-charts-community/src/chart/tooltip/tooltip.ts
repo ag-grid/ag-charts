@@ -245,7 +245,7 @@ export class Tooltip extends BaseProperties {
 
     // Reading the element size is expensive, so cache the result
     private _elementSize: { width: number; height: number } | undefined = undefined;
-    private _showTimeout: NodeJS.Timeout | number = 0;
+    private _showTimeout: NodeJS.Timeout | undefined = undefined;
     private arrowPosition: ArrowPosition | undefined = undefined;
     private _visible = false;
 
@@ -432,50 +432,53 @@ export class Tooltip extends BaseProperties {
         element.style.setProperty('--left', `${canvasRect.left}px`);
         this.updateClassModifiers();
 
-        if (this.delay > 0 && !instantly) {
-            this.toggle(false);
-            this._showTimeout = setTimeout(() => {
-                this.toggle(true);
-            }, this.delay);
-        } else {
-            this.toggle(true);
-        }
+        this.toggle(true, instantly);
     }
 
     hide() {
         this.toggle(false);
     }
 
-    private toggle(visible: boolean) {
+    private toggle(visible: boolean, instantly: boolean = false) {
+        const { delay } = this;
+
+        if (visible && delay > 0 && !instantly) {
+            this._showTimeout ??= setTimeout(() => {
+                this._showTimeout = undefined;
+                this.toggleCallback(true);
+            }, delay);
+        } else {
+            clearTimeout(this._showTimeout);
+            this._showTimeout = undefined;
+            this.toggleCallback(visible);
+        }
+    }
+
+    private removeDeferredTooltipPositionUpdate: (() => void) | undefined = undefined;
+    private toggleCallback(visible: boolean) {
         if (!this.element?.isConnected) return;
 
         // Avoid touching the DOM if invisible and visibility status hasn't changed.
-        if (!this._visible && !visible) return;
-
-        const changed = this._visible !== visible;
+        if (this._visible === visible) return;
         this._visible = visible;
 
-        if (!visible) {
-            this.springAnimation.reset();
-            clearTimeout(this._showTimeout);
-        }
+        this.element.togglePopover(visible);
 
-        if (changed) {
-            this.element.togglePopover(visible);
-        }
+        this.removeDeferredTooltipPositionUpdate?.();
+        this.removeDeferredTooltipPositionUpdate = undefined;
 
         if (visible) {
             // Avoid reading the tooltip size immediately after a DOM mutation, wait for
             // a natural layout before positioning the tooltip.
-            SizeMonitor.singleShot(this.element, (size) => {
-                if (!this._visible) return;
-
+            this.removeDeferredTooltipPositionUpdate = SizeMonitor.singleShot(this.element, (size) => {
                 this._elementSize = size;
 
                 // We can only measure the element when it's actually visible
                 // This removes a possible jump for the tooltip
                 this.updateTooltipPosition();
             });
+        } else {
+            this.springAnimation.reset();
         }
     }
 
