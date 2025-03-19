@@ -1,3 +1,4 @@
+import type { InternalAgColorType } from 'ag-charts-core';
 import type {
     AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesOptions,
@@ -13,7 +14,6 @@ import type {
 
 import { SceneChangeDetection } from '../../../scene/changeDetectable';
 import type { Point, SizedPoint } from '../../../scene/point';
-import type { InternalAgColorType } from '../../../scene/util/fill';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
 import { LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, POSITIVE_NUMBER, STRING, TempValidate } from '../../../util/validation';

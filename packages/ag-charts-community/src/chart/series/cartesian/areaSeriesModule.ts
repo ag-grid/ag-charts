@@ -1,9 +1,9 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
-import type { InternalAgGradientColor } from '../../../scene/util/fill';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { AreaSeries } from './areaSeries';

@@ -1,17 +1,5 @@
-import { isArray, isObject } from 'ag-charts-core';
-import type { AgGradientColor, AgGradientColorBounds, AgGradientType, CssColor } from 'ag-charts-types';
+import { type InternalAgColorType, type InternalAgGradientColor, isArray, isObject } from 'ag-charts-core';
 import type { AgPatternColor } from 'ag-charts-types';
-
-export interface InternalAgGradientColor extends AgGradientColor {
-    /** Format of the gradient */
-    gradient?: AgGradientType;
-    /** The domain of the color gradient, defaults to item. */
-    bounds?: AgGradientColorBounds;
-    /** Reverse the order of colour stops. */
-    reverse?: boolean;
-}
-
-export type InternalAgColorType = CssColor | InternalAgGradientColor | AgPatternColor;
 
 export function isGradientFill(fill: any): fill is InternalAgGradientColor {
     return isObject(fill) && fill.type == 'gradient';

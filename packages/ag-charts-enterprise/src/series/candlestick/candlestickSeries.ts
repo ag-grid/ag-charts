@@ -1,4 +1,5 @@
 import { type AgCandlestickSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
@@ -143,7 +144,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
               )
             : [{ color: isPatternFill(downFill) ? down.stroke : downFill, stop: 0.5 }];
 
-        const fill: _ModuleSupport.InternalAgGradientColor = {
+        const fill: InternalAgGradientColor = {
             type: 'gradient',
             gradient: 'linear',
             rotation: 90,
@@ -151,7 +152,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             reverse: false,
         };
 
-        const stroke: _ModuleSupport.InternalAgGradientColor = {
+        const stroke: InternalAgGradientColor = {
             type: 'gradient',
             gradient: 'linear',
             rotation: 90,

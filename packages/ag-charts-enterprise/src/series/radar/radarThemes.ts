@@ -1,4 +1,5 @@
 import { type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE },
@@ -26,7 +27,7 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: true,
-            } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
+            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
             fillOpacity: 1,
             shape: 'circle',
             size: 6,
@@ -66,7 +67,7 @@ export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>[
                     colorStops: { $palette: 'gradient' },
                     rotation: 0,
                     reverse: false,
-                } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
+                } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
                 fillOpacity: 0.8,
                 strokeWidth: 2,
                 marker: {
@@ -78,7 +79,7 @@ export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>[
                         colorStops: { $palette: 'gradient' },
                         rotation: 0,
                         reverse: true,
-                    } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
+                    } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
                 },
             },
         },

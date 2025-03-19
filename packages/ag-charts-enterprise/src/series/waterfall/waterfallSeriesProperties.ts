@@ -9,6 +9,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
 const {
     AbstractBarSeriesProperties,
@@ -64,7 +65,7 @@ export class WaterfallSeriesItem extends BaseProperties {
     name?: string;
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
-    fill: _ModuleSupport.InternalAgColorType = '#c16068';
+    fill: InternalAgColorType = '#c16068';
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();

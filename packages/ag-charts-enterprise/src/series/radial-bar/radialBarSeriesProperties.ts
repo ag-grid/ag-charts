@@ -7,6 +7,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
 const {
     SeriesProperties,
@@ -41,7 +42,7 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
     radiusName?: string;
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
-    fill: _ModuleSupport.InternalAgColorType = 'black';
+    fill: InternalAgColorType = 'black';
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
