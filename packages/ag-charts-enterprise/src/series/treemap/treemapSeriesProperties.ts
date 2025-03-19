@@ -1,5 +1,4 @@
 import type {
-    AgColorType,
     AgTreemapSeriesItemStylerParams,
     AgTreemapSeriesLabelFormatterParams,
     AgTreemapSeriesOptions,
@@ -43,7 +42,7 @@ class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
 
 class TreemapSeriesGroup extends BaseProperties {
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
-    fill: AgColorType | undefined = undefined;
+    fill: _ModuleSupport.InternalAgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;
@@ -78,7 +77,7 @@ class TreemapSeriesGroup extends BaseProperties {
 
 class TreemapSeriesTile extends BaseProperties {
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
-    fill: AgColorType | undefined = undefined;
+    fill: _ModuleSupport.InternalAgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

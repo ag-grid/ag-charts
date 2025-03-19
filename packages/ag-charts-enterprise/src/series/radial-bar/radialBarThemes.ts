@@ -1,4 +1,4 @@
-import { type AgGradientColor, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import { type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE },
@@ -16,7 +16,7 @@ export const RADIAL_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-bar'>[
             colorStops: { $palette: 'gradient' },
             rotation: 0,
             reverse: false,
-        } satisfies WithThemeParams<Required<AgGradientColor>>,
+        } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
         strokeWidth: 0,
         label: {
             enabled: false,

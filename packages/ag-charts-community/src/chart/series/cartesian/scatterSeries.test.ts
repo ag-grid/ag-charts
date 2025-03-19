@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions, AgPatternName } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgPatternName, AgScatterSeriesOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import * as examples from '../../test/examples';
@@ -86,7 +86,7 @@ describe('ScatterSeries', () => {
                         },
                         size: 20,
                         strokeWidth: 0,
-                    },
+                    } as AgScatterSeriesOptions,
                 ],
             };
 
@@ -111,7 +111,7 @@ describe('ScatterSeries', () => {
                         },
                         size: 20,
                         strokeWidth: 0,
-                    },
+                    } as AgScatterSeriesOptions,
                 ],
             };
 
@@ -136,7 +136,7 @@ describe('ScatterSeries', () => {
                         },
                         size: 20,
                         strokeWidth: 0,
-                    },
+                    } as AgScatterSeriesOptions,
                 ],
                 axes: [
                     {
@@ -174,7 +174,7 @@ describe('ScatterSeries', () => {
                         },
                         size: 20,
                         strokeWidth: 0,
-                    },
+                    } as AgScatterSeriesOptions,
                 ],
                 axes: [
                     {
@@ -211,7 +211,7 @@ describe('ScatterSeries', () => {
                         },
                         size: 20,
                         strokeWidth: 0,
-                    },
+                    } as AgScatterSeriesOptions,
                 ],
                 axes: [
                     {
@@ -249,7 +249,7 @@ describe('ScatterSeries', () => {
                         },
                         size: 20,
                         strokeWidth: 0,
-                    },
+                    } as AgScatterSeriesOptions,
                 ],
                 axes: [
                     {
@@ -309,7 +309,7 @@ describe('ScatterSeries', () => {
                         },
                         size: 30,
                         strokeWidth: 0,
-                    },
+                    } as AgScatterSeriesOptions,
                 ],
             };
 
@@ -341,7 +341,7 @@ describe('ScatterSeries', () => {
                         },
                         size: 30,
                         strokeWidth: 0,
-                    },
+                    } as AgScatterSeriesOptions,
                 ],
             };
 

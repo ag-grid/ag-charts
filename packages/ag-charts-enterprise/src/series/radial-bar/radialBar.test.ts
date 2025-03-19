@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, AgRadialBarSeriesOptions } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -366,7 +366,7 @@ describe('RadialBarSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgRadialBarSeriesOptions,
                 ],
             };
             prepareEnterpriseTestOptions(options);

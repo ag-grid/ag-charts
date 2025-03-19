@@ -1,4 +1,4 @@
-import { type AgGradientColor, type Operation, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import { type Operation, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE, POLAR_AXIS_SHAPE },
@@ -22,7 +22,7 @@ export const NIGHTINGALE_SERIES_THEME: _ModuleSupport.SeriesModule<'nightingale'
             colorStops: { $palette: 'gradient' },
             rotation: 0,
             reverse: false,
-        } satisfies WithThemeParams<Required<AgGradientColor>>,
+        } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
         strokeWidth: 1,
         label: {
             enabled: false,

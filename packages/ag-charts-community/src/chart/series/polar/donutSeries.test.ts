@@ -344,6 +344,7 @@ describe('DonutSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                /* @ts-expect-error internal option */
                                 bounds: 'series',
                                 colorStops: [
                                     {
@@ -355,7 +356,7 @@ describe('DonutSeries', () => {
                                 ],
                             },
                         ],
-                    },
+                    } as AgDonutSeriesOptions,
                 ],
             });
             await compare();
@@ -380,6 +381,7 @@ describe('DonutSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                /* @ts-expect-error internal option */
                                 bounds: 'item',
                                 colorStops: [
                                     {
@@ -391,7 +393,7 @@ describe('DonutSeries', () => {
                                 ],
                             },
                         ],
-                    },
+                    } as AgDonutSeriesOptions,
                 ],
             });
             await compare();
@@ -416,6 +418,7 @@ describe('DonutSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                /* @ts-expect-error internal option */
                                 gradient: 'linear',
                                 bounds: 'item',
                                 colorStops: [
@@ -428,7 +431,7 @@ describe('DonutSeries', () => {
                                 ],
                             },
                         ],
-                    },
+                    } as AgDonutSeriesOptions,
                 ],
             });
             await compare();
@@ -453,6 +456,7 @@ describe('DonutSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                /* @ts-expect-error internal option */
                                 gradient: 'linear',
                                 bounds: 'series',
                                 colorStops: [
@@ -465,7 +469,7 @@ describe('DonutSeries', () => {
                                 ],
                             },
                         ],
-                    },
+                    } as AgDonutSeriesOptions,
                 ],
             });
             await compare();

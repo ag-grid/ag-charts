@@ -2,7 +2,6 @@ import { Logger } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
-    AgGradientColor,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesVisibilityChange,
@@ -17,6 +16,7 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
+import type { InternalAgGradientColor } from '../../scene/util/fill';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';
 import { formatValue } from '../../util/format.util';
@@ -808,7 +808,7 @@ export abstract class Series<
     }
 
     public getMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams> & { fillGradientDefaults: Required<AgGradientColor> },
+        marker: ISeriesMarker<TParams> & { fillGradientDefaults: Required<InternalAgGradientColor> },
         datum?: any,
         params?: TParams,
         highlighted = false,
@@ -838,7 +838,7 @@ export abstract class Series<
     }
 
     protected updateMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams> & { fillGradientDefaults: Required<AgGradientColor> },
+        marker: ISeriesMarker<TParams> & { fillGradientDefaults: Required<InternalAgGradientColor> },
         markerNode: Marker,
         datum: any,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,

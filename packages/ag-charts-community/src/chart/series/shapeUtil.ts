@@ -1,9 +1,7 @@
-import type { AgColorType, AgGradientColor, AgGradientColorBounds, AgGradientType } from 'ag-charts-types';
-
 import type { BBox } from '../../scene/bbox';
 import { type GradientParams } from '../../scene/gradient/gradient';
 import type { Shape, ShapeColor } from '../../scene/shape/shape';
-import { isGradientFill } from '../../scene/util/fill';
+import { type InternalAgColorType, type InternalAgGradientColor, isGradientFill } from '../../scene/util/fill';
 
 export type ShapeStyle = Partial<
     Pick<Shape, 'fill' | 'fillOpacity' | 'stroke' | 'strokeOpacity' | 'strokeWidth' | 'lineDash' | 'lineDashOffset'>
@@ -14,22 +12,18 @@ export interface ShapeFillBBox {
     axis: BBox;
 }
 
-export interface ShapeFillDefaults {
-    gradient: AgGradientType;
-    bounds: AgGradientColorBounds;
-    rotation: number;
-    colorStops: string[];
-}
-
-export function getShapeFill(fill: AgColorType, defaults: Required<AgGradientColor>): Required<AgColorType>;
 export function getShapeFill(
-    fill: AgColorType | undefined,
-    defaults: Required<AgGradientColor>
-): Required<AgColorType> | undefined;
+    fill: InternalAgColorType,
+    defaults: Required<InternalAgGradientColor>
+): Required<InternalAgColorType>;
 export function getShapeFill(
-    fill: AgColorType | undefined,
-    defaults: Required<AgGradientColor>
-): Required<AgColorType> | undefined {
+    fill: InternalAgColorType | undefined,
+    defaults: Required<InternalAgGradientColor>
+): Required<InternalAgColorType> | undefined;
+export function getShapeFill(
+    fill: InternalAgColorType | undefined,
+    defaults: Required<InternalAgGradientColor>
+): Required<InternalAgColorType> | undefined {
     if (!isGradientFill(fill)) return fill as any;
 
     return {
@@ -42,14 +36,17 @@ export function getShapeFill(
     };
 }
 
-export function getShapeStyle<T extends { fill?: AgColorType }>(style: T, defaults: Required<AgGradientColor>): T;
-export function getShapeStyle<T extends { fill?: AgColorType }>(
+export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
+    style: T,
+    defaults: Required<InternalAgGradientColor>
+): T;
+export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T | undefined,
-    defaults: Required<AgGradientColor>
+    defaults: Required<InternalAgGradientColor>
 ): T | undefined;
-export function getShapeStyle<T extends { fill?: AgColorType }>(
+export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T | undefined,
-    defaults: Required<AgGradientColor>
+    defaults: Required<InternalAgGradientColor>
 ): T | undefined {
     if (!isGradientFill(style?.fill)) return style;
     return {

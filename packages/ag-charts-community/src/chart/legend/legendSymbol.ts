@@ -2,9 +2,11 @@ import type { AgColorType, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import { Group } from '../../scene/group';
 import { Line } from '../../scene/shape/line';
+import type { InternalAgColorType } from '../../scene/util/fill';
 import { Marker } from '../marker/marker';
 
 export interface LegendMarker extends Omit<AgSeriesMarkerStyle, 'stroke'> {
+    fill?: InternalAgColorType;
     stroke?: AgColorType;
     enabled?: boolean;
 }

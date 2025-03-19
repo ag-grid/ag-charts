@@ -1,8 +1,9 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgGradientColor, AgLineSeriesOptions, AgTooltipPositionOptions, WithThemeParams } from 'ag-charts-types';
+import type { AgLineSeriesOptions, AgTooltipPositionOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { InternalAgGradientColor } from '../../../scene/util/fill';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { LineSeries } from './lineSeries';
 import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
@@ -54,7 +55,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
                     colorStops: { $palette: 'gradient' },
                     rotation: 0,
                     reverse: true,
-                } satisfies WithThemeParams<Required<AgGradientColor>>,
+                } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
             },
             label: {
                 enabled: false,

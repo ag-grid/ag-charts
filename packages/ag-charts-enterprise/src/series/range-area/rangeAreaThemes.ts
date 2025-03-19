@@ -1,4 +1,4 @@
-import { type AgGradientColor, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import { type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
 export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>['themeTemplate'] = {
     series: {
@@ -10,7 +10,7 @@ export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>[
             colorStops: { $palette: 'gradient' },
             rotation: 0,
             reverse: false,
-        } satisfies WithThemeParams<Required<AgGradientColor>>,
+        } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
         stroke: { $palette: 'stroke' },
         fillOpacity: 0.7,
         nodeClickRange: 'nearest',
@@ -26,7 +26,7 @@ export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>[
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: true,
-            } satisfies WithThemeParams<Required<AgGradientColor>>,
+            } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
             size: 6,
             strokeWidth: 2,
         },

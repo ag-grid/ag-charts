@@ -2417,6 +2417,7 @@ export const AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS: AgCartesianChartOptions = {
                     fill: {
                         type: 'gradient',
                         rotation: 90,
+                        /* @ts-expect-error internal config option */
                         bounds: 'axis',
                     },
                 },
@@ -3323,6 +3324,7 @@ export const STACKED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChar
         overrides: {
             bar: {
                 series: {
+                    /* @ts-expect-error internal config option */
                     fill: { type: 'gradient', bounds: 'series' },
                 },
             },
@@ -3336,6 +3338,7 @@ export const STACKED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianCh
         overrides: {
             bar: {
                 series: {
+                    /* @ts-expect-error internal config option */
                     fill: { type: 'gradient', rotation: 90, bounds: 'series' },
                 },
             },
@@ -3349,6 +3352,7 @@ export const STACKED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartO
         overrides: {
             bar: {
                 series: {
+                    /* @ts-expect-error internal config option */
                     fill: { type: 'gradient', bounds: 'axis' },
                 },
             },
@@ -3362,6 +3366,7 @@ export const STACKED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChar
         overrides: {
             bar: {
                 series: {
+                    /* @ts-expect-error internal config option */
                     fill: { type: 'gradient', rotation: 90, bounds: 'axis' },
                 },
             },
@@ -3426,6 +3431,7 @@ export const GROUPED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChar
         overrides: {
             bar: {
                 series: {
+                    /* @ts-expect-error internal config option */
                     fill: { type: 'gradient', bounds: 'series' },
                 },
             },
@@ -3439,6 +3445,7 @@ export const GROUPED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianCh
         overrides: {
             bar: {
                 series: {
+                    /* @ts-expect-error internal config option */
                     fill: { type: 'gradient', rotation: 90, bounds: 'series' },
                 },
             },
@@ -3452,6 +3459,7 @@ export const GROUPED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartO
         overrides: {
             bar: {
                 series: {
+                    /* @ts-expect-error internal config option */
                     fill: { type: 'gradient', bounds: 'axis' },
                 },
             },
@@ -3465,6 +3473,7 @@ export const GROUPED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChar
         overrides: {
             bar: {
                 series: {
+                    /* @ts-expect-error internal config option */
                     fill: { type: 'gradient', rotation: 90, bounds: 'axis' },
                 },
             },

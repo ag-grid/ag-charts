@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, AgNightingaleSeriesOptions } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -352,7 +352,7 @@ describe('NightingaleSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgNightingaleSeriesOptions,
                 ],
             };
             prepareEnterpriseTestOptions(options);
@@ -381,7 +381,7 @@ describe('NightingaleSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgNightingaleSeriesOptions,
                 ],
             };
             prepareEnterpriseTestOptions(options);
@@ -411,7 +411,7 @@ describe('NightingaleSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgNightingaleSeriesOptions,
                 ],
             };
             prepareEnterpriseTestOptions(options);

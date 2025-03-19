@@ -1,8 +1,9 @@
 import { type SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgBarSeriesOptions, AgGradientColor, WithThemeParams } from 'ag-charts-types';
+import type { AgBarSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { InternalAgGradientColor } from '../../../scene/util/fill';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { DIRECTION_SWAP_AXES } from '../../themes/util';
 import { BarSeries } from './barSeries';
@@ -33,7 +34,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: false,
-            } satisfies WithThemeParams<Required<AgGradientColor>>,
+            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
             fillOpacity: 1,
             strokeWidth: 0,
             lineDash: [0],

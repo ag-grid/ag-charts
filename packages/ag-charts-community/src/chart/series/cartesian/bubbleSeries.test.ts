@@ -149,6 +149,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'linear',
                                 },
                             },
@@ -172,6 +173,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'linear',
                                     rotation: 90,
                                 },
@@ -196,6 +198,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'linear',
                                     bounds: 'series',
                                 },
@@ -220,6 +223,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'linear',
                                     rotation: 90,
                                     bounds: 'series',
@@ -245,6 +249,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'linear',
                                     bounds: 'axis',
                                 },
@@ -269,6 +274,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'linear',
                                     rotation: 90,
                                     bounds: 'axis',
@@ -294,6 +300,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     bounds: 'axis',
                                 },
                             },
@@ -317,6 +324,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'radial',
                                     bounds: 'series',
                                 },
@@ -341,6 +349,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'radial',
                                     colorStops: [
                                         {

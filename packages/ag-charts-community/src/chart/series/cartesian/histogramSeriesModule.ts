@@ -1,8 +1,9 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgGradientColor, AgHistogramSeriesOptions, WithThemeParams } from 'ag-charts-types';
+import type { AgHistogramSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { InternalAgGradientColor } from '../../../scene/util/fill';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { HistogramSeries } from './histogramSeries';
@@ -39,7 +40,7 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: false,
-            } satisfies WithThemeParams<Required<AgGradientColor>>,
+            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
             strokeWidth: 1,
             fillOpacity: 1,
             strokeOpacity: 1,
