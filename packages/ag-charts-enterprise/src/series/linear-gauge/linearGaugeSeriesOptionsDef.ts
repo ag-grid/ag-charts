@@ -1,5 +1,4 @@
 import {
-    type AgGradientColorStop,
     type AgLinearGaugePreset,
     type AgLinearGaugeTarget,
     type FillsOptions,
@@ -8,16 +7,14 @@ import {
 import {
     type OptionsDefs,
     and,
-    arrayLength,
     arrayOf,
     arrayOfDefs,
     boolean,
     callback,
-    color,
-    colorStopsOrderValidator,
     constant,
     fillOptionsDef,
     fontOptionsDef,
+    gradientColorStops,
     greaterThan,
     lessThan,
     lineDashOptionsDef,
@@ -35,11 +32,7 @@ const { commonSeriesOptionsDefs, autoSizedLabelOptionsDefs, tooltipOptionsDefs, 
     _ModuleSupport;
 
 export const fillsOptionsDef: OptionsDefs<FillsOptions> = {
-    fills: and(
-        arrayLength(2),
-        arrayOfDefs<AgGradientColorStop>({ color: color, stop: number }, 'color stops'),
-        colorStopsOrderValidator
-    ),
+    fills: gradientColorStops,
     fillMode: union('continuous', 'discrete'),
 };
 

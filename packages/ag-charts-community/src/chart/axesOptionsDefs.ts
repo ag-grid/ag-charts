@@ -20,9 +20,9 @@ import {
     or,
     positiveNumber,
     positiveNumberNonZero,
+    ratio,
     required,
     string,
-    stringFillOptionsDef,
     strokeOptionsDef,
     union,
 } from 'ag-charts-core';
@@ -65,7 +65,8 @@ export const commonCrossLineOptionsDefs: OptionsDefs<AgBaseCrossLineOptions> = {
         defined
     ),
     label: commonCrossLineLabelOptionsDefs,
-    ...stringFillOptionsDef,
+    fill: string,
+    fillOpacity: ratio,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
 };
