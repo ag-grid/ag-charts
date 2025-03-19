@@ -12,13 +12,14 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const {
     SeriesProperties,
+    FillGradientDefaults,
     SeriesTooltip,
     TempValidate,
     UNION,
     OR,
+    ARRAY_OF,
     COLOR_GRADIENT,
     COLOR_STRING,
-    ARRAY_OF,
     COLOR_STRING_ARRAY,
     FUNCTION,
     DIRECTION,
@@ -51,11 +52,11 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
     @TempValidate(STRING)
     valueKey!: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING)))
     fills: AgColorType[] = [];
+
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

@@ -11,6 +11,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { OhlcSeriesBaseProperties } from '../ohlc/ohlcSeriesProperties';
 
 const {
+    FillGradientDefaults,
     BaseProperties,
     SeriesTooltip,
     TempValidate,
@@ -21,7 +22,6 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     COLOR_GRADIENT,
-    COLOR_STRING_ARRAY,
     COLOR_PATTERN,
     OR,
 } = _ModuleSupport;
@@ -44,11 +44,11 @@ class CandlestickSeriesWick extends BaseProperties {
 }
 
 class CandlestickSeriesItem extends BaseProperties {
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#c16068';
+
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity = 1;

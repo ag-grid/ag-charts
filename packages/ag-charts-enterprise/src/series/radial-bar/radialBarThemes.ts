@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientColor, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE },
@@ -9,7 +9,14 @@ export const RADIAL_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-bar'>[
         fill: { $palette: 'fill' },
         stroke: { $palette: 'stroke' },
         // @ts-expect-error undocumented option
-        defaultColorRange: { $palette: 'gradient' },
+        fillGradientDefaults: {
+            type: 'gradient',
+            gradient: 'conic',
+            bounds: 'series',
+            colorStops: { $palette: 'gradient' },
+            rotation: 0,
+            reverse: false,
+        } satisfies WithThemeParams<Required<AgGradientColor>>,
         strokeWidth: 0,
         label: {
             enabled: false,

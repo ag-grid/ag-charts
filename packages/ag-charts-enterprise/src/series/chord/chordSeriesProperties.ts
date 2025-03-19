@@ -12,6 +12,7 @@ import {
 } from 'ag-charts-community';
 
 const {
+    FillGradientDefaults,
     BaseProperties,
     SeriesTooltip,
     SeriesProperties,
@@ -129,8 +130,8 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     @TempValidate(ARRAY, { optional: true })
     nodes: any[] | undefined = undefined;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: AgColorType[] = [];

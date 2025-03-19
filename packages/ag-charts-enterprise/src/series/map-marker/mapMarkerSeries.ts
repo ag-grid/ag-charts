@@ -30,6 +30,7 @@ const {
     Text,
     Marker,
     applyShapeStyle,
+    getShapeStyle,
 } = _ModuleSupport;
 
 interface MapMarkerNodeDataContext
@@ -97,15 +98,6 @@ export class MapMarkerSeries
     );
     private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
         Selection.select(this.highlightNode, Marker);
-
-    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
-        return {
-            gradient: 'radial',
-            bounds: 'item',
-            rotation: 0,
-            colorStops: this.properties.defaultColorRange.toReversed(),
-        };
-    }
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
@@ -568,7 +560,7 @@ export class MapMarkerSeries
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return _ModuleSupport.getShapeStyle(
+        return getShapeStyle(
             {
                 shape: properties.shape,
                 size: properties.size,
@@ -580,7 +572,7 @@ export class MapMarkerSeries
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
-            this.defaultShapeStyle
+            this.properties.fillGradientDefaults
         );
     }
 
@@ -729,7 +721,7 @@ export class MapMarkerSeries
         }
 
         return {
-            marker: _ModuleSupport.getShapeStyle(
+            marker: getShapeStyle(
                 {
                     shape,
                     fill,
@@ -740,7 +732,7 @@ export class MapMarkerSeries
                     lineDash,
                     lineDashOffset,
                 },
-                this.defaultShapeStyle
+                this.properties.fillGradientDefaults
             ),
         };
     }

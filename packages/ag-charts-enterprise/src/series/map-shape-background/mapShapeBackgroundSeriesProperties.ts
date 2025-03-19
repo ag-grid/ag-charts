@@ -4,8 +4,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
 const {
+    FillGradientDefaults,
     COLOR_STRING,
-    COLOR_STRING_ARRAY,
     COLOR_GRADIENT,
     COLOR_PATTERN,
     OR,
@@ -27,11 +27,11 @@ export class MapShapeBackgroundSeriesProperties extends SeriesProperties<AgMapSh
     @TempValidate(GEOJSON_OBJECT, { optional: true })
     topology?: _ModuleSupport.FeatureCollection = undefined;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = 'black';
+
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

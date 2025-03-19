@@ -13,7 +13,6 @@ import {
     COLOR_GRADIENT,
     COLOR_PATTERN,
     COLOR_STRING,
-    COLOR_STRING_ARRAY,
     LINE_DASH,
     OBJECT,
     OR,
@@ -24,6 +23,7 @@ import {
     UNION,
 } from '../../../util/validation';
 import { Label } from '../../label';
+import { FillGradientDefaults } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
@@ -63,11 +63,11 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
     @TempValidate(STRING, { optional: true })
     yName?: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill?: AgColorType;
+
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity = 1;

@@ -12,6 +12,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const {
     AbstractBarSeriesProperties,
+    FillGradientDefaults,
     SeriesTooltip,
     TempValidate,
     COLOR_STRING,
@@ -24,7 +25,6 @@ const {
     STRING,
     BOOLEAN,
     COLOR_GRADIENT,
-    COLOR_STRING_ARRAY,
     COLOR_PATTERN,
     OR,
     DropShadow,
@@ -61,11 +61,11 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
     @TempValidate(STRING, { optional: true })
     yHighName?: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#99CCFF';
+
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

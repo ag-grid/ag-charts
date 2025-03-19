@@ -5,6 +5,7 @@ import type {
     AgBubbleSeriesStyle,
     AgBubbleSeriesTooltipRendererParams,
     AgColorType,
+    AgGradientColor,
     AgMarkerShape,
     BubbleSeriesItemStylerParams,
     LabelPlacement,
@@ -100,8 +101,8 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     @ProxyProperty('marker.domain', { optional: true })
     domain?: [number, number];
 
-    @ProxyProperty('marker.defaultColorRange')
-    defaultColorRange?: string[];
+    @ProxyProperty('marker.fillGradientDefaults')
+    fillGradientDefaults!: Required<AgGradientColor>;
 
     @ProxyProperty('marker.fill', { optional: true })
     fill?: AgColorType;

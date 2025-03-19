@@ -15,7 +15,6 @@ import {
     COLOR_GRADIENT,
     COLOR_PATTERN,
     COLOR_STRING,
-    COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
     NUMBER,
@@ -28,6 +27,7 @@ import {
     UNION,
 } from '../../../util/validation';
 import { Label } from '../../label';
+import { FillGradientDefaults } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import { AbstractBarSeriesProperties } from './abstractBarSeries';
 
@@ -61,11 +61,11 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     @TempValidate(NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#c16068';
+
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

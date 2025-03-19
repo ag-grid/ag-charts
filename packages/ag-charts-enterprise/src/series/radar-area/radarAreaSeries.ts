@@ -3,7 +3,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { type RadarPathPoint, RadarSeries } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
-const { Group, Path, PointerEvents, Selection, ChartAxisDirection, applyShapeStyle } = _ModuleSupport;
+const { Group, Path, PointerEvents, Selection, ChartAxisDirection, applyShapeStyle, getShapeFill, getShapeStyle } =
+    _ModuleSupport;
 
 export class RadarAreaSeries extends RadarSeries {
     static override readonly className = 'RadarAreaSeries';
@@ -11,15 +12,17 @@ export class RadarAreaSeries extends RadarSeries {
 
     override properties = new RadarAreaSeriesProperties();
 
-    protected areaSelection: _ModuleSupport.Selection<_ModuleSupport.Path, boolean>;
+    private readonly areaGroup = this.contentGroup.appendChild(new Group({ name: 'radar-area' }));
+    protected areaSelection: _ModuleSupport.Selection<_ModuleSupport.Path, boolean> = Selection.select(
+        this.areaGroup,
+        Path
+    );
 
     override resetInvalidToZero = true;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx);
-        const areaGroup = new Group();
-        this.contentGroup.append(areaGroup);
-        this.areaSelection = Selection.select(areaGroup, Path);
+        this.areaGroup.zIndex = -1;
     }
 
     protected override updatePathSelections() {
@@ -42,7 +45,7 @@ export class RadarAreaSeries extends RadarSeries {
         const areaNode = this.getAreaNode();
 
         const { fillOpacity, fill } = this.properties;
-        const style = _ModuleSupport.getShapeStyle({ fill, fillOpacity }, this.defaultShapeStyle);
+        const style = getShapeStyle({ fill, fillOpacity }, this.properties.fillGradientDefaults);
 
         applyShapeStyle(areaNode, style, undefined, this.getShapeFillBBox());
         areaNode.pointerEvents = PointerEvents.None;
@@ -84,7 +87,7 @@ export class RadarAreaSeries extends RadarSeries {
             const { path: areaPath } = areaNode;
             const areaPoints = this.getAreaPoints();
 
-            areaNode.fill = _ModuleSupport.getShapeFill(this.properties.fill, this.defaultShapeStyle);
+            areaNode.fill = getShapeFill(this.properties.fill, this.properties.fillGradientDefaults);
             areaNode.fillOpacity = this.properties.fillOpacity;
             areaNode.stroke = undefined;
 

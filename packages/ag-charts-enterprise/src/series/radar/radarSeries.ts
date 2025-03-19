@@ -23,6 +23,7 @@ const {
     Text,
     Marker,
     mergeDefaults,
+    getShapeStyle,
 } = _ModuleSupport;
 
 export interface RadarPathPoint {
@@ -65,15 +66,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     );
 
     protected resetInvalidToZero: boolean = false;
-
-    protected get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
-        return {
-            gradient: 'radial',
-            bounds: 'series',
-            rotation: 0,
-            colorStops: this.properties.marker.defaultColorRange,
-        };
-    }
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -412,21 +404,23 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
 
+        const markerStyle = getShapeStyle(
+            {
+                shape: marker.shape,
+                enabled: marker.enabled || strokeWidth <= 0,
+                fill: this.getMarkerFill() ?? marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+                stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity: marker.fillOpacity,
+                strokeOpacity: marker.strokeOpacity,
+                strokeWidth: marker.strokeWidth,
+                lineDash: marker.lineDash,
+                lineDashOffset: marker.lineDashOffset,
+            },
+            marker.fillGradientDefaults
+        );
+
         return {
-            marker: _ModuleSupport.getShapeStyle(
-                {
-                    shape: marker.shape,
-                    fill: this.getMarkerFill() ?? marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                    stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity: marker.fillOpacity,
-                    strokeOpacity: marker.strokeOpacity,
-                    strokeWidth: marker.strokeWidth,
-                    lineDash: marker.lineDash,
-                    lineDashOffset: marker.lineDashOffset,
-                    enabled: marker.enabled || strokeWidth <= 0,
-                },
-                this.defaultShapeStyle
-            ),
+            marker: markerStyle,
             line: {
                 stroke,
                 strokeOpacity,

@@ -1,4 +1,4 @@
-import { type AgColorType, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgColorType, type AgFunnelSeriesStyle, type AgGradientColor, _ModuleSupport } from 'ag-charts-community';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -28,6 +28,8 @@ const {
     checkCrisp,
     createDatumId,
     applyShapeFillBBox,
+    getShapeStyle,
+    getShapeFill,
 } = _ModuleSupport;
 
 export type Bounds = {
@@ -99,7 +101,7 @@ class FunnelSeriesNodeEvent<
 
 export interface FunnelSeriesShapeStyle {
     fill?: AgColorType;
-    defaultColorRange: string[];
+    fillGradientDefaults: Required<AgGradientColor>;
     fillOpacity: number;
     stroke?: string;
     strokeWidth: number;
@@ -483,7 +485,7 @@ export abstract class BaseFunnelSeries<
     private updateConnectorNodes(opts: {
         connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
-        const { fills, strokes, defaultColorRange } = this.properties;
+        const { fills, strokes, fillGradientDefaults } = this.properties;
         const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
             this.connectorStyle();
 
@@ -493,7 +495,7 @@ export abstract class BaseFunnelSeries<
             const { datumIndex } = datum;
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
 
-            const connectorFill = this.getNodeFill(fill ?? fills[datumIndex % fills.length], defaultColorRange);
+            const connectorFill = getShapeFill(fill ?? fills[datumIndex % fills.length], fillGradientDefaults);
             connector.fill = connectorFill;
             applyShapeFillBBox(connector, connectorFill, fillBBox);
             connector.fillOpacity = fillOpacity;
@@ -595,22 +597,25 @@ export abstract class BaseFunnelSeries<
     }
 
     private legendItemSymbol(datumIndex: number): _ModuleSupport.LegendSymbolOptions {
-        const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
+        const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, fillGradientDefaults } =
             this.barStyle();
         const { fills, strokes } = this.properties;
         const fill = fills[datumIndex % fills.length] ?? 'black';
         const stroke = strokes[datumIndex % strokes.length] ?? 'black';
 
         return {
-            marker: {
-                fill: this.getNodeFill(fill, defaultColorRange),
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-            },
+            marker: getShapeStyle(
+                {
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                    lineDash,
+                    lineDashOffset,
+                },
+                fillGradientDefaults
+            ),
         };
     }
 

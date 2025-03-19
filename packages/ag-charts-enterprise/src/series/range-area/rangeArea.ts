@@ -45,6 +45,8 @@ const {
     ContinuousScale,
     OrdinalTimeScale,
     findMinMax,
+    getShapeStyle,
+    getShapeFill,
 } = _ModuleSupport;
 
 class RangeAreaSeriesNodeEvent<
@@ -439,7 +441,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible: visible || animationEnabled,
         });
 
-        const seriesFill = this.getNodeFill(this.properties.fill, this.properties.defaultColorRange);
+        const seriesFill = getShapeFill(this.properties.fill, this.properties.fillGradientDefaults);
         const fillBBox = this.getShapeFillBBox();
 
         applyShapeFillBBox(fill, seriesFill, fillBBox);
@@ -668,21 +670,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { fill, stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
 
+        const markerStyle = getShapeStyle(
+            {
+                shape: marker.shape,
+                fill: marker.fill ?? fill,
+                stroke: marker.stroke ?? stroke,
+                fillOpacity: marker.fillOpacity,
+                strokeOpacity: marker.strokeOpacity,
+                strokeWidth: marker.strokeWidth,
+                lineDash: marker.lineDash,
+                lineDashOffset: marker.lineDashOffset,
+            },
+            marker.fillGradientDefaults
+        );
+
         return {
-            marker: this.getShapeStyle(
-                {
-                    shape: marker.shape,
-                    fill: marker.fill ?? fill,
-                    stroke: marker.stroke ?? stroke,
-                    fillOpacity: marker.fillOpacity,
-                    strokeOpacity: marker.strokeOpacity,
-                    strokeWidth: marker.strokeWidth,
-                    lineDash: marker.lineDash,
-                    lineDashOffset: marker.lineDashOffset,
-                    defaultColorRange: marker.defaultColorRange,
-                },
-                marker.defaultColorRange
-            ),
+            marker: markerStyle,
             line: {
                 stroke,
                 strokeOpacity,

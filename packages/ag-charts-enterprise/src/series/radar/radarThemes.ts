@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientColor, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE },
@@ -18,6 +18,15 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
             enabled: true,
             fill: { $palette: 'fill' },
             stroke: { $palette: 'stroke' },
+            // @ts-expect-error undocumented option
+            fillGradientDefaults: {
+                type: 'gradient',
+                gradient: 'radial',
+                bounds: 'item',
+                colorStops: { $palette: 'gradient' },
+                rotation: 0,
+                reverse: true,
+            } satisfies WithThemeParams<Required<AgGradientColor>>,
             fillOpacity: 1,
             shape: 'circle',
             size: 6,
@@ -50,12 +59,26 @@ export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>[
         {
             series: {
                 fill: { $palette: 'fill' },
-                defaultColorRange: { $palette: 'gradient' }, // TODO: update radar-area to handle 'gradients'
+                fillGradientDefaults: {
+                    type: 'gradient',
+                    gradient: 'linear',
+                    bounds: 'item',
+                    colorStops: { $palette: 'gradient' },
+                    rotation: 0,
+                    reverse: false,
+                } satisfies WithThemeParams<Required<AgGradientColor>>,
                 fillOpacity: 0.8,
                 strokeWidth: 2,
                 marker: {
                     enabled: false,
-                    defaultColorRange: { $palette: 'gradient' },
+                    fillGradientDefaults: {
+                        type: 'gradient',
+                        gradient: 'radial',
+                        bounds: 'item',
+                        colorStops: { $palette: 'gradient' },
+                        rotation: 0,
+                        reverse: true,
+                    } satisfies WithThemeParams<Required<AgGradientColor>>,
                 },
             },
         },

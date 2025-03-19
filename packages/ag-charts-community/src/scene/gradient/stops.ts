@@ -53,11 +53,12 @@ function getDefaultColorStops(defaultColorStops: string[], fillMode: AgGradientC
 }
 
 export function getColorStops(
-    fills: AgGradientColorStop[],
+    baseFills: Array<AgGradientColorStop | string>,
     defaultColorStops: string[],
     domain: number[],
     fillMode: AgGradientColorMode = 'continuous'
 ): GradientColorStop[] {
+    const fills = baseFills.map<AgGradientColorStop>((fill) => (typeof fill === 'string' ? { color: fill } : fill));
     if (fills.length === 0) {
         return getDefaultColorStops(defaultColorStops, fillMode);
     } else if (!stopsAreAscending(fills)) {

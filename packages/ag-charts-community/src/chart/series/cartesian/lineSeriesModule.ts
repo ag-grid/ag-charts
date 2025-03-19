@@ -1,5 +1,5 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgLineSeriesOptions, AgTooltipPositionOptions } from 'ag-charts-types';
+import type { AgGradientColor, AgLineSeriesOptions, AgTooltipPositionOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -47,7 +47,14 @@ export const LineSeriesModule: SeriesModule<'line'> = {
                 fill: { $palette: 'fill' },
                 stroke: { $palette: 'stroke' },
                 // @ts-expect-error undocumented option
-                defaultColorRange: { $palette: 'gradient' },
+                fillGradientDefaults: {
+                    type: 'gradient',
+                    gradient: 'radial',
+                    bounds: 'item',
+                    colorStops: { $palette: 'gradient' },
+                    rotation: 0,
+                    reverse: true,
+                } satisfies WithThemeParams<Required<AgGradientColor>>,
             },
             label: {
                 enabled: false,

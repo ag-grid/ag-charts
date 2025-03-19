@@ -9,14 +9,15 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { BaseFunnelProperties } from '../funnel/baseFunnelSeriesProperties';
 
 const {
+    FillGradientDefaults,
     Label,
     AbstractBarSeriesProperties,
     SeriesTooltip,
     AxisLabel,
     TempValidate,
     UNION,
-    ARRAY_OF,
     OR,
+    ARRAY_OF,
     COLOR_GRADIENT,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
@@ -51,11 +52,11 @@ export class ConeFunnelProperties
     @TempValidate(STRING)
     valueKey!: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
+    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING)))
     fills: AgColorType[] = [];
+
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

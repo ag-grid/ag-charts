@@ -14,11 +14,13 @@ import { _ModuleSupport } from 'ag-charts-community';
 const {
     AbstractBarSeriesProperties,
     BaseProperties,
+    FillGradientDefaults,
     PropertiesArray,
     SeriesTooltip,
     TempValidate,
     BOOLEAN,
     COLOR_STRING,
+    COLOR_PATTERN,
     FUNCTION,
     LINE_DASH,
     NUMBER,
@@ -27,8 +29,6 @@ const {
     POSITIVE_NUMBER,
     OR,
     COLOR_GRADIENT,
-    COLOR_STRING_ARRAY,
-    COLOR_PATTERN,
     RATIO,
     STRING,
     UNION,
@@ -64,11 +64,11 @@ export class WaterfallSeriesItem extends BaseProperties {
     @TempValidate(STRING, { optional: true })
     name?: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
     fill: AgColorType = '#c16068';
+
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(COLOR_STRING)
     stroke: string = '#c16068';

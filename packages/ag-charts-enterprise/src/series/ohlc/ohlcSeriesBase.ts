@@ -34,6 +34,7 @@ const {
     ContinuousScale,
     OrdinalTimeScale,
     BandScale,
+    getShapeStyle,
 } = _ModuleSupport;
 
 export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
@@ -421,18 +422,16 @@ export abstract class OhlcSeriesBase<
         const { properties } = this;
         const item = properties.item[itemId];
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-        return this.getShapeStyle(
-            {
-                fill: highlightStyle?.fill ?? item.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,
-                stroke: highlightStyle?.stroke ?? item.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? item.strokeWidth,
-                strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
-                lineDash: highlightStyle?.lineDash ?? item.lineDash,
-                lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
-            },
-            item.defaultColorRange ?? ['black']
-        );
+        const shapeStyle = {
+            fill: highlightStyle?.fill ?? item.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,
+            stroke: highlightStyle?.stroke ?? item.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? item.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? item.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
+        };
+        return item.fillGradientDefaults ? getShapeStyle(shapeStyle, item.fillGradientDefaults) : shapeStyle;
     }
 
     protected getItemStyleOverrides(
@@ -465,7 +464,7 @@ export abstract class OhlcSeriesBase<
             });
         });
 
-        return this.getShapeStyle(overrides, item.defaultColorRange ?? ['black']);
+        return item.fillGradientDefaults ? getShapeStyle(overrides, item.fillGradientDefaults) : overrides;
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
@@ -505,21 +504,26 @@ export abstract class OhlcSeriesBase<
         const format = this.getItemBaseStyle(itemId, false);
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, itemId, format, false));
 
+        let marker = {
+            fill: item.fill ?? item.stroke,
+            fillOpacity: item.fillOpacity ?? item.strokeOpacity ?? 1,
+            stroke: item.stroke,
+            strokeWidth: item.strokeWidth ?? 1,
+            strokeOpacity: item.strokeOpacity ?? 1,
+            lineDash: item.lineDash ?? [0],
+            lineDashOffset: item.lineDashOffset ?? 0,
+        };
+        if (item.fillGradientDefaults) {
+            marker = getShapeStyle(marker, item.fillGradientDefaults);
+        }
+
         return tooltip.formatTooltip(
             this.properties,
             {
                 heading: xAxis.formatDatum(xValue),
                 title: legendItemName,
                 symbol: {
-                    marker: {
-                        fill: item.fill ?? item.stroke,
-                        fillOpacity: item.fillOpacity ?? item.strokeOpacity ?? 1,
-                        stroke: item.stroke,
-                        strokeWidth: item.strokeWidth ?? 1,
-                        strokeOpacity: item.strokeOpacity ?? 1,
-                        lineDash: item.lineDash ?? [0],
-                        lineDashOffset: item.lineDashOffset ?? 0,
-                    },
+                    marker,
                 },
                 data: [
                     { label: openName, fallbackLabel: openKey, value: yAxis.formatDatum(openValue) },

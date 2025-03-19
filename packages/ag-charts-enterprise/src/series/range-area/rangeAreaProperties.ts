@@ -20,6 +20,7 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
 
 const {
     CartesianSeriesProperties,
+    FillGradientDefaults,
     InterpolationProperties,
     SeriesMarker,
     SeriesTooltip,
@@ -31,7 +32,6 @@ const {
     PLACEMENT,
     POSITIVE_NUMBER,
     COLOR_GRADIENT,
-    COLOR_STRING_ARRAY,
     COLOR_PATTERN,
     OR,
     RATIO,
@@ -70,11 +70,11 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     @TempValidate(STRING, { optional: true })
     yHighName?: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#99CCFF';
+
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

@@ -7,7 +7,7 @@ import type {
     AgChartLegendListeners,
     AgChartLegendOrientation,
     AgChartLegendPosition,
-    AgColorType,
+    AgGradientColor,
     AgMarkerShape,
     AgMarkerShapeFn,
     FontStyle,
@@ -22,7 +22,6 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
-import { isGradientFill } from '../../scene/util/fill';
 import { createId } from '../../util/id';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
@@ -52,7 +51,7 @@ import { LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
 import { MARKER_SHAPE } from '../series/seriesMarker';
-import { applyShapeStyle } from '../series/shapeUtil';
+import { applyShapeStyle, getShapeStyle } from '../series/shapeUtil';
 import { type TooltipMeta } from '../tooltip/tooltip';
 import { ZIndexMap } from '../zIndexMap';
 import { LegendDOMProxy } from './legendDOMProxy';
@@ -159,6 +158,15 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
 
 const ID_LEGEND_VISIBILITY = 'legend-visibility';
 const ID_LEGEND_OTHER_SERIES = 'legend-other-series';
+
+const fillGradientDefaults: Required<AgGradientColor> = {
+    type: 'gradient',
+    bounds: 'item',
+    gradient: 'linear',
+    colorStops: [{ color: 'black' }],
+    rotation: 0,
+    reverse: false,
+};
 
 export class Legend extends BaseProperties {
     static readonly className = 'Legend';
@@ -800,31 +808,21 @@ export class Legend extends BaseProperties {
         };
     }
     private getMarkerStyles({ marker }: LegendSymbolOptions) {
-        const { stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
+        const { fill, stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
 
-        let fill: AgColorType | undefined;
-        if (isGradientFill(marker.fill)) {
-            fill = {
-                type: 'gradient',
-                bounds: 'item',
-                gradient: marker.fill.gradient ?? 'linear',
-                colorStops: marker.fill.colorStops ?? [],
-                rotation: marker.fill.rotation ?? 0,
-            };
-        } else {
-            fill = marker.fill;
-        }
-
-        return {
-            fill,
-            stroke,
-            strokeOpacity,
-            fillOpacity,
-            strokeWidth: this.item.marker.strokeWidth ?? defaultLineStrokeWidth,
-            lineDash,
-            lineDashOffset,
-        };
+        return getShapeStyle(
+            {
+                fill,
+                stroke,
+                strokeOpacity,
+                fillOpacity,
+                strokeWidth: this.item.marker.strokeWidth ?? defaultLineStrokeWidth,
+                lineDash,
+                lineDashOffset,
+            },
+            fillGradientDefaults
+        );
     }
 
     private computePagedBBox(): BBox {

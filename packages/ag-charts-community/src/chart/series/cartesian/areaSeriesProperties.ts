@@ -12,7 +12,6 @@ import {
     COLOR_GRADIENT,
     COLOR_PATTERN,
     COLOR_STRING,
-    COLOR_STRING_ARRAY,
     LINE_DASH,
     OBJECT,
     OR,
@@ -23,6 +22,7 @@ import {
 } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
+import { FillGradientDefaults } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
@@ -46,11 +46,11 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     @TempValidate(POSITIVE_NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#c16068';
+
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity = 1;

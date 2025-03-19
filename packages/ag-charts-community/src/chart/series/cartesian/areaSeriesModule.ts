@@ -1,5 +1,5 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgAreaSeriesOptions } from 'ag-charts-types';
+import type { AgAreaSeriesOptions, AgGradientColor, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -34,8 +34,15 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             // @ts-expect-error deprecated type field fallback value
             tooltip: { position: { _seriesOverrideType: 'node' } },
             fill: { $palette: 'fill' },
+            fillGradientDefaults: {
+                type: 'gradient',
+                gradient: 'linear',
+                bounds: 'item',
+                colorStops: { $palette: 'gradient' },
+                rotation: 0,
+                reverse: false,
+            } satisfies WithThemeParams<Required<AgGradientColor>>,
             stroke: { $palette: 'stroke' },
-            defaultColorRange: { $palette: 'gradient' },
             fillOpacity: 0.8,
             strokeOpacity: 1,
             strokeWidth: 0,
@@ -61,7 +68,14 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 fill: { $palette: 'fill' },
                 stroke: { $palette: 'stroke' },
                 // @ts-expect-error undocumented option
-                defaultColorRange: { $palette: 'gradient' },
+                fillGradientDefaults: {
+                    type: 'gradient',
+                    gradient: 'radial',
+                    bounds: 'item',
+                    colorStops: { $palette: 'gradient' },
+                    rotation: 0,
+                    reverse: true,
+                } satisfies WithThemeParams<Required<AgGradientColor>>,
             },
             label: {
                 enabled: false,

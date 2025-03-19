@@ -1,4 +1,4 @@
-import type { AgColorType, AgGradientColorBounds, AgGradientType } from 'ag-charts-types';
+import type { AgColorType, AgGradientColor, AgGradientColorBounds, AgGradientType } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import { type GradientParams } from '../../scene/gradient/gradient';
@@ -21,28 +21,35 @@ export interface ShapeFillDefaults {
     colorStops: string[];
 }
 
-export function getShapeFill(fill: AgColorType, defaults: ShapeFillDefaults): AgColorType;
-export function getShapeFill(fill: AgColorType | undefined, defaults: ShapeFillDefaults): AgColorType | undefined;
-export function getShapeFill(fill: AgColorType | undefined, defaults: ShapeFillDefaults): AgColorType | undefined {
-    if (!isGradientFill(fill)) return fill;
+export function getShapeFill(fill: AgColorType, defaults: Required<AgGradientColor>): Required<AgColorType>;
+export function getShapeFill(
+    fill: AgColorType | undefined,
+    defaults: Required<AgGradientColor>
+): Required<AgColorType> | undefined;
+export function getShapeFill(
+    fill: AgColorType | undefined,
+    defaults: Required<AgGradientColor>
+): Required<AgColorType> | undefined {
+    if (!isGradientFill(fill)) return fill as any;
 
     return {
-        ...fill,
+        type: 'gradient',
         gradient: fill.gradient ?? defaults.gradient,
+        colorStops: fill.colorStops ?? defaults.colorStops,
         bounds: fill.bounds ?? defaults.bounds,
         rotation: fill.rotation ?? defaults.rotation,
-        colorStops: fill.colorStops ?? defaults.colorStops.map((color) => ({ color })),
+        reverse: fill.reverse ?? defaults.reverse,
     };
 }
 
-export function getShapeStyle<T extends { fill?: AgColorType }>(style: T, defaults: ShapeFillDefaults): T;
+export function getShapeStyle<T extends { fill?: AgColorType }>(style: T, defaults: Required<AgGradientColor>): T;
 export function getShapeStyle<T extends { fill?: AgColorType }>(
     style: T | undefined,
-    defaults: ShapeFillDefaults
+    defaults: Required<AgGradientColor>
 ): T | undefined;
 export function getShapeStyle<T extends { fill?: AgColorType }>(
     style: T | undefined,
-    defaults: ShapeFillDefaults
+    defaults: Required<AgGradientColor>
 ): T | undefined {
     if (!isGradientFill(style?.fill)) return style;
     return {

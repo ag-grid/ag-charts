@@ -10,6 +10,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const {
     BaseProperties,
+    FillGradientDefaults,
     AbstractBarSeriesProperties,
     SeriesTooltip,
     TempValidate,
@@ -21,7 +22,6 @@ const {
     RATIO,
     STRING,
     mergeDefaults,
-    COLOR_STRING_ARRAY,
     COLOR_GRADIENT,
     COLOR_PATTERN,
     OR,
@@ -89,11 +89,11 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     @TempValidate(STRING, { optional: true })
     maxName?: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = '#c16068';
+
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity = 1;

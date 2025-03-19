@@ -13,6 +13,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
 const {
+    FillGradientDefaults,
     AND,
     ARRAY,
     COLOR_STRING,
@@ -117,11 +118,11 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     @TempValidate(NUMBER_ARRAY, { optional: true })
     sizeDomain?: [number, number];
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
-
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN))
+    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
     fill: AgColorType = 'black';
+
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

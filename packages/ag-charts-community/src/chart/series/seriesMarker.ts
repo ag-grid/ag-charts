@@ -15,9 +15,9 @@ import {
     COLOR_GRADIENT,
     COLOR_PATTERN,
     COLOR_STRING,
-    COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
+    OBJECT,
     OR,
     POSITIVE_NUMBER,
     RATIO,
@@ -25,6 +25,7 @@ import {
     predicateWithMessage,
 } from '../../util/validation';
 import { isSupportedMarkerShape } from '../marker/util';
+import { FillGradientDefaults } from './seriesProperties';
 
 export const MARKER_SHAPE = predicateWithMessage(
     (value: any) => isSupportedMarkerShape(value) || typeof value === 'function',
@@ -52,8 +53,8 @@ export class SeriesMarker<TParams = never>
     @SceneChangeDetection()
     fill?: AgColorType;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
+    @TempValidate(OBJECT)
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(RATIO)
     @SceneChangeDetection()
