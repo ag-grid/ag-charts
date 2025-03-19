@@ -1,4 +1,5 @@
 import { type AgWaterfallSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 function itemTheme(
     key: 'altUp' | 'altDown' | 'neutral',
@@ -36,7 +37,7 @@ function itemTheme(
             } as any,
             rotation: 0,
             reverse: false,
-        } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
+        } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
         stroke: { $palette: `${key}.stroke` },
         strokeWidth: 0,
         label: {

@@ -11,6 +11,7 @@ import {
     type Styler,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
 import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-proportion/flowProportionSeries';
 
@@ -70,7 +71,7 @@ class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterPara
 
 class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill: _ModuleSupport.InternalAgColorType | undefined = undefined;
+    fill: InternalAgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity = 1;
@@ -105,7 +106,7 @@ class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOption
     alignment: 'left' | 'right' | 'center' | 'justify' = 'justify';
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill: _ModuleSupport.InternalAgColorType | undefined = undefined;
+    fill: InternalAgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity = 1;
@@ -161,7 +162,7 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     readonly fillGradientDefaults = new FillGradientDefaults();
 
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
-    fills: _ModuleSupport.InternalAgColorType[] = [];
+    fills: InternalAgColorType[] = [];
 
     @TempValidate(COLOR_STRING_ARRAY)
     strokes: string[] = [];

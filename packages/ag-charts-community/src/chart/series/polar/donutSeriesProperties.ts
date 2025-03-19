@@ -1,3 +1,4 @@
+import type { InternalAgColorType } from 'ag-charts-core';
 import type {
     AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
@@ -8,7 +9,6 @@ import type {
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
-import type { InternalAgColorType } from '../../../scene/util/fill';
 import { BaseProperties, PropertiesArray } from '../../../util/properties';
 import {
     ARRAY_OF,

@@ -1,6 +1,6 @@
+import type { InternalAgGradientColor } from 'ag-charts-core';
 import type { AgGradientColorBounds, AgGradientColorStop, AgGradientType, InteractionRange } from 'ag-charts-types';
 
-import type { InternalAgGradientColor } from '../../scene/util/fill';
 import { BaseProperties } from '../../util/properties';
 import {
     ARRAY,

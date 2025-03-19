@@ -3,6 +3,7 @@ import type {
     AgSankeySeriesTooltipRendererParams,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
 export interface FlowProportionSeriesProperties<SeriesOptions extends object>
     extends _ModuleSupport.SeriesProperties<SeriesOptions> {
@@ -15,7 +16,7 @@ export interface FlowProportionSeriesProperties<SeriesOptions extends object>
     labelName: string | undefined;
     sizeKey: string | undefined;
     sizeName: string | undefined;
-    fills: _ModuleSupport.InternalAgColorType[];
+    fills: InternalAgColorType[];
     strokes: string[];
     tooltip: _ModuleSupport.SeriesTooltip<
         AgChordSeriesTooltipRendererParams<any> & AgSankeySeriesTooltipRendererParams<any>

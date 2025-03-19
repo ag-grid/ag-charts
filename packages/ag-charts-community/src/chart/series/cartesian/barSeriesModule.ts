@@ -1,9 +1,9 @@
 import { type SeriesModuleDefinition } from 'ag-charts-core';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 import type { AgBarSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
-import type { InternalAgGradientColor } from '../../../scene/util/fill';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { DIRECTION_SWAP_AXES } from '../../themes/util';
 import { BarSeries } from './barSeries';

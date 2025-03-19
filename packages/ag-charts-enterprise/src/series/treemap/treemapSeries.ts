@@ -7,7 +7,7 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import { type InternalAgColorType, isNumberEqual } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
@@ -830,7 +830,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             Object.assign(format, this.getGroupStyleOverrides(datumIndex, datum, depth, format, false));
         }
 
-        const color = format.fill as _ModuleSupport.InternalAgColorType;
+        const color = format.fill as InternalAgColorType;
 
         const markerStyle = getShapeStyle(
             {

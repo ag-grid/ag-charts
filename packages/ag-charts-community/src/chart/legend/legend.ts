@@ -1,4 +1,5 @@
 import { Logger, clamp } from 'ag-charts-core';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -21,7 +22,6 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
-import type { InternalAgGradientColor } from '../../scene/util/fill';
 import { createId } from '../../util/id';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';

@@ -1,3 +1,4 @@
+import type { InternalAgColorType } from 'ag-charts-core';
 import type {
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
@@ -6,7 +7,6 @@ import type {
 
 import type { BBox } from '../../../scene/bbox';
 import { DropShadow } from '../../../scene/dropShadow';
-import type { InternalAgColorType } from '../../../scene/util/fill';
 import {
     ARRAY,
     BOOLEAN,

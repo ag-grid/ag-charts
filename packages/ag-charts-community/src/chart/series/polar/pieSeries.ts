@@ -1,4 +1,4 @@
-import { type Has, Logger, modulus } from 'ag-charts-core';
+import { type Has, type InternalAgColorType, Logger, modulus } from 'ag-charts-core';
 import type { AgPieSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -13,7 +13,7 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
-import { type InternalAgColorType, isGradientFill, isStringFillArray } from '../../../scene/util/fill';
+import { isGradientFill, isStringFillArray } from '../../../scene/util/fill';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
 import { formatValue } from '../../../util/format.util';

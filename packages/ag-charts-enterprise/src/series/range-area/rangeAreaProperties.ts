@@ -6,6 +6,7 @@ import type {
     AgRangeAreaSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
 export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
     readonly index: number;
@@ -70,7 +71,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     yHighName?: string;
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
-    fill: _ModuleSupport.InternalAgColorType = '#99CCFF';
+    fill: InternalAgColorType = '#99CCFF';
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();

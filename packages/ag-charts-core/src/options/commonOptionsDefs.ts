@@ -5,6 +5,7 @@ import type {
     AgGradientColorStop,
     AgGradientColorStrict,
     AgGradientType,
+    AgPatternColor,
     CssColor,
     FillOptions,
     FontOptions,
@@ -62,7 +63,7 @@ export const gradientStrict = typeUnion<AgGradientColorStrict>(
     'a gradient object with color stops'
 );
 
-interface InternalAgGradientColor extends AgGradientColor {
+export interface InternalAgGradientColor extends AgGradientColor {
     /** Format of the gradient */
     gradient?: AgGradientType;
     /** The domain of the color gradient, defaults to item. */
@@ -70,6 +71,7 @@ interface InternalAgGradientColor extends AgGradientColor {
     /** Reverse the order of colour stops. */
     reverse?: boolean;
 }
+export type InternalAgColorType = CssColor | InternalAgGradientColor | AgPatternColor;
 
 export const fillGradientDefaults = optionsDefs<InternalAgGradientColor>({
     type: required(constant('gradient')),
