@@ -390,6 +390,10 @@ export class GroupedCategoryAxis extends CategoryAxis {
     override update() {
         if (!this.computedLayout) return;
 
+        // Category axis isn't animatable
+        // As most super methods aren't called, we need to do this manually
+        this.moduleCtx.animationManager.skipCurrentBatch();
+
         const { tickScale, gridLine, gridLength } = this;
         const { separatorLayout } = this.computedLayout;
 
@@ -467,8 +471,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         this.scale.domain = sortBasedOnArray(this.dataDomain.domain, orderedDomain);
         this.tickScale.domain = domain.concat([['']]);
-
-        return { animatable: false };
     }
 
     protected override updateGridLines() {
