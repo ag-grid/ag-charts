@@ -8,6 +8,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 
@@ -48,7 +49,7 @@ class FunnelDropOff extends BaseProperties {
     enabled: boolean = true;
 
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
-    fill: _ModuleSupport.InternalAgColorType | undefined = undefined;
+    fill: InternalAgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

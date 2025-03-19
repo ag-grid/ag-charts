@@ -9,6 +9,7 @@ import type {
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
@@ -42,7 +43,7 @@ class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
 
 class TreemapSeriesGroup extends BaseProperties {
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
-    fill: _ModuleSupport.InternalAgColorType | undefined = undefined;
+    fill: InternalAgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;
@@ -77,7 +78,7 @@ class TreemapSeriesGroup extends BaseProperties {
 
 class TreemapSeriesTile extends BaseProperties {
     @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
-    fill: _ModuleSupport.InternalAgColorType | undefined = undefined;
+    fill: InternalAgColorType | undefined = undefined;
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

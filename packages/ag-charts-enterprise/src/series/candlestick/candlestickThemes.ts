@@ -1,4 +1,5 @@
 import { type AgCandlestickSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 const { CARTESIAN_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
@@ -42,7 +43,7 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
             } as any,
             rotation: 0,
             reverse: false,
-        } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
+        } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
     };
 }
 

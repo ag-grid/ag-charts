@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 import type { AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -569,7 +570,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const format = this.getItemBaseStyle(false) as Required<ItemStyle>;
         Object.assign(format, this.getItemStyleOverrides(datumIndex, datum, depth, datumColor, format, false));
 
-        const color = format.fill as _ModuleSupport.InternalAgColorType;
+        const color = format.fill as InternalAgColorType;
 
         const markerStyle = getShapeStyle(
             {

@@ -1,4 +1,5 @@
 import { type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 const { CARTESIAN_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
@@ -15,7 +16,7 @@ export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['the
             colorStops: { $palette: 'gradient' },
             rotation: 0,
             reverse: false,
-        } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
+        } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
         strokeWidth: 2,
     },
     axes: {

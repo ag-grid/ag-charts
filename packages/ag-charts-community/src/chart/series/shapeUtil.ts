@@ -1,7 +1,9 @@
+import type { InternalAgColorType, InternalAgGradientColor } from 'ag-charts-core';
+
 import type { BBox } from '../../scene/bbox';
 import { type GradientParams } from '../../scene/gradient/gradient';
 import type { Shape, ShapeColor } from '../../scene/shape/shape';
-import { type InternalAgColorType, type InternalAgGradientColor, isGradientFill } from '../../scene/util/fill';
+import { isGradientFill } from '../../scene/util/fill';
 
 export type ShapeStyle = Partial<
     Pick<Shape, 'fill' | 'fillOpacity' | 'stroke' | 'strokeOpacity' | 'strokeWidth' | 'lineDash' | 'lineDashOffset'>

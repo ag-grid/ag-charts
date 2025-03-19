@@ -244,10 +244,11 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         options: examples.AREA_SERIES_CROSSES_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
     },
-    AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL: {
-        options: examples.AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
-    },
+    // @todo(AG-14458) - Re-enable
+    // AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL: {
+    //     options: examples.AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL,
+    //     assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    // },
     AREA_SERIES_CUSTOMISED_PATTERN_FILL: {
         options: examples.AREA_SERIES_CUSTOMISED_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),

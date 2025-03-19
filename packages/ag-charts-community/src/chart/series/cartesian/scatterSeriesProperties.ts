@@ -1,3 +1,4 @@
+import type { InternalAgColorType } from 'ag-charts-core';
 import type {
     AgGradientColor,
     AgMarkerShape,
@@ -11,7 +12,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { Point, SizedPoint } from '../../../scene/point';
-import type { InternalAgColorType } from '../../../scene/util/fill';
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
 import { LABEL_PLACEMENT, OBJECT, STRING, TempValidate } from '../../../util/validation';

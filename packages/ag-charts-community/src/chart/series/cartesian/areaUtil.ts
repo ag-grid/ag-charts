@@ -1,7 +1,8 @@
+import type { InternalAgColorType } from 'ag-charts-core';
+
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
-import type { InternalAgColorType } from '../../../scene/util/fill';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { SpanJoin } from './lineInterpolation';

@@ -1,4 +1,4 @@
-import type { RequireOptional } from 'ag-charts-core';
+import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
 import type {
     AgMarkerShape,
     AgSeriesMarkerStyle,
@@ -9,7 +9,6 @@ import type {
 
 import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
-import type { InternalAgColorType } from '../../scene/util/fill';
 import {
     BOOLEAN,
     COLOR_GRADIENT,
