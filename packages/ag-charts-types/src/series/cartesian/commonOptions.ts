@@ -84,8 +84,6 @@ export interface AgPatternColor {
     strokeOpacity?: Opacity;
     /** The width of the stroke of shapes in pixels. */
     strokeWidth?: PixelSize;
-    /** The rotation angle of the pattern. */
-    rotation?: number;
 }
 
 export type AgPatternName =

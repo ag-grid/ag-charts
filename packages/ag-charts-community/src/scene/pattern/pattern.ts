@@ -21,7 +21,7 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
     rotation: number;
 
     constructor(
-        patternOptions: AgPatternColor,
+        patternOptions: AgPatternColor & { rotation?: number },
         public pixelRatio = 1
     ) {
         this.width = Math.max(patternOptions?.width ?? 10, 1);
