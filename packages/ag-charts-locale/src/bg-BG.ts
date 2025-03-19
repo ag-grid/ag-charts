@@ -157,5 +157,5 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     toolbarZoomReset: 'Нулиране на увеличението',
     toolbarZoomZoomIn: 'Приближаване',
     toolbarZoomZoomOut: 'Намаляване на мащаба',
-    tooltipPaginationStatus: '${index}[number] от ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] от ${count}[number]',
 };

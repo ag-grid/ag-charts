@@ -157,5 +157,5 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     toolbarZoomReset: 'Nulstil zoom',
     toolbarZoomZoomIn: 'Zoom ind',
     toolbarZoomZoomOut: 'Zoom ud',
-    tooltipPaginationStatus: '${index}[number] af ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] af ${count}[number]',
 };

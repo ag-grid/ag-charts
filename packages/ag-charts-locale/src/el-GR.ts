@@ -89,7 +89,8 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     overlayLoadingData: 'Φόρτωση δεδομένων...',
     overlayNoData: 'Δεν υπάρχουν δεδομένα για εμφάνιση',
     overlayNoVisibleSeries: 'Δεν υπάρχει ορατή σειρά',
-    overlayUnsupportedBrowser: 'Μη συμβατή έκδοση προγράμματος περιήγησης. Παρακαλώ αναβαθμίστε το πρόγραμμα περιήγησής σας.',
+    overlayUnsupportedBrowser:
+        'Μη συμβατή έκδοση προγράμματος περιήγησης. Παρακαλώ αναβαθμίστε το πρόγραμμα περιήγησής σας.',
     seriesHistogramTooltipCount: '${yName} (πλήθος)',
     seriesHistogramTooltipFrequency: 'Συχνότητα',
     seriesHistogramTooltipMean: '${yName} (μέσος όρος)',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     toolbarZoomReset: 'Επαναφορά της εστίασης',
     toolbarZoomZoomIn: 'Μεγέθυνση',
     toolbarZoomZoomOut: 'Σμίκρυνση',
-    tooltipPaginationStatus: '${index}[number] από ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] από ${count}[number]',
 };

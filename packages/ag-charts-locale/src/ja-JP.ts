@@ -157,5 +157,5 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     toolbarZoomReset: 'ズームをリセット',
     toolbarZoomZoomIn: 'ズームイン',
     toolbarZoomZoomOut: 'ズームアウト',
-    tooltipPaginationStatus: '${index}[number] の ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] の ${count}[number]',
 };

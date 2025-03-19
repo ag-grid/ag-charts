@@ -157,5 +157,5 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     toolbarZoomReset: 'بازنشانی بزرگ‌نمایی',
     toolbarZoomZoomIn: 'بزرگنمایی',
     toolbarZoomZoomOut: 'بزرگنمایی کمتر',
-    tooltipPaginationStatus: '${index}[number] از ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] از ${count}[number]',
 };

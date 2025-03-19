@@ -157,5 +157,5 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     toolbarZoomReset: 'Yakınlaştırmayı sıfırla',
     toolbarZoomZoomIn: 'Yakınlaştır',
     toolbarZoomZoomOut: 'Uzaklaştır',
-    tooltipPaginationStatus: '${index}[number] / ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] / ${count}[number]',
 };
