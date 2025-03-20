@@ -262,6 +262,13 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 seriesTypes: repeat('bar', 4),
             }),
         },
+        GROUPED_COLUMN_SMALL_PATTERN_FILL: {
+            options: examples.GROUPED_COLUMN_SMALL_PATTERN_FILL,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'category'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
     }),
 };
 
