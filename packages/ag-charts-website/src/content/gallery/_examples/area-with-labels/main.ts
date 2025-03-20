@@ -25,6 +25,15 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'sales',
             yName: 'Sales',
+            strokeWidth: 1,
+            fill: {
+                type: 'gradient',
+                colorStops: [
+                    { color: '#ffffff', stop: 0 },
+                    { color: '#7da9e8', stop: 0.75 },
+                    { color: '#2c6ed5', stop: 1 },
+                ],
+            },
             label: {
                 enabled: true,
                 formatter: ({ xKey, yKey, datum }) => {

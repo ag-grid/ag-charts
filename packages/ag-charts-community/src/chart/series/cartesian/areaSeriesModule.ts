@@ -60,8 +60,6 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             },
             interpolation: {
                 type: 'linear',
-                tension: 1,
-                position: 'end',
             },
             marker: {
                 enabled: false,

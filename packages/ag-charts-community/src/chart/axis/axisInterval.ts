@@ -17,9 +17,9 @@ export class AxisInterval<S> extends BaseProperties {
     @TempValidate(ARRAY, { optional: true })
     values?: any[];
 
-    @TempValidate(MIN_SPACING)
-    minSpacing: number = NaN;
+    @TempValidate(MIN_SPACING, { optional: true })
+    minSpacing?: number;
 
-    @TempValidate(MAX_SPACING)
-    maxSpacing: number = NaN;
+    @TempValidate(MAX_SPACING, { optional: true })
+    maxSpacing?: number;
 }

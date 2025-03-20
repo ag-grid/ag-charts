@@ -22,6 +22,9 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             stacked: true,
             interpolation,
+            fill: {
+                type: 'pattern',
+            },
         },
         {
             type: 'area',
@@ -40,6 +43,9 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             stacked: true,
             interpolation,
+            fill: {
+                type: 'pattern',
+            },
         },
         {
             type: 'area',
@@ -58,6 +64,9 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             stacked: true,
             interpolation,
+            fill: {
+                type: 'pattern',
+            },
         },
         {
             type: 'area',
@@ -76,6 +85,9 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             stacked: true,
             interpolation,
+            fill: {
+                type: 'pattern',
+            },
         },
     ],
     axes: [

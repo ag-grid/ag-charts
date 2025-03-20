@@ -92,7 +92,7 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
 export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     constructor(private readonly axis: TickGenerationAxis<S, D>) {}
 
-    private estimateTickCount(visibleRange: [number, number], minSpacing: number, maxSpacing: number) {
+    private estimateTickCount(visibleRange: [number, number], minSpacing?: number, maxSpacing?: number) {
         return estimateTickCount(
             findRangeExtent(this.axis.range),
             findRangeExtent(visibleRange),
@@ -105,7 +105,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
     private filterTicks(ticks: any, tickCount: number): any[] {
         const { minSpacing, maxSpacing } = this.axis.interval;
-        const tickSpacing = !isNaN(minSpacing) || !isNaN(maxSpacing);
+        const tickSpacing = minSpacing != null || maxSpacing != null;
         const keepEvery = tickSpacing ? Math.ceil(ticks.length / tickCount) : 2;
         const offset = ticks.length % keepEvery ? -1 : 0;
         return ticks.filter((_: any, i: number) => (i + offset) % keepEvery === 0);
@@ -267,7 +267,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         strategies.push(tickGenerationStrategy);
 
-        if (!continuous && !isNaN(minSpacing)) {
+        if (!continuous && minSpacing != null) {
             const tickFilterStrategy = ({
                 index,
                 tickData,

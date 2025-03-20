@@ -165,6 +165,12 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     @TempValidate(OBJECT)
     readonly fillPatternDefaults = new FillPatternDefaults();
 
+    @TempValidate(ARRAY_OF(COLOR_STRING_ARRAY))
+    defaultColorRange: string[][] = [];
+
+    @TempValidate(ARRAY_OF(COLOR_STRING))
+    defaultPatternFills: string[] = [];
+
     @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
     fills: InternalAgColorType[] = [];
 

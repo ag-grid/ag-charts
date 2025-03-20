@@ -58,3 +58,5 @@ barSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
 barSeriesOptionsDef.fastDataProcessing = boolean;
 // @ts-expect-error undocumented option
 barSeriesOptionsDef.focusPriority = number;
+// @ts-expect-error undocumented option
+barSeriesOptionsDef.sparklineMode = boolean;

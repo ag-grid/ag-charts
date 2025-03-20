@@ -381,7 +381,6 @@ export const arrayOf = (validator: Validator, description?: string) =>
     attachDescription(
         (value, context) =>
             isArray(value) &&
-            value.length > 0 &&
             value.every((v) => {
                 const result = validator(v, context);
                 delete context.result;

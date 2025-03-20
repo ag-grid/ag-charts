@@ -42,6 +42,7 @@ type ThemeParam = keyof AgChartThemeParams;
 type PaletteParam =
     | 'type'
     | 'fills'
+    | 'fillsFallback'
     | 'fill'
     | 'fillFallback'
     | 'strokes'
