@@ -82,7 +82,9 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         const [r0, r1] = this.range;
         const availableRange = Math.abs(r1 - r0);
 
-        const ticks = getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange }) ?? [];
+        const ticks =
+            getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange }) ??
+            getDefaultTicks(domain, maxTickCount, isReversed, visibleRange);
 
         let lastIndex = -1;
         return ticks.filter((tick) => {
