@@ -2,17 +2,34 @@ import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
 import type { AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
+import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
+import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    clickAction,
     createChart,
+    deproxy,
+    doubleClickAction,
+    doubleTapAction,
     expectWarningsCalls,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    tapAction,
     waitForChartStability,
 } from '../../test/utils';
+
+function* iterLegendMarkerLabels(myChart: Chart) {
+    for (const { legend } of deproxy(myChart).modulesManager.legends()) {
+        const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
+        for (const label of markerLabels) {
+            const { x, y } = Transformable.toCanvas(label).computeCenter();
+            yield { x, y, text: label.text };
+        }
+    }
+}
 
 describe('DonutSeries', () => {
     setupMockConsole();
@@ -24,10 +41,14 @@ describe('DonutSeries', () => {
         }
     });
 
-    const compare = async () => {
+    const compare = async (customSnapshotIdentifier?: string) => {
         await waitForChartStability(chart);
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+        expect(imageData).toMatchImageSnapshot({
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            failureThreshold: 0,
+            customSnapshotIdentifier,
+        });
     };
 
     let chart: Chart;
@@ -506,6 +527,49 @@ describe('DonutSeries', () => {
   ],
 ]
 `);
+        });
+    });
+
+    describe('AG-14232 legend toggling', () => {
+        beforeEach(async () => {
+            chart = await createChart({
+                data: [
+                    { name: 'Froot-Loops', value: 3 },
+                    { name: 'Cheerios', value: 4 },
+                    { name: 'Weetos', value: 5 },
+                ],
+                series: [{ type: 'donut', angleKey: 'value', legendItemKey: 'name' }],
+            });
+        });
+        describe('click', () => {
+            test('mouse', async () => {
+                for (const { x, y, text } of iterLegendMarkerLabels(chart)) {
+                    await clickAction(x, y)(chart);
+                    await compare(`donut-series-test-ts-pie-series-legend-click-${text}`);
+                    await clickAction(x, y)(chart);
+                }
+            });
+            test('touch', async () => {
+                for (const { x, y, text } of iterLegendMarkerLabels(chart)) {
+                    await tapAction(x, y)(chart);
+                    await compare(`donut-series-test-ts-pie-series-legend-click-${text}`);
+                    await tapAction(x, y)(chart);
+                }
+            });
+        });
+        describe('dblclick', () => {
+            test('mouse', async () => {
+                for (const { x, y } of iterLegendMarkerLabels(chart)) {
+                    await doubleClickAction(x, y)(chart);
+                    await compare(`donut-series-test-ts-pie-series-legend-All`);
+                }
+            });
+            test('touch', async () => {
+                for (const { x, y } of iterLegendMarkerLabels(chart)) {
+                    await doubleTapAction(x, y)(chart);
+                    await compare(`donut-series-test-ts-pie-series-legend-All`);
+                }
+            });
         });
     });
 
