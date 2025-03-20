@@ -10,6 +10,7 @@ import type {
     AgChartLegendPosition,
     AgMarkerShape,
     AgMarkerShapeFn,
+    AgPatternColor,
     FontStyle,
     FontWeight,
     Formatter,
@@ -22,6 +23,7 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
+import { isPatternFill } from '../../scene/util/fill';
 import { createId } from '../../util/id';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
@@ -166,6 +168,22 @@ const fillGradientDefaults: Required<InternalAgGradientColor> = {
     colorStops: [{ color: 'black' }],
     rotation: 0,
     reverse: false,
+};
+
+const fillPatternDefaults: Required<AgPatternColor> = {
+    type: 'pattern',
+    pattern: 'forward-slanted-lines',
+    width: 8,
+    height: 8,
+    padding: 1,
+    fill: 'black',
+    fillOpacity: 1,
+    backgroundFill: 'white',
+    backgroundFillOpacity: 1,
+    stroke: 'black',
+    strokeOpacity: 1,
+    strokeWidth: 0,
+    rotation: 0,
 };
 
 export class Legend extends BaseProperties {
@@ -811,6 +829,13 @@ export class Legend extends BaseProperties {
         const { fill, stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
 
+        if (isPatternFill(fill)) {
+            fill.width = 8;
+            fill.height = 8;
+            fill.padding = 1;
+            fill.strokeWidth = Math.min(2, fill.strokeWidth ?? 2);
+        }
+
         return getShapeStyle(
             {
                 fill,
@@ -821,7 +846,8 @@ export class Legend extends BaseProperties {
                 lineDash,
                 lineDashOffset,
             },
-            fillGradientDefaults
+            fillGradientDefaults,
+            fillPatternDefaults
         );
     }
 

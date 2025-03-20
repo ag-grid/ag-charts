@@ -3,9 +3,10 @@ import type {
     AgFunnelSeriesLabelFormatterParams,
     AgFunnelSeriesStyle,
     AgFunnelSeriesTooltipRendererParams,
+    AgPatternColor,
     Styler,
+    _ModuleSupport,
 } from 'ag-charts-community';
-import type { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType, InternalAgGradientColor } from 'ag-charts-core';
 
 interface FunnelSeriesLabel extends _ModuleSupport.Label<AgFunnelSeriesLabelFormatterParams> {}
@@ -18,6 +19,7 @@ export interface BaseFunnelProperties<SeriesOptions extends object>
     fills: InternalAgColorType[];
     strokes: string[];
     fillGradientDefaults: Required<InternalAgGradientColor>;
+    fillPatternDefaults: Required<AgPatternColor>;
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;
     label: FunnelSeriesLabel;
     tooltip: _ModuleSupport.SeriesTooltip<AgFunnelSeriesTooltipRendererParams<unknown>>;

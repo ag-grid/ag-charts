@@ -56,6 +56,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         strokes: { $palette: 'strokes' },
         // @ts-expect-error undocumented option
         defaultColorRange: { $palette: 'gradients' },
+        defaultPatternFills: { $palette: 'fills' },
         fillOpacity: 1,
         strokeOpacity: 1,
         strokeWidth: 0,

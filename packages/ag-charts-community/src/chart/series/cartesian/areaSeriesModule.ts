@@ -6,6 +6,7 @@ import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
+import { FILL_PATTERN_DEFAULTS } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
 
@@ -43,6 +44,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 rotation: 0,
                 reverse: false,
             } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             stroke: { $palette: 'stroke' },
             fillOpacity: 0.8,
             strokeOpacity: 1,
@@ -77,6 +79,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                     rotation: 0,
                     reverse: true,
                 } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+                fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             },
             label: {
                 enabled: false,

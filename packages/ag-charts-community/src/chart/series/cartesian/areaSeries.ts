@@ -595,7 +595,11 @@ export class AreaSeries extends CartesianSeries<
             visible: visible || animationEnabled,
         });
 
-        const seriesFill = getShapeFill(this.properties.fill, this.properties.fillGradientDefaults);
+        const seriesFill = getShapeFill(
+            this.properties.fill,
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
+        );
 
         applyShapeStyle(
             fill,
@@ -800,13 +804,22 @@ export class AreaSeries extends CartesianSeries<
     }
 
     legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker, fillGradientDefaults } =
-            this.properties;
+        const {
+            fill,
+            stroke,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            marker,
+            fillGradientDefaults,
+            fillPatternDefaults,
+        } = this.properties;
         const useAreaFill = !marker.enabled || marker.fill === undefined;
 
         const legendMarkerFill = useAreaFill
-            ? getShapeFill(fill, fillGradientDefaults)
-            : getShapeFill(marker.fill, marker.fillGradientDefaults);
+            ? getShapeFill(fill, fillGradientDefaults, fillPatternDefaults)
+            : getShapeFill(marker.fill, marker.fillGradientDefaults, marker.fillPatternDefaults);
 
         const markerStyle = this.getMarkerStyle(marker, undefined, undefined, false, undefined, {
             fill: legendMarkerFill,

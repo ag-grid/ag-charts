@@ -48,8 +48,15 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
     }
 
     protected override barStyle(): FunnelSeriesShapeStyle {
-        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, fillGradientDefaults } =
-            this.properties;
+        const {
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            fillGradientDefaults,
+            fillPatternDefaults,
+        } = this.properties;
         return {
             fillOpacity,
             strokeOpacity,
@@ -57,6 +64,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             lineDash,
             lineDashOffset,
             fillGradientDefaults,
+            fillPatternDefaults,
         };
     }
 
@@ -72,6 +80,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             lineDash,
             lineDashOffset,
             fillGradientDefaults: this.properties.fillGradientDefaults,
+            fillPatternDefaults: this.properties.fillPatternDefaults,
         };
     }
 
@@ -125,7 +134,8 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
-            properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -174,7 +184,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, properties.fillGradientDefaults);
+        return getShapeStyle(overrides, properties.fillGradientDefaults, properties.fillPatternDefaults);
     }
 
     protected override updateDatumNodes(opts: {

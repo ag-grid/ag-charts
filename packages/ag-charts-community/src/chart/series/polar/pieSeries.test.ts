@@ -78,6 +78,29 @@ describe('PieSeries', () => {
     });
 
     describe('pattern fill', () => {
+        it('should render pie series with default pattern fills', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { cat: 1, fox: 20, dog: 37 },
+                    { cat: 3, fox: 10, dog: 32 },
+                    { cat: 7, fox: 15, dog: 35 },
+                    { cat: 8, fox: 20, dog: 31 },
+                    { cat: 3, fox: 11, dog: 30 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        radiusKey: 'dog',
+                        angleKey: 'fox',
+                        sectorLabelKey: 'fox',
+                        fills: [{ type: 'pattern' }, { type: 'pattern' }, { type: 'pattern' }, { type: 'pattern' }],
+                    },
+                ],
+            });
+            await compare();
+        });
+
         it('should render pie series with pattern fills', async () => {
             chart = await createChart({
                 ...options,

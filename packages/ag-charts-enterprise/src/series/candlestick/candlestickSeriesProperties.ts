@@ -12,6 +12,7 @@ import { OhlcSeriesBaseProperties } from '../ohlc/ohlcSeriesProperties';
 
 const {
     FillGradientDefaults,
+    FillPatternDefaults,
     BaseProperties,
     SeriesTooltip,
     TempValidate,
@@ -49,6 +50,9 @@ class CandlestickSeriesItem extends BaseProperties {
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity = 1;

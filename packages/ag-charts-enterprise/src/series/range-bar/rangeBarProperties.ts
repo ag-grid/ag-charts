@@ -13,6 +13,7 @@ import type { InternalAgColorType } from 'ag-charts-core';
 const {
     AbstractBarSeriesProperties,
     FillGradientDefaults,
+    FillPatternDefaults,
     SeriesTooltip,
     TempValidate,
     COLOR_STRING,
@@ -66,6 +67,9 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

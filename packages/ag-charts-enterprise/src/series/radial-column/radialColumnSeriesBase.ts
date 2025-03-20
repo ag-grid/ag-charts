@@ -403,13 +403,14 @@ export abstract class RadialColumnSeriesBase<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius: properties.cornerRadius,
             },
-            properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
     protected getItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
         const { id: seriesId, properties } = this;
-        const { angleKey, radiusKey, itemStyler, fillGradientDefaults } = properties;
+        const { angleKey, radiusKey, itemStyler, fillGradientDefaults, fillPatternDefaults } = properties;
 
         if (itemStyler == null) return;
 
@@ -424,7 +425,7 @@ export abstract class RadialColumnSeriesBase<
             });
         });
 
-        return getShapeStyle(overrides, fillGradientDefaults);
+        return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults);
     }
 
     protected updateSectorSelection(
@@ -570,6 +571,7 @@ export abstract class RadialColumnSeriesBase<
             lineDash,
             lineDashOffset,
             fillGradientDefaults,
+            fillPatternDefaults,
         } = this.properties;
 
         const markerStyle = getShapeStyle(
@@ -582,7 +584,8 @@ export abstract class RadialColumnSeriesBase<
                 lineDash,
                 lineDashOffset,
             },
-            fillGradientDefaults
+            fillGradientDefaults,
+            fillPatternDefaults
         );
 
         if (_ModuleSupport.isGradientFill(markerStyle.fill)) {

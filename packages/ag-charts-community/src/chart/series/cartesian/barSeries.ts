@@ -643,7 +643,7 @@ export class BarSeries extends AbstractBarSeries<
 
     private getItemBaseStyle(highlighted: boolean): Required<AgBarSeriesStyle> {
         const { properties } = this;
-        const { cornerRadius, fillGradientDefaults } = properties;
+        const { cornerRadius, fillGradientDefaults, fillPatternDefaults } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return getShapeStyle(
@@ -657,7 +657,8 @@ export class BarSeries extends AbstractBarSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius,
             },
-            fillGradientDefaults
+            fillGradientDefaults,
+            fillPatternDefaults
         );
     }
 
@@ -671,7 +672,7 @@ export class BarSeries extends AbstractBarSeries<
     ) {
         const { id: seriesId, properties } = this;
 
-        const { xKey, yKey, itemStyler, fillGradientDefaults } = properties;
+        const { xKey, yKey, itemStyler, fillGradientDefaults, fillPatternDefaults } = properties;
 
         if (itemStyler == null) return;
 
@@ -691,7 +692,7 @@ export class BarSeries extends AbstractBarSeries<
             });
         });
 
-        return getShapeStyle(overrides, fillGradientDefaults);
+        return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults);
     }
 
     protected override updateDatumNodes(opts: { datumSelection: Selection<Rect, BarNodeDatum>; isHighlight: boolean }) {
@@ -804,6 +805,7 @@ export class BarSeries extends AbstractBarSeries<
             lineDash,
             lineDashOffset,
             fillGradientDefaults,
+            fillPatternDefaults,
         } = this.properties;
 
         return {
@@ -817,7 +819,8 @@ export class BarSeries extends AbstractBarSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                fillGradientDefaults
+                fillGradientDefaults,
+                fillPatternDefaults
             ),
         };
     }

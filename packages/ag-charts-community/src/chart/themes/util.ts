@@ -1,4 +1,4 @@
-import type { AgCartesianChartOptions, WithThemeParams } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgPatternColor, WithThemeParams } from 'ag-charts-types';
 
 import { Color } from '../../util/color';
 import { mapValues } from '../../util/object';
@@ -28,6 +28,22 @@ export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]
         },
     },
 ];
+
+export const FILL_PATTERN_DEFAULTS: WithThemeParams<AgPatternColor> = {
+    type: 'pattern',
+    pattern: 'forward-slanted-lines',
+    // width: undefined,
+    // height: undefined,
+    padding: 6,
+    fill: { $palette: 'fill' },
+    fillOpacity: 1,
+    stroke: { $palette: 'fill' },
+    strokeOpacity: 1,
+    // strokeWidth: undefined,
+    backgroundFill: 'transparent',
+    backgroundFillOpacity: 1,
+    rotation: 0,
+};
 
 export function getSequentialColors(colors: { [key: string]: string }) {
     return mapValues(colors, (value) => {

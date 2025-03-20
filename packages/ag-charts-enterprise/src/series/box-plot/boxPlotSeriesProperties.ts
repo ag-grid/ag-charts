@@ -11,6 +11,7 @@ import type { InternalAgColorType } from 'ag-charts-core';
 const {
     BaseProperties,
     FillGradientDefaults,
+    FillPatternDefaults,
     AbstractBarSeriesProperties,
     SeriesTooltip,
     TempValidate,
@@ -94,6 +95,9 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity = 1;

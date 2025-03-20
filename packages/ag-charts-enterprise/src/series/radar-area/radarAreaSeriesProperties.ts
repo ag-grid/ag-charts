@@ -2,8 +2,17 @@ import { type AgColorType, type AgRadarAreaSeriesOptions, _ModuleSupport } from 
 
 import { RadarSeriesProperties } from '../radar/radarSeriesProperties';
 
-const { FillGradientDefaults, RATIO, COLOR_STRING, TempValidate, OR, COLOR_GRADIENT, COLOR_PATTERN, OBJECT } =
-    _ModuleSupport;
+const {
+    FillGradientDefaults,
+    FillPatternDefaults,
+    RATIO,
+    COLOR_STRING,
+    TempValidate,
+    OR,
+    COLOR_GRADIENT,
+    COLOR_PATTERN,
+    OBJECT,
+} = _ModuleSupport;
 
 export class RadarAreaSeriesProperties extends RadarSeriesProperties<AgRadarAreaSeriesOptions> {
     @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
@@ -11,6 +20,9 @@ export class RadarAreaSeriesProperties extends RadarSeriesProperties<AgRadarArea
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity = 1;

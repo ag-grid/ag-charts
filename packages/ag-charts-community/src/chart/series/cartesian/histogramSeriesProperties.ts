@@ -23,7 +23,7 @@ import {
     UNION,
 } from '../../../util/validation';
 import { Label } from '../../label';
-import { FillGradientDefaults } from '../seriesProperties';
+import { FillGradientDefaults, FillPatternDefaults } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
@@ -68,6 +68,9 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity = 1;

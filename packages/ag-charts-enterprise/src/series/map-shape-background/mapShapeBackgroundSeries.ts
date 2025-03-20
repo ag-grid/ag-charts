@@ -195,7 +195,8 @@ export class MapShapeBackgroundSeries
             geoGeometry.projectedGeometry = projectedGeometry;
             const styles = getShapeStyle(
                 { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset },
-                this.properties.fillGradientDefaults
+                this.properties.fillGradientDefaults,
+                this.properties.fillPatternDefaults
             );
             geoGeometry.setProperties(styles);
         });
