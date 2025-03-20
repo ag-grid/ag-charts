@@ -2,25 +2,29 @@
 title: 'Series Fills'
 ---
 
-AG Charts supports fill gradients and fill patterns, providing additional customisation for series and markers.
+Series and Markers can have solid, gradient and pattern fills, allowing for unique visual styles and improved contrasts between series.
 
 ## Fill Types
 
+{% chartExampleRunner title="Fill Types" name="series-fill-types" type="generated" /%}
+
 Supported Fill Types include:
 
--   **Solid Fill**: A single CSS colour (#rgb, #rrggbb, rgb(r, g, b), rgba(r, g, b, a), CSS colour name such as 'white', 'orange', 'cyan', etc.)
+-   **Solid Fill**: A single CSS colour (provided as a `#rgb` hex code, `rgb()` or `rgba()` values, or a CSS colour name such as 'black').
 
 -   **Gradient Fill**: A transition between multiple colours.
 
 -   **Pattern Fill**: Predefined patterns including lines and shapes.
 
-## Customisation
+The default colours and fills come from the default or user provided [Theme Palette](./themes/#palette).
 
-{% chartExampleRunner title="Fill Types" name="series-fill-types" type="generated" /%}
+## Setting a Fill
 
-#### Configuring Series Fill
+### Series
 
-The `fill` attribute is set at the series level. Solid fills use a CSS colour string. Gradients and patterns require an object with type `gradient` or `pattern`.
+The `fill` attribute is set at the series level.
+
+Solid fills use a CSS colour string. Gradient and Pattern fills require an object with type `gradient` or `pattern`.
 
 ```js
 series: [
@@ -31,7 +35,7 @@ series: [
 ]
 ```
 
-#### Configuring Marker Fills
+### Markers
 
 [Markers](./markers) in series such as `line` and `area` support the same fill options as series.
 
@@ -48,18 +52,18 @@ series: [
 ]
 ```
 
-The legend item marker can be modified within the [Legend Options](./legend/#markers).
+## Customisation
 
 ### Gradients
 
 {% chartExampleRunner title="Gradient Fill" name="gradient-fill" type="generated" /%}
 
-Gradient `colorStops` define an array of colours that transition from one colour to another.
+Gradient `colorStops` define an array of colours that the gradient will transition between
 
-The array should contain a minimum of two objects, each object can define:
+The array should contain a minimum of two objects, with each object providing optional values for:
 
--   `color`: Any valid CSS colour value e.g., `red`, `#ff0000`, or `rgb(255,0,0)`.
--   `stop`: A ratio between `0` and `1` indicating the position of the colour along the gradient. `0` is the start of the gradient, and `1` is the end of the gradient.
+-   `color`: Any valid CSS colour value.
+-   `stop`: A ratio between `0` and `1` indicating the position of the colour along the gradient.
 
 ```js
 {

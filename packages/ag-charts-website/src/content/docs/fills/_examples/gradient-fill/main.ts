@@ -1,4 +1,4 @@
-import { AgBubbleSeriesOptions, AgCartesianChartOptions, AgCharts, AgLineSeriesOptions } from 'ag-charts-community';
+import { AgBarSeriesOptions, AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -22,14 +22,14 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function defaultGradient() {
-    (options.series![0] as AgBubbleSeriesOptions).fill = {
+    (options.series![0] as AgBarSeriesOptions).fill = {
         type: 'gradient',
     };
     chart.update(options);
 }
 
 function gradientColorStops() {
-    (options.series![0] as AgBubbleSeriesOptions).fill = {
+    (options.series![0] as AgBarSeriesOptions).fill = {
         type: 'gradient',
         colorStops: [{ color: '#A9D4E6', stop: 0 }, { color: '#5D7FAF', stop: 0.5 }, { color: '#6A8FD8' }],
     };
