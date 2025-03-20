@@ -68,8 +68,6 @@ export interface AgPatternColor {
     width?: number;
     /** Height of the pattern unit. */
     height?: number;
-    /** Padding for the shape in the pattern unit. */
-    padding?: number;
     /** The colour for filling closed shapes in the pattern. */
     fill?: CssColor;
     /** The opacity of the shapes fill colour. */

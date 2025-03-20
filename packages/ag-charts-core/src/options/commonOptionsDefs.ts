@@ -72,6 +72,8 @@ export interface InternalAgGradientColor extends AgGradientColor {
     reverse?: boolean;
 }
 export interface InternalAgPatternColor extends AgPatternColor {
+    /** Padding for the shape in the pattern unit. */
+    padding?: number;
     /** The rotation angle of the pattern. */
     rotation?: number;
 }
@@ -102,6 +104,7 @@ const gradientUndocumentedOpts: OptionsDefs<AgGradientColor> = {
 const patternUndocumentedOpts: OptionsDefs<AgPatternColor> = {
     // @ts-expect-error undocumented option
     rotation: number,
+    padding: positiveNumber,
 };
 
 const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
@@ -128,7 +131,6 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
             ),
             width: positiveNumber,
             height: positiveNumber,
-            padding: positiveNumber,
             fill: color,
             fillOpacity: ratio,
             backgroundFill: color,
