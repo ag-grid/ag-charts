@@ -36,6 +36,7 @@ export class MaterialDark extends DarkTheme {
         return {
             ...super.getDefaultColors(),
             fills: MATERIAL_DARK_FILLS,
+            fillsFallback: Object.values(MATERIAL_DARK_FILLS),
             strokes: MATERIAL_DARK_STROKES,
             sequentialColors: getSequentialColors(MATERIAL_DARK_FILLS),
             divergingColors: [MATERIAL_DARK_FILLS.ORANGE, MATERIAL_DARK_FILLS.YELLOW, MATERIAL_DARK_FILLS.GREEN],

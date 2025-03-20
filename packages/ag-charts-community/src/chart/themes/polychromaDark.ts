@@ -37,6 +37,7 @@ export class PolychromaDark extends DarkTheme {
     override getDefaultColors() {
         return {
             fills: POLYCHROMA_DARK_FILLS,
+            fillsFallback: Object.values(POLYCHROMA_DARK_FILLS),
             strokes: POLYCHROMA_DARK_STROKES,
             sequentialColors: getSequentialColors(POLYCHROMA_DARK_FILLS),
             divergingColors: [POLYCHROMA_DARK_FILLS.BLUE, POLYCHROMA_DARK_FILLS.RED],

@@ -20,7 +20,12 @@ function itemTheme(
             bounds: 'item',
             colorStops: {
                 $if: [
-                    { $isGradient: [{ $palette: `${key}.fill` }] },
+                    {
+                        $or: [
+                            { $isGradient: [{ $palette: `${key}.fill` }] },
+                            { $isPattern: [{ $palette: `${key}.fill` }] },
+                        ],
+                    },
                     {
                         $map: [
                             { $path: ['./color', undefined, { $value: '$1' }] },

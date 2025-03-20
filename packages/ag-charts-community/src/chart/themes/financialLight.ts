@@ -30,6 +30,7 @@ export class FinancialLight extends ChartTheme {
         return {
             ...super.getDefaultColors(),
             fills: { ...FINANCIAL_LIGHT_FILLS },
+            fillsFallback: Object.values({ ...FINANCIAL_LIGHT_FILLS }),
             strokes: { ...FINANCIAL_LIGHT_STROKES },
             sequentialColors: getSequentialColors(FINANCIAL_LIGHT_FILLS),
             divergingColors: [FINANCIAL_LIGHT_FILLS.GREEN, FINANCIAL_LIGHT_FILLS.BLUE, FINANCIAL_LIGHT_FILLS.RED],

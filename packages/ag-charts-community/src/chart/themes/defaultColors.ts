@@ -26,6 +26,7 @@ export const DEFAULT_STROKES = {
 
 export type DefaultColors = {
     fills: { [key: string]: string };
+    fillsFallback: string[];
     strokes: { [key: string]: string };
     sequentialColors: { [key: string]: string[] };
     divergingColors: string[];

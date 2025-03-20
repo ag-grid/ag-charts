@@ -36,9 +36,33 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<InternalAgPatternColor> = {
     // width: undefined,
     // height: undefined,
     padding: 6,
-    fill: { $palette: 'fill' },
+    fill: {
+        $if: [
+            { $isGradient: [{ $palette: 'fill' }] },
+            { $palette: 'fillFallback' },
+            {
+                $if: [
+                    { $isPattern: [{ $palette: 'fill' }] },
+                    { $path: ['./fill', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                    { $palette: 'fill' },
+                ],
+            },
+        ],
+    },
     fillOpacity: 1,
-    stroke: { $palette: 'fill' },
+    stroke: {
+        $if: [
+            { $isGradient: [{ $palette: 'fill' }] },
+            { $palette: 'fillFallback' },
+            {
+                $if: [
+                    { $isPattern: [{ $palette: 'fill' }] },
+                    { $path: ['./stroke', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                    { $palette: 'fill' },
+                ],
+            },
+        ],
+    },
     strokeOpacity: 1,
     // strokeWidth: undefined,
     backgroundFill: 'transparent',

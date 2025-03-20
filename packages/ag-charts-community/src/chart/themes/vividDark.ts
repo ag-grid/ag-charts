@@ -35,6 +35,7 @@ export class VividDark extends DarkTheme {
     override getDefaultColors() {
         return {
             fills: VIVID_DARK_FILLS,
+            fillsFallback: Object.values(VIVID_DARK_FILLS),
             strokes: VIVID_DARK_STROKES,
             sequentialColors: getSequentialColors(VIVID_DARK_FILLS),
             divergingColors: [VIVID_DARK_FILLS.ORANGE, VIVID_DARK_FILLS.YELLOW, VIVID_DARK_FILLS.GREEN],
