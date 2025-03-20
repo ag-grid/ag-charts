@@ -30,12 +30,12 @@ export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]
     },
 ];
 
-export const FILL_PATTERN_DEFAULTS: WithThemeParams<InternalAgPatternColor> = {
+export const FILL_PATTERN_DEFAULTS: WithThemeParams<Required<InternalAgPatternColor>> = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
-    // width: undefined,
-    // height: undefined,
-    padding: 6,
+    width: 10,
+    height: 10,
+    padding: 2,
     fill: {
         $if: [
             { $isGradient: [{ $palette: 'fill' }] },
@@ -64,7 +64,7 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<InternalAgPatternColor> = {
         ],
     },
     strokeOpacity: 1,
-    // strokeWidth: undefined,
+    strokeWidth: 4,
     backgroundFill: 'transparent',
     backgroundFillOpacity: 1,
     rotation: 0,

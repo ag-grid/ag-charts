@@ -51,13 +51,13 @@ export function getShapeFill(
             pattern === 'horizontal-lines' ||
             pattern === 'vertical-lines'
         ) {
-            strokeWidth ??= 8;
+            strokeWidth ??= defaultPattern.strokeWidth;
         } else {
             strokeWidth ??= 0;
         }
 
-        const width = fill.width ?? fill.height ?? 26;
-        const height = fill.height ?? fill.width ?? 26;
+        const width = fill.width ?? fill.height ?? defaultPattern.width;
+        const height = fill.height ?? fill.width ?? defaultPattern.height;
 
         return {
             type: 'pattern',
