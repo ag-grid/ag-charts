@@ -1,57 +1,75 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-const customTheme = {
-    palette: {
-        fills: ['#4F0D4D'],
-        strokes: ['#444444'],
-    },
-    overrides: {
-        common: {
-            title: {
-                fontSize: 22,
-                color: '#444444',
-            },
-        },
-        bar: {
-            series: {
-                label: {
-                    enabled: true,
-                    color: '#FFFFFF',
-                    fontSize: 10,
-                },
-                strokeWidth: 1,
-            },
-        },
-    },
-};
+import { getData } from './data';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: [
-        { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },
-        { month: 'Mar', avgTemp: 6.3, iceCreamSales: 302000 },
-        { month: 'May', avgTemp: 16.2, iceCreamSales: 800000 },
-        { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254000 },
-        { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950000 },
-        { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200000 },
-    ],
-    background: {
-        fill: '#80764440', // or RGB, HEX, HSL, HWB, or named color
+    title: {
+        text: `Renewable Fuel Sources`,
     },
-    width: 350,
-    height: 350,
-    theme: customTheme,
-    series: [
-        {
-            type: 'bar',
-            xKey: 'month',
-            yKey: 'iceCreamSales',
-            label: {
-                formatter: function (params) {
-                    return params.value / 100 / 10.0 + 'k';
+    subtitle: {
+        text: `Kilotonnes of Oil Equivalent`,
+    },
+    theme: {
+        overrides: {
+            common: {
+                title: {
+                    fontSize: 22,
+                    color: '#444444',
+                },
+            },
+            bar: {
+                series: {
+                    label: {
+                        enabled: true,
+                        fontSize: 14,
+                        placement: 'outside-end',
+                    },
+                    strokeWidth: 1,
                 },
             },
         },
+    },
+    data: getData(),
+    series: [
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'Onshore wind',
+            yName: 'Onshore Wind',
+            fill: { type: 'gradient' },
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'Offshore wind',
+            yName: 'Offshore Wind',
+            fill: { type: 'pattern' },
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'Solar photovoltaics',
+            yName: 'Solar Photovoltaics',
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'Plant biomass',
+            yName: 'Plant Biomass',
+            fill: { type: 'gradient' },
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'Landfill gas',
+            yName: 'Landfill Gas',
+            fill: { type: 'pattern' },
+        },
+    ],
+    axes: [
+        { type: 'category', position: 'bottom', paddingOuter: 0 },
+        { type: 'number', position: 'left' },
     ],
 };
 
