@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import type { ExecutorContext } from '@nx/devkit';
 import { consolePrefix, ensureDirectory, readJSONFile } from 'ag-shared/plugin-utils';
-import { Canvas, CanvasRenderingContext2D } from 'canvas';
+import { Canvas, CanvasRenderingContext2D, DOMMatrix } from 'canvas';
 import path from 'path';
 import { Path2D, applyPath2DToCanvasRenderingContext } from 'path2d';
 
@@ -10,6 +10,7 @@ import type { AgChartThemeName } from 'ag-charts-community';
 import { generateThumbnail } from './generator/thumbnailGenerator';
 
 global.Path2D = Path2D;
+global.DOMMatrix = DOMMatrix as any;
 global.OffscreenCanvas = Canvas as any;
 
 applyPath2DToCanvasRenderingContext(CanvasRenderingContext2D);
