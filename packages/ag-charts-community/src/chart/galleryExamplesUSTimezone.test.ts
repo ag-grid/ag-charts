@@ -48,7 +48,7 @@ describe('Gallery Examples (US TZ)', () => {
 
     const ctx = setupMockCanvas();
     // Missing time axis examples
-    it.skip.each(Object.entries(TIME_AXIS_EXAMPLES))(
+    it.each(Object.entries(TIME_AXIS_EXAMPLES))(
         'for %s it should create chart instance as expected',
         async (_exampleName, example) => {
             const options: AgChartOptions = example.options;
@@ -59,7 +59,7 @@ describe('Gallery Examples (US TZ)', () => {
     );
 
     // Missing time axis examples
-    it.skip.each(Object.entries(TIME_AXIS_EXAMPLES))(
+    it.each(Object.entries(TIME_AXIS_EXAMPLES))(
         'for %s it should render to canvas as expected',
         async (_exampleName, example) => {
             const compare = async () => {

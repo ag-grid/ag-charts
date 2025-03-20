@@ -504,8 +504,7 @@ describe('PieSeries', () => {
                     await clickAction(x, y)(chart);
                 }
             });
-            xtest('touch', async () => {
-                // Faulty because of AG-14228
+            test('touch', async () => {
                 for (const { x, y } of iterPieSectors(chart)) {
                     await waitForChartStability(chart);
                     await tapAction(x, y)(chart);
