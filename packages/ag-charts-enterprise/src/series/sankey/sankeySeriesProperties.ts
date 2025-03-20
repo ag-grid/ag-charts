@@ -15,15 +15,8 @@ import type { InternalAgColorType } from 'ag-charts-core';
 
 import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-proportion/flowProportionSeries';
 
-const {
-    BaseProperties,
-    FillGradientDefaults,
-    FillPatternDefaults,
-    SeriesTooltip,
-    SeriesProperties,
-    Property,
-    Label,
-} = _ModuleSupport;
+const { BaseProperties, FillGradientDefaults, FillPatternDefaults, SeriesTooltip, SeriesProperties, Property, Label } =
+    _ModuleSupport;
 
 export interface SankeyNodeDatum extends FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum> {
     size: number;

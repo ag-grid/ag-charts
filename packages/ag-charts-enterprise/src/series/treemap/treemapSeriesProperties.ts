@@ -13,8 +13,7 @@ import type { InternalAgColorType } from 'ag-charts-core';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { BaseProperties, HierarchySeriesProperties, HighlightStyle, SeriesTooltip, Property, Label } =
-    _ModuleSupport;
+const { BaseProperties, HierarchySeriesProperties, HighlightStyle, SeriesTooltip, Property, Label } = _ModuleSupport;
 
 class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
     @Property

@@ -22,8 +22,7 @@ import type {
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { AutoSizedLabel } from '../util/autoSizedLabel';
 
-const { BaseProperties, SeriesTooltip, SeriesProperties, PropertiesArray, Property, Label, AxisLabel } =
-    _ModuleSupport;
+const { BaseProperties, SeriesTooltip, SeriesProperties, PropertiesArray, Property, Label, AxisLabel } = _ModuleSupport;
 
 export enum NodeDataType {
     Node,

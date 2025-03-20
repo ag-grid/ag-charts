@@ -10,8 +10,7 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-const { FillGradientDefaults, FillPatternDefaults, Property, SeriesProperties, SeriesTooltip, Label } =
-    _ModuleSupport;
+const { FillGradientDefaults, FillPatternDefaults, Property, SeriesProperties, SeriesTooltip, Label } = _ModuleSupport;
 
 export interface MapMarkerNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
 
