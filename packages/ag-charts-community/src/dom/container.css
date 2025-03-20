@@ -1,4 +1,5 @@
 .ag-charts-wrapper {
+    /* Note this is applied to both the full DOM and the minimal sparklines DOM */
     --align-items: center;
     --justify-content: center;
 

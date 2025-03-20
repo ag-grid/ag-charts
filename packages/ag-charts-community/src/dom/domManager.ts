@@ -22,6 +22,7 @@ const DOM_ELEMENT_CLASSES = [
     'series-area',
     'tooltip-container',
 ] as const;
+const MINIMAL_DOM_ELEMENT_ROLES = new Set(['canvas-container', 'canvas', 'series-area', 'tooltip-container']);
 const CONTAINER_MODIFIERS = {
     safeHorizontal: 'ag-charts-wrapper--safe-horizontal',
     safeVertical: 'ag-charts-wrapper--safe-vertical',
@@ -158,33 +159,41 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         // many features that rely on the complex DOM (e.g. keyboard navigation, A11y).
         const element = createElement('div');
         element.role = 'presentation';
-        element.classList.add(
-            'ag-charts-canvas-container',
-            'ag-charts-canvas',
-            'ag-charts-series-area',
-            'ag-charts-tooltip-container'
-        );
+        element.dataset.agCharts = '';
+        element.classList.add('ag-charts-wrapper');
         return element;
     }
 
     private initRootElements(): Record<DOMElementClass, LiveDOMElement> {
-        return DOM_ELEMENT_CLASSES.reduce(
-            (r, c) => {
-                const cssClass = `ag-charts-${c}`;
-                let el = this.element.classList.contains(cssClass)
-                    ? this.element
-                    : this.element.querySelector<HTMLElement>(`.${cssClass}`);
+        const { mode, element } = this;
 
-                if (!el && this.mode === 'normal') {
-                    throw new Error(`AG Charts - unable to find DOM element ${cssClass}`);
+        const rootElements = {} as typeof this.rootElements;
+        for (const domElement of DOM_ELEMENT_CLASSES) {
+            const className = `ag-charts-${domElement}`;
+
+            let el: HTMLElement;
+            if (mode === 'normal') {
+                el = element.classList.contains(className)
+                    ? element
+                    : (element.getElementsByClassName(className)[0] as HTMLElement);
+
+                if (el == null) {
+                    throw new Error(`AG Charts - unable to find DOM element ${className}`);
                 }
-                el ??= createElement('div');
+            } else if (MINIMAL_DOM_ELEMENT_ROLES.has(domElement)) {
+                el = element;
+            } else {
+                el = createElement('div');
+            }
 
-                r[c] = { element: el, children: new Map<string, HTMLElement>(), listeners: [] };
-                return r;
-            },
-            {} as typeof this.rootElements
-        );
+            rootElements[domElement] = {
+                element: el,
+                children: new Map<string, HTMLElement>(),
+                listeners: [],
+            };
+        }
+
+        return rootElements;
     }
 
     override destroy() {
