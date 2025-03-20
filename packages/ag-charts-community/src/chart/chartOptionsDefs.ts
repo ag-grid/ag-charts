@@ -1,4 +1,4 @@
-import { type OptionsDefs, array, attachDescription, defined, object, union } from 'ag-charts-core';
+import { type OptionsDefs, array, attachDescription, defined, geoJson, union } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgFlowProportionChartOptions,
@@ -46,7 +46,7 @@ export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
-    topology: object,
+    topology: geoJson,
 };
 
 export const standaloneChartOptionsDefs: OptionsDefs<AgStandaloneChartOptions> = {
