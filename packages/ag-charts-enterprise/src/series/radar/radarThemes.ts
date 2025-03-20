@@ -49,7 +49,7 @@ export const RADAR_LINE_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line'>[
     _ModuleSupport.mergeDefaults(
         {
             series: {
-                stroke: { $palette: 'fill' },
+                stroke: _ModuleSupport.SAFE_STROKE_FILL_OPERATION,
                 strokeWidth: 2,
             },
         },

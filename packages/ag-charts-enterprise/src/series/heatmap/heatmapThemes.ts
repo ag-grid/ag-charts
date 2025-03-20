@@ -11,7 +11,11 @@ export const HEATMAP_SERIES_THEME: _ModuleSupport.SeriesModule<'heatmap'>['theme
         },
         // @ts-expect-error undocumented option
         colorRange: {
-            $if: [{ $eq: [{ $palette: 'type' }, 'inbuilt'] }, { $palette: 'divergingColors' }, { $palette: 'range2' }],
+            $if: [
+                { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                { $palette: 'divergingColors' },
+                _ModuleSupport.SAFE_RANGE2_OPERATION,
+            ],
         },
         label: {
             enabled: false,

@@ -30,6 +30,44 @@ export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]
     },
 ];
 
+export const SAFE_FILL_OPERATION: any = {
+    $if: [
+        { $or: [{ $isGradient: [{ $palette: 'fill' }] }, { $isPattern: [{ $palette: 'fill' }] }] },
+        { $palette: 'fillFallback' },
+        { $palette: 'fill' },
+    ],
+};
+
+export const SAFE_FILLS_OPERATION: any = {
+    $if: [
+        { $or: [{ $isGradient: [{ $palette: 'fill' }] }, { $isPattern: [{ $palette: 'fill' }] }] },
+        { $palette: 'fillsFallback' },
+        { $palette: 'fills' },
+    ],
+};
+
+export const SAFE_STROKE_FILL_OPERATION: any = {
+    $if: [
+        { $isGradient: [{ $palette: 'fill' }] },
+        { $palette: 'fillFallback' },
+        {
+            $if: [
+                { $isPattern: [{ $palette: 'fill' }] },
+                { $path: ['./stroke', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                { $palette: 'fill' },
+            ],
+        },
+    ],
+};
+
+export const SAFE_RANGE2_OPERATION: any = {
+    $if: [
+        { $or: [{ $isGradient: [{ $palette: 'fill' }] }, { $isPattern: [{ $palette: 'fill' }] }] },
+        [{ $palette: 'fillFallback' }, { $palette: 'fillFallback' }],
+        { $palette: 'range2' },
+    ],
+};
+
 export const FILL_PATTERN_DEFAULTS: WithThemeParams<Required<InternalAgPatternColor>> = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
@@ -50,19 +88,7 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<Required<InternalAgPatternCo
         ],
     },
     fillOpacity: 1,
-    stroke: {
-        $if: [
-            { $isGradient: [{ $palette: 'fill' }] },
-            { $palette: 'fillFallback' },
-            {
-                $if: [
-                    { $isPattern: [{ $palette: 'fill' }] },
-                    { $path: ['./stroke', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
-                    { $palette: 'fill' },
-                ],
-            },
-        ],
-    },
+    stroke: SAFE_STROKE_FILL_OPERATION,
     strokeOpacity: 1,
     strokeWidth: 4,
     backgroundFill: 'transparent',

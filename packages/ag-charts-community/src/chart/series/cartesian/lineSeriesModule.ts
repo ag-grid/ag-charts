@@ -4,7 +4,7 @@ import type { AgLineSeriesOptions, AgTooltipPositionOptions, WithThemeParams } f
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { FILL_PATTERN_DEFAULTS } from '../../themes/util';
+import { FILL_PATTERN_DEFAULTS, SAFE_STROKE_FILL_OPERATION } from '../../themes/util';
 import { LineSeries } from './lineSeries';
 import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
 
@@ -31,7 +31,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     themeTemplate: {
         series: {
             tooltip: { position: { _seriesOverrideType: 'node' } as AgTooltipPositionOptions },
-            stroke: { $palette: 'fill' },
+            stroke: SAFE_STROKE_FILL_OPERATION,
             strokeWidth: 2,
             strokeOpacity: 1,
             lineDash: [0],

@@ -1,6 +1,7 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
 import { FONT_SIZE_RATIO } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
+import { SAFE_FILLS_OPERATION } from '../../themes/util';
 
 export const donutTheme: ExtensibleTheme<'donut'> = {
     series: {
@@ -56,6 +57,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         strokes: { $palette: 'strokes' },
         // @ts-expect-error undocumented option
         defaultColorRange: { $palette: 'gradients' },
+        defaultPatternFills: SAFE_FILLS_OPERATION,
         fillOpacity: 1,
         strokeOpacity: 1,
         strokeWidth: 0,

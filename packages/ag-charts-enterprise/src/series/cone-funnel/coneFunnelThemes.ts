@@ -12,14 +12,14 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
             $if: [
                 { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                 { $palette: 'secondSequentialColors' },
-                { $palette: 'range2' },
+                _ModuleSupport.SAFE_RANGE2_OPERATION,
             ],
         },
         strokes: {
             $if: [
                 { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                 { $palette: 'secondSequentialColors' },
-                { $palette: 'range2' },
+                _ModuleSupport.SAFE_RANGE2_OPERATION,
             ],
         },
         // @ts-expect-error undocumented option
