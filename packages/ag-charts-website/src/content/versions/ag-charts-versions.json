@@ -1,7 +1,7 @@
 [
     {
         "version": "11.2.0",
-        "date": "March 26th 2025",
+        "date": "March 25th 2025",
         "highlights": [
             {
                 "text": "Shared and Compact Tooltip Modes",
@@ -12,10 +12,15 @@
                 "path": "./tooltips/#tooltip-pagination"
             },
             {
-                "text": "Gradient and Pattern Fills"
+                "text": "Gradient and Pattern Fills",
+                "path": "./fills"
             },
             {
                 "text": "Options Validation and Suggestions"
+            },
+            {
+                "text": "Figma Design System Assets",
+                "path": "./themes/#figma-design-system"
             }
         ]
     },
