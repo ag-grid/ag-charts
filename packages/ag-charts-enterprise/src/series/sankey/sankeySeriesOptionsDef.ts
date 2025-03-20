@@ -54,3 +54,7 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
 sankeySeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
 // @ts-expect-error undocumented option
 sankeySeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
+// @ts-expect-error undocumented option
+sankeySeriesOptionsDef.defaultColorRange = arrayOf(arrayOf(color));
+// @ts-expect-error undocumented option
+sankeySeriesOptionsDef.defaultPatternFills = arrayOf(color);

@@ -35,6 +35,8 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
                 reverse: false,
             } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
+            defaultColorRange: { $palette: 'gradients' },
+            defaultPatternFills: _ModuleSupport.SAFE_FILLS_OPERATION,
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,
