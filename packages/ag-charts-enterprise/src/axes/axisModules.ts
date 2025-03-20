@@ -69,8 +69,14 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> =
     },
 };
 
+const invalidOptionsFromIntegratedCharts: OptionsDefs<AgAngleCategoryAxisOptions> = {
+    // @ts-expect-error integrated sets this from the formatting panel, but it isn't relevant.
+    innerRadiusRatio: ratio,
+};
+
 export const angleCategoryAxisOptionsDefs: OptionsDefs<AgAngleCategoryAxisOptions> = {
     ...commonAxisOptionsDefs,
+    ...invalidOptionsFromIntegratedCharts,
     type: required(constant('angle-category')),
     shape: union('polygon', 'circle'),
     crossLines: arrayOfDefs(commonCrossLineOptionsDefs),
