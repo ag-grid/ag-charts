@@ -1,9 +1,8 @@
-import type { InternalAgGradientColor } from 'ag-charts-core';
+import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 import type {
     AgGradientColorBounds,
     AgGradientColorStop,
     AgGradientType,
-    AgPatternColor,
     AgPatternName,
     CssColor,
     InteractionRange,
@@ -95,7 +94,10 @@ export class FillGradientDefaults
     reverse: boolean = false;
 }
 
-export class FillPatternDefaults extends BaseProperties<Required<AgPatternColor>> implements Required<AgPatternColor> {
+export class FillPatternDefaults
+    extends BaseProperties<Required<InternalAgPatternColor>>
+    implements Required<InternalAgPatternColor>
+{
     @TempValidate(STRING)
     type: 'pattern' = 'pattern' as const;
 

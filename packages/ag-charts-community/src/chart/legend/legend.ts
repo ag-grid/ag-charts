@@ -1,5 +1,5 @@
 import { Logger, clamp } from 'ag-charts-core';
-import type { InternalAgGradientColor } from 'ag-charts-core';
+import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -10,7 +10,6 @@ import type {
     AgChartLegendPosition,
     AgMarkerShape,
     AgMarkerShapeFn,
-    AgPatternColor,
     FontStyle,
     FontWeight,
     Formatter,
@@ -170,7 +169,7 @@ const fillGradientDefaults: Required<InternalAgGradientColor> = {
     reverse: false,
 };
 
-const fillPatternDefaults: Required<AgPatternColor> = {
+const fillPatternDefaults: Required<InternalAgPatternColor> = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
     width: 8,

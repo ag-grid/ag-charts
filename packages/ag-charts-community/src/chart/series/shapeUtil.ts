@@ -1,5 +1,4 @@
-import type { InternalAgColorType, InternalAgGradientColor } from 'ag-charts-core';
-import type { AgPatternColor } from 'ag-charts-types';
+import type { InternalAgColorType, InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
 import { type GradientParams } from '../../scene/gradient/gradient';
@@ -18,17 +17,17 @@ export interface ShapeFillBBox {
 export function getShapeFill(
     fill: InternalAgColorType,
     defaultGradient: Required<InternalAgGradientColor>,
-    defaultPattern: Required<AgPatternColor>
+    defaultPattern: Required<InternalAgPatternColor>
 ): Required<InternalAgColorType>;
 export function getShapeFill(
     fill: InternalAgColorType | undefined,
     defaultGradient: Required<InternalAgGradientColor>,
-    defaultPattern: Required<AgPatternColor>
+    defaultPattern: Required<InternalAgPatternColor>
 ): Required<InternalAgColorType> | undefined;
 export function getShapeFill(
     fill: InternalAgColorType | undefined,
     defaultGradient: Required<InternalAgGradientColor>,
-    defaultPattern: Required<AgPatternColor>
+    defaultPattern: Required<InternalAgPatternColor>
 ): Required<InternalAgColorType> | undefined {
     if (isGradientFill(fill)) {
         return {
@@ -83,17 +82,17 @@ export function getShapeFill(
 export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T,
     defaultGradient: Required<InternalAgGradientColor>,
-    defaultPattern: Required<AgPatternColor>
+    defaultPattern: Required<InternalAgPatternColor>
 ): T;
 export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T | undefined,
     defaultGradient: Required<InternalAgGradientColor>,
-    defaultPattern: Required<AgPatternColor>
+    defaultPattern: Required<InternalAgPatternColor>
 ): T | undefined;
 export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T | undefined,
     defaultGradient: Required<InternalAgGradientColor>,
-    defaultPattern: Required<AgPatternColor>
+    defaultPattern: Required<InternalAgPatternColor>
 ): T | undefined {
     if (!isGradientFill(style?.fill) && !isPatternFill(style?.fill)) return style;
     return {

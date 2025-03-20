@@ -71,7 +71,11 @@ export interface InternalAgGradientColor extends AgGradientColor {
     /** Reverse the order of colour stops. */
     reverse?: boolean;
 }
-export type InternalAgColorType = CssColor | InternalAgGradientColor | AgPatternColor;
+export interface InternalAgPatternColor extends AgPatternColor {
+    /** The rotation angle of the pattern. */
+    rotation?: number;
+}
+export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor;
 
 export const fillGradientDefaults = optionsDefs<InternalAgGradientColor>({
     type: required(constant('gradient')),
@@ -88,17 +92,27 @@ export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
     strokeOpacity: ratio,
 };
 
+const gradientUndocumentedOpts: OptionsDefs<AgGradientColor> = {
+    // @ts-expect-error undocumented option
+    gradient: union('linear', 'radial', 'conic'),
+    bounds: gradientBounds,
+    reverse: boolean,
+};
+
+const patternUndocumentedOpts: OptionsDefs<AgPatternColor> = {
+    // @ts-expect-error undocumented option
+    rotation: number,
+};
+
 const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
     {
         gradient: {
-            // @ts-expect-error undocumented option
-            gradient: union('linear', 'radial', 'conic'),
-            bounds: gradientBounds,
+            ...gradientUndocumentedOpts,
             colorStops: gradientColorStops,
             rotation: number,
-            reverse: boolean,
         },
         pattern: {
+            ...patternUndocumentedOpts,
             pattern: union(
                 'vertical-lines',
                 'horizontal-lines',
@@ -115,7 +129,6 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
             width: positiveNumber,
             height: positiveNumber,
             padding: positiveNumber,
-            rotation: number,
             fill: color,
             fillOpacity: ratio,
             backgroundFill: color,
