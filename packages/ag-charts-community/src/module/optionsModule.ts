@@ -530,14 +530,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             series.type ??= 'line'; // TODO remove this behaviour
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type, activeTheme).series ?? {};
-            const defaultTooltipRange = this.getTooltipRangeDefaults(options, series.type);
+
+            const seriesDef = ModuleRegistry.getSeriesModule(series.type);
+            const tooltipDefined = Boolean(seriesDef?.options.tooltip);
+            const visibleDefined = Boolean(seriesDef?.options.visible);
+            const defaultTooltipRange = tooltipDefined && this.getTooltipRangeDefaults(options, series.type);
+
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
-                defaultTooltipPosition,
+                tooltipDefined && defaultTooltipPosition,
                 defaultTooltipRange,
                 seriesTheme,
-                { visible: true }
+                visibleDefined && { visible: true }
             );
 
             if (seriesOptions.innerLabels) {
