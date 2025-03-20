@@ -195,6 +195,7 @@ export class ChartTheme {
                 },
             },
             {
+                keys: [],
                 label: {
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
