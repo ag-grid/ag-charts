@@ -22,6 +22,25 @@ import {
 } from '../../test/utils';
 import { PieSeries } from './pieSeries';
 
+function* iterPieSectors(myChart: Chart) {
+    const pieSeries = deproxy(myChart).series[0] as PieSeries;
+    for (const nodeData of pieSeries.getNodeData() ?? []) {
+        if (nodeData.angleValue < 1e-10) continue;
+
+        const { x = 0, y = 0 } = nodeData.midPoint ?? {};
+        yield Transformable.toCanvasPoint(pieSeries.contentGroup, x, y);
+    }
+}
+
+function* iterLegendMarkerLabels(myChart: Chart) {
+    for (const { legend } of deproxy(myChart).modulesManager.legends()) {
+        const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
+        for (const label of markerLabels) {
+            yield Transformable.toCanvas(label).computeCenter();
+        }
+    }
+}
+
 describe('PieSeries', () => {
     setupMockConsole();
 
@@ -477,25 +496,6 @@ describe('PieSeries', () => {
             doubleClicks.splice(0, doubleClicks.length);
             legendClicks.splice(0, legendClicks.length);
         });
-
-        function* iterPieSectors(myChart: Chart) {
-            const pieSeries = deproxy(myChart).series[0] as PieSeries;
-            for (const nodeData of pieSeries.getNodeData() ?? []) {
-                if (nodeData.angleValue < 1e-10) continue;
-
-                const { x = 0, y = 0 } = nodeData.midPoint ?? {};
-                yield Transformable.toCanvasPoint(pieSeries.contentGroup, x, y);
-            }
-        }
-
-        function* iterLegendMarkerLabels(myChart: Chart) {
-            for (const { legend } of deproxy(myChart).modulesManager.legends()) {
-                const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
-                for (const label of markerLabels) {
-                    yield Transformable.toCanvas(label).computeCenter();
-                }
-            }
-        }
 
         describe('should fire a nodeClick event for each visible sector', () => {
             test('mouse', async () => {
