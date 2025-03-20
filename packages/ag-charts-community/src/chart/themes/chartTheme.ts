@@ -397,22 +397,12 @@ export class ChartTheme {
             {
                 label: { spacing: 5 },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                shape: {
-                    $path: [
-                        './shape',
-                        undefined,
-                        { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] },
-                    ],
-                },
             },
             false
         ),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({
             positionAngle: 0,
             line: { enabled: false },
-            shape: {
-                $path: ['./shape', undefined, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],
-            },
         }),
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({
             positionAngle: 0,
