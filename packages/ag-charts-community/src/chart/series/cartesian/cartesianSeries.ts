@@ -1148,10 +1148,8 @@ export abstract class CartesianSeries<
 function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined {
     let min: number | Date | undefined;
     let max: number | Date | undefined;
-    if (axis instanceof NumberAxis && (Number.isFinite(axis.min) || Number.isFinite(axis.max))) {
-        min = Number.isFinite(axis.min) ? axis.min : undefined;
-        max = Number.isFinite(axis.max) ? axis.max : undefined;
-    } else if (axis instanceof TimeAxis && (axis.min != null || axis.max != null)) {
+
+    if (axis instanceof NumberAxis || axis instanceof TimeAxis) {
         ({ min, max } = axis);
     }
 

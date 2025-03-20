@@ -77,7 +77,7 @@ export const fillGradientDefaults = optionsDefs<InternalAgGradientColor>({
     type: required(constant('gradient')),
     gradient: required(union('linear', 'radial', 'conic')),
     bounds: required(gradientBounds),
-    colorStops: required(gradientColorStops),
+    colorStops: required(or(gradientColorStops, and(arrayLength(2), arrayOf(color)))),
     rotation: required(number),
     reverse: required(boolean),
 });

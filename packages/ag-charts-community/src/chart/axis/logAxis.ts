@@ -1,13 +1,9 @@
-import { Logger, isNumber } from 'ag-charts-core';
+import { Logger } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { LogScale } from '../../scale/logScale';
 import { normalisedExtentWithMetadata } from '../../util/extent';
-import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, TempValidate, predicateWithMessage } from '../../util/validation';
 import { NumberAxis } from './numberAxis';
-
-// Cannot be 0
-const NON_ZERO_NUMBER = predicateWithMessage((value) => isNumber(value) && value !== 0, 'a non-zero number');
 
 export class LogAxis extends NumberAxis {
     static override readonly className = 'LogAxis';
@@ -31,12 +27,6 @@ export class LogAxis extends NumberAxis {
 
         return { domain: extent, clipped };
     }
-
-    @TempValidate(AND(NUMBER_OR_NAN, NON_ZERO_NUMBER, LESS_THAN('max')))
-    override min: number = NaN;
-
-    @TempValidate(AND(NUMBER_OR_NAN, NON_ZERO_NUMBER, GREATER_THAN('min')))
-    override max: number = NaN;
 
     set base(value: number) {
         (this.scale as LogScale).base = value;

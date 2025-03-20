@@ -77,7 +77,7 @@ export function Validate(predicate: ValidatePredicate, options: ValidateOptions 
     );
 }
 
-const TestEnv = true; // Set to true to enabled old validation warnings - for testing purposes.
+const TestEnv = false; // Set to true to enabled old validation warnings - for testing purposes.
 export const TempValidate = TestEnv
     ? (predicate: ValidatePredicate, options: ValidateOptions = {}) => {
           const { optional = false } = options;
