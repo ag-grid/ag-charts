@@ -97,4 +97,6 @@ treemapSeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
 // @ts-expect-error undocumented option
 treemapSeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
 // @ts-expect-error undocumented option
-treemapSeriesOptionsDef.undocumentedGroupFills = arrayOf(string);
+treemapSeriesOptionsDef.undocumentedGroupFills = arrayOf(color);
+// @ts-expect-error undocumented option
+treemapSeriesOptionsDef.undocumentedGroupStrokes = arrayOf(color);

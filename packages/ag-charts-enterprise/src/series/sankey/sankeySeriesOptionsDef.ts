@@ -6,7 +6,9 @@ import {
     color,
     colorUnion,
     constant,
+    fillGradientDefaults,
     fillOptionsDef,
+    fillPatternDefaults,
     lineDashOptionsDef,
     positiveNumber,
     required,
@@ -47,3 +49,8 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     tooltip: tooltipOptionsDefs,
     ...commonSeriesOptionsDefs,
 };
+
+// @ts-expect-error undocumented option
+sankeySeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
+// @ts-expect-error undocumented option
+sankeySeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
