@@ -30,6 +30,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "_rangeCallback": [Function],
         },
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#3f7cbf",
@@ -72,6 +73,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#3f7cbf",
@@ -459,6 +461,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -943,6 +946,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -985,6 +989,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -1674,6 +1679,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -1715,6 +1721,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -2441,6 +2448,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -2481,6 +2489,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -2660,6 +2669,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -2701,6 +2711,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -3153,6 +3164,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -3194,6 +3206,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -3927,6 +3940,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -3968,6 +3982,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -4166,6 +4181,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -4207,6 +4223,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -4406,6 +4423,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -4445,6 +4463,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "style": [],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -4626,6 +4645,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -4669,6 +4689,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -4853,6 +4874,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -4894,6 +4916,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -5225,6 +5248,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -5266,6 +5290,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -5601,6 +5626,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -5642,6 +5668,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -6355,6 +6382,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -6397,6 +6425,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -7753,6 +7782,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -7794,6 +7824,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -7978,6 +8009,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -8019,6 +8051,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -9008,6 +9041,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -9050,6 +9084,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -9465,6 +9500,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -9506,6 +9542,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -10151,6 +10188,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "_rangeCallback": [Function],
         },
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -10191,6 +10229,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -10771,6 +10810,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -10812,6 +10852,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -11143,6 +11184,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
           "#ff867f",
         ],
       ],
+      "defaultPatternFills": [
+        "#5090dc",
+        "#ffa03a",
+        "#459d55",
+        "#34bfe1",
+        "#e1cc00",
+        "#9669cb",
+        "#b5b5b5",
+        "#bd5aa7",
+        "#8a6224",
+        "#ef5452",
+      ],
       "fillOpacity": 0.9,
       "fills": [
         "#fb7451",
@@ -11295,6 +11348,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "_rangeCallback": [Function],
         },
       },
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -11336,6 +11390,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           },
         ],
       },
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -11887,6 +11942,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -11927,6 +11983,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -12106,6 +12163,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "_rangeCallback": undefined,
         },
       },
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -12148,6 +12206,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -13029,6 +13088,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -13070,6 +13130,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -13543,6 +13604,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         ],
       },
       "groupPaddingInner": 0.1,
+      "keys": [],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -13585,6 +13647,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
           },
         ],
       },
+      "keys": [],
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
