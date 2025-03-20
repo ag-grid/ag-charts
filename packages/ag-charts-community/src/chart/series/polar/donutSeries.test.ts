@@ -220,7 +220,7 @@ describe('DonutSeries', () => {
                                 height: 40,
                             },
                         ],
-                    },
+                    } as AgDonutSeriesOptions,
                 ],
             });
             await compare();

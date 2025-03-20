@@ -182,7 +182,7 @@ describe('PieSeries', () => {
                                 height: 40,
                             },
                         ],
-                    },
+                    } as AgPieSeriesOptions,
                 ],
             });
             await compare();
