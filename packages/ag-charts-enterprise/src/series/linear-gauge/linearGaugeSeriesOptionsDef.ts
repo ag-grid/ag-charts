@@ -11,6 +11,7 @@ import {
     arrayOfDefs,
     boolean,
     callback,
+    color,
     constant,
     fillOptionsDef,
     fontOptionsDef,
@@ -28,12 +29,33 @@ import {
     union,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, autoSizedLabelOptionsDefs, tooltipOptionsDefs, numberFormatValidator } =
-    _ModuleSupport;
+const {
+    commonSeriesOptionsDefs,
+    autoSizedLabelOptionsDefs,
+    seriesLabelOptionsDefs,
+    tooltipOptionsDefs,
+    numberFormatValidator,
+} = _ModuleSupport;
 
 export const fillsOptionsDef: OptionsDefs<FillsOptions> = {
     fills: gradientColorStops,
     fillMode: union('continuous', 'discrete'),
+};
+
+const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
+    value: required(number),
+    text: string,
+    shape: or(
+        union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle', 'line'),
+        callback
+    ),
+    placement: union('before', 'after', 'middle'),
+    spacing: positiveNumber,
+    size: positiveNumber,
+    rotation: number,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
 };
 
 export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
@@ -66,21 +88,7 @@ export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    targets: arrayOfDefs<AgLinearGaugeTarget>({
-        value: required(number),
-        text: string,
-        shape: or(
-            union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle', 'line'),
-            callback
-        ),
-        placement: union('before', 'after', 'middle'),
-        spacing: positiveNumber,
-        size: positiveNumber,
-        rotation: number,
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    }),
+    targets: arrayOfDefs(linearGaugeTargetOptionsDef),
     segmentation: {
         enabled: boolean,
         spacing: positiveNumber,
@@ -119,3 +127,21 @@ export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
     tooltip: tooltipOptionsDefs,
     ...commonSeriesOptionsDefs,
 };
+
+// @ts-expect-error undocumented option
+linearGaugeSeriesOptionsDef.margin = number;
+// @ts-expect-error undocumented option
+linearGaugeSeriesOptionsDef.defaultColorRange = arrayOf(color);
+// @ts-expect-error undocumented option
+linearGaugeSeriesOptionsDef.defaultTarget = {
+    ...linearGaugeTargetOptionsDef,
+    value: number,
+    label: {
+        ...seriesLabelOptionsDefs,
+        spacing: number,
+    },
+};
+// @ts-expect-error undocumented option
+linearGaugeSeriesOptionsDef.defaultScale = linearGaugeSeriesOptionsDef.scale;
+// @ts-expect-error undocumented option
+linearGaugeSeriesOptionsDef.scale.defaultFill = color;

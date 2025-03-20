@@ -510,11 +510,7 @@ function isRatio(value: unknown): value is number {
 
 // Duplicates `isGradientFill()` from `../scene/util/fill` due to dependency violations
 function isGradientFill(fill: any): fill is AgGradientColor {
-    return (
-        fill !== null &&
-        isObject(fill) &&
-        (fill.type == 'gradient' || fill.type === 'radial-gradient' || fill.type === 'conic-gradient')
-    );
+    return isObject(fill) && fill.type == 'gradient';
 }
 
 // Duplicates `isPatternFill()` from `../scene/util/fill` due to dependency violations
@@ -671,7 +667,7 @@ function palette(value: string | Array<unknown>, path: string[], params: any, so
             case 'stroke':
                 return circularSliceArray(p.strokes, 1, index)[0];
             case 'gradient':
-                return p.sequentialColors[index];
+                return circularSliceArray(p.sequentialColors, 1, index)[0];
             case 'range2':
                 return circularSliceArray(p.fills, 2, index);
         }

@@ -25,7 +25,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 $if: [
                     { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                     { $palette: 'divergingColors' },
-                    { $palette: 'range2' },
+                    _ModuleSupport.SAFE_RANGE2_OPERATION,
                 ],
             },
             // @ts-expect-error undocumented option
@@ -42,6 +42,9 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
             label: {
                 color: { $ref: 'textColor' },
             },
+        },
+        tooltip: {
+            range: 'exact',
         },
     },
 };

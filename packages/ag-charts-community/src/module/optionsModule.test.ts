@@ -708,8 +708,6 @@ describe('ChartOptions', () => {
   },
   {
     "interpolation": {
-      "position": "end",
-      "tension": 1,
       "type": "linear",
     },
     "label": {
@@ -774,8 +772,6 @@ describe('ChartOptions', () => {
   },
   {
     "interpolation": {
-      "position": "end",
-      "tension": 1,
       "type": "linear",
     },
     "label": {
@@ -1127,8 +1123,6 @@ describe('ChartOptions', () => {
   },
   {
     "interpolation": {
-      "position": "end",
-      "tension": 1,
       "type": "linear",
     },
     "label": {
@@ -1193,8 +1187,6 @@ describe('ChartOptions', () => {
   },
   {
     "interpolation": {
-      "position": "end",
-      "tension": 1,
       "type": "linear",
     },
     "label": {
@@ -1546,8 +1538,6 @@ describe('ChartOptions', () => {
   },
   {
     "interpolation": {
-      "position": "end",
-      "tension": 1,
       "type": "linear",
     },
     "label": {
@@ -1612,8 +1602,6 @@ describe('ChartOptions', () => {
   },
   {
     "interpolation": {
-      "position": "end",
-      "tension": 1,
       "type": "linear",
     },
     "label": {
@@ -2161,11 +2149,6 @@ describe('ChartOptions', () => {
             expect(numberAxis?.label?.avoidCollisions).toBe(theme.config.line.axes.time.label.avoidCollisions);
             expect(numberAxis?.label?.autoRotate).toBe(theme.config.line.axes.time.label.autoRotate);
             expect(numberAxis?.label?.minSpacing).toBe(theme.config.line.axes.time.label.minSpacing);
-
-            expect(numberAxis?.crossLines?.[0]?.enabled).toBe(false);
-            expect(numberAxis?.crossLines?.[0]?.type).toBe(theme.config.line.axes.time.crossLines.type);
-            expect(numberAxis?.crossLines?.[0]?.label?.enabled).toBe(undefined);
-            expect(numberAxis?.crossLines?.[0]?.label?.text).toBe(theme.config.line.axes.time.crossLines.label.text);
 
             expect(preparedOptions.axes![1]?.title?.enabled).toBe(true);
             expect(preparedOptions.axes![1]?.title?.text).toBe('Custom Left Axis Title');

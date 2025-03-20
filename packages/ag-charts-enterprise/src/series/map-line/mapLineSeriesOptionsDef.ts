@@ -1,8 +1,11 @@
 import { type AgMapLineSeriesOptions, type AgSeriesHighlightStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    and,
+    arrayLength,
     arrayOf,
     callback,
+    color,
     constant,
     lineDashOptionsDef,
     object,
@@ -41,3 +44,6 @@ export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
         ...strokeOptionsDef,
     },
 };
+
+// @ts-expect-error undocumented option
+mapLineSeriesOptionsDef.colorRange = and(arrayOf(color), arrayLength(1));

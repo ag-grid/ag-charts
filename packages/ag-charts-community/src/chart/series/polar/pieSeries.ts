@@ -578,6 +578,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 backgroundFillOpacity: 1,
                 stroke: defaultPatternFill,
                 strokeOpacity: 1,
+                strokeWidth: 4,
                 rotation: 0,
             } as any
         );
@@ -896,7 +897,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             strokes,
         } = this.properties;
         const calloutStrokeWidth = strokeWidth;
-        const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
+        const calloutColors = isStringFillArray(colors) ? colors : strokes;
         const { offset } = this.properties.calloutLabel;
 
         this.calloutLabelSelection.selectByTag<Line>(PieNodeTag.Callout).forEach((line, index) => {

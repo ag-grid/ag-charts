@@ -20,9 +20,9 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
         return { domain: extent, clipped };
     }
 
-    @TempValidate(AND(NUMBER_OR_NAN, LESS_THAN('max')))
-    min: number = NaN;
+    @TempValidate(AND(NUMBER_OR_NAN, LESS_THAN('max')), { optional: true })
+    min?: number;
 
-    @TempValidate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
-    max: number = NaN;
+    @TempValidate(AND(NUMBER_OR_NAN, GREATER_THAN('min')), { optional: true })
+    max?: number;
 }

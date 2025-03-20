@@ -59,6 +59,18 @@ const tooltipPlacementValidator = union(
     'top-left',
     'center'
 );
+const tooltipDeprecatedTypeValidator = union(
+    'pointer',
+    'node',
+    'top',
+    'right',
+    'bottom',
+    'left',
+    'top-left',
+    'top-right',
+    'bottom-left',
+    'bottom-right'
+);
 const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
 // const themeValidator = or(
 //     union(
@@ -293,18 +305,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         wrapping: textWrapValidator,
         mode: union('single', 'shared', 'compact'),
         position: {
-            type: union(
-                'pointer',
-                'node',
-                'top',
-                'right',
-                'bottom',
-                'left',
-                'top-left',
-                'top-right',
-                'bottom-left',
-                'bottom-right'
-            ),
+            type: tooltipDeprecatedTypeValidator,
             anchorTo: union('pointer', 'node', 'chart'),
             placement: or(tooltipPlacementValidator, arrayOf(tooltipPlacementValidator)),
             xOffset: number,
@@ -412,7 +413,6 @@ commonChartOptionsDefs.dataSource.updateDuringInteraction = boolean;
 
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.zoom.enableIndependentAxes = boolean;
-
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.statusBar = defined;
 
@@ -459,6 +459,8 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
 
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.context = defined;
+// @ts-expect-error undocumented option
+commonSeriesOptionsDefs.seriesGrouping = defined;
 
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.highlight = {
@@ -517,18 +519,7 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
     range: rangeValidator,
     renderer: callback,
     position: {
-        type: union(
-            'pointer',
-            'node',
-            'top',
-            'right',
-            'bottom',
-            'left',
-            'top-left',
-            'top-right',
-            'bottom-left',
-            'bottom-right'
-        ),
+        type: tooltipDeprecatedTypeValidator,
         anchorTo: union('node', 'pointer', 'chart'),
         placement: or(tooltipPlacementValidator, arrayOf(tooltipPlacementValidator)),
         xOffset: number,
@@ -538,6 +529,9 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
         enabled: boolean,
     },
 };
+
+// @ts-expect-error undocumented option
+tooltipOptionsDefs.position._seriesOverrideType = tooltipDeprecatedTypeValidator;
 
 export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     enabled: boolean,

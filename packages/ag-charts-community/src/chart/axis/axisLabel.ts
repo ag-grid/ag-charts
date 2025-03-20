@@ -49,8 +49,8 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     /**
      * Minimum gap in pixels between the axis labels before being removed to avoid collisions.
      */
-    @TempValidate(NUMBER_OR_NAN)
-    minSpacing: number = NaN;
+    @TempValidate(NUMBER_OR_NAN, { optional: true })
+    minSpacing?: number;
 
     /**
      * The color of the labels.

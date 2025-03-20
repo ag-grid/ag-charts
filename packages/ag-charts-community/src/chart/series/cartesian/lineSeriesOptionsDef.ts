@@ -46,3 +46,5 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
 lineSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
 // @ts-expect-error undocumented option
 lineSeriesOptionsDef.focusPriority = number;
+// @ts-expect-error undocumented option
+lineSeriesOptionsDef.sparklineMode = boolean;

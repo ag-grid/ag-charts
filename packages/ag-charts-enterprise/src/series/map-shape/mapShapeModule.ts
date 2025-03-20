@@ -23,7 +23,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 $if: [
                     { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                     { $palette: 'divergingColors' },
-                    { $palette: 'range2' },
+                    _ModuleSupport.SAFE_RANGE2_OPERATION,
                 ],
             },
             // @ts-expect-error undocumented option
@@ -48,6 +48,9 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 fontWeight: 'bold',
                 overflowStrategy: 'hide',
             },
+        },
+        tooltip: {
+            range: 'exact',
         },
     },
 };

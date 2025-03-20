@@ -83,8 +83,8 @@ export function calculateLabelRotation(opts: {
     return { configuredRotation, defaultRotation, parallelFlipFlag, regularFlipFlag };
 }
 
-export function getLabelSpacing(minSpacing: number, rotated?: boolean): number {
-    if (!isNaN(minSpacing)) {
+export function getLabelSpacing(minSpacing?: number, rotated?: boolean): number {
+    if (minSpacing != null) {
         return minSpacing;
     }
     return rotated ? 0 : 10;

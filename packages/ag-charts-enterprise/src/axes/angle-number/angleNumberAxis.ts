@@ -24,11 +24,11 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
 
     override shape = 'circle' as const;
 
-    @TempValidate(AND(NUMBER_OR_NAN, LESS_THAN('max')))
-    min: number = NaN;
+    @TempValidate(AND(NUMBER_OR_NAN, LESS_THAN('max')), { optional: true })
+    min?: number;
 
-    @TempValidate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
-    max: number = NaN;
+    @TempValidate(AND(NUMBER_OR_NAN, GREATER_THAN('min')), { optional: true })
+    max?: number;
 
     @TempValidate(OBJECT)
     override interval = new AngleAxisInterval();
@@ -89,14 +89,13 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        let { minSpacing } = this.label;
-        if (!Number.isFinite(minSpacing)) {
-            minSpacing = 0;
-        }
+        const { minSpacing } = this.label;
 
         const labelsCollide = (prev: AngleAxisLabelDatum, next: AngleAxisLabelDatum) => {
             if (prev.hidden || next.hidden) {
                 return false;
+            } else if (minSpacing == null) {
+                return prev.box!.collidesBBox(next.box!);
             }
             const prevBox = prev.box!.clone().grow(minSpacing / 2);
             const nextBox = next.box!.clone().grow(minSpacing / 2);

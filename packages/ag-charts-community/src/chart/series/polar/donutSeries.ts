@@ -596,6 +596,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 backgroundFillOpacity: 1,
                 stroke: defaultPatternFill,
                 strokeOpacity: 1,
+                strokeWidth: 4,
                 rotation: 0,
             } as any
         );

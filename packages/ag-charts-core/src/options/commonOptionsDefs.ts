@@ -79,20 +79,50 @@ export interface InternalAgPatternColor extends AgPatternColor {
 }
 export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor;
 
-export const fillGradientDefaults = optionsDefs<InternalAgGradientColor>({
-    type: required(constant('gradient')),
-    gradient: required(union('linear', 'radial', 'conic')),
-    bounds: required(gradientBounds),
-    colorStops: required(gradientColorStops),
-    rotation: required(number),
-    reverse: required(boolean),
-});
-
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
     stroke: color,
     strokeWidth: positiveNumber,
     strokeOpacity: ratio,
 };
+
+export const fillGradientDefaults = optionsDefs<InternalAgGradientColor>({
+    type: required(constant('gradient')),
+    gradient: required(union('linear', 'radial', 'conic')),
+    bounds: required(gradientBounds),
+    colorStops: required(or(gradientColorStops, and(arrayLength(2), arrayOf(color)))),
+    rotation: required(number),
+    reverse: required(boolean),
+});
+
+export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
+    type: required(constant('pattern')),
+    pattern: required(
+        union(
+            'vertical-lines',
+            'horizontal-lines',
+            'forward-slanted-lines',
+            'backward-slanted-lines',
+            'circles',
+            'squares',
+            'triangles',
+            'diamonds',
+            'stars',
+            'hearts',
+            'crosses'
+        )
+    ),
+    width: required(positiveNumber),
+    height: required(positiveNumber),
+    fill: required(color),
+    fillOpacity: required(ratio),
+    backgroundFill: required(color),
+    backgroundFillOpacity: required(ratio),
+    padding: required(positiveNumber),
+    rotation: required(number),
+    stroke: required(color),
+    strokeWidth: required(positiveNumber),
+    strokeOpacity: required(ratio),
+});
 
 const gradientUndocumentedOpts: OptionsDefs<AgGradientColor> = {
     // @ts-expect-error undocumented option
@@ -150,6 +180,8 @@ export const fillOptionsDef: OptionsDefs<FillOptions> = {
 
 // @ts-expect-error undocumented option
 fillOptionsDef.fillGradientDefaults = fillGradientDefaults;
+// @ts-expect-error undocumented option
+fillOptionsDef.fillPatternDefaults = fillPatternDefaults;
 
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDash: arrayOf(positiveNumber),
