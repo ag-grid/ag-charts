@@ -19,7 +19,7 @@ These events may be prevented by other clickable parts of the chart, such as ser
 
 In this example:
 
--   When a blank area on a chart is clicked, a message is shown in a transient overlay.
+-   When a blank area on a chart is clicked, a message is shown in the console.
 -   When a blank area on a chart is double-clicked, a different message is shown.
 
 ### seriesNodeClick and seriesNodeDoubleClick
@@ -32,8 +32,8 @@ The contents of the event object passed to the listener will depend on the type 
 
 In this example:
 
--   Whenever a column or line marker is clicked, a transient overlay is shown with information about that series node.
--   Whenever a column or line marker is double-clicked, same overlay is shown with temperatures in Fahrenheit.
+-   Whenever a column or line marker is clicked, information about that series node is shown in the console.
+-   Whenever a column or line marker is double-clicked, the information is shown with temperatures in Fahrenheit.
 -   The ID of the series that contains the clicked node is also logged.
 
 ### seriesVisibilityChange
@@ -61,7 +61,7 @@ In this example:
 -   When a legend item is clicked, the visibility change is prevented and a counter decreases.
     This is done by using `preventDefault` on the [legendItemClick](#legenditemclick-and-legenditemdoubleclick) event.
 -   When the counter hits zero, the series toggle is allowed to occur.
--   The series visibility change is fired, and a transient overlay is shown with relevant information.
+-   The series visibility change is fired, and with the relevant information shown in the console.
 
 ### annotations
 
@@ -108,8 +108,8 @@ These events contain:
 
 In this example:
 
--   Whenever a bar is clicked or double-clicked, a transient overlay is shown with information about that bar.
--   The event listener pulls extra information from the datum containing the bar's value and shows it in the overlay as well. In this case the breakdown of sales numbers by brand name.
+-   Whenever a bar is clicked or double-clicked, information about that bar is shown in the console.
+-   The event listener pulls extra information from the datum containing the bar's value and shows it in the console as well. In this case the breakdown of sales numbers by brand name.
 
 ### Example: Toggling node's selected state
 

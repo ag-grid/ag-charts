@@ -12,16 +12,16 @@
 # * `{% if not(isFramework("react")) %}` - wrap around blocks where it does *not* apply to a framework
 # * `{% metaTag tags=[...] %}` - add meta tags to the page for search engines
 
-title: 'Upgrade to AG Charts !x.x!'
-description: "See what's new in AG Charts v!x.x! View a full list of breaking changes, behaviour changes and depreciations. Read the release post for feature highlights."
-migrationVersion: '!x.x.x!'
+title: 'Upgrade to AG Charts 11.2'
+description: "See what's new in AG Charts v11.1 View a full list of breaking changes, behaviour changes and depreciations. Read the release post for feature highlights."
+migrationVersion: '11.2.0'
 ---
 
 ## What's New
 
 <!-- Description with !BLOG_LINK! -->
 
-See the [release post](https://blog.ag-grid.com/whats-new-in-ag-charts-<!-- XXXX -->/) for feature highlights of what's new in this version.
+See the [release post](https://blog.ag-grid.com/whats-new-in-ag-charts-11-2/) for feature highlights of what's new in this version.
 
 Users of integrated charting on AG Grid, should refer to this migration guide when upgrading to AG Grid {% gridVersion() %}.
 
@@ -33,14 +33,13 @@ DO NOT TOUCH.
 
 {% documentationArchiveSection version=migrationVersionPatch() /%}
 
-## <!-- Release specific section -->
+<!-- Release specific section -->
 
 ## Breaking Changes
 
 <!-- If breaking changes do *not* exist, add the following: -->
-<!--
+
 There are no breaking changes in AG Charts version {% migrationVersion() %}.
--->
 
 <!-- Otherwise -->
 <!--
@@ -51,17 +50,14 @@ AG Charts version {% migrationVersion() %} includes the following breaking chang
 
 ### Breaking changes section Name
 
-- item...
-
 {% /expandingSection %}
 -->
 
 ## Behaviour Changes
 
 <!-- If behaviour changes do *not* exist, add the following: -->
-<!--
+
 There are no behaviour changes in AG Charts version {% migrationVersion() %}.
--->
 
 <!-- Otherwise -->
 <!--
@@ -69,9 +65,7 @@ The full list of behaviour changes across all features for version {% migrationV
 
 {% expandingSection headerText="Behaviour Changes" %}
 
-### Behaviour Changes section Name
-
-- item...
+### Behaviour Changes section
 
 {% /expandingSection %}
 -->
@@ -79,9 +73,8 @@ The full list of behaviour changes across all features for version {% migrationV
 ## Removal of Deprecated APIs
 
 <!-- If there are *no* deprecated APIs, add the following: -->
-<!--
+
 There are no deprecated APIs removed in AG Charts version {% migrationVersion() %}.
--->
 
 <!-- Otherwise: -->
 <!--
@@ -89,9 +82,7 @@ The following APIs have been deprecated since at least !PREV_x.x! and have now b
 
 {% expandingSection headerText="Removed Deprecated APIs" %}
 
-### Deprecated APIs section Name
-
-- item...
+### Deprecated APIs section
 
 {% /expandingSection %}
 -->
@@ -104,16 +95,15 @@ There are no deprecations in AG Charts version {% migrationVersion() %}.
 -->
 
 <!-- Otherwise: -->
-<!--
+
 {% expandingSection headerText="Deprecations" %}
 
-### Deprecation section Name
+<!-- ### Deprecation section -->
 
-- item...
+-   `tooltip.position.type` in both chart and series options is deprecated. Use `tooltip.position.anchorTo` and/or `tooltip.position.placement` instead.
 
 {% /expandingSection %}
--->
 
-<!-- Changelog for the `migrationVersion` property DO NOT TOUCH -->
+<!-- Changelog for the `migrationVersion` property -->
 
 {% changelogSection version=$migrationVersion /%}
