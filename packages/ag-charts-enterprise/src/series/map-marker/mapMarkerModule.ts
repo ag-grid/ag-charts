@@ -43,6 +43,9 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 color: { $ref: 'textColor' },
             },
         },
+        tooltip: {
+            range: 'exact',
+        },
     },
 };
 

@@ -7,7 +7,9 @@ import {
     color,
     colorUnion,
     constant,
+    fillGradientDefaults,
     fillOptionsDef,
+    fillPatternDefaults,
     positiveNumber,
     required,
     string,
@@ -89,3 +91,10 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
         },
     },
 };
+
+// @ts-expect-error undocumented option
+treemapSeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
+// @ts-expect-error undocumented option
+treemapSeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
+// @ts-expect-error undocumented option
+treemapSeriesOptionsDef.undocumentedGroupFills = arrayOf(string);

@@ -38,6 +38,9 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
                 color: { $ref: 'textColor' },
             },
         },
+        tooltip: {
+            range: 'exact',
+        },
     },
 };
 

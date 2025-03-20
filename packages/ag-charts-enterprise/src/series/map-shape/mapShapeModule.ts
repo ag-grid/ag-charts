@@ -49,6 +49,9 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 overflowStrategy: 'hide',
             },
         },
+        tooltip: {
+            range: 'exact',
+        },
     },
 };
 
