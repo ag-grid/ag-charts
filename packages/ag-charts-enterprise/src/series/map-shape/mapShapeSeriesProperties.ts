@@ -30,6 +30,7 @@ const {
     SeriesProperties,
     SeriesTooltip,
     FillGradientDefaults,
+    FillPatternDefaults,
 } = _ModuleSupport;
 
 export interface MapShapeNodeLabelDatum {
@@ -86,6 +87,9 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

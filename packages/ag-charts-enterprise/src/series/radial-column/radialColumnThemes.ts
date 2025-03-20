@@ -22,6 +22,7 @@ export const RADIAL_COLUMN_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-col
             rotation: 0,
             reverse: false,
         } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         columnWidthRatio: 0.5,
         maxColumnWidthRatio: 0.5,
         strokeWidth: 0,

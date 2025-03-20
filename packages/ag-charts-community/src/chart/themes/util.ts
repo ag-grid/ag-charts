@@ -1,3 +1,4 @@
+import type { InternalAgPatternColor } from 'ag-charts-core';
 import type { AgCartesianChartOptions, WithThemeParams } from 'ag-charts-types';
 
 import { Color } from '../../util/color';
@@ -28,6 +29,46 @@ export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]
         },
     },
 ];
+
+export const FILL_PATTERN_DEFAULTS: WithThemeParams<Required<InternalAgPatternColor>> = {
+    type: 'pattern',
+    pattern: 'forward-slanted-lines',
+    width: 10,
+    height: 10,
+    padding: 2,
+    fill: {
+        $if: [
+            { $isGradient: [{ $palette: 'fill' }] },
+            { $palette: 'fillFallback' },
+            {
+                $if: [
+                    { $isPattern: [{ $palette: 'fill' }] },
+                    { $path: ['./fill', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                    { $palette: 'fill' },
+                ],
+            },
+        ],
+    },
+    fillOpacity: 1,
+    stroke: {
+        $if: [
+            { $isGradient: [{ $palette: 'fill' }] },
+            { $palette: 'fillFallback' },
+            {
+                $if: [
+                    { $isPattern: [{ $palette: 'fill' }] },
+                    { $path: ['./stroke', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                    { $palette: 'fill' },
+                ],
+            },
+        ],
+    },
+    strokeOpacity: 1,
+    strokeWidth: 4,
+    backgroundFill: 'transparent',
+    backgroundFillOpacity: 1,
+    rotation: 0,
+};
 
 export function getSequentialColors(colors: { [key: string]: string }) {
     return mapValues(colors, (value) => {

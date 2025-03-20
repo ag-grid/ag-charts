@@ -416,7 +416,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 lineDash: marker.lineDash,
                 lineDashOffset: marker.lineDashOffset,
             },
-            marker.fillGradientDefaults
+            marker.fillGradientDefaults,
+            marker.fillPatternDefaults
         );
 
         return {

@@ -1,5 +1,5 @@
 import { type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType, InternalAgGradientColor } from 'ag-charts-core';
+import type { InternalAgColorType, InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -103,6 +103,7 @@ class FunnelSeriesNodeEvent<
 export interface FunnelSeriesShapeStyle {
     fill?: InternalAgColorType;
     fillGradientDefaults: Required<InternalAgGradientColor>;
+    fillPatternDefaults: Required<InternalAgPatternColor>;
     fillOpacity: number;
     stroke?: string;
     strokeWidth: number;
@@ -486,7 +487,7 @@ export abstract class BaseFunnelSeries<
     private updateConnectorNodes(opts: {
         connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
-        const { fills, strokes, fillGradientDefaults } = this.properties;
+        const { fills, strokes, fillGradientDefaults, fillPatternDefaults } = this.properties;
         const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
             this.connectorStyle();
 
@@ -496,7 +497,11 @@ export abstract class BaseFunnelSeries<
             const { datumIndex } = datum;
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
 
-            const connectorFill = getShapeFill(fill ?? fills[datumIndex % fills.length], fillGradientDefaults);
+            const connectorFill = getShapeFill(
+                fill ?? fills[datumIndex % fills.length],
+                fillGradientDefaults,
+                fillPatternDefaults
+            );
             connector.fill = connectorFill;
             applyShapeFillBBox(connector, connectorFill, fillBBox);
             connector.fillOpacity = fillOpacity;
@@ -598,8 +603,15 @@ export abstract class BaseFunnelSeries<
     }
 
     private legendItemSymbol(datumIndex: number): _ModuleSupport.LegendSymbolOptions {
-        const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, fillGradientDefaults } =
-            this.barStyle();
+        const {
+            strokeWidth,
+            fillOpacity,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            fillGradientDefaults,
+            fillPatternDefaults,
+        } = this.barStyle();
         const { fills, strokes } = this.properties;
         const fill = fills[datumIndex % fills.length] ?? 'black';
         const stroke = strokes[datumIndex % strokes.length] ?? 'black';
@@ -615,7 +627,8 @@ export abstract class BaseFunnelSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                fillGradientDefaults
+                fillGradientDefaults,
+                fillPatternDefaults
             ),
         };
     }

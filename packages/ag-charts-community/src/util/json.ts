@@ -12,7 +12,7 @@ import {
     isString,
 } from 'ag-charts-core';
 import type { DeepPartial, PlainObject } from 'ag-charts-core';
-import type { AgGradientColor } from 'ag-charts-types';
+import type { AgGradientColor, AgPatternColor } from 'ag-charts-types';
 
 import { Color } from './color';
 import { SKIP_JS_BUILTINS, getPath, mergeDefaults, without } from './object';
@@ -459,6 +459,7 @@ enum ColorOperation {
     ForegroundBackgroundAccentMix = '$foregroundBackgroundAccentMix',
     Interpolate = '$interpolate',
     IsGradient = '$isGradient',
+    IsPattern = '$isPattern',
 }
 
 type Operation =
@@ -514,6 +515,11 @@ function isGradientFill(fill: any): fill is AgGradientColor {
         isObject(fill) &&
         (fill.type == 'gradient' || fill.type === 'radial-gradient' || fill.type === 'conic-gradient')
     );
+}
+
+// Duplicates `isPatternFill()` from `../scene/util/fill` due to dependency violations
+function isPatternFill(fill: any): fill is AgPatternColor {
+    return fill !== null && isObject(fill) && fill.type == 'pattern';
 }
 
 function resolvePath(root: string[], path: string) {
@@ -597,6 +603,7 @@ const colorOperations: Record<ColorOperation, OperationFn> = {
     $foregroundBackgroundAccentMix: foregroundBackgroundAccentMix,
     $interpolate: interpolate,
     $isGradient: ([value]: string | Array<unknown>) => isGradientFill(value),
+    $isPattern: ([value]: string | Array<unknown>) => isPatternFill(value),
 };
 
 const operations: Record<Operation, OperationFn<any, any>> = {
@@ -643,7 +650,7 @@ function palette(value: string | Array<unknown>, path: string[], params: any, so
 
     const p = params.__palette;
 
-    const indexPaletteParams = ['fill', 'stroke', 'gradient', 'range2'];
+    const indexPaletteParams = ['fill', 'fillFallback', 'stroke', 'gradient', 'range2'];
     if (indexPaletteParams.includes(value)) {
         const indexIndex = path.findLastIndex((v) => !isNaN(Number(v)));
         let index = Number(path[indexIndex]);
@@ -659,6 +666,8 @@ function palette(value: string | Array<unknown>, path: string[], params: any, so
         switch (value) {
             case 'fill':
                 return circularSliceArray(p.fills, 1, index)[0];
+            case 'fillFallback':
+                return circularSliceArray(p.fillsFallback, 1, index)[0];
             case 'stroke':
                 return circularSliceArray(p.strokes, 1, index)[0];
             case 'gradient':

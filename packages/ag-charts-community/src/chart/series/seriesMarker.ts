@@ -24,7 +24,7 @@ import {
     predicateWithMessage,
 } from '../../util/validation';
 import { isSupportedMarkerShape } from '../marker/util';
-import { FillGradientDefaults } from './seriesProperties';
+import { FillGradientDefaults, FillPatternDefaults } from './seriesProperties';
 
 export const MARKER_SHAPE = predicateWithMessage(
     (value: any) => isSupportedMarkerShape(value) || typeof value === 'function',
@@ -54,6 +54,9 @@ export class SeriesMarker<TParams = never>
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     @SceneChangeDetection()

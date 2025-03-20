@@ -14,6 +14,7 @@ import { GEOJSON_OBJECT } from '../map-util/validation';
 
 const {
     FillGradientDefaults,
+    FillPatternDefaults,
     AND,
     ARRAY,
     COLOR_STRING,
@@ -123,6 +124,9 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

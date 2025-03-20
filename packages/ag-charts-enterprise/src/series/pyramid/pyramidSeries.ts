@@ -475,7 +475,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
-            this.properties.fillGradientDefaults
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
         );
     }
 
@@ -518,7 +519,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     private updateDatumNodes(opts: {
@@ -681,7 +682,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                this.properties.fillGradientDefaults
+                this.properties.fillGradientDefaults,
+                this.properties.fillPatternDefaults
             ),
         };
     }

@@ -431,7 +431,9 @@ export abstract class OhlcSeriesBase<
             lineDash: highlightStyle?.lineDash ?? item.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
         };
-        return item.fillGradientDefaults ? getShapeStyle(shapeStyle, item.fillGradientDefaults) : shapeStyle;
+        return item.fillGradientDefaults && item.fillPatternDefaults
+            ? getShapeStyle(shapeStyle, item.fillGradientDefaults, item.fillPatternDefaults)
+            : shapeStyle;
     }
 
     protected getItemStyleOverrides(
@@ -464,7 +466,9 @@ export abstract class OhlcSeriesBase<
             });
         });
 
-        return item.fillGradientDefaults ? getShapeStyle(overrides, item.fillGradientDefaults) : overrides;
+        return item.fillGradientDefaults && item.fillPatternDefaults
+            ? getShapeStyle(overrides, item.fillGradientDefaults, item.fillPatternDefaults)
+            : overrides;
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
@@ -513,8 +517,8 @@ export abstract class OhlcSeriesBase<
             lineDash: item.lineDash ?? [0],
             lineDashOffset: item.lineDashOffset ?? 0,
         };
-        if (item.fillGradientDefaults) {
-            marker = getShapeStyle(marker, item.fillGradientDefaults);
+        if (item.fillGradientDefaults && item.fillPatternDefaults) {
+            marker = getShapeStyle(marker, item.fillGradientDefaults, item.fillPatternDefaults);
         }
 
         return tooltip.formatTooltip(

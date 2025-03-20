@@ -1,5 +1,14 @@
-import type { InternalAgGradientColor } from 'ag-charts-core';
-import type { AgGradientColorBounds, AgGradientColorStop, AgGradientType, InteractionRange } from 'ag-charts-types';
+import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
+import type {
+    AgGradientColorBounds,
+    AgGradientColorStop,
+    AgGradientType,
+    AgPatternName,
+    CssColor,
+    InteractionRange,
+    Opacity,
+    PixelSize,
+} from 'ag-charts-types';
 
 import { BaseProperties } from '../../util/properties';
 import {
@@ -83,6 +92,62 @@ export class FillGradientDefaults
 
     @TempValidate(BOOLEAN)
     reverse: boolean = false;
+}
+
+export class FillPatternDefaults
+    extends BaseProperties<Required<InternalAgPatternColor>>
+    implements Required<InternalAgPatternColor>
+{
+    @TempValidate(STRING)
+    type: 'pattern' = 'pattern' as const;
+
+    @TempValidate(ARRAY)
+    colorStops: AgGradientColorStop[] = [];
+
+    @TempValidate(STRING)
+    bounds: AgGradientColorBounds = 'item';
+
+    @TempValidate(STRING)
+    gradient: AgGradientType = 'linear';
+
+    @TempValidate(NUMBER)
+    rotation: number = 0;
+
+    @TempValidate(BOOLEAN)
+    reverse: boolean = false;
+
+    @TempValidate(STRING)
+    pattern: AgPatternName = 'forward-slanted-lines';
+
+    @TempValidate(NUMBER)
+    width: number = 26;
+
+    @TempValidate(NUMBER)
+    height: number = 26;
+
+    @TempValidate(NUMBER)
+    padding: number = 6;
+
+    @TempValidate(STRING)
+    fill: CssColor = 'black';
+
+    @TempValidate(NUMBER)
+    fillOpacity: Opacity = 1;
+
+    @TempValidate(STRING)
+    backgroundFill: CssColor = 'white';
+
+    @TempValidate(NUMBER)
+    backgroundFillOpacity: Opacity = 1;
+
+    @TempValidate(STRING)
+    stroke: CssColor = 'black';
+
+    @TempValidate(NUMBER)
+    strokeOpacity: number = 1;
+
+    @TempValidate(NUMBER)
+    strokeWidth: PixelSize = 0;
 }
 
 export class HighlightStyle extends BaseProperties {

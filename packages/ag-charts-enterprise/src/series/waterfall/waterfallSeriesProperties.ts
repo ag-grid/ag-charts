@@ -15,6 +15,7 @@ const {
     AbstractBarSeriesProperties,
     BaseProperties,
     FillGradientDefaults,
+    FillPatternDefaults,
     PropertiesArray,
     SeriesTooltip,
     TempValidate,
@@ -69,6 +70,9 @@ export class WaterfallSeriesItem extends BaseProperties {
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(COLOR_STRING)
     stroke: string = '#c16068';

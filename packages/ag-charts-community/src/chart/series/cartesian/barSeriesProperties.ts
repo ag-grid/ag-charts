@@ -27,7 +27,7 @@ import {
     UNION,
 } from '../../../util/validation';
 import { Label } from '../../label';
-import { FillGradientDefaults } from '../seriesProperties';
+import { FillGradientDefaults, FillPatternDefaults } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import { AbstractBarSeriesProperties } from './abstractBarSeries';
 
@@ -66,6 +66,9 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

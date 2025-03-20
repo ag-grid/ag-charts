@@ -36,6 +36,7 @@ export class VividLight extends ChartTheme {
         return {
             ...super.getDefaultColors(),
             fills: VIVID_FILLS,
+            fillsFallback: Object.values(VIVID_FILLS),
             strokes: VIVID_STROKES,
             sequentialColors: getSequentialColors(VIVID_FILLS),
             divergingColors: [VIVID_FILLS.ORANGE, VIVID_FILLS.YELLOW, VIVID_FILLS.GREEN],

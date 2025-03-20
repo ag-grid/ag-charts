@@ -1,8 +1,8 @@
+import type { InternalAgPatternColor } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgGaugeOptions,
     AgHierarchyChartOptions,
-    AgPatternColor,
     AgPatternName,
     AgPolarChartOptions,
 } from 'ag-charts-types';
@@ -2251,7 +2251,7 @@ function setPattern(
     options: AgCartesianChartOptions,
     pattern?: AgPatternName,
     path?: string,
-    fillOptions?: Omit<AgPatternColor, 'type'>
+    fillOptions?: Omit<InternalAgPatternColor, 'type'>
 ): AgCartesianChartOptions {
     return {
         ...options,

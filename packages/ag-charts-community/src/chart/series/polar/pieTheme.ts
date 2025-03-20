@@ -37,7 +37,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
                 $map: [
                     {
                         $if: [
-                            { $isGradient: [{ $value: '$1' }] },
+                            { $or: [{ $isGradient: [{ $value: '$1' }] }, { $isPattern: [{ $value: '$1' }] }] },
                             { $path: ['../../strokes/$index', { $ref: 'foregroundColor' }] },
                             { $value: '$1' },
                         ],
@@ -56,6 +56,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         strokes: { $palette: 'strokes' },
         // @ts-expect-error undocumented option
         defaultColorRange: { $palette: 'gradients' },
+        defaultPatternFills: { $palette: 'fills' },
         fillOpacity: 1,
         strokeOpacity: 1,
         strokeWidth: 0,

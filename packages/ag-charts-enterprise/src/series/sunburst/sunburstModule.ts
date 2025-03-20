@@ -30,6 +30,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
                 rotation: 0,
                 reverse: true,
             } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             label: {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },

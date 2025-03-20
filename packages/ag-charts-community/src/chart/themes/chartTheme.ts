@@ -127,6 +127,7 @@ export class ChartTheme {
     public static getDefaultColors(): DefaultColors {
         return {
             fills: DEFAULT_FILLS,
+            fillsFallback: Object.values(DEFAULT_FILLS),
             strokes: DEFAULT_STROKES,
             sequentialColors: getSequentialColors(DEFAULT_FILLS),
             divergingColors: [DEFAULT_FILLS.ORANGE, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.GREEN],

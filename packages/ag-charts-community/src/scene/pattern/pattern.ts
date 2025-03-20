@@ -1,12 +1,12 @@
-import { createSvgElement } from 'ag-charts-core';
-import type { AgPatternColor, AgPatternName, CssColor } from 'ag-charts-types';
+import { type InternalAgPatternColor, createSvgElement } from 'ag-charts-core';
+import type { AgPatternName, CssColor } from 'ag-charts-types';
 
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { PATTERNS } from './patterns';
 
-export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
+export class Pattern implements Omit<Required<InternalAgPatternColor>, 'type'> {
     pattern: AgPatternName;
     width: number;
     height: number;
@@ -21,7 +21,7 @@ export class Pattern implements Omit<Required<AgPatternColor>, 'type'> {
     rotation: number;
 
     constructor(
-        patternOptions: AgPatternColor,
+        patternOptions: InternalAgPatternColor,
         public pixelRatio = 1
     ) {
         this.width = Math.max(patternOptions?.width ?? 10, 1);

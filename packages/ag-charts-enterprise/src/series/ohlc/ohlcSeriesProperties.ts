@@ -13,7 +13,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgGradientColor } from 'ag-charts-core';
+import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 
 const {
     BaseProperties,
@@ -59,7 +59,12 @@ export abstract class OhlcSeriesBaseProperties<
 > extends AbstractBarSeriesProperties<T> {
     abstract item: Record<
         'up' | 'down',
-        FillOptions & StrokeOptions & LineDashOptions & { fillGradientDefaults?: Required<InternalAgGradientColor> }
+        FillOptions &
+            StrokeOptions &
+            LineDashOptions & {
+                fillGradientDefaults?: Required<InternalAgGradientColor>;
+                fillPatternDefaults?: Required<InternalAgPatternColor>;
+            }
     >;
 
     @TempValidate(STRING)

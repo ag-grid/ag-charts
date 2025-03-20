@@ -40,7 +40,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
-import { applyShapeFillBBox } from '../shapeUtil';
+import { applyShapeFillBBox, getShapeFill } from '../shapeUtil';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
 import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
@@ -572,17 +572,33 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getNodeFill(fill: InternalAgColorType, defaultColorRange: string[]): InternalAgColorType {
-        if (!isGradientFill(fill)) return fill;
-
-        return {
-            ...fill,
-            bounds: fill.bounds ?? 'series',
-            colorStops: fill.colorStops ?? (defaultColorRange as any),
-            gradient: fill.gradient ?? 'radial',
-            rotation: fill.rotation ?? 0,
-            reverse: fill.reverse ?? true,
-        };
+    private getNodeFill(
+        fill: InternalAgColorType,
+        defaultColorRange: string[],
+        defaultPatternFill: string
+    ): InternalAgColorType {
+        return getShapeFill(
+            fill,
+            {
+                type: 'gradient',
+                bounds: 'series',
+                colorStops: defaultColorRange.map((color) => ({ color })),
+                gradient: 'radial',
+                rotation: 0,
+                reverse: true,
+            },
+            {
+                type: 'pattern',
+                pattern: 'forward-slanted-lines',
+                fill: defaultPatternFill,
+                fillOpacity: 1,
+                backgroundFill: 'transparent',
+                backgroundFillOpacity: 1,
+                stroke: defaultPatternFill,
+                strokeOpacity: 1,
+                rotation: 0,
+            } as any
+        );
     }
 
     private getFillParams(
@@ -610,6 +626,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             fills,
             strokes,
             defaultColorRange,
+            defaultPatternFills,
             itemStyler,
         } = this.properties;
 
@@ -627,6 +644,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             );
 
         const defaultColors = defaultColorRange[datumIndex % defaultColorRange.length];
+        const defaultPatternFill = defaultPatternFills[datumIndex % defaultPatternFills.length];
 
         const sectorFill: InternalAgColorType | undefined = fill ?? 'black';
 
@@ -642,7 +660,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                         calloutLabelKey,
                         sectorLabelKey,
                         legendItemKey,
-                        fill: this.getNodeFill(sectorFill, defaultColors),
+                        fill: this.getNodeFill(sectorFill, defaultColors, defaultPatternFill),
                         fillOpacity,
                         stroke,
                         strokeWidth,
@@ -657,7 +675,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         }
 
         return {
-            fill: this.getNodeFill(format?.fill ?? sectorFill, defaultColors),
+            fill: this.getNodeFill(format?.fill ?? sectorFill, defaultColors, defaultPatternFill),
             fillOpacity: format?.fillOpacity ?? fillOpacity,
             stroke: format?.stroke ?? stroke,
             strokeWidth: format?.strokeWidth ?? strokeWidth,
@@ -871,7 +889,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         this.innerCircleSelection.each((node, { radius }) => {
             node.setProperties({
-                fill: this.getNodeFill(this.properties.innerCircle?.fill, ['black']),
+                fill: this.getNodeFill(this.properties.innerCircle?.fill, ['black'], 'black'),
                 opacity: this.properties.innerCircle?.fillOpacity,
                 size: radius,
             });

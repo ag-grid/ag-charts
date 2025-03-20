@@ -12,6 +12,7 @@ import type { InternalAgColorType } from 'ag-charts-core';
 const {
     SeriesProperties,
     FillGradientDefaults,
+    FillPatternDefaults,
     SeriesTooltip,
     TempValidate,
     COLOR_STRING,
@@ -46,6 +47,9 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity: number = 1;

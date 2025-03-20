@@ -22,7 +22,7 @@ import {
 } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
-import { FillGradientDefaults } from '../seriesProperties';
+import { FillGradientDefaults, FillPatternDefaults } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
@@ -51,6 +51,9 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
 
     @TempValidate(OBJECT)
     readonly fillGradientDefaults = new FillGradientDefaults();
+
+    @TempValidate(OBJECT)
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
     @TempValidate(RATIO)
     fillOpacity = 1;

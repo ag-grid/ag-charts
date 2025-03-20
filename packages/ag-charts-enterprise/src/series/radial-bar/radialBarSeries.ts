@@ -382,7 +382,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius: properties.cornerRadius,
             },
-            this.defaultShapeStyle
+            this.defaultShapeStyle,
+            properties.fillPatternDefaults
         );
     }
 
@@ -405,7 +406,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             });
         }
 
-        return getShapeStyle(overrides, this.defaultShapeStyle);
+        return getShapeStyle(overrides, this.defaultShapeStyle, this.properties.fillPatternDefaults);
     }
 
     protected updateSectorSelection(
@@ -561,7 +562,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     private legendItemSymbol() {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, fillPatternDefaults } =
+            this.properties;
 
         const markerStyle = getShapeStyle(
             {
@@ -573,7 +575,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 lineDash,
                 lineDashOffset,
             },
-            this.defaultShapeStyle
+            this.defaultShapeStyle,
+            fillPatternDefaults
         );
 
         if (isGradientFill(markerStyle.fill)) {

@@ -53,6 +53,7 @@ export class DarkTheme extends ChartTheme {
     override getDefaultColors(): DefaultColors {
         return {
             fills: DEFAULT_DARK_FILLS,
+            fillsFallback: Object.values(DEFAULT_DARK_FILLS),
             strokes: DEFAULT_DARK_STROKES,
             sequentialColors: getSequentialColors(DEFAULT_DARK_FILLS),
             divergingColors: [DEFAULT_DARK_FILLS.ORANGE, DEFAULT_DARK_FILLS.YELLOW, DEFAULT_DARK_FILLS.GREEN],
