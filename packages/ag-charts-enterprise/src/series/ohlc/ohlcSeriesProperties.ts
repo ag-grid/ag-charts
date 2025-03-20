@@ -7,14 +7,13 @@ import type {
     AgOhlcSeriesItemStylerParams,
     AgOhlcSeriesOptions,
     AgOhlcSeriesTooltipRendererParams,
-    AgPatternColor,
     FillOptions,
     LineDashOptions,
     StrokeOptions,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgGradientColor } from 'ag-charts-core';
+import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 
 const {
     BaseProperties,
@@ -64,7 +63,7 @@ export abstract class OhlcSeriesBaseProperties<
             StrokeOptions &
             LineDashOptions & {
                 fillGradientDefaults?: Required<InternalAgGradientColor>;
-                fillPatternDefaults?: Required<AgPatternColor>;
+                fillPatternDefaults?: Required<InternalAgPatternColor>;
             }
     >;
 

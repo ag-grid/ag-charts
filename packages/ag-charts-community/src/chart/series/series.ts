@@ -1,10 +1,9 @@
 import { Logger } from 'ag-charts-core';
-import type { InternalAgGradientColor } from 'ag-charts-core';
+import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
     AgInitialStateLegendOptions,
-    AgPatternColor,
     AgSeriesMarkerStyle,
     AgSeriesVisibilityChange,
     ISeriesMarker,
@@ -811,7 +810,7 @@ export abstract class Series<
     public getMarkerStyle<TParams>(
         marker: ISeriesMarker<TParams> & {
             fillGradientDefaults: Required<InternalAgGradientColor>;
-            fillPatternDefaults: Required<AgPatternColor>;
+            fillPatternDefaults: Required<InternalAgPatternColor>;
         },
         datum?: any,
         params?: TParams,
@@ -845,7 +844,7 @@ export abstract class Series<
     protected updateMarkerStyle<TParams>(
         marker: ISeriesMarker<TParams> & {
             fillGradientDefaults: Required<InternalAgGradientColor>;
-            fillPatternDefaults: Required<AgPatternColor>;
+            fillPatternDefaults: Required<InternalAgPatternColor>;
         },
         markerNode: Marker,
         datum: any,

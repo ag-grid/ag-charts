@@ -1,4 +1,5 @@
-import type { AgCartesianChartOptions, AgPatternColor, WithThemeParams } from 'ag-charts-types';
+import type { InternalAgPatternColor } from 'ag-charts-core';
+import type { AgCartesianChartOptions, WithThemeParams } from 'ag-charts-types';
 
 import { Color } from '../../util/color';
 import { mapValues } from '../../util/object';
@@ -29,7 +30,7 @@ export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]
     },
 ];
 
-export const FILL_PATTERN_DEFAULTS: WithThemeParams<AgPatternColor> = {
+export const FILL_PATTERN_DEFAULTS: WithThemeParams<InternalAgPatternColor> = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
     // width: undefined,

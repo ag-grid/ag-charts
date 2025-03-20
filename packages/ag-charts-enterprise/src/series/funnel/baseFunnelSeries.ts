@@ -1,5 +1,5 @@
-import { type AgFunnelSeriesStyle, type AgPatternColor, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType, InternalAgGradientColor } from 'ag-charts-core';
+import { type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType, InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -103,7 +103,7 @@ class FunnelSeriesNodeEvent<
 export interface FunnelSeriesShapeStyle {
     fill?: InternalAgColorType;
     fillGradientDefaults: Required<InternalAgGradientColor>;
-    fillPatternDefaults: Required<AgPatternColor>;
+    fillPatternDefaults: Required<InternalAgPatternColor>;
     fillOpacity: number;
     stroke?: string;
     strokeWidth: number;
