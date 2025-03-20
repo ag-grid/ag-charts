@@ -3200,6 +3200,58 @@ export const STACKED_COLUMN_PATTERN_FILL: AgCartesianChartOptions = {
     ],
 };
 
+export const GROUPED_COLUMN_SMALL_PATTERN_FILL: AgCartesianChartOptions = {
+    ...STACKED_COLUMN_PATTERN_FILL,
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: {
+                        type: 'pattern',
+                        pattern: 'circles',
+                        width: 2,
+                        height: 2,
+                    },
+                },
+            },
+        },
+    },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'mac',
+            yName: 'Mac',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'ipad',
+            yName: 'iPad',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'wearables',
+            yName: 'Wearables',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'services',
+            yName: 'Services',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+    ],
+};
+
 export const GROUPED_COLUMN_PATTERN_FILL: AgCartesianChartOptions = {
     ...STACKED_COLUMN_PATTERN_FILL,
     series: [
