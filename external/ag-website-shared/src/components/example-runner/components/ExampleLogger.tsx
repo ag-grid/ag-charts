@@ -86,12 +86,14 @@ export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSiz
     }, [logs]);
 
     return (
-        <pre ref={containerRef} className={styles.logger}>
-            {logs.length === 0 && <div className={styles.noLogs}>Console logs from the example shown here...</div>}
-            {logs.length > 0 && <div className={styles.consoleHeader}>Console</div>}
-            {logs.map((log, i) => (
-                <div key={i}>{log.data.join(' ')}</div>
-            ))}
-        </pre>
+        <div className={styles.loggerOuter}>
+            <div className={styles.loggerHeader}>Console</div>
+            <pre ref={containerRef} className={styles.loggerPre}>
+                {logs.length === 0 && <div>Console logs from the example shown here...</div>}
+                {logs.map((log, i) => (
+                    <div key={i}>{log.data.join(' ')}</div>
+                ))}
+            </pre>
+        </div>
     );
 };

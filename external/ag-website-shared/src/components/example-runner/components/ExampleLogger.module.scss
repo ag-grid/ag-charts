@@ -1,72 +1,43 @@
 @use 'design-system' as *;
 
-$logger-height: 150px;
-
-.logger {
-    height: $logger-height;
-    padding: 0;
-    margin: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
+.loggerOuter {
+    height: 154px;
     display: flex;
     flex-direction: column;
-    color: var(--color-text-primary);
-    background-color: var(--color-bg-primary);
-    border: 1px solid var(--color-border-primary);
-    border-radius: var(--radius-md);
-    font-size: 13px;
     margin-top: $spacing-size-4;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-primary);
+    overflow: hidden;
+}
 
-    div {
+.loggerHeader {
+    padding: $spacing-size-2;
+    font-family: var(--text-monospace-font-family);
+    font-size: var(--text-fs-xs);
+    font-weight: var(--text-semibold);
+    border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.loggerPre {
+    margin: 0 0 -1px; // -1px bottom margin prevents double border
+    padding: 0;
+    font-size: var(--text-fs-xs);
+    border-radius: 0;
+    border: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    > div {
         padding: $spacing-size-2;
-        border-top: 1px solid var(--color-border-secondary);
+        border-bottom: 1px solid var(--color-border-secondary);
 
-        &:first-child {
-            border-top: none;
-            padding-top: 0;
-        }
-
-        &:nth-child(2) {
-            border-top: none;
-        }
-
-        &::before {
-            color: var(--color-text-secondary);
+        &:nth-child(even) {
+            background-color: color-mix(in srgb, var(--color-bg-primary) 66.66%, transparent);
         }
     }
 
     #{$selector-darkmode} & {
         background-color: var(--color-gray-900);
         color: var(--color-text-secondary);
-    }
-}
-
-.logger > div:nth-child(even) {
-    background-color: var(--color-bg-secondary);
-
-    #{$selector-darkmode} & {
-        background-color: color-mix(in srgb, var(--color-bg-secondary), var(--color-bg-primary) 90%);
-    }
-}
-
-.noLogs {
-    margin-top: $spacing-size-4;
-    margin-left: $spacing-size-2;
-}
-
-.consoleHeader {
-    top: 0;
-    position: sticky;
-    font-size: 12px;
-    background-color: var(--color-bg-primary);
-    padding-top: 8px !important;
-    border-bottom: 1px solid var(--color-border-secondary);
-    font-weight: 600;
-
-    span {
-        background: var(--color-bg-primary);
-        border-radius: var(--radius-lg);
-        padding: 0 $spacing-size-1;
-        color: var(--color-fg-secondary);
     }
 }
