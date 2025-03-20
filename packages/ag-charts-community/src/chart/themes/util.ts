@@ -30,17 +30,41 @@ export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]
     },
 ];
 
-export const FILL_PATTERN_DEFAULTS: WithThemeParams<InternalAgPatternColor> = {
+export const FILL_PATTERN_DEFAULTS: WithThemeParams<Required<InternalAgPatternColor>> = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
-    // width: undefined,
-    // height: undefined,
-    padding: 6,
-    fill: { $palette: 'fill' },
+    width: 10,
+    height: 10,
+    padding: 2,
+    fill: {
+        $if: [
+            { $isGradient: [{ $palette: 'fill' }] },
+            { $palette: 'fillFallback' },
+            {
+                $if: [
+                    { $isPattern: [{ $palette: 'fill' }] },
+                    { $path: ['./fill', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                    { $palette: 'fill' },
+                ],
+            },
+        ],
+    },
     fillOpacity: 1,
-    stroke: { $palette: 'fill' },
+    stroke: {
+        $if: [
+            { $isGradient: [{ $palette: 'fill' }] },
+            { $palette: 'fillFallback' },
+            {
+                $if: [
+                    { $isPattern: [{ $palette: 'fill' }] },
+                    { $path: ['./stroke', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                    { $palette: 'fill' },
+                ],
+            },
+        ],
+    },
     strokeOpacity: 1,
-    // strokeWidth: undefined,
+    strokeWidth: 4,
     backgroundFill: 'transparent',
     backgroundFillOpacity: 1,
     rotation: 0,
