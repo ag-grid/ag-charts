@@ -5,8 +5,7 @@ import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 
 const {
     ChartAxisDirection,
-    TempValidate,
-    NUMBER,
+    Property,
     getCrossLineValue,
     validateCrossLineValue,
     normalizeAngle360,
@@ -18,7 +17,7 @@ const {
 } = _ModuleSupport;
 
 class RadiusCrossLineLabel extends PolarCrossLineLabel {
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     positionAngle?: number = undefined;
 }
 
@@ -48,7 +47,7 @@ export class RadiusCrossLine extends PolarCrossLine {
 
     update(visible: boolean) {
         const { scale } = this;
-        if (!scale || !this.isValid() || !validateCrossLineValue(getCrossLineValue(this), scale)) {
+        if (!scale || !validateCrossLineValue(getCrossLineValue(this), scale)) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
             this.labelGroup.visible = false;

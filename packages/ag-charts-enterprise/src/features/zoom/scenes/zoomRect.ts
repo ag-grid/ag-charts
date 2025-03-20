@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { COLOR_STRING, RATIO, TempValidate } = _ModuleSupport;
+const { Property } = _ModuleSupport;
 
 const VALID_COLOR = '#2196f3';
 const INVALID_COLOR = '#8a8a8a';
@@ -8,10 +8,10 @@ const INVALID_COLOR = '#8a8a8a';
 export class ZoomRect extends _ModuleSupport.Rect {
     static override readonly className = 'ZoomRect';
 
-    @TempValidate(COLOR_STRING)
+    @Property
     public override fill = VALID_COLOR;
 
-    @TempValidate(RATIO)
+    @Property
     public override fillOpacity = 0.2;
 
     override zIndex = _ModuleSupport.ZIndexMap.ZOOM_SELECTION;

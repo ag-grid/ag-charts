@@ -149,9 +149,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const {
             id: seriesId,
@@ -697,7 +695,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             visible,
         } = this;
 
-        if (!dataModel || !processedData || legendType !== 'category' || !this.properties.isValid()) {
+        if (!dataModel || !processedData || legendType !== 'category') {
             return [];
         }
 

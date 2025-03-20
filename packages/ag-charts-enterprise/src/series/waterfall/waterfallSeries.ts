@@ -102,7 +102,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, yKey, totals } = this.properties;
         const { data = [] } = this;
 
-        if (!this.properties.isValid() || !this.visible) return;
+        if (!this.visible) return;
 
         const positiveNumber = (v: unknown) => isContinuous(v) && Number(v) >= 0;
         const negativeNumber = (v: unknown) => isContinuous(v) && Number(v) >= 0;

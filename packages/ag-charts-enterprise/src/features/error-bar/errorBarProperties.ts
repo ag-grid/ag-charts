@@ -7,92 +7,80 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
-const {
-    BaseProperties,
-    TempValidate,
-    BOOLEAN,
-    COLOR_STRING,
-    FUNCTION,
-    LINE_DASH,
-    NUMBER,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-} = _ModuleSupport;
+const { BaseProperties, Property } = _ModuleSupport;
 
 class ErrorBarCap extends BaseProperties<ErrorBarCapOptions> {
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     visible?: boolean;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth?: number;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     strokeOpacity?: number;
 
-    @TempValidate(LINE_DASH, { optional: true })
+    @Property
     lineDash?: number[];
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     lineDashOffset?: number;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     length?: number;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     lengthRatio?: number;
 }
 
 export class ErrorBarProperties extends BaseProperties<AgErrorBarOptions<any>> {
-    @TempValidate(STRING, { optional: true })
+    @Property
     yLowerKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yLowerName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yUpperKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yUpperName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xLowerKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xLowerName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xUpperKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xUpperName?: string;
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     visible?: boolean = true;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string = 'black';
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth?: number = 1;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     strokeOpacity?: number = 1;
 
-    @TempValidate(LINE_DASH, { optional: true })
+    @Property
     lineDash?: number[];
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     lineDashOffset?: number;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgErrorBarItemStylerParams<unknown>, AgErrorBarThemeableOptions>;
 
-    @TempValidate(OBJECT)
+    @Property
     cap = new ErrorBarCap();
 }

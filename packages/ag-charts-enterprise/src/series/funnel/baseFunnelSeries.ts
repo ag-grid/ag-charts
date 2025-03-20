@@ -194,12 +194,7 @@ export abstract class BaseFunnelSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) {
-            return;
-        }
-
         const { stageKey, valueKey } = this.properties;
-
         const { visible, id: seriesId } = this;
 
         const validation = (_value: unknown, _datum: unknown, index: number) =>
@@ -642,7 +637,7 @@ export abstract class BaseFunnelSeries<
             visible,
         } = this;
 
-        if (!dataModel || !processedData || legendType !== 'category' || !this.properties.isValid()) {
+        if (!dataModel || !processedData || legendType !== 'category') {
             return [];
         }
 

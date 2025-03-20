@@ -103,7 +103,7 @@ export abstract class OhlcSeriesBase<
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (!this.properties.isValid() || !this.visible) return;
+        if (!this.visible) return;
 
         const { xKey, openKey, closeKey, highKey, lowKey } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();

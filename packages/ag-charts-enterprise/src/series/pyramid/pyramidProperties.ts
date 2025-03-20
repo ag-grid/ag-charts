@@ -10,100 +10,77 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-const {
-    SeriesProperties,
-    FillGradientDefaults,
-    FillPatternDefaults,
-    SeriesTooltip,
-    TempValidate,
-    UNION,
-    OR,
-    ARRAY_OF,
-    COLOR_GRADIENT,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    FUNCTION,
-    DIRECTION,
-    BOOLEAN,
-    LINE_DASH,
-    OBJECT,
-    NUMBER,
-    POSITIVE_NUMBER,
-    COLOR_PATTERN,
-    RATIO,
-    STRING,
-    Label,
-    DropShadow,
-} = _ModuleSupport;
+const { SeriesProperties, FillGradientDefaults, FillPatternDefaults, SeriesTooltip, Property, Label, DropShadow } =
+    _ModuleSupport;
 
 class PyramidSeriesLabel extends Label<AgPyramidSeriesLabelFormatterParams> {}
 
 class PyramidSeriesStageLabel extends Label<AgPyramidSeriesLabelFormatterParams> {
-    @TempValidate(NUMBER)
+    @Property
     spacing: number = 0;
 
-    @TempValidate(UNION(['before', 'after'], 'a placement'))
+    @Property
     placement?: string;
 }
 
 export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> {
-    @TempValidate(STRING)
+    @Property
     stageKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     valueKey!: string;
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING)))
+    @Property
     fills: AgColorType[] = [];
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING_ARRAY)
+    @Property
     strokes: string[] = [];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(DIRECTION)
+    @Property
     direction: Direction = 'vertical';
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     reverse?: boolean = undefined;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     spacing: number = 0;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     aspectRatio?: number = undefined;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgPyramidSeriesItemStylerParams<unknown>, AgPyramidSeriesStyle>;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly shadow = new DropShadow().set({ enabled: false });
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new PyramidSeriesLabel();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly stageLabel = new PyramidSeriesStageLabel();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgPyramidSeriesTooltipRendererParams<unknown>>();
 }

@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, type RequireOptional } from 'ag-charts-core';
+import { type RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,
@@ -16,37 +16,11 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { CORNER_MODE, FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const {
-    BaseProperties,
-    SeriesTooltip,
-    SeriesProperties,
-    PropertiesArray,
-    AxisLabel,
-    TempValidate,
-    BOOLEAN,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    FUNCTION,
-    LINE_DASH,
-    NUMBER,
-    NUMBER_ARRAY,
-    OBJECT_ARRAY,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    UNION,
-    AND,
-    LESS_THAN,
-    GREATER_THAN,
-    Label,
-} = _ModuleSupport;
-
-const TARGET_PLACEMENT = UNION(['inside', 'outside', 'middle'], 'a placement');
+const { BaseProperties, SeriesTooltip, SeriesProperties, PropertiesArray, AxisLabel, Property, Label } =
+    _ModuleSupport;
 
 export enum NodeDataType {
     Node,
@@ -128,264 +102,252 @@ export type RadialGaugeLabelDatum = {
 };
 
 class RadialGaugeDefaultTargetLabelProperties extends Label<never> {
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     spacing: number | undefined;
 }
 
 export class RadialGaugeTargetProperties extends BaseProperties {
-    @TempValidate(STRING, { optional: true })
+    @Property
     text: string | undefined;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     value: number | undefined;
 
-    @TempValidate(TARGET_MARKER_SHAPE, { optional: true })
+    @Property
     shape: AgRadialGaugeMarkerShape | undefined;
 
-    @TempValidate(TARGET_PLACEMENT, { optional: true })
+    @Property
     placement: AgRadialGaugeTargetPlacement | undefined;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     spacing: number | undefined;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     size: number | undefined;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     rotation: number | undefined;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     fill: string | undefined;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     fillOpacity: number | undefined;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke: string | undefined;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth: number | undefined;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     strokeOpacity: number | undefined;
 
-    @TempValidate(LINE_DASH, { optional: true })
+    @Property
     lineDash: number[] | undefined;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     lineDashOffset: number | undefined;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new RadialGaugeDefaultTargetLabelProperties();
 }
 
 class RadialGaugeBarProperties extends BaseProperties {
-    @TempValidate(BOOLEAN)
+    @Property
     enabled = true;
 
-    @TempValidate(OBJECT_ARRAY)
+    @Property
     fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
 
-    @TempValidate(FILL_MODE)
+    @Property
     fillMode: AgGradientColorMode = 'continuous';
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     fill: string | undefined;
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke: string = 'black';
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth: number = 0;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 }
 
 class RadialGaugeScaleIntervalProperties extends BaseProperties {
-    @TempValidate(NUMBER_ARRAY, { optional: true })
+    @Property
     values?: number[] = undefined;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     step?: number = undefined;
 
-    @TempValidate(NUMBER)
+    @Property
     minSpacing: number = 0;
 
-    @TempValidate(NUMBER)
+    @Property
     maxSpacing: number = 1000;
 }
 
 class RadialGaugeScaleLabelProperties extends AxisLabel {}
 
 class RadialGaugeScaleProperties extends BaseProperties {
-    @TempValidate(AND(NUMBER, LESS_THAN('max')))
+    @Property
     min: number = 0;
 
-    @TempValidate(AND(NUMBER, GREATER_THAN('min')))
+    @Property
     max: number = 1;
 
-    @TempValidate(OBJECT_ARRAY)
+    @Property
     fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
 
-    @TempValidate(FILL_MODE)
+    @Property
     fillMode: AgGradientColorMode = 'continuous';
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     fill: string | undefined;
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = 'black';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 0;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     defaultFill: string = 'black';
 
-    @TempValidate(OBJECT)
+    @Property
     readonly interval = new RadialGaugeScaleIntervalProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new RadialGaugeScaleLabelProperties();
 }
 
 class RadialGaugeNeedleProperties extends BaseProperties {
-    @TempValidate(BOOLEAN)
+    @Property
     enabled = true;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     radiusRatio?: number;
 
-    @TempValidate(NUMBER)
+    @Property
     spacing: number = 0;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     fill: string = 'black';
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = 'black';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 0;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 }
 
 class RadialGaugeLabelProperties extends AutoSizedLabel<AgRadialGaugeLabelFormatterParams> {
-    @TempValidate(STRING, { optional: true })
+    @Property
     text?: string;
 }
 
 class RadialGaugeSecondaryLabelProperties extends AutoSizedSecondaryLabel<AgRadialGaugeLabelFormatterParams> {
-    @TempValidate(STRING, { optional: true })
+    @Property
     text?: string;
 }
 
 export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeOptions> {
-    @TempValidate(NUMBER)
+    @Property
     value!: number;
 
-    @TempValidate(NUMBER)
+    @Property
     startAngle: number = 0;
 
-    @TempValidate(NUMBER)
+    @Property
     endAngle: number = 0;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly segmentation = new GaugeSegmentationProperties();
 
-    @TempValidate(COLOR_STRING_ARRAY)
+    @Property
     defaultColorRange: string[] = [];
 
-    @TempValidate(OBJECT_ARRAY)
+    @Property
     targets = new PropertiesArray<RadialGaugeTargetProperties>(RadialGaugeTargetProperties);
 
-    @TempValidate(OBJECT)
+    @Property
     readonly defaultTarget = new RadialGaugeTargetProperties();
 
-    @TempValidate(RATIO)
+    @Property
     outerRadiusRatio: number = 1;
 
-    @TempValidate(RATIO)
+    @Property
     innerRadiusRatio: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     outerRadius: number | undefined;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     innerRadius: number | undefined;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     cornerRadius: number = 0;
 
-    @TempValidate(CORNER_MODE)
+    @Property
     cornerMode: 'container' | 'item' = 'container';
 
-    @TempValidate(NUMBER)
+    @Property
     spacing: number = 0;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly scale = new RadialGaugeScaleProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly bar = new RadialGaugeBarProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly needle = new RadialGaugeNeedleProperties();
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgRadialGaugeItemStylerParams, AgRadialGaugeStyle>;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new RadialGaugeLabelProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly secondaryLabel = new RadialGaugeSecondaryLabelProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgRadialGaugeTooltipRendererParams>();
-
-    override isValid(warningPrefix?: string): boolean {
-        if (!super.isValid(warningPrefix)) return false;
-
-        const { outerRadius, innerRadius } = this;
-        if ((outerRadius == null) !== (innerRadius == null)) {
-            Logger.warnOnce('Either [innerRadius] and [outerRadius] must both be set, or neither can be set.');
-            return false;
-        }
-
-        return true;
-    }
 }

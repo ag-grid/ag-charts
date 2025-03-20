@@ -1,7 +1,7 @@
 import { BaseProperties } from '../util/properties';
-import { TempValidate, UNION } from '../util/validation';
+import { Property } from '../util/properties';
 
 export class ChartHighlight extends BaseProperties {
-    @TempValidate(UNION(['tooltip', 'node'], 'a range'))
+    @Property
     public range: 'tooltip' | 'node' = 'tooltip';
 }

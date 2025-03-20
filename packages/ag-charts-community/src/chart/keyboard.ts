@@ -1,10 +1,10 @@
 import { BaseProperties } from '../util/properties';
-import { BOOLEAN, NUMBER, TempValidate } from '../util/validation';
+import { Property } from '../util/properties';
 
 export class Keyboard extends BaseProperties {
-    @TempValidate(BOOLEAN)
+    @Property
     enabled: boolean = false;
 
-    @TempValidate(NUMBER)
+    @Property
     tabIndex?: number;
 }

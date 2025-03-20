@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AgFlowProportionChartOptions } from 'ag-charts-types';
 
-const { Chart, TempValidate, ARRAY } = _ModuleSupport;
+const { Chart, Property } = _ModuleSupport;
 
 function isFlowProportion(
     series: _ModuleSupport.Series<unknown, any, any>
@@ -13,7 +13,7 @@ export class FlowProportionChart extends Chart {
     static readonly className = 'FlowProportionChart';
     static readonly type = 'flow-proportion' as const;
 
-    @TempValidate(ARRAY, { optional: true })
+    @Property
     nodes?: any[];
 
     override getChartType() {

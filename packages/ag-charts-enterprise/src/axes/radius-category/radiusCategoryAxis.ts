@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
-const { RATIO, ProxyPropertyOnWrite, TempValidate, CategoryScale } = _ModuleSupport;
+const { ProxyPropertyOnWrite, Property, CategoryScale } = _ModuleSupport;
 
 export class RadiusCategoryAxis extends RadiusAxis {
     static readonly className = 'RadiusCategoryAxis';
@@ -10,15 +10,15 @@ export class RadiusCategoryAxis extends RadiusAxis {
 
     override shape = 'circle' as const;
 
-    @TempValidate(RATIO)
+    @Property
     groupPaddingInner: number = 0;
 
     @ProxyPropertyOnWrite('scale', 'paddingInner')
-    @TempValidate(RATIO)
+    @Property
     paddingInner: number = 0;
 
     @ProxyPropertyOnWrite('scale', 'paddingOuter')
-    @TempValidate(RATIO)
+    @Property
     paddingOuter: number = 0;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {

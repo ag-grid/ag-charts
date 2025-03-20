@@ -41,7 +41,7 @@ export * from './util/timeFormatDefaults';
 export * from './util/textMeasurer';
 export * from './util/textWrapper';
 export * from './util/timeFormat';
-export * from './util/validation';
+export * from './util/properties';
 export * from './util/vector';
 export * from './util/vector4';
 export * from './module/axisModule';
