@@ -195,7 +195,6 @@ export class ChartTheme {
                 },
             },
             {
-                keys: [],
                 label: {
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
@@ -343,21 +342,25 @@ export class ChartTheme {
 
     private static readonly axisDefault = {
         [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({
+            keys: [],
             line: { enabled: false },
             crosshair: { enabled: true },
         }),
         [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({
+            keys: [],
             base: 10,
             line: { enabled: false },
             crosshair: { enabled: true },
         }),
         [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({
+            keys: [],
             groupPaddingInner: 0.1,
             label: { autoRotate: true },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
             crosshair: { enabled: false },
         }),
         [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults({
+            keys: [],
             tick: { enabled: true, stroke: DEFAULT_SEPARATION_LINES_COLOUR },
             label: { spacing: 10, rotation: 270 },
             paddingInner: 0.4,
@@ -365,10 +368,12 @@ export class ChartTheme {
             crosshair: { enabled: false },
         }),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({
+            keys: [],
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
             crosshair: { enabled: true },
         }),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({
+            keys: [],
             groupPaddingInner: 0,
             label: { autoRotate: false },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
