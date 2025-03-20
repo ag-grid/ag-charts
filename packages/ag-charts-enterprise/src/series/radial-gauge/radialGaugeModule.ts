@@ -4,10 +4,7 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 import { RadialGaugeSeries } from './radialGaugeSeries';
 import { radialGaugeSeriesOptionsDef } from './radialGaugeSeriesOptionsDef';
 
-const {
-    FONT_SIZE_RATIO,
-    ThemeConstants: { POLAR_AXIS_TYPE },
-} = _ModuleSupport;
+const { FONT_SIZE_RATIO } = _ModuleSupport;
 
 export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     type: 'series',
@@ -18,10 +15,6 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     identifier: 'radial-gauge',
     moduleFactory: (ctx) => new RadialGaugeSeries(ctx),
     tooltipDefaults: { range: 10 },
-    defaultAxes: [
-        { type: POLAR_AXIS_TYPE.ANGLE_NUMBER, line: { enabled: false } },
-        { type: POLAR_AXIS_TYPE.RADIUS_NUMBER, line: { enabled: false } },
-    ],
     themeTemplate: {
         minWidth: 200,
         minHeight: 200,
