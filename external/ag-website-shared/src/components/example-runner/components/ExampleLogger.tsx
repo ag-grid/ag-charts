@@ -2,11 +2,19 @@ import { type FunctionComponent, useEffect, useLayoutEffect, useRef, useState } 
 
 import styles from './ExampleLogger.module.scss';
 
+type LogObject = {
+    __consoleLogObject: true;
+    isLoggable: boolean;
+    argType: string;
+    safeString: string;
+};
+type LogData = string | number | undefined | null | LogObject;
+
 interface Log {
     type: 'console-log';
     pageName?: string;
     exampleName: string;
-    data: any[];
+    data: LogData[];
 }
 
 interface Props {
@@ -14,6 +22,7 @@ interface Props {
     bufferSize?: number;
 }
 
+const SEE_DEV_CONSOLE_MESSAGE = '[Object] - see developer console';
 const IGNORED_MESSAGES = ['Angular is running in development mode.'];
 
 function containsIgnoredMessage(log: Log) {
@@ -22,29 +31,29 @@ function containsIgnoredMessage(log: Log) {
     );
 }
 
-function safeStringify(obj: object, space: number = 2) {
-    const seen = new WeakSet();
-    return JSON.stringify(
-        obj,
-        (_, value) => {
-            if (typeof value === 'object' && value !== null) {
-                if (seen.has(value)) {
-                    return '[Circular]';
-                }
-                seen.add(value);
-            }
-            return value;
-        },
-        space
-    );
+function getLoggableData(data: LogData[]) {
+    const isLoggable = data.every((logItem: LogData) => {
+        const consoleLogObject = logItem as LogObject;
+        return consoleLogObject?.__consoleLogObject ? consoleLogObject.isLoggable : true;
+    });
+
+    return isLoggable
+        ? data.map((logItem: LogData) => {
+              const consoleLogObject = logItem as LogObject;
+              if (logItem && consoleLogObject.__consoleLogObject) {
+                  return consoleLogObject.safeString;
+              } else if (logItem === null) {
+                  return 'null';
+              } else if (logItem === undefined) {
+                  return 'undefined';
+              } else {
+                  return logItem;
+              }
+          })
+        : [SEE_DEV_CONSOLE_MESSAGE];
 }
 
-function safeLogData(data: unknown) {
-    if (typeof data === 'string' || typeof data === 'number') return data;
-    return safeStringify(data as object);
-}
-
-export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSize = 10 }) => {
+export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSize = 20 }) => {
     const containerRef = useRef<HTMLPreElement>(null);
     const [logs, setLogs] = useState<Log[]>([]);
 
@@ -55,7 +64,11 @@ export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSiz
                 setLogs((prevLogs) => {
                     const bufferedLogs = prevLogs.length >= bufferSize ? prevLogs.slice(1) : prevLogs;
 
-                    return [...bufferedLogs, log];
+                    const newLog = {
+                        ...log,
+                        data: getLoggableData(log.data),
+                    };
+                    return [...bufferedLogs, newLog];
                 });
             }
         };
@@ -75,8 +88,9 @@ export const ExampleLogger: FunctionComponent<Props> = ({ exampleName, bufferSiz
     return (
         <pre ref={containerRef} className={styles.logger}>
             {logs.length === 0 && <div className={styles.noLogs}>Console logs from the example shown here...</div>}
+            {logs.length > 0 && <div className={styles.consoleHeader}>Console</div>}
             {logs.map((log, i) => (
-                <div key={i}>{safeLogData(log.data)}</div>
+                <div key={i}>{log.data.join(' ')}</div>
             ))}
         </pre>
     );
