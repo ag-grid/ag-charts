@@ -38,8 +38,6 @@ export const LineSeriesModule: SeriesModule<'line'> = {
             lineDashOffset: 0,
             interpolation: {
                 type: 'linear',
-                tension: 1,
-                position: 'end',
             },
             marker: {
                 shape: 'circle',

@@ -77,3 +77,8 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
 };
+
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.defaultColorRange = arrayOf(arrayOf(color));
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.defaultPatternFills = arrayOf(color);

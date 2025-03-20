@@ -24,8 +24,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         ],
       },
       "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
         "step": TimeInterval {
           "_decode": [Function],
           "_encode": [Function],
@@ -38,7 +36,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "fontFamily": "Impact, Charcoal, Sans-Serif",
         "fontSize": 14,
         "fontWeight": "bold",
-        "minSpacing": NaN,
         "rotation": -30,
         "spacing": 11,
       },
@@ -75,17 +72,12 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#3f7cbf",
         "fontFamily": "Impact, Charcoal, Sans-Serif",
         "fontSize": 14,
         "fontWeight": "bold",
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -93,8 +85,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "stroke": "#326baf",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "nice": false,
       "position": "right",
       "tick": {
@@ -196,8 +186,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
   "series": [
     {
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -263,8 +251,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     },
     {
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -330,8 +316,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     },
     {
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -475,10 +459,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -486,7 +466,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -521,10 +500,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "keys": [
         "male",
         "female",
@@ -536,7 +511,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -544,8 +518,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -573,10 +545,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "keys": [
         "exportedTonnes",
       ],
@@ -587,7 +555,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -595,8 +562,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "right",
       "tick": {
         "enabled": false,
@@ -830,8 +795,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     },
     {
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -980,10 +943,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -991,7 +950,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "rotation": -30,
         "spacing": 11,
       },
@@ -1027,10 +985,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -1038,7 +992,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -1046,8 +999,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -1149,8 +1100,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -1221,8 +1170,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -1293,8 +1240,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -1365,8 +1310,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -1437,8 +1380,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -1509,8 +1450,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -1581,8 +1520,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -1737,10 +1674,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -1748,7 +1681,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -1783,10 +1715,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -1794,7 +1722,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -1802,8 +1729,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -2516,17 +2441,12 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -2534,8 +2454,6 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "bottom",
       "tick": {
         "enabled": false,
@@ -2563,17 +2481,12 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -2581,8 +2494,6 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -2749,10 +2660,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -2760,7 +2667,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "fontSize": 12,
         "fontWeight": 400,
         "format": "%d/%m",
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -2795,17 +2701,12 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -2813,8 +2714,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -2910,8 +2809,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
   "series": [
     {
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -2977,8 +2874,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     },
     {
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -3044,8 +2939,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     },
     {
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -3111,8 +3004,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     },
     {
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -3262,10 +3153,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -3273,7 +3160,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -3308,17 +3194,12 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -3326,8 +3207,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -3458,8 +3337,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -3568,8 +3445,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -3678,8 +3553,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -3788,8 +3661,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -3898,8 +3769,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -4058,10 +3927,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -4069,7 +3934,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -4104,17 +3968,12 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -4122,8 +3981,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "bottom",
       "tick": {
         "enabled": false,
@@ -4309,10 +4166,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -4320,7 +4173,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -4355,17 +4207,12 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -4373,8 +4220,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "bottom",
       "tick": {
         "enabled": false,
@@ -4561,10 +4406,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -4572,7 +4413,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 5,
       },
       "line": {
@@ -4605,10 +4445,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "style": [],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -4616,7 +4452,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 5,
       },
       "line": {
@@ -4791,17 +4626,12 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -4839,17 +4669,12 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -5028,10 +4853,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -5039,7 +4860,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -5074,17 +4894,12 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -5092,8 +4907,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -5412,10 +5225,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -5423,7 +5232,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -5458,17 +5266,12 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -5476,8 +5279,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "bottom",
       "tick": {
         "enabled": false,
@@ -5800,10 +5601,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -5811,7 +5608,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -5846,10 +5642,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -5857,7 +5649,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -5865,8 +5656,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -6566,10 +6355,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -6578,7 +6363,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -6613,17 +6397,12 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -6735,8 +6514,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -6808,8 +6585,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -6881,8 +6656,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -6954,8 +6727,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7027,8 +6798,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7100,8 +6869,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7173,8 +6940,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7246,8 +7011,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7319,8 +7082,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7392,8 +7153,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7465,8 +7224,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7485,6 +7242,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fill": "#006847",
         "fillGradientDefaults": {
           "bounds": "item",
+          "colorStops": [
+            "#2162aa",
+            "#5090dc",
+            "#7ec0ff",
+          ],
           "gradient": "radial",
           "reverse": true,
           "rotation": 0,
@@ -7533,8 +7295,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7553,6 +7313,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fill": "#c22b38",
         "fillGradientDefaults": {
           "bounds": "item",
+          "colorStops": [
+            "#cc7100",
+            "#ffa03a",
+            "#ffd171",
+          ],
           "gradient": "radial",
           "reverse": true,
           "rotation": 0,
@@ -7601,8 +7366,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7621,6 +7384,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fill": "#042279",
         "fillGradientDefaults": {
           "bounds": "item",
+          "colorStops": [
+            "#076f29",
+            "#459d55",
+            "#75cd82",
+          ],
           "gradient": "radial",
           "reverse": true,
           "rotation": 0,
@@ -7669,8 +7437,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7689,6 +7455,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fill": "#4997d0",
         "fillGradientDefaults": {
           "bounds": "item",
+          "colorStops": [
+            "#008fb0",
+            "#34bfe1",
+            "#70f1ff",
+          ],
           "gradient": "radial",
           "reverse": true,
           "rotation": 0,
@@ -7737,8 +7508,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7757,6 +7526,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fill": "#ffffff",
         "fillGradientDefaults": {
           "bounds": "item",
+          "colorStops": [
+            "#b19c00",
+            "#e1cc00",
+            "#fffe5d",
+          ],
           "gradient": "radial",
           "reverse": true,
           "rotation": 0,
@@ -7805,8 +7579,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -7825,6 +7597,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fill": "#459945",
         "fillGradientDefaults": {
           "bounds": "item",
+          "colorStops": [
+            "#6a3c9a",
+            "#9669cb",
+            "#c597fe",
+          ],
           "gradient": "radial",
           "reverse": true,
           "rotation": 0,
@@ -7976,10 +7753,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -7987,7 +7760,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "fontSize": 10,
         "fontWeight": 400,
         "format": ",.0f",
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -7995,8 +7767,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -8024,17 +7794,12 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 10,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -8042,8 +7807,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "bottom",
       "tick": {
         "enabled": false,
@@ -8098,8 +7861,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
   "series": [
     {
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -8217,10 +7978,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -8228,7 +7985,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -8263,10 +8019,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -8274,7 +8026,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontSize": 12,
         "fontWeight": 400,
         "format": "#{.0f}%",
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -8282,8 +8033,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -8414,8 +8163,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -8532,8 +8279,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -8650,8 +8395,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -8768,8 +8511,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -8886,8 +8627,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -9004,8 +8743,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -9122,8 +8859,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -9273,10 +9008,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -9284,7 +9015,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "rotation": -30,
         "spacing": 11,
       },
@@ -9320,10 +9050,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -9331,7 +9057,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "fontSize": 12,
         "fontWeight": 400,
         "format": ".0%",
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -9339,8 +9064,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "bottom",
       "tick": {
         "enabled": false,
@@ -9742,10 +9465,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -9753,7 +9472,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -9788,10 +9506,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -9799,7 +9513,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontSize": 12,
         "fontWeight": 400,
         "format": "#{.0f}%",
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -9807,8 +9520,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -10434,8 +10145,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         ],
       },
       "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
         "step": TimeInterval {
           "_decode": [Function],
           "_encode": [Function],
@@ -10448,7 +10157,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -10483,10 +10191,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -10494,7 +10198,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -10502,8 +10205,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -10628,8 +10329,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "width": 10,
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -10732,8 +10431,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "width": 10,
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -10836,8 +10533,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "width": 10,
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -10940,8 +10635,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "width": 10,
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -11078,10 +10771,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -11089,7 +10778,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -11124,10 +10812,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -11135,7 +10819,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -11143,8 +10826,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -11608,8 +11289,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         ],
       },
       "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
         "step": TimeInterval {
           "_decode": [Function],
           "_encode": [Function],
@@ -11623,7 +11302,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -11658,10 +11336,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -11669,7 +11343,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -11677,8 +11350,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -11780,8 +11451,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -11851,8 +11520,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -12220,17 +11887,12 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -12238,8 +11900,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "bottom",
       "tick": {
         "enabled": false,
@@ -12267,17 +11927,12 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -12285,8 +11940,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -12447,8 +12100,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         ],
       },
       "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
         "step": CountableTimeInterval {
           "_decode": [Function],
           "_encode": [Function],
@@ -12463,7 +12114,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "format": "%b",
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -12498,10 +12148,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -12509,7 +12155,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -12517,8 +12162,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
@@ -12648,8 +12291,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -12764,8 +12405,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -12880,8 +12519,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -12996,8 +12633,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -13112,8 +12747,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -13228,8 +12861,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         },
       },
       "interpolation": {
-        "position": "end",
-        "tension": 1,
         "type": "linear",
       },
       "label": {
@@ -13398,10 +13029,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -13409,7 +13036,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -13444,17 +13070,12 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -13462,8 +13083,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "nice": false,
       "position": "top",
       "tick": {
@@ -13924,10 +13543,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         ],
       },
       "groupPaddingInner": 0.1,
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -13935,7 +13550,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "minSpacing": NaN,
         "rotation": 30,
         "spacing": 11,
       },
@@ -13971,10 +13585,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
           },
         ],
       },
-      "interval": {
-        "maxSpacing": NaN,
-        "minSpacing": NaN,
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#464646",
@@ -13982,7 +13592,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
-        "minSpacing": NaN,
         "spacing": 11,
       },
       "line": {
@@ -13990,8 +13599,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "stroke": "#c3c3c3",
         "width": 1,
       },
-      "max": NaN,
-      "min": NaN,
       "position": "left",
       "tick": {
         "enabled": false,
