@@ -396,27 +396,24 @@ export const arrayOf = (validator: Validator, description?: string) =>
  * @param description An optional description string.
  * @returns A validator function for arrays, storing valid elements and collecting errors for invalid ones.
  */
-export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description?: string) =>
-    attachDescription(
-        (value, context) => {
-            if (!isArray(value)) return false;
+export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description = 'an object array') =>
+    attachDescription((value, context) => {
+        if (!isArray(value)) return false;
 
-            const valid: unknown[] = [];
-            const errors: ValidationError[] = [];
-            for (let i = 0; i < value.length; i++) {
-                const indexPath = `${context.path}[${i}]`;
-                const result = validate(value[i], defs, indexPath);
-                errors.push(...result.errors);
-                if (!result.errors.some((error) => error.required && error.path === indexPath)) {
-                    valid.push(result.valid);
-                }
+        const valid: unknown[] = [];
+        const errors: ValidationError[] = [];
+        for (let i = 0; i < value.length; i++) {
+            const indexPath = `${context.path}[${i}]`;
+            const result = validate(value[i], defs, indexPath);
+            errors.push(...result.errors);
+            if (!result.errors.some((error) => error.required && error.path === indexPath)) {
+                valid.push(result.valid);
             }
+        }
 
-            context.result = { valid, errors };
-            return true;
-        },
-        description ?? `${defs[descriptionSymbol]} array`
-    );
+        context.result = { valid, errors };
+        return true;
+    }, description);
 
 export const typeUnion = <T extends { type: string }>(
     defs: { [K in T['type']]: OptionsDefs<Omit<Extract<T, { type: K }>, 'type'>> },
