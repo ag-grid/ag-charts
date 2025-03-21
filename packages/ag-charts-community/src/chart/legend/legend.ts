@@ -1000,7 +1000,21 @@ export class Legend extends BaseProperties {
 
         if (toggleSeries) {
             const legendData = chartService.series.flatMap((s) => s.getLegendData('category'));
-            const numVisibleItems = legendData.filter((d) => d.enabled).length;
+
+            // Get the number of visible items but only count each legend item name once
+            let numVisibleItems = 0;
+            const visibleLegendItemNames = new Set<string>();
+            for (const d of legendData) {
+                if (!d.enabled) continue;
+                numVisibleItems += 1;
+                if (d.legendItemName != null) {
+                    visibleLegendItemNames.add(d.legendItemName);
+                }
+            }
+            if (visibleLegendItemNames.size > 0) {
+                numVisibleItems = visibleLegendItemNames.size;
+            }
+
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 
             this.ctx.chartEventManager.legendItemDoubleClick(
