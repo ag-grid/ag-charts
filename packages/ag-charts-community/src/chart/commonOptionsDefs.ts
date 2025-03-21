@@ -350,7 +350,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     background: {
         visible: boolean,
-        fill: fillOptionsDef.fill,
+        fill: color,
         // enterprise
         image: {
             url: string,
