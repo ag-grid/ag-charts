@@ -1,4 +1,4 @@
-import { AgAreaSeriesOptions, AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgBarSeriesOptions, AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -41,21 +41,29 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function defaultFill() {
-    (options.series![0] as AgAreaSeriesOptions).fill = undefined;
+    options.series?.forEach((series) => {
+        (series as AgBarSeriesOptions).fill = undefined;
+    });
 
     chart.update(options);
 }
 
 function gradientFill() {
-    (options.series![0] as AgAreaSeriesOptions).fill = {
-        type: 'gradient',
-    };
+    options.series?.forEach((series) => {
+        (series as AgBarSeriesOptions).fill = {
+            type: 'gradient',
+        };
+    });
+
     chart.update(options);
 }
 
 function patternFill() {
-    (options.series![0] as AgAreaSeriesOptions).fill = {
-        type: 'pattern',
-    };
+    options.series?.forEach((series) => {
+        (series as AgBarSeriesOptions).fill = {
+            type: 'pattern',
+        };
+    });
+
     chart.update(options);
 }
