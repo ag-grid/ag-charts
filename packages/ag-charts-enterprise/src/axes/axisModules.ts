@@ -39,6 +39,7 @@ const {
     commonAxisOptionsDefs,
     commonCrossLineOptionsDefs,
     commonCrossLineLabelOptionsDefs,
+    numberFormatValidator,
 } = _ModuleSupport;
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
@@ -65,7 +66,7 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> =
     label: {
         ...commonAxisLabelOptionsDefs,
         orientation: union('fixed', 'parallel', 'perpendicular'),
-        format: string,
+        format: numberFormatValidator,
     },
 };
 
@@ -116,7 +117,7 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
     },
     label: {
         ...commonAxisLabelOptionsDefs,
-        format: string,
+        format: numberFormatValidator,
     },
 };
 
