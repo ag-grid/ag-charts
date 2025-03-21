@@ -39,6 +39,7 @@ const {
     commonAxisOptionsDefs,
     commonCrossLineOptionsDefs,
     commonCrossLineLabelOptionsDefs,
+    numberFormatValidator,
 } = _ModuleSupport;
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
@@ -65,7 +66,7 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> =
     label: {
         ...commonAxisLabelOptionsDefs,
         orientation: union('fixed', 'parallel', 'perpendicular'),
-        format: string,
+        format: numberFormatValidator,
     },
 };
 
@@ -97,13 +98,16 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
     shape: union('polygon', 'circle'),
     positionAngle: number,
     innerRadiusRatio: ratio,
-    crossLines: arrayOfDefs<AgRadiusCrossLineOptions>({
-        ...commonCrossLineOptionsDefs,
-        label: {
-            ...commonCrossLineLabelOptionsDefs,
-            positionAngle: number,
+    crossLines: arrayOfDefs<AgRadiusCrossLineOptions>(
+        {
+            ...commonCrossLineOptionsDefs,
+            label: {
+                ...commonCrossLineLabelOptionsDefs,
+                positionAngle: number,
+            },
         },
-    }),
+        'cross-line options'
+    ),
     title: {
         enabled: boolean,
         text: string,
@@ -113,7 +117,7 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
     },
     label: {
         ...commonAxisLabelOptionsDefs,
-        format: string,
+        format: numberFormatValidator,
     },
 };
 
@@ -126,13 +130,16 @@ export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOpti
     paddingOuter: ratio,
     groupPaddingInner: ratio,
     label: commonAxisLabelOptionsDefs,
-    crossLines: arrayOfDefs<AgRadiusCrossLineOptions>({
-        ...commonCrossLineOptionsDefs,
-        label: {
-            ...commonCrossLineLabelOptionsDefs,
-            positionAngle: number,
+    crossLines: arrayOfDefs<AgRadiusCrossLineOptions>(
+        {
+            ...commonCrossLineOptionsDefs,
+            label: {
+                ...commonCrossLineLabelOptionsDefs,
+                positionAngle: number,
+            },
         },
-    }),
+        'cross-line options'
+    ),
     title: {
         enabled: boolean,
         text: string,

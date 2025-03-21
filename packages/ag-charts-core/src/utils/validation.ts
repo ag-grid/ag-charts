@@ -184,10 +184,15 @@ function findSuggestion(value: string, suggestions: string[], maxDistance: numbe
  * @param description The description to attach.
  * @returns A new validator function with the attached description.
  */
-export function attachDescription(validator: Validator, description: string): Validator {
-    return Object.assign((value: unknown, context: ValidatorContext) => validator(value, context), {
-        [descriptionSymbol]: description,
-    });
+export function attachDescription(validator: Validator, description: string): Validator;
+export function attachDescription<T>(optionsDefs: OptionsDefs<T>, description: string): OptionsDefs<T>;
+export function attachDescription<T extends Validator | OptionsDefs<any>>(validatorOrDefs: T, description: string): T {
+    return Object.assign(
+        isFunction(validatorOrDefs)
+            ? (value: unknown, context: ValidatorContext) => validatorOrDefs(value, context)
+            : ({ ...validatorOrDefs } as any),
+        { [descriptionSymbol]: description }
+    );
 }
 
 /**
