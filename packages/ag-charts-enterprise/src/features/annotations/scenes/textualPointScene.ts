@@ -74,7 +74,14 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     protected updateLabel(datum: Datum, bbox: _ModuleSupport.BBox) {
         const { text, isPlaceholder } = datum.getText();
 
-        updateTextNode(this.label, text, isPlaceholder, datum, this.getLabelCoords(datum, bbox));
+        updateTextNode(
+            this.label,
+            text,
+            isPlaceholder,
+            datum,
+            this.getLabelCoords(datum, bbox),
+            this.getTextBaseline(datum)
+        );
     }
 
     protected updateShape(_datum: Datum, _bbox: _ModuleSupport.BBox) {
@@ -91,6 +98,10 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     protected getLabelCoords(_datum: Datum, bbox: _ModuleSupport.BBox): _ModuleSupport.Vec2 {
         return bbox;
+    }
+
+    protected getTextBaseline(datum: Datum): CanvasTextBaseline {
+        return datum.position == 'center' ? 'middle' : datum.position;
     }
 
     protected override getHandleCoords(
