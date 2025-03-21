@@ -43,6 +43,8 @@ import type {
     ToolbarButton,
 } from 'ag-charts-types';
 
+import { numberFormatValidator } from './axesOptionsDefs';
+
 const shapeValidator = or(
     union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle'),
     callback
@@ -269,7 +271,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         scale: {
             label: {
                 ...fontOptionsDef,
-                format: string,
+                format: numberFormatValidator,
                 formatter: callback,
             },
             padding: positiveNumber,
