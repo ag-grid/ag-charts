@@ -297,7 +297,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.container = pendingContainer;
         this.pendingContainer = undefined;
         this.documentRoot = this.getShadowDocumentRoot(pendingContainer);
-        this.initiallyConnected = pendingContainer.isConnected;
+        this.initiallyConnected = this.mode === 'minimal' || pendingContainer.isConnected;
 
         // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
         // Or if the container is added lazily, we need to ensure styles are added before the container
