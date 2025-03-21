@@ -292,8 +292,10 @@ export class SeriesAreaManager extends BaseManager {
     private layoutComplete(event: LayoutCompleteEvent): void {
         this.seriesRect = event.series.rect;
         this.hoverRect = event.series.paddedRect;
-        this.chart.ctx.widgets.seriesWidget.setBounds(event.series.paddedRect);
-        this.chart.ctx.widgets.chartWidget.setBounds(event.chart);
+        if (this.chart.ctx.domManager.mode === 'normal') {
+            this.chart.ctx.widgets.seriesWidget.setBounds(event.series.paddedRect);
+            this.chart.ctx.widgets.chartWidget.setBounds(event.chart);
+        }
     }
 
     private onContextMenu(event: MouseWidgetEvent<'contextmenu'>, current: Widget): void {
