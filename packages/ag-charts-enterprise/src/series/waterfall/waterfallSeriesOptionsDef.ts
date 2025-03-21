@@ -50,7 +50,7 @@ export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = 
             index: required(positiveNumber),
             axisLabel: required(string),
         },
-        'a total definition options array'
+        'a total definition object array'
     ),
     showInMiniChart: boolean,
     item: {

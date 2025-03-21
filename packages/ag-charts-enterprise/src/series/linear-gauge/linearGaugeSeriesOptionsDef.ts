@@ -88,7 +88,7 @@ export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    targets: arrayOfDefs(linearGaugeTargetOptionsDef, 'target options array'),
+    targets: arrayOfDefs(linearGaugeTargetOptionsDef),
     segmentation: {
         enabled: boolean,
         spacing: positiveNumber,

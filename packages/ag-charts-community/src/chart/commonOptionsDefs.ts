@@ -111,13 +111,10 @@ const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     renderer: callback,
 };
 
-const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
-    {
-        label: string,
-        action: callback,
-    },
-    'a context menu actions array'
-);
+const contextMenuActionOptionsDefs: OptionsDefs<AgContextMenuAction> = {
+    label: string,
+    action: callback,
+};
 
 export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
     label: string,
@@ -323,10 +320,10 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     contextMenu: {
         enabled: boolean,
-        extraActions: contextMenuActionsArray,
-        extraSeriesAreaActions: contextMenuActionsArray,
-        extraNodeActions: contextMenuActionsArray,
-        extraLegendItemActions: contextMenuActionsArray,
+        extraActions: arrayOfDefs(contextMenuActionOptionsDefs),
+        extraSeriesAreaActions: arrayOfDefs(contextMenuActionOptionsDefs),
+        extraNodeActions: arrayOfDefs(contextMenuActionOptionsDefs),
+        extraLegendItemActions: arrayOfDefs(contextMenuActionOptionsDefs),
     },
     dataSource: {
         getData: callback,
@@ -345,7 +342,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
                 ...toolbarButtonOptionsDefs,
                 value: or(number, and(arrayOf(or(number, date)), arrayLength(2, 2)), callback),
             },
-            'range button options array'
+            'range button options'
         ),
     },
     // modules
@@ -399,14 +396,11 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         },
         buttons: {
             enabled: boolean,
-            buttons: arrayOfDefs<AgZoomButton>(
-                {
-                    ...toolbarButtonOptionsDefs,
-                    value: union('reset', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right', 'pan-start', 'pan-end'),
-                    section: string,
-                },
-                'zoom button options array'
-            ),
+            buttons: arrayOfDefs<AgZoomButton>({
+                ...toolbarButtonOptionsDefs,
+                value: union('reset', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right', 'pan-start', 'pan-end'),
+                section: string,
+            }),
             visible: union('always', 'zoomed', 'hover'),
         },
     },

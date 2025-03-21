@@ -54,31 +54,28 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     toolbar: {
         enabled: boolean,
         padding: positiveNumber,
-        buttons: arrayOfDefs<AgAnnotationsToolbarButton>(
-            {
-                ...toolbarButtonOptionsDefs,
-                value: union(
-                    'line-menu',
-                    'fibonacci-menu',
-                    'text-menu',
-                    'shape-menu',
-                    'measurer-menu',
-                    'line',
-                    'horizontal-line',
-                    'vertical-line',
-                    'parallel-channel',
-                    'disjoint-channel',
-                    'fibonacci-retracement',
-                    'fibonacci-retracement-trend-based',
-                    'text',
-                    'comment',
-                    'callout',
-                    'note',
-                    'clear'
-                ),
-            },
-            'annotation toolbar buttons array'
-        ),
+        buttons: arrayOfDefs<AgAnnotationsToolbarButton>({
+            ...toolbarButtonOptionsDefs,
+            value: union(
+                'line-menu',
+                'fibonacci-menu',
+                'text-menu',
+                'shape-menu',
+                'measurer-menu',
+                'line',
+                'horizontal-line',
+                'vertical-line',
+                'parallel-channel',
+                'disjoint-channel',
+                'fibonacci-retracement',
+                'fibonacci-retracement-trend-based',
+                'text',
+                'comment',
+                'callout',
+                'note',
+                'clear'
+            ),
+        }),
     },
     optionsToolbar: {
         enabled: boolean,
@@ -395,15 +392,12 @@ export const annotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
 export const initialStateOptionsDef: OptionsDefs<AgInitialStateOptions> = {
     chartType: union('candlestick', 'hollow-candlestick', 'ohlc', 'line', 'step-line', 'hlc', 'high-low'),
     annotations: arrayOf(annotationInitialStateOptionsDef),
-    legend: arrayOfDefs<AgInitialStateLegendOptions>(
-        {
-            visible: boolean,
-            seriesId: string,
-            itemId: string,
-            legendItemName: string,
-        },
-        'legend state array'
-    ),
+    legend: arrayOfDefs<AgInitialStateLegendOptions>({
+        visible: boolean,
+        seriesId: string,
+        itemId: string,
+        legendItemName: string,
+    }),
     zoom: {
         rangeX: {
             start: or(number, serializableDate),
