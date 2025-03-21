@@ -10,6 +10,7 @@ import {
     number,
     positiveNumber,
     ratio,
+    string,
     typeUnion,
 } from 'ag-charts-core';
 import type {
@@ -34,7 +35,6 @@ const {
     NewHistogramSeriesModule,
     NewLineSeriesModule,
     NewScatterSeriesModule,
-    numberFormatValidator,
     without,
 } = _ModuleSupport;
 
@@ -84,7 +84,7 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
             enabled: boolean,
             avoidCollisions: boolean,
             spacing: positiveNumber,
-            format: numberFormatValidator,
+            format: string,
             formatter: callback,
             interval: {
                 minSpacing: positiveNumber,

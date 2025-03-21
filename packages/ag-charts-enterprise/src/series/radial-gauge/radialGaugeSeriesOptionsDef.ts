@@ -87,7 +87,7 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    targets: arrayOfDefs(radialGaugeTargetOptionsDef),
+    targets: arrayOfDefs(radialGaugeTargetOptionsDef, 'target options array'),
     segmentation: {
         enabled: boolean,
         spacing: positiveNumber,
