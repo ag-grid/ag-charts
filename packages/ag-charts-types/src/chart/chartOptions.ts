@@ -1,5 +1,4 @@
 import type { AgInitialStateOptions } from '../api/initialStateOptions';
-import type { AgColorType } from '../series/cartesian/commonOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { Renderer } from './callbackOptions';
@@ -109,7 +108,7 @@ export interface AgChartBackground {
     /** Whether the background should be visible. */
     visible?: boolean;
     /** Colour of the chart background. */
-    fill?: AgColorType;
+    fill?: CssColor;
     /** Background image. May be combined with fill colour. */
     image?: AgChartBackgroundImage;
 }
