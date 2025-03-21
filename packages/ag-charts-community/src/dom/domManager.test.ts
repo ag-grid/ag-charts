@@ -5,6 +5,11 @@ import { getDocument } from 'ag-charts-core';
 import { DOMManager } from './domManager';
 
 describe('DOMManager', () => {
+    beforeEach(() => {
+        // Prevent bleed of state between tests.
+        getDocument().head.innerHTML = '';
+    });
+
     describe('for normal container cases', () => {
         it('should initialize the expected DOM', () => {
             const doc = getDocument();
