@@ -106,6 +106,9 @@ export class ZoomToolbar extends BaseProperties {
         this.toolbar = new Toolbar<ZoomToolbarButtonOptions>(ctx.localeManager);
         this.container.addChild(this.toolbar);
 
+        // Initially translate by an estimated offset to prevent flash on load
+        this.toolbar.getElement().style.transform = `translateY(54px)`;
+
         this.toggleVisibility(this.visible === 'always');
 
         this.destroyFns.push(
