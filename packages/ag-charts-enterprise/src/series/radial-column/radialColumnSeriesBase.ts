@@ -119,7 +119,6 @@ export abstract class RadialColumnSeriesBase<
     protected abstract getStackId(): string;
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { visible } = this;
         const { angleKey, radiusKey, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
@@ -140,7 +139,7 @@ export abstract class RadialColumnSeriesBase<
             extraProps.push(animationValidation());
         }
 
-        const visibleProps = visible || !animationEnabled ? {} : { forceValue: 0 };
+        const visibleProps = this.visible ? {} : { forceValue: 0 };
 
         const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
