@@ -1,5 +1,9 @@
 [
     {
+        "version": "11.2.1",
+        "date": "March 25th, 2025"
+    },
+    {
         "version": "11.2.0",
         "date": "March 25th, 2025",
         "highlights": [
@@ -22,7 +26,8 @@
                 "text": "Figma Design System Assets",
                 "path": "./themes/#figma-design-system"
             }
-        ]
+        ],
+        "notesPath": "./upgrade-to-ag-charts-11-2"
     },
     {
         "version": "11.1.1",
