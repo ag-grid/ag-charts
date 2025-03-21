@@ -159,12 +159,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         // many features that rely on the complex DOM (e.g. keyboard navigation, A11y).
         const element = createElement('div');
         element.role = 'presentation';
-        element.classList.add(
-            'ag-charts-canvas-container',
-            'ag-charts-canvas',
-            'ag-charts-series-area',
-            'ag-charts-tooltip-container'
-        );
+        element.classList.add('ag-charts-canvas-container', 'ag-charts-canvas', 'ag-charts-tooltip-container');
+        const seriesArea = createElement('div');
+        element.appendChild(seriesArea);
+        seriesArea.role = 'presentation';
+        seriesArea.classList.add('ag-charts-series-area');
         return element;
     }
 
