@@ -6,9 +6,6 @@ import path from 'path';
 function SceneChangeDetection() {
     return function (_target: any, _key: string) {};
 }
-function ScenePathChangeDetection() {
-    return function (_target: any, _key: string) {};
-}
 function SceneObjectChangeDetection() {
     return function (_target: any, _key: string) {};
 }
@@ -17,7 +14,7 @@ function SceneArrayChangeDetection() {
 }
 
 // Test class with decorator usages
-export class TestDecoratorUsages {
+export class Test_SceneChangeDetection {
     @SceneChangeDetection() requiredString: string = '';
     @SceneChangeDetection() optionalString?: string;
     @SceneChangeDetection() requiredNumber: number = 0;
@@ -26,14 +23,38 @@ export class TestDecoratorUsages {
     @SceneChangeDetection() optionalBoolean?: boolean;
     @SceneChangeDetection() requiredObject: object = {};
     @SceneChangeDetection() optionalObject?: object;
-    @SceneChangeDetection() requiredArray: any[] = [];
-    @SceneChangeDetection() optionalArray?: any[];
+    @SceneChangeDetection() requiredAnyArray: any[] = [];
+    @SceneChangeDetection() optionalAnyArray?: any[];
+    @SceneChangeDetection() requiredObjectArray: object[] = [];
+    @SceneChangeDetection() optionalObjectArray?: object[];
+    @SceneChangeDetection() requiredNumberArray: number[] = [];
+    @SceneChangeDetection() optionalNumberArray?: number[];
+}
 
-    @SceneObjectChangeDetection() requiredObjectDetection: object = {};
-    @SceneObjectChangeDetection() optionalObjectDetection?: object;
+export class Test_SceneObjectChangeDetection {
+    @SceneObjectChangeDetection() requiredString: string = '';
+    @SceneObjectChangeDetection() optionalString?: string;
+    @SceneObjectChangeDetection() requiredNumber: number = 0;
+    @SceneObjectChangeDetection() optionalNumber?: number;
+    @SceneObjectChangeDetection() requiredBoolean: boolean = true;
+    @SceneObjectChangeDetection() optionalBoolean?: boolean;
+    @SceneObjectChangeDetection() requiredObject: object = {};
+    @SceneObjectChangeDetection() optionalObject?: object;
+    @SceneObjectChangeDetection() requiredObjectArray: object[] = [];
+    @SceneObjectChangeDetection() optionalObjectArray?: object[];
+}
 
-    @SceneArrayChangeDetection() requiredArrayDetection: any[] = [];
-    @SceneArrayChangeDetection() optionalArrayDetection?: any[];
+export class Test_SceneArrayChangeDetection {
+    @SceneArrayChangeDetection() requiredAnyArray: any[] = [];
+    @SceneArrayChangeDetection() optionalAnyArray?: any[];
+    @SceneArrayChangeDetection() requiredMutableNumberArray: number[] = [];
+    @SceneArrayChangeDetection() optionalMutableNumberArray?: number[] = [];
+    @SceneArrayChangeDetection() requiredReadonlyNumberArray: readonly number[] = [];
+    @SceneArrayChangeDetection() optionalReadonlyNumberArray?: readonly number[];
+    @SceneArrayChangeDetection() requiredMutableNumberTuple: [number, number] = [0, 0];
+    @SceneArrayChangeDetection() optionalMutableNumberTuple?: [number, number];
+    @SceneArrayChangeDetection() requiredReadonlyNumberTuple: readonly [number, number] = [0, 0];
+    @SceneArrayChangeDetection() optionalReadonlyNumberTuple?: readonly [number, number];
 }
 
 describe('lint-change-detection', () => {

@@ -29,14 +29,9 @@ function isAllowedPrimitiveArray(type) {
     if (type.isUnion()) {
         return type.types.every((t) => isAllowedPrimitiveArray(t));
     }
-    if (type.flags & ts.TypeFlags.Object) {
-        if (type.objectFlags & ts.ObjectFlags.Reference && type.symbol) {
-            const name = type.symbol.name;
-            if (name === 'Array' || name === 'ReadonlyArray') {
-                const typeArguments = type.typeArguments || [];
-                return typeArguments.length === 1 && isAllowedPrimitive(typeArguments[0]);
-            }
-        }
+    if (isArrayType(type)) {
+        const typeArguments = type.typeArguments || [];
+        return typeArguments.length === 1 && isAllowedPrimitive(typeArguments[0]);
     }
     return false;
 }
@@ -56,6 +51,42 @@ function checkAllowedType(type) {
         return type.types.every((t) => checkAllowedType(t));
     }
     return isAllowedPrimitive(type);
+}
+
+/**
+ * Checks if the type (or union) is a mutable array.
+ */
+function isMutableArray(type) {
+    return isArrayType(type) && !isReadonlyArray(type);
+}
+
+/**
+ * Checks if the type (or union) is a readonly array.
+ */
+function isReadonlyArray(type) {
+    if (type.isUnion()) {
+        return type.types.every((t) => isReadonlyArray(t));
+    }
+    if (type.flags & ts.TypeFlags.Object) {
+        if (type.objectFlags & ts.ObjectFlags.Reference && type.symbol) {
+            return type.symbol.name === 'ReadonlyArray';
+        }
+    }
+    return false;
+}
+
+/**
+ * Checks if the type (or union) is a tuple.
+ */
+function isTupleType(type) {
+    return type.objectFlags & ts.ObjectFlags.Tuple ? true : false;
+}
+
+/**
+ * Checks if the type (or union) is a mutable tuple.
+ */
+function isMutableTuple(type) {
+    return isTupleType(type) && !isReadonlyArray(type);
 }
 
 /**
@@ -121,9 +152,13 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
                                 }
                             }
                         } else if (decoratorName === 'SceneArrayChangeDetection') {
-                            if (!isAllowedPrimitiveArray(type)) {
+                            if (isMutableArray(type)) {
+                                suggestion = 'Mutable arrays are not allowed. Use readonly arrays instead.';
+                            } else if (isMutableTuple(type)) {
+                                suggestion = 'Mutable tuples are not allowed. Use readonly tuples instead.';
+                            } else if (!isAllowedPrimitiveArray(type)) {
                                 suggestion =
-                                    'SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.';
+                                    'SceneArrayChangeDetection should only be applied to readonly (string | number | boolean)[] types.';
                             }
                         } else if (decoratorName === 'SceneObjectChangeDetection') {
                             if (!isStrictObjectType(type)) {
