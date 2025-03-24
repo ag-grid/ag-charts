@@ -4,6 +4,7 @@ import type { AgPatternColor } from 'ag-charts-types';
 import { generateUUID } from '../../util/id';
 import { objectsEqual } from '../../util/object';
 import type { BBox } from '../bbox';
+import { SceneArrayChangeDetection } from '../changeDetectable';
 import type { DropShadow } from '../dropShadow';
 import { ConicGradient } from '../gradient/conicGradient';
 import { type ColorSpace, Gradient, type GradientParams } from '../gradient/gradient';
@@ -162,8 +163,8 @@ export abstract class Shape<D = any> extends Node<D> {
         return align(this.layerManager?.canvas?.pixelRatio ?? 1, start, length);
     }
 
-    @SceneChangeDetection()
-    lineDash?: number[] = Shape.defaultStyles.lineDash;
+    @SceneArrayChangeDetection()
+    lineDash?: readonly number[] = Shape.defaultStyles.lineDash;
 
     @SceneChangeDetection()
     lineDashOffset: number = Shape.defaultStyles.lineDashOffset;
@@ -255,7 +256,7 @@ export abstract class Shape<D = any> extends Node<D> {
         }
     }
 
-    protected renderStroke(ctx: CanvasContext, path?: Path2D) {
+    protected renderStroke(ctx: CanvasContext & { setLineDash(lineDash: readonly number[]): void }, path?: Path2D) {
         if (this.stroke && this.strokeWidth) {
             const { globalAlpha } = ctx;
             this.applyStroke(ctx);
