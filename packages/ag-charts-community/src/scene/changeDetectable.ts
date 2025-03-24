@@ -30,7 +30,10 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
     // of change detection.
     const setter = buildCheckDirtyChain(
         privateKey,
-        buildChangeCallbackChain(buildConvertorChain(buildSetter(privateKey, requiredOpts), requiredOpts), requiredOpts),
+        buildChangeCallbackChain(
+            buildConvertorChain(buildSetter(privateKey, requiredOpts), requiredOpts),
+            requiredOpts
+        ),
         requiredOpts
     );
 
