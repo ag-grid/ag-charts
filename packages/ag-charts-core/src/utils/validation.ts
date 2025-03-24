@@ -37,7 +37,6 @@ export interface ValidatorResult extends ValidationResult<any> {
 export interface ValidatorContext {
     path: string;
     options: any;
-    result?: ValidationResult<any>;
 }
 
 // Validator interface with optional description and required flag for better error messages.
@@ -108,13 +107,10 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
                 }
                 invalid.push(...validatorResult.invalid);
             } else if (validatorResult) {
-                cleared[key as keyof T] = context.result?.cleared ?? value;
-            } else if (!context.result) {
+                cleared[key as keyof T] = value;
+            } else {
                 const message = validateMessage(keyPath, value, validatorOrDefs, required);
                 invalid.push(new ValidationError(message, path, required));
-            }
-            if (context.result) {
-                invalid.push(...context.result.invalid);
             }
         } else {
             const nestedResult = validate(value, validatorOrDefs, keyPath);
@@ -258,14 +254,13 @@ export const partialDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
  */
 export const and = (...validators: Validator[]) =>
     attachDescription(
-        (value, context) =>
-            validators.every((validator) => {
+        (value, context) => {
+            const valid = validators.every((validator) => {
                 const result = validator(value, context);
-                if (context.result && !result) {
-                    delete context.result;
-                }
-                return result;
-            }),
+                return typeof result === 'object' ? result.valid : result;
+            });
+            return valid;
+        },
         validators
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
@@ -282,10 +277,7 @@ export const or = (...validators: Validator[]) =>
         (value, context) =>
             validators.some((validator) => {
                 const result = validator(value, context);
-                if (context.result && !result) {
-                    delete context.result;
-                }
-                return result;
+                return typeof result === 'object' ? result.valid : result;
             }),
         validators
             .map((v) => v[descriptionSymbol])
@@ -398,13 +390,25 @@ export const instanceOf = (instanceType: Function, description?: string) =>
  */
 export const arrayOf = (validator: Validator, description?: string) =>
     attachDescription(
-        (value, context) =>
-            isArray(value) &&
-            value.every((v) => {
-                const result = validator(v, context);
-                delete context.result;
+        (value, context) => {
+            if (!isArray(value)) return false;
+
+            const cleared: unknown[] = [];
+            const invalid: ValidationError[] = [];
+            const valid = value.every((v, i) => {
+                const result = validator(v, { options: v, path: `${context.path}[${i}]` });
+                if (typeof result === 'object') {
+                    invalid.push(...result.invalid);
+                    cleared.push(result.cleared);
+                    return result.valid;
+                } else {
+                    cleared.push(v);
+                }
                 return result;
-            }),
+            });
+
+            return { valid, cleared: valid ? cleared : null, invalid };
+        },
         description ?? `${validator[descriptionSymbol]} array`
     );
 
@@ -419,22 +423,20 @@ export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description = 'an object ar
     attachDescription((value, context) => {
         if (!isArray(value)) return false;
 
-            const cleared: unknown[] = [];
-            const invalid: ValidationError[] = [];
+        const cleared: unknown[] = [];
+        const invalid: ValidationError[] = [];
 
-            for (let i = 0; i < value.length; i++) {
-                const indexPath = `${context.path}[${i}]`;
-                const result = validate(value[i], defs, indexPath);
-                if (!result.invalid.some(requiredInPath(indexPath))) {
-                    cleared.push(result.cleared);
-                }
-                invalid.push(...result.invalid);
+        for (let i = 0; i < value.length; i++) {
+            const indexPath = `${context.path}[${i}]`;
+            const result = validate(value[i], defs, indexPath);
+            if (!result.invalid.some(requiredInPath(indexPath))) {
+                cleared.push(result.cleared);
             }
+            invalid.push(...result.invalid);
+        }
 
-            return { valid: true, cleared, invalid };
-        },
-        description
-    );
+        return { valid: true, cleared, invalid };
+    }, description);
 
 export const typeUnion = <T extends { type: string }>(
     defs: { [K in T['type']]: OptionsDefs<Omit<Extract<T, { type: K }>, 'type'>> },
