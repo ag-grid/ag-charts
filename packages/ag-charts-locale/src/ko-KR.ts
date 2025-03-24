@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaLabelRangesToolbar: '범위',
     ariaLabelSettingsTabBar: '설정',
     ariaLabelZoomToolbar: '확대',
-    ariaValuePanRange: '${min}[percent]에서 ${max}[percent]까지',
+    ariaValuePanRange: '${min}[percent0to2dp]에서 ${max}[percent0to2dp]까지',
     contextMenuDownload: '다운로드',
     contextMenuPanToCursor: '여기로 이동',
     contextMenuToggleOtherSeries: '다른 계열 전환',

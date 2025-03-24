@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaLabelRangesToolbar: 'Aralıklar',
     ariaLabelSettingsTabBar: 'Ayarlar',
     ariaLabelZoomToolbar: 'Yakınlaştır',
-    ariaValuePanRange: '${min}[percent] ile ${max}[percent] arası',
+    ariaValuePanRange: '${min}[percent0to2dp] ile ${max}[percent0to2dp] arası',
     contextMenuDownload: 'İndir',
     contextMenuPanToCursor: 'Buraya kaydır',
     contextMenuToggleOtherSeries: 'Diğer Serileri Değiştir',

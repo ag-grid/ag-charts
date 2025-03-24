@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaLabelRangesToolbar: 'Rozsahy',
     ariaLabelSettingsTabBar: 'Nastavenia',
     ariaLabelZoomToolbar: 'Priblížiť',
-    ariaValuePanRange: '${min}[percent] do ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] do ${max}[percent0to2dp]',
     contextMenuDownload: 'Stiahnuť',
     contextMenuPanToCursor: 'Posunúť sem',
     contextMenuToggleOtherSeries: 'Prepnúť iné série',

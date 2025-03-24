@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     ariaLabelRangesToolbar: 'Områder',
     ariaLabelSettingsTabBar: 'Innstillinger',
     ariaLabelZoomToolbar: 'Zoom',
-    ariaValuePanRange: '${min}[percent] til ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] til ${max}[percent0to2dp]',
     contextMenuDownload: 'Last ned',
     contextMenuPanToCursor: 'Panorer til dette punktet',
     contextMenuToggleOtherSeries: 'Slå av/på andre serier',

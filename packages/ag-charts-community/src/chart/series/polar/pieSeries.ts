@@ -145,7 +145,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
-            categoryKey: undefined, // overriden by function
+            categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             useLabelLayer: true,
             animationResetFns: { item: resetPieSelectionsFn, label: resetLabelFn },
@@ -1514,7 +1514,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             id: seriesId,
             ctx: { legendManager, updateService },
         } = this;
-        enabledItems.forEach((enabled, itemId) => legendManager.toggleItem({ enabled, seriesId, itemId }));
+        enabledItems.forEach((enabled, itemId) => legendManager.toggleItem(enabled, seriesId, itemId));
         legendManager.update();
         updateService.update(ChartUpdateType.SERIES_UPDATE);
     }
@@ -1624,17 +1624,5 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         }
 
         return `${datumIndex}`;
-    }
-
-    protected override getCategoryKey(): string | undefined {
-        const { calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
-
-        if (legendItemKey) {
-            return `legendItemValue`;
-        } else if (calloutLabelKey) {
-            return `calloutLabelValue`;
-        } else if (sectorLabelKey) {
-            return `sectorLabelValue`;
-        }
     }
 }
