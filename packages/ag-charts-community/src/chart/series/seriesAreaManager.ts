@@ -730,8 +730,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    // @todo(AG-7126) - handle label for multiple tooltips
-    private getDatumAriaText(datum: SeriesNodeDatum<unknown>, [tooltipContent]: TooltipContent[]): string {
+    private getDatumAriaText(datum: SeriesNodeDatum<unknown>, tooltipContent: TooltipContent[]): string {
         const description = tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent);
         return this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: datum.series.getDatumAriaText?.(datum, description) ?? description,
