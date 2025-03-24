@@ -391,12 +391,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     stringFormat
                 );
                 Logger.warn(
-                    `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.\``
+                    `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
                 );
                 continue;
             } else if (chartType && seriesDef.chartType !== chartType) {
                 Logger.warn(
-                    `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.\``
+                    `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 continue;
             }
@@ -434,13 +434,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     stringFormat
                 );
                 Logger.warn(
-                    `Unknown type \`${axisOptions.type}\` at  \`${keyPath}.type\`; expecting one of ${validAxesTypes}, ignoring all axes options.\``
+                    `Unknown type \`${axisOptions.type}\` at  \`${keyPath}.type\`; expecting one of ${validAxesTypes}, ignoring all axes options.`
                 );
                 delete options.axes;
                 break;
             } else if (axisDef.chartType !== chartType) {
                 Logger.warn(
-                    `Axis type \`${axisDef.name}\` at  \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.\``
+                    `Axis type \`${axisDef.name}\` at  \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 break;
             }
