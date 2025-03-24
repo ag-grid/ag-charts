@@ -38,9 +38,32 @@ export abstract class RovingTabContainerWidget extends Widget<HTMLDivElement, Ro
         child.setTabIndex(this.children.length === 1 ? 0 : -1);
     }
 
-    protected override onChildRemoved(child: RovingChildWidgets): void {
-        child.removeListener('focus', this.onChildFocus);
-        child.removeListener('keydown', this.onChildKeyDown);
+    protected override onChildRemoved(removedChild: RovingChildWidgets): void {
+        removedChild.removeListener('focus', this.onChildFocus);
+        removedChild.removeListener('keydown', this.onChildKeyDown);
+
+        // Repair `this.focusedChildIndex` and `this.children[].index`
+        const { focusedChildIndex, children } = this;
+        const removedFocusedChild = focusedChildIndex === removedChild.index;
+        for (let i = 0; i < children.length; i++) {
+            const child = children[i];
+            if (child.index === focusedChildIndex) {
+                this.focusedChildIndex = i;
+            }
+            child.index = i;
+        }
+        // Repair `this.children[this.focusedChildIndex].tabIndex`
+        if (removedFocusedChild) {
+            // Fall back to `focusChildIndex - 1` (if the child at the end of the array is removed)
+            const newFocusChild: RovingChildWidgets | undefined =
+                children[focusedChildIndex] ?? children[focusedChildIndex - 1];
+            if (newFocusChild) {
+                this.focusedChildIndex = newFocusChild.index;
+                newFocusChild.setTabIndex(0);
+            } else {
+                this.focusedChildIndex = 0; // this happens when this.children ends up empty
+            }
+        }
     }
 
     private readonly onChildFocus = (_event: FocusWidgetEvent, child: RovingChildWidgets): void => {
