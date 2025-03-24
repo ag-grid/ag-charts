@@ -90,6 +90,8 @@ export class LegendDOMProxy {
         const { ctx, itemSelection, datumReader, itemListener } = params;
         const lm = ctx.localeManager;
         const count = itemSelection.length;
+        // CRT-752 TODO: this can be optimised with something like this.itemList.replaceChildren(), rather than adding
+        // and removing each button one-by-one.
         itemSelection.each((markerLabel, datum, index) => {
             // Create the hidden CSS button.
             markerLabel.proxyButton?.destroy();
