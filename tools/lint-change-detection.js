@@ -142,6 +142,12 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
                         const typeString = checker.typeToString(type);
                         let suggestion = [];
 
+                        if (isMutableArray(type)) {
+                            suggestion.push('Mutable arrays are not allowed. Use readonly arrays instead.');
+                        } else if (isMutableTuple(type)) {
+                            suggestion.push('Mutable tuples are not allowed. Use readonly tuples instead.');
+                        }
+
                         if (decoratorName === 'SceneChangeDetection') {
                             if (!checkAllowedType(type)) {
                                 if (isArrayType(type)) {
@@ -155,11 +161,7 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
                                 }
                             }
                         } else if (decoratorName === 'SceneArrayChangeDetection') {
-                            if (isMutableArray(type)) {
-                                suggestion.push('Mutable arrays are not allowed. Use readonly arrays instead.');
-                            } else if (isMutableTuple(type)) {
-                                suggestion.push('Mutable tuples are not allowed. Use readonly tuples instead.');
-                            } else if (!isAllowedPrimitiveArray(type)) {
+                            if (!isAllowedPrimitiveArray(type)) {
                                 suggestion.push(
                                     'SceneArrayChangeDetection should only be applied to readonly (string | number | boolean)[] types.'
                                 );
