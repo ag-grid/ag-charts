@@ -26,7 +26,6 @@ import { DataModel, type ProcessedData, getMissCount } from '../../data/dataMode
 import {
     accumulativeValueProperty,
     animationValidation,
-    createDatumId,
     diff,
     keyProperty,
     normalisePropertyTo,
@@ -634,7 +633,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         let format: AgPieSeriesStyle | undefined;
         if (itemStyler) {
             format = this.cachedDatumCallback(
-                this.getDatumId(datum, datumIndex) + (highlighted ? '-highlight' : '-hide'),
+                this.getDatumId(datumIndex) + (highlighted ? '-highlight' : '-hide'),
                 () =>
                     this.callWithContext(itemStyler, {
                         datum,
@@ -795,7 +794,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         }));
 
         const update = (selection: typeof this.itemSelection, nodeData: PieNodeDatum[]) => {
-            selection.update(nodeData, undefined, (datum) => this.getDatumId(datum.datum, datum.datumIndex));
+            selection.update(nodeData, undefined, (datum) => this.getDatumId(datum.datumIndex));
             if (this.ctx.animationManager.isSkipped()) {
                 selection.cleanup();
             }
@@ -1534,7 +1533,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             animationManager,
             [this.itemSelection, this.highlightSelection, this.phantomSelection],
             fns.nodes,
-            (_, datum) => this.getDatumId(datum.datum, datum.datumIndex)
+            (_, datum) => this.getDatumId(datum.datumIndex)
         );
 
         seriesLabelFadeInAnimation(this, 'callout', animationManager, this.calloutLabelSelection);
@@ -1571,7 +1570,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             animationManager,
             [itemSelection, highlightSelection, phantomSelection],
             fns.nodes,
-            (_, datum) => this.getDatumId(datum.datum, datum.datumIndex),
+            (_, datum) => this.getDatumId(datum.datumIndex),
             dataDiff
         );
 
@@ -1598,7 +1597,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             animationManager,
             [itemSelection, highlightSelection, phantomSelection],
             fns.nodes,
-            (_, datum) => this.getDatumId(datum.datum, datum.datumIndex)
+            (_, datum) => this.getDatumId(datum.datumIndex)
         );
 
         seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
@@ -1608,21 +1607,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.previousRadiusScale.range = this.radiusScale.range;
     }
 
-    getDatumId(datum: any, datumIndex: number) {
-        const { calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
-
-        if (!this.processedData?.reduced?.animationValidation?.uniqueKeys) {
-            return `${datumIndex}`;
-        }
-
-        if (legendItemKey) {
-            return createDatumId(datum[legendItemKey]);
-        } else if (calloutLabelKey) {
-            return createDatumId(datum[calloutLabelKey]);
-        } else if (sectorLabelKey) {
-            return createDatumId(datum[sectorLabelKey]);
-        }
-
+    getDatumId(datumIndex: number) {
         return `${datumIndex}`;
     }
 }
