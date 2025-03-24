@@ -28,8 +28,8 @@ import {
 } from './validation';
 
 function isValid<T extends object>(options: unknown, defs: OptionsDefs<T>, path?: string): options is T {
-    const { errors } = validate(options, defs, path);
-    return errors.length === 0;
+    const { invalid } = validate(options, defs, path);
+    return invalid.length === 0;
 }
 
 describe('Validation utils', () => {
@@ -122,7 +122,7 @@ describe('Validation utils', () => {
                 (value: unknown, context) => string(value, context) && value !== '',
                 'a non-empty string'
             );
-            expect(validate<{ str: string }>({ str: '' }, { str: describedValidator }).errors).toMatchSnapshot();
+            expect(validate<{ str: string }>({ str: '' }, { str: describedValidator }).invalid).toMatchSnapshot();
         });
     });
 
@@ -214,9 +214,9 @@ describe('Validation utils', () => {
             expect(isValid({ min: 1000 }, axisSchema)).toBe(true);
             expect(isValid({ max: 100 }, axisSchema)).toBe(true);
 
-            const { valid, errors } = validate({ min: 1000, max: '100' }, axisSchema);
-            expect(valid).toEqual({ min: 1000 });
-            expect(errors).toMatchSnapshot();
+            const { cleared, invalid } = validate({ min: 1000, max: '100' }, axisSchema);
+            expect(cleared).toEqual({ min: 1000 });
+            expect(invalid).toMatchSnapshot();
         });
     });
 
@@ -290,8 +290,8 @@ describe('Validation utils', () => {
                 typo: 'should suggest fuzzy match', // Unknown option
             };
 
-            const { valid: validatedValidUser, errors: errorsValidUser } = validate(validUser, userSchema);
-            const { valid: validatedInvalidUser, errors: errorsInvalidUser } = validate(invalidUser, userSchema);
+            const { cleared: validatedValidUser, invalid: errorsValidUser } = validate(validUser, userSchema);
+            const { cleared: validatedInvalidUser, invalid: errorsInvalidUser } = validate(invalidUser, userSchema);
 
             expect(validatedValidUser).toEqual(validUser);
             expect(errorsValidUser).toEqual([]);

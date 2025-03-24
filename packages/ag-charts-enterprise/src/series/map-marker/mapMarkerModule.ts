@@ -60,11 +60,12 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
     create: (ctx: _ModuleSupport.ModuleContext) => new MapMarkerSeries(ctx),
     validate(options, optionsDefs, path) {
         const result = validate(options, optionsDefs, path);
+        const { cleared, invalid } = result;
 
-        if (result.valid?.idKey == null && (result.valid?.latitudeKey == null || result.valid?.longitudeKey == null)) {
+        if (cleared?.idKey == null && (cleared?.latitudeKey == null || cleared?.longitudeKey == null)) {
             const extendPath = (key: string) => (path ? `${path}.${key}` : key);
             const message = `Either \`${extendPath('idKey')}\` or both \`${extendPath('latitudeKey')}\` and \`${extendPath('longitudeKey')}\` are required.`;
-            result.errors.push(new ValidationError(message, path, true));
+            invalid.push(new ValidationError(message, path, true));
         }
 
         return result;
