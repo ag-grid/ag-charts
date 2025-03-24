@@ -165,18 +165,33 @@ export function formatTypeToCode(
     reference: ApiReferenceType
 ): string {
     if (apiNode.kind === 'interface') {
-        return `interface ${apiNode.name} {\n    ${apiNode.members
-            .map((nodeMember) => {
-                const memberString = `${nodeMember.name}${nodeMember.optional ? '?' : ''}: ${normalizeType(nodeMember.type)};`;
-                if (nodeMember.docs) {
-                    return nodeMember.docs
-                        .map((docsLine: string) => `// ${docsLine}`)
-                        .concat(memberString)
-                        .join('\n    ');
+        const additionalTypes = new Set<string>();
+        const typesList = apiNode.members.map((nodeMember) => {
+            const memberString = `${nodeMember.name}${nodeMember.optional ? '?' : ''}: ${normalizeType(nodeMember.type)};`;
+            if (typeof nodeMember.type === 'object') {
+                const memberType = normalizeType(
+                    nodeMember.type.kind === 'array' ? nodeMember.type.type : nodeMember.type
+                );
+                if (!isInterfaceHidden(memberType)) {
+                    additionalTypes.add(memberType);
                 }
-                return memberString;
-            })
-            .join('\n    ')}\n}`;
+            }
+            if (nodeMember.docs) {
+                return nodeMember.docs
+                    .map((docsLine: string) => `// ${docsLine}`)
+                    .concat(memberString)
+                    .join('\n    ');
+            }
+            return memberString;
+        });
+        const result = [`interface ${apiNode.name} {\n    ${typesList.join('\n    ')}\n}`];
+        for (const type of additionalTypes) {
+            const typeRef = reference.get(type);
+            if (typeRef) {
+                result.push(formatTypeToCode(typeRef, member, reference));
+            }
+        }
+        return result.join('\n\n');
     }
 
     if (apiNode.kind === 'typeAlias' && typeof apiNode.type === 'object' && apiNode.type.kind === 'function') {
