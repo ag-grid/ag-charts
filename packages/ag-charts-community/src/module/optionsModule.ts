@@ -385,7 +385,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (seriesDef == null) {
                 validSeriesTypes ??= joinFormatted(
                     Array.from(ModuleRegistry.listModulesByType(ModuleType.Series))
-                        .filter((def) => def.chartType === chartType)
+                        .filter((def) => !chartType || def.chartType === chartType)
                         .map((def) => def.name),
                     'or',
                     stringFormat
