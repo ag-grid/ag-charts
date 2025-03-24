@@ -29,6 +29,8 @@ export class Test_SceneChangeDetection {
     @SceneChangeDetection() optionalObjectArray?: object[];
     @SceneChangeDetection() requiredNumberArray: number[] = [];
     @SceneChangeDetection() optionalNumberArray?: number[];
+    @SceneChangeDetection() requiredObjectTuple: [string, string, string] = ['a', 'b', 'c'];
+    @SceneChangeDetection() optionalObjectTuple?: [string, string, string];
 }
 
 export class Test_SceneObjectChangeDetection {
@@ -42,6 +44,8 @@ export class Test_SceneObjectChangeDetection {
     @SceneObjectChangeDetection() optionalObject?: object;
     @SceneObjectChangeDetection() requiredObjectArray: object[] = [];
     @SceneObjectChangeDetection() optionalObjectArray?: object[];
+    @SceneObjectChangeDetection() requiredObjectTuple: [boolean, boolean] = [false, true];
+    @SceneObjectChangeDetection() optionalObjectTuple?: [boolean, boolean];
 }
 
 export class Test_SceneArrayChangeDetection {
