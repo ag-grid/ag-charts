@@ -9,6 +9,10 @@ export function seriesLabelFadeInAnimation<T>(
     animationManager: AnimationManager,
     ...labelSelections: Selection<NodeWithOpacity, T>[]
 ) {
+    // Force cleanup of stale labels before we start animating, they should never be displayed.
+    for (const labelSelection of labelSelections) {
+        labelSelection.cleanup();
+    }
     staticFromToMotion(
         id,
         subId,
