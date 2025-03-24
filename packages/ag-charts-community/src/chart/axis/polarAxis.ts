@@ -56,14 +56,29 @@ export abstract class PolarAxis<
     override updatePosition(): void {
         super.updatePosition();
 
+        const translationX = Math.floor(this.translation.x);
+        const translationY = Math.floor(this.translation.y);
+
+        this.tickLineGroup.translationX = translationX;
+        this.tickLineGroup.translationY = translationY;
+
+        this.tickLabelGroup.translationX = translationX;
+        this.tickLabelGroup.translationY = translationY;
+
+        this.crossLineRangeGroup.translationX = translationX;
+        this.crossLineRangeGroup.translationY = translationY;
+
+        this.crossLineLineGroup.translationX = translationX;
+        this.crossLineLineGroup.translationY = translationY;
+
+        this.crossLineLabelGroup.translationX = translationX;
+        this.crossLineLabelGroup.translationY = translationY;
+
+        this.gridGroup.translationX = translationX;
+        this.gridGroup.translationY = translationY;
+
         const selectionCtx = prepareAxisAnimationContext(this);
         const resetAxisFn = resetAxisSelectionFn(selectionCtx);
-
-        const axisTransform = this.getAxisTransform();
-        this.tickLineGroup.datum = axisTransform;
-        this.tickLabelGroup.datum = axisTransform;
-        this.labelGroup.datum = axisTransform;
-
         this.gridLineGroupSelection.each(resetAxisFn as any);
         this.tickLineGroupSelection.each(resetAxisFn as any);
         this.tickLabelGroupSelection.each(resetAxisLabelSelectionFn() as any);

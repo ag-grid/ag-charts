@@ -7,7 +7,8 @@ import { type FromToDiff, fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
-import { Group, TransformableGroup } from '../../scene/group';
+import { TransformableGroup } from '../../scene/group';
+import { Matrix } from '../../scene/matrix';
 import { Line } from '../../scene/shape/line';
 import { TransformableText } from '../../scene/shape/text';
 import { normalizeAngle360 } from '../../util/angle';
@@ -43,6 +44,7 @@ type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToD
 interface GeneratedTicks {
     ticks: TickDatum[];
     labels: LabelNodeDatum[];
+    spacing: number;
 }
 
 export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any, number, any>, D = any> extends Axis<
@@ -143,6 +145,13 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return new CartesianAxisLabel();
     }
 
+    protected getTransformBox(bbox: BBox) {
+        const matrix = new Matrix();
+        const { rotation, translationX, translationY } = this.getAxisTransform();
+        Matrix.updateTransformMatrix(matrix, 1, 1, rotation, translationX, translationY);
+        return matrix.transformBBox(bbox);
+    }
+
     protected updateDirection() {
         switch (this.position) {
             case 'top':
@@ -201,15 +210,16 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             this.tick.enabled === false &&
             this.gridLine.enabled === false
         ) {
+            const { bbox, spacing } = this.tickBBox(domain, [], []);
             // Performance optimization: if ticks have no effect, don't generate them
-            this.generatedTicks = { ticks: [], labels: [] };
+            this.generatedTicks = { ticks: [], labels: [], spacing };
             return {
                 ticks: [],
                 tickDomain: domain,
                 niceDomain: domain,
                 primaryTickCount: initialPrimaryTickCount,
                 fractionDigits: 0,
-                bbox: this.tickBBox(domain, [], []),
+                bbox,
             };
         }
 
@@ -228,9 +238,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const { ticks, tickDomain, rawTicks, fractionDigits, niceDomain = domain } = tickData;
 
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult));
-        const bbox = this.tickBBox(tickDomain, ticks, labels);
+        const { bbox, spacing } = this.tickBBox(tickDomain, ticks, labels);
 
-        this.generatedTicks = { ticks, labels };
+        this.generatedTicks = { ticks, labels, spacing };
 
         return { ticks: rawTicks, tickDomain, niceDomain, primaryTickCount, fractionDigits, bbox };
     }
@@ -262,7 +272,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
         this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
 
-        this.updateTitle(this.scale.domain, !this.generatedTicks?.ticks.length);
+        const { generatedTicks } = this;
+        this.updateTitle(this.scale.domain, generatedTicks?.spacing ?? 0);
     }
 
     protected override updatePosition(): void {
@@ -271,7 +282,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const axisTransform = this.getAxisTransform();
         this.tickLineGroup.datum = axisTransform;
         this.tickLabelGroup.datum = axisTransform;
-        this.labelGroup.datum = axisTransform;
         this.lineNodeGroup.datum = axisTransform;
         this.headingLabelGroup.datum = axisTransform;
 
@@ -292,18 +302,21 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return { x1, x2, y };
     }
 
-    private tickBBox(domain: D[], ticks: TickDatum[], labels: LabelNodeDatum[]) {
+    protected lineNodeBBox() {
         const sideFlag = this.label.getSideFlag();
+        const { x, y1, y2 } = this.getAxisLineCoordinates();
+        return new BBox(x + Math.min(sideFlag * this.seriesAreaPadding, 0), y1, this.seriesAreaPadding, y2 - y1);
+    }
+
+    protected titleBBox(domain: D[], spacing: number) {
+        this.setTitleProps(this.tempCaption, { domain, spacing });
+        return this.tempCaption.node.getBBox();
+    }
+
+    private tickBBox(domain: D[], ticks: TickDatum[], labels: LabelNodeDatum[]) {
         const boxes: BBox[] = [];
 
-        const { x, y1, y2 } = this.getAxisLineCoordinates();
-        const lineBox = new BBox(
-            x + Math.min(sideFlag * this.seriesAreaPadding, 0),
-            y1,
-            this.seriesAreaPadding,
-            y2 - y1
-        );
-        boxes.push(lineBox);
+        boxes.push(this.lineNodeBBox());
 
         if (this.tick.enabled) {
             for (const datum of ticks) {
@@ -330,17 +343,14 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             }
         }
 
+        let spacing = 0;
         if (this.title?.enabled) {
-            const spacing = BBox.merge(boxes).width;
-            this.setTitleProps(this.tempCaption, { domain, spacing });
-            const titleBox = this.tempCaption.node.getBBox();
-            if (titleBox) {
-                boxes.push(titleBox);
-            }
+            spacing = BBox.merge(boxes).width;
+            boxes.push(this.titleBBox(domain, spacing));
         }
 
         const bbox = BBox.merge(boxes);
-        return this.getTransformBox(bbox);
+        return { bbox: this.getTransformBox(bbox), spacing };
     }
 
     protected setTitleProps(caption: Caption, params: { domain: D[]; spacing: number }) {
@@ -462,14 +472,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         });
     }
 
-    protected updateTitle(domain: D[], noVisibleTicks?: boolean, spacing?: number): void {
-        const { title, tickLineGroup, tickLabelGroup, lineNode } = this;
-
-        if (title.enabled && !noVisibleTicks && spacing == null) {
-            const tickBBox = Group.computeChildrenBBox([tickLineGroup, tickLabelGroup, lineNode]);
-            spacing = tickBBox.width + (tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
-        }
-        spacing ??= 0;
+    protected updateTitle(domain: D[], spacing: number): void {
+        const { title } = this;
 
         this.setTitleProps(title.caption, { domain, spacing });
     }
@@ -497,18 +501,12 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         fromToMotion(
             this.id,
-            'axis-group',
+            'axis-group-no-rotation',
             animationManager,
             [this.tickLineGroup, this.lineNodeGroup],
             fns.groupNoRotation
         );
-        fromToMotion(
-            this.id,
-            'axis-group',
-            animationManager,
-            [this.tickLabelGroup, this.labelGroup, this.headingLabelGroup],
-            fns.group
-        );
+        fromToMotion(this.id, 'axis-group', animationManager, [this.tickLabelGroup, this.headingLabelGroup], fns.group);
         fromToMotion(this.id, 'line', animationManager, [this.lineNode], fns.line);
         fromToMotion(
             this.id,
@@ -535,7 +533,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const selectionCtx = prepareAxisAnimationContext(this);
 
         resetMotion([this.tickLineGroup, this.lineNodeGroup], resetAxisGroupFnNoRotation());
-        resetMotion([this.tickLabelGroup, this.labelGroup, this.headingLabelGroup], resetAxisGroupFn());
+        resetMotion([this.tickLabelGroup, this.headingLabelGroup], resetAxisGroupFn());
         resetMotion(
             [this.gridLineGroupSelection, this.tickLineGroupSelection],
             resetAxisSelectionFn(horizontal, selectionCtx)

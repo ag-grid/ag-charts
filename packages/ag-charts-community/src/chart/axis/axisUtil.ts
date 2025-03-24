@@ -178,13 +178,15 @@ export function prepareAxisAnimationFunctions(horizontal: boolean, ctx: AxisAnim
     };
     const line: FromToFns<Line, any, AxisLineDatum> = {
         fromFn(node, datum) {
+            // Default to starting at the same position that the node is currently in.
+            const { x } = node.previousDatum ?? datum;
             return {
-                ...(node.previousDatum ?? datum),
+                ...axisLinePosition(!horizontal, x),
                 phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING['updated'],
             };
         },
         toFn(_node, datum) {
-            return { ...datum };
+            return axisLinePosition(!horizontal, datum.x);
         },
     };
     const group: FromToFns<TransformableGroup, any, AxisGroupDatum> = {
@@ -276,6 +278,9 @@ export function resetAxisLabelSelectionFn() {
 export function resetAxisLineSelectionFn(horizontal: boolean) {
     return (_node: Line, datum: AxisLineDatum) => {
         const { x, y1, y2 } = datum;
-        return { ...axisLinePosition(!horizontal, x), ...axisLinePosition(horizontal, y1, y2) };
+        return {
+            ...axisLinePosition(!horizontal, x),
+            ...axisLinePosition(horizontal, y1, y2),
+        };
     };
 }

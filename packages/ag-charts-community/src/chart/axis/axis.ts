@@ -19,7 +19,6 @@ import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale, ScaleFormatParams } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup } from '../../scene/group';
-import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
@@ -148,7 +147,7 @@ export abstract class Axis<
     protected readonly tickLabelGroup = this.axisGroup.appendChild(
         new TransformableGroup({ name: `${this.id}-Axis-tick-labels`, zIndex: AxisGroupZIndexMap.TickLabels })
     );
-    protected readonly labelGroup = new TransformableGroup({
+    protected readonly labelGroup = new Group({
         name: `${this.id}-Labels`,
         zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
@@ -546,13 +545,6 @@ export abstract class Axis<
         fractionDigits: number;
         bbox?: BBox;
     };
-
-    protected getTransformBox(bbox: BBox) {
-        const matrix = new Matrix();
-        const { rotation, translationX, translationY } = this.getAxisTransform();
-        Matrix.updateTransformMatrix(matrix, 1, 1, rotation, translationX, translationY);
-        return matrix.transformBBox(bbox);
-    }
 
     protected calculateRotations() {
         const rotation = toRadians(this.rotation);

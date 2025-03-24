@@ -14,6 +14,7 @@ const {
     toRadians,
     Caption,
     Group,
+    TransformableGroup,
     Path,
     Line,
     Selection,
@@ -46,7 +47,13 @@ export abstract class RadiusAxis<
     private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);
     private generatedTicks: GeneratedTicks | undefined = undefined;
 
-    protected readonly lineNode = this.axisGroup.appendChild(
+    protected readonly headingLabelGroup = this.axisGroup.appendChild(
+        new TransformableGroup({ name: `${this.id}-Axis-heading` })
+    );
+    protected readonly lineNodeGroup = this.axisGroup.appendChild(
+        new TransformableGroup({ name: `${this.id}-Axis-line` })
+    );
+    protected readonly lineNode = this.lineNodeGroup.appendChild(
         new Line({
             name: `${this.id}-Axis-line`,
             zIndex: AxisGroupZIndexMap.AxisLine,
@@ -69,7 +76,7 @@ export abstract class RadiusAxis<
     constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: S) {
         super(moduleCtx, scale);
 
-        this.axisGroup.appendChild(this.title.caption.node);
+        this.headingLabelGroup.appendChild(this.title.caption.node);
 
         this.destroyFns.push(this.title.caption.registerInteraction(this.moduleCtx, 'afterend'));
     }
@@ -102,6 +109,16 @@ export abstract class RadiusAxis<
             x2: 0,
             y2: this.range[1],
         });
+    }
+
+    override updatePosition() {
+        super.updatePosition();
+
+        const axisTransform = this.getAxisTransform();
+        this.tickLineGroup.setProperties(axisTransform);
+        this.tickLabelGroup.setProperties(axisTransform);
+        this.lineNodeGroup.setProperties(axisTransform);
+        this.headingLabelGroup.setProperties(axisTransform);
     }
 
     override calculateTickLayout(

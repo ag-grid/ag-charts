@@ -1,4 +1,4 @@
-import { countLines, inRange, isArray, isObject, iterate, sortBasedOnArray, toArray } from 'ag-charts-core';
+import { countLines, inRange, isArray, isObject, sortBasedOnArray, toArray } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -41,6 +41,7 @@ interface SeparatorDatum {
 interface ComputedGroupAxisLayout {
     tickLabelLayout: LabelNodeDatum[];
     separatorLayout: SeparatorDatum[];
+    spacing: number;
 }
 
 class DepthLabelProperties extends BaseProperties {
@@ -174,7 +175,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.resizeTickTree();
 
         if (!this.tickTreeLayout?.depth) {
-            return { bbox: BBox.zero, separatorLayout: [], tickLabelLayout: [] };
+            return { bbox: BBox.zero, spacing: 0, separatorLayout: [], tickLabelLayout: [] };
         }
 
         const { step } = this.scale;
@@ -358,17 +359,23 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const separatorLayout = [...separatorData.values()];
         separatorLayout.push(separatorLayout[0]);
 
-        const axisBoxes = [this.lineNode.getBBox(), new BBox(0, 0, separatorLayout[0].tickSize * sideFlag, 0)];
+        const bboxes = [
+            BBox.merge(labelBBoxes.values()),
+            this.lineNodeBBox(),
+            new BBox(0, 0, separatorLayout[0].tickSize * sideFlag, 0),
+        ];
 
+        let spacing = 0;
         if (title.enabled) {
-            this.updateTitle(this.scale.domain, false, separatorLayout[0].tickSize);
-            axisBoxes.push(title.caption.node.getBBox());
+            spacing = BBox.merge(bboxes).width;
+            bboxes.push(this.titleBBox(this.scale.domain, spacing));
         }
 
-        const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), axisBoxes));
+        const mergedBBox = BBox.merge(bboxes);
 
         return {
             bbox: this.getTransformBox(mergedBBox),
+            spacing,
             separatorLayout,
             tickLabelLayout,
         };
@@ -395,7 +402,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.moduleCtx.animationManager.skipCurrentBatch();
 
         const { tickScale, gridLine, gridLength } = this;
-        const { separatorLayout } = this.computedLayout;
+        const { separatorLayout, spacing } = this.computedLayout;
 
         const ticksData: TickDatum[] = tickScale
             .ticks({
@@ -421,14 +428,14 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.updateAxisLine();
         this.updateGridLines();
         this.updateTickLines();
-        this.updateTitle(this.scale.domain);
+        this.updateTitle(this.scale.domain, spacing);
 
         this.resetSelectionNodes();
     }
 
     override calculateLayout() {
-        const { separatorLayout, tickLabelLayout, bbox } = this.computeLayout();
-        this.computedLayout = { separatorLayout, tickLabelLayout };
+        const { separatorLayout, tickLabelLayout, spacing, bbox } = this.computeLayout();
+        this.computedLayout = { separatorLayout, tickLabelLayout, spacing };
         return { bbox, niceDomain: this.scale.domain };
     }
 
