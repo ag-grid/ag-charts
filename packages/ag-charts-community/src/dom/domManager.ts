@@ -308,8 +308,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         pendingContainer.appendChild(this.element);
         this.sizeMonitor.observe(pendingContainer, (size) => {
             this.containerSize = size;
-            this.updateContainerSize();
-            this.listeners.dispatch('resize', { type: 'resize' });
+            setTimeout(() => {
+                this.updateContainerSize();
+                this.listeners.dispatch('resize', { type: 'resize' });
+            }, 0);
         });
 
         this.listeners.dispatch('container-changed', { type: 'container-changed' });
