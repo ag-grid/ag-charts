@@ -273,6 +273,10 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         this.zoomModule = enabled;
     }
 
+    public isNavigatorEnabled() {
+        return this.navigatorModule;
+    }
+
     public isZoomEnabled() {
         return this.zoomModule;
     }
@@ -356,7 +360,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     public panToBBox(callerId: string, seriesRect: BBox, target: BBoxValues): boolean {
-        if (!this.isZoomEnabled()) return false;
+        if (!this.isZoomEnabled() && !this.isNavigatorEnabled) return false;
 
         const zoom = this.getZoom();
         if (zoom === undefined || (!zoom.x && !zoom.y)) return false;
