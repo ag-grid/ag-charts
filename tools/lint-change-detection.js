@@ -85,7 +85,7 @@ function isTupleType(type) {
  * Checks if the type (or union) is a mutable tuple.
  */
 function isMutableTuple(type) {
-    return isTupleType(type) && !isReadonlyArray(type);
+    return isTupleType(type) && !(type.target && type.target.readonly);
 }
 
 /**
