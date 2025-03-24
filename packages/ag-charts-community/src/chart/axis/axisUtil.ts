@@ -23,7 +23,8 @@ export interface TickDatum {
 }
 
 export interface AxisLineDatum {
-    x: number;
+    x1: number;
+    x2: number;
     y1: number;
     y2: number;
 }
@@ -216,19 +217,24 @@ export function resetAxisGroupFn() {
     };
 }
 
-export function resetAxisSelectionFn(ctx: AxisAnimationContext) {
+export function resetAxisSelectionFn(horizontal: boolean, axisExtents: [number, number], ctx: AxisAnimationContext) {
     const { visible: rangeVisible, min, max } = ctx;
 
     return (_node: Line, datum: AxisNodeDatum) => {
-        const y = datum.translationY;
+        let x1: number;
+        let x2: number;
+        let y1: number;
+        let y2: number;
+        if (horizontal) {
+            x1 = x2 = datum.translationY;
+            [y1, y2] = axisExtents;
+        } else {
+            [x1, x2] = axisExtents;
+            y1 = y2 = datum.translationY;
+        }
 
-        const visible = rangeVisible && y >= min && y <= max;
-        return {
-            y,
-            translationY: 0,
-            opacity: 1,
-            visible,
-        };
+        const visible = rangeVisible && datum.translationY >= min && datum.translationY <= max;
+        return { x1, x2, y1, y2, translationY: 0, opacity: 1, visible };
     };
 }
 

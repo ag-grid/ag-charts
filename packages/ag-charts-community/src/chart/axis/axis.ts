@@ -46,7 +46,7 @@ import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
-import { type AxisLineDatum, NiceMode } from './axisUtil';
+import { NiceMode } from './axisUtil';
 
 export interface LabelNodeDatum {
     tickId: string;
@@ -389,11 +389,6 @@ export abstract class Axis<
         this.updateGridLines();
         this.updateTickLines();
         this.updateCrossLines();
-    }
-
-    protected getAxisLineCoordinates(): AxisLineDatum {
-        const [min, max] = findMinMax(this.range);
-        return { x: 0, y1: min, y2: max };
     }
 
     protected getLabelStyles(
