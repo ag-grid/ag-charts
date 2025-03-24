@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     ariaLabelRangesToolbar: '范围',
     ariaLabelSettingsTabBar: '设置',
     ariaLabelZoomToolbar: '缩放',
-    ariaValuePanRange: '${min}[percent] 至 ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] 至 ${max}[percent0to2dp]',
     contextMenuDownload: '下载',
     contextMenuPanToCursor: '平移到此处',
     contextMenuToggleOtherSeries: '切换其他系列',

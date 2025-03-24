@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaLabelRangesToolbar: 'حدود',
     ariaLabelSettingsTabBar: 'ترتیبات',
     ariaLabelZoomToolbar: 'زوم',
-    ariaValuePanRange: '${min}[percent] سے ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] سے ${max}[percent0to2dp]',
     contextMenuDownload: 'ڈاؤن لوڈ کریں',
     contextMenuPanToCursor: 'یہاں تک گھمائیں',
     contextMenuToggleOtherSeries: 'دیگر سیریز کو ٹوگل کریں',

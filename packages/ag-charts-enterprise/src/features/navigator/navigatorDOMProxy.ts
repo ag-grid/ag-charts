@@ -111,7 +111,9 @@ export class NavigatorDOMProxy {
     }
 
     private updateSliderRatios() {
-        const { _min: min, _max: max } = this;
+        let { _min: min, _max: max } = this;
+        min = Math.round(min * 100) / 100;
+        max = Math.round(max * 100) / 100;
         const panAria = this.ctx.localeManager.t('ariaValuePanRange', { min, max });
         this.sliders[0].setValueRatio(min);
         this.sliders[1].setValueRatio(min, { ariaValueText: panAria });

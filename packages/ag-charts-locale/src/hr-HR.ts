@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaLabelRangesToolbar: 'Rasponi',
     ariaLabelSettingsTabBar: 'Postavke',
     ariaLabelZoomToolbar: 'Zum',
-    ariaValuePanRange: '${min}[percent] do ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] do ${max}[percent0to2dp]',
     contextMenuDownload: 'Preuzmi',
     contextMenuPanToCursor: 'Pomakni ovdje',
     contextMenuToggleOtherSeries: 'Prebaci ostale serije',
