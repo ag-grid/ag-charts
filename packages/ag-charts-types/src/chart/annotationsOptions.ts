@@ -547,8 +547,10 @@ export type AgAnnotationsToolbarButtonValue =
 // * Options Toolbar *
 // *******************/
 
+type AgAnnotationToolbarButton = AgAnnotationOptionsToolbarButton | AgAnnotationOptionsToolbarSwitch;
+
 export interface AgAnnotationOptionsToolbar extends Toggleable {
-    buttons?: Array<AgAnnotationOptionsToolbarButton | AgAnnotationOptionsToolbarSwitch>;
+    buttons?: AgAnnotationToolbarButton[];
 }
 
 export interface AgAnnotationOptionsToolbarButton extends ToolbarButton {
