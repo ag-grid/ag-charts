@@ -1,9 +1,31 @@
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
+import type { Line } from '../../scene/shape/line';
 import { RATIO, TempValidate, UNION } from '../../util/validation';
 import { Axis } from './axis';
 import type { TickInterval } from './axisTick';
-import { prepareAxisAnimationContext, resetAxisLabelSelectionFn, resetAxisSelectionFn } from './axisUtil';
+import { type AxisAnimationContext, prepareAxisAnimationContext, resetAxisLabelSelectionFn } from './axisUtil';
+
+interface AxisNodeDatum {
+    translationY: number;
+    tickId: string;
+}
+
+function resetAxisSelectionFn(ctx: AxisAnimationContext) {
+    const { visible: rangeVisible, min, max } = ctx;
+
+    return (_node: Line, datum: AxisNodeDatum) => {
+        const y = datum.translationY;
+
+        const visible = rangeVisible && y >= min && y <= max;
+        return {
+            y,
+            translationY: 0,
+            opacity: 1,
+            visible,
+        };
+    };
+}
 
 export interface PolarAxisPathPoint {
     x: number;
@@ -37,7 +59,10 @@ export abstract class PolarAxis<
         const selectionCtx = prepareAxisAnimationContext(this);
         const resetAxisFn = resetAxisSelectionFn(selectionCtx);
 
-        this.axisGroup.setProperties(this.getAxisTransform());
+        const axisTransform = this.getAxisTransform();
+        this.tickLineGroup.datum = axisTransform;
+        this.tickLabelGroup.datum = axisTransform;
+        this.labelGroup.datum = axisTransform;
 
         this.gridLineGroupSelection.each(resetAxisFn as any);
         this.tickLineGroupSelection.each(resetAxisFn as any);

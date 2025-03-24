@@ -146,13 +146,25 @@ export abstract class AngleAxis<
     }
 
     override updatePosition() {
-        const { translation, axisGroup, gridGroup, crossLineRangeGroup, crossLineLineGroup, crossLineLabelGroup } =
-            this;
+        const {
+            translation,
+            tickLineGroup,
+            tickLabelGroup,
+            labelGroup,
+            gridGroup,
+            crossLineRangeGroup,
+            crossLineLineGroup,
+            crossLineLabelGroup,
+        } = this;
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
-        axisGroup.translationX = translationX;
-        axisGroup.translationY = translationY;
+        tickLineGroup.translationX = translationX;
+        tickLineGroup.translationY = translationY;
+        tickLabelGroup.translationX = translationX;
+        tickLabelGroup.translationY = translationY;
+        labelGroup.translationX = translationX;
+        labelGroup.translationY = translationY;
 
         gridGroup.translationX = translationX;
         gridGroup.translationY = translationY;

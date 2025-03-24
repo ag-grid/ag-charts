@@ -26,7 +26,7 @@ import {
 import { createDatumId } from '../data/processors';
 import { calculateLabelRotation } from '../label';
 import type { LabelNodeDatum } from './axis';
-import type { TickDatum } from './axisUtil';
+import { type TickDatum, axisLinePosition } from './axisUtil';
 import { CategoryAxis } from './categoryAxis';
 import { type TreeLayout, treeLayout } from './tree';
 
@@ -476,16 +476,19 @@ export class GroupedCategoryAxis extends CategoryAxis {
     protected override updateGridLines() {
         if (!this.gridLength) return;
 
+        const { horizontal } = this;
         const { width, style } = this.gridLine;
-        const lineSize = this.gridLength * -this.label.getSideFlag();
+
+        const [p1, p2] = this.axisExtents();
+        const crossAxisPosition = axisLinePosition(!horizontal, p1, p2);
 
         this.gridLineGroupSelection.each((line, datum, index) => {
             const { stroke, lineDash } = style[index % style.length];
             const y = datum.translationY;
+            const axisPosition = axisLinePosition(horizontal, y);
             line.visible = this.inRange(y);
-            line.x1 = 0;
-            line.x2 = lineSize;
-            line.y = y;
+            line.setProperties(crossAxisPosition);
+            line.setProperties(axisPosition);
             line.stroke = stroke;
             line.strokeWidth = width;
             line.lineDash = lineDash;

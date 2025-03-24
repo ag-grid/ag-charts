@@ -139,16 +139,16 @@ export abstract class Axis<
 
     interactionEnabled = true;
 
-    readonly axisGroup = new TransformableGroup({ name: `${this.id}-axis` });
+    protected readonly axisGroup = new Group({ name: `${this.id}-axis` });
 
     // Order is important to apply the correct z-index.
     protected readonly tickLineGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-lines`, zIndex: AxisGroupZIndexMap.TickLines })
+        new TransformableGroup({ name: `${this.id}-Axis-tick-lines`, zIndex: AxisGroupZIndexMap.TickLines })
     );
     protected readonly tickLabelGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: AxisGroupZIndexMap.TickLabels })
+        new TransformableGroup({ name: `${this.id}-Axis-tick-labels`, zIndex: AxisGroupZIndexMap.TickLabels })
     );
-    protected readonly labelGroup = new Group({
+    protected readonly labelGroup = new TransformableGroup({
         name: `${this.id}-Labels`,
         zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
