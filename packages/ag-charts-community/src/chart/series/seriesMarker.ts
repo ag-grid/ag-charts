@@ -7,7 +7,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { SceneChangeDetection } from '../../scene/changeDetectable';
+import { SceneChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../../scene/changeDetectable';
 import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
 import { Property } from '../../util/properties';
 import { FillGradientDefaults, FillPatternDefaults } from './seriesProperties';
@@ -22,7 +22,7 @@ export class SeriesMarker<TParams = never>
 
     /** One of the predefined marker names, or a marker shape function (for user-defined markers). */
     @Property
-    @SceneChangeDetection()
+    @SceneObjectChangeDetection({ equals: TRIPLE_EQ })
     shape: AgMarkerShape = 'circle';
 
     @Property
