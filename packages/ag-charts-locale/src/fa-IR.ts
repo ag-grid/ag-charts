@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaLabelRangesToolbar: 'محدوده‌ها',
     ariaLabelSettingsTabBar: 'تنظیمات',
     ariaLabelZoomToolbar: 'بزرگنمایی',
-    ariaValuePanRange: '${min}[percent] تا ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] تا ${max}[percent0to2dp]',
     contextMenuDownload: 'دانلود',
     contextMenuPanToCursor: 'حرکت به اینجا',
     contextMenuToggleOtherSeries: 'تغییر وضعیت سایر سری‌ها',

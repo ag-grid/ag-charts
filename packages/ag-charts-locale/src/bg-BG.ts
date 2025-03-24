@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaLabelRangesToolbar: 'Обхвати',
     ariaLabelSettingsTabBar: 'Настройки',
     ariaLabelZoomToolbar: 'Мащабиране',
-    ariaValuePanRange: '${min}[percent] до ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] до ${max}[percent0to2dp]',
     contextMenuDownload: 'Изтегляне',
     contextMenuPanToCursor: 'Премести тук',
     contextMenuToggleOtherSeries: 'Превключване на други серии',

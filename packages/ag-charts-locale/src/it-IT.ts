@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_IT_IT: Record<string, string> = {
     ariaLabelRangesToolbar: 'Intervalli',
     ariaLabelSettingsTabBar: 'Impostazioni',
     ariaLabelZoomToolbar: 'Zoom',
-    ariaValuePanRange: '${min}[percent] a ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] a ${max}[percent0to2dp]',
     contextMenuDownload: 'Scarica',
     contextMenuPanToCursor: 'Sposta qui',
     contextMenuToggleOtherSeries: 'Attiva/Disattiva altre serie',

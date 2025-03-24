@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaLabelRangesToolbar: 'Intervale',
     ariaLabelSettingsTabBar: 'Setări',
     ariaLabelZoomToolbar: 'Zoomare',
-    ariaValuePanRange: '${min}[percent] la ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] la ${max}[percent0to2dp]',
     contextMenuDownload: 'Descărcare',
     contextMenuPanToCursor: 'Mută vizualizarea aici',
     contextMenuToggleOtherSeries: 'Comută alte serii',

@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaLabelRangesToolbar: 'טווחים',
     ariaLabelSettingsTabBar: 'הגדרות',
     ariaLabelZoomToolbar: 'זום',
-    ariaValuePanRange: '${min}[percent] עד ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] עד ${max}[percent0to2dp]',
     contextMenuDownload: 'הורדה',
     contextMenuPanToCursor: 'גלול לפה',
     contextMenuToggleOtherSeries: 'החלף נראות של סדרות אחרות',
