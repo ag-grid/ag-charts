@@ -49,8 +49,22 @@ export class Test_SceneObjectChangeDetection {
 }
 
 export class Test_SceneArrayChangeDetection {
-    @SceneArrayChangeDetection() requiredAnyArray: any[] = [];
-    @SceneArrayChangeDetection() optionalAnyArray?: any[];
+    @SceneArrayChangeDetection() requiredString: string = '';
+    @SceneArrayChangeDetection() optionalString?: string;
+    @SceneArrayChangeDetection() requiredNumber: number = 0;
+    @SceneArrayChangeDetection() optionalNumber?: number;
+    @SceneArrayChangeDetection() requiredBoolean: boolean = true;
+    @SceneArrayChangeDetection() optionalBoolean?: boolean;
+    @SceneArrayChangeDetection() requiredObject: object = {};
+    @SceneArrayChangeDetection() optionalObject?: object;
+    @SceneArrayChangeDetection() requiredMutableAnyArray: any[] = [];
+    @SceneArrayChangeDetection() optionalMutableAnyArray?: any[];
+    @SceneArrayChangeDetection() requiredReadonlyAnyArray: readonly any[] = [];
+    @SceneArrayChangeDetection() optionalReadonlyAnyArray?: readonly any[];
+    @SceneArrayChangeDetection() requiredMutableAnyTuple: [any, any, any] = [78, 'mystring', false];
+    @SceneArrayChangeDetection() optionalMutableAnyTuple?: [any, any, any];
+    @SceneArrayChangeDetection() requiredReadonlyAnyTuple: readonly [any, any, any] = [78, 'mystring', false];
+    @SceneArrayChangeDetection() optionalReadonlyAnyTuple?: readonly [any, any, any];
     @SceneArrayChangeDetection() requiredMutableNumberArray: number[] = [];
     @SceneArrayChangeDetection() optionalMutableNumberArray?: number[] = [];
     @SceneArrayChangeDetection() requiredReadonlyNumberArray: readonly number[] = [];
