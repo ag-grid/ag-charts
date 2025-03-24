@@ -1,11 +1,11 @@
 [
     {
         "version": "11.2.1",
-        "date": "March 25th, 2025"
+        "date": "March 24th, 2025"
     },
     {
         "version": "11.2.0",
-        "date": "March 25th, 2025",
+        "date": "March 24th, 2025",
         "highlights": [
             {
                 "text": "Shared and Compact Tooltip Modes",
