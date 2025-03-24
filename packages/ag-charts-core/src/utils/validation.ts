@@ -102,10 +102,13 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
             const objectResult = typeof validatorResult === 'object';
 
             if (objectResult) {
+                invalid.push(...validatorResult.invalid);
                 if (validatorResult.valid) {
                     cleared[key as keyof T] = validatorResult.cleared as any;
+                } else if (!validatorResult.invalid.some(requiredInPath(keyPath))) {
+                    const message = validateMessage(keyPath, validatorResult.cleared, validatorOrDefs, required);
+                    invalid.push(new ValidationError(message, path, required));
                 }
-                invalid.push(...validatorResult.invalid);
             } else if (validatorResult) {
                 cleared[key as keyof T] = value;
             } else {
@@ -254,13 +257,11 @@ export const partialDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
  */
 export const and = (...validators: Validator[]) =>
     attachDescription(
-        (value, context) => {
-            const valid = validators.every((validator) => {
+        (value, context) =>
+            validators.every((validator) => {
                 const result = validator(value, context);
                 return typeof result === 'object' ? result.valid : result;
-            });
-            return valid;
-        },
+            }),
         validators
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
@@ -393,19 +394,22 @@ export const arrayOf = (validator: Validator, description?: string) =>
         (value, context) => {
             if (!isArray(value)) return false;
 
+            let valid: boolean = true;
             const cleared: unknown[] = [];
             const invalid: ValidationError[] = [];
-            const valid = value.every((v, i) => {
-                const result = validator(v, { options: v, path: `${context.path}[${i}]` });
+
+            for (let i = 0; i < value.length; i++) {
+                const options = value[i];
+                const result = validator(options, { options, path: `${context.path}[${i}]` });
                 if (typeof result === 'object') {
                     invalid.push(...result.invalid);
                     cleared.push(result.cleared);
-                    return result.valid;
+                    valid &&= result.valid;
                 } else {
-                    cleared.push(v);
+                    cleared.push(options);
+                    valid &&= result;
                 }
-                return result;
-            });
+            }
 
             return { valid, cleared: valid ? cleared : null, invalid };
         },
@@ -445,19 +449,18 @@ export const typeUnion = <T extends { type: string }>(
     const typeValidator = partialDefs<{ type: string }>({ type: required(union(...Object.keys(defs))) });
     return attachDescription((value: any, context) => {
         const typeResult = typeValidator(value, context);
-        if (isBoolean(typeResult)) return typeResult;
-        if (typeResult.valid) {
-            const type: T['type'] = value.type;
-            const typeDefs = { type: required(constant(type)), ...defs[type] };
-            const result = optionsDefs(typeDefs)(value, context);
-            if (typeof result === 'object') {
-                for (const error of result.invalid) {
-                    error.message += ` (type="${type}")`;
-                }
+
+        if (isBoolean(typeResult) || !typeResult.valid) return typeResult;
+
+        const type: T['type'] = value.type;
+        const typeDefs = { type: required(constant(type)), ...defs[type] };
+        const result = optionsDefs(typeDefs)(value, context);
+        if (typeof result === 'object') {
+            for (const error of result.invalid) {
+                error.message += ` (type="${type}")`;
             }
-            return result;
         }
-        return { valid: false, cleared: typeResult.cleared, invalid: typeResult.invalid };
+        return result;
     }, description);
 };
 
