@@ -205,12 +205,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             }
             return this.padBandExtent(keys);
         } else {
-            const yExtent = this.domainForClippedRange(
-                ChartAxisDirection.Y,
-                ['yHighValue', 'yLowValue'],
-                'xValue',
-                true
-            );
+            const yExtent = this.domainForClippedRange(direction, ['yHighValue', 'yLowValue'], 'xValue', true);
             const fixedYExtent = findMinMax(yExtent);
             return fixNumericExtent(fixedYExtent);
         }

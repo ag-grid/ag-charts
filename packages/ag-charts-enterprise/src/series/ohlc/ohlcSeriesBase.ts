@@ -180,7 +180,7 @@ export abstract class OhlcSeriesBase<
             return this.padBandExtent(keys);
         }
 
-        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['highValue', 'lowValue'], 'xValue', true);
+        const yExtent = this.domainForClippedRange(direction, ['highValue', 'lowValue'], 'xValue', true);
         return fixNumericExtent(yExtent);
     }
 

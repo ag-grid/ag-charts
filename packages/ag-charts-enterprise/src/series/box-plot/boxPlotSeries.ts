@@ -124,7 +124,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             return this.padBandExtent(keys);
         }
 
-        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['minValue', 'maxValue'], 'xValue', true);
+        const yExtent = this.domainForClippedRange(direction, ['minValue', 'maxValue'], 'xValue', true);
         return fixNumericExtent(yExtent);
     }
 

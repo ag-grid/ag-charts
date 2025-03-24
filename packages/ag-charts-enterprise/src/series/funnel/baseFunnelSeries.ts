@@ -255,7 +255,7 @@ export abstract class BaseFunnelSeries<
             }
             return this.padBandExtent(keys);
         } else {
-            const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValue'], 'xValue', true);
+            const yExtent = this.domainForClippedRange(direction, ['yValue'], 'xValue', true);
             const maxExtent = Math.max(...yExtent);
             const fixedYExtent = [-maxExtent, maxExtent];
             return fixNumericExtent(fixedYExtent);
