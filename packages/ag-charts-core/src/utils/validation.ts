@@ -442,18 +442,20 @@ export const typeUnion = <T extends { type: string }>(
 ) => {
     const typeValidator = partialDefs<{ type: string }>({ type: required(union(...Object.keys(defs))) });
     return attachDescription((value: any, context) => {
-        if (typeValidator(value, context)) {
+        const typeResult = typeValidator(value, context);
+        if (isBoolean(typeResult)) return typeResult;
+        if (typeResult.valid) {
             const type: T['type'] = value.type;
             const typeDefs = { type: required(constant(type)), ...defs[type] };
             const result = optionsDefs(typeDefs)(value, context);
-            if (context.result) {
-                for (const error of context.result.invalid) {
+            if (typeof result === 'object') {
+                for (const error of result.invalid) {
                     error.message += ` (type="${type}")`;
                 }
             }
             return result;
         }
-        return false;
+        return { valid: false, cleared: typeResult.cleared, invalid: typeResult.invalid };
     }, description);
 };
 
