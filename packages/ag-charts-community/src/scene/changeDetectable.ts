@@ -1,3 +1,5 @@
+import { arraysEqual } from 'ag-charts-core';
+
 type Target = { [K in string]: any } & { onChangeDetection(privateKey: string): void };
 
 type SceneChangeDetectionOptions<T = any> = {
@@ -7,7 +9,21 @@ type SceneChangeDetectionOptions<T = any> = {
     equals?: (newValue: T, oldValue: T) => boolean;
 };
 
-const TRIPLE_EQ = (lhs: unknown, rhs: unknown) => lhs === rhs;
+type SceneObjectChangeDetectionOptions<T = any> = {
+    convertor?: (o: any) => any;
+    changeCb?: (o: T) => any;
+    checkDirtyOnAssignment?: boolean;
+    equals: (newValue: T, oldValue: T) => boolean;
+};
+
+type SceneArrayChangeDetectionOptions<T = any> = {
+    convertor?: (o: any) => any;
+    changeCb?: (o: T) => any;
+    checkDirtyOnAssignment?: boolean;
+    equals?: never;
+};
+
+export const TRIPLE_EQ = (lhs: unknown, rhs: unknown) => lhs === rhs;
 
 export function SceneChangeDetection<T extends Target = any>(opts?: SceneChangeDetectionOptions) {
     return function (target: T, key: string) {
@@ -20,6 +36,16 @@ export function SceneChangeDetection<T extends Target = any>(opts?: SceneChangeD
 
         prepareGetSet(target, key, privateKey, opts);
     };
+}
+
+export function SceneObjectChangeDetection<T extends Target = any>(opts: SceneObjectChangeDetectionOptions) {
+    return SceneChangeDetection<T>(opts);
+}
+
+export function SceneArrayChangeDetection<T extends Target = any>(opts?: SceneArrayChangeDetectionOptions) {
+    const baseOpts: SceneChangeDetectionOptions = opts ?? {};
+    baseOpts.equals = arraysEqual;
+    return SceneChangeDetection<T>(opts);
 }
 
 function prepareGetSet(target: any, key: string, privateKey: string, opts?: SceneChangeDetectionOptions) {
