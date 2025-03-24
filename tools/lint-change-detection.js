@@ -5,6 +5,8 @@ const ts = require('typescript');
 const glob = require('glob');
 const path = require('path');
 
+const SCENE_DECORATORS = ['SceneChangeDetection', 'SceneArrayChangeDetection', 'SceneObjectChangeDetection'];
+
 /**
  * Returns true if the type is one of the allowed primitive types.
  * Allowed: number, boolean, string, or undefined.
@@ -141,11 +143,12 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
                         const type = checker.getTypeOfSymbolAtLocation(symbol, node);
                         const typeString = checker.typeToString(type);
                         let suggestion = [];
-
-                        if (isMutableArray(type)) {
-                            suggestion.push('Mutable arrays are not allowed. Use readonly arrays instead.');
-                        } else if (isMutableTuple(type)) {
-                            suggestion.push('Mutable tuples are not allowed. Use readonly tuples instead.');
+                        if (SCENE_DECORATORS.includes(decoratorName)) {
+                            if (isMutableArray(type)) {
+                                suggestion.push('Mutable arrays are not allowed. Use readonly arrays instead.');
+                            } else if (isMutableTuple(type)) {
+                                suggestion.push('Mutable tuples are not allowed. Use readonly tuples instead.');
+                            }
                         }
 
                         if (decoratorName === 'SceneChangeDetection') {

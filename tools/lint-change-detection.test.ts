@@ -12,6 +12,9 @@ function SceneObjectChangeDetection() {
 function SceneArrayChangeDetection() {
     return function (_target: any, _key: string) {};
 }
+function ProxyProperty(_proxyPath: string) {
+    return function (_target: any, _key: string) {};
+}
 
 // Test class with decorator usages
 export class Test_SceneChangeDetection {
@@ -84,6 +87,10 @@ export class Test_SceneArrayChangeDetection {
     @SceneArrayChangeDetection() optionalMutableNumberTuple?: [number, number];
     @SceneArrayChangeDetection() requiredReadonlyNumberTuple: readonly [number, number] = [0, 0];
     @SceneArrayChangeDetection() optionalReadonlyNumberTuple?: readonly [number, number];
+}
+
+export class Test_ProxyProperty {
+    @ProxyProperty('marker.lineDash') lineDash?: number[];
 }
 
 describe('lint-change-detection', () => {
