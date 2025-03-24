@@ -30,7 +30,9 @@ function isAllowedPrimitiveArray(type) {
         return type.types.every((t) => isAllowedPrimitiveArray(t));
     }
     if (isTupleType(type)) {
-        return type.target && type.target.elementTypes ? type.target.elementTypes.every(isAllowedPrimitive) : false;
+        if (type.resolvedTypeArguments) {
+            return type.resolvedTypeArguments.every(isAllowedPrimitive);
+        }
     }
     if (isArrayType(type)) {
         const typeArguments = type.typeArguments || [];
