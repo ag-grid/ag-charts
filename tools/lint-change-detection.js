@@ -140,48 +140,51 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
                     if (symbol) {
                         const type = checker.getTypeOfSymbolAtLocation(symbol, node);
                         const typeString = checker.typeToString(type);
-                        let suggestion = '';
+                        let suggestion = [];
 
                         if (decoratorName === 'SceneChangeDetection') {
                             if (!checkAllowedType(type)) {
                                 if (isArrayType(type)) {
-                                    suggestion = 'Switch to @SceneArrayChangeDetection for array properties.';
+                                    suggestion.push('Switch to @SceneArrayChangeDetection for array properties.');
                                 } else if (isTupleType(type)) {
-                                    suggestion = 'Switch to @SceneArrayChangeDetection for tuple properties.';
+                                    suggestion.push('Switch to @SceneArrayChangeDetection for tuple properties.');
                                 } else if (isObjectType(type)) {
-                                    suggestion = 'Switch to @SceneObjectChangeDetection for object properties.';
+                                    suggestion.push('Switch to @SceneObjectChangeDetection for object properties.');
                                 } else {
-                                    suggestion = 'Property type is not allowed for change detection.';
+                                    suggestion.push('Property type is not allowed for change detection.');
                                 }
                             }
                         } else if (decoratorName === 'SceneArrayChangeDetection') {
                             if (isMutableArray(type)) {
-                                suggestion = 'Mutable arrays are not allowed. Use readonly arrays instead.';
+                                suggestion.push('Mutable arrays are not allowed. Use readonly arrays instead.');
                             } else if (isMutableTuple(type)) {
-                                suggestion = 'Mutable tuples are not allowed. Use readonly tuples instead.';
+                                suggestion.push('Mutable tuples are not allowed. Use readonly tuples instead.');
                             } else if (!isAllowedPrimitiveArray(type)) {
-                                suggestion =
-                                    'SceneArrayChangeDetection should only be applied to readonly (string | number | boolean)[] types.';
+                                suggestion.push(
+                                    'SceneArrayChangeDetection should only be applied to readonly (string | number | boolean)[] types.'
+                                );
                             }
                         } else if (decoratorName === 'SceneObjectChangeDetection') {
                             if (isArrayType(type)) {
-                                suggestion = 'Switch to @SceneArrayChangeDetection for array properties.';
+                                suggestion.push('Switch to @SceneArrayChangeDetection for array properties.');
                             } else if (isTupleType(type)) {
-                                suggestion = 'Switch to @SceneArrayChangeDetection for tuple properties.';
+                                suggestion.push('Switch to @SceneArrayChangeDetection for tuple properties.');
                             } else if (!isObjectType(type)) {
-                                suggestion =
-                                    'SceneObjectChangeDetection should only be applied to non-array object types.';
+                                suggestion.push(
+                                    'SceneObjectChangeDetection should only be applied to non-array object types.'
+                                );
                             }
                         }
 
-                        if (suggestion) {
+                        if (suggestion.length > 0) {
                             const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.name.getStart());
                             const filePath = useRelativePaths
                                 ? path.relative(process.cwd(), sourceFile.fileName)
                                 : sourceFile.fileName;
                             errors.push(
-                                `${filePath}:${line + 1}:${character + 1} - Decorator @${decoratorName} applied to property '${propertyName}' with type '${typeString}'. ${suggestion}`
+                                `${filePath}:${line + 1}:${character + 1} - Decorator @${decoratorName} applied to property '${propertyName}' with type '${typeString}'.`
                             );
+                            errors.push(...suggestion.map((s) => `    * ${s}`), '');
                         }
                     }
                 });
