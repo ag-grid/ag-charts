@@ -57,6 +57,7 @@ export class Test_SceneArrayChangeDetection {
     @SceneArrayChangeDetection() optionalBoolean?: boolean;
     @SceneArrayChangeDetection() requiredObject: object = {};
     @SceneArrayChangeDetection() optionalObject?: object;
+
     @SceneArrayChangeDetection() requiredMutableAnyArray: any[] = [];
     @SceneArrayChangeDetection() optionalMutableAnyArray?: any[];
     @SceneArrayChangeDetection() requiredReadonlyAnyArray: readonly any[] = [];
@@ -65,6 +66,16 @@ export class Test_SceneArrayChangeDetection {
     @SceneArrayChangeDetection() optionalMutableAnyTuple?: [any, any, any];
     @SceneArrayChangeDetection() requiredReadonlyAnyTuple: readonly [any, any, any] = [78, 'mystring', false];
     @SceneArrayChangeDetection() optionalReadonlyAnyTuple?: readonly [any, any, any];
+
+    @SceneArrayChangeDetection() requiredMutableObjectArray: object[] = [];
+    @SceneArrayChangeDetection() optionalMutableObjectArray?: object[];
+    @SceneArrayChangeDetection() requiredReadonlyObjectArray: readonly object[] = [];
+    @SceneArrayChangeDetection() optionalReadonlyObjectArray?: readonly object[];
+    @SceneArrayChangeDetection() requiredMutableObjectTuple: [object, number, string] = [{}, 7, 's'];
+    @SceneArrayChangeDetection() optionalMutableObjectTuple?: [object, number, string, boolean];
+    @SceneArrayChangeDetection() requiredReadonlyObjectTuple: readonly [object, number, string] = [{}, 7, 's'];
+    @SceneArrayChangeDetection() optionalReadonlyObjectTuple?: readonly [object, number, string, boolean];
+
     @SceneArrayChangeDetection() requiredMutableNumberArray: number[] = [];
     @SceneArrayChangeDetection() optionalMutableNumberArray?: number[] = [];
     @SceneArrayChangeDetection() requiredReadonlyNumberArray: readonly number[] = [];
