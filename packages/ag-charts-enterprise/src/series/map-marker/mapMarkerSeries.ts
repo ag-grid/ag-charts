@@ -836,8 +836,8 @@ export class MapMarkerSeries
             this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format, false)
         );
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading,
                 title: title ?? legendItemName,

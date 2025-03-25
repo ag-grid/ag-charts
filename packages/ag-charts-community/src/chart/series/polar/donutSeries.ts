@@ -1456,8 +1456,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             (sectorLabelKey === angleKey ? undefined : sectorLabelValues?.[datumIndex]) ??
             angleName;
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 title,
                 symbol: this.legendItemSymbol(datumIndex),

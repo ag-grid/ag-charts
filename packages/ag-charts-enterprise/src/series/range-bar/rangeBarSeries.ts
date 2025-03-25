@@ -597,8 +597,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),

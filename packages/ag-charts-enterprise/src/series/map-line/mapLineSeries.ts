@@ -643,8 +643,8 @@ export class MapLineSeries extends TopologySeries<
             this.getItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format, false)
         );
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: idValues[datumIndex],
                 title: title ?? legendItemName,

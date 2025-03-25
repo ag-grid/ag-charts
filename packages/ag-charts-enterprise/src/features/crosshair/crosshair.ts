@@ -1,5 +1,5 @@
 import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { isInteger } from 'ag-charts-core';
+import { type AnyFn, isInteger } from 'ag-charts-core';
 
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
@@ -191,14 +191,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private formatValue(value: unknown): string {
-        const {
-            labelFormatter,
-            axisLayout,
-            ctx: { callbackCache },
-        } = this;
+        const { labelFormatter, axisLayout } = this;
 
         if (labelFormatter) {
-            const result = callbackCache.call(this.axisCtx, labelFormatter, value);
+            const result = this.cachedCallWithContext(labelFormatter, value);
             if (result != null) {
                 return result;
             }
@@ -405,5 +401,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private hideLabel(key: string) {
         this.labels[key]?.toggle(false);
+    }
+
+    private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+        const { callbackCache, chartService } = this.ctx;
+        return callbackCache.call(this.axisCtx, chartService, fn, ...params);
     }
 }

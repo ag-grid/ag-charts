@@ -855,8 +855,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
         const symbol: _ModuleSupport.LegendSymbolOptions | undefined = isLeaf ? { marker: markerStyle } : undefined;
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 title: labelKey != null ? datum[labelKey] : undefined,
                 symbol,

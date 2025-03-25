@@ -641,8 +641,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const format = this.getItemStyle(String(datumIndex), datum, seriesItemType, false);
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(seriesItemType),
