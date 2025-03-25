@@ -4,9 +4,11 @@ import {
     type OptionsDefs,
     Validator,
     type ValidatorContext,
+    ValidatorResult,
     and,
     array,
     arrayOf,
+    arrayOfDefs,
     attachDescription,
     boolean,
     callback,
@@ -34,14 +36,11 @@ function isValid<T extends object>(options: unknown, defs: OptionsDefs<T>, path?
 }
 
 describe('Validation utils', () => {
-    function runValidator(
-        validator: Validator,
-        value: unknown,
-        context: ValidatorContext = { options: {}, path: 'pathTo' }
-    ) {
-        const result = validator(value, context);
-        return typeof result === 'object' ? result.valid : result;
-    }
+    const mockContext = (): ValidatorContext => ({ options: {}, path: 'pathTo' });
+    const isValidatorResultValid = (result: ValidatorResult | boolean) =>
+        typeof result === 'object' ? result.valid : result;
+    const runValidator = (validator: Validator, value: unknown, context: ValidatorContext = mockContext()) =>
+        isValidatorResultValid(validator(value, context));
 
     beforeEach(() => {
         console.warn = jest.fn();
@@ -311,6 +310,72 @@ describe('Validation utils', () => {
                 },
             });
             expect(errorsInvalidUser).toMatchSnapshot();
+        });
+
+        test('nested validations returns all levels of validation errors', () => {
+            const complexOptionsDef = {
+                test: and(
+                    or(
+                        optionsDefs<any>(
+                            {
+                                name: required(string),
+                                age: positiveNumber,
+                            },
+                            'person details'
+                        ),
+                        optionsDefs<any>(
+                            {
+                                id: required(string),
+                                position: string,
+                            },
+                            'employee details'
+                        )
+                    ),
+                    optionsDefs<any>(
+                        {
+                            salaries: arrayOf(positiveNumber),
+                            employers: arrayOfDefs<any>(
+                                {
+                                    name: required(string),
+                                    department: union('a', 'b', 'c'),
+                                },
+                                'an employers array'
+                            ),
+                        },
+                        'position details'
+                    )
+                ),
+            };
+
+            const validOptions = {
+                name: 'John Doe',
+                age: 30,
+                position: 'NA',
+                salaries: [10_000, 22_000, 45_000],
+                employers: [
+                    { name: 'Dave', department: 'b' },
+                    { name: 'John', department: 'c' },
+                ],
+            };
+
+            const invalidOptions = {
+                age: 30,
+                position: 'NA',
+                salaries: [10_000, 22_000, '45_000'],
+                employers: [
+                    { name: 'Dave', department: 'd' },
+                    { employeeId: 'John', department: 'c' },
+                ],
+            };
+
+            const validResult = validate({ test: validOptions }, complexOptionsDef);
+            const invalidResult = validate({ test: invalidOptions }, complexOptionsDef);
+
+            expect(validResult.cleared).not.toEqual({});
+            expect(invalidResult.cleared).toEqual({});
+
+            expect(validResult.invalid).toMatchSnapshot();
+            expect(invalidResult.invalid).toMatchSnapshot();
         });
     });
 });
