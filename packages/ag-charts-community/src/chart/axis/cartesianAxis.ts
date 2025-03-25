@@ -282,8 +282,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         this.tickLabelGroup.datum = axisTransform;
         this.lineNodeGroup.datum = axisTransform;
         this.headingLabelGroup.datum = axisTransform;
-
-        this.gridGroup.rotation = 0;
     }
 
     private getAxisLineCoordinates() {

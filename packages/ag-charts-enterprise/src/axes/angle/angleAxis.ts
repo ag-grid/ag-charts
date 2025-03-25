@@ -56,7 +56,7 @@ export abstract class AngleAxis<
     protected labelData: AngleAxisLabelDatum[] = [];
     protected tickData: AngleAxisTickDatum<TDomain>[] = [];
 
-    protected radiusLineGroup = this.axisGroup.appendChild(new _ModuleSupport.TranslatableGroup());
+    protected radiusLineGroup = this.axisGroup.appendChild(new _ModuleSupport.TransformableGroup());
     protected radiusLine: _ModuleSupport.Path = this.radiusLineGroup.appendChild(new Path());
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: TScale) {

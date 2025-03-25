@@ -18,7 +18,7 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale, ScaleFormatParams } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
-import { Group, TransformableGroup } from '../../scene/group';
+import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
@@ -152,7 +152,7 @@ export abstract class Axis<
         zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
 
-    readonly gridGroup = new TransformableGroup({ name: `${this.id}-Axis-grid`, zIndex: ZIndexMap.AXIS_GRID });
+    readonly gridGroup = new TranslatableGroup({ name: `${this.id}-Axis-grid`, zIndex: ZIndexMap.AXIS_GRID });
     protected readonly gridLineGroup = this.gridGroup.appendChild(new Group({ name: `${this.id}-gridLines` }));
 
     protected readonly crossLineRangeGroup = new TransformableGroup({
@@ -594,10 +594,10 @@ export abstract class Axis<
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
+        gridGroup.setProperties({ translationX, translationY });
         crossLineRangeGroup.setProperties({ rotation, translationX, translationY });
         crossLineLineGroup.setProperties({ rotation, translationX, translationY });
         crossLineLabelGroup.setProperties({ rotation, translationX, translationY });
-        gridGroup.setProperties({ rotation, translationX, translationY });
     }
 
     protected abstract updateSelections(): void;

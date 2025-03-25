@@ -74,9 +74,6 @@ export abstract class PolarAxis<
         this.crossLineLabelGroup.translationX = translationX;
         this.crossLineLabelGroup.translationY = translationY;
 
-        this.gridGroup.translationX = translationX;
-        this.gridGroup.translationY = translationY;
-
         const selectionCtx = prepareAxisAnimationContext(this);
         const resetAxisFn = resetAxisSelectionFn(selectionCtx);
         this.gridLineGroupSelection.each(resetAxisFn as any);
