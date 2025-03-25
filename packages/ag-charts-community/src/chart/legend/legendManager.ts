@@ -116,17 +116,7 @@ export class LegendManager
         this.legendDataMap.clear();
     }
 
-    public toggleItem({
-        enabled,
-        seriesId,
-        itemId,
-        legendItemName,
-    }: {
-        enabled: boolean;
-        seriesId: string;
-        itemId?: any;
-        legendItemName?: string;
-    }) {
+    public toggleItem(enabled: boolean, seriesId: string, itemId?: any, legendItemName?: string) {
         if (legendItemName) {
             this.getData().forEach((datum) => {
                 const newData = (this.legendDataMap.get(datum.seriesId) ?? []).map((d) =>

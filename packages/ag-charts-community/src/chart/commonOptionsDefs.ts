@@ -24,6 +24,7 @@ import {
     strokeOptionsDef,
     typeUnion,
     union,
+    unknown,
 } from 'ag-charts-core';
 import type {
     AgBaseSeriesOptions,
@@ -43,6 +44,8 @@ import type {
     ToolbarButton,
 } from 'ag-charts-types';
 
+import { numberFormatValidator } from './axesOptionsDefs';
+
 const shapeValidator = or(
     union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle'),
     callback
@@ -58,6 +61,18 @@ const tooltipPlacementValidator = union(
     'bottom-left',
     'top-left',
     'center'
+);
+const tooltipDeprecatedTypeValidator = union(
+    'pointer',
+    'node',
+    'top',
+    'right',
+    'bottom',
+    'left',
+    'top-left',
+    'top-right',
+    'bottom-left',
+    'bottom-right'
 );
 const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
 // const themeValidator = or(
@@ -97,10 +112,13 @@ const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     renderer: callback,
 };
 
-const contextMenuActionOptionsDefs: OptionsDefs<AgContextMenuAction> = {
-    label: string,
-    action: callback,
-};
+const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
+    {
+        label: string,
+        action: callback,
+    },
+    'a context menu actions array'
+);
 
 export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
     label: string,
@@ -254,7 +272,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         scale: {
             label: {
                 ...fontOptionsDef,
-                format: string,
+                format: numberFormatValidator,
                 formatter: callback,
             },
             padding: positiveNumber,
@@ -293,18 +311,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         wrapping: textWrapValidator,
         mode: union('single', 'shared', 'compact'),
         position: {
-            type: union(
-                'pointer',
-                'node',
-                'top',
-                'right',
-                'bottom',
-                'left',
-                'top-left',
-                'top-right',
-                'bottom-left',
-                'bottom-right'
-            ),
+            type: tooltipDeprecatedTypeValidator,
             anchorTo: union('pointer', 'node', 'chart'),
             placement: or(tooltipPlacementValidator, arrayOf(tooltipPlacementValidator)),
             xOffset: number,
@@ -317,10 +324,10 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     contextMenu: {
         enabled: boolean,
-        extraActions: arrayOfDefs(contextMenuActionOptionsDefs),
-        extraSeriesAreaActions: arrayOfDefs(contextMenuActionOptionsDefs),
-        extraNodeActions: arrayOfDefs(contextMenuActionOptionsDefs),
-        extraLegendItemActions: arrayOfDefs(contextMenuActionOptionsDefs),
+        extraActions: contextMenuActionsArray,
+        extraSeriesAreaActions: contextMenuActionsArray,
+        extraNodeActions: contextMenuActionsArray,
+        extraLegendItemActions: contextMenuActionsArray,
     },
     dataSource: {
         getData: callback,
@@ -339,7 +346,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
                 ...toolbarButtonOptionsDefs,
                 value: or(number, and(arrayOf(or(number, date)), arrayLength(2, 2)), callback),
             },
-            'range button options'
+            'range button options array'
         ),
     },
     // modules
@@ -349,7 +356,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     background: {
         visible: boolean,
-        fill: fillOptionsDef.fill,
+        fill: color,
         // enterprise
         image: {
             url: string,
@@ -393,11 +400,14 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         },
         buttons: {
             enabled: boolean,
-            buttons: arrayOfDefs<AgZoomButton>({
-                ...toolbarButtonOptionsDefs,
-                value: union('reset', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right', 'pan-start', 'pan-end'),
-                section: string,
-            }),
+            buttons: arrayOfDefs<AgZoomButton>(
+                {
+                    ...toolbarButtonOptionsDefs,
+                    value: union('reset', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right', 'pan-start', 'pan-end'),
+                    section: string,
+                },
+                'zoom button options array'
+            ),
             visible: union('always', 'zoomed', 'hover'),
         },
     },
@@ -412,7 +422,6 @@ commonChartOptionsDefs.dataSource.updateDuringInteraction = boolean;
 
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.zoom.enableIndependentAxes = boolean;
-
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.statusBar = defined;
 
@@ -433,6 +442,8 @@ commonChartOptionsDefs.foreground = {
     ...fillOptionsDef,
 };
 
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.context = unknown;
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.overrideDevicePixelRatio = number;
 
@@ -458,7 +469,9 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
 };
 
 // @ts-expect-error undocumented option
-commonSeriesOptionsDefs.context = defined;
+commonSeriesOptionsDefs.context = unknown;
+// @ts-expect-error undocumented option
+commonSeriesOptionsDefs.seriesGrouping = defined;
 
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.highlight = {
@@ -517,18 +530,7 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
     range: rangeValidator,
     renderer: callback,
     position: {
-        type: union(
-            'pointer',
-            'node',
-            'top',
-            'right',
-            'bottom',
-            'left',
-            'top-left',
-            'top-right',
-            'bottom-left',
-            'bottom-right'
-        ),
+        type: tooltipDeprecatedTypeValidator,
         anchorTo: union('node', 'pointer', 'chart'),
         placement: or(tooltipPlacementValidator, arrayOf(tooltipPlacementValidator)),
         xOffset: number,
@@ -538,6 +540,9 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
         enabled: boolean,
     },
 };
+
+// @ts-expect-error undocumented option
+tooltipOptionsDefs.position._seriesOverrideType = tooltipDeprecatedTypeValidator;
 
 export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     enabled: boolean,

@@ -1,12 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { BOOLEAN, BaseProperties, TempValidate, UNION } = _ModuleSupport;
-const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
+const { BaseProperties, Property } = _ModuleSupport;
 
 export class AxesButtons extends BaseProperties {
-    @TempValidate(BOOLEAN)
+    @Property
     public enabled: boolean = false;
 
-    @TempValidate(AXIS_TYPE, { optional: true })
+    @Property
     public axes?: 'x' | 'y' | 'xy' = 'y';
 }

@@ -159,7 +159,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
-            categoryKey: undefined, // overriden by function
+            categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             useLabelLayer: true,
             animationResetFns: { item: resetPieSelectionsFn, label: resetLabelFn },
@@ -211,9 +211,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     override async processData(dataController: DataController) {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const {
             visible,
@@ -375,13 +373,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             visible,
         } = this;
         const { rotation, innerRadiusRatio } = this.properties;
-
-        if (!this.properties.isValid()) {
-            this.zerosumOuterRing.visible = true;
-            this.zerosumInnerRing.visible = true;
-
-            return { itemId: seriesId, nodeData: [], labelData: [] };
-        }
 
         if (!dataModel || processedData?.type !== 'ungrouped') return;
 
@@ -596,6 +587,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 backgroundFillOpacity: 1,
                 stroke: defaultPatternFill,
                 strokeOpacity: 1,
+                strokeWidth: 4,
                 rotation: 0,
             } as any
         );
@@ -1464,8 +1456,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             (sectorLabelKey === angleKey ? undefined : sectorLabelValues?.[datumIndex]) ??
             angleName;
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 title,
                 symbol: this.legendItemSymbol(datumIndex),
@@ -1528,7 +1520,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             ctx: { legendManager },
         } = this;
 
-        if (!dataModel || !processedData || !this.properties.isValid() || legendType !== 'category') {
+        if (!dataModel || !processedData || legendType !== 'category') {
             return [];
         }
 
@@ -1609,7 +1601,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             id: seriesId,
             ctx: { legendManager, updateService },
         } = this;
-        enabledItems.forEach((enabled, itemId) => legendManager.toggleItem({ enabled, seriesId, itemId }));
+        enabledItems.forEach((enabled, itemId) => legendManager.toggleItem(enabled, seriesId, itemId));
         legendManager.update();
         updateService.update(ChartUpdateType.SERIES_UPDATE);
     }
@@ -1730,17 +1722,5 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         }
 
         return `${datumIndex}`;
-    }
-
-    protected override getCategoryKey(): string | undefined {
-        const { calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
-
-        if (legendItemKey) {
-            return `legendItemValue`;
-        } else if (calloutLabelKey) {
-            return `calloutLabelValue`;
-        } else if (sectorLabelKey) {
-            return `sectorLabelValue`;
-        }
     }
 }

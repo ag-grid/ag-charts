@@ -102,10 +102,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) {
-            return;
-        }
-
         const { angleKey, radiusKey } = this.properties;
         const extraProps = [];
 
@@ -157,7 +153,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     override createNodeData() {
         const { processedData, dataModel } = this;
 
-        if (!processedData || !dataModel || !this.properties.isValid()) return;
+        if (!processedData || !dataModel) return;
 
         const { angleKey, radiusKey, angleName, radiusName, marker, label } = this.properties;
         const angleScale = this.axes[ChartAxisDirection.X]?.scale;
@@ -381,8 +377,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         const activeStyle = this.getMarkerStyle(marker, datum, this.getDatumStylerProperties(datum), false);
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: angleAxis.formatDatum(angleValue),
                 symbol: this.legendItemSymbol(),
@@ -432,7 +428,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        if (!this.properties.isValid() || legendType !== 'category') {
+        if (legendType !== 'category') {
             return [];
         }
 

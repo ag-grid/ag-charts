@@ -22,7 +22,7 @@ const DOM_ELEMENT_CLASSES = [
     'series-area',
     'tooltip-container',
 ] as const;
-const MINIMAL_DOM_ELEMENT_ROLES = new Set(['canvas-container', 'canvas', 'series-area', 'tooltip-container']);
+const MINIMAL_DOM_ELEMENT_ROLES = new Set(['canvas-container', 'canvas', 'tooltip-container']);
 const CONTAINER_MODIFIERS = {
     safeHorizontal: 'ag-charts-wrapper--safe-horizontal',
     safeVertical: 'ag-charts-wrapper--safe-vertical',
@@ -99,6 +99,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
     private documentRoot?: HTMLElement = undefined;
+    private initiallyConnected?: boolean = undefined;
     containerSize?: Size = undefined;
     private readonly tabGuards?: GuardedElement;
 
@@ -161,6 +162,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         element.role = 'presentation';
         element.dataset.agCharts = '';
         element.classList.add('ag-charts-wrapper');
+        const seriesArea = createElement('div');
+        element.appendChild(seriesArea);
+        seriesArea.role = 'presentation';
+        seriesArea.classList.add('ag-charts-series-area');
         return element;
     }
 
@@ -176,14 +181,14 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
                 el = element.classList.contains(className)
                     ? element
                     : (element.getElementsByClassName(className)[0] as HTMLElement);
-
-                if (el == null) {
-                    throw new Error(`AG Charts - unable to find DOM element ${className}`);
-                }
             } else if (MINIMAL_DOM_ELEMENT_ROLES.has(domElement)) {
                 el = element;
             } else {
-                el = createElement('div');
+                el = (element.getElementsByClassName(className)[0] as HTMLElement) ?? createElement('div');
+            }
+
+            if (el == null) {
+                throw new Error(`AG Charts - unable to find DOM element ${className}`);
             }
 
             rootElements[domElement] = {
@@ -305,6 +310,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.container = pendingContainer;
         this.pendingContainer = undefined;
         this.documentRoot = this.getShadowDocumentRoot(pendingContainer);
+        this.initiallyConnected = this.mode === 'minimal' || pendingContainer.isConnected;
 
         // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
         // Or if the container is added lazily, we need to ensure styles are added before the container
@@ -538,6 +544,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (this.styleContainer) {
             // AG-13233 - User supplied root element, don't use heuristics.
             styleElement = addStyleElement(this.styleContainer);
+        } else if (this.initiallyConnected === false) {
+            // Add to our DOM tree as we don't know if this is a shadow DOM case or not, or even necessarily
+            // which Document we might be attached to.
+            styleElement = this.addChild('styles', id);
         } else if (this.documentRoot == null && !DOMManager.headStyles.has(id)) {
             // Add to document head as failsafe fallback.
             styleElement = addStyleElement(getDocument('head'));

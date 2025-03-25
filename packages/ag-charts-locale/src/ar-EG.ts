@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaLabelRangesToolbar: 'النطاقات',
     ariaLabelSettingsTabBar: 'الإعدادات',
     ariaLabelZoomToolbar: 'تكبير',
-    ariaValuePanRange: '${min}[percent] إلى ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] إلى ${max}[percent0to2dp]',
     contextMenuDownload: 'تنزيل',
     contextMenuPanToCursor: 'تحريك إلى هنا',
     contextMenuToggleOtherSeries: 'تبديل السلاسل الأخرى',

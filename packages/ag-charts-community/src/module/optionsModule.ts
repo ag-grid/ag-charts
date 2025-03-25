@@ -92,7 +92,7 @@ enum GroupingType {
     GROUP = 'group',
 }
 
-// const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-background']);
+const stringFormat = (value: string) => `'${value}'`;
 
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     public static readonly OPTIONS_CLONE_OPTS: CloneOptions = {
@@ -280,6 +280,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             activeTheme.templateTheme(options, false);
         }
 
+        // Must run before chart validation to cleanup invalid types.
+        this.validateSeriesOptions(options);
+
         this.chartDef = ModuleRegistry.detectChartDefinition(options);
 
         if (!this.chartDef.placeholder) {
@@ -288,23 +291,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             options = valid as T;
         }
 
-        for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
-            const pluginKey = pluginDef.name as keyof T;
-            if (pluginKey in options && (!pluginDef.chartType || pluginDef.chartType === this.chartDef.name)) {
-                const { valid, errors } = validate(options[pluginKey], pluginDef.options, pluginDef.name);
-                errors.forEach((error) => Logger.warn(error));
-                options[pluginKey] = valid as T[keyof T];
-            }
-        }
-
-        this.validateSeriesOptions(options);
+        this.validatePluginOptions(options);
         this.validateAxesOptions(options);
         this.removeDisabledOptions(options);
 
         const seriesType = this.optionsType(options);
         const {
-            axes: axesThemes = {},
             annotations = {},
+            axes: axesThemes = {},
             series: seriesTheme,
             ...themeDefaults
         } = this.getSeriesThemeConfig(seriesType, activeTheme);
@@ -358,12 +352,26 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             removeUsedEnterpriseOptions(processedOptions, true);
         }
 
+        this.validateSeriesOptions(processedOptions);
+        this.validateAxesOptions(processedOptions);
+
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
         return { activeTheme, processedOptions, defaultAxes, themeParameters, annotationThemes };
     }
 
-    validateSeriesOptions(options: T): void {
+    private validatePluginOptions(options: T) {
+        for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
+            const pluginKey = pluginDef.name as keyof T;
+            if (pluginKey in options && (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)) {
+                const { valid, errors } = validate(options[pluginKey], pluginDef.options, pluginDef.name);
+                errors.forEach((error) => Logger.warn(error));
+                options[pluginKey] = valid as T[keyof T];
+            }
+        }
+    }
+
+    private validateSeriesOptions(options: T): void {
         const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
@@ -377,18 +385,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (seriesDef == null) {
                 validSeriesTypes ??= joinFormatted(
                     Array.from(ModuleRegistry.listModulesByType(ModuleType.Series))
-                        .filter((def) => def.chartType === chartType)
+                        .filter((def) => !chartType || def.chartType === chartType)
                         .map((def) => def.name),
                     'or',
-                    (value) => `'${value}'`
+                    stringFormat
                 );
                 Logger.warn(
-                    `Unknown series type \`${seriesOptions.type}\` at \`${keyPath}\`; expecting ${validSeriesTypes}, ignoring.\``
+                    `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
                 );
                 continue;
-            } else if (seriesDef.chartType !== chartType) {
+            } else if (chartType && seriesDef.chartType !== chartType) {
                 Logger.warn(
-                    `Series type \`${seriesDef.name}\` at \`${keyPath}\` is not supported by chart type \`${chartType}\`, ignoring.\``
+                    `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 continue;
             }
@@ -405,30 +413,34 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.series = validatedSeriesOptions;
     }
 
-    validateAxesOptions(options: T) {
+    private validateAxesOptions(options: T) {
         if (!('axes' in options) || !options.axes) return;
 
         const chartType = this.chartDef?.name;
         const validatedAxesOptions: any[] = [];
         const axesCount = options.axes.length ?? 0;
+        let validAxesTypes: string | undefined;
         for (let index = 0; index < axesCount; index++) {
             const keyPath = `axes[${index}]`;
             const axisOptions = options.axes[index];
             const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
-                const validTypes = Array.from(ModuleRegistry.listModulesByType(ModuleType.Axis))
-                    .filter((def) => def.chartType === chartType)
-                    .map((def) => def.name);
-                const expectedTypes = joinFormatted(validTypes, 'or', (value: string) => `'${value}'`);
+                validAxesTypes ??= joinFormatted(
+                    Array.from(ModuleRegistry.listModulesByType(ModuleType.Axis))
+                        .filter((def) => def.chartType === chartType)
+                        .map((def) => def.name),
+                    'or',
+                    stringFormat
+                );
                 Logger.warn(
-                    `Option \`${keyPath}.type\` cannot be set to \`${axisOptions.type}\`; expecting one of ${expectedTypes}, ignoring all axes options.\``
+                    `Unknown type \`${axisOptions.type}\` at  \`${keyPath}.type\`; expecting one of ${validAxesTypes}, ignoring all axes options.`
                 );
                 delete options.axes;
                 break;
             } else if (axisDef.chartType !== chartType) {
                 Logger.warn(
-                    `Axis type \`${axisDef.name}\` is not supported by chart type \`${chartType}\`, ignoring.\``
+                    `Axis type \`${axisDef.name}\` at  \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 break;
             }
@@ -520,14 +532,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             series.type ??= 'line'; // TODO remove this behaviour
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type, activeTheme).series ?? {};
-            const defaultTooltipRange = this.getTooltipRangeDefaults(options, series.type);
+
+            const seriesDef = ModuleRegistry.getSeriesModule(series.type);
+            const tooltipDefined = Boolean(seriesDef?.options.tooltip);
+            const visibleDefined = Boolean(seriesDef?.options.visible);
+            const defaultTooltipRange = tooltipDefined && this.getTooltipRangeDefaults(options, series.type);
+
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
-                defaultTooltipPosition,
+                tooltipDefined && defaultTooltipPosition,
                 defaultTooltipRange,
                 seriesTheme,
-                { visible: true }
+                visibleDefined && { visible: true }
             );
 
             if (seriesOptions.innerLabels) {

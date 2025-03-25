@@ -119,12 +119,8 @@ export abstract class RadialColumnSeriesBase<
     protected abstract getStackId(): string;
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { visible } = this;
         const { angleKey, radiusKey, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-        if (!this.properties.isValid()) return;
-
         const stackGroupId = this.getStackId();
         const stackGroupTrailingId = `${stackGroupId}-trailing`;
         const extraProps = [];
@@ -140,7 +136,7 @@ export abstract class RadialColumnSeriesBase<
             extraProps.push(animationValidation());
         }
 
-        const visibleProps = visible || !animationEnabled ? {} : { forceValue: 0 };
+        const visibleProps = this.visible ? {} : { forceValue: 0 };
 
         const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
@@ -223,9 +219,7 @@ export abstract class RadialColumnSeriesBase<
     override createNodeData() {
         const { processedData, dataModel, groupScale } = this;
 
-        if (!dataModel || !processedData || processedData.type !== 'grouped' || !this.properties.isValid()) {
-            return;
-        }
+        if (!dataModel || !processedData || processedData.type !== 'grouped') return;
 
         const angleAxis = this.axes[ChartAxisDirection.X];
         const radiusAxis = this.axes[ChartAxisDirection.Y];
@@ -535,8 +529,8 @@ export abstract class RadialColumnSeriesBase<
         const format = this.getItemBaseStyle(false);
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: angleAxis.formatDatum(angleValue),
                 symbol: this.legendItemSymbol(),
@@ -598,7 +592,7 @@ export abstract class RadialColumnSeriesBase<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        if (!this.properties.isValid() || legendType !== 'category') {
+        if (legendType !== 'category') {
             return [];
         }
 

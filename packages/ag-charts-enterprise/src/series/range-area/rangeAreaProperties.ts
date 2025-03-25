@@ -25,94 +25,83 @@ const {
     InterpolationProperties,
     SeriesMarker,
     SeriesTooltip,
-    TempValidate,
-    BOOLEAN,
-    COLOR_STRING,
-    LINE_DASH,
-    OBJECT,
-    PLACEMENT,
-    POSITIVE_NUMBER,
-    COLOR_GRADIENT,
-    COLOR_PATTERN,
-    OR,
-    RATIO,
-    STRING,
+    Property,
     DropShadow,
     Label,
 } = _ModuleSupport;
 
 class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> {
-    @TempValidate(PLACEMENT)
+    @Property
     placement: AgRangeAreaSeriesLabelPlacement = 'outside';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     padding: number = 6;
 }
 
 export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSeriesOptions> {
-    @TempValidate(STRING)
+    @Property
     xKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     yLowKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     yHighKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yLowName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yHighName?: string;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
+    @Property
     fill: InternalAgColorType = '#99CCFF';
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = '#99CCFF';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(OBJECT)
+    @Property
     interpolation: _ModuleSupport.InterpolationProperties = new InterpolationProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly shadow = new DropShadow().set({ enabled: false });
 
-    @TempValidate(OBJECT)
+    @Property
     readonly marker = new SeriesMarker<AgRangeAreaSeriesOptionsKeys>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new RangeAreaSeriesLabel();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>();
 
-    @TempValidate(BOOLEAN)
+    @Property
     connectMissingData: boolean = false;
 }

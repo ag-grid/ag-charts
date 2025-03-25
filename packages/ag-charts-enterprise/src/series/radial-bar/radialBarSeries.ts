@@ -118,12 +118,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { visible } = this;
         const { angleKey, radiusKey, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-        if (!this.properties.isValid()) return;
-
         const stackGroupId = this.getStackId();
         const stackGroupTrailingId = `${stackGroupId}-trailing`;
 
@@ -140,7 +136,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             extraProps.push(animationValidation());
         }
 
-        const visibleProps = visible || !animationEnabled ? {} : { forceValue: 0 };
+        const visibleProps = this.visible ? {} : { forceValue: 0 };
 
         const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
@@ -219,9 +215,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     override createNodeData() {
         const { processedData, dataModel } = this;
 
-        if (!dataModel || !processedData || processedData.type !== 'grouped' || !this.properties.isValid()) {
-            return;
-        }
+        if (!dataModel || !processedData || processedData.type !== 'grouped') return;
 
         const angleAxis = this.axes[ChartAxisDirection.X];
         const radiusAxis = this.axes[ChartAxisDirection.Y];
@@ -535,8 +529,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const format = this.getItemBaseStyle(false);
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: radiusAxis.formatDatum(radiusValue),
                 symbol: this.legendItemSymbol(),
@@ -589,7 +583,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        if (!this.properties.isValid() || legendType !== 'category') {
+        if (legendType !== 'category') {
             return [];
         }
 

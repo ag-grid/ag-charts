@@ -6,29 +6,10 @@ import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { Group } from '../../scene/group';
 import type { TimeInterval } from '../../util/time';
-import { predicateWithMessage } from '../../util/validation';
 import { checkDatum } from '../../util/value';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 
 export type CrossLineType = 'line' | 'range';
-
-export const MATCHING_CROSSLINE_TYPE = (property: 'value' | 'range') => {
-    return property === 'value'
-        ? predicateWithMessage(
-              (_, ctx) => ctx.target['type'] === 'line',
-              (ctx) =>
-                  ctx.target['type'] === 'range'
-                      ? `crossLine type 'range' to have a 'range' property instead of 'value'`
-                      : `crossLine property 'type' to be 'line'`
-          )
-        : predicateWithMessage(
-              (_, ctx) => ctx.target['type'] === 'range',
-              (ctx) =>
-                  ctx.target.type === 'line'
-                      ? `crossLine type 'line' to have a 'value' property instead of 'range'`
-                      : `crossLine property 'type' to be 'range'`
-          );
-};
 
 export function getCrossLineValue(crossLine: {
     type: CrossLineType;

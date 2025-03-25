@@ -8,43 +8,48 @@ const options: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
-            xKey: 'country',
-            yKey: 'value',
+            xKey: 'year',
+            yKey: 'women',
+            yName: 'Women',
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'men',
+            yName: 'Men',
         },
         {
             type: 'line',
-            xKey: 'country',
-            yKey: 'secondaryValue',
+            xKey: 'year',
+            yKey: 'portions',
+            yName: 'Portions',
         },
     ],
     axes: [
         {
             type: 'category',
             position: 'bottom',
-            label: {
-                rotation: 45,
-                autoRotate: false,
-            },
         },
         {
+            // primary y axis
             type: 'number',
             position: 'left',
-            interval: { step: 125 },
-            label: {
-                rotation: 325,
-                autoRotate: false,
+            keys: ['women', 'men'],
+            title: {
+                text: 'Adults Who Eat 5 A Day (%)',
             },
-            keys: ['value'],
+            label: {
+                formatter: ({ value }) => value + '%',
+            },
         },
         {
+            // secondary y axis
             type: 'number',
             position: 'right',
-            interval: { step: 125 },
-            label: {
-                rotation: 325,
-                autoRotate: false,
+            keys: ['portions'],
+            title: {
+                text: 'Portions Consumed (Per Day)',
             },
-            keys: ['secondaryValue'],
         },
     ],
 };

@@ -7,9 +7,7 @@ import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 const {
     ChartAxisDirection,
     ZIndexMap,
-    NUMBER,
-    BOOLEAN,
-    TempValidate,
+    Property,
     normalizeAngle360,
     toRadians,
     Caption,
@@ -27,10 +25,10 @@ interface GeneratedTicks {
 }
 
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     autoRotate?: boolean;
 
-    @TempValidate(NUMBER)
+    @Property
     autoRotateAngle: number = 335;
 }
 
@@ -40,7 +38,7 @@ export abstract class RadiusAxis<
 > extends _ModuleSupport.PolarAxis<S, D, _ModuleSupport.TickDatum, _ModuleSupport.LabelNodeDatum> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
-    @TempValidate(NUMBER)
+    @Property
     positionAngle: number = 0;
 
     private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);
@@ -265,11 +263,7 @@ export abstract class RadiusAxis<
 
     private updateTitle() {
         const identityFormatter = (params: AgAxisCaptionFormatterParams) => params.defaultValue;
-        const {
-            title,
-            range: requestedRange,
-            moduleCtx: { callbackCache },
-        } = this;
+        const { title, range: requestedRange } = this;
         const { formatter = identityFormatter } = this.title;
 
         title.caption.enabled = title.enabled;
@@ -291,7 +285,7 @@ export abstract class RadiusAxis<
             titleNode.textAlign = 'center';
             titleNode.textBaseline = 'bottom';
 
-            titleNode.text = callbackCache.call(this, formatter, this.getTitleFormatterParams(this.scale.domain));
+            titleNode.text = this.callWithContext(formatter, this.getTitleFormatterParams(this.scale.domain));
         }
 
         titleNode.visible = titleVisible;

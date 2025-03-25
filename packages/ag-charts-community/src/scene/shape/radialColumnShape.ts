@@ -2,7 +2,8 @@ import { isNumberEqual } from 'ag-charts-core';
 
 import { angleBetween, normalizeAngle360 } from '../../util/angle';
 import { BBox } from '../bbox';
-import { Path, ScenePathChangeDetection } from './path';
+import { SceneChangeDetection } from '../changeDetectable';
+import { Path } from './path';
 
 function rotatePoint(x: number, y: number, rotation: number) {
     const radius = Math.sqrt(x ** 2 + y ** 2);
@@ -17,31 +18,31 @@ function rotatePoint(x: number, y: number, rotation: number) {
 export class RadialColumnShape<D = any> extends Path<D> {
     static override readonly className = 'RadialColumnShape';
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     isBeveled: boolean = true;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     columnWidth: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     startAngle: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     endAngle: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     outerRadius: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     innerRadius: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     axisInnerRadius: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     axisOuterRadius: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     isRadiusAxisReversed?: boolean = false;
 
     set cornerRadius(_value: number) {

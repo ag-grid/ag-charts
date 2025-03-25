@@ -10,7 +10,7 @@ import {
 } from '../annotationTypes';
 import { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 
-const { STRING, TempValidate, Color } = _ModuleSupport;
+const { Property, Color } = _ModuleSupport;
 
 const DEFAULT_CALLOUT_PADDING = {
     top: 6,
@@ -24,7 +24,7 @@ export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
         return isObject(value) && value.type === AnnotationType.Callout;
     }
 
-    @TempValidate(STRING)
+    @Property
     type = AnnotationType.Callout as const;
 
     override position = 'bottom' as const;

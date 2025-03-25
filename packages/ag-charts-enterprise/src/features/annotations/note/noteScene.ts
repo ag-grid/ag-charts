@@ -5,6 +5,7 @@ import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import { TextualPointScene } from '../scenes/textualPointScene';
+import { ANNOTATION_TEXT_LINE_HEIGHT } from '../text/util';
 import { convertPoint } from '../utils/values';
 import { ICON_HEIGHT, ICON_WIDTH, LABEL_OFFSET, type NoteProperties, TOOLBAR_OFFSET } from './noteProperties';
 
@@ -142,9 +143,13 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
 
     protected override getLabelCoords(datum: NoteProperties, bbox: _ModuleSupport.BBox): _ModuleSupport.Vec2 {
         const isPositionTop = datum.position === 'top';
-        const padding = datum.getPadding().top;
+        const padding = datum.getPadding().top + (datum.fontSize * ANNOTATION_TEXT_LINE_HEIGHT) / 2;
 
         return { x: bbox.x, y: bbox.y + (isPositionTop ? padding / 2 : 0) };
+    }
+
+    protected override getTextBaseline(datum: NoteProperties): CanvasTextBaseline {
+        return datum.position === 'top' ? 'middle' : datum.position;
     }
 
     protected override getHandleCoords(

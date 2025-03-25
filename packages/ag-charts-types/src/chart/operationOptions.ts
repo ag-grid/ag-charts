@@ -42,7 +42,9 @@ type ThemeParam = keyof AgChartThemeParams;
 type PaletteParam =
     | 'type'
     | 'fills'
+    | 'fillsFallback'
     | 'fill'
+    | 'fillFallback'
     | 'strokes'
     | 'stroke'
     | 'gradients'
@@ -95,4 +97,5 @@ type ColorOperation =
     | { $foregroundBackgroundMix: [Leaf<number>] }
     | { $foregroundBackgroundAccentMix: [Leaf<number>, Leaf<number>] }
     | { $interpolate: [Leaf, Leaf<number>] }
-    | { $isGradient: [Leaf] };
+    | { $isGradient: [Leaf] }
+    | { $isPattern: [Leaf] };

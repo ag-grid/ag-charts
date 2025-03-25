@@ -113,9 +113,7 @@ export class LineSeries extends CartesianSeries<
     }
 
     override async processData(dataController: DataController) {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 0 } = {} } = this;
         const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
@@ -609,8 +607,8 @@ export class LineSeries extends CartesianSeries<
         const format = this.getMarkerItemBaseStyle(false);
         Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format, false));
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),
@@ -654,7 +652,7 @@ export class LineSeries extends CartesianSeries<
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        if (!(this.properties.isValid() && legendType === 'category')) {
+        if (legendType !== 'category') {
             return [];
         }
 

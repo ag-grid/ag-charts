@@ -2,22 +2,17 @@ import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
 import { isObject } from 'ag-charts-core';
 
 import { Cappable, Extendable, LineStyle, LineTextProperties, Localisable, Stroke } from '../annotationProperties';
-import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import { type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { StartEndProperties } from '../properties/startEndProperties';
 import { getLineCap, getLineDash } from '../utils/line';
-import { validateDatumLine } from '../utils/validation';
 
-const { OBJECT, STRING, TempValidate } = _ModuleSupport;
+const { Property } = _ModuleSupport;
 
 export abstract class LineTypeProperties extends Localisable(
     Cappable(Extendable(Stroke(LineStyle(StartEndProperties))))
 ) {
-    @TempValidate(OBJECT, { optional: true })
+    @Property
     text = new LineTextProperties();
-
-    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
-        return super.isValid(warningPrefix) && validateDatumLine(context, this, undefined, warningPrefix);
-    }
 
     override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
         switch (colorPickerType) {
@@ -46,7 +41,7 @@ export class ArrowProperties extends LineTypeProperties {
         return isObject(value) && value.type === AnnotationType.Arrow;
     }
 
-    @TempValidate(STRING)
+    @Property
     type = AnnotationType.Arrow as const;
 
     override endCap = 'arrow' as const;
@@ -57,6 +52,6 @@ export class LineProperties extends LineTypeProperties {
         return isObject(value) && value.type === AnnotationType.Line;
     }
 
-    @TempValidate(STRING)
+    @Property
     type = AnnotationType.Line as const;
 }

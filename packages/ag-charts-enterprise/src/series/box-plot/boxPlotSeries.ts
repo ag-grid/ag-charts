@@ -77,7 +77,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (!this.properties.isValid() || !this.visible) return;
+        if (!this.visible) return;
 
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.properties;
 
@@ -348,8 +348,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const format = this.getItemBaseStyle(false);
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: xAxis.formatDatum(xValue),
                 title: legendItemName ?? yName,

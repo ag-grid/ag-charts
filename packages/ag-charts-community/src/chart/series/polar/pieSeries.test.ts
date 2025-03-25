@@ -22,6 +22,26 @@ import {
 } from '../../test/utils';
 import { PieSeries } from './pieSeries';
 
+function* iterPieSectors(myChart: Chart) {
+    const pieSeries = deproxy(myChart).series[0] as PieSeries;
+    for (const nodeData of pieSeries.getNodeData() ?? []) {
+        if (nodeData.angleValue < 1e-10) continue;
+
+        const { x = 0, y = 0 } = nodeData.midPoint ?? {};
+        yield Transformable.toCanvasPoint(pieSeries.contentGroup, x, y);
+    }
+}
+
+function* iterLegendMarkerLabels(myChart: Chart) {
+    for (const { legend } of deproxy(myChart).modulesManager.legends()) {
+        const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
+        for (const label of markerLabels) {
+            const { x, y } = Transformable.toCanvas(label).computeCenter();
+            yield { x, y, text: label.text };
+        }
+    }
+}
+
 describe('PieSeries', () => {
     setupMockConsole();
 
@@ -32,10 +52,14 @@ describe('PieSeries', () => {
         }
     });
 
-    const compare = async () => {
+    const compare = async (customSnapshotIdentifier?: string) => {
         await waitForChartStability(chart);
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+        expect(imageData).toMatchImageSnapshot({
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            failureThreshold: 0,
+            customSnapshotIdentifier,
+        });
     };
 
     let chart: Chart;
@@ -182,7 +206,7 @@ describe('PieSeries', () => {
                                 height: 40,
                             },
                         ],
-                    },
+                    } as AgPieSeriesOptions,
                 ],
             });
             await compare();
@@ -478,25 +502,6 @@ describe('PieSeries', () => {
             legendClicks.splice(0, legendClicks.length);
         });
 
-        function* iterPieSectors(myChart: Chart) {
-            const pieSeries = deproxy(myChart).series[0] as PieSeries;
-            for (const nodeData of pieSeries.getNodeData() ?? []) {
-                if (nodeData.angleValue < 1e-10) continue;
-
-                const { x = 0, y = 0 } = nodeData.midPoint ?? {};
-                yield Transformable.toCanvasPoint(pieSeries.contentGroup, x, y);
-            }
-        }
-
-        function* iterLegendMarkerLabels(myChart: Chart) {
-            for (const { legend } of deproxy(myChart).modulesManager.legends()) {
-                const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
-                for (const label of markerLabels) {
-                    yield Transformable.toCanvas(label).computeCenter();
-                }
-            }
-        }
-
         describe('should fire a nodeClick event for each visible sector', () => {
             test('mouse', async () => {
                 for (const { x, y } of iterPieSectors(chart)) {
@@ -504,8 +509,7 @@ describe('PieSeries', () => {
                     await clickAction(x, y)(chart);
                 }
             });
-            xtest('touch', async () => {
-                // Faulty because of AG-14228
+            test('touch', async () => {
                 for (const { x, y } of iterPieSectors(chart)) {
                     await waitForChartStability(chart);
                     await tapAction(x, y)(chart);
@@ -564,6 +568,49 @@ describe('PieSeries', () => {
                 expect(doubleClicks).toHaveLength(0);
                 expect(clicks).toHaveLength(0);
                 expect(legendClicks).toEqual([0, 0, 1, 1, 2, 2, 3, 3, 4, 4]);
+            });
+        });
+    });
+
+    describe('AG-14232 legend toggling', () => {
+        beforeEach(async () => {
+            chart = await createChart({
+                data: [
+                    { name: 'Pizza', value: 3 },
+                    { name: 'Cake', value: 4 },
+                    { name: 'Quiche', value: 5 },
+                ],
+                series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'name' }],
+            });
+        });
+        describe('click', () => {
+            test('mouse', async () => {
+                for (const { x, y, text } of iterLegendMarkerLabels(chart)) {
+                    await clickAction(x, y)(chart);
+                    await compare(`pie-series-test-ts-pie-series-legend-click-${text}`);
+                    await clickAction(x, y)(chart);
+                }
+            });
+            test('touch', async () => {
+                for (const { x, y, text } of iterLegendMarkerLabels(chart)) {
+                    await tapAction(x, y)(chart);
+                    await compare(`pie-series-test-ts-pie-series-legend-click-${text}`);
+                    await tapAction(x, y)(chart);
+                }
+            });
+        });
+        describe('dblclick', () => {
+            test('mouse', async () => {
+                for (const { x, y } of iterLegendMarkerLabels(chart)) {
+                    await doubleClickAction(x, y)(chart);
+                    await compare(`pie-series-test-ts-pie-series-legend-All`);
+                }
+            });
+            test('touch', async () => {
+                for (const { x, y } of iterLegendMarkerLabels(chart)) {
+                    await doubleTapAction(x, y)(chart);
+                    await compare(`pie-series-test-ts-pie-series-legend-All`);
+                }
             });
         });
     });

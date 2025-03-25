@@ -112,8 +112,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) return;
-
         const { xKey, yLowKey, yHighKey } = this.properties;
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
@@ -647,8 +645,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),

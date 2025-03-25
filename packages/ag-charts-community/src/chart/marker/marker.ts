@@ -1,24 +1,25 @@
 import type { AgMarkerShape, AgMarkerShapeFnParams } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
-import type { NodeOptions } from '../../scene/node';
+import { SceneChangeDetection } from '../../scene/changeDetectable';
+import { type NodeOptions } from '../../scene/node';
 import type { Point } from '../../scene/point';
-import { Path, ScenePathChangeDetection } from '../../scene/shape/path';
+import { Path } from '../../scene/shape/path';
 import type { CanvasContext } from '../../scene/shape/shape';
 import { Rotatable, Scalable, Translatable } from '../../scene/transformable';
 import { MARKER_SHAPES } from './shapes';
 
 class InternalMarker<D = any> extends Path<D> {
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     shape: AgMarkerShape = 'square';
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     x: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     y: number = 0;
 
-    @ScenePathChangeDetection({ convertor: Math.abs })
+    @SceneChangeDetection({ convertor: Math.abs })
     size: number = 12;
 
     override updatePath(): void {

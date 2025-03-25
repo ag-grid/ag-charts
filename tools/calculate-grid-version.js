@@ -16,14 +16,16 @@ const CHARTS_TO_GRID_VERSION_OFFSET = 22;
  *
  *  * Major version is offset by `CHARTS_TO_GRID_VERSION_OFFSET`
  *  * Minor version stays the same
- *  * Patch version is always `0`. If this needs to be different, don't use this script,
- *    and update manually
+ *  * Patch version is stays the same
  */
 const chartsToGridVersion = (chartsVersion) => {
     const [majorVersion, minorVersion] = chartsVersion.split('.');
+    const patch = chartsVersion.slice(`${majorVersion}.${minorVersion}.`.length);
+    const patchSplit = patch.split('-');
+    const patchNum = Number(patchSplit[0]);
 
     const gridMajorVersion = parseInt(majorVersion, 10) + CHARTS_TO_GRID_VERSION_OFFSET;
-    return `${gridMajorVersion}.${minorVersion}.0`;
+    return `${gridMajorVersion}.${minorVersion}.${patchNum}`;
 };
 
 const chartsVersion = process.argv[2];

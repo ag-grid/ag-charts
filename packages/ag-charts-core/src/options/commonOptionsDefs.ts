@@ -71,16 +71,13 @@ export interface InternalAgGradientColor extends AgGradientColor {
     /** Reverse the order of colour stops. */
     reverse?: boolean;
 }
-export type InternalAgColorType = CssColor | InternalAgGradientColor | AgPatternColor;
-
-export const fillGradientDefaults = optionsDefs<InternalAgGradientColor>({
-    type: required(constant('gradient')),
-    gradient: required(union('linear', 'radial', 'conic')),
-    bounds: required(gradientBounds),
-    colorStops: required(gradientColorStops),
-    rotation: required(number),
-    reverse: required(boolean),
-});
+export interface InternalAgPatternColor extends AgPatternColor {
+    /** Padding for the shape in the pattern unit. */
+    padding?: number;
+    /** The rotation angle of the pattern. */
+    rotation?: number;
+}
+export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor;
 
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
     stroke: color,
@@ -88,17 +85,67 @@ export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
     strokeOpacity: ratio,
 };
 
+export const fillGradientDefaults = optionsDefs<InternalAgGradientColor>({
+    type: required(constant('gradient')),
+    gradient: required(union('linear', 'radial', 'conic')),
+    bounds: required(gradientBounds),
+    colorStops: required(or(gradientColorStops, and(arrayLength(2), arrayOf(color)))),
+    rotation: required(number),
+    reverse: required(boolean),
+});
+
+export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
+    type: required(constant('pattern')),
+    pattern: required(
+        union(
+            'vertical-lines',
+            'horizontal-lines',
+            'forward-slanted-lines',
+            'backward-slanted-lines',
+            'circles',
+            'squares',
+            'triangles',
+            'diamonds',
+            'stars',
+            'hearts',
+            'crosses'
+        )
+    ),
+    width: required(positiveNumber),
+    height: required(positiveNumber),
+    fill: required(color),
+    fillOpacity: required(ratio),
+    backgroundFill: required(color),
+    backgroundFillOpacity: required(ratio),
+    padding: required(positiveNumber),
+    rotation: required(number),
+    stroke: required(color),
+    strokeWidth: required(positiveNumber),
+    strokeOpacity: required(ratio),
+});
+
+const gradientUndocumentedOpts: OptionsDefs<AgGradientColor> = {
+    // @ts-expect-error undocumented option
+    gradient: union('linear', 'radial', 'conic'),
+    bounds: gradientBounds,
+    reverse: boolean,
+};
+
+const patternUndocumentedOpts: OptionsDefs<AgPatternColor> = {
+    // @ts-expect-error undocumented option
+    rotation: number,
+    padding: positiveNumber,
+};
+
 const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
     {
         gradient: {
-            // @ts-expect-error undocumented option
-            gradient: union('linear', 'radial', 'conic'),
-            bounds: gradientBounds,
+            ...gradientUndocumentedOpts,
             colorStops: gradientColorStops,
             rotation: number,
-            reverse: boolean,
         },
         pattern: {
+            ...patternUndocumentedOpts,
             pattern: union(
                 'vertical-lines',
                 'horizontal-lines',
@@ -114,8 +161,6 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
             ),
             width: positiveNumber,
             height: positiveNumber,
-            padding: positiveNumber,
-            rotation: number,
             fill: color,
             fillOpacity: ratio,
             backgroundFill: color,
@@ -135,6 +180,8 @@ export const fillOptionsDef: OptionsDefs<FillOptions> = {
 
 // @ts-expect-error undocumented option
 fillOptionsDef.fillGradientDefaults = fillGradientDefaults;
+// @ts-expect-error undocumented option
+fillOptionsDef.fillPatternDefaults = fillPatternDefaults;
 
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDash: arrayOf(positiveNumber),

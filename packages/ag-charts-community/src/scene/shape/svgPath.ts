@@ -1,10 +1,11 @@
-import { Path, ScenePathChangeDetection } from './path';
+import { SceneChangeDetection } from '../changeDetectable';
+import { Path } from './path';
 
 export class SvgPath<D = any> extends Path<D> {
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     x: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     y: number = 0;
 
     private readonly commands: Array<[string, Array<number>]> = [];

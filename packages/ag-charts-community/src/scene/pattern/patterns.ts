@@ -22,8 +22,8 @@ function drawPatternUnitPolygon(
     const x0 = width / 2;
     const y0 = height / 2;
 
-    const w = Math.max(0, width - padding - strokeWidth / 2);
-    const h = Math.max(0, height - padding - strokeWidth / 2);
+    const w = Math.max(1, width - padding - strokeWidth / 2);
+    const h = Math.max(1, height - padding - strokeWidth / 2);
 
     let didMove = false;
     for (const [dx, dy] of moves) {
@@ -42,7 +42,7 @@ function drawPatternUnitPolygon(
 export const PATTERNS: Record<AgPatternName, (path: ExtendedPath2D, params: PatternFnParams) => void> = {
     circles(path, { width, strokeWidth, padding }) {
         const c = width / 2;
-        const r = Math.max(0, c - padding - strokeWidth / 2);
+        const r = Math.max(1, c - padding - strokeWidth / 2);
 
         path.arc(c, c, r, 0, Math.PI * 2);
     },
@@ -72,7 +72,7 @@ export const PATTERNS: Record<AgPatternName, (path: ExtendedPath2D, params: Patt
     },
     stars(path, { width, height, padding }) {
         const spikes = 5;
-        const outerRadius = Math.max(0, (width - padding) / 2);
+        const outerRadius = Math.max(1, (width - padding) / 2);
         const innerRadius = outerRadius / 2;
         const rotation = Math.PI / 2;
 
@@ -86,7 +86,7 @@ export const PATTERNS: Record<AgPatternName, (path: ExtendedPath2D, params: Patt
         path.closePath();
     },
     hearts(path, { width, height, padding }) {
-        const r = Math.max(0, width / 4 - padding / 2);
+        const r = Math.max(1, width / 4 - padding / 2);
         const x = width / 2;
         const y = height / 2 + r / 2;
 

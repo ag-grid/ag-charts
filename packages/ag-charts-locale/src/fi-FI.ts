@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaLabelRangesToolbar: 'Alueet',
     ariaLabelSettingsTabBar: 'Asetukset',
     ariaLabelZoomToolbar: 'Zoomaa',
-    ariaValuePanRange: '${min}[percent] - ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] - ${max}[percent0to2dp]',
     contextMenuDownload: 'Lataa',
     contextMenuPanToCursor: 'Siirry tähän',
     contextMenuToggleOtherSeries: 'Vaihda muiden sarjojen näkyvyyttä',

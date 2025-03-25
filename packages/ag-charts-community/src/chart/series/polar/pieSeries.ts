@@ -145,7 +145,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
-            categoryKey: undefined, // overriden by function
+            categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             useLabelLayer: true,
             animationResetFns: { item: resetPieSelectionsFn, label: resetLabelFn },
@@ -199,9 +199,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     override async processData(dataController: DataController) {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const {
             visible,
@@ -578,6 +576,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 backgroundFillOpacity: 1,
                 stroke: defaultPatternFill,
                 strokeOpacity: 1,
+                strokeWidth: 4,
                 rotation: 0,
             } as any
         );
@@ -896,7 +895,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             strokes,
         } = this.properties;
         const calloutStrokeWidth = strokeWidth;
-        const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
+        const calloutColors = isStringFillArray(colors) ? colors : strokes;
         const { offset } = this.properties.calloutLabel;
 
         this.calloutLabelSelection.selectByTag<Line>(PieNodeTag.Callout).forEach((line, index) => {
@@ -1367,8 +1366,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             (sectorLabelKey === angleKey ? undefined : sectorLabelValues?.[datumIndex]) ??
             angleName;
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 title,
                 symbol: this.legendItemSymbol(datumIndex),
@@ -1513,7 +1512,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             id: seriesId,
             ctx: { legendManager, updateService },
         } = this;
-        enabledItems.forEach((enabled, itemId) => legendManager.toggleItem({ enabled, seriesId, itemId }));
+        enabledItems.forEach((enabled, itemId) => legendManager.toggleItem(enabled, seriesId, itemId));
         legendManager.update();
         updateService.update(ChartUpdateType.SERIES_UPDATE);
     }
@@ -1623,17 +1622,5 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         }
 
         return `${datumIndex}`;
-    }
-
-    protected override getCategoryKey(): string | undefined {
-        const { calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
-
-        if (legendItemKey) {
-            return `legendItemValue`;
-        } else if (calloutLabelKey) {
-            return `calloutLabelValue`;
-        } else if (sectorLabelKey) {
-            return `sectorLabelValue`;
-        }
     }
 }

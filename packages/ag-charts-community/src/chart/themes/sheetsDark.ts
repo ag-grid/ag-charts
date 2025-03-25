@@ -36,6 +36,7 @@ export class SheetsDark extends DarkTheme {
         return {
             ...super.getDefaultColors(),
             fills: { ...SHEETS_DARK_FILLS, RED: SHEETS_DARK_FILLS.ORANGE },
+            fillsFallback: Object.values({ ...SHEETS_DARK_FILLS, RED: SHEETS_DARK_FILLS.ORANGE }),
             strokes: { ...SHEETS_DARK_STROKES, RED: SHEETS_DARK_STROKES.ORANGE },
             sequentialColors: getSequentialColors({ ...SHEETS_DARK_FILLS, RED: SHEETS_DARK_FILLS.ORANGE }),
             divergingColors: [SHEETS_DARK_FILLS.ORANGE, SHEETS_DARK_FILLS.YELLOW, SHEETS_DARK_FILLS.GREEN],

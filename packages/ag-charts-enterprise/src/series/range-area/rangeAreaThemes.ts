@@ -44,8 +44,6 @@ export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>[
         },
         interpolation: {
             type: 'linear',
-            tension: 1,
-            position: 'end',
         },
     },
     axes: {

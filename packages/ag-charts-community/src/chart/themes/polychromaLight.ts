@@ -38,6 +38,7 @@ export class PolychromaLight extends ChartTheme {
         return {
             ...super.getDefaultColors(),
             fills: POLYCHROMA_LIGHT_FILLS,
+            fillsFallback: Object.values(POLYCHROMA_LIGHT_FILLS),
             strokes: POLYCHROMA_LIGHT_STROKES,
             sequentialColors: getSequentialColors(POLYCHROMA_LIGHT_FILLS),
             divergingColors: [POLYCHROMA_LIGHT_FILLS.BLUE, POLYCHROMA_LIGHT_FILLS.RED],

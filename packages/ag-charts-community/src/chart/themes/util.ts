@@ -1,4 +1,5 @@
-import type { AgCartesianChartOptions, AgPatternColor, WithThemeParams } from 'ag-charts-types';
+import type { InternalAgPatternColor } from 'ag-charts-core';
+import type { AgCartesianChartOptions, WithThemeParams } from 'ag-charts-types';
 
 import { Color } from '../../util/color';
 import { mapValues } from '../../util/object';
@@ -29,17 +30,67 @@ export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]
     },
 ];
 
-export const FILL_PATTERN_DEFAULTS: WithThemeParams<AgPatternColor> = {
+export const SAFE_FILL_OPERATION: any = {
+    $if: [
+        { $or: [{ $isGradient: [{ $palette: 'fill' }] }, { $isPattern: [{ $palette: 'fill' }] }] },
+        { $palette: 'fillFallback' },
+        { $palette: 'fill' },
+    ],
+};
+
+export const SAFE_FILLS_OPERATION: any = {
+    $if: [
+        { $or: [{ $isGradient: [{ $palette: 'fill' }] }, { $isPattern: [{ $palette: 'fill' }] }] },
+        { $palette: 'fillsFallback' },
+        { $palette: 'fills' },
+    ],
+};
+
+export const SAFE_STROKE_FILL_OPERATION: any = {
+    $if: [
+        { $isGradient: [{ $palette: 'fill' }] },
+        { $palette: 'fillFallback' },
+        {
+            $if: [
+                { $isPattern: [{ $palette: 'fill' }] },
+                { $path: ['./stroke', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                { $palette: 'fill' },
+            ],
+        },
+    ],
+};
+
+export const SAFE_RANGE2_OPERATION: any = {
+    $if: [
+        { $or: [{ $isGradient: [{ $palette: 'fill' }] }, { $isPattern: [{ $palette: 'fill' }] }] },
+        [{ $palette: 'fillFallback' }, { $palette: 'fillFallback' }],
+        { $palette: 'range2' },
+    ],
+};
+
+export const FILL_PATTERN_DEFAULTS: WithThemeParams<Required<InternalAgPatternColor>> = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
-    // width: undefined,
-    // height: undefined,
-    padding: 6,
-    fill: { $palette: 'fill' },
+    width: 10,
+    height: 10,
+    padding: 2,
+    fill: {
+        $if: [
+            { $isGradient: [{ $palette: 'fill' }] },
+            { $palette: 'fillFallback' },
+            {
+                $if: [
+                    { $isPattern: [{ $palette: 'fill' }] },
+                    { $path: ['./fill', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                    { $palette: 'fill' },
+                ],
+            },
+        ],
+    },
     fillOpacity: 1,
-    stroke: { $palette: 'fill' },
+    stroke: SAFE_STROKE_FILL_OPERATION,
     strokeOpacity: 1,
-    // strokeWidth: undefined,
+    strokeWidth: 4,
     backgroundFill: 'transparent',
     backgroundFillOpacity: 1,
     rotation: 0,

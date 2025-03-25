@@ -30,6 +30,7 @@ export class FinancialDark extends DarkTheme {
         return {
             ...super.getDefaultColors(),
             fills: { ...FINANCIAL_DARK_FILLS },
+            fillsFallback: Object.values({ ...FINANCIAL_DARK_FILLS }),
             strokes: { ...FINANCIAL_DARK_STROKES },
             sequentialColors: getSequentialColors(FINANCIAL_DARK_FILLS),
             divergingColors: [FINANCIAL_DARK_FILLS.GREEN, FINANCIAL_DARK_FILLS.BLUE, FINANCIAL_DARK_FILLS.RED],

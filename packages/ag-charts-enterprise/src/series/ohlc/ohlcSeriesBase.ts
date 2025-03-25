@@ -103,7 +103,7 @@ export abstract class OhlcSeriesBase<
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (!this.properties.isValid() || !this.visible) return;
+        if (!this.visible) return;
 
         const { xKey, openKey, closeKey, highKey, lowKey } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -521,8 +521,8 @@ export abstract class OhlcSeriesBase<
             marker = getShapeStyle(marker, item.fillGradientDefaults, item.fillPatternDefaults);
         }
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: xAxis.formatDatum(xValue),
                 title: legendItemName,
@@ -553,7 +553,7 @@ export abstract class OhlcSeriesBase<
                 closeKey,
                 closeName,
                 ...format,
-            }
+            } as const
         );
     }
 

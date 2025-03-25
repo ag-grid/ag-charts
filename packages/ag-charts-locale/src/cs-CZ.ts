@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaLabelRangesToolbar: 'Rozsahy',
     ariaLabelSettingsTabBar: 'Nastavení',
     ariaLabelZoomToolbar: 'Přiblížit',
-    ariaValuePanRange: '${min}[percent] až ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] až ${max}[percent0to2dp]',
     contextMenuDownload: 'Stáhnout',
     contextMenuPanToCursor: 'Posunout sem',
     contextMenuToggleOtherSeries: 'Přepnout ostatní série',

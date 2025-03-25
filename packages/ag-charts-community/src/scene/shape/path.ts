@@ -2,16 +2,10 @@ import { createSvgElement } from 'ag-charts-core';
 
 import type { DistantObject } from '../../util/nearest';
 import type { BBox } from '../bbox';
+import { SceneChangeDetection } from '../changeDetectable';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { ChildNodeCounts, RenderContext } from '../node';
-import { SceneChangeDetection } from '../node';
 import { type CanvasContext, Shape } from './shape';
-
-export function ScenePathChangeDetection(opts?: { convertor?: (o: any) => any; changeCb?: (t: any) => any }) {
-    const { changeCb, convertor } = opts ?? {};
-
-    return SceneChangeDetection({ type: 'path', convertor, changeCb });
-}
 
 export class Path<D = any> extends Shape<D> implements DistantObject {
     static readonly className: string = 'Path';
@@ -27,16 +21,16 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
     private _clipY: number = NaN;
     private _clipPath?: ExtendedPath2D;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     clip: boolean = false;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     set clipX(value: number) {
         this._clipX = value;
         this.dirtyPath = true;
     }
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     set clipY(value: number) {
         this._clipY = value;
         this.dirtyPath = true;
@@ -68,6 +62,13 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
 
         this.dirtyPath =
             this.path.isDirty() || (this.fillShadow?.isDirty() ?? false) || (this._clipPath?.isDirty() ?? false);
+    }
+
+    override onChangeDetection(property: string): void {
+        if (!this._dirtyPath) {
+            this._dirtyPath = true;
+            super.onChangeDetection(property);
+        }
     }
 
     protected override computeBBox(): BBox | undefined {

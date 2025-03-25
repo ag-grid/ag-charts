@@ -1,5 +1,5 @@
-import { type AgFunnelSeriesStyle, type AgPatternColor, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType, InternalAgGradientColor } from 'ag-charts-core';
+import { type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType, InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -103,7 +103,7 @@ class FunnelSeriesNodeEvent<
 export interface FunnelSeriesShapeStyle {
     fill?: InternalAgColorType;
     fillGradientDefaults: Required<InternalAgGradientColor>;
-    fillPatternDefaults: Required<AgPatternColor>;
+    fillPatternDefaults: Required<InternalAgPatternColor>;
     fillOpacity: number;
     stroke?: string;
     strokeWidth: number;
@@ -194,12 +194,7 @@ export abstract class BaseFunnelSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) {
-            return;
-        }
-
         const { stageKey, valueKey } = this.properties;
-
         const { visible, id: seriesId } = this;
 
         const validation = (_value: unknown, _datum: unknown, index: number) =>
@@ -553,8 +548,8 @@ export abstract class BaseFunnelSeries<
 
         if (xValue == null) return;
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
                 data: [{ label: xAxis.formatDatum(xValue), value: yAxis.formatDatum(yValue) }],
@@ -642,7 +637,7 @@ export abstract class BaseFunnelSeries<
             visible,
         } = this;
 
-        if (!dataModel || !processedData || legendType !== 'category' || !this.properties.isValid()) {
+        if (!dataModel || !processedData || legendType !== 'category') {
             return [];
         }
 

@@ -544,8 +544,6 @@ export class RadialGaugeSeries
     }
 
     override createNodeData() {
-        if (!this.properties.isValid()) return;
-
         const tickData = this.layoutScale();
         const { id: seriesId, scale, properties, radius, centerX, centerY } = this;
 
@@ -1346,8 +1344,6 @@ export class RadialGaugeSeries
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
 
-        if (!properties.isValid()) return;
-
         let value: number | undefined;
         let text: string | undefined;
         if (datumIndex.type === NodeDataType.Node) {
@@ -1359,8 +1355,8 @@ export class RadialGaugeSeries
 
         if (value == null) return;
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 data: [{ label: text, fallbackLabel: 'Value', value: this.formatLabel(value) }],
             },

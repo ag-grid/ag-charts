@@ -117,7 +117,7 @@ export function ChildPropertiesButton({
             aria-label={`See child properties of ${name}`}
         >
             <Icon svgClasses={styles.childChevron} name="chevronRight" />
-            <span>See child properties</span>
+            <span>{isExpanded ? 'Hide' : 'See'} child properties</span>
         </button>
     );
 }

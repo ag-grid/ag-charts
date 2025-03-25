@@ -74,7 +74,7 @@ async function createGitHubRelease() {
     const creationResult = await octokit.request('POST /repos/ag-grid/ag-charts/releases', {
         owner: 'ag-grid',
         repo: 'ag-charts',
-        make_latest: args.latest,
+        make_latest: args.latest ? 'true' : 'false',
         tag_name: ghReleaseVersion,
         target_commitish: releaseBranch,
         name: ghReleaseVersion,

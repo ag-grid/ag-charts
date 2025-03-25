@@ -134,6 +134,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Series Fills",
+                            "path": "fills"
+                        },
+                        {
+                            "type": "item",
                             "title": "Series Markers",
                             "path": "markers"
                         },

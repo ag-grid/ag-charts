@@ -5,16 +5,7 @@ import type {
     AgLineSeriesTooltipRendererParams,
 } from 'ag-charts-types';
 
-import {
-    BOOLEAN,
-    COLOR_STRING,
-    LINE_DASH,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    TempValidate,
-} from '../../../util/validation';
+import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -22,60 +13,60 @@ import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
 
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
-    @TempValidate(STRING)
+    @Property
     xKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     yKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yFilterKey: string | undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     stackGroup?: string;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     normalizedTo?: number;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     title?: string;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = '#874349';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 2;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(OBJECT)
+    @Property
     interpolation: InterpolationProperties = new InterpolationProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly marker = new SeriesMarker<AgLineSeriesMarkerItemStylerParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new Label<AgLineSeriesLabelFormatterParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgLineSeriesTooltipRendererParams>();
 
-    @TempValidate(BOOLEAN)
+    @Property
     connectMissingData: boolean = false;
 
-    @TempValidate(BOOLEAN)
+    @Property
     sparklineMode: boolean = false;
 }

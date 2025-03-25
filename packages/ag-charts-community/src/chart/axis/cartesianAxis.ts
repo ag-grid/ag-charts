@@ -10,16 +10,18 @@ import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { TransformableText } from '../../scene/shape/text';
 import { normalizeAngle360 } from '../../util/angle';
+import { Property } from '../../util/properties';
 import { StateMachine } from '../../util/stateMachine';
-import { POSITION, POSITIVE_NUMBER, TempValidate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum, TranslatableLine } from './axis';
 import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
-import { type AxisLabelDatum, NiceMode, type TickDatum } from './axisUtil';
 import {
+    type AxisLabelDatum,
+    NiceMode,
+    type TickDatum,
     prepareAxisAnimationContext,
     prepareAxisAnimationFunctions,
     resetAxisGroupFn,
@@ -47,10 +49,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return value instanceof CartesianAxis;
     }
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     thickness?: number;
 
-    @TempValidate(POSITION)
+    @Property
     position!: AgCartesianAxisPosition;
 
     protected animationManager: AnimationManager;
@@ -334,9 +336,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const x = Math.floor((titleRotationFlag * sideFlag * (range[0] + range[1])) / 2);
         const y = sideFlag === -1 ? Math.floor(titleRotationFlag * -padding) : Math.floor(-padding);
 
-        const { callbackCache } = this.moduleCtx;
         const { formatter = (p) => p.defaultValue } = title;
-        const text = callbackCache.call(this, formatter, this.getTitleFormatterParams(params.domain));
+        const text = this.callWithContext(formatter, this.getTitleFormatterParams(params.domain));
         caption.text = text;
 
         titleNode.setProperties({ visible: true, text, textBaseline, x, y, rotation });

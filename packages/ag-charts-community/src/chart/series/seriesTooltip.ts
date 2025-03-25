@@ -3,44 +3,46 @@ import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult, Interactio
 
 import { callWithContext } from '../../util/callbackCache';
 import { BaseProperties } from '../../util/properties';
-import { BOOLEAN, FUNCTION, INTERACTION_RANGE, OBJECT, STRING, TempValidate } from '../../util/validation';
+import { Property } from '../../util/properties';
 import { type TooltipContent, TooltipPosition, type TooltipStructuredContent } from '../tooltip/tooltip';
 
 type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
 
 class SeriesTooltipInteraction extends BaseProperties {
-    @TempValidate(BOOLEAN)
+    @Property
     enabled: boolean = false;
 }
 
 export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends BaseProperties {
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     enabled?: boolean;
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     showArrow?: boolean;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     renderer?: TooltipRenderer<RequireOptional<P>>;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly interaction = new SeriesTooltipInteraction();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly position = new TooltipPosition();
 
-    @TempValidate(INTERACTION_RANGE, { optional: true })
+    @Property
     range?: InteractionRange = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     class?: string = undefined;
 
     public formatTooltip(
-        caller: { context?: unknown },
+        caller1: { context?: unknown },
+        caller2: { context?: unknown },
         content: TooltipStructuredContent,
         params: RequireOptional<P>
     ): TooltipContent {
-        const overrides = this.renderer == null ? undefined : callWithContext(caller, this.renderer, [params]);
+        const overrides =
+            this.renderer == null ? undefined : callWithContext(caller1, caller2, this.renderer, [params]);
         if (typeof overrides === 'string') return { type: 'raw', rawHtmlString: overrides };
         if (overrides != null) return { type: 'structured', ...content, ...overrides };
         return { type: 'structured', ...content };

@@ -36,6 +36,7 @@ export class SheetsLight extends ChartTheme {
         return {
             ...super.getDefaultColors(),
             fills: { ...SHEETS_LIGHT_FILLS, RED: SHEETS_LIGHT_FILLS.ORANGE },
+            fillsFallback: Object.values({ ...SHEETS_LIGHT_FILLS, RED: SHEETS_LIGHT_FILLS.ORANGE }),
             strokes: { ...SHEETS_LIGHT_STROKES, RED: SHEETS_LIGHT_STROKES.ORANGE },
             sequentialColors: getSequentialColors({ ...SHEETS_LIGHT_FILLS, RED: SHEETS_LIGHT_FILLS.ORANGE }),
             divergingColors: [SHEETS_LIGHT_FILLS.ORANGE, SHEETS_LIGHT_FILLS.YELLOW, SHEETS_LIGHT_FILLS.GREEN],

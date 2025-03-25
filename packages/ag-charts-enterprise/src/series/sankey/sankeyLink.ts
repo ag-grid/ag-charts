@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { BBox, Path, ScenePathChangeDetection, splitBezier } = _ModuleSupport;
+const { BBox, Path, SceneChangeDetection, splitBezier } = _ModuleSupport;
 
 function offsetTrivialCubicBezier(
     path: _ModuleSupport.ExtendedPath2D,
@@ -64,22 +64,22 @@ function offsetTrivialCubicBezier(
 }
 
 export class SankeyLink<D = any> extends Path<D> {
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     x1: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     x2: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     y1: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     y2: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     height: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     inset: number = 0;
 
     protected override computeBBox(): _ModuleSupport.BBox | undefined {

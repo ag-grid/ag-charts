@@ -1,4 +1,4 @@
-import { Logger, isArray } from 'ag-charts-core';
+import { type AnyFn, Logger, isArray } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -30,8 +30,8 @@ import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
+import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
-import { BOOLEAN, OBJECT, STRING_ARRAY, TempValidate } from '../../util/validation';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -106,17 +106,17 @@ export abstract class Axis<
     // user pass-through option: no validation required.
     context?: unknown;
 
-    @TempValidate(BOOLEAN)
+    @Property
     nice: boolean = true;
 
     /** Reverse the axis scale domain. */
-    @TempValidate(BOOLEAN)
+    @Property
     reverse: boolean = false;
 
-    @TempValidate(STRING_ARRAY)
+    @Property
     keys: string[] = [];
 
-    @TempValidate(OBJECT)
+    @Property
     readonly interval = new AxisInterval();
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
@@ -338,7 +338,7 @@ export abstract class Axis<
         return formatValue(datum, fractionDigits);
     }
 
-    @TempValidate(OBJECT)
+    @Property
     readonly title = new AxisTitle();
 
     /**
@@ -411,7 +411,7 @@ export abstract class Axis<
         };
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
-            stylerOutput = this.moduleCtx.callbackCache.call(this, label.itemStyler, {
+            stylerOutput = this.callWithContext(label.itemStyler, {
                 ...params,
                 ...defaultStyle,
             });
@@ -651,13 +651,12 @@ export abstract class Axis<
         const {
             labelFormatter,
             label: { formatter },
-            moduleCtx: { callbackCache },
         } = this;
 
         let result: string | undefined;
         if (formatter) {
             const boundSeries = this.getFormatterBoundSeries();
-            result = callbackCache.call(this, formatter, { value, index, domain, fractionDigits, boundSeries });
+            result = this.callWithContext(formatter, { value, index, domain, fractionDigits, boundSeries });
         } else if (defaultFormatter) {
             result = defaultFormatter(value);
         } else if (labelFormatter) {
@@ -670,7 +669,6 @@ export abstract class Axis<
     formatDatum(value: unknown): string {
         const {
             label: { formatter },
-            moduleCtx: { callbackCache },
             datumFormatter: valueFormatter = this.labelFormatter,
         } = this;
 
@@ -678,9 +676,9 @@ export abstract class Axis<
         if (formatter) {
             const { domain } = this.scale;
             const boundSeries = this.getFormatterBoundSeries();
-            result = callbackCache.call(this, formatter, { value: value, index: NaN, domain, boundSeries });
+            result = this.callWithContext(formatter, { value: value, index: NaN, domain, boundSeries });
         } else if (valueFormatter) {
-            result = callbackCache.call(this, valueFormatter, value);
+            result = this.callWithContext(valueFormatter, value);
         } else if (isArray(value)) {
             // Handle grouped categories value.
             result = value.filter(Boolean).join(' - ');
@@ -802,5 +800,10 @@ export abstract class Axis<
 
     isReversed() {
         return this.reverse;
+    }
+
+    protected callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+        const { callbackCache, chartService } = this.moduleCtx;
+        return callbackCache.call(this, chartService, fn, ...params);
     }
 }

@@ -139,9 +139,7 @@ export class MapShapeSeries
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const { data, topology, colorScale } = this;
         const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
@@ -679,8 +677,8 @@ export class MapShapeSeries
         const format = this.getItemBaseStyle(false);
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, colorValue, format, false));
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: idValue,
                 title: title ?? legendItemName,

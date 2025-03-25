@@ -71,7 +71,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     override async processData(dataController: DataController) {
-        if (!this.properties.isValid() || this.data == null || !this.visible) return;
+        if (this.data == null || !this.visible) return;
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
@@ -329,8 +329,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             highlighted: true,
         });
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 symbol: this.legendItemSymbol(),
                 title,
@@ -363,7 +363,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        if (!this.properties.isValid() || legendType !== 'category') {
+        if (legendType !== 'category') {
             return [];
         }
 

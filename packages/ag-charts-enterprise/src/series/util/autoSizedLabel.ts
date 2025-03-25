@@ -1,24 +1,24 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
 
-const { TempValidate, NUMBER, POSITIVE_NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
+const { Property } = _ModuleSupport;
 
 class BaseAutoSizedLabel<FormatterParams> extends _ModuleSupport.Label<FormatterParams> {
-    @TempValidate(TEXT_WRAP)
+    @Property
     wrapping: TextWrap = 'on-space';
 
-    @TempValidate(OVERFLOW_STRATEGY)
+    @Property
     overflowStrategy: OverflowStrategy = 'ellipsis';
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     lineHeight?: number;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     minimumFontSize?: number;
 }
 
 export class AutoSizedLabel<FormatterParams> extends BaseAutoSizedLabel<FormatterParams> {
-    @TempValidate(NUMBER)
+    @Property
     spacing: number = 0;
 }
 

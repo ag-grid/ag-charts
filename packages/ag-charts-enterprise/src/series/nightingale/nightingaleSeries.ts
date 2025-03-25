@@ -14,7 +14,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
     override properties = new RadialColumnSeriesBaseProperties<AgNightingaleSeriesOptions>();
 
     // TODO: Enable once the options contract has been revisited
-    // @TempValidate(POSITIVE_NUMBER)
+    // @TempValidate
     // sectorSpacing = 1;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {

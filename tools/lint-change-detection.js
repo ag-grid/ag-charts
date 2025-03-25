@@ -110,7 +110,7 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
                         const typeString = checker.typeToString(type);
                         let suggestion = '';
 
-                        if (decoratorName === 'SceneChangeDetection' || decoratorName === 'ScenePathChangeDetection') {
+                        if (decoratorName === 'SceneChangeDetection') {
                             if (!checkAllowedType(type)) {
                                 if (isArrayType(type)) {
                                     suggestion = 'Switch to @SceneArrayChangeDetection for array properties.';

@@ -1,3 +1,5 @@
+import type { AnyFn } from 'ag-charts-core';
+
 const memorizedFns = new WeakMap<Function, Map<string, Function>>();
 
 export function memo<T, R>(params: T, fnGenerator: (params: T) => () => R): () => R {
@@ -13,7 +15,7 @@ export function memo<T, R>(params: T, fnGenerator: (params: T) => () => R): () =
     return memorizedFns.get(fnGenerator)?.get(serialisedParams) as () => R;
 }
 
-export function simpleMemorize<F extends (...args: any[]) => any>(
+export function simpleMemorize<F extends AnyFn>(
     fn: F,
     cacheCallback?: (type: 'hit' | 'miss', fn: F, keys: any[]) => void
 ) {

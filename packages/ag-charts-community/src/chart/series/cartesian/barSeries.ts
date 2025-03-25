@@ -154,9 +154,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override async processData(dataController: DataController) {
-        if (!this.properties.isValid() || !this.data) {
-            return;
-        }
+        if (!this.data) return;
 
         const { xKey, yKey, yFilterKey, normalizedTo, fastDataProcessing } = this.properties;
         const { seriesGrouping: { groupIndex = this.id } = {}, data } = this;
@@ -313,9 +311,7 @@ export class BarSeries extends AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!dataModel || !processedData || !xAxis || !yAxis || !this.properties.isValid()) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const rawData = processedData.dataSources?.get(this.id);
         if (rawData == null) return;
@@ -696,16 +692,9 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     protected override updateDatumNodes(opts: { datumSelection: Selection<Rect, BarNodeDatum>; isHighlight: boolean }) {
-        if (!this.properties.isValid()) {
-            return;
-        }
-
         const { shadow } = this.properties;
-
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
-
         const style = this.getItemBaseStyle(opts.isHighlight);
-
         const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
@@ -772,8 +761,8 @@ export class BarSeries extends AbstractBarSeries<
         const format = this.getItemBaseStyle(false);
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format, false));
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),
@@ -828,7 +817,7 @@ export class BarSeries extends AbstractBarSeries<
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         const { showInLegend } = this.properties;
 
-        if (legendType !== 'category' || !this.properties.isValid()) {
+        if (legendType !== 'category') {
             return [];
         }
 

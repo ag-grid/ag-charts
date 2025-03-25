@@ -132,10 +132,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) {
-            return;
-        }
-
         const { xKey, yLowKey, yHighKey, fastDataProcessing } = this.properties;
         const grouped = !fastDataProcessing;
 
@@ -601,8 +597,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),

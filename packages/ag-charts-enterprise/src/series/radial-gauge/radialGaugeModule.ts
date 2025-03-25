@@ -4,10 +4,7 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 import { RadialGaugeSeries } from './radialGaugeSeries';
 import { radialGaugeSeriesOptionsDef } from './radialGaugeSeriesOptionsDef';
 
-const {
-    FONT_SIZE_RATIO,
-    ThemeConstants: { POLAR_AXIS_TYPE },
-} = _ModuleSupport;
+const { FONT_SIZE_RATIO } = _ModuleSupport;
 
 export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     type: 'series',
@@ -18,10 +15,6 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     identifier: 'radial-gauge',
     moduleFactory: (ctx) => new RadialGaugeSeries(ctx),
     tooltipDefaults: { range: 10 },
-    defaultAxes: [
-        { type: POLAR_AXIS_TYPE.ANGLE_NUMBER, line: { enabled: false } },
-        { type: POLAR_AXIS_TYPE.RADIUS_NUMBER, line: { enabled: false } },
-    ],
     themeTemplate: {
         minWidth: 200,
         minHeight: 200,
@@ -37,13 +30,13 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 $if: [
                     { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                     { $interpolate: [{ $palette: 'secondDivergingColors' }, 5] },
-                    { $palette: 'range2' },
+                    _ModuleSupport.SAFE_RANGE2_OPERATION,
                 ],
             },
             scale: {
                 // @ts-expect-error undocumented option
                 defaultFill: { $path: ['./1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
-                stroke: { $path: ['./2', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
+                stroke: { $path: ['./2', _ModuleSupport.SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
                 label: {
                     fontWeight: { $ref: 'fontWeight' },
                     fontSize: { $ref: 'fontSize' },

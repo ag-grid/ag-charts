@@ -68,8 +68,6 @@ export interface AgPatternColor {
     width?: number;
     /** Height of the pattern unit. */
     height?: number;
-    /** Padding for the shape in the pattern unit. */
-    padding?: number;
     /** The colour for filling closed shapes in the pattern. */
     fill?: CssColor;
     /** The opacity of the shapes fill colour. */
@@ -84,8 +82,6 @@ export interface AgPatternColor {
     strokeOpacity?: Opacity;
     /** The width of the stroke of shapes in pixels. */
     strokeWidth?: PixelSize;
-    /** The rotation angle of the pattern. */
-    rotation?: number;
 }
 
 export type AgPatternName =

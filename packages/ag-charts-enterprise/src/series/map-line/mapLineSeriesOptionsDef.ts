@@ -1,11 +1,14 @@
 import { type AgMapLineSeriesOptions, type AgSeriesHighlightStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    and,
+    arrayLength,
     arrayOf,
     callback,
+    color,
     constant,
+    geoJson,
     lineDashOptionsDef,
-    object,
     positiveNumber,
     required,
     string,
@@ -24,7 +27,7 @@ export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
     sizeName: string,
     colorName: string,
     labelName: string,
-    topology: object,
+    topology: geoJson,
     topologyIdKey: string,
     legendItemName: string,
     maxStrokeWidth: positiveNumber,
@@ -41,3 +44,6 @@ export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
         ...strokeOptionsDef,
     },
 };
+
+// @ts-expect-error undocumented option
+mapLineSeriesOptionsDef.colorRange = and(arrayOf(color), arrayLength(1));

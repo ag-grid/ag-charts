@@ -44,7 +44,11 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
                 rotation: 0,
                 reverse: false,
             } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
-            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
+            fillPatternDefaults: {
+                ..._ModuleSupport.FILL_PATTERN_DEFAULTS,
+                fill: { $path: ['./1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
+                stroke: { $path: ['./1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
+            },
         },
     },
 };

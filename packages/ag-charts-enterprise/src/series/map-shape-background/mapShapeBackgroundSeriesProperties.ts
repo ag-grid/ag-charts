@@ -2,23 +2,7 @@ import type { AgMapShapeBackgroundOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-import { GEOJSON_OBJECT } from '../map-util/validation';
-
-const {
-    FillGradientDefaults,
-    FillPatternDefaults,
-    COLOR_STRING,
-    COLOR_GRADIENT,
-    COLOR_PATTERN,
-    OR,
-    LINE_DASH,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    TempValidate,
-    SeriesProperties,
-    SeriesTooltip,
-} = _ModuleSupport;
+const { FillGradientDefaults, FillPatternDefaults, Property, SeriesProperties, SeriesTooltip } = _ModuleSupport;
 
 export interface MapShapeBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
@@ -26,36 +10,36 @@ export interface MapShapeBackgroundNodeDatum extends _ModuleSupport.DataModelSer
 }
 
 export class MapShapeBackgroundSeriesProperties extends SeriesProperties<AgMapShapeBackgroundOptions> {
-    @TempValidate(GEOJSON_OBJECT, { optional: true })
+    @Property
     topology?: _ModuleSupport.FeatureCollection = undefined;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
+    @Property
     fill: InternalAgColorType = 'black';
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = 'black';
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 0;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<never>();
 }

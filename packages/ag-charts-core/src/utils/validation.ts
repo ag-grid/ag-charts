@@ -184,10 +184,15 @@ function findSuggestion(value: string, suggestions: string[], maxDistance: numbe
  * @param description The description to attach.
  * @returns A new validator function with the attached description.
  */
-export function attachDescription(validator: Validator, description: string): Validator {
-    return Object.assign((value: unknown, context: ValidatorContext) => validator(value, context), {
-        [descriptionSymbol]: description,
-    });
+export function attachDescription(validator: Validator, description: string): Validator;
+export function attachDescription<T>(optionsDefs: OptionsDefs<T>, description: string): OptionsDefs<T>;
+export function attachDescription<T extends Validator | OptionsDefs<any>>(validatorOrDefs: T, description: string): T {
+    return Object.assign(
+        isFunction(validatorOrDefs)
+            ? (value: unknown, context: ValidatorContext) => validatorOrDefs(value, context)
+            : ({ ...validatorOrDefs } as any),
+        { [descriptionSymbol]: description }
+    );
 }
 
 /**
@@ -280,6 +285,7 @@ const isValidDateValue = (value: unknown) =>
     isDate(value) || ((isFiniteNumber(value) || isString(value)) && isValidDate(new Date(value)));
 
 // Base type validators with descriptions.
+export const unknown = (_value: unknown): _value is unknown => true; // no validation required.
 export const array = attachDescription(isArray, 'an array');
 export const boolean = attachDescription(isBoolean, 'a boolean');
 export const callback = attachDescription(isFunction, 'a function');
@@ -381,7 +387,6 @@ export const arrayOf = (validator: Validator, description?: string) =>
     attachDescription(
         (value, context) =>
             isArray(value) &&
-            value.length > 0 &&
             value.every((v) => {
                 const result = validator(v, context);
                 delete context.result;
@@ -397,27 +402,24 @@ export const arrayOf = (validator: Validator, description?: string) =>
  * @param description An optional description string.
  * @returns A validator function for arrays, storing valid elements and collecting errors for invalid ones.
  */
-export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description?: string) =>
-    attachDescription(
-        (value, context) => {
-            if (!isArray(value)) return false;
+export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description = 'an object array') =>
+    attachDescription((value, context) => {
+        if (!isArray(value)) return false;
 
-            const valid: unknown[] = [];
-            const errors: ValidationError[] = [];
-            for (let i = 0; i < value.length; i++) {
-                const indexPath = `${context.path}[${i}]`;
-                const result = validate(value[i], defs, indexPath);
-                errors.push(...result.errors);
-                if (!result.errors.some((error) => error.required && error.path === indexPath)) {
-                    valid.push(result.valid);
-                }
+        const valid: unknown[] = [];
+        const errors: ValidationError[] = [];
+        for (let i = 0; i < value.length; i++) {
+            const indexPath = `${context.path}[${i}]`;
+            const result = validate(value[i], defs, indexPath);
+            errors.push(...result.errors);
+            if (!result.errors.some((error) => error.required && error.path === indexPath)) {
+                valid.push(result.valid);
             }
+        }
 
-            context.result = { valid, errors };
-            return true;
-        },
-        description ?? `${defs[descriptionSymbol]} array`
-    );
+        context.result = { valid, errors };
+        return true;
+    }, description);
 
 export const typeUnion = <T extends { type: string }>(
     defs: { [K in T['type']]: OptionsDefs<Omit<Extract<T, { type: K }>, 'type'>> },

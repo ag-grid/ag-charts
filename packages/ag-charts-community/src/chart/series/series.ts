@@ -1,11 +1,11 @@
-import { Logger } from 'ag-charts-core';
-import type { InternalAgGradientColor } from 'ag-charts-core';
+import { type AnyFn, Logger, type RequireOptional } from 'ag-charts-core';
+import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
     AgInitialStateLegendOptions,
-    AgPatternColor,
     AgSeriesMarkerStyle,
+    AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
     ISeriesMarker,
 } from 'ag-charts-types';
@@ -38,10 +38,11 @@ import type { DataController } from '../data/dataController';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../interaction/chartEventManager';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
-import type { TooltipContent } from '../tooltip/tooltip';
+import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import type { SeriesEventType } from './seriesEvents';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
+import type { SeriesTooltip } from './seriesTooltip';
 import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 import { type ShapeFillBBox, applyShapeStyle, getShapeStyle } from './shapeUtil';
@@ -279,7 +280,7 @@ export abstract class Series<
     set visible(newVisibility: boolean) {
         // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
         this.properties.visible = newVisibility;
-        this.ctx.legendManager.toggleItem({ enabled: newVisibility, seriesId: this.id });
+        this.ctx.legendManager.toggleItem(newVisibility, this.id);
         this.ctx.legendManager.update();
         this.visibleMaybeChanged();
     }
@@ -779,7 +780,7 @@ export abstract class Series<
         };
         this.fireEvent(event);
 
-        this.ctx.legendManager.toggleItem({ enabled, seriesId, itemId, legendItemName });
+        this.ctx.legendManager.toggleItem(enabled, seriesId, itemId, legendItemName);
     }
 
     isEnabled() {
@@ -801,7 +802,7 @@ export abstract class Series<
     ) {
         if (label.formatter) {
             return (
-                this.ctx.callbackCache.call(this.properties, label.formatter, { seriesId: this.id, ...params }) ??
+                this.cachedCallWithContext(label.formatter, { seriesId: this.id, ...params }) ??
                 this.callWithContext(defaultFormatter, params.value)
             );
         }
@@ -811,7 +812,7 @@ export abstract class Series<
     public getMarkerStyle<TParams>(
         marker: ISeriesMarker<TParams> & {
             fillGradientDefaults: Required<InternalAgGradientColor>;
-            fillPatternDefaults: Required<AgPatternColor>;
+            fillPatternDefaults: Required<InternalAgPatternColor>;
         },
         datum?: any,
         params?: TParams,
@@ -829,7 +830,7 @@ export abstract class Series<
         );
 
         if (itemStyler && params) {
-            const style = this.ctx.callbackCache.call(this.properties, itemStyler, {
+            const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,
@@ -845,7 +846,7 @@ export abstract class Series<
     protected updateMarkerStyle<TParams>(
         marker: ISeriesMarker<TParams> & {
             fillGradientDefaults: Required<InternalAgGradientColor>;
-            fillPatternDefaults: Required<AgPatternColor>;
+            fillPatternDefaults: Required<InternalAgPatternColor>;
         },
         markerNode: Marker,
         datum: any,
@@ -939,8 +940,20 @@ export abstract class Series<
         }
     }
 
-    public callWithContext<F extends (...args: any[]) => any>(fn: F, ...params: Parameters<F>): ReturnType<F> {
-        return callWithContext(this.properties, fn, params);
+    private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+        return this.ctx.callbackCache.call(this.properties, this.ctx.chartService, fn, ...params);
+    }
+
+    public callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> {
+        return callWithContext(this.properties, this.ctx.chartService, fn, params);
+    }
+
+    protected formatTooltipWithContext<P extends AgSeriesTooltipRendererParams<any>, Tooltip extends SeriesTooltip<P>>(
+        tooltip: Tooltip,
+        content: TooltipStructuredContent,
+        params: RequireOptional<P>
+    ) {
+        return tooltip.formatTooltip(this.properties, this.ctx.chartService, content, params);
     }
 
     abstract getCategoryValue(datumIndex: TDatumIndex): any;

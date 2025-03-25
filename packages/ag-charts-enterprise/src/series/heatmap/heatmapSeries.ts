@@ -101,7 +101,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
-        if (!xAxis || !yAxis || !this.properties.isValid() || !this.data?.length) {
+        if (!xAxis || !yAxis || !this.data?.length) {
             return;
         }
 
@@ -502,8 +502,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                   }
                 : undefined;
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             { title: title ?? legendItemName, symbol, data },
             {
                 seriesId,
@@ -521,7 +521,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.GradientLegendDatum[] {
-        if (legendType !== 'gradient' || !this.properties.isValid() || !this.isColorScaleValid() || !this.dataModel) {
+        if (legendType !== 'gradient' || !this.isColorScaleValid() || !this.dataModel) {
             return [];
         }
 

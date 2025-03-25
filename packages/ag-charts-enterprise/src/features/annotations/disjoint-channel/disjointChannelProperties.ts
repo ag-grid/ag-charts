@@ -11,11 +11,10 @@ import {
     LineStyle,
     Stroke,
 } from '../annotationProperties';
-import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import { type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { getLineCap, getLineDash } from '../utils/line';
-import { validateDatumLine } from '../utils/validation';
 
-const { NUMBER, OBJECT, STRING, BaseProperties, TempValidate } = _ModuleSupport;
+const { BaseProperties, Property } = _ModuleSupport;
 
 export class DisjointChannelProperties extends Annotation(
     Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))
@@ -24,16 +23,16 @@ export class DisjointChannelProperties extends Annotation(
         return isObject(value) && value.type === AnnotationType.DisjointChannel;
     }
 
-    @TempValidate(STRING)
+    @Property
     type = AnnotationType.DisjointChannel as const;
 
-    @TempValidate(NUMBER)
+    @Property
     startHeight!: number;
 
-    @TempValidate(NUMBER)
+    @Property
     endHeight!: number;
 
-    @TempValidate(OBJECT, { optional: true })
+    @Property
     text = new ChannelTextProperties();
 
     snapToAngle: number = 45;
@@ -52,14 +51,6 @@ export class DisjointChannelProperties extends Annotation(
         }
 
         return bottom;
-    }
-
-    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
-        return (
-            super.isValid(warningPrefix) &&
-            validateDatumLine(context, this, { overflowContinuous: true }, warningPrefix) &&
-            validateDatumLine(context, this.bottom, { overflowContinuous: true }, warningPrefix)
-        );
     }
 
     getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {

@@ -149,9 +149,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const {
             id: seriesId,
@@ -619,8 +617,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const format = this.getItemBaseStyle(false) as any as Required<ItemStyle>;
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, datumIndex, format, false));
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
                 data: [
@@ -697,7 +695,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             visible,
         } = this;
 
-        if (!dataModel || !processedData || legendType !== 'category' || !this.properties.isValid()) {
+        if (!dataModel || !processedData || legendType !== 'category') {
             return [];
         }
 
