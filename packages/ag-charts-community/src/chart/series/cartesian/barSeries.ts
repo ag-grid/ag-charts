@@ -266,7 +266,7 @@ export class BarSeries extends AbstractBarSeries<
         }
 
         const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
-        let yExtent = this.domainForClippedRange(ChartAxisDirection.Y, [yKey], 'xValue', true);
+        let yExtent = this.domainForClippedRange(direction, [yKey], 'xValue', true);
         const yFilterExtent = this.crossFilteringEnabled()
             ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData)
             : undefined;
