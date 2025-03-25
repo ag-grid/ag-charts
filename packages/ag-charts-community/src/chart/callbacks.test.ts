@@ -1,5 +1,6 @@
-import { AgCartesianChartOptions } from 'ag-charts-types';
+import { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
+import { AgCharts } from '../api/agCharts';
 import type {
     MockAxisLabelFormatter,
     MockItemStyler,
@@ -10,15 +11,18 @@ import { newFreezableMock } from './test/freezableMock';
 import {
     AgCartesianChartOptionsWithContext,
     Chart,
+    IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
     expectWarningsCalls,
+    extractImageData,
     hoverAction,
+    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';
 
-describe('API context', () => {
+describe('AG-13024 API context', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -142,7 +146,7 @@ describe('API context', () => {
     });
 });
 
-describe('options validation', () => {
+describe('AG-13024 API context validation', () => {
     let chart: Chart;
     setupMockConsole();
     setupMockCanvas();
@@ -164,5 +168,65 @@ describe('options validation', () => {
         };
         chart = await createChart(opts);
         expectWarningsCalls().toMatchSnapshot();
+    });
+});
+
+describe('callback cache', () => {
+    let chart: AgChartInstance;
+    setupMockConsole();
+    const ctx = setupMockCanvas();
+
+    async function compare(customSnapshotIdentifier: string) {
+        await waitForChartStability(chart);
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot({
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            failureThreshold: 0,
+            customSnapshotIdentifier,
+        });
+    }
+
+    afterEach(() => chart?.destroy());
+    test('AG-10112 re-evaluate callbacks on update', async () => {
+        let selectedCountry: string;
+
+        const opts = prepareTestOptions({
+            data: [
+                { gdp: 1419, country: 'Spain' },
+                { gdp: 2855, country: 'UK' },
+                { gdp: 3948, country: 'Germany' },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'country',
+                    yKey: 'gdp',
+                    showInLegend: false,
+                    itemStyler: (params) => {
+                        return { fill: params.datum[params.xKey] === selectedCountry ? 'red' : params.fill };
+                    },
+                },
+            ],
+            tooltip: { enabled: false },
+            theme: {
+                overrides: {
+                    bar: {
+                        series: { highlightStyle: { item: { fillOpacity: 0, stroke: undefined, strokeWidth: 0 } } },
+                    },
+                },
+            },
+        });
+
+        selectedCountry = 'Spain';
+        chart = AgCharts.create(opts);
+        await compare('AG-10112-reevaluate-Spain');
+
+        selectedCountry = 'UK';
+        chart.update(opts);
+        await compare('AG-10112-reevaluate-UK');
+
+        selectedCountry = 'Germany';
+        chart.update(opts);
+        await compare('AG-10112-reevaluate-Germany');
     });
 });
