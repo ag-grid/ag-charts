@@ -28,6 +28,7 @@ import {
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
 } from '../../chart/themes/symbols';
+import { SAFE_STROKE_FILL_OPERATION } from '../../chart/themes/util';
 import { mergeDefaults } from '../../util/object';
 import { annotationsTheme } from './priceVolumePresetTheme';
 
@@ -102,7 +103,7 @@ export function priceVolume(
                           type: 'line' as const,
                           xKey: dateKey,
                           yKey: volumeKey,
-                          // stroke: SAFE_STROKE_FILL_OPERATION,
+                          stroke: SAFE_STROKE_FILL_OPERATION,
                           marker: { enabled: false },
                       },
                   ],

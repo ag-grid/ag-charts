@@ -291,7 +291,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             options = cleared as T;
         }
 
-        this.validatePluginOptions(options);
         this.validateAxesOptions(options);
         this.removeDisabledOptions(options);
 
@@ -354,6 +353,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.validateSeriesOptions(processedOptions);
         this.validateAxesOptions(processedOptions);
+        this.validatePluginOptions(processedOptions);
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
