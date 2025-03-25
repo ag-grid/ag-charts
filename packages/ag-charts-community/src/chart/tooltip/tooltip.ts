@@ -6,19 +6,8 @@ import type { LocaleManager } from '../../locale/localeManager';
 import { Deprecated } from '../../util/deprecation';
 import { type Bounds, type Placement, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
+import { Property } from '../../util/properties';
 import { SizeMonitor } from '../../util/sizeMonitor';
-import {
-    ARRAY_OF,
-    BOOLEAN,
-    INTERACTION_RANGE,
-    NUMBER,
-    OBJECT,
-    OR,
-    POSITIVE_NUMBER,
-    TEXT_WRAP,
-    UNION,
-    Validate,
-} from '../../util/validation';
 import { SpringAnimation } from './springAnimation';
 import {
     DEFAULT_TOOLTIP_CLASS,
@@ -134,21 +123,6 @@ const directionChecks: Record<AgTooltipPlacement, DirectionCheck> = {
     center: DirectionCheck.None,
 };
 
-const TOOLTIP_MODE = UNION(['single', 'shared', 'compact']);
-
-const POSITION_TYPE = UNION(
-    ['pointer', 'node', 'top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-right', 'bottom-left'],
-    'a position type'
-);
-
-const ANCHOR_TO = UNION(['pointer', 'node', 'chart'], 'an anchorTo');
-
-const PLACEMENT_UNION = UNION(
-    ['top', 'right', 'bottom', 'left', 'top-right', 'bottom-right', 'bottom-left', 'top-left', 'center'],
-    'a placement'
-);
-const PLACEMENT = OR(PLACEMENT_UNION, ARRAY_OF(PLACEMENT_UNION));
-
 export class TooltipPosition extends BaseProperties {
     /**
      * @todo(AG-10870) - this should never be undefined, but there's something odd going on with
@@ -158,26 +132,26 @@ export class TooltipPosition extends BaseProperties {
      * derive their defaults from this property. Eventually those properties will be set via the
      * theme, and we'll make sure they are applied normally.
      */
-    @Validate(POSITION_TYPE, { optional: true })
-    @Deprecated('use anchorTo and/or placement options instead')
+    @Property
+    @Deprecated('Use `anchorTo` and/or `placement` options instead.')
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
     protected type?: TooltipPositionType;
     /** @todo Remove this when type is removed. */
-    @Validate(POSITION_TYPE, { optional: true })
+    @Property
     protected _seriesOverrideType?: TooltipPositionType;
 
-    @Validate(NUMBER)
+    @Property
     /** The horizontal offset in pixels for the position of the tooltip. */
     xOffset: number = 0;
 
-    @Validate(NUMBER)
+    @Property
     /** The vertical offset in pixels for the position of the tooltip. */
     yOffset: number = 0;
 
-    @Validate(ANCHOR_TO, { optional: true })
+    @Property
     anchorTo?: AgTooltipAnchorTo;
 
-    @Validate(PLACEMENT, { optional: true })
+    @Property
     placement?: AgTooltipPlacement | AgTooltipPlacement[];
 
     get defaultAnchorTo(): AgTooltipAnchorTo {
@@ -204,35 +178,35 @@ export class TooltipPosition extends BaseProperties {
 }
 
 export class Tooltip extends BaseProperties {
-    @Validate(BOOLEAN)
+    @Property
     enabled: boolean = true;
 
-    @Validate(TOOLTIP_MODE)
+    @Property
     mode: AgTooltipMode = 'single';
 
-    @Validate(BOOLEAN, { optional: true })
+    @Property
     showArrow?: boolean;
 
-    @Validate(POSITIVE_NUMBER)
+    @Property
     delay: number = 0;
 
-    @Validate(INTERACTION_RANGE, { optional: true })
+    @Property
     range?: InteractionRange = undefined;
 
-    @Validate(TEXT_WRAP)
+    @Property
     wrapping: TextWrap = 'hyphenate';
 
-    @Validate(OBJECT)
+    @Property
     readonly position = new TooltipPosition();
 
-    @Validate(BOOLEAN)
+    @Property
     readonly pagination = false;
 
-    @Validate(BOOLEAN)
+    @Property
     darkTheme = false;
 
     /** Escape-hatch for changes in AG-11645. */
-    @Validate(UNION(['extended', 'canvas']))
+    @Property
     bounds: 'extended' | 'canvas' = 'extended';
 
     private readonly destroyFns: Array<() => void> = [];
@@ -242,10 +216,11 @@ export class Tooltip extends BaseProperties {
     private readonly wrapTypes = ['always', 'hyphenate', 'on-space', 'never'];
 
     private element?: HTMLElement;
+    private readonly sizeMonitor = new SizeMonitor();
 
     // Reading the element size is expensive, so cache the result
     private _elementSize: { width: number; height: number } | undefined = undefined;
-    private _showTimeout: NodeJS.Timeout | number = 0;
+    private _showTimeout: NodeJS.Timeout | undefined = undefined;
     private arrowPosition: ArrowPosition | undefined = undefined;
     private _visible = false;
 
@@ -275,12 +250,21 @@ export class Tooltip extends BaseProperties {
             this.element.className = DEFAULT_TOOLTIP_CLASS;
             // @ts-expect-error Typings need updating
             this.element.style.positionAnchor = domManager.anchorName;
+
+            this.sizeMonitor.observe(this.element, (size) => {
+                this._elementSize = size;
+                this.updateTooltipPosition();
+            });
         }
         this.localeManager = localeManager;
 
         return () => {
             domManager.removeChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
             this.destroyFns.forEach((f) => f());
+
+            if (this.element) {
+                this.sizeMonitor.unobserve(this.element);
+            }
         };
     }
 
@@ -329,6 +313,7 @@ export class Tooltip extends BaseProperties {
             i += 1;
 
             const tooltipBounds = this.getTooltipBounds({
+                elementSize,
                 placement,
                 anchorTo,
                 canvasX,
@@ -432,50 +417,43 @@ export class Tooltip extends BaseProperties {
         element.style.setProperty('--left', `${canvasRect.left}px`);
         this.updateClassModifiers();
 
-        if (this.delay > 0 && !instantly) {
-            this.toggle(false);
-            this._showTimeout = setTimeout(() => {
-                this.toggle(true);
-            }, this.delay);
-        } else {
-            this.toggle(true);
-        }
+        this.toggle(true, instantly);
     }
 
     hide() {
         this.toggle(false);
     }
 
-    private toggle(visible: boolean) {
+    private toggle(visible: boolean, instantly: boolean = false) {
+        const { delay } = this;
+
+        if (visible && delay > 0 && !instantly) {
+            this._showTimeout ??= setTimeout(() => {
+                this._showTimeout = undefined;
+                this.toggleCallback(true);
+            }, delay);
+        } else {
+            clearTimeout(this._showTimeout);
+            this._showTimeout = undefined;
+            this.toggleCallback(visible);
+        }
+    }
+
+    private toggleCallback(visible: boolean) {
         if (!this.element?.isConnected) return;
 
         // Avoid touching the DOM if invisible and visibility status hasn't changed.
-        if (!this._visible && !visible) return;
-
-        const changed = this._visible !== visible;
+        if (this._visible === visible) return;
         this._visible = visible;
 
-        if (!visible) {
-            this.springAnimation.reset();
-            clearTimeout(this._showTimeout);
-        }
-
-        if (changed) {
-            this.element.togglePopover(visible);
-        }
+        this.element.togglePopover(visible);
 
         if (visible) {
-            // Avoid reading the tooltip size immediately after a DOM mutation, wait for
-            // a natural layout before positioning the tooltip.
-            SizeMonitor.singleShot(this.element, (size) => {
-                if (!this._visible) return;
-
-                this._elementSize = size;
-
-                // We can only measure the element when it's actually visible
-                // This removes a possible jump for the tooltip
-                this.updateTooltipPosition();
-            });
+            // We can only measure the element when it's actually visible
+            // This removes a possible jump for the tooltip
+            this.updateTooltipPosition();
+        } else {
+            this.springAnimation.reset();
         }
     }
 
@@ -502,6 +480,7 @@ export class Tooltip extends BaseProperties {
     }
 
     private getTooltipBounds(opts: {
+        elementSize: { width: number; height: number };
         anchorTo: AgTooltipAnchorTo;
         placement: AgTooltipPlacement;
         canvasX: number;
@@ -510,11 +489,9 @@ export class Tooltip extends BaseProperties {
         xOffset: number;
         canvasRect: DOMRect;
     }): Bounds {
-        if (!this.element || !this._elementSize) return {};
+        const { elementSize, anchorTo, placement, canvasX, canvasY, yOffset, xOffset, canvasRect } = opts;
 
-        const { anchorTo, placement, canvasX, canvasY, yOffset, xOffset, canvasRect } = opts;
-
-        const { width: tooltipWidth, height: tooltipHeight } = this._elementSize;
+        const { width: tooltipWidth, height: tooltipHeight } = elementSize;
         const bounds: Bounds = { width: tooltipWidth, height: tooltipHeight };
 
         if (anchorTo === 'node' || anchorTo === 'pointer') {

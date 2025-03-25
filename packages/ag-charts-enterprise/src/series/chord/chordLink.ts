@@ -67,6 +67,11 @@ export class ChordLink<D = any> extends Path<D> {
         return new BBox(centerX + x, centerY + y, width, height);
     }
 
+    // @todo(CRT-731) - this is a temporary workaround
+    override isPointInPath(x: number, y: number): boolean {
+        return super.isPointInPath(x, y) && this.getBBox().containsPoint(x, y);
+    }
+
     private tensionedCurveTo(
         cp0x: number,
         cp0y: number,

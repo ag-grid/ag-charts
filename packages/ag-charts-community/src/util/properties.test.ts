@@ -1,16 +1,16 @@
 import { BaseProperties, PropertiesArray, isProperties } from './properties';
+import { Property } from './properties';
 import { expectWarningsCalls, setupMockConsole } from './test/mockConsole';
-import { NUMBER, OBJECT_ARRAY, STRING, Validate } from './validation';
 
 describe('BaseProperties', () => {
     setupMockConsole();
 
     it('should correctly set properties on an instance', () => {
         class MyClass extends BaseProperties<{ prop1: string; prop2: number }> {
-            @Validate(STRING)
+            @Property
             prop1!: string;
 
-            @Validate(NUMBER)
+            @Property
             prop2!: number;
         }
         const instance = new MyClass();
@@ -21,7 +21,7 @@ describe('BaseProperties', () => {
 
     it('should warn on setting unknown properties', () => {
         class MyClass extends BaseProperties<{ prop1: string }> {
-            @Validate(STRING)
+            @Property
             prop1!: string;
         }
         const instance = new MyClass();
@@ -37,7 +37,7 @@ describe('BaseProperties', () => {
 
     it('should warn on providing non-object properties', () => {
         class MyClass extends BaseProperties<{ prop1: string }> {
-            @Validate(STRING)
+            @Property
             prop1!: string;
         }
         const instance = new MyClass();
@@ -51,34 +51,12 @@ describe('BaseProperties', () => {
 `);
     });
 
-    it('should validate required properties correctly', () => {
-        class MyClass extends BaseProperties<{ prop1: string; prop2?: number }> {
-            @Validate(STRING)
-            prop1!: string;
-
-            @Validate(NUMBER, { optional: true })
-            prop2?: number;
-        }
-        const instance = new MyClass().set({ prop1: 'value1' });
-        expect(instance.isValid()).toBe(true);
-
-        const incompleteInstance = new MyClass();
-        expect(incompleteInstance.isValid()).toBe(false);
-        expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - [prop1] is required.",
-  ],
-]
-`);
-    });
-
     it('should serialize to JSON correctly', () => {
         class MyClass extends BaseProperties<{ prop1: string; prop2: number }> {
-            @Validate(STRING)
+            @Property
             prop1!: string;
 
-            @Validate(NUMBER)
+            @Property
             prop2!: number;
         }
         const instance = new MyClass().set({ prop1: 'value1', prop2: 42 });
@@ -92,7 +70,7 @@ describe('PropertiesArray', () => {
 
     it('should correctly handle arrays of BaseProperties instances', () => {
         class MyProperties extends BaseProperties<{ value: string }> {
-            @Validate(STRING)
+            @Property
             value!: string;
         }
         const array = new PropertiesArray(MyProperties, { value: 'item1' }, { value: 'item2' });
@@ -105,11 +83,11 @@ describe('PropertiesArray', () => {
 
     it('should correctly handle arrays properties on BaseProperties instances', () => {
         class MyProperties extends BaseProperties<{ value: string }> {
-            @Validate(STRING)
+            @Property
             value!: string;
         }
         class MyClass extends BaseProperties<{ props: { value: string }[] }> {
-            @Validate(OBJECT_ARRAY)
+            @Property
             props = new PropertiesArray(MyProperties);
         }
         const instance = new MyClass().set({ props: [{ value: 'item1' }, { value: 'item2' }] });
@@ -123,7 +101,7 @@ describe('PropertiesArray', () => {
 
     it('should reset correctly', () => {
         class MyProperties extends BaseProperties<{ value: string }> {
-            @Validate(STRING)
+            @Property
             value!: string;
         }
         const array = new PropertiesArray(MyProperties, { value: 'item1' });
@@ -135,11 +113,11 @@ describe('PropertiesArray', () => {
 
     it('should reject non-arrays', () => {
         class MyProperties extends BaseProperties<{ value: string }> {
-            @Validate(STRING)
+            @Property
             value!: string;
         }
         class MyClass extends BaseProperties<{ props: { value: string }[] }> {
-            @Validate(OBJECT_ARRAY)
+            @Property
             props = new PropertiesArray(MyProperties);
         }
         // @ts-expect-error error

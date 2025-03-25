@@ -1,5 +1,5 @@
+import type { InternalAgColorType, InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 import type {
-    AgColorType,
     AgMarkerShape,
     AgScatterSeriesItemStylerParams,
     AgScatterSeriesLabelFormatterParams,
@@ -12,8 +12,8 @@ import type {
 
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
+import { Property } from '../../../util/properties';
 import { ProxyProperty } from '../../../util/proxy';
-import { LABEL_PLACEMENT, OBJECT, STRING, TempValidate } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -29,36 +29,36 @@ export interface ScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSe
 }
 
 class ScatterSeriesLabel extends Label<AgScatterSeriesLabelFormatterParams> {
-    @TempValidate(LABEL_PLACEMENT)
+    @Property
     placement: LabelPlacement = 'top';
 }
 
 export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatterSeriesOptions> {
-    @TempValidate(STRING)
+    @Property
     xKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     yKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xFilterKey: string | undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yFilterKey: string | undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     title?: string;
 
     @ProxyProperty('marker.shape')
@@ -67,11 +67,14 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     @ProxyProperty('marker.size')
     size!: number;
 
-    @ProxyProperty('marker.defaultColorRange')
-    defaultColorRange?: string[];
+    @ProxyProperty('marker.fill')
+    fill?: InternalAgColorType;
 
-    @ProxyProperty('marker.fill', { optional: true })
-    fill?: AgColorType;
+    @ProxyProperty('marker.fillGradientDefaults')
+    fillGradientDefaults!: Required<InternalAgGradientColor>;
+
+    @ProxyProperty('marker.fillPatternDefaults')
+    fillPatternDefaults!: Required<InternalAgPatternColor>;
 
     @ProxyProperty('marker.fillOpacity')
     fillOpacity!: number;
@@ -91,13 +94,13 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     @ProxyProperty('marker.lineDashOffset')
     lineDashOffset!: number;
 
-    @ProxyProperty('marker.itemStyler', { optional: true })
+    @ProxyProperty('marker.itemStyler')
     itemStyler?: Styler<AgScatterSeriesItemStylerParams<unknown>, AgSeriesMarkerStyle>;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new ScatterSeriesLabel();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgScatterSeriesTooltipRendererParams>();
 
     // No validation. Not a part of the options contract.

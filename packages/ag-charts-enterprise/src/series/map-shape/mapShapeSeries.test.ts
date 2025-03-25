@@ -4,6 +4,7 @@ import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import type {
     AgCartesianChartOptions,
     AgChartOptions,
+    AgMapShapeSeriesOptions,
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
@@ -415,7 +416,7 @@ describe('MapShapeSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgMapShapeSeriesOptions,
                 ],
             };
 

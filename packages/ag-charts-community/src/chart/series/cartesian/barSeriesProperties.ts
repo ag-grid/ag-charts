@@ -1,3 +1,4 @@
+import type { InternalAgColorType } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
@@ -5,106 +6,94 @@ import type {
     AgBarSeriesOptions,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
-    AgColorType,
     Styler,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
-import {
-    BOOLEAN,
-    COLOR_GRADIENT,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    FUNCTION,
-    LINE_DASH,
-    NUMBER,
-    OBJECT,
-    OR,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    TempValidate,
-    UNION,
-} from '../../../util/validation';
+import { Property } from '../../../util/properties';
 import { Label } from '../../label';
+import { FillGradientDefaults, FillPatternDefaults } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import { AbstractBarSeriesProperties } from './abstractBarSeries';
 
 class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
-    @TempValidate(UNION(['inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'], 'a placement'))
+    @Property
     placement: AgBarSeriesLabelPlacement = 'inside-center';
 
-    @TempValidate(NUMBER)
+    @Property
     padding: number = 0;
 }
 
 export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeriesOptions> {
-    @TempValidate(STRING)
+    @Property
     xKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xName?: string;
 
-    @TempValidate(STRING)
+    @Property
     yKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yFilterKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     stackGroup?: string;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     normalizedTo?: number;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
+    @Property
+    fill: InternalAgColorType = '#c16068';
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
-    fill: AgColorType = '#c16068';
+    @Property
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(RATIO)
+    @Property
+    readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = '#874349';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     cornerRadius: number = 0;
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     crisp?: boolean = undefined;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgBarSeriesItemStylerParams<unknown>, AgBarSeriesStyle>;
 
-    @TempValidate(OBJECT, { optional: true })
+    @Property
     readonly shadow = new DropShadow();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new BarSeriesLabel();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgBarSeriesTooltipRendererParams>();
 
-    @TempValidate(BOOLEAN)
+    @Property
     sparklineMode: boolean = false;
 
-    @TempValidate(BOOLEAN)
+    @Property
     fastDataProcessing: boolean = false;
 }

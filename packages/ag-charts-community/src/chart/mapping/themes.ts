@@ -3,8 +3,9 @@ import {
     type OptionsDefs,
     arrayOf,
     color,
-    gradient,
+    colorUnion,
     gradientStrict,
+    number,
     object,
     or,
     string,
@@ -117,12 +118,38 @@ function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
     };
 }
 
-const themeOptionsDef: OptionsDefs<AgChartTheme> = {
+export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     baseTheme: or(string, object),
     overrides: object,
-    params: object,
+    params: {
+        accentColor: color,
+        axisColor: color,
+        backgroundColor: color,
+        borderColor: color,
+        foregroundColor: color,
+        fontFamily: string,
+        fontSize: number,
+        fontWeight: or(string, number),
+        gridLineColor: color,
+        padding: number,
+        subtleTextColor: color,
+        textColor: color,
+
+        chromeBackgroundColor: color,
+        chromeFontFamily: string,
+        chromeFontSize: number,
+        chromeFontWeight: or(string, number),
+        chromeSubtleTextColor: color,
+        chromeTextColor: color,
+
+        inputBackgroundColor: color,
+        inputTextColor: color,
+
+        crosshairLabelBackgroundColor: color,
+        crosshairLabelTextColor: color,
+    },
     palette: {
-        fills: arrayOf(or(color, gradient)),
+        fills: arrayOf(colorUnion),
         strokes: arrayOf(color),
         up: { fill: or(color, gradientStrict), stroke: color },
         down: { fill: or(color, gradientStrict), stroke: color },

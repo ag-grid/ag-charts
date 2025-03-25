@@ -4,13 +4,8 @@ const {
     CachedTextMeasurerPool,
     ZIndexMap,
     LayoutElement,
-    Validate,
+    Property,
     BaseProperties,
-    OBJECT,
-    BOOLEAN,
-    STRING,
-    COLOR_STRING,
-    RATIO,
     valueProperty,
     TextUtils,
     Group,
@@ -66,10 +61,10 @@ const neutralColorMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'altNe
 };
 
 class StatusBarBackground extends BaseProperties {
-    @Validate(COLOR_STRING)
+    @Property
     fill: string = 'black';
 
-    @Validate(RATIO)
+    @Property
     fillOpacity: number = 1;
 }
 
@@ -77,43 +72,43 @@ export class StatusBar
     extends _ModuleSupport.BaseModuleInstance
     implements _ModuleSupport.ModuleInstance, _ModuleSupport.ScopeProvider
 {
-    @Validate(BOOLEAN)
+    @Property
     enabled: boolean = false;
 
-    @Validate(STRING, { optional: true })
+    @Property
     openKey?: string = undefined;
 
-    @Validate(STRING, { optional: true })
+    @Property
     highKey?: string = undefined;
 
-    @Validate(STRING, { optional: true })
+    @Property
     lowKey?: string = undefined;
 
-    @Validate(STRING, { optional: true })
+    @Property
     closeKey?: string = undefined;
 
-    @Validate(STRING, { optional: true })
+    @Property
     volumeKey?: string = undefined;
 
-    @Validate(OBJECT)
+    @Property
     readonly title = new Label();
 
-    @Validate(OBJECT)
+    @Property
     readonly positive = new Label();
 
-    @Validate(OBJECT)
+    @Property
     readonly negative = new Label();
 
-    @Validate(OBJECT)
+    @Property
     readonly neutral = new Label();
 
-    @Validate(OBJECT)
+    @Property
     readonly altNeutral = new Label();
 
-    @Validate(OBJECT)
+    @Property
     readonly background = new StatusBarBackground();
 
-    @Validate(STRING)
+    @Property
     layoutStyle: 'block' | 'overlay' = 'block';
 
     readonly id = 'status-bar';

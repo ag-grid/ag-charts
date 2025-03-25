@@ -1,25 +1,25 @@
-import { BOOLEAN, COLOR_STRING, NUMBER, POSITIVE_NUMBER, Validate } from '../util/validation';
+import { Property } from '../util/properties';
 import { SceneChangeDetection } from './node';
 import { ChangeDetectableProperties } from './util/changeDetectableProperties';
 
 export class DropShadow extends ChangeDetectableProperties {
-    @Validate(BOOLEAN)
+    @Property
     @SceneChangeDetection()
     enabled: boolean = true;
 
-    @Validate(COLOR_STRING)
+    @Property
     @SceneChangeDetection()
     color: string = 'rgba(0, 0, 0, 0.5)';
 
-    @Validate(NUMBER)
+    @Property
     @SceneChangeDetection()
     xOffset: number = 0;
 
-    @Validate(NUMBER)
+    @Property
     @SceneChangeDetection()
     yOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
+    @Property
     @SceneChangeDetection()
     blur: number = 5;
 }

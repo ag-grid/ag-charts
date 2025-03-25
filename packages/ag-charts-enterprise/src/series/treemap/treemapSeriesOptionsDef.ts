@@ -5,10 +5,11 @@ import {
     boolean,
     callback,
     color,
+    colorUnion,
     constant,
+    fillGradientDefaults,
     fillOptionsDef,
-    gradient,
-    or,
+    fillPatternDefaults,
     positiveNumber,
     required,
     string,
@@ -27,7 +28,7 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
     colorKey: string,
     sizeName: string,
     colorName: string,
-    fills: arrayOf(or(color, gradient)),
+    fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
     colorRange: arrayOf(color),
     itemStyler: callback,
@@ -90,3 +91,12 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
         },
     },
 };
+
+// @ts-expect-error undocumented option
+treemapSeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
+// @ts-expect-error undocumented option
+treemapSeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
+// @ts-expect-error undocumented option
+treemapSeriesOptionsDef.undocumentedGroupFills = arrayOf(color);
+// @ts-expect-error undocumented option
+treemapSeriesOptionsDef.undocumentedGroupStrokes = arrayOf(color);

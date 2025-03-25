@@ -1,5 +1,5 @@
-import { type Has, Logger, modulus } from 'ag-charts-core';
-import type { AgColorType, AgPieSeriesStyle } from 'ag-charts-types';
+import { type Has, type InternalAgColorType, Logger, modulus } from 'ag-charts-core';
+import type { AgPieSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -40,7 +40,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
-import { applyShapeFillBBox } from '../shapeUtil';
+import { applyShapeFillBBox, getShapeFill } from '../shapeUtil';
 import type { PieTitle } from './pieSeriesProperties';
 import { PieSeriesProperties } from './pieSeriesProperties';
 import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
@@ -89,7 +89,9 @@ interface PieNodeDatum extends DataModelSeriesNodeDatum {
         readonly text: string;
     };
 
-    readonly sectorFormat: { [key in keyof Required<AgPieSeriesStyle>]: AgPieSeriesStyle[key] };
+    readonly sectorFormat: { [key in keyof Omit<Required<AgPieSeriesStyle>, 'fill'>]: AgPieSeriesStyle[key] } & {
+        fill?: InternalAgColorType;
+    };
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
     enabled: boolean;
@@ -143,7 +145,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
-            categoryKey: undefined, // overriden by function
+            categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             useLabelLayer: true,
             animationResetFns: { item: resetPieSelectionsFn, label: resetLabelFn },
@@ -197,9 +199,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     override async processData(dataController: DataController) {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const {
             visible,
@@ -552,19 +552,41 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getNodeFill(fill: AgColorType, defaultColorRange: string[]): Required<AgColorType> {
-        if (!isGradientFill(fill)) return fill;
-
-        return {
-            ...fill,
-            bounds: fill.bounds ?? 'series',
-            gradient: fill.gradient ?? 'radial',
-            rotation: fill.rotation ?? 0,
-            colorStops: fill.colorStops ?? defaultColorRange.map((color) => ({ color })),
-        };
+    private getNodeFill(
+        fill: InternalAgColorType,
+        defaultColorRange: string[],
+        defaultPatternFill: string
+    ): InternalAgColorType {
+        return getShapeFill(
+            fill,
+            {
+                type: 'gradient',
+                bounds: 'series',
+                colorStops: defaultColorRange.map((color) => ({ color })),
+                gradient: 'radial',
+                rotation: 0,
+                reverse: true,
+            },
+            {
+                type: 'pattern',
+                pattern: 'forward-slanted-lines',
+                fill: defaultPatternFill,
+                fillOpacity: 1,
+                backgroundFill: 'transparent',
+                backgroundFillOpacity: 1,
+                stroke: defaultPatternFill,
+                strokeOpacity: 1,
+                strokeWidth: 4,
+                rotation: 0,
+            } as any
+        );
     }
 
-    private getFillParams(fill: AgColorType, innerRadius: number, outerRadius: number): GradientParams | undefined {
+    private getFillParams(
+        fill: InternalAgColorType,
+        innerRadius: number,
+        outerRadius: number
+    ): GradientParams | undefined {
         if (!isGradientFill(fill) || fill.bounds === 'item') return;
 
         return {
@@ -585,6 +607,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             fills,
             strokes,
             defaultColorRange,
+            defaultPatternFills,
             itemStyler,
         } = this.properties;
 
@@ -602,8 +625,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             );
 
         const defaultColors = defaultColorRange[datumIndex % defaultColorRange.length];
+        const defaultPatternFill = defaultPatternFills[datumIndex % defaultPatternFills.length];
 
-        const sectorFill: AgColorType | undefined = fill ?? 'black';
+        const sectorFill: InternalAgColorType | undefined = fill ?? 'black';
 
         let format: AgPieSeriesStyle | undefined;
         if (itemStyler) {
@@ -617,7 +641,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                         calloutLabelKey,
                         sectorLabelKey,
                         legendItemKey,
-                        fill: this.getNodeFill(sectorFill, defaultColors),
+                        fill: this.getNodeFill(sectorFill, defaultColors, defaultPatternFill),
                         strokeOpacity,
                         stroke,
                         strokeWidth,
@@ -632,7 +656,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         }
 
         return {
-            fill: this.getNodeFill(format?.fill ?? sectorFill, defaultColors),
+            fill: this.getNodeFill(format?.fill ?? sectorFill, defaultColors, defaultPatternFill),
             fillOpacity: format?.fillOpacity ?? fillOpacity,
             stroke: format?.stroke ?? stroke,
             strokeWidth: format?.strokeWidth ?? strokeWidth,
@@ -871,7 +895,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             strokes,
         } = this.properties;
         const calloutStrokeWidth = strokeWidth;
-        const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
+        const calloutColors = isStringFillArray(colors) ? colors : strokes;
         const { offset } = this.properties.calloutLabel;
 
         this.calloutLabelSelection.selectByTag<Line>(PieNodeTag.Callout).forEach((line, index) => {
@@ -1378,10 +1402,16 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
         const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
 
+        let { fill } = sectorFormat;
+        const { stroke } = sectorFormat;
+        if (isGradientFill(fill)) {
+            fill = { ...fill, gradient: 'linear', rotation: 0, reverse: false };
+        }
+
         return {
             marker: {
-                fill: sectorFormat.fill,
-                stroke: sectorFormat.stroke,
+                fill,
+                stroke,
                 fillOpacity,
                 strokeOpacity,
                 strokeWidth,
@@ -1482,7 +1512,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             id: seriesId,
             ctx: { legendManager, updateService },
         } = this;
-        enabledItems.forEach((enabled, itemId) => legendManager.toggleItem({ enabled, seriesId, itemId }));
+        enabledItems.forEach((enabled, itemId) => legendManager.toggleItem(enabled, seriesId, itemId));
         legendManager.update();
         updateService.update(ChartUpdateType.SERIES_UPDATE);
     }
@@ -1592,17 +1622,5 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         }
 
         return `${datumIndex}`;
-    }
-
-    protected override getCategoryKey(): string | undefined {
-        const { calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
-
-        if (legendItemKey) {
-            return `legendItemValue`;
-        } else if (calloutLabelKey) {
-            return `calloutLabelValue`;
-        } else if (sectorLabelKey) {
-            return `sectorLabelValue`;
-        }
     }
 }

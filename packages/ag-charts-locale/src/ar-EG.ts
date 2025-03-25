@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaLabelRangesToolbar: 'النطاقات',
     ariaLabelSettingsTabBar: 'الإعدادات',
     ariaLabelZoomToolbar: 'تكبير',
-    ariaValuePanRange: '${min}[percent] إلى ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] إلى ${max}[percent0to2dp]',
     contextMenuDownload: 'تنزيل',
     contextMenuPanToCursor: 'تحريك إلى هنا',
     contextMenuToggleOtherSeries: 'تبديل السلاسل الأخرى',
@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'سحب شريط الأدوات',
     toolbarAnnotationsFibonacciAnnotations: 'فيبوناتشي',
     toolbarAnnotationsFibonacciRetracement: 'ارتداد فيب',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'الفيبوناتشي المستند إلى الاتجاه',
     toolbarAnnotationsFillColor: 'لون التعبئة',
     toolbarAnnotationsHorizontalLine: 'خط أفقي',
     toolbarAnnotationsLineAnnotations: 'خطوط الاتجاه',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     toolbarZoomReset: 'إعادة تعيين التكبير',
     toolbarZoomZoomIn: 'تكبير',
     toolbarZoomZoomOut: 'تصغير',
+    tooltipPaginationStatus: '${index}[number] من ${count}[number]',
 };

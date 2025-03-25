@@ -33,7 +33,7 @@ export interface FillOptions {
     fillOpacity?: Opacity;
 }
 
-export type AgColorType = CssColor | AgGradientColor;
+export type AgColorType = CssColor | AgGradientColor | AgPatternColor;
 export type AgColorTypeStrict = CssColor | AgGradientColorStrict;
 
 export type AgGradientColorMode = 'continuous' | 'discrete';
@@ -47,12 +47,8 @@ export interface AgGradientColorStop {
 
 export interface AgGradientColor {
     type: 'gradient';
-    /** Format of the gradient */
-    gradient?: AgGradientType;
     /** Represents the position and color of stops in the gradient. */
     colorStops?: AgGradientColorStop[];
-    /** The domain of the color gradient, defaults to item. */
-    bounds?: AgGradientColorBounds;
     /** The rotation angle of the line along which the gradient is rendered. */
     rotation?: number;
 }
@@ -63,6 +59,43 @@ export interface AgGradientColorStrict extends AgGradientColor {
 
 export type AgGradientType = 'linear' | 'radial' | 'conic';
 export type AgGradientColorBounds = 'series' | 'item' | 'axis';
+
+export interface AgPatternColor {
+    type: 'pattern';
+    /** The stock pattern to apply. */
+    pattern?: AgPatternName;
+    /** Width of the pattern unit. */
+    width?: number;
+    /** Height of the pattern unit. */
+    height?: number;
+    /** The colour for filling closed shapes in the pattern. */
+    fill?: CssColor;
+    /** The opacity of the shapes fill colour. */
+    fillOpacity?: Opacity;
+    /** The colour for filling the background in the pattern. */
+    backgroundFill?: CssColor;
+    /** The opacity of the background fill colour. */
+    backgroundFillOpacity?: Opacity;
+    /** The colour for the strokes of shapes in the pattern. */
+    stroke?: CssColor;
+    /** The opacity of the shapes stroke colour. */
+    strokeOpacity?: Opacity;
+    /** The width of the stroke of shapes in pixels. */
+    strokeWidth?: PixelSize;
+}
+
+export type AgPatternName =
+    | 'vertical-lines'
+    | 'horizontal-lines'
+    | 'forward-slanted-lines'
+    | 'backward-slanted-lines'
+    | 'squares'
+    | 'circles'
+    | 'triangles'
+    | 'diamonds'
+    | 'stars'
+    | 'hearts'
+    | 'crosses';
 
 /**
  * Represents options for the strokes in a chart.

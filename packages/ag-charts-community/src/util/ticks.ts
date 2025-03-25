@@ -80,7 +80,7 @@ export function createTicks(
     return range(start, stop, step);
 }
 
-export function getTickInterval(
+export function getTickTimeInterval(
     start: number,
     stop: number,
     count: number,
@@ -228,8 +228,8 @@ export function niceTicksDomain(start: number, end: number) {
 export function estimateTickCount(
     rangeExtent: number,
     zoomExtent: number,
-    minSpacing: number,
-    maxSpacing: number,
+    minSpacing: number | undefined,
+    maxSpacing: number | undefined,
     defaultTickCount: number,
     defaultMinSpacing: number
 ) {
@@ -239,12 +239,9 @@ export function estimateTickCount(
 
     defaultMinSpacing = Math.max(defaultMinSpacing, rangeExtent / (defaultTickCount + 1));
 
-    if (isNaN(minSpacing)) {
-        minSpacing = defaultMinSpacing;
-    }
-    if (isNaN(maxSpacing)) {
-        maxSpacing = rangeExtent;
-    }
+    minSpacing ??= defaultMinSpacing;
+    maxSpacing ??= rangeExtent;
+
     if (minSpacing > maxSpacing) {
         if (minSpacing === defaultMinSpacing) {
             minSpacing = maxSpacing;

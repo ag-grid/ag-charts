@@ -52,7 +52,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Screen reader text for zoom toolbar
     ariaLabelZoomToolbar: 'Zoom',
     // Screen reader text for the value of the navigator's range
-    ariaValuePanRange: '${min}[percent] to ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] to ${max}[percent0to2dp]',
     // Alt-text for the solid line dash style menu item icon
     iconAltTextLineStyleSolid: 'Solid',
     // Alt-text for the long-dashed line dash style menu item icon

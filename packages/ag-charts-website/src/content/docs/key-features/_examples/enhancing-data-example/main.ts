@@ -17,7 +17,6 @@ const options: AgChartOptions = {
                 size: 12,
                 fill: 'green',
                 itemStyler: ({ datum, xKey, fill, highlighted }) => {
-                    console.log(datum[xKey]);
                     return {
                         fill: customItems.includes(datum[xKey]) ? (highlighted ? 'yellow' : 'red') : fill,
                     };
@@ -28,6 +27,7 @@ const options: AgChartOptions = {
     legend: {
         enabled: true,
         position: 'top',
+        toggleSeries: false,
     },
     axes: [
         {

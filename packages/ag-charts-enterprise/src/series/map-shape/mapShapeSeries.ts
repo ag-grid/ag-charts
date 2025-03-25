@@ -30,6 +30,7 @@ const {
     Text,
     PointerEvents,
     applyShapeStyle,
+    getShapeStyle,
 } = _ModuleSupport;
 
 interface MapShapeNodeDataContext
@@ -93,15 +94,6 @@ export class MapShapeSeries
         () => this.nodeFactory()
     );
 
-    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
-        return {
-            gradient: 'linear',
-            bounds: 'item',
-            rotation: 0,
-            colorStops: this.properties.defaultColorRange,
-        };
-    }
-
     public contextNodeData?: MapShapeNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
@@ -147,9 +139,7 @@ export class MapShapeSeries
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const { data, topology, colorScale } = this;
         const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
@@ -445,7 +435,7 @@ export class MapShapeSeries
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return _ModuleSupport.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -455,7 +445,8 @@ export class MapShapeSeries
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
-            this.defaultShapeStyle
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
         );
     }
 
@@ -496,7 +487,7 @@ export class MapShapeSeries
             Object.assign(overrides, itemStyle);
         }
 
-        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     private updateDatumNodes(opts: {
@@ -605,7 +596,7 @@ export class MapShapeSeries
         }
 
         return {
-            marker: _ModuleSupport.getShapeStyle(
+            marker: getShapeStyle(
                 {
                     fill,
                     fillOpacity,
@@ -615,7 +606,8 @@ export class MapShapeSeries
                     lineDash,
                     lineDashOffset,
                 },
-                this.defaultShapeStyle
+                this.properties.fillGradientDefaults,
+                this.properties.fillPatternDefaults
             ),
         };
     }

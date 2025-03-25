@@ -4,13 +4,12 @@ import {
     boolean,
     callback,
     color,
+    colorUnion,
     constant,
     fillOptionsDef,
     fontOptionsDef,
-    gradient,
     lineDashOptionsDef,
     number,
-    or,
     positiveNumber,
     ratio,
     required,
@@ -69,7 +68,7 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
         length: positiveNumber,
         strokeWidth: positiveNumber,
     },
-    fills: arrayOf(or(color, gradient)),
+    fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
@@ -78,3 +77,8 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
 };
+
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.defaultColorRange = arrayOf(arrayOf(color));
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.defaultPatternFills = arrayOf(color);

@@ -8,17 +8,21 @@ import {
     attachDescription,
     boolean,
     callback,
+    color,
     defined,
     fontOptionsDef,
     greaterThan,
+    instanceOf,
     isValidNumberFormat,
     lessThan,
     lineDashOptionsDef,
     number,
+    or,
     positiveNumber,
+    positiveNumberNonZero,
+    ratio,
     required,
     string,
-    stringFillOptionsDef,
     strokeOptionsDef,
     union,
 } from 'ag-charts-core';
@@ -37,32 +41,38 @@ import type {
     AgCrosshairOptions,
 } from 'ag-charts-types';
 
+import { TimeInterval } from '../util/time';
+
 export const numberFormatValidator = attachDescription(isValidNumberFormat, 'a valid number format string');
 
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,
-    text: required(string),
+    text: string,
     padding: number,
     ...fontOptionsDef,
 };
 
-export const commonCrossLineOptionsDefs: OptionsDefs<AgBaseCrossLineOptions> = {
-    enabled: boolean,
-    type: required(union('line', 'range')),
-    range: and(
-        attachDescription((_, { options }) => options.type === 'range', "crossLine type to be 'range'"),
-        arrayOf(defined),
-        arrayLength(2, 2)
-    ),
-    value: and(
-        attachDescription((_, { options }) => options.type === 'line', "crossLine type to be 'line'"),
-        defined
-    ),
-    label: commonCrossLineLabelOptionsDefs,
-    ...stringFillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
-};
+export const commonCrossLineOptionsDefs = attachDescription<AgBaseCrossLineOptions>(
+    {
+        enabled: boolean,
+        type: required(union('line', 'range')),
+        range: and(
+            attachDescription((_, { options }) => options.type === 'range', "crossLine type to be 'range'"),
+            arrayOf(defined),
+            arrayLength(2, 2)
+        ),
+        value: and(
+            attachDescription((_, { options }) => options.type === 'line', "crossLine type to be 'line'"),
+            defined
+        ),
+        label: commonCrossLineLabelOptionsDefs,
+        fill: string,
+        fillOpacity: ratio,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    'cross-line options'
+);
 
 export const cartesianCrossLineOptionsDefs: OptionsDefs<AgCartesianCrossLineOptions> = {
     ...commonCrossLineOptionsDefs,
@@ -115,7 +125,7 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
         width: positiveNumber,
         style: arrayOfDefs<AgAxisGridStyle>(
             {
-                stroke: string,
+                stroke: color,
                 lineDash: arrayOf(positiveNumber),
             },
             'a grid-line style object array'
@@ -129,13 +139,13 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
     line: {
         enabled: boolean,
         width: positiveNumber,
-        stroke: string,
+        stroke: color,
     },
     tick: {
         enabled: boolean,
         width: positiveNumber,
         size: positiveNumber,
-        stroke: string,
+        stroke: color,
     },
 };
 
@@ -155,7 +165,7 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
 > = {
     ...commonAxisOptionsDefs,
     keys: arrayOf(string),
-    crossLines: arrayOfDefs(cartesianCrossLineOptionsDefs),
+    crossLines: arrayOfDefs(cartesianCrossLineOptionsDefs, 'a cross-line options array'),
     position: union('top', 'right', 'bottom', 'left'),
     thickness: positiveNumber,
     title: {
@@ -188,14 +198,16 @@ export function cartesianAxisCrosshairOptions<T extends boolean>(canFormat?: T) 
 
 export function continuousAxisOptions(
     validDatum: Validator,
-    validStep?: Validator
+    supportTimeInterval?: boolean
 ): OptionsDefs<AgContinuousAxisOptions> {
     return {
         min: and(validDatum, lessThan('max')),
         max: and(validDatum, greaterThan('min')),
         nice: boolean,
         interval: {
-            step: validStep ?? validDatum,
+            step: supportTimeInterval
+                ? or(positiveNumberNonZero, or(positiveNumberNonZero, instanceOf(TimeInterval)))
+                : positiveNumberNonZero,
             values: arrayOf(validDatum),
             minSpacing: and(positiveNumber, lessThan('maxSpacing')),
             maxSpacing: and(positiveNumber, greaterThan('minSpacing')),

@@ -19,7 +19,7 @@ import {
 
 describe('Tooltip', () => {
     setupMockConsole();
-    let ctx: ReturnType<typeof setupMockCanvas>;
+    const ctx = setupMockCanvas();
     let chart: AgChartProxy | Chart;
 
     afterEach(() => {
@@ -49,7 +49,7 @@ describe('Tooltip', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - unable to set TooltipPosition - expecting a properties object",
+    "AG Charts - Option \`tooltip.position\` cannot be set to \`"2"\`; expecting an object, ignoring.",
   ],
 ]
 `);
@@ -71,7 +71,7 @@ describe('Tooltip', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Property [anchorTo] of [TooltipPosition] cannot be set to ["ponter"]; expecting an anchorTo keyword such as 'pointer', 'node' or 'chart', ignoring.",
+    "AG Charts - Option \`tooltip.position.anchorTo\` cannot be set to \`"ponter"\`; expecting a keyword such as 'pointer', 'node' or 'chart', ignoring.",
   ],
 ]
 `);
@@ -130,8 +130,6 @@ describe('Tooltip', () => {
     });
 
     describe('AG-11591 Range', () => {
-        ctx = setupMockCanvas();
-
         const testHover = async (x: number, y: number) => {
             await hoverAction(x, y)(chart);
             await compare();

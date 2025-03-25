@@ -1,4 +1,4 @@
-import type { AgColorType } from 'ag-charts-types';
+import type { InternalAgColorType } from 'ag-charts-core';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Point, SizedPoint } from '../../../scene/point';
@@ -32,7 +32,7 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
     readonly point: Readonly<SizedPoint>;
     readonly yKey: string;
-    readonly fill?: AgColorType;
+    readonly fill?: InternalAgColorType;
     readonly stroke?: string;
     readonly strokeWidth: number;
     readonly cumulativeValue: number;

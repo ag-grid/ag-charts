@@ -6,11 +6,8 @@ import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
 const {
     ChartAxisDirection,
-    Default,
     ZIndexMap,
-    NUMBER,
-    BOOLEAN,
-    TempValidate,
+    Property,
     normalizeAngle360,
     toRadians,
     Caption,
@@ -28,10 +25,10 @@ interface GeneratedTicks {
 }
 
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     autoRotate?: boolean;
 
-    @TempValidate(NUMBER)
+    @Property
     autoRotateAngle: number = 335;
 }
 
@@ -41,8 +38,7 @@ export abstract class RadiusAxis<
 > extends _ModuleSupport.PolarAxis<S, D, _ModuleSupport.TickDatum, _ModuleSupport.LabelNodeDatum> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
-    @TempValidate(NUMBER)
-    @Default(0)
+    @Property
     positionAngle: number = 0;
 
     private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);

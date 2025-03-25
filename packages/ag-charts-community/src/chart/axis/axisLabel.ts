@@ -8,57 +8,44 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { Default } from '../../util/default';
 import { BaseProperties } from '../../util/properties';
+import { Property } from '../../util/properties';
 import { TextUtils } from '../../util/textMeasurer';
-import {
-    BOOLEAN,
-    COLOR_STRING,
-    FONT_STYLE,
-    FONT_WEIGHT,
-    FUNCTION,
-    NUMBER,
-    NUMBER_OR_NAN,
-    POSITIVE_NUMBER,
-    STRING,
-    TempValidate,
-} from '../../util/validation';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 
 export class AxisLabel extends BaseProperties implements ChartAxisLabel {
-    @TempValidate(BOOLEAN)
+    @Property
     enabled = true;
 
-    @TempValidate(FONT_STYLE, { optional: true })
+    @Property
     fontStyle?: FontStyle;
 
-    @TempValidate(FONT_WEIGHT, { optional: true })
+    @Property
     fontWeight?: FontWeight;
 
-    @TempValidate(NUMBER.restrict({ min: 1 }))
+    @Property
     fontSize!: number;
 
-    @TempValidate(STRING)
+    @Property
     fontFamily!: string;
 
     /**
      * The padding between the labels and the ticks.
      */
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     spacing: number = 5;
 
     /**
      * Minimum gap in pixels between the axis labels before being removed to avoid collisions.
      */
-    @TempValidate(NUMBER_OR_NAN)
-    @Default(NaN)
-    minSpacing: number = NaN;
+    @Property
+    minSpacing?: number;
 
     /**
      * The color of the labels.
      * Use `undefined` rather than `rgba(0, 0, 0, 0)` to make labels invisible.
      */
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     color?: string = '#575757';
 
     /**
@@ -68,13 +55,13 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
      * The value of this config is used as the angular offset/deflection
      * from the default rotation.
      */
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     rotation?: number;
 
     /**
      * Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide.
      */
-    @TempValidate(BOOLEAN)
+    @Property
     avoidCollisions: boolean = true;
 
     /**
@@ -90,7 +77,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
      * from north-west to south-east, _starting_ at the tick to the right
      * of the axis line.
      */
-    @TempValidate(BOOLEAN)
+    @Property
     mirrored: boolean = false;
 
     /**
@@ -107,10 +94,10 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
      * Setting this config to `true` makes labels render parallel to the axis line
      * and center aligns labels' text at the ticks.
      */
-    @TempValidate(BOOLEAN)
+    @Property
     parallel: boolean = false;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
 
     /**
@@ -119,10 +106,10 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
      * digits used by the tick step. For example, if the tick step is `0.0005`,
      * the `fractionDigits` is 4.
      */
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     formatter?: Formatter<AgAxisLabelFormatterParams>;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     format?: string;
 
     getFont(): string {

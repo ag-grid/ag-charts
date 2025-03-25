@@ -36,7 +36,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaLabelRangesToolbar: 'Tartományok',
     ariaLabelSettingsTabBar: 'Beállítások',
     ariaLabelZoomToolbar: 'Nagyítás',
-    ariaValuePanRange: '${min}[percent] és ${max}[percent] között',
+    ariaValuePanRange: '${min}[percent0to2dp] és ${max}[percent0to2dp] között',
     contextMenuDownload: 'Letöltés',
     contextMenuPanToCursor: 'Pásztázás ide',
     contextMenuToggleOtherSeries: 'További sorozatok megjelenítése/elrejtése',
@@ -108,6 +108,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Eszköztár húzása',
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Fibo visszahúzódás',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Trend alapú Fibonacci',
     toolbarAnnotationsFillColor: 'Kitöltési Szín',
     toolbarAnnotationsHorizontalLine: 'Vízszintes vonal',
     toolbarAnnotationsLineAnnotations: 'Trendvonalak',
@@ -157,4 +158,5 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     toolbarZoomReset: 'Nagyítás visszaállítása',
     toolbarZoomZoomIn: 'Nagyítás',
     toolbarZoomZoomOut: 'Kicsinyítés',
+    tooltipPaginationStatus: '${index}[number] a(z) ${count}[number]',
 };

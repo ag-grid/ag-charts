@@ -4,11 +4,12 @@ import {
     arrayOf,
     callback,
     color,
+    colorUnion,
     constant,
+    fillGradientDefaults,
     fillOptionsDef,
-    gradient,
+    fillPatternDefaults,
     lineDashOptionsDef,
-    or,
     positiveNumber,
     required,
     string,
@@ -24,7 +25,7 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     toKey: required(string),
     sizeKey: string,
     sizeName: string,
-    fills: arrayOf(or(color, gradient)),
+    fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
     label: {
         ...seriesLabelOptionsDefs,
@@ -48,3 +49,12 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     tooltip: tooltipOptionsDefs,
     ...commonSeriesOptionsDefs,
 };
+
+// @ts-expect-error undocumented option
+sankeySeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
+// @ts-expect-error undocumented option
+sankeySeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
+// @ts-expect-error undocumented option
+sankeySeriesOptionsDef.defaultColorRange = arrayOf(arrayOf(color));
+// @ts-expect-error undocumented option
+sankeySeriesOptionsDef.defaultPatternFills = arrayOf(color);

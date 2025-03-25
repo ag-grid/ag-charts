@@ -1,5 +1,4 @@
 import { findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
-import type { AgColorType } from 'ag-charts-types';
 
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -14,12 +13,11 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
-import { isGradientFill } from '../../../scene/util/fill';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { findMinMax } from '../../../util/number';
+import { Property } from '../../../util/properties';
 import { StateMachine } from '../../../util/stateMachine';
-import { BOOLEAN, STRING, TempValidate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
@@ -37,7 +35,7 @@ import type { SeriesDirectionKeysMapping, SeriesNodeEventTypes, SeriesNodePickMa
 import { SeriesNodeEvent } from '../series';
 import { SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
-import type { ShapeFillBBox } from '../shapeUtil';
+import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type { Scaling } from './scaling';
 
@@ -135,10 +133,10 @@ export interface CartesianAnimationData<
 }
 
 export abstract class CartesianSeriesProperties<T extends object> extends SeriesProperties<T> {
-    @TempValidate(STRING, { optional: true })
+    @Property
     legendItemName?: string;
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     pickOutsideVisibleMinorAxis = false;
 }
 
@@ -430,42 +428,6 @@ export abstract class CartesianSeries<
     }
 
     protected abstract nodeFactory(): TNode;
-
-    protected getNodeFill(fill: AgColorType, defaultColorStops: string[]): Required<AgColorType>;
-    protected getNodeFill(
-        fill: AgColorType | undefined,
-        defaultColorStops: string[]
-    ): Required<AgColorType> | undefined;
-    protected getNodeFill(
-        fill: AgColorType | undefined,
-        defaultColorStops: string[]
-    ): Required<AgColorType> | undefined {
-        if (!isGradientFill(fill)) return fill;
-
-        return {
-            ...fill,
-            gradient: fill.gradient ?? 'linear',
-            bounds: fill.bounds ?? 'item',
-            rotation: fill.rotation ?? 0,
-            colorStops: fill.colorStops ?? defaultColorStops.map((color) => ({ color })),
-        };
-    }
-
-    protected getShapeStyle<T extends { fill?: AgColorType }>(style: T, defaultColorRange: string[]): T;
-    protected getShapeStyle<T extends { fill?: AgColorType }>(
-        style: T | undefined,
-        defaultColorRange: string[]
-    ): T | undefined;
-    protected getShapeStyle<T extends { fill?: AgColorType }>(
-        style: T | undefined,
-        defaultColorRange: string[]
-    ): T | undefined {
-        if (!isGradientFill(style?.fill)) return style;
-        return {
-            ...style,
-            fill: this.getNodeFill(style.fill, defaultColorRange),
-        };
-    }
 
     protected getShapeFillBBox(): ShapeFillBBox {
         const { axes } = this;
@@ -1186,10 +1148,8 @@ export abstract class CartesianSeries<
 function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined {
     let min: number | Date | undefined;
     let max: number | Date | undefined;
-    if (axis instanceof NumberAxis && (Number.isFinite(axis.min) || Number.isFinite(axis.max))) {
-        min = Number.isFinite(axis.min) ? axis.min : undefined;
-        max = Number.isFinite(axis.max) ? axis.max : undefined;
-    } else if (axis instanceof TimeAxis && (axis.min != null || axis.max != null)) {
+
+    if (axis instanceof NumberAxis || axis instanceof TimeAxis) {
         ({ min, max } = axis);
     }
 

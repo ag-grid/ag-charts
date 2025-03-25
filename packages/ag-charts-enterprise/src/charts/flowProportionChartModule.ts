@@ -1,13 +1,16 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgFlowProportionChartOptions, _ModuleSupport } from 'ag-charts-community';
 import type { ChartModuleDefinition } from 'ag-charts-core';
 
 import { FlowProportionChart } from './flowProportionChart';
 
-const { isAgFlowProportionChartOptions } = _ModuleSupport;
+const { isAgFlowProportionChartOptions, flowProportionChartOptionsDefs } = _ModuleSupport;
 
-export const FlowProportionChartModule: ChartModuleDefinition = {
+export const FlowProportionChartModule: ChartModuleDefinition<AgFlowProportionChartOptions> = {
     type: 'chart',
     name: 'flow-proportion',
+    enterprise: true,
+
+    options: flowProportionChartOptionsDefs,
 
     detect: isAgFlowProportionChartOptions,
     create(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {

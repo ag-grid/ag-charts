@@ -22,6 +22,26 @@ import {
 } from '../../test/utils';
 import { PieSeries } from './pieSeries';
 
+function* iterPieSectors(myChart: Chart) {
+    const pieSeries = deproxy(myChart).series[0] as PieSeries;
+    for (const nodeData of pieSeries.getNodeData() ?? []) {
+        if (nodeData.angleValue < 1e-10) continue;
+
+        const { x = 0, y = 0 } = nodeData.midPoint ?? {};
+        yield Transformable.toCanvasPoint(pieSeries.contentGroup, x, y);
+    }
+}
+
+function* iterLegendMarkerLabels(myChart: Chart) {
+    for (const { legend } of deproxy(myChart).modulesManager.legends()) {
+        const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
+        for (const label of markerLabels) {
+            const { x, y } = Transformable.toCanvas(label).computeCenter();
+            yield { x, y, text: label.text };
+        }
+    }
+}
+
 describe('PieSeries', () => {
     setupMockConsole();
 
@@ -32,10 +52,14 @@ describe('PieSeries', () => {
         }
     });
 
-    const compare = async () => {
+    const compare = async (customSnapshotIdentifier?: string) => {
         await waitForChartStability(chart);
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+        expect(imageData).toMatchImageSnapshot({
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            failureThreshold: 0,
+            customSnapshotIdentifier,
+        });
     };
 
     let chart: Chart;
@@ -74,6 +98,118 @@ describe('PieSeries', () => {
   ],
 ]
 `);
+        });
+    });
+
+    describe('pattern fill', () => {
+        it('should render pie series with default pattern fills', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { cat: 1, fox: 20, dog: 37 },
+                    { cat: 3, fox: 10, dog: 32 },
+                    { cat: 7, fox: 15, dog: 35 },
+                    { cat: 8, fox: 20, dog: 31 },
+                    { cat: 3, fox: 11, dog: 30 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        radiusKey: 'dog',
+                        angleKey: 'fox',
+                        sectorLabelKey: 'fox',
+                        fills: [{ type: 'pattern' }, { type: 'pattern' }, { type: 'pattern' }, { type: 'pattern' }],
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render pie series with pattern fills', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { cat: 1, fox: 20, dog: 37 },
+                    { cat: 3, fox: 10, dog: 32 },
+                    { cat: 7, fox: 15, dog: 35 },
+                    { cat: 8, fox: 20, dog: 31 },
+                    { cat: 3, fox: 11, dog: 30 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        radiusKey: 'dog',
+                        angleKey: 'fox',
+                        sectorLabelKey: 'fox',
+                        fills: [
+                            {
+                                type: 'pattern',
+                                pattern: 'hearts',
+                                fill: 'red',
+                                stroke: 'red',
+                                backgroundFill: 'cyan',
+                                backgroundFillOpacity: 0.6,
+                                fillOpacity: 1,
+                                strokeWidth: 1,
+                                width: 60,
+                                height: 60,
+                            },
+                            {
+                                type: 'pattern',
+                                pattern: 'stars',
+                                fill: 'cyan',
+                                stroke: 'blue',
+                                backgroundFill: 'yellow',
+                                backgroundFillOpacity: 0.6,
+                                fillOpacity: 1,
+                                strokeWidth: 1,
+                                width: 20,
+                                height: 20,
+                            },
+                            {
+                                type: 'pattern',
+                                pattern: 'circles',
+                                fill: 'cyan',
+                                stroke: 'blue',
+                                backgroundFill: 'yellow',
+                                backgroundFillOpacity: 0.6,
+                                fillOpacity: 1,
+                                strokeWidth: 2,
+                                width: 50,
+                                height: 50,
+                            },
+                            // @todo(AG-14458) - Re-enable
+                            // {
+                            //     type: 'pattern',
+                            //     pattern: 'custom',
+                            //     fill: 'cyan',
+                            //     stroke: 'blue',
+                            //     backgroundFill: 'yellow',
+                            //     backgroundFillOpacity: 0.6,
+                            //     fillOpacity: 1,
+                            //     strokeWidth: 2,
+                            //     path: 'M 0 17.83 V 0 h 17.83 a 3 3 0 0 1 -5.66 2 H 5.9 A 5 5 0 0 1 2 5.9 v 6.27 a 3 3 0 0 1 -2 5.66 Z m 0 18.34 a 3 3 0 0 1 2 5.66 v 6.27 A 5 5 0 0 1 5.9 52 h 6.27 a 3 3 0 0 1 5.66 0 H 0 V 36.17 Z M 36.17 52 a 3 3 0 0 1 5.66 0 h 6.27 a 5 5 0 0 1 3.9 -3.9 v -6.27 a 3 3 0 0 1 0 -5.66 V 52 H 36.17 Z M 0 31.93 v -9.78 a 5 5 0 0 1 3.8 0.72 l 4.43 -4.43 a 3 3 0 1 1 1.42 1.41 L 5.2 24.28 a 5 5 0 0 1 0 5.52 l 4.44 4.43 a 3 3 0 1 1 -1.42 1.42 L 3.8 31.2 a 5 5 0 0 1 -3.8 0.72 Z m 52 -14.1 a 3 3 0 0 1 0 -5.66 V 5.9 A 5 5 0 0 1 48.1 2 h -6.27 a 3 3 0 0 1 -5.66 -2 H 52 v 17.83 Z m 0 14.1 a 4.97 4.97 0 0 1 -1.72 -0.72 l -4.43 4.44 a 3 3 0 1 1 -1.41 -1.42 l 4.43 -4.43 a 5 5 0 0 1 0 -5.52 l -4.43 -4.43 a 3 3 0 1 1 1.41 -1.41 l 4.43 4.43 c 0.53 -0.35 1.12 -0.6 1.72 -0.72 v 9.78 Z M 22.15 0 h 9.78 a 5 5 0 0 1 -0.72 3.8 l 4.44 4.43 a 3 3 0 1 1 -1.42 1.42 L 29.8 5.2 a 5 5 0 0 1 -5.52 0 l -4.43 4.44 a 3 3 0 1 1 -1.41 -1.42 l 4.43 -4.43 a 5 5 0 0 1 -0.72 -3.8 Z m 0 52 c 0.13 -0.6 0.37 -1.19 0.72 -1.72 l -4.43 -4.43 a 3 3 0 1 1 1.41 -1.41 l 4.43 4.43 a 5 5 0 0 1 5.52 0 l 4.43 -4.43 a 3 3 0 1 1 1.42 1.41 l -4.44 4.43 c 0.36 0.53 0.6 1.12 0.72 1.72 h -9.78 Z m 9.75 -24 a 5 5 0 0 1 -3.9 3.9 v 6.27 a 3 3 0 1 1 -2 0 V 31.9 a 5 5 0 0 1 -3.9 -3.9 h -6.27 a 3 3 0 1 1 0 -2 h 6.27 a 5 5 0 0 1 3.9 -3.9 v -6.27 a 3 3 0 1 1 2 0 v 6.27 a 5 5 0 0 1 3.9 3.9 h 6.27 a 3 3 0 1 1 0 2 H 31.9 Z',
+                            //     width: 50,
+                            //     height: 50,
+                            // } as any,
+                            {
+                                type: 'pattern',
+                                pattern: 'crosses',
+                                fill: 'orange',
+                                stroke: 'red',
+                                backgroundFill: 'cyan',
+                                backgroundFillOpacity: 0.6,
+                                fillOpacity: 1,
+                                strokeWidth: 1,
+                                padding: 5,
+                                width: 40,
+                                height: 40,
+                            },
+                        ],
+                    } as AgPieSeriesOptions,
+                ],
+            });
+            await compare();
         });
     });
 
@@ -191,6 +327,7 @@ describe('PieSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                /* @ts-expect-error internal option */
                                 gradient: 'linear',
                                 bounds: 'item',
                                 colorStops: [
@@ -203,7 +340,7 @@ describe('PieSeries', () => {
                                 ],
                             },
                         ],
-                    },
+                    } as AgPieSeriesOptions,
                 ],
             });
             await compare();
@@ -227,6 +364,7 @@ describe('PieSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                /* @ts-expect-error internal option */
                                 gradient: 'linear',
                                 bounds: 'series',
                                 colorStops: [
@@ -239,7 +377,7 @@ describe('PieSeries', () => {
                                 ],
                             },
                         ],
-                    },
+                    } as AgPieSeriesOptions,
                 ],
             });
             await compare();
@@ -263,6 +401,7 @@ describe('PieSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                /* @ts-expect-error internal option */
                                 gradient: 'radial',
                                 bounds: 'series',
                                 colorStops: [
@@ -275,7 +414,7 @@ describe('PieSeries', () => {
                                 ],
                             },
                         ],
-                    },
+                    } as AgPieSeriesOptions,
                 ],
             });
             await compare();
@@ -299,6 +438,7 @@ describe('PieSeries', () => {
                         fills: [
                             {
                                 type: 'gradient',
+                                /* @ts-expect-error internal option */
                                 gradient: 'radial',
                                 bounds: 'item',
                                 colorStops: [
@@ -311,7 +451,7 @@ describe('PieSeries', () => {
                                 ],
                             },
                         ],
-                    },
+                    } as AgPieSeriesOptions,
                 ],
             });
             await compare();
@@ -362,25 +502,6 @@ describe('PieSeries', () => {
             legendClicks.splice(0, legendClicks.length);
         });
 
-        function* iterPieSectors(myChart: Chart) {
-            const pieSeries = deproxy(myChart).series[0] as PieSeries;
-            for (const nodeData of pieSeries.getNodeData() ?? []) {
-                if (nodeData.angleValue < 1e-10) continue;
-
-                const { x = 0, y = 0 } = nodeData.midPoint ?? {};
-                yield Transformable.toCanvasPoint(pieSeries.contentGroup, x, y);
-            }
-        }
-
-        function* iterLegendMarkerLabels(myChart: Chart) {
-            for (const { legend } of deproxy(myChart).modulesManager.legends()) {
-                const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
-                for (const label of markerLabels) {
-                    yield Transformable.toCanvas(label).computeCenter();
-                }
-            }
-        }
-
         describe('should fire a nodeClick event for each visible sector', () => {
             test('mouse', async () => {
                 for (const { x, y } of iterPieSectors(chart)) {
@@ -388,8 +509,7 @@ describe('PieSeries', () => {
                     await clickAction(x, y)(chart);
                 }
             });
-            xtest('touch', async () => {
-                // Faulty because of AG-14228
+            test('touch', async () => {
                 for (const { x, y } of iterPieSectors(chart)) {
                     await waitForChartStability(chart);
                     await tapAction(x, y)(chart);
@@ -448,6 +568,49 @@ describe('PieSeries', () => {
                 expect(doubleClicks).toHaveLength(0);
                 expect(clicks).toHaveLength(0);
                 expect(legendClicks).toEqual([0, 0, 1, 1, 2, 2, 3, 3, 4, 4]);
+            });
+        });
+    });
+
+    describe('AG-14232 legend toggling', () => {
+        beforeEach(async () => {
+            chart = await createChart({
+                data: [
+                    { name: 'Pizza', value: 3 },
+                    { name: 'Cake', value: 4 },
+                    { name: 'Quiche', value: 5 },
+                ],
+                series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'name' }],
+            });
+        });
+        describe('click', () => {
+            test('mouse', async () => {
+                for (const { x, y, text } of iterLegendMarkerLabels(chart)) {
+                    await clickAction(x, y)(chart);
+                    await compare(`pie-series-test-ts-pie-series-legend-click-${text}`);
+                    await clickAction(x, y)(chart);
+                }
+            });
+            test('touch', async () => {
+                for (const { x, y, text } of iterLegendMarkerLabels(chart)) {
+                    await tapAction(x, y)(chart);
+                    await compare(`pie-series-test-ts-pie-series-legend-click-${text}`);
+                    await tapAction(x, y)(chart);
+                }
+            });
+        });
+        describe('dblclick', () => {
+            test('mouse', async () => {
+                for (const { x, y } of iterLegendMarkerLabels(chart)) {
+                    await doubleClickAction(x, y)(chart);
+                    await compare(`pie-series-test-ts-pie-series-legend-All`);
+                }
+            });
+            test('touch', async () => {
+                for (const { x, y } of iterLegendMarkerLabels(chart)) {
+                    await doubleTapAction(x, y)(chart);
+                    await compare(`pie-series-test-ts-pie-series-legend-All`);
+                }
             });
         });
     });

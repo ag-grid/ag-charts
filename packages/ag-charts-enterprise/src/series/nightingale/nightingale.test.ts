@@ -1,12 +1,16 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, AgNightingaleSeriesOptions } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    clickAction,
+    doubleClickAction,
+    doubleTapAction,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
+    tapAction,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -61,11 +65,11 @@ describe('NightingaleSeries', () => {
         ],
     };
 
-    const compare = async () => {
+    const compare = async (customSnapshotIdentifier?: string) => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, customSnapshotIdentifier });
     };
 
     it(`should render stacked nightingale chart as expected`, async () => {
@@ -187,6 +191,66 @@ describe('NightingaleSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
+    });
+
+    describe('AG-14232 legend toggling', () => {
+        const xs = [300, 400, 500] as const;
+        const y = 570;
+        beforeEach(async () => {
+            const options: AgChartOptions = {
+                animation: { enabled: true, duration: 0 }, // AG-14232: There's a bug with nightingale `animation.enabled = false`
+                data: [
+                    { quarter: `Q1'22`, software: 4.35, hardware: 2.14, services: 3.91 },
+                    { quarter: `Q2'22`, software: 4.28, hardware: 3.13, services: 3.04 },
+                    { quarter: `Q3'22`, software: 4.14, hardware: 3.34, services: 3.18 },
+                    { quarter: `Q4'22`, software: 3.48, hardware: 3.56, services: 3.61 },
+                ],
+                series: [
+                    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'software' },
+                    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'hardware' },
+                    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'services' },
+                ],
+            };
+            chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+            await waitForChartStability(chart);
+            await clickAction(400, 300)(chart); // interrupt animation
+        });
+        describe('click', () => {
+            for (const x of xs) {
+                test(`mouse {x: ${x}, y: ${y}}`, async () => {
+                    await compare(`nightingale-test-ts-nightingale-series-legend-All`);
+                    await clickAction(x, y)(chart);
+                    await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
+                    await clickAction(x, y)(chart);
+                    await compare(`nightingale-test-ts-nightingale-series-legend-All`);
+                });
+            }
+            for (const x of xs) {
+                test(`touch {x: ${x}, y: ${y}}`, async () => {
+                    await compare(`nightingale-test-ts-nightingale-series-legend-All`);
+                    await tapAction(x, y)(chart);
+                    await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
+                    await tapAction(x, y)(chart);
+                    await compare(`nightingale-test-ts-nightingale-series-legend-All`);
+                });
+            }
+        });
+        describe('dblclick', () => {
+            for (const x of xs) {
+                test(`mouse {x: ${x}, y: ${y}}`, async () => {
+                    await compare(`nightingale-test-ts-nightingale-series-legend-All`);
+                    await doubleClickAction(x, y)(chart);
+                    await compare(`nightingale-test-ts-nightingale-series-legend-dblclick-${x}`);
+                });
+            }
+            for (const x of xs) {
+                test(`touch {x: ${x}, y: ${y}}`, async () => {
+                    await compare(`nightingale-test-ts-nightingale-series-legend-All`);
+                    await doubleTapAction(x, y)(chart);
+                    await compare(`nightingale-test-ts-nightingale-series-legend-dblclick-${x}`);
+                });
+            }
+        });
     });
 
     describe('initial animation', () => {
@@ -352,7 +416,7 @@ describe('NightingaleSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgNightingaleSeriesOptions,
                 ],
             };
             prepareEnterpriseTestOptions(options);
@@ -381,7 +445,7 @@ describe('NightingaleSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgNightingaleSeriesOptions,
                 ],
             };
             prepareEnterpriseTestOptions(options);
@@ -411,7 +475,7 @@ describe('NightingaleSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgNightingaleSeriesOptions,
                 ],
             };
             prepareEnterpriseTestOptions(options);

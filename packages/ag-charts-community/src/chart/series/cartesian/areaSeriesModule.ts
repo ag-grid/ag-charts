@@ -1,10 +1,12 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgAreaSeriesOptions } from 'ag-charts-types';
+import type { InternalAgGradientColor } from 'ag-charts-core';
+import type { AgAreaSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
+import { FILL_PATTERN_DEFAULTS } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
 
@@ -34,8 +36,16 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             // @ts-expect-error deprecated type field fallback value
             tooltip: { position: { _seriesOverrideType: 'node' } },
             fill: { $palette: 'fill' },
+            fillGradientDefaults: {
+                type: 'gradient',
+                gradient: 'linear',
+                bounds: 'item',
+                colorStops: { $palette: 'gradient' },
+                rotation: 0,
+                reverse: false,
+            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             stroke: { $palette: 'stroke' },
-            defaultColorRange: { $palette: 'gradient' },
             fillOpacity: 0.8,
             strokeOpacity: 1,
             strokeWidth: 0,
@@ -50,8 +60,6 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             },
             interpolation: {
                 type: 'linear',
-                tension: 1,
-                position: 'end',
             },
             marker: {
                 enabled: false,
@@ -61,7 +69,15 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 fill: { $palette: 'fill' },
                 stroke: { $palette: 'stroke' },
                 // @ts-expect-error undocumented option
-                defaultColorRange: { $palette: 'gradient' },
+                fillGradientDefaults: {
+                    type: 'gradient',
+                    gradient: 'radial',
+                    bounds: 'item',
+                    colorStops: { $palette: 'gradient' },
+                    rotation: 0,
+                    reverse: true,
+                } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+                fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             },
             label: {
                 enabled: false,

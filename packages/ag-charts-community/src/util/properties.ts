@@ -1,6 +1,9 @@
-import { Logger, isArray } from 'ag-charts-core';
+import { Logger, isArray, isPlainObject } from 'ag-charts-core';
 
-import { extractDecoratedPropertyMetadata, listDecoratedProperties } from './decorator';
+import { addFakeTransformToInstanceProperty, listDecoratedProperties } from './decorator';
+import { merge } from './object';
+
+export const Property = addFakeTransformToInstanceProperty;
 
 export class BaseProperties<T extends object = object> {
     handleUnknownProperties(_unknownKeys: Set<string>, _properties: T) {
@@ -32,6 +35,8 @@ export class BaseProperties<T extends object = object> {
                     } else {
                         self[propertyKey].set(value);
                     }
+                } else if (isPlainObject(value)) {
+                    self[propertyKey] = merge(value, self[propertyKey] ?? {});
                 } else {
                     self[propertyKey] = value;
                 }
@@ -44,18 +49,6 @@ export class BaseProperties<T extends object = object> {
         }
 
         return this;
-    }
-
-    isValid<TContext = Omit<T, 'type'>>(this: TContext, warningPrefix?: string) {
-        return listDecoratedProperties(this).every((propertyKey) => {
-            const metadata = extractDecoratedPropertyMetadata(this, propertyKey);
-            if (metadata == null) return true; // Skip fake validators.
-            const valid = metadata.optional === true || typeof this[propertyKey as keyof TContext] !== 'undefined';
-            if (!valid) {
-                Logger.warnOnce(`${warningPrefix ?? ''}[${propertyKey}] is required.`);
-            }
-            return valid;
-        });
     }
 
     toJson<J>(this: J): T {

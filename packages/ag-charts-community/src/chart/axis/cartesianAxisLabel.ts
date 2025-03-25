@@ -1,4 +1,4 @@
-import { BOOLEAN, NUMBER, TempValidate } from '../../util/validation';
+import { Property } from '../../util/properties';
 import { AxisLabel } from './axisLabel';
 
 export class CartesianAxisLabel extends AxisLabel {
@@ -6,12 +6,12 @@ export class CartesianAxisLabel extends AxisLabel {
      * If specified and axis labels may collide, they are rotated to reduce collisions. If the
      * `rotation` property is specified, it takes precedence.
      */
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     autoRotate?: boolean;
 
     /**
      * Rotation angle to use when autoRotate is applied.
      */
-    @TempValidate(NUMBER)
+    @Property
     autoRotateAngle: number = 335;
 }

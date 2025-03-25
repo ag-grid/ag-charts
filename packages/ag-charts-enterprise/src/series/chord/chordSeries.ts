@@ -24,6 +24,7 @@ const {
     Sector,
     evaluateBezier,
     applyShapeStyle,
+    getShapeStyle,
     BBox,
 } = _ModuleSupport;
 
@@ -82,15 +83,6 @@ export class ChordSeries extends FlowProportionSeries<
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
-    }
-
-    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
-        return {
-            gradient: 'linear',
-            bounds: 'item',
-            rotation: 0,
-            colorStops: this.properties.defaultColorRange,
-        };
     }
 
     private isLabelEnabled() {
@@ -380,7 +372,7 @@ export class ChordSeries extends FlowProportionSeries<
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return _ModuleSupport.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
@@ -390,7 +382,8 @@ export class ChordSeries extends FlowProportionSeries<
                 lineDash: highlightStyle?.lineDash ?? lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
             },
-            this.defaultShapeStyle
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
         );
     }
 
@@ -451,7 +444,7 @@ export class ChordSeries extends FlowProportionSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     protected updateNodeNodes(opts: {
@@ -501,7 +494,7 @@ export class ChordSeries extends FlowProportionSeries<
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, tension } = properties.link;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return _ModuleSupport.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
@@ -512,7 +505,8 @@ export class ChordSeries extends FlowProportionSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
                 tension,
             },
-            this.defaultShapeStyle
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
         );
     }
 
@@ -571,7 +565,7 @@ export class ChordSeries extends FlowProportionSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     protected updateLinkNodes(opts: {

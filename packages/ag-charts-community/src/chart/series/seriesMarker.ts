@@ -1,6 +1,5 @@
-import type { RequireOptional } from 'ag-charts-core';
+import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
 import type {
-    AgColorType,
     AgMarkerShape,
     AgSeriesMarkerStyle,
     AgSeriesMarkerStylerParams,
@@ -10,73 +9,59 @@ import type {
 
 import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
-import {
-    BOOLEAN,
-    COLOR_GRADIENT,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    FUNCTION,
-    LINE_DASH,
-    OR,
-    POSITIVE_NUMBER,
-    RATIO,
-    TempValidate,
-    predicateWithMessage,
-} from '../../util/validation';
-import { isSupportedMarkerShape } from '../marker/util';
-
-export const MARKER_SHAPE = predicateWithMessage(
-    (value: any) => isSupportedMarkerShape(value) || typeof value === 'function',
-    `a marker shape keyword such as 'circle', 'diamond' or 'square' or an object extending the Marker class`
-);
+import { Property } from '../../util/properties';
+import { FillGradientDefaults, FillPatternDefaults } from './seriesProperties';
 
 export class SeriesMarker<TParams = never>
     extends ChangeDetectableProperties
     implements ISeriesMarker<RequireOptional<TParams>>
 {
-    @TempValidate(BOOLEAN)
+    @Property
     @SceneChangeDetection()
     enabled = true;
 
     /** One of the predefined marker names, or a marker shape function (for user-defined markers). */
-    @TempValidate(MARKER_SHAPE)
+    @Property
     @SceneChangeDetection()
     shape: AgMarkerShape = 'circle';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     @SceneChangeDetection()
     size: number = 6;
 
-    @TempValidate(OR(COLOR_STRING, COLOR_GRADIENT), { optional: true })
+    @Property
     @SceneChangeDetection()
-    fill?: AgColorType;
+    fill?: InternalAgColorType;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
+    @Property
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(RATIO)
+    @Property
+    readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
     @SceneChangeDetection()
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     @SceneChangeDetection()
     stroke?: string;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     @SceneChangeDetection()
     strokeWidth: number = 1;
 
-    @TempValidate(RATIO)
+    @Property
     @SceneChangeDetection()
     strokeOpacity: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     @SceneChangeDetection()
     itemStyler?: Styler<AgSeriesMarkerStylerParams<unknown> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
 

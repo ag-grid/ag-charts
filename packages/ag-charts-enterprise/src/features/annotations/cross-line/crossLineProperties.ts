@@ -2,11 +2,10 @@ import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
 import { isObject } from 'ag-charts-core';
 
 import { Annotation, AxisLabel, Handle, LineStyle, LineTextProperties, Stroke, Value } from '../annotationProperties';
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { AnnotationType } from '../annotationTypes';
 import { getLineCap, getLineDash } from '../utils/line';
-import { validateDatumValue } from '../utils/validation';
 
-const { OBJECT, STRING, BaseProperties, Validate } = _ModuleSupport;
+const { BaseProperties, Property } = _ModuleSupport;
 
 export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(Stroke(LineStyle(BaseProperties)))))) {
     readonly direction = 'horizontal';
@@ -15,15 +14,11 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
         return isObject(value) && value.type === AnnotationType.HorizontalLine;
     }
 
-    @Validate(STRING)
+    @Property
     type = AnnotationType.HorizontalLine as const;
 
-    @Validate(OBJECT, { optional: true })
+    @Property
     text = new LineTextProperties();
-
-    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
-        return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
-    }
 
     getDefaultColor() {
         return this.stroke;
@@ -49,15 +44,11 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
         return isObject(value) && value.type === AnnotationType.VerticalLine;
     }
 
-    @Validate(STRING)
+    @Property
     type = AnnotationType.VerticalLine as const;
 
-    @Validate(OBJECT, { optional: true })
+    @Property
     text = new LineTextProperties();
-
-    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
-        return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
-    }
 
     getDefaultColor() {
         return this.stroke;

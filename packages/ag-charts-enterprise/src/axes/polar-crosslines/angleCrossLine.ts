@@ -13,7 +13,6 @@ const {
     Sector,
     RotatableText,
     ContinuousScale,
-    BandScale,
 } = _ModuleSupport;
 
 export class AngleCrossLine extends PolarCrossLine {
@@ -55,15 +54,10 @@ export class AngleCrossLine extends PolarCrossLine {
     }
 
     update(visible: boolean) {
-        const { scale, shape, value } = this;
+        const { scale } = this;
 
         // TODO support clipping if only end is out-of-bounds
-        if (
-            !scale ||
-            !this.isValid() ||
-            !validateCrossLineValue(getCrossLineValue(this), scale) ||
-            !this.visibilityCheck()
-        ) {
+        if (!scale || !validateCrossLineValue(getCrossLineValue(this), scale) || !this.visibilityCheck()) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
             this.labelGroup.visible = false;
@@ -73,11 +67,6 @@ export class AngleCrossLine extends PolarCrossLine {
         this.rangeGroup.visible = visible;
         this.lineGroup.visible = visible;
         this.labelGroup.visible = visible;
-
-        if (this.type === 'line' && shape === 'circle' && BandScale.is(scale)) {
-            this.type = 'range';
-            this.range = [value, value];
-        }
 
         this.updateLineNode(visible);
         this.updatePolygonNode(visible);

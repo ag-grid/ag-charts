@@ -7,13 +7,24 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import { type InternalAgColorType, isNumberEqual } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const { TextUtils, TextWrapper, createDatumId, Rect, Group, BBox, Selection, Text, Transformable, applyShapeStyle } =
-    _ModuleSupport;
+const {
+    TextUtils,
+    TextWrapper,
+    createDatumId,
+    Rect,
+    Group,
+    BBox,
+    Selection,
+    Text,
+    Transformable,
+    applyShapeStyle,
+    getShapeStyle,
+} = _ModuleSupport;
 
 class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
@@ -111,15 +122,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         this.rectGroup,
         Rect
     );
-
-    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
-        return {
-            gradient: 'linear',
-            bounds: 'item',
-            rotation: 0,
-            colorStops: this.properties.defaultColorRange,
-        };
-    }
 
     private groupTitleHeight(node: TreemapNode, bbox: _ModuleSupport.BBox): number | undefined {
         const { labelValue } = node;
@@ -330,7 +332,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         const { properties } = this;
         const { group } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.group : undefined;
-        return _ModuleSupport.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? group.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? group.fillOpacity,
@@ -338,7 +340,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
                 strokeWidth: highlightStyle?.strokeWidth ?? group.strokeWidth,
                 strokeOpacity: highlightStyle?.strokeOpacity ?? group.strokeOpacity,
             },
-            this.defaultShapeStyle
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -382,14 +385,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             Object.assign(overrides, itemStyle);
         }
 
-        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     private getTileBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const { tile } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.tile : undefined;
-        return _ModuleSupport.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? tile.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? tile.fillOpacity,
@@ -397,7 +400,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
                 strokeWidth: highlightStyle?.strokeWidth ?? tile.strokeWidth,
                 strokeOpacity: highlightStyle?.strokeOpacity ?? tile.strokeOpacity,
             },
-            this.defaultShapeStyle
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -443,7 +447,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             Object.assign(overrides, itemStyle);
         }
 
-        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     override updateSelections() {
@@ -797,17 +801,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
     override getTooltipContent(datumIndex: number[]): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
-        const {
-            labelKey,
-            secondaryLabelKey,
-            childrenKey,
-            sizeKey,
-            sizeName,
-            colorKey,
-            colorName,
-            tooltip,
-            defaultColorRange,
-        } = properties;
+        const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
+            properties;
 
         const nodeDatum = datumIndex.reduce((n, i) => n?.children[i], this.rootNode);
         if (nodeDatum == null) return;
@@ -837,26 +832,28 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             Object.assign(format, this.getGroupStyleOverrides(datumIndex, datum, depth, format, false));
         }
 
-        const color = format.fill;
+        const color = format.fill as InternalAgColorType;
 
-        const symbol: _ModuleSupport.LegendSymbolOptions | undefined = isLeaf
-            ? {
-                  marker: _ModuleSupport.getShapeStyle(
-                      {
-                          shape: 'square',
-                          fill: color,
-                          fillOpacity: 1,
-                          stroke: undefined,
-                          strokeWidth: 0,
-                          strokeOpacity: 1,
-                          lineDash: [0],
-                          lineDashOffset: 0,
-                          defaultColorRange,
-                      },
-                      this.defaultShapeStyle
-                  ),
-              }
-            : undefined;
+        const markerStyle = getShapeStyle(
+            {
+                shape: 'square' as const,
+                fill: color,
+                fillOpacity: 1,
+                stroke: undefined,
+                strokeWidth: 0,
+                strokeOpacity: 1,
+                lineDash: [0],
+                lineDashOffset: 0,
+            },
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
+        );
+
+        if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
+            markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };
+        }
+
+        const symbol: _ModuleSupport.LegendSymbolOptions | undefined = isLeaf ? { marker: markerStyle } : undefined;
 
         return tooltip.formatTooltip(
             this.properties,

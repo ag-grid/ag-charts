@@ -1,5 +1,4 @@
 import {
-    type AgColorType,
     type AgSankeySeriesLabelFormatterParams,
     type AgSankeySeriesLinkItemStylerParams,
     type AgSankeySeriesLinkOptions,
@@ -12,31 +11,12 @@ import {
     type Styler,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
 import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-proportion/flowProportionSeries';
 
-const {
-    BaseProperties,
-    SeriesTooltip,
-    SeriesProperties,
-    ARRAY,
-    ARRAY_OF,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    FUNCTION,
-    LINE_DASH,
-    OBJECT,
-    POSITIVE_NUMBER,
-    OR,
-    COLOR_GRADIENT,
-    RATIO,
-    STRING,
-    UNION,
-    TempValidate,
-    Label,
-} = _ModuleSupport;
-
-const ALIGNMENT = UNION(['left', 'right', 'center', 'justify'], 'a justification value');
+const { BaseProperties, FillGradientDefaults, FillPatternDefaults, SeriesTooltip, SeriesProperties, Property, Label } =
+    _ModuleSupport;
 
 export interface SankeyNodeDatum extends FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum> {
     size: number;
@@ -63,117 +43,126 @@ export interface SankeyNodeLabelDatum {
 }
 
 class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     spacing: number = 1;
 }
 
 class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill: AgColorType | undefined = undefined;
+    @Property
+    fill: InternalAgColorType | undefined = undefined;
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity = 1;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke: string | undefined = undefined;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<unknown>, AgSankeySeriesLinkStyle>;
 }
 
 class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions<any>> {
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     spacing: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     width: number = 1;
 
-    @TempValidate(ALIGNMENT)
+    @Property
     alignment: 'left' | 'right' | 'center' | 'justify' = 'justify';
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill: AgColorType | undefined = undefined;
+    @Property
+    fill: InternalAgColorType | undefined = undefined;
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity = 1;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke: string | undefined = undefined;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<unknown>, AgSankeySeriesNodeStyle>;
 }
 
 export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptions> {
-    @TempValidate(ARRAY, { optional: true })
+    @Property
     nodes: any[] | undefined = undefined;
 
-    @TempValidate(STRING)
+    @Property
     fromKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     toKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     idKey: string = '';
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     idName: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelKey: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelName: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeKey: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeName: string | undefined = undefined;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
+    @Property
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
-    fills: AgColorType[] = [];
+    @Property
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
-    @TempValidate(COLOR_STRING_ARRAY)
+    @Property
+    defaultColorRange: string[][] = [];
+
+    @Property
+    defaultPatternFills: string[] = [];
+
+    @Property
+    fills: InternalAgColorType[] = [];
+
+    @Property
     strokes: string[] = [];
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new SankeySeriesLabelProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly link = new SankeySeriesLinkProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly node = new SankeySeriesNodeProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgSankeySeriesTooltipRendererParams<any>>();
 }

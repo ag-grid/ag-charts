@@ -12,42 +12,33 @@ import type { Matrix } from '../scene/matrix';
 import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../util/angle';
 import { BaseProperties } from '../util/properties';
+import { Property } from '../util/properties';
 import { type TextMeasurer, TextUtils } from '../util/textMeasurer';
-import {
-    BOOLEAN,
-    COLOR_STRING,
-    FONT_STYLE,
-    FONT_WEIGHT,
-    FUNCTION,
-    POSITIVE_NUMBER,
-    STRING,
-    Validate,
-} from '../util/validation';
 import type { ChartAxisLabelFlipFlag } from './chartAxis';
 
 export class Label<TParams = never, TDatum = any>
     extends BaseProperties
     implements AgChartLabelOptions<TDatum, RequireOptional<TParams>>
 {
-    @Validate(BOOLEAN)
+    @Property
     enabled = true;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @Property
     color?: string;
 
-    @Validate(FONT_STYLE, { optional: true })
+    @Property
     fontStyle?: FontStyle;
 
-    @Validate(FONT_WEIGHT, { optional: true })
+    @Property
     fontWeight?: FontWeight;
 
-    @Validate(POSITIVE_NUMBER)
+    @Property
     fontSize!: number;
 
-    @Validate(STRING)
+    @Property
     fontFamily!: string;
 
-    @Validate(FUNCTION, { optional: true })
+    @Property
     formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     getFont(): string {
@@ -83,8 +74,8 @@ export function calculateLabelRotation(opts: {
     return { configuredRotation, defaultRotation, parallelFlipFlag, regularFlipFlag };
 }
 
-export function getLabelSpacing(minSpacing: number, rotated?: boolean): number {
-    if (!isNaN(minSpacing)) {
+export function getLabelSpacing(minSpacing?: number, rotated?: boolean): number {
+    if (minSpacing != null) {
         return minSpacing;
     }
     return rotated ? 0 : 10;

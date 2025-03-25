@@ -107,7 +107,7 @@ export interface ChartAxisLabel extends FontOptions {
     format?: string;
     formatter?: Formatter<AgAxisLabelFormatterParams>;
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
-    minSpacing: number;
+    minSpacing?: number;
     mirrored: boolean;
     spacing: number;
     parallel: boolean;

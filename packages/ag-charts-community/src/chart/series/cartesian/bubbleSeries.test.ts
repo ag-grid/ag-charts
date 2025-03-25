@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgPatternName } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import * as examples from '../../test/examples';
@@ -98,6 +98,43 @@ describe('BubbleSeries', () => {
         });
     });
 
+    describe('pattern fill', () => {
+        it.each([
+            'vertical-lines',
+            'horizontal-lines',
+            'forward-slanted-lines',
+            'backward-slanted-lines',
+            'circles',
+            'squares',
+            'triangles',
+            'diamonds',
+            'stars',
+            'hearts',
+            'crosses',
+        ] as AgPatternName[])('it should create a chart with %s pattern', async (pattern) => {
+            const options: AgChartOptions = {
+                theme: {
+                    overrides: {
+                        bubble: {
+                            series: {
+                                fill: {
+                                    type: 'pattern',
+                                    pattern,
+                                },
+                            },
+                        },
+                    },
+                },
+                ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     describe('gradient fill', () => {
         it('should render bubble series with a vertical linear gradient fill', async () => {
             const options: AgChartOptions = {
@@ -107,6 +144,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'linear',
                                 },
                             },
@@ -130,6 +168,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'linear',
                                     rotation: 90,
                                 },
@@ -154,6 +193,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'linear',
                                     bounds: 'series',
                                 },
@@ -178,6 +218,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'linear',
                                     rotation: 90,
                                     bounds: 'series',
@@ -203,6 +244,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'linear',
                                     bounds: 'axis',
                                 },
@@ -227,6 +269,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'linear',
                                     rotation: 90,
                                     bounds: 'axis',
@@ -252,6 +295,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     bounds: 'axis',
                                 },
                             },
@@ -275,6 +319,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'radial',
                                     bounds: 'series',
                                 },
@@ -299,6 +344,7 @@ describe('BubbleSeries', () => {
                             series: {
                                 fill: {
                                     type: 'gradient',
+                                    /* @ts-expect-error internal option */
                                     gradient: 'radial',
                                     colorStops: [
                                         {

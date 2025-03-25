@@ -11,7 +11,7 @@ import {
 import { TextualPointProperties } from '../properties/textualPointProperties';
 import { getBBox } from '../text/util';
 
-const { OBJECT, STRING, BaseProperties, Validate } = _ModuleSupport;
+const { BaseProperties, Property } = _ModuleSupport;
 
 const DEFAULT_NOTE_PADDING = 10;
 const HANDLE_SIZE = 11;
@@ -28,10 +28,10 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
         return isObject(value) && value.type === AnnotationType.Note;
     }
 
-    @Validate(STRING)
+    @Property
     type = AnnotationType.Note as const;
 
-    @Validate(OBJECT, { optional: true })
+    @Property
     background = new NoteBackgroundProperties();
 
     override position: 'bottom' | 'top' = 'bottom' as const;

@@ -1,6 +1,5 @@
 import type {
     AgBaseRadialColumnSeriesOptions,
-    AgColorType,
     AgRadialSeriesItemStylerParams,
     AgRadialSeriesLabelFormatterParams,
     AgRadialSeriesStyle,
@@ -8,80 +7,68 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
-const {
-    SeriesProperties,
-    SeriesTooltip,
-    TempValidate,
-    COLOR_STRING,
-    NUMBER,
-    FUNCTION,
-    LINE_DASH,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    Label,
-    OR,
-    COLOR_GRADIENT,
-    COLOR_STRING_ARRAY,
-} = _ModuleSupport;
+const { SeriesProperties, FillGradientDefaults, FillPatternDefaults, SeriesTooltip, Property, Label } = _ModuleSupport;
 
 export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeriesOptions> extends SeriesProperties<T> {
-    @TempValidate(STRING)
+    @Property
     angleKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     angleName?: string;
 
-    @TempValidate(STRING)
+    @Property
     radiusKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     radiusName?: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
+    @Property
+    fill: InternalAgColorType = 'black';
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING))
-    fill: AgColorType = 'black';
+    @Property
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(RATIO)
+    @Property
+    readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = 'black';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     cornerRadius: number = 0;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;
 
-    @TempValidate(NUMBER)
+    @Property
     rotation: number = 0;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     stackGroup?: string;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     normalizedTo?: number;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new Label<AgRadialSeriesLabelFormatterParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgRadialSeriesTooltipRendererParams<any>>();
 }

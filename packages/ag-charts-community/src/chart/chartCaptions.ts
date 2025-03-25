@@ -2,19 +2,19 @@ import type { TextAlign } from 'ag-charts-types';
 
 import type { LayoutContext } from '../module/baseModule';
 import type { BBox } from '../scene/bbox';
+import { Property } from '../util/properties';
 import { TextUtils } from '../util/textMeasurer';
-import { OBJECT, Validate } from '../util/validation';
 import { Caption } from './caption';
 import { type LayoutCompleteEvent } from './layout/layoutManager';
 
 export class ChartCaptions {
-    @Validate(OBJECT)
+    @Property
     readonly title = new Caption();
 
-    @Validate(OBJECT)
+    @Property
     readonly subtitle = new Caption();
 
-    @Validate(OBJECT)
+    @Property
     readonly footnote = new Caption();
 
     positionCaptions(ctx: LayoutContext) {

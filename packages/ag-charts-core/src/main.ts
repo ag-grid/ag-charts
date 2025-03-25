@@ -17,6 +17,7 @@ export * from './utils/arrays';
 export * from './utils/binarySearch';
 export * from './utils/diff';
 export * from './utils/functions';
+export * from './utils/geoJson';
 export * from './utils/iterators';
 export * from './utils/numberFormat';
 export * from './utils/numbers';

@@ -13,7 +13,6 @@ import { ZoomToolbar } from './zoomToolbar';
 import { ZoomTwoFingers } from './zoomTwoFingers';
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
-    ANCHOR_POINT,
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
     UNIT_SIZE,
@@ -27,22 +26,8 @@ import {
     unitZoomState,
 } from './zoomUtils';
 
-const {
-    BOOLEAN,
-    NUMBER,
-    POSITIVE_NUMBER,
-    RATIO,
-    UNION,
-    OBJECT,
-    OR,
-    ActionOnSet,
-    ChartAxisDirection,
-    ChartUpdateType,
-    Deprecated,
-    Validate,
-    InteractionState,
-    ProxyProperty,
-} = _ModuleSupport;
+const { ActionOnSet, ChartAxisDirection, ChartUpdateType, Deprecated, Property, InteractionState, ProxyProperty } =
+    _ModuleSupport;
 
 const round = (value: number) => roundTo(value, 10);
 
@@ -67,7 +52,7 @@ class ZoomAutoScaling extends _ModuleSupport.BaseProperties implements ZoomAutoS
         super();
     }
 
-    @Validate(BOOLEAN)
+    @Property
     @ActionOnSet<ZoomAutoScaling>({
         changeValue(enabled) {
             this.onChange({ enabled, padding: this.padding });
@@ -75,7 +60,7 @@ class ZoomAutoScaling extends _ModuleSupport.BaseProperties implements ZoomAutoS
     })
     enabled = false;
 
-    @Validate(RATIO)
+    @Property
     @ActionOnSet<ZoomAutoScaling>({
         changeValue(padding) {
             this.onChange({ enabled: this.enabled, padding });
@@ -90,13 +75,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.onEnabledChange(enabled);
         },
     })
-    @Validate(BOOLEAN)
+    @Property
     public enabled = false;
 
-    @Validate(BOOLEAN)
+    @Property
     public enableAxisDragging = true;
 
-    @Validate(BOOLEAN)
+    @Property
     public enableDoubleClickToReset = true;
 
     @ActionOnSet<Zoom>({
@@ -104,56 +89,56 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.ctx.zoomManager.setIndependentAxes(Boolean(newValue));
         },
     })
-    @Validate(BOOLEAN, { optional: true })
+    @Property
     public enableIndependentAxes?: boolean;
 
-    @Validate(BOOLEAN)
+    @Property
     public enablePanning = true;
 
-    @Validate(BOOLEAN)
+    @Property
     public enableScrolling = true;
 
-    @Validate(BOOLEAN)
+    @Property
     public enableSelecting = false;
 
-    @Validate(BOOLEAN)
+    @Property
     public enableTwoFingerZoom = true;
 
-    @Validate(UNION(['alt', 'ctrl', 'meta', 'shift'], 'a pan key'))
+    @Property
     public panKey: 'alt' | 'ctrl' | 'meta' | 'shift' = 'alt';
 
-    @Validate(UNION(['x', 'y', 'xy'], 'an axis'))
+    @Property
     public axes: 'x' | 'y' | 'xy' = 'x';
 
-    @Validate(RATIO)
+    @Property
     public scrollingStep = UNIT_SIZE / 10;
 
-    @Validate(BOOLEAN)
+    @Property
     public keepAspectRatio = false;
 
-    @Validate(POSITIVE_NUMBER)
+    @Property
     public minVisibleItems = 2;
 
     @Deprecated('Use [minVisibleItems] instead.')
-    @Validate(NUMBER.restrict({ min: 1 }))
+    @Property
     public minVisibleItemsX?: number;
 
     @Deprecated('Use [minVisibleItems] instead.')
-    @Validate(NUMBER.restrict({ min: 1 }))
+    @Property
     public minVisibleItemsY?: number;
 
-    @Validate(ANCHOR_POINT)
+    @Property
     public anchorPointX: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_X;
 
-    @Validate(ANCHOR_POINT)
+    @Property
     public anchorPointY: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_Y;
 
-    @Validate(OBJECT)
+    @Property
     public readonly autoScaling = new ZoomAutoScaling((newValue) => {
         this.ctx.zoomManager.setAutoScaleYAxis(newValue.enabled, newValue.padding);
     });
 
-    @Validate(OBJECT)
+    @Property
     public buttons = new ZoomToolbar(
         this.ctx,
         this.getModuleProperties.bind(this),
@@ -179,7 +164,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly domProxy: ZoomDOMProxy;
 
     @ProxyProperty('panner.deceleration')
-    @Validate(OR(RATIO, UNION(['off', 'short', 'long'], 'a deceleration')))
+    @Property
     public deceleration: number | 'off' | 'short' | 'long' = 'short';
 
     // State

@@ -1,5 +1,4 @@
 import type {
-    AgColorType,
     AgTreemapSeriesItemStylerParams,
     AgTreemapSeriesLabelFormatterParams,
     AgTreemapSeriesOptions,
@@ -10,190 +9,171 @@ import type {
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const {
-    BaseProperties,
-    HierarchySeriesProperties,
-    HighlightStyle,
-    SeriesTooltip,
-    TempValidate,
-    BOOLEAN,
-    COLOR_STRING,
-    FUNCTION,
-    NUMBER,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    STRING_ARRAY,
-    TEXT_ALIGN,
-    VERTICAL_ALIGN,
-    COLOR_GRADIENT,
-    OR,
-    Label,
-} = _ModuleSupport;
+const { BaseProperties, HierarchySeriesProperties, HighlightStyle, SeriesTooltip, Property, Label } = _ModuleSupport;
 
 class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
-    @TempValidate(NUMBER)
+    @Property
     spacing: number = 0;
 }
 
 class TreemapSeriesGroup extends BaseProperties {
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill: AgColorType | undefined = undefined;
+    @Property
+    fill: InternalAgColorType | undefined = undefined;
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     cornerRadius: number = 0;
 
-    @TempValidate(TEXT_ALIGN)
+    @Property
     textAlign: TextAlign = 'center';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     gap: number = 0;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     padding: number = 0;
 
-    @TempValidate(BOOLEAN)
+    @Property
     interactive: boolean = true;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new TreemapGroupLabel();
 }
 
 class TreemapSeriesTile extends BaseProperties {
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill: AgColorType | undefined = undefined;
+    @Property
+    fill: InternalAgColorType | undefined = undefined;
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     cornerRadius: number = 0;
 
-    @TempValidate(TEXT_ALIGN)
+    @Property
     textAlign: TextAlign = 'center';
 
-    @TempValidate(VERTICAL_ALIGN)
+    @Property
     verticalAlign: VerticalAlign = 'middle';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     gap: number = 0;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     padding: number = 0;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly secondaryLabel = new AutoSizedSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
 }
 
 class TreemapSeriesGroupHighlightStyle extends BaseProperties {
-    @TempValidate(STRING, { optional: true })
+    @Property
     fill?: string;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     fillOpacity?: number;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth?: number;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     strokeOpacity?: number;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
 }
 
 class TreemapSeriesTileHighlightStyle extends BaseProperties {
-    @TempValidate(STRING, { optional: true })
+    @Property
     fill?: string;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     fillOpacity?: number;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth?: number;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     strokeOpacity?: number;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly secondaryLabel = new AutoSizedSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
 }
 
 class TreemapSeriesHighlightStyle extends HighlightStyle {
-    @TempValidate(OBJECT)
+    @Property
     readonly group = new TreemapSeriesGroupHighlightStyle();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tile = new TreemapSeriesTileHighlightStyle();
 }
 
 export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemapSeriesOptions> {
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     secondaryLabelKey?: string;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgTreemapSeriesItemStylerParams<unknown>, AgTreemapSeriesStyle>;
 
-    @TempValidate(OBJECT)
+    @Property
     override readonly highlightStyle = new TreemapSeriesHighlightStyle();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly group = new TreemapSeriesGroup();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tile = new TreemapSeriesTile();
 
     // We haven't decided how to expose this yet, but we need to have this property, so it can change between light and dark themes
-    @TempValidate(STRING_ARRAY)
+    @Property
     undocumentedGroupFills: string[] = [];
 
     // We haven't decided how to expose this yet, but we need to have this property, so it can change between light and dark themes
-    @TempValidate(STRING_ARRAY)
+    @Property
     undocumentedGroupStrokes: string[] = [];
 }

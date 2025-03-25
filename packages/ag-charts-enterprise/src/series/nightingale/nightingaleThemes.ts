@@ -1,4 +1,5 @@
-import { type Operation, _ModuleSupport } from 'ag-charts-community';
+import { type Operation, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE, POLAR_AXIS_SHAPE },
@@ -15,7 +16,15 @@ export const NIGHTINGALE_SERIES_THEME: _ModuleSupport.SeriesModule<'nightingale'
             $if: [{ $eq: [{ $palette: 'type' }, 'inbuilt'] }, { $ref: 'backgroundColor' }, { $palette: 'stroke' }],
         },
         // @ts-expect-error undocumented option
-        defaultColorRange: { $palette: 'gradient' },
+        fillGradientDefaults: {
+            type: 'gradient',
+            gradient: 'radial',
+            bounds: 'series',
+            colorStops: { $palette: 'gradient' },
+            rotation: 0,
+            reverse: false,
+        } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         strokeWidth: 1,
         label: {
             enabled: false,

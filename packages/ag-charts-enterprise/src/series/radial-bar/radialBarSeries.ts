@@ -1,5 +1,5 @@
 import { type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import { isDefined } from 'ag-charts-core';
+import { type InternalAgGradientColor, isDefined } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
@@ -25,7 +25,9 @@ const {
     Sector,
     SectorBox,
     motion,
+    isGradientFill,
     applyShapeStyle,
+    getShapeStyle,
 } = _ModuleSupport;
 
 class RadialBarSeriesNodeEvent<
@@ -77,13 +79,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     private readonly groupScale = new CategoryScale<string>();
 
-    protected get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
+    protected get defaultShapeStyle(): Required<InternalAgGradientColor> {
         const angleScale = this.axes[ChartAxisDirection.X]?.scale;
         return {
-            gradient: 'conic',
-            bounds: 'series',
+            ...this.properties.fillGradientDefaults.toJson(),
             rotation: _ModuleSupport.toDegrees(angleScale!.range[0]) + 90,
-            colorStops: this.properties.defaultColorRange,
         };
     }
 
@@ -118,12 +118,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { visible } = this;
         const { angleKey, radiusKey, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-        if (!this.properties.isValid()) return;
-
         const stackGroupId = this.getStackId();
         const stackGroupTrailingId = `${stackGroupId}-trailing`;
 
@@ -140,7 +136,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             extraProps.push(animationValidation());
         }
 
-        const visibleProps = visible || !animationEnabled ? {} : { forceValue: 0 };
+        const visibleProps = this.visible ? {} : { forceValue: 0 };
 
         const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
@@ -219,9 +215,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     override createNodeData() {
         const { processedData, dataModel } = this;
 
-        if (!dataModel || !processedData || processedData.type !== 'grouped' || !this.properties.isValid()) {
-            return;
-        }
+        if (!dataModel || !processedData || processedData.type !== 'grouped') return;
 
         const angleAxis = this.axes[ChartAxisDirection.X];
         const radiusAxis = this.axes[ChartAxisDirection.Y];
@@ -371,7 +365,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return _ModuleSupport.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -382,7 +376,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius: properties.cornerRadius,
             },
-            this.defaultShapeStyle
+            this.defaultShapeStyle,
+            properties.fillPatternDefaults
         );
     }
 
@@ -405,7 +400,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             });
         }
 
-        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
+        return getShapeStyle(overrides, this.defaultShapeStyle, this.properties.fillPatternDefaults);
     }
 
     protected updateSectorSelection(
@@ -561,26 +556,34 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     private legendItemSymbol() {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, fillPatternDefaults } =
+            this.properties;
+
+        const markerStyle = getShapeStyle(
+            {
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            },
+            this.defaultShapeStyle,
+            fillPatternDefaults
+        );
+
+        if (isGradientFill(markerStyle.fill)) {
+            markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };
+        }
 
         return {
-            marker: _ModuleSupport.getShapeStyle(
-                {
-                    fill: fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity,
-                    strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                },
-                this.defaultShapeStyle
-            ),
+            marker: markerStyle,
         };
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        if (!this.properties.isValid() || legendType !== 'category') {
+        if (legendType !== 'category') {
             return [];
         }
 

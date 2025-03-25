@@ -6,7 +6,6 @@ import type {
 } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
-import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
@@ -18,32 +17,10 @@ import { TransformableText } from '../../scene/shape/text';
 import { createId } from '../../util/id';
 import { clampArray } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
-import {
-    AND,
-    ARRAY,
-    BOOLEAN,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    FONT_STYLE,
-    FONT_WEIGHT,
-    LINE_DASH,
-    NUMBER,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    TempValidate,
-    UNION,
-} from '../../util/validation';
+import { Property } from '../../util/properties';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
-import {
-    type CrossLine,
-    type CrossLineType,
-    MATCHING_CROSSLINE_TYPE,
-    getCrossLineValue,
-    validateCrossLineValue,
-} from './crossLine';
+import { type CrossLine, type CrossLineType, getCrossLineValue, validateCrossLineValue } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
 import {
     POSITION_TOP_COORDINATES,
@@ -52,112 +29,87 @@ import {
     labelDirectionHandling,
 } from './crossLineLabelPosition';
 
-const CROSSLINE_LABEL_POSITION = UNION(
-    [
-        'top',
-        'left',
-        'right',
-        'bottom',
-        'top-left',
-        'top-right',
-        'bottom-left',
-        'bottom-right',
-        'inside',
-        'inside-left',
-        'inside-right',
-        'inside-top',
-        'inside-bottom',
-        'inside-top-left',
-        'inside-bottom-left',
-        'inside-top-right',
-        'inside-bottom-right',
-    ],
-    'crossLine label position'
-);
-
 class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCrossLineLabelOptions {
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     enabled?: boolean;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     text?: string;
 
-    @TempValidate(FONT_STYLE, { optional: true })
+    @Property
     fontStyle?: FontStyle;
 
-    @TempValidate(FONT_WEIGHT, { optional: true })
+    @Property
     fontWeight?: FontWeight;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     fontSize: number = 14;
 
-    @TempValidate(STRING)
+    @Property
     fontFamily: string = 'Verdana, sans-serif';
 
     /**
      * The padding between the label and the line.
      */
-    @TempValidate(NUMBER)
+    @Property
     padding: number = 5;
 
     /**
      * The color of the labels.
      */
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     color?: string = 'rgba(87, 87, 87, 1)';
 
-    @TempValidate(CROSSLINE_LABEL_POSITION, { optional: true })
+    @Property
     position?: CrossLineLabelPosition;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     rotation?: number;
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     parallel?: boolean;
 }
 
-type NodeData = number[];
+type NodeData = [number, number];
 
 export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
     static readonly className = 'CrossLine';
     readonly id = createId(this);
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     enabled?: boolean;
 
-    @TempValidate(UNION(['range', 'line'], 'a crossLine type'))
+    @Property
     type!: CrossLineType;
 
-    @TempValidate(AND(MATCHING_CROSSLINE_TYPE('range'), ARRAY.restrict({ length: 2 })), {
-        optional: true,
-    })
+    @Property
     range?: [unknown, unknown];
 
-    @TempValidate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
+    @Property
     value?: unknown;
 
-    @TempValidate(COLOR_STRING_ARRAY)
+    @Property
     defaultColorRange: string[] = [];
 
-    @TempValidate(COLOR_STRING)
+    @Property
     fill: string = '#c16068';
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     fillOpacity?: number;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     strokeWidth?: number;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     strokeOpacity?: number;
 
-    @TempValidate(LINE_DASH, { optional: true })
+    @Property
     lineDash?: [];
 
-    @TempValidate(OBJECT)
+    @Property
     label: CartesianCrossLineLabel = new CartesianCrossLineLabel();
 
     scale?: Scale<any, number> = undefined;
@@ -175,10 +127,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private readonly crossLineLabel = new TransformableText();
     private labelPoint?: Point = undefined;
 
-    private data: NodeData = [];
+    private data: NodeData | undefined = undefined;
     private startLine: boolean = false;
     private endLine: boolean = false;
-    private isRange: boolean = false;
 
     constructor() {
         super();
@@ -191,15 +142,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     private _isRange: boolean | undefined = undefined;
     update(visible: boolean) {
-        const { enabled, data, scale } = this;
-        if (
-            !scale ||
-            !enabled ||
-            !visible ||
-            !this.isValid() ||
-            !validateCrossLineValue(getCrossLineValue(this), scale) ||
-            data.length === 0
-        ) {
+        const { enabled, type, data, scale } = this;
+        if (!scale || !enabled || !visible || !validateCrossLineValue(getCrossLineValue(this), scale) || data == null) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
             this.labelGroup.visible = false;
@@ -211,7 +155,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         this.labelGroup.visible = visible;
         this.updateNodes();
 
-        const { isRange } = this;
+        const isRange = type === 'range';
         if (isRange !== this._isRange) {
             if (isRange) {
                 this.rangeGroup.appendChild(this.crossLineRange);
@@ -226,6 +170,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         if (!visible) return;
 
         const {
+            type,
+            range,
+            value,
             scale,
             gridLength,
             sideFlag,
@@ -235,26 +182,40 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             strokeWidth = 0,
         } = this;
 
-        this.data = [];
+        this.data = undefined;
 
         if (!scale) return;
 
         const bandwidth = scale.bandwidth ?? 0;
         const step = scale.step ?? 0;
-        const padding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
+        const rangePadding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
 
         const [xStart, xEnd] = [0, sideFlag * gridLength];
-        let [yStart, yEnd] = this.getRange();
 
-        const ordinalTimeScalePadding = yEnd === undefined && OrdinalTimeScale.is(scale) ? bandwidth / 2 + padding : 0;
+        let yStart: number;
+        let yEnd: number;
+        let clampedYStart: number;
+        let clampedYEnd: number;
+        if (type === 'line') {
+            const offset = bandwidth / 2;
+            yStart = scale.convert(value as any) + offset;
+            yEnd = NaN;
+            clampedYStart = scale.convert(value as any, true) + offset;
+            clampedYEnd = NaN;
+        } else if (range) {
+            const [r0, r1] = range;
+            const ordinalTimeScalePadding =
+                r0?.valueOf() === r1?.valueOf() && OrdinalTimeScale.is(scale) ? bandwidth / 2 + rangePadding : 0;
+            yStart = scale.convert(r0 as any) + ordinalTimeScalePadding;
+            yEnd = scale.convert(r1 as any) + bandwidth;
+            clampedYStart = scale.convert(r0 as any, true) + ordinalTimeScalePadding - rangePadding;
+            clampedYEnd = scale.convert(r1 as any, true) + bandwidth + rangePadding;
+        } else {
+            return;
+        }
 
-        let [clampedYStart, clampedYEnd] = [
-            Number(scale.convert(yStart, true)) - padding + ordinalTimeScalePadding,
-            scale.convert(yEnd, true) + bandwidth + padding,
-        ];
         clampedYStart = clampArray(clampedYStart, clippedRange);
         clampedYEnd = clampArray(clampedYEnd, clippedRange);
-        [yStart, yEnd] = [Number(scale.convert(yStart)) + ordinalTimeScalePadding, scale.convert(yEnd) + bandwidth];
 
         const validRange =
             (yStart === clampedYStart || yEnd === clampedYEnd || clampedYStart !== clampedYEnd) &&
@@ -265,14 +226,13 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             [yStart, yEnd] = [yEnd, yStart];
         }
 
-        if (yStart - padding >= clampedYStart) yStart -= padding;
-        if (yEnd + padding <= clampedYEnd) yEnd += padding;
+        if (yStart - rangePadding >= clampedYStart) yStart -= rangePadding;
+        if (yEnd + rangePadding <= clampedYEnd) yEnd += rangePadding;
 
-        this.isRange = validRange;
-        this.startLine = strokeWidth > 0 && yStart >= clampedYStart && yStart <= clampedYStart + padding;
-        this.endLine = strokeWidth > 0 && yEnd >= clampedYEnd - bandwidth - padding && yEnd <= clampedYEnd;
+        this.startLine = strokeWidth > 0 && yStart >= clampedYStart && yStart <= clampedYStart + rangePadding;
+        this.endLine = strokeWidth > 0 && yEnd >= clampedYEnd - bandwidth - rangePadding && yEnd <= clampedYEnd;
 
-        if (!validRange && !this.startLine && !this.endLine) return;
+        if (type === 'range' && !validRange && !this.startLine && !this.endLine) return;
 
         this.data = [clampedYStart, clampedYEnd];
 
@@ -305,13 +265,13 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     private updateRangeNode() {
         const {
+            type,
             crossLineRange,
             sideFlag,
             gridLength,
             data,
             startLine,
             endLine,
-            isRange,
             fill,
             fillOpacity,
             stroke,
@@ -321,11 +281,11 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         crossLineRange.x1 = 0;
         crossLineRange.x2 = sideFlag * gridLength;
-        crossLineRange.y1 = data[0];
-        crossLineRange.y2 = data[1];
+        crossLineRange.y1 = data?.[0] ?? 0;
+        crossLineRange.y2 = data?.[1] ?? 0;
         crossLineRange.startLine = startLine;
         crossLineRange.endLine = endLine;
-        crossLineRange.isRange = isRange;
+        crossLineRange.isRange = type === 'range';
 
         crossLineRange.fill = fill;
         crossLineRange.fillOpacity = fillOpacity ?? 1;
@@ -389,24 +349,6 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         crossLineLabel.translationY = y + yTranslation;
     }
 
-    private getRange(): [any, any] {
-        const { value, range, scale } = this;
-
-        const isContinuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
-        const start = range?.[0] ?? value;
-        let end = range?.[1];
-
-        if (!isContinuous && end === undefined) {
-            end = start;
-        }
-
-        if (isContinuous && start === end) {
-            end = undefined;
-        }
-
-        return [start, end];
-    }
-
     private computeLabelBBox(): BBox | undefined {
         const { label } = this;
         if (label.enabled === false || !label.text) return;
@@ -458,13 +400,11 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     calculatePadding(padding: Partial<Record<AgCrossLineLabelPosition, number>>) {
         const {
-            isRange,
-            startLine,
-            endLine,
+            data,
             direction,
             label: { padding: labelPadding = 0, position = 'top' },
         } = this;
-        if (!isRange && !startLine && !endLine) return;
+        if (data == null) return;
 
         const crossLineLabelBBox = this.computeLabelBBox();
         if (crossLineLabelBBox?.x == null || crossLineLabelBBox?.y == null) return;

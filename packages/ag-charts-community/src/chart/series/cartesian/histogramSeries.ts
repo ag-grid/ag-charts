@@ -30,7 +30,7 @@ import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
 import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { applyShapeStyle } from '../shapeUtil';
+import { applyShapeStyle, getShapeStyle } from '../shapeUtil';
 import {
     collapsedStartingBarPosition,
     computeBarFocusBounds,
@@ -401,7 +401,7 @@ export class HistogramSeries extends CartesianSeries<
 
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return this.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -412,7 +412,8 @@ export class HistogramSeries extends CartesianSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius: properties.cornerRadius,
             },
-            properties.defaultColorRange
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -566,11 +567,20 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
-            this.properties;
+        const {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            fillGradientDefaults,
+            fillPatternDefaults,
+        } = this.properties;
 
         return {
-            marker: this.getShapeStyle(
+            marker: getShapeStyle(
                 {
                     fill: fill ?? 'rgba(0, 0, 0, 0)',
                     stroke: stroke ?? 'rgba(0, 0, 0, 0)',
@@ -579,9 +589,9 @@ export class HistogramSeries extends CartesianSeries<
                     strokeWidth,
                     lineDash,
                     lineDashOffset,
-                    defaultColorRange,
                 },
-                defaultColorRange
+                fillGradientDefaults,
+                fillPatternDefaults
             ),
         };
     }

@@ -28,9 +28,9 @@ import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
 import { BaseProperties } from '../util/properties';
+import { Property } from '../util/properties';
 import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
-import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Widget } from '../widget/widget';
 import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import { Caption } from './caption';
@@ -90,10 +90,10 @@ type SeriesChangeType =
     | 'updated';
 
 class SeriesArea extends BaseProperties {
-    @Validate(BOOLEAN, { optional: true })
+    @Property
     clip?: boolean;
 
-    @Validate(OBJECT)
+    @Property
     padding = new Padding(0);
 }
 
@@ -199,19 +199,19 @@ export abstract class Chart extends Observable implements ModuleInstance {
         return this.ctx.scene.toSVG();
     }
 
-    @Validate(OBJECT)
+    @Property
     readonly padding = new Padding(20);
 
-    @Validate(OBJECT)
+    @Property
     readonly seriesArea = new SeriesArea();
 
-    @Validate(OBJECT)
+    @Property
     readonly keyboard = new Keyboard();
 
-    @Validate(OBJECT)
+    @Property
     readonly touch = new Touch();
 
-    @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
+    @Property
     mode: ChartMode = 'standalone';
 
     private readonly chartCaptions = new ChartCaptions();
@@ -225,7 +225,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
     @ProxyProperty('chartCaptions.footnote')
     readonly footnote!: Caption;
 
-    @Validate(BOOLEAN)
+    @Property
     suppressFieldDotNotation: boolean = false;
 
     public destroyed = false;

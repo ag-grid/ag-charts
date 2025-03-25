@@ -49,7 +49,6 @@ Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'transform', {
 });
 
 export class MockContext {
-    document: Document;
     ctx: {
         nodeCanvas: Canvas;
         getRenderContext2D: () => CanvasRenderingContext2D;
@@ -60,25 +59,33 @@ export class MockContext {
     canvases: WeakRef<Canvas>[] = [];
     offscreenCanvases: WeakRef<OffscreenCanvas>[] = [];
 
+    mockText = false;
+
     constructor(
-        width: number,
-        height: number,
-        document: Document,
+        public width: number,
+        public height: number,
+        public document: Document,
         public realCreateElement: Document['createElement'] = document.createElement,
         public realOffscreenCanvas: typeof global.OffscreenCanvas = global.OffscreenCanvas
     ) {
-        this.document = document;
-
         const nodeCanvas = createCanvas(width, height);
 
         this.ctx = {
             nodeCanvas,
-            getRenderContext2D: () => this.ctx.nodeCanvas.getContext('2d') as unknown as CanvasRenderingContext2D,
+            getRenderContext2D: this.getRenderContext2D.bind(this),
             getActiveCanvasInstances: this.getActiveCanvasInstances.bind(this),
             getActiveOffscreenCanvasInstances: this.getActiveOffscreenCanvasInstances.bind(this),
         };
         this.canvasStack = [nodeCanvas];
         this.registerCanvasInstance(nodeCanvas);
+    }
+
+    getRenderContext2D(): CanvasRenderingContext2D {
+        let ctx = this.ctx.nodeCanvas.getContext('2d') as unknown as NodeCanvasRenderingContext2D;
+        if (this.mockText) {
+            ctx = mockCanvasText(ctx);
+        }
+        return ctx as unknown as CanvasRenderingContext2D;
     }
 
     registerCanvasInstance(canvas: Canvas) {
@@ -109,23 +116,31 @@ export class MockContext {
     }
 }
 
-export function setup(opts: {
-    width?: number;
-    height?: number;
-    document?: Document;
-    mockCtx?: MockContext;
-    mockText?: boolean;
-}) {
-    const {
-        width = 800,
-        height = 600,
-        document = window.document,
-        mockCtx = new MockContext(width, height, document),
-        mockText = false,
-    } = opts;
-    if (mockText) {
-        mockCanvasText();
+function proxyGetContext2D(mockCtx: MockContext, canvas: Canvas, target: any) {
+    if (target.__patched === true) return;
+    target.__patched = true;
+
+    const { getContext } = canvas;
+    target.getContext = (type: '2d') => {
+        let ctx = getContext.call(canvas, type);
+        if (mockCtx.mockText) {
+            ctx = mockCanvasText(ctx);
+        }
+        return ctx;
+    };
+}
+
+export function setup(opts: { width?: number; height?: number; document?: Document } | MockContext) {
+    let mockCtx: MockContext;
+    if (opts instanceof MockContext) {
+        mockCtx = opts;
+    } else {
+        const { width = 800, height = 600, document = window.document } = opts;
+        mockCtx = new MockContext(width, height, document);
     }
+
+    const { width, height, document } = mockCtx;
+
     const nodeCanvas = createCanvas(width, height);
     mockCtx.ctx.nodeCanvas = nodeCanvas;
     mockCtx.canvasStack = [nodeCanvas];
@@ -143,21 +158,10 @@ export function setup(opts: {
         if (element === 'canvas') {
             const mockedElement = realCreateElement.call(document, element, options) as HTMLCanvasElement;
 
-            let [nextCanvas] = mockCtx.canvasStack.splice(0, 1);
-            if (!nextCanvas) {
-                nextCanvas = createCanvas(width, height);
-            }
+            const nextCanvas = mockCtx.canvasStack.shift() ?? createCanvas(width, height);
             mockCtx.registerCanvasInstance(nextCanvas);
 
-            mockedElement.getContext = (type: any) => {
-                const context2d = nextCanvas.getContext(type, { alpha: true });
-                context2d.patternQuality = 'good';
-                context2d.quality = 'good';
-                context2d.textDrawingMode = 'path';
-                context2d.antialias = 'subpixel';
-
-                return context2d as any;
-            };
+            proxyGetContext2D(mockCtx, nextCanvas, mockedElement);
 
             mockedElement.toDataURL = (mimeType?: 'image/png') => {
                 return nextCanvas.toDataURL(mimeType ?? 'image/png');
@@ -172,12 +176,14 @@ export function setup(opts: {
     };
 
     if (typeof window !== 'undefined') {
-        (window as any).OffscreenCanvas = function (w: number, h: number) {
+        const OffscreenCanvas = function OffscreenCanvas(w: number, h: number) {
             const canvas = new mockCtx.realOffscreenCanvas(w, h);
             mockCtx.registerOffscreenCanvasInstance(canvas);
+            proxyGetContext2D(mockCtx, canvas as unknown as Canvas, canvas);
             return canvas;
         };
-        (window as any).OffscreenCanvas.prototype = mockCtx.realOffscreenCanvas;
+        OffscreenCanvas.prototype = mockCtx.realOffscreenCanvas;
+        (window as any).OffscreenCanvas = OffscreenCanvas;
     }
 
     return mockCtx;
@@ -185,5 +191,8 @@ export function setup(opts: {
 
 export function teardown(mockContext: MockContext) {
     mockContext.document.createElement = mockContext.realCreateElement!;
+    if (typeof window !== 'undefined') {
+        window.OffscreenCanvas = mockContext.realOffscreenCanvas;
+    }
     mockContext.destroy();
 }

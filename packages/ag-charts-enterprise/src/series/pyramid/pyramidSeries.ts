@@ -23,6 +23,7 @@ const {
     applyShapeStyle,
     fromToMotion,
     seriesLabelFadeInAnimation,
+    getShapeStyle,
 } = _ModuleSupport;
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
@@ -76,15 +77,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
     private readonly stageLabelGroup = this.contentGroup.appendChild(new Group({ name: 'stageLabelGroup' }));
-
-    private get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
-        return {
-            gradient: 'linear',
-            bounds: 'item',
-            rotation: 0,
-            colorStops: this.properties.defaultColorRange,
-        };
-    }
 
     public datumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum> = Selection.select(
         this.itemGroup,
@@ -157,9 +149,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const {
             id: seriesId,
@@ -473,7 +463,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return _ModuleSupport.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -483,7 +473,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
-            this.defaultShapeStyle
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
         );
     }
 
@@ -526,7 +517,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return _ModuleSupport.getShapeStyle(overrides, this.defaultShapeStyle);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     private updateDatumNodes(opts: {
@@ -675,12 +666,11 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     private legendItemSymbol(datumIndex: number) {
-        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
-            this.properties;
+        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
         const fill = fills[datumIndex % fills.length] ?? 'black';
         const stroke = strokes[datumIndex % strokes.length] ?? 'black';
         return {
-            marker: _ModuleSupport.getShapeStyle(
+            marker: getShapeStyle(
                 {
                     fill,
                     fillOpacity,
@@ -689,9 +679,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     strokeOpacity,
                     lineDash,
                     lineDashOffset,
-                    defaultColorRange,
                 },
-                this.defaultShapeStyle
+                this.properties.fillGradientDefaults,
+                this.properties.fillPatternDefaults
             ),
         };
     }
@@ -705,7 +695,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             visible,
         } = this;
 
-        if (!dataModel || !processedData || legendType !== 'category' || !this.properties.isValid()) {
+        if (!dataModel || !processedData || legendType !== 'category') {
             return [];
         }
 

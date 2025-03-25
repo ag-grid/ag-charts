@@ -34,6 +34,7 @@ import type { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { getShapeStyle } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
@@ -112,9 +113,7 @@ export class LineSeries extends CartesianSeries<
     }
 
     override async processData(dataController: DataController) {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 0 } = {} } = this;
         const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
@@ -463,17 +462,21 @@ export class LineSeries extends CartesianSeries<
 
         const { marker } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-        return {
-            size: marker.size,
-            shape: marker.shape,
-            fill: highlightStyle?.fill ?? marker.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
-            stroke: highlightStyle?.stroke ?? marker.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
-            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? marker.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
-        };
+        return getShapeStyle(
+            {
+                size: marker.size,
+                shape: marker.shape,
+                fill: highlightStyle?.fill ?? marker.fill,
+                fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
+                stroke: highlightStyle?.stroke ?? marker.stroke,
+                strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
+                strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+                lineDash: highlightStyle?.lineDash ?? marker.lineDash,
+                lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
+            },
+            marker.fillGradientDefaults,
+            marker.fillPatternDefaults
+        );
     }
 
     private getMarkerItemStyleOverrides(
@@ -649,7 +652,7 @@ export class LineSeries extends CartesianSeries<
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        if (!(this.properties.isValid() && legendType === 'category')) {
+        if (legendType !== 'category') {
             return [];
         }
 

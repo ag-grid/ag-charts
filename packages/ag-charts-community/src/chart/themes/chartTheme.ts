@@ -127,6 +127,7 @@ export class ChartTheme {
     public static getDefaultColors(): DefaultColors {
         return {
             fills: DEFAULT_FILLS,
+            fillsFallback: Object.values(DEFAULT_FILLS),
             strokes: DEFAULT_STROKES,
             sequentialColors: getSequentialColors(DEFAULT_FILLS),
             divergingColors: [DEFAULT_FILLS.ORANGE, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.GREEN],
@@ -179,57 +180,59 @@ export class ChartTheme {
         };
     }
 
-    private static getAxisDefaults(overrideDefaults?: object) {
-        return mergeDefaults(overrideDefaults, {
-            title: {
-                enabled: false,
-                text: 'Axis Title',
-                spacing: 25,
-                fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM] },
-                fontFamily: { $ref: 'fontFamily' },
-                color: { $ref: 'textColor' },
+    private static getAxisDefaults(overrideDefaults: object, withTitle = true) {
+        return mergeDefaults(
+            overrideDefaults,
+            withTitle && {
+                title: {
+                    enabled: false,
+                    text: 'Axis Title',
+                    spacing: 25,
+                    fontWeight: { $ref: 'fontWeight' },
+                    fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM] },
+                    fontFamily: { $ref: 'fontFamily' },
+                    color: { $ref: 'textColor' },
+                },
             },
-            label: {
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
-                spacing: 11,
-                color: { $ref: 'textColor' },
-                avoidCollisions: true,
-            },
-            line: {
-                enabled: true,
-                width: 1,
-                stroke: { $ref: 'axisColor' },
-            },
-            tick: {
-                enabled: false,
-                width: 1,
-                stroke: { $ref: 'axisColor' },
-            },
-            gridLine: {
-                enabled: true,
-                style: [{ stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
-            },
-            crossLines: {
-                enabled: true,
-                fill: { $ref: 'foregroundColor' },
-                stroke: { $ref: 'foregroundColor' },
-                fillOpacity: 0.1,
-                strokeWidth: 1,
+            {
                 label: {
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
                     fontWeight: { $ref: 'fontWeight' },
-                    padding: 5,
+                    spacing: 11,
                     color: { $ref: 'textColor' },
+                    avoidCollisions: true,
                 },
-            },
-            crosshair: {
-                enabled: true,
-            },
-        });
+                line: {
+                    enabled: true,
+                    width: 1,
+                    stroke: { $ref: 'axisColor' },
+                },
+                tick: {
+                    enabled: false,
+                    width: 1,
+                    stroke: { $ref: 'axisColor' },
+                },
+                gridLine: {
+                    enabled: true,
+                    style: [{ stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
+                },
+                crossLines: {
+                    enabled: true,
+                    fill: { $ref: 'foregroundColor' },
+                    stroke: { $ref: 'foregroundColor' },
+                    fillOpacity: 0.1,
+                    strokeWidth: 1,
+                    label: {
+                        fontSize: { $ref: 'fontSize' },
+                        fontFamily: { $ref: 'fontFamily' },
+                        fontWeight: { $ref: 'fontWeight' },
+                        padding: 5,
+                        color: { $ref: 'textColor' },
+                    },
+                },
+            }
+        );
     }
 
     protected getChartDefaults() {
@@ -294,12 +297,12 @@ export class ChartTheme {
                     $if: [
                         {
                             $or: [
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.TOP] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.BOTTOM] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT] },
                             ],
                         },
-                        'horizontal',
                         'vertical',
+                        'horizontal',
                     ],
                 },
                 spacing: 30,
@@ -339,53 +342,70 @@ export class ChartTheme {
 
     private static readonly axisDefault = {
         [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({
+            keys: [],
             line: { enabled: false },
+            crosshair: { enabled: true },
         }),
         [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({
+            keys: [],
             base: 10,
             line: { enabled: false },
-            interval: { minSpacing: NaN },
+            crosshair: { enabled: true },
         }),
         [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({
+            keys: [],
             groupPaddingInner: 0.1,
             label: { autoRotate: true },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
             crosshair: { enabled: false },
         }),
         [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults({
+            keys: [],
             tick: { enabled: true, stroke: DEFAULT_SEPARATION_LINES_COLOUR },
             label: { spacing: 10, rotation: 270 },
             paddingInner: 0.4,
             groupPaddingInner: 0.2,
             crosshair: { enabled: false },
         }),
-        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
+        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({
+            keys: [],
+            gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+            crosshair: { enabled: true },
+        }),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({
+            keys: [],
             groupPaddingInner: 0,
             label: { autoRotate: false },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+            crosshair: { enabled: true },
         }),
-        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({
-            label: { spacing: 5 },
-            gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            shape: {
-                $path: ['./shape', undefined, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],
+        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults(
+            {
+                label: { spacing: 5 },
+                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+                shape: {
+                    $path: [
+                        './shape',
+                        undefined,
+                        { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] },
+                    ],
+                },
             },
-        }),
-        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({
-            label: { spacing: 5 },
-            gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            shape: {
-                $path: ['./shape', undefined, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],
+            false
+        ),
+        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults(
+            {
+                label: { spacing: 5 },
+                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
             },
-        }),
+            false
+        ),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({
+            positionAngle: 0,
             line: { enabled: false },
-            shape: {
-                $path: ['./shape', undefined, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],
-            },
         }),
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({
+            positionAngle: 0,
             line: { enabled: false },
             shape: {
                 $path: ['./shape', undefined, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],

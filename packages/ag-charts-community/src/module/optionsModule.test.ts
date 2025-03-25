@@ -431,14 +431,36 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
 [
   {
-    "defaultColorRange": [
-      "#2162aa",
-      "#5090dc",
-      "#7ec0ff",
-    ],
     "direction": "vertical",
     "fill": "pink",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#2162aa",
+        "#5090dc",
+        "#7ec0ff",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
+    "fillPatternDefaults": {
+      "backgroundFill": "transparent",
+      "backgroundFillOpacity": 1,
+      "fill": "#5090dc",
+      "fillOpacity": 1,
+      "height": 10,
+      "padding": 2,
+      "pattern": "forward-slanted-lines",
+      "rotation": 0,
+      "stroke": "#5090dc",
+      "strokeOpacity": 1,
+      "strokeWidth": 4,
+      "type": "pattern",
+      "width": 10,
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -478,14 +500,36 @@ describe('ChartOptions', () => {
     "yName": "IPhone",
   },
   {
-    "defaultColorRange": [
-      "#cc7100",
-      "#ffa03a",
-      "#ffd171",
-    ],
     "direction": "vertical",
     "fill": "red",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
+    "fillPatternDefaults": {
+      "backgroundFill": "transparent",
+      "backgroundFillOpacity": 1,
+      "fill": "#ffa03a",
+      "fillOpacity": 1,
+      "height": 10,
+      "padding": 2,
+      "pattern": "forward-slanted-lines",
+      "rotation": 0,
+      "stroke": "#ffa03a",
+      "strokeOpacity": 1,
+      "strokeWidth": 4,
+      "type": "pattern",
+      "width": 10,
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -525,14 +569,36 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
-    "defaultColorRange": [
-      "#076f29",
-      "#459d55",
-      "#75cd82",
-    ],
     "direction": "vertical",
     "fill": "#459d55",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#076f29",
+        "#459d55",
+        "#75cd82",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
+    "fillPatternDefaults": {
+      "backgroundFill": "transparent",
+      "backgroundFillOpacity": 1,
+      "fill": "#459d55",
+      "fillOpacity": 1,
+      "height": 10,
+      "padding": 2,
+      "pattern": "forward-slanted-lines",
+      "rotation": 0,
+      "stroke": "#459d55",
+      "strokeOpacity": 1,
+      "strokeWidth": 4,
+      "type": "pattern",
+      "width": 10,
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -572,14 +638,36 @@ describe('ChartOptions', () => {
     "yName": "Wearables",
   },
   {
-    "defaultColorRange": [
-      "#008fb0",
-      "#34bfe1",
-      "#70f1ff",
-    ],
     "direction": "vertical",
     "fill": "#34bfe1",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
+    "fillPatternDefaults": {
+      "backgroundFill": "transparent",
+      "backgroundFillOpacity": 1,
+      "fill": "#34bfe1",
+      "fillOpacity": 1,
+      "height": 10,
+      "padding": 2,
+      "pattern": "forward-slanted-lines",
+      "rotation": 0,
+      "stroke": "#34bfe1",
+      "strokeOpacity": 1,
+      "strokeWidth": 4,
+      "type": "pattern",
+      "width": 10,
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -620,8 +708,6 @@ describe('ChartOptions', () => {
   },
   {
     "interpolation": {
-      "position": "end",
-      "tension": 1,
       "type": "linear",
     },
     "label": {
@@ -636,12 +722,34 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "defaultColorRange": [
-        "#b19c00",
-        "#e1cc00",
-        "#fffe5d",
-      ],
       "fill": "#e1cc00",
+      "fillGradientDefaults": {
+        "bounds": "item",
+        "colorStops": [
+          "#b19c00",
+          "#e1cc00",
+          "#fffe5d",
+        ],
+        "gradient": "radial",
+        "reverse": true,
+        "rotation": 0,
+        "type": "gradient",
+      },
+      "fillPatternDefaults": {
+        "backgroundFill": "transparent",
+        "backgroundFillOpacity": 1,
+        "fill": "#e1cc00",
+        "fillOpacity": 1,
+        "height": 10,
+        "padding": 2,
+        "pattern": "forward-slanted-lines",
+        "rotation": 0,
+        "stroke": "#e1cc00",
+        "strokeOpacity": 1,
+        "strokeWidth": 4,
+        "type": "pattern",
+        "width": 10,
+      },
       "shape": "circle",
       "size": 7,
       "stroke": "#a69400",
@@ -664,8 +772,6 @@ describe('ChartOptions', () => {
   },
   {
     "interpolation": {
-      "position": "end",
-      "tension": 1,
       "type": "linear",
     },
     "label": {
@@ -680,12 +786,34 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "defaultColorRange": [
-        "#6a3c9a",
-        "#9669cb",
-        "#c597fe",
-      ],
       "fill": "#9669cb",
+      "fillGradientDefaults": {
+        "bounds": "item",
+        "colorStops": [
+          "#6a3c9a",
+          "#9669cb",
+          "#c597fe",
+        ],
+        "gradient": "radial",
+        "reverse": true,
+        "rotation": 0,
+        "type": "gradient",
+      },
+      "fillPatternDefaults": {
+        "backgroundFill": "transparent",
+        "backgroundFillOpacity": 1,
+        "fill": "#9669cb",
+        "fillOpacity": 1,
+        "height": 10,
+        "padding": 2,
+        "pattern": "forward-slanted-lines",
+        "rotation": 0,
+        "stroke": "#9669cb",
+        "strokeOpacity": 1,
+        "strokeWidth": 4,
+        "type": "pattern",
+        "width": 10,
+      },
       "shape": "circle",
       "size": 7,
       "stroke": "#603c88",
@@ -718,14 +846,36 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
 [
   {
-    "defaultColorRange": [
-      "#2162aa",
-      "#5090dc",
-      "#7ec0ff",
-    ],
     "direction": "vertical",
     "fill": "pink",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#2162aa",
+        "#5090dc",
+        "#7ec0ff",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
+    "fillPatternDefaults": {
+      "backgroundFill": "transparent",
+      "backgroundFillOpacity": 1,
+      "fill": "#5090dc",
+      "fillOpacity": 1,
+      "height": 10,
+      "padding": 2,
+      "pattern": "forward-slanted-lines",
+      "rotation": 0,
+      "stroke": "#5090dc",
+      "strokeOpacity": 1,
+      "strokeWidth": 4,
+      "type": "pattern",
+      "width": 10,
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -765,14 +915,36 @@ describe('ChartOptions', () => {
     "yName": "IPhone",
   },
   {
-    "defaultColorRange": [
-      "#cc7100",
-      "#ffa03a",
-      "#ffd171",
-    ],
     "direction": "vertical",
     "fill": "red",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
+    "fillPatternDefaults": {
+      "backgroundFill": "transparent",
+      "backgroundFillOpacity": 1,
+      "fill": "#ffa03a",
+      "fillOpacity": 1,
+      "height": 10,
+      "padding": 2,
+      "pattern": "forward-slanted-lines",
+      "rotation": 0,
+      "stroke": "#ffa03a",
+      "strokeOpacity": 1,
+      "strokeWidth": 4,
+      "type": "pattern",
+      "width": 10,
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -812,14 +984,36 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
-    "defaultColorRange": [
-      "#076f29",
-      "#459d55",
-      "#75cd82",
-    ],
     "direction": "vertical",
     "fill": "#459d55",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#076f29",
+        "#459d55",
+        "#75cd82",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
+    "fillPatternDefaults": {
+      "backgroundFill": "transparent",
+      "backgroundFillOpacity": 1,
+      "fill": "#459d55",
+      "fillOpacity": 1,
+      "height": 10,
+      "padding": 2,
+      "pattern": "forward-slanted-lines",
+      "rotation": 0,
+      "stroke": "#459d55",
+      "strokeOpacity": 1,
+      "strokeWidth": 4,
+      "type": "pattern",
+      "width": 10,
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -859,14 +1053,36 @@ describe('ChartOptions', () => {
     "yName": "Wearables",
   },
   {
-    "defaultColorRange": [
-      "#008fb0",
-      "#34bfe1",
-      "#70f1ff",
-    ],
     "direction": "vertical",
     "fill": "#34bfe1",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
+    "fillPatternDefaults": {
+      "backgroundFill": "transparent",
+      "backgroundFillOpacity": 1,
+      "fill": "#34bfe1",
+      "fillOpacity": 1,
+      "height": 10,
+      "padding": 2,
+      "pattern": "forward-slanted-lines",
+      "rotation": 0,
+      "stroke": "#34bfe1",
+      "strokeOpacity": 1,
+      "strokeWidth": 4,
+      "type": "pattern",
+      "width": 10,
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -907,8 +1123,6 @@ describe('ChartOptions', () => {
   },
   {
     "interpolation": {
-      "position": "end",
-      "tension": 1,
       "type": "linear",
     },
     "label": {
@@ -923,12 +1137,34 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "defaultColorRange": [
-        "#b19c00",
-        "#e1cc00",
-        "#fffe5d",
-      ],
       "fill": "#e1cc00",
+      "fillGradientDefaults": {
+        "bounds": "item",
+        "colorStops": [
+          "#b19c00",
+          "#e1cc00",
+          "#fffe5d",
+        ],
+        "gradient": "radial",
+        "reverse": true,
+        "rotation": 0,
+        "type": "gradient",
+      },
+      "fillPatternDefaults": {
+        "backgroundFill": "transparent",
+        "backgroundFillOpacity": 1,
+        "fill": "#e1cc00",
+        "fillOpacity": 1,
+        "height": 10,
+        "padding": 2,
+        "pattern": "forward-slanted-lines",
+        "rotation": 0,
+        "stroke": "#e1cc00",
+        "strokeOpacity": 1,
+        "strokeWidth": 4,
+        "type": "pattern",
+        "width": 10,
+      },
       "shape": "circle",
       "size": 7,
       "stroke": "#a69400",
@@ -951,8 +1187,6 @@ describe('ChartOptions', () => {
   },
   {
     "interpolation": {
-      "position": "end",
-      "tension": 1,
       "type": "linear",
     },
     "label": {
@@ -967,12 +1201,34 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "defaultColorRange": [
-        "#6a3c9a",
-        "#9669cb",
-        "#c597fe",
-      ],
       "fill": "#9669cb",
+      "fillGradientDefaults": {
+        "bounds": "item",
+        "colorStops": [
+          "#6a3c9a",
+          "#9669cb",
+          "#c597fe",
+        ],
+        "gradient": "radial",
+        "reverse": true,
+        "rotation": 0,
+        "type": "gradient",
+      },
+      "fillPatternDefaults": {
+        "backgroundFill": "transparent",
+        "backgroundFillOpacity": 1,
+        "fill": "#9669cb",
+        "fillOpacity": 1,
+        "height": 10,
+        "padding": 2,
+        "pattern": "forward-slanted-lines",
+        "rotation": 0,
+        "stroke": "#9669cb",
+        "strokeOpacity": 1,
+        "strokeWidth": 4,
+        "type": "pattern",
+        "width": 10,
+      },
       "shape": "circle",
       "size": 7,
       "stroke": "#603c88",
@@ -1005,14 +1261,36 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
 [
   {
-    "defaultColorRange": [
-      "#2162aa",
-      "#5090dc",
-      "#7ec0ff",
-    ],
     "direction": "vertical",
     "fill": "pink",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#2162aa",
+        "#5090dc",
+        "#7ec0ff",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
+    "fillPatternDefaults": {
+      "backgroundFill": "transparent",
+      "backgroundFillOpacity": 1,
+      "fill": "#5090dc",
+      "fillOpacity": 1,
+      "height": 10,
+      "padding": 2,
+      "pattern": "forward-slanted-lines",
+      "rotation": 0,
+      "stroke": "#5090dc",
+      "strokeOpacity": 1,
+      "strokeWidth": 4,
+      "type": "pattern",
+      "width": 10,
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1052,14 +1330,36 @@ describe('ChartOptions', () => {
     "yName": "IPhone",
   },
   {
-    "defaultColorRange": [
-      "#cc7100",
-      "#ffa03a",
-      "#ffd171",
-    ],
     "direction": "vertical",
     "fill": "red",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#cc7100",
+        "#ffa03a",
+        "#ffd171",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
+    "fillPatternDefaults": {
+      "backgroundFill": "transparent",
+      "backgroundFillOpacity": 1,
+      "fill": "#ffa03a",
+      "fillOpacity": 1,
+      "height": 10,
+      "padding": 2,
+      "pattern": "forward-slanted-lines",
+      "rotation": 0,
+      "stroke": "#ffa03a",
+      "strokeOpacity": 1,
+      "strokeWidth": 4,
+      "type": "pattern",
+      "width": 10,
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1099,14 +1399,36 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
-    "defaultColorRange": [
-      "#076f29",
-      "#459d55",
-      "#75cd82",
-    ],
     "direction": "vertical",
     "fill": "#459d55",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#076f29",
+        "#459d55",
+        "#75cd82",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
+    "fillPatternDefaults": {
+      "backgroundFill": "transparent",
+      "backgroundFillOpacity": 1,
+      "fill": "#459d55",
+      "fillOpacity": 1,
+      "height": 10,
+      "padding": 2,
+      "pattern": "forward-slanted-lines",
+      "rotation": 0,
+      "stroke": "#459d55",
+      "strokeOpacity": 1,
+      "strokeWidth": 4,
+      "type": "pattern",
+      "width": 10,
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1146,14 +1468,36 @@ describe('ChartOptions', () => {
     "yName": "Wearables",
   },
   {
-    "defaultColorRange": [
-      "#008fb0",
-      "#34bfe1",
-      "#70f1ff",
-    ],
     "direction": "vertical",
     "fill": "#34bfe1",
+    "fillGradientDefaults": {
+      "bounds": "item",
+      "colorStops": [
+        "#008fb0",
+        "#34bfe1",
+        "#70f1ff",
+      ],
+      "gradient": "linear",
+      "reverse": false,
+      "rotation": 0,
+      "type": "gradient",
+    },
     "fillOpacity": 1,
+    "fillPatternDefaults": {
+      "backgroundFill": "transparent",
+      "backgroundFillOpacity": 1,
+      "fill": "#34bfe1",
+      "fillOpacity": 1,
+      "height": 10,
+      "padding": 2,
+      "pattern": "forward-slanted-lines",
+      "rotation": 0,
+      "stroke": "#34bfe1",
+      "strokeOpacity": 1,
+      "strokeWidth": 4,
+      "type": "pattern",
+      "width": 10,
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1194,8 +1538,6 @@ describe('ChartOptions', () => {
   },
   {
     "interpolation": {
-      "position": "end",
-      "tension": 1,
       "type": "linear",
     },
     "label": {
@@ -1210,12 +1552,34 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "defaultColorRange": [
-        "#b19c00",
-        "#e1cc00",
-        "#fffe5d",
-      ],
       "fill": "#e1cc00",
+      "fillGradientDefaults": {
+        "bounds": "item",
+        "colorStops": [
+          "#b19c00",
+          "#e1cc00",
+          "#fffe5d",
+        ],
+        "gradient": "radial",
+        "reverse": true,
+        "rotation": 0,
+        "type": "gradient",
+      },
+      "fillPatternDefaults": {
+        "backgroundFill": "transparent",
+        "backgroundFillOpacity": 1,
+        "fill": "#e1cc00",
+        "fillOpacity": 1,
+        "height": 10,
+        "padding": 2,
+        "pattern": "forward-slanted-lines",
+        "rotation": 0,
+        "stroke": "#e1cc00",
+        "strokeOpacity": 1,
+        "strokeWidth": 4,
+        "type": "pattern",
+        "width": 10,
+      },
       "shape": "circle",
       "size": 7,
       "stroke": "#a69400",
@@ -1238,8 +1602,6 @@ describe('ChartOptions', () => {
   },
   {
     "interpolation": {
-      "position": "end",
-      "tension": 1,
       "type": "linear",
     },
     "label": {
@@ -1254,12 +1616,34 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "defaultColorRange": [
-        "#6a3c9a",
-        "#9669cb",
-        "#c597fe",
-      ],
       "fill": "#9669cb",
+      "fillGradientDefaults": {
+        "bounds": "item",
+        "colorStops": [
+          "#6a3c9a",
+          "#9669cb",
+          "#c597fe",
+        ],
+        "gradient": "radial",
+        "reverse": true,
+        "rotation": 0,
+        "type": "gradient",
+      },
+      "fillPatternDefaults": {
+        "backgroundFill": "transparent",
+        "backgroundFillOpacity": 1,
+        "fill": "#9669cb",
+        "fillOpacity": 1,
+        "height": 10,
+        "padding": 2,
+        "pattern": "forward-slanted-lines",
+        "rotation": 0,
+        "stroke": "#9669cb",
+        "strokeOpacity": 1,
+        "strokeWidth": 4,
+        "type": "pattern",
+        "width": 10,
+      },
       "shape": "circle",
       "size": 7,
       "stroke": "#603c88",
@@ -1765,11 +2149,6 @@ describe('ChartOptions', () => {
             expect(numberAxis?.label?.avoidCollisions).toBe(theme.config.line.axes.time.label.avoidCollisions);
             expect(numberAxis?.label?.autoRotate).toBe(theme.config.line.axes.time.label.autoRotate);
             expect(numberAxis?.label?.minSpacing).toBe(theme.config.line.axes.time.label.minSpacing);
-
-            expect(numberAxis?.crossLines?.[0]?.enabled).toBe(false);
-            expect(numberAxis?.crossLines?.[0]?.type).toBe(theme.config.line.axes.time.crossLines.type);
-            expect(numberAxis?.crossLines?.[0]?.label?.enabled).toBe(undefined);
-            expect(numberAxis?.crossLines?.[0]?.label?.text).toBe(theme.config.line.axes.time.crossLines.label.text);
 
             expect(preparedOptions.axes![1]?.title?.enabled).toBe(true);
             expect(preparedOptions.axes![1]?.title?.text).toBe('Custom Left Axis Title');

@@ -12,7 +12,7 @@ interface CanvasOptions {
 }
 
 function canvasDimensions(width: number, height: number, pixelRatio: number) {
-    return [Math.round(width * pixelRatio), Math.round(height * pixelRatio)] as const;
+    return [Math.floor(width * pixelRatio), Math.floor(height * pixelRatio)] as const;
 }
 
 /**

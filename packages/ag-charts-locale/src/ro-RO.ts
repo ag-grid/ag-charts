@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaLabelRangesToolbar: 'Intervale',
     ariaLabelSettingsTabBar: 'Setări',
     ariaLabelZoomToolbar: 'Zoomare',
-    ariaValuePanRange: '${min}[percent] la ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] la ${max}[percent0to2dp]',
     contextMenuDownload: 'Descărcare',
     contextMenuPanToCursor: 'Mută vizualizarea aici',
     contextMenuToggleOtherSeries: 'Comută alte serii',
@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Trageți bara de instrumente',
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Retragere Fibonacci',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Fib Bazat pe Trend',
     toolbarAnnotationsFillColor: 'Culoare de umplere',
     toolbarAnnotationsHorizontalLine: 'Linie orizontală',
     toolbarAnnotationsLineAnnotations: 'Linii de tendință',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     toolbarZoomReset: 'Resetează zoom-ul',
     toolbarZoomZoomIn: 'Mărire',
     toolbarZoomZoomOut: 'Micșorează',
+    tooltipPaginationStatus: '${index}[number] din ${count}[number]',
 };

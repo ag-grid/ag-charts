@@ -1,4 +1,4 @@
-import type { AgColorType, AgRadialSeriesStyle } from 'ag-charts-community';
+import type { AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { isDefined } from 'ag-charts-core';
 
@@ -25,6 +25,7 @@ const {
     motion,
     applyShapeStyle,
     isGradientFill,
+    getShapeStyle,
 } = _ModuleSupport;
 
 class RadialColumnSeriesNodeEvent<
@@ -118,12 +119,8 @@ export abstract class RadialColumnSeriesBase<
     protected abstract getStackId(): string;
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { visible } = this;
         const { angleKey, radiusKey, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-        if (!this.properties.isValid()) return;
-
         const stackGroupId = this.getStackId();
         const stackGroupTrailingId = `${stackGroupId}-trailing`;
         const extraProps = [];
@@ -139,7 +136,7 @@ export abstract class RadialColumnSeriesBase<
             extraProps.push(animationValidation());
         }
 
-        const visibleProps = visible || !animationEnabled ? {} : { forceValue: 0 };
+        const visibleProps = this.visible ? {} : { forceValue: 0 };
 
         const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
@@ -222,9 +219,7 @@ export abstract class RadialColumnSeriesBase<
     override createNodeData() {
         const { processedData, dataModel, groupScale } = this;
 
-        if (!dataModel || !processedData || processedData.type !== 'grouped' || !this.properties.isValid()) {
-            return;
-        }
+        if (!dataModel || !processedData || processedData.type !== 'grouped') return;
 
         const angleAxis = this.axes[ChartAxisDirection.X];
         const radiusAxis = this.axes[ChartAxisDirection.Y];
@@ -362,18 +357,6 @@ export abstract class RadialColumnSeriesBase<
         return NaN;
     }
 
-    protected abstract getNodeFill(fill: AgColorType, angle: number): Required<AgColorType>;
-
-    private getShapeStyle<T extends { fill?: AgColorType }>(style: T, angle: number): T;
-    private getShapeStyle<T extends { fill?: AgColorType }>(style: T | undefined, angle: number): T | undefined;
-    private getShapeStyle<T extends { fill?: AgColorType }>(style: T | undefined, angle: number): T | undefined {
-        if (!isGradientFill(style?.fill)) return style;
-        return {
-            ...style,
-            fill: this.getNodeFill(style.fill, angle),
-        };
-    }
-
     update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         const resize = this.checkResize(seriesRect);
         this.maybeRefreshNodeData();
@@ -399,11 +382,11 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
 
-    private getItemBaseStyle(angle: number, highlighted: boolean): ItemStyle {
+    private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return this.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -414,19 +397,14 @@ export abstract class RadialColumnSeriesBase<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius: properties.cornerRadius,
             },
-            angle
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
-    protected getItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        format: ItemStyle,
-        angle: number,
-        highlighted: boolean
-    ) {
+    protected getItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
         const { id: seriesId, properties } = this;
-        const { angleKey, radiusKey, itemStyler } = properties;
+        const { angleKey, radiusKey, itemStyler, fillGradientDefaults, fillPatternDefaults } = properties;
 
         if (itemStyler == null) return;
 
@@ -441,7 +419,7 @@ export abstract class RadialColumnSeriesBase<
             });
         });
 
-        return this.getShapeStyle(overrides, angle);
+        return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults);
     }
 
     protected updateSectorSelection(
@@ -463,15 +441,14 @@ export abstract class RadialColumnSeriesBase<
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
 
         const fillBBox = this.getShapeFillBBox();
+        const style = this.getItemBaseStyle(highlighted);
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const { datum, datumIndex, midPoint } = nodeDatum;
-                const angle = nodeDatum.midAngle;
 
-                const style = this.getItemBaseStyle(angle, highlighted);
-                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, angle, highlighted);
+                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, highlighted);
 
                 const fill = overrides?.fill ?? style.fill;
                 const itemBounds = isGradientFill(fill) && fill.bounds === 'item';
@@ -549,8 +526,8 @@ export abstract class RadialColumnSeriesBase<
 
         if (angleValue == null) return;
 
-        const format = this.getItemBaseStyle(-Math.PI / 2, false);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, -Math.PI / 2, false));
+        const format = this.getItemBaseStyle(false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
         return tooltip.formatTooltip(
             this.properties,
@@ -579,28 +556,43 @@ export abstract class RadialColumnSeriesBase<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
-            this.properties;
+        const {
+            fill,
+            stroke,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            fillGradientDefaults,
+            fillPatternDefaults,
+        } = this.properties;
+
+        const markerStyle = getShapeStyle(
+            {
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            },
+            fillGradientDefaults,
+            fillPatternDefaults
+        );
+
+        if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
+            markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };
+        }
 
         return {
-            marker: this.getShapeStyle(
-                {
-                    fill: fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity,
-                    strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                    defaultColorRange,
-                },
-                -Math.PI / 2
-            ),
+            marker: markerStyle,
         };
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        if (!this.properties.isValid() || legendType !== 'category') {
+        if (legendType !== 'category') {
             return [];
         }
 

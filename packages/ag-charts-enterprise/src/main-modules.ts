@@ -13,6 +13,7 @@ import { GaugeChartModule } from './charts/gaugeChartModule';
 import { HierarchyChartModule } from './charts/hierarchyChartModule';
 import { StandaloneChartModule } from './charts/standaloneChartModule';
 import { TopologyChartModule } from './charts/topologyChartModule';
+import { AnnotationsModule, InitialStateModule, NavigatorModule } from './features/sync/pluginModules';
 import { BoxPlotSeriesModule } from './series/box-plot';
 import { CandlestickSeriesModule } from './series/candlestick';
 import { ChordSeriesModule } from './series/chord';
@@ -131,4 +132,9 @@ export const AllEnterpriseModules = [
     ...AllHierarchyEnterpriseModules,
     ...AllStandaloneEnterpriseModules,
     ...AllTopologyEnterpriseModules,
+
+    // Plugins, WIP
+    AnnotationsModule,
+    NavigatorModule,
+    InitialStateModule,
 ];

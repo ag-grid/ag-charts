@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaLabelRangesToolbar: 'Діапазони',
     ariaLabelSettingsTabBar: 'Налаштування',
     ariaLabelZoomToolbar: 'Масштаб',
-    ariaValuePanRange: '${min}[percent] до ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] до ${max}[percent0to2dp]',
     contextMenuDownload: 'Завантажити',
     contextMenuPanToCursor: 'Прокрутити сюди',
     contextMenuToggleOtherSeries: 'Переключити інші серії',
@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Перетягнути панель інструментів',
     toolbarAnnotationsFibonacciAnnotations: 'Фібоначчі',
     toolbarAnnotationsFibonacciRetracement: 'Фібоначчі Корекція',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Фіб Тренд Базований',
     toolbarAnnotationsFillColor: 'Колір заповнення',
     toolbarAnnotationsHorizontalLine: 'Горизонтальна лінія',
     toolbarAnnotationsLineAnnotations: 'Трендові лінії',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     toolbarZoomReset: 'Скинути масштабування',
     toolbarZoomZoomIn: 'Збільшити',
     toolbarZoomZoomOut: 'Зменшити масштаб',
+    tooltipPaginationStatus: '${index}[number] з ${count}[number]',
 };

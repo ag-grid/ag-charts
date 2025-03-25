@@ -45,10 +45,27 @@ const options: AgChartOptions = {
             type: 'bubble',
             yKey: 'smartphone',
             xKey: 'profitMargin',
-            xName: 'Profil Margin',
+            xName: 'Profit Margin',
             yName: 'Profit Margin %',
             sizeKey: 'profitMargin',
             labelKey: 'profitMargin',
+            tooltip: {
+                renderer({ datum, xKey, xName, yKey }) {
+                    const numberFormatter = new Intl.NumberFormat('en-US', {
+                        style: 'percent',
+                        maximumFractionDigits: 0,
+                    });
+                    return {
+                        title: datum[yKey],
+                        data: [
+                            {
+                                label: xName!,
+                                value: numberFormatter.format(datum[xKey] / 100),
+                            },
+                        ],
+                    };
+                },
+            },
             label: {
                 formatter: ({ value }) => `${Number(value).toFixed(0)}%`,
             },

@@ -32,7 +32,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
-import { applyShapeStyle } from '../shapeUtil';
+import { applyShapeStyle, getShapeStyle } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
@@ -154,9 +154,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override async processData(dataController: DataController) {
-        if (!this.properties.isValid() || !this.data) {
-            return;
-        }
+        if (!this.data) return;
 
         const { xKey, yKey, yFilterKey, normalizedTo, fastDataProcessing } = this.properties;
         const { seriesGrouping: { groupIndex = this.id } = {}, data } = this;
@@ -313,9 +311,7 @@ export class BarSeries extends AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!dataModel || !processedData || !xAxis || !yAxis || !this.properties.isValid()) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const rawData = processedData.dataSources?.get(this.id);
         if (rawData == null) return;
@@ -643,10 +639,10 @@ export class BarSeries extends AbstractBarSeries<
 
     private getItemBaseStyle(highlighted: boolean): Required<AgBarSeriesStyle> {
         const { properties } = this;
-        const { cornerRadius, defaultColorRange } = properties;
+        const { cornerRadius, fillGradientDefaults, fillPatternDefaults } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return this.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -657,7 +653,8 @@ export class BarSeries extends AbstractBarSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius,
             },
-            defaultColorRange
+            fillGradientDefaults,
+            fillPatternDefaults
         );
     }
 
@@ -671,7 +668,7 @@ export class BarSeries extends AbstractBarSeries<
     ) {
         const { id: seriesId, properties } = this;
 
-        const { xKey, yKey, itemStyler, defaultColorRange } = properties;
+        const { xKey, yKey, itemStyler, fillGradientDefaults, fillPatternDefaults } = properties;
 
         if (itemStyler == null) return;
 
@@ -691,20 +688,13 @@ export class BarSeries extends AbstractBarSeries<
             });
         });
 
-        return this.getShapeStyle(overrides, defaultColorRange);
+        return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults);
     }
 
     protected override updateDatumNodes(opts: { datumSelection: Selection<Rect, BarNodeDatum>; isHighlight: boolean }) {
-        if (!this.properties.isValid()) {
-            return;
-        }
-
         const { shadow } = this.properties;
-
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
-
         const style = this.getItemBaseStyle(opts.isHighlight);
-
         const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
@@ -795,11 +785,20 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
-            this.properties;
+        const {
+            fill,
+            stroke,
+            strokeWidth,
+            fillOpacity,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            fillGradientDefaults,
+            fillPatternDefaults,
+        } = this.properties;
 
         return {
-            marker: this.getShapeStyle(
+            marker: getShapeStyle(
                 {
                     fill: fill ?? 'rgba(0, 0, 0, 0)',
                     stroke: stroke ?? 'rgba(0, 0, 0, 0)',
@@ -809,7 +808,8 @@ export class BarSeries extends AbstractBarSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                defaultColorRange
+                fillGradientDefaults,
+                fillPatternDefaults
             ),
         };
     }
@@ -817,7 +817,7 @@ export class BarSeries extends AbstractBarSeries<
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         const { showInLegend } = this.properties;
 
-        if (legendType !== 'category' || !this.properties.isValid()) {
+        if (legendType !== 'category') {
             return [];
         }
 

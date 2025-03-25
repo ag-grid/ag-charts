@@ -31,6 +31,7 @@ const {
     motion,
     applyShapeStyle,
     findMinMax,
+    getShapeStyle,
 } = _ModuleSupport;
 
 type Bounds = {
@@ -131,10 +132,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) {
-            return;
-        }
-
         const { xKey, yLowKey, yHighKey, fastDataProcessing } = this.properties;
         const grouped = !fastDataProcessing;
 
@@ -485,10 +482,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     private getItemBaseStyle(highlighted: boolean): Required<AgRangeBarSeriesStyle> {
         const { properties } = this;
-        const { cornerRadius, defaultColorRange } = properties;
+        const { cornerRadius, fillGradientDefaults, fillPatternDefaults } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        return this.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -499,7 +496,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius,
             },
-            defaultColorRange
+            fillGradientDefaults,
+            fillPatternDefaults
         );
     }
 
@@ -511,7 +509,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     ) {
         const { id: seriesId, properties } = this;
 
-        const { xKey, yHighKey, yLowKey, itemStyler, defaultColorRange } = properties;
+        const { xKey, yHighKey, yLowKey, itemStyler, fillGradientDefaults, fillPatternDefaults } = properties;
 
         if (itemStyler == null) return;
 
@@ -527,7 +525,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             });
         });
 
-        return this.getShapeStyle(overrides, defaultColorRange);
+        return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults);
     }
 
     protected override updateDatumNodes(opts: {
@@ -623,10 +621,19 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
-            this.properties;
+        const {
+            fill,
+            stroke,
+            strokeWidth,
+            fillOpacity,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            fillGradientDefaults,
+            fillPatternDefaults,
+        } = this.properties;
         return {
-            marker: this.getShapeStyle(
+            marker: getShapeStyle(
                 {
                     fill,
                     stroke,
@@ -636,7 +643,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                defaultColorRange
+                fillGradientDefaults,
+                fillPatternDefaults
             ),
         };
     }

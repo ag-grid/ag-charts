@@ -3,25 +3,43 @@ title: 'Key Features'
 description: 'Overview of popular AG Charts features with code snippets. Learn how to use key Community features, customise themes and explore advanced Enterprise features.'
 ---
 
-The page provides an overview of and introduction to popular features available in AG Charts. Learn how to use Community features, configure and customise themes, and get started with Enterprise features.
+This page provides an overview of and introduction to popular features available in AG Charts. Learn how to use Community features, configure and customise themes, and get started with Enterprise features.
 
 {% note %}
 The following sections assume a level of familiarity with common Charts concepts. If you're new to Charts in general, we recommend starting with our [Introductory Tutorial](./create-a-basic-chart/) instead.
 {% /note %}
 
-## Configuring Axes
-
-The horizontal (X) and vertical (Y) lines in cartesian charts are referred to as chart axes, and they serve to illustrate the relationships between data points on the graph.
-
-Polar charts such as the [Radar Line Series](./radar-line-series), use angle and radial axes which have similar options.
+## Displaying Data
 
 {% chartExampleRunner title="Configuring Axes Example" name="configuring-axes-example" type="generated" /%}
 
-### Axis Types
+### Series and Data
 
-Every cartesian chart has four axis positions `top`, `bottom`, `left`, `right`, which can display either [Categorical](./axes-types/#category), [Numerical](./axes-types/#number), [Time](./axes-types/#time), or [Logarithmic](./axes-types/#log) data.
+A chart can contain multiple series, which are provided in the `series` array.
 
-Use `axes.position` to control the position of the axis, and `axes.type` to define the type:
+Every series has its own [series options](/options/#reference-AgChartOptions-series), but they all share a common set of configurations.
+These include a `type` as well as `_Key` properties to connect to the visualisation to the data, such as `xKey` and `yKey` for cartesian charts.
+
+```js
+data: [
+    {year: '2001', women: 25},
+    {country: '2003', value: 26},
+],
+series: [
+    {
+        type: 'bar',
+        xKey: 'year',
+        yKey: 'women',
+    }
+]
+```
+
+### Axes
+
+Cartesian charts can use [Categorical](./axes-types/#category), [Numerical](./axes-types/#number), [Time](./axes-types/#time), or [Logarithmic](./axes-types/#log) axes.
+These do not need to be configured unless customisation is required.
+
+Use `axes.position` to control the position of the axis, and `axes.type` to define the type.
 
 ```js
 axes: [
@@ -29,16 +47,22 @@ axes: [
         type: 'category', // category | grouped-category | number | log | time | ordinal-time
         position: 'bottom', // top | right | bottom | left
     },
+    {
+        type: 'number', // category | grouped-category | number | log | time | ordinal-time
+        position: 'left', // top | right | bottom | left
+    },
 ],
 ```
+
+Polar charts such as the [Radar Line Series](./radar-line-series), use [Polar Axes](./radar-line-series/#customisation) which have similar options.
 
 _Note: All of the axes must be specified in order for these changes to take effect._
 
 ### Secondary Axes
 
-Charts can have more than one axes, allowing for series with different domains to be displayed on the same chart.
+Charts can have more than one axis in each direction, allowing for series with different domains to be displayed on the same chart.
 
-Use the `keys` property to link the series to the axis:
+Use the axes `keys` property to link the series `_Key` property to the axis.
 
 ```js
 axes: [
@@ -51,22 +75,23 @@ axes: [
     {
         type: 'number',
         position: 'left',
-        keys: ['male', 'female'],
+        keys: ['women', 'men'],
     },
     // secondary y-axis
     {
         type: 'number',
         position: 'right',
-        keys: ['exportedTonnes'],
+        keys: ['portions'],
     },
 ],
 ```
 
 ### Axis Intervals
 
-The [Axis Interval](./axes-intervals/) determines which axis labels, grid lines and ticks are shown along the axis. Intervals can be defined in steps, absolute values, or dynamically with min/max spacing.
+The [Axis Interval](./axes-intervals/) determines which axis labels, grid lines and ticks are shown along the axis.
+Intervals can be defined in [steps](./axes-intervals/#step), [absolute values](./axes-intervals/#values) or dynamically with [min/max spacing](./axes-intervals/#min--max-spacing).
 
-Use `axes.interval` to control the interval of the axis:
+Use `axes.interval` to control the interval of the axis.
 
 ```js
 axes: [
@@ -80,9 +105,9 @@ axes: [
 
 ### Axis Labels
 
-[Axis labels](./axes-labels/) can be formatted, rotated and configured to automatically avoid collisions.
+[Axis labels](./axes-labels/) can be styled, rotated and configured to automatically avoid collisions.
 
-Use `axes.label` to control the appearance of the axis labels:
+Use `axes.label` to control the appearance of the axis labels.
 
 ```js
 axes: [
@@ -93,17 +118,24 @@ axes: [
             minSpacing: 20,
             avoidCollisions: false, // enabled by default
             autoRotate: false, // enabled by default
-            formatter: function (params) {
-                return params.value * 100 + '%';
-            },
         },
     },
 ];
 ```
 
-## Enhancing Data
+### Value Formatting
 
-Charts can be enhanced with data elements, such as [Legends](./legend/), [Cross Lines](./axes-cross-lines/), and conditional [Stylers](./stylers/) to provide additional information to users.
+Data values are displayed in many places, such as series and axes labels. Use the `formatter` callbacks to set the format of these.
+
+The `params` contain contextual information necessary to identify the item, and the callback should return a `String` object.
+
+```js
+formatter: function (params) {
+    return params.value * 100 + '%';
+}
+```
+
+## Data Elements
 
 {% chartExampleRunner title="Enhancing Data Example" name="enhancing-data-example" type="generated" /%}
 
@@ -111,22 +143,21 @@ Charts can be enhanced with data elements, such as [Legends](./legend/), [Cross 
 
 [Legends](./legend/) are enabled by default on charts with more than one series.
 
-Use the `legend` property to configure the legend position and size:
+Use the `legend` options to configure the legend position and size and to disable the series toggling functionality on legend click.
 
 ```js
 legend: {
     enabled: true, // defaults to true for charts with multiple series
-    position: 'bottom', // 'top', 'right', 'left',
+    position: 'top', // 'bottom', 'right', 'left',
     maxWidth: 200,
     maxHeight: 300,
+    toggleSeries: false
 }
 ```
 
 ### Cross Lines
 
-[Cross Lines](./axes-cross-lines/) are lines or shaded areas in a chart that denote additional information or thresholds.
-
-Use the `crossLines` property in the axis options to add a Line or Range at a specific data value on an axis:
+Use the `crossLines` array in the axis options to add `line` or `range` [Cross Lines](./axes-cross-lines/) along any axis.
 
 ```js
 axes: [
@@ -145,29 +176,11 @@ axes: [
 ],
 ```
 
-### Customizing Series & Markers
-
-[Markers](./markers/) can be customised to change their [shape, size, and style](./markers/).
-
-Use the `series.marker` property to customise markers:
-
-```js
-series: [
-    // ...
-    marker: {
-        shape: 'square', // defaults to 'circle'
-        size: 20,
-        fill: 'red',
-        stroke: 'maroon',
-    },
-]
-```
-
 ### Conditional Styling
 
-[Item Stylers](./stylers/#item-stylers) allow customisation of the visual appearance of Series & Markers based on certain conditions.
+[Item Stylers](./stylers/#item-stylers) allow customisation of the visual appearance of series and markers based on certain conditions.
 
-Use the `itemStyler` callback function to customise the appearance of a specific Series or Marker:
+Use the `itemStyler` callback function to customise the appearance of a specific bar or marker:
 
 ```js
 series: [
@@ -183,34 +196,37 @@ series: [
 ];
 ```
 
-## Customizing Charts
-
-Charts can be customised with [Themes](./themes/), [Layouts](./layout/), and [Backgrounds](./background/).
+## Layout and Styling
 
 {% chartExampleRunner title="Customizing Charts Example" name="customizing-charts-example" type="generated" /%}
 
-### Layout
+### Fills and Strokes
 
-The chart will [auto-size](./layout/#chart-size) by default, taking the size of the container element and auto-sizing the chart dynamically. It will default to a minimum width and height of 300px.
+Each series type has its own [series specific styling options](/options/#reference-AgChartOptions-series) depending on the visualisation, with the most common properties being `fill` and `stroke`.
 
-Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is required:
+Fills can be a solid colour, a gradient or a pattern.
 
-```js
-{
-    width: 800,
-    height: 600,
-}
-```
+Strokes can have a `stroke` colour, as well as a `strokeWidth` and a `lineDash[]` array.
 
-### Background
+### Marker Shape
 
-Use `background.fill` to set the [Background](./background/) of the chart to any CSS Color:
+[Markers](./markers/) can be customised to change their [shape, size, and style](./markers/#marker-shape-size-and-colour).
+
+Use the `series.marker` property to customise markers.
 
 ```js
-background: {
-    fill: 'transparent', // or RGB, HEX, HSL, HWB, or named color
-},
+series: [
+    stroke: 'maroon',
+    marker: {
+        shape: 'square', // defaults to 'circle'
+        size: 20,
+        fill: 'red',
+        stroke: 'maroon',
+    },
+]
 ```
+
+<!-- {% chartExampleRunner title="Customizing Charts Example" name="customizing-charts-example" type="generated" /%} -->
 
 ### Themes
 
@@ -224,27 +240,31 @@ Use the `theme` property to set the theme:
 }
 ```
 
-Themes can also be customised with the [Theming API](/themes-api/).
+Themes can also be customised or created with the [Theming API](/themes-api/).
 
-Use `params` to set styles across the whole chart, `overrides` to merge over the defaults within the base theme, and `palette` to define the colour palette used for the datapoints:
+Use `params` to set styles across the whole chart, `palette` to define the colour palette used for the datapoints, and `overrides` to change a specific default within the base theme.
 
 ```js
 const customTheme: AgChartTheme = {
     palette: {
+        //these are used by each series in rotation
         fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
         strokes: ['#881008'],
     },
     params: {
+        // these are used by all chart elements unless explicitly overridden
         fontFamily: 'Georgia, serif',
         fontSize: 16,
     },
     overrides: {
+        //used as default for all series types
         common: {
             title: {
                 fontSize: 24,
             },
         },
         bar: {
+            //used for bar series only
             series: {
                 label: {
                     enabled: true,
@@ -256,38 +276,36 @@ const customTheme: AgChartTheme = {
 };
 ```
 
-## Interactivity
+### Chart Size
 
-Charts can be made interactive by enabling [Tooltips](./tooltips/), [Highlighting](./series-highlighting/), and responding to [Events](./events/).
+The chart will dynamically [auto-size](./layout/#chart-size) to the size of its container element, defaulting to a minimum width and height of 300px.
+
+Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is required:
+
+```js
+{
+    width: 800,
+    height: 600,
+}
+```
+
+## Interactivity
 
 {% chartExampleRunner title="User Interactions Example" name="user-interactions-example" type="generated" /%}
 
-In the above example you can hover a marker to see the highlight and tooltip customisation, and click the chart or legend to see the event handling.
+### Tooltips
 
-### Customizing Tooltips
+[Tooltips](./tooltips/) are enabled by default. Their content is based on the data values and keys of the series.
 
-Tooltips are enabled by default. Their content is based on the data values and keys of the series.
-
-Use the `tooltip.renderer` callback function to customise the content of the tooltip.
+[Tooltip modes](./tooltips/#tooltip-modes) include a shared tooltip which includes the values for all series, and a compact tooltip for smaller charts.
 
 ```js
 tooltip: {
-    renderer: function ({ datum, xKey, yKey }) {
-        return {
-            heading: 'Clothing Production',
-            title: yName.toUpperCase(),
-            data: [
-                {
-                    label: datum[xKey],
-                    value: datum[yKey].toFixed(1),
-                },
-            ],
-        };
-    },
-},
+    mode: 'shared'; // or 'single' or 'compact'
+}
 ```
 
-You can also return HTML to create a [Custom Tooltip](./tooltips/#using-custom-tooltips):
+Use the `tooltip.renderer` callback function to customise the content of the tooltip or create a [Custom Tooltip](./tooltips/#using-custom-tooltips):
 
 ```js
 {
@@ -303,32 +321,21 @@ You can also return HTML to create a [Custom Tooltip](./tooltips/#using-custom-t
 
 ### Highlighting Hovered Data
 
-Items and Series can be [highlighted](./series-highlighting/) when hovered over. Item highlighting is enabled by default.
+Items and Series are [highlighted](./series-highlighting/) when hovered.
 
 Use `highlightStyles` to [customise](./series-highlighting/#customisation) highlighted items and series:
 
 ```js
-theme: {
-    overrides: {
-        bar: {
-            series: {
-                highlightStyle: {
-                    // Attributes that apply to individual items within a single series.
-                    item: {
-                    fill: 'red',
-                    stroke: 'maroon',
-                    strokeWidth: 4,
-                    },
-                    // Attributes that apply to the entire series containing the highlighted item.
-                    series: {
-                        dimOpacity: 0.2,
-                        strokeWidth: 2
-                    }
-                }
-            },
-        },
+highlightStyle: {
+    // Attributes that apply to individual items within a single series.
+    item: {
+        strokeWidth: 5,
     },
-},
+    // Attributes that apply to the entire series containing the highlighted item.
+    series: {
+        dimOpacity: 0.2,
+    }
+}
 ```
 
 ### Handling Events
@@ -336,30 +343,21 @@ theme: {
 Callbacks are provided for [Series](./events/#series-events), [Legend](./events/#legend-events) and [Chart](./events/#chart-events) events.
 These include clicks, double-clicks and zoom events.
 
-Use `listeners` to respond to [Events](./events/) on the chart:
+Register `listeners` to respond to [Events](./events/) on the chart.
 
 ```js
 {
     // Charts Events
     listeners: {
-        click: (_event) => {
-            alert('click');
-        },
-        doubleClick: (_event) => {
-            alert('double click');
-        },
-        seriesNodeClick: ({ datum, xKey, yKey, seriesId }) => {
-            alert('node clicked')
-        },
-        seriesVisibilityChange: ({ seriesId, visible }: AgSeriesVisibilityChange) => {
-            alert('series visibility changed')
+        click: (params) => {
+            console.log('click');
         },
     },
     // Series Events
     series: [
         {
             listeners: {
-                nodeClick: (event) => {
+                nodeClick: (params) => {
                     console.log('node clicked')
                 },
             },
@@ -368,7 +366,7 @@ Use `listeners` to respond to [Events](./events/) on the chart:
     // Legend Events
     legend: {
         listeners: {
-            legendItemClick: ({ seriesId, itemId, enabled }: AgChartLegendClickEvent) => {
+            legendItemClick: (params) => {
                 console.log('item clicked')
             },
         },
@@ -378,9 +376,9 @@ Use `listeners` to respond to [Events](./events/) on the chart:
 
 ### Saving and Restoring State
 
-The dynamic [State](./api-state/) of the chart can be saved and restored.
+The dynamic [State](./api-state/) of the chart can be saved and restored. This includes the [Zoom](./zoom/), [Annotation](./annotations/) and [Series Visibility](./legend/#series-visibility-toggling).
 
-Use the `getState()` and `saveState()` APIs to retrieve and save the current state of the chart:
+Use the `getState()` and `setState()` APIs to retrieve and restore the current state of the chart.
 
 ```js
 function saveState() {
@@ -394,7 +392,7 @@ function restoreState() {
 }
 ```
 
-You can also use the `initialState` property to set the [initial state](./api-state/#initial-state) of the chart:
+You can also use the `initialState` property to set the [initial state](./api-state/#initial-state) of the chart when it loads.
 
 ```js
 initialState: {
@@ -406,7 +404,6 @@ initialState: {
             },
         },
     },
-    ...
 }
 ```
 
@@ -415,21 +412,21 @@ initialState: {
 AG Charts comes in two forms:
 
 -   **AG Charts Community**: Free for everyone, including production use - no licence required.
--   **AG Charts Enterprise**: Requires a licence to use in production. Free to test locally, or request a [trial](./community-vs-enterprise/#request-an-enterprise-bundle-trial-licence) to test in production.
+-   **AG Charts Enterprise**: Requires a licence to use in production. Free to test locally, but requires a [trial](./community-vs-enterprise/#request-an-enterprise-bundle-trial-licence) to test in production.
 
 Import the `ag-charts-enterprise` package to access Enterprise features.
 
 Learn more on the [Community vs. Enterprise](./community-vs-enterprise/) page.
 
-_All Enterprise features are marked with an {% enterpriseIcon /%} in our docs_
+_All Enterprise features are marked with an {% enterpriseIcon /%} in our docs._
 
 {% chartExampleRunner title="Enterprise Features Example" name="enterprise-features-example" type="generated" /%}
 
-In the above example you can use Zoom on the chart or Navigator, and see the animation on initial load.
+In the above example you can [Zoom](./zoom/) by scrolling over the chart, or by using the [Navigator](./navigator/) or [Context Menu](./context-menu/).
 
 ### Zoom {% enterpriseIcon /%}
 
-To Enable [Zooming](./zoom/), set the `zoom` property to `true`:
+To enable [Zooming](./zoom/), set the `zoom` property to `true`.
 
 ```js
 zoom: {
@@ -437,20 +434,12 @@ zoom: {
 }
 ```
 
-Zoom can also be further customised to enable/disable specific zoom methods and control the anchor point, scrolling step, etc:
+See the [Zoom Options](/options/#reference-AgChartOptions-zoom) for further customisation options, including enabling specific zoom methods, controlling the anchor point, scrolling step, and many more.
+
+To allow the y-axis to automatically adjust to fit the visible items, enable the `autoScaling` option.
 
 ```js
 zoom: {
-    anchorPointX: 'pointer',
-    anchorPointY: 'pointer',
-    scrollingStep: 0.4,
-    axes: 'xy',
-    panKey: 'shift',
-    enableAxisDragging: false,
-    enablePanning: false,
-    enableScrolling: false,
-    enableSelecting: true,
-    minVisibleItems: 10,
     autoScaling: {
         enabled: true,
     }
@@ -459,33 +448,37 @@ zoom: {
 
 ### Navigator {% enterpriseIcon /%}
 
-Zoom can also be controlled with a [Navigator](./navigator/). To enable the Navigator, set the `navigator` property to `true`:
+Zooming and Panning can be done with the [Navigator](./navigator/).
+
+A [Mini Chart](./navigator/#mini-chart) can also be displayed within the Navigator to give additional context.
 
 ```js
 navigator: {
     enabled: true,
-}
-```
-
-A [Mini Chart](./navigator/#mini-chart) can also be displayed within the Navigator:
-
-```js
-navigator: {
     miniChart: {
         enabled: true,
     },
 }
 ```
 
-### Animations {% enterpriseIcon /%}
+### Context Menu {% enterpriseIcon /%}
 
-Animations are enabled by default. Use the `animation` property to control the duration of animations:
+The [Context Menu](./context-menu/) provides [Zoom](./zoom/) and [Download](./api-download/) functionality, as well as allowing [custom actions](./context-menu/#custom-actions).
 
 ```js
-animation: {
-    duration: 500, // ms
+contextMenu: {
+    enabled: true,
+    extraActions: [
+        { label: 'Say hello', action: () => console.log('Hello world') },
+    ],
 }
 ```
+
+### Annotations {% enterpriseIcon /%}
+
+[Annotations](./annotations/) allow end users to add trend-lines and text annotations to aid in data analysis and markup.
+
+These are available in all Cartesian charts and can be enabled with `annotations.enabled = true`.
 
 ## Specialized Charts {% enterpriseIcon /%}
 

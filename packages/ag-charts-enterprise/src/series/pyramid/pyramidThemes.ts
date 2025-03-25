@@ -1,4 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 const {
     ThemeSymbols: { DEFAULT_SHADOW_COLOUR },
@@ -12,7 +13,15 @@ export const PYRAMID_SERIES_THEME: _ModuleSupport.SeriesModule<'pyramid'>['theme
         fills: { $palette: 'fills' },
         strokes: { $palette: 'strokes' },
         // @ts-expect-error undocumented option
-        defaultColorRange: { $palette: 'gradient' }, // TODO: fix pyramid to handle 'gradients'
+        fillGradientDefaults: {
+            type: 'gradient',
+            gradient: 'linear',
+            bounds: 'item',
+            colorStops: { $palette: 'gradient' },
+            rotation: 0,
+            reverse: false,
+        } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         label: {
             enabled: true,
             fontSize: { $ref: 'fontSize' },

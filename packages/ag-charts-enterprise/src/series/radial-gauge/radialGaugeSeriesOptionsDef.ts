@@ -6,6 +6,7 @@ import {
     arrayOfDefs,
     boolean,
     callback,
+    color,
     constant,
     fillOptionsDef,
     fontOptionsDef,
@@ -31,6 +32,26 @@ const {
     tooltipOptionsDefs,
     numberFormatValidator,
 } = _ModuleSupport;
+
+const radialGaugeTargetOptionsDef: OptionsDefs<AgRadialGaugeTarget> = {
+    value: required(number),
+    text: string,
+    shape: or(
+        union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle', 'line'),
+        callback
+    ),
+    placement: union('inside', 'outside', 'middle'),
+    spacing: positiveNumber,
+    size: positiveNumber,
+    rotation: number,
+    label: {
+        ...seriesLabelOptionsDefs,
+        spacing: positiveNumber,
+    },
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
 
 export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
     type: required(constant('radial-gauge')),
@@ -66,25 +87,7 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    targets: arrayOfDefs<AgRadialGaugeTarget>({
-        value: required(number),
-        text: string,
-        shape: or(
-            union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle', 'line'),
-            callback
-        ),
-        placement: union('inside', 'outside', 'middle'),
-        spacing: positiveNumber,
-        size: positiveNumber,
-        rotation: number,
-        label: {
-            spacing: positiveNumber,
-            ...seriesLabelOptionsDefs,
-        },
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    }),
+    targets: arrayOfDefs(radialGaugeTargetOptionsDef, 'target options array'),
     segmentation: {
         enabled: boolean,
         spacing: positiveNumber,
@@ -121,3 +124,17 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
     tooltip: tooltipOptionsDefs,
     ...commonSeriesOptionsDefs,
 };
+
+// @ts-expect-error undocumented option
+radialGaugeSeriesOptionsDef.defaultColorRange = arrayOf(color);
+// @ts-expect-error undocumented option
+radialGaugeSeriesOptionsDef.defaultTarget = {
+    ...radialGaugeTargetOptionsDef,
+    value: number,
+    label: {
+        ...seriesLabelOptionsDefs,
+        spacing: number,
+    },
+};
+// @ts-expect-error undocumented option
+radialGaugeSeriesOptionsDef.scale.defaultFill = color;

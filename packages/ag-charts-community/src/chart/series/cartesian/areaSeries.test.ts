@@ -121,7 +121,6 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         AREA__TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.AREA_TIME_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('area', 2) }),
-            skip: true, // TODO: AG-9184 data per series with varying lengths
         },
         AREA_NUMBER_X_AXIS_TIME_Y_AXIS: {
             options: examples.AREA_NUMBER_X_AXIS_TIME_Y_AXIS,
@@ -134,7 +133,6 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
                 axisTypes: ['number', 'number'],
                 seriesTypes: repeat('area', 2),
             }),
-            skip: true, // TODO: AG-9184 data per series with varying lengths
         },
         AREA_NUMBER_AXES_0_Y_DOMAIN: {
             options: examples.AREA_NUMBER_AXES_0_Y_DOMAIN,
@@ -142,7 +140,6 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
                 axisTypes: ['number', 'number'],
                 seriesTypes: repeat('area', 2),
             }),
-            skip: true, // TODO: AG-9184 data per series with varying lengths
         },
         STACKED_AREA_STROKE_MARKER_LABEL_RENDERING: {
             options: {
@@ -196,6 +193,63 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
             assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 2) }),
         },
     }),
+    AREA_SERIES_DEFAULT_PATTERN_FILL: {
+        options: examples.AREA_SERIES_DEFAULT_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_VERTICAL_LINES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_VERTICAL_LINES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_HORIZONTAL_LINES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_HORIZONTAL_LINES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_FORWARD_SLANTED_LINES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_FORWARD_SLANTED_LINES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_BACKWARD_SLANTED_LINES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_BACKWARD_SLANTED_LINES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_CIRCLES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_CIRCLES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_SQUARES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_SQUARES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_TRIANGLES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_TRIANGLES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_DIAMONDS_PATTERN_FILL: {
+        options: examples.AREA_SERIES_DIAMONDS_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_STARS_PATTERN_FILL: {
+        options: examples.AREA_SERIES_STARS_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_HEARTS_PATTERN_FILL: {
+        options: examples.AREA_SERIES_HEARTS_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    AREA_SERIES_CROSSES_PATTERN_FILL: {
+        options: examples.AREA_SERIES_CROSSES_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
+    // @todo(AG-14458) - Re-enable
+    // AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL: {
+    //     options: examples.AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL,
+    //     assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    // },
+    AREA_SERIES_CUSTOMISED_PATTERN_FILL: {
+        options: examples.AREA_SERIES_CUSTOMISED_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, TestCase> = {
@@ -597,7 +651,7 @@ describe('AreaSeries', () => {
                     await clickAction(x, y)(chart);
                 }
             });
-            xtest('touch', async () => {
+            test('touch', async () => {
                 // Faulty because of AG-14228
                 for (const { x, y } of iterAreaSectors(chart)) {
                     await waitForChartStability(chart);

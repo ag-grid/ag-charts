@@ -98,6 +98,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
     private documentRoot?: HTMLElement = undefined;
+    private initiallyConnected?: boolean = undefined;
     containerSize?: Size = undefined;
     private readonly tabGuards?: GuardedElement;
 
@@ -158,12 +159,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         // many features that rely on the complex DOM (e.g. keyboard navigation, A11y).
         const element = createElement('div');
         element.role = 'presentation';
-        element.classList.add(
-            'ag-charts-canvas-container',
-            'ag-charts-canvas',
-            'ag-charts-series-area',
-            'ag-charts-tooltip-container'
-        );
+        element.classList.add('ag-charts-canvas-container', 'ag-charts-canvas', 'ag-charts-tooltip-container');
+        const seriesArea = createElement('div');
+        element.appendChild(seriesArea);
+        seriesArea.role = 'presentation';
+        seriesArea.classList.add('ag-charts-series-area');
         return element;
     }
 
@@ -296,6 +296,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.container = pendingContainer;
         this.pendingContainer = undefined;
         this.documentRoot = this.getShadowDocumentRoot(pendingContainer);
+        this.initiallyConnected = this.mode === 'minimal' || pendingContainer.isConnected;
 
         // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
         // Or if the container is added lazily, we need to ensure styles are added before the container
@@ -529,6 +530,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (this.styleContainer) {
             // AG-13233 - User supplied root element, don't use heuristics.
             styleElement = addStyleElement(this.styleContainer);
+        } else if (this.initiallyConnected === false) {
+            // Add to our DOM tree as we don't know if this is a shadow DOM case or not, or even necessarily
+            // which Document we might be attached to.
+            styleElement = this.addChild('styles', id);
         } else if (this.documentRoot == null && !DOMManager.headStyles.has(id)) {
             // Add to document head as failsafe fallback.
             styleElement = addStyleElement(getDocument('head'));

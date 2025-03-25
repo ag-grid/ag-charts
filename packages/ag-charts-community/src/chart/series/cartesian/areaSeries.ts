@@ -14,7 +14,6 @@ import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
-import { isGradientFill } from '../../../scene/util/fill';
 import { extent } from '../../../util/extent';
 import { mergeDefaults } from '../../../util/object';
 import { isContinuous } from '../../../util/value';
@@ -39,7 +38,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
-import { applyShapeStyle } from '../shapeUtil';
+import { applyShapeStyle, getShapeFill } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
@@ -182,9 +181,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override async processData(dataController: DataController) {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
         const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
@@ -313,16 +310,7 @@ export class AreaSeries extends CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (
-            !xAxis ||
-            !yAxis ||
-            !data ||
-            !dataModel ||
-            processedData?.type !== 'grouped' ||
-            !this.properties.isValid()
-        ) {
-            return;
-        }
+        if (!xAxis || !yAxis || !data || !dataModel || processedData?.type !== 'grouped') return;
 
         const {
             yKey,
@@ -596,7 +584,11 @@ export class AreaSeries extends CartesianSeries<
             visible: visible || animationEnabled,
         });
 
-        const seriesFill = this.getNodeFill(this.properties.fill, this.properties.defaultColorRange);
+        const seriesFill = getShapeFill(
+            this.properties.fill,
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
+        );
 
         applyShapeStyle(
             fill,
@@ -801,17 +793,22 @@ export class AreaSeries extends CartesianSeries<
     }
 
     legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker, defaultColorRange } =
-            this.properties;
+        const {
+            fill,
+            stroke,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            marker,
+            fillGradientDefaults,
+            fillPatternDefaults,
+        } = this.properties;
         const useAreaFill = !marker.enabled || marker.fill === undefined;
 
-        let legendMarkerFill = useAreaFill ? this.getNodeFill(fill, defaultColorRange) : marker.fill;
-        if (isGradientFill(marker.fill) && isGradientFill(fill)) {
-            legendMarkerFill = {
-                ...fill,
-                ...marker.fill,
-            };
-        }
+        const legendMarkerFill = useAreaFill
+            ? getShapeFill(fill, fillGradientDefaults, fillPatternDefaults)
+            : getShapeFill(marker.fill, marker.fillGradientDefaults, marker.fillPatternDefaults);
 
         const markerStyle = this.getMarkerStyle(marker, undefined, undefined, false, undefined, {
             fill: legendMarkerFill,
@@ -833,7 +830,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        if (!this.properties.isValid() || legendType !== 'category') {
+        if (legendType !== 'category') {
             return [];
         }
 

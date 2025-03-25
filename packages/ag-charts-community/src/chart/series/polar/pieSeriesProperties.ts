@@ -1,5 +1,5 @@
+import type { InternalAgColorType } from 'ag-charts-core';
 import type {
-    AgColorType,
     AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesOptions,
@@ -10,22 +10,7 @@ import type {
 
 import { DropShadow } from '../../../scene/dropShadow';
 import { BaseProperties } from '../../../util/properties';
-import {
-    ARRAY_OF,
-    BOOLEAN,
-    COLOR_GRADIENT,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    FUNCTION,
-    LINE_DASH,
-    NUMBER,
-    OBJECT,
-    OR,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    TempValidate,
-} from '../../../util/validation';
+import { Property } from '../../../util/properties';
 import { Caption } from '../../caption';
 import { Label } from '../../label';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
@@ -33,143 +18,146 @@ import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 
 export class PieTitle extends Caption {
-    @TempValidate(BOOLEAN)
+    @Property
     showInLegend = false;
 }
 
 class PieSeriesCalloutLabel extends Label<AgPieSeriesLabelFormatterParams> {
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     offset = 3; // from the callout line
 
-    @TempValidate(NUMBER.restrict({ min: 0, max: 360 }))
+    @Property
     minAngle = 0;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     minSpacing = 4;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     maxCollisionOffset = 50;
 
-    @TempValidate(BOOLEAN)
+    @Property
     avoidCollisions = true;
 }
 
 class PieSeriesSectorLabel extends Label<AgPieSeriesLabelFormatterParams> {
-    @TempValidate(NUMBER)
+    @Property
     positionOffset = 0;
 
-    @TempValidate(RATIO)
+    @Property
     positionRatio = 0.5;
 }
 
 class PieSeriesCalloutLine extends BaseProperties {
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)), { optional: true })
-    colors?: AgColorType[];
+    @Property
+    colors?: InternalAgColorType[];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     length: number = 10;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 }
 
 export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
-    @TempValidate(STRING)
+    @Property
     angleKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     angleName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     angleFilterKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     radiusKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     radiusName?: string;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     radiusMin?: number;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     radiusMax?: number;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     calloutLabelKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     calloutLabelName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sectorLabelKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sectorLabelName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     legendItemKey?: string;
 
-    @TempValidate(ARRAY_OF(COLOR_STRING_ARRAY))
+    @Property
     defaultColorRange: string[][] = [];
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING)))
-    fills: AgColorType[] = Object.values(DEFAULT_FILLS);
+    @Property
+    defaultPatternFills: string[] = [];
 
-    @TempValidate(COLOR_STRING_ARRAY)
+    @Property
+    fills: InternalAgColorType[] = Object.values(DEFAULT_FILLS);
+
+    @Property
     strokes: string[] = Object.values(DEFAULT_STROKES);
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity = 1;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     cornerRadius: number = 0;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgPieSeriesItemStylerParams<unknown>, AgPieSeriesStyle>;
 
-    @TempValidate(NUMBER)
+    @Property
     rotation: number = 0;
 
-    @TempValidate(NUMBER)
+    @Property
     outerRadiusOffset: number = 0;
 
-    @TempValidate(RATIO)
+    @Property
     outerRadiusRatio: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(NUMBER)
+    @Property
     sectorSpacing: number = 0;
 
-    @TempValidate(BOOLEAN)
+    @Property
     hideZeroValueSectorsInLegend = false;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly title = new PieTitle();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly shadow = new DropShadow();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly calloutLabel = new PieSeriesCalloutLabel();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly sectorLabel = new PieSeriesSectorLabel();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly calloutLine = new PieSeriesCalloutLine();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams<any>>();
 }

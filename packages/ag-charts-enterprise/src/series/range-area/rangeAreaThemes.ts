@@ -1,10 +1,19 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>['themeTemplate'] = {
     series: {
         fill: { $palette: 'fill' },
+        fillGradientDefaults: {
+            type: 'gradient',
+            gradient: 'linear',
+            bounds: 'item',
+            colorStops: { $palette: 'gradient' },
+            rotation: 0,
+            reverse: false,
+        } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         stroke: { $palette: 'stroke' },
-        defaultColorRange: { $palette: 'gradient' },
         fillOpacity: 0.7,
         nodeClickRange: 'nearest',
         marker: {
@@ -12,7 +21,15 @@ export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>[
             fill: { $palette: 'fill' },
             stroke: { $palette: 'stroke' },
             // @ts-expect-error undocumented option
-            defaultColorRange: { $palette: 'gradient' },
+            fillGradientDefaults: {
+                type: 'gradient',
+                gradient: 'radial',
+                bounds: 'item',
+                colorStops: { $palette: 'gradient' },
+                rotation: 0,
+                reverse: true,
+            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             size: 6,
             strokeWidth: 2,
         },
@@ -27,8 +44,6 @@ export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>[
         },
         interpolation: {
             type: 'linear',
-            tension: 1,
-            position: 'end',
         },
     },
     axes: {

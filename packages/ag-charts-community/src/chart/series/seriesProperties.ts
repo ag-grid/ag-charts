@@ -1,99 +1,177 @@
-import type { InteractionRange } from 'ag-charts-types';
+import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
+import type {
+    AgGradientColorBounds,
+    AgGradientColorStop,
+    AgGradientType,
+    AgPatternName,
+    CssColor,
+    InteractionRange,
+    Opacity,
+    PixelSize,
+} from 'ag-charts-types';
 
 import { BaseProperties } from '../../util/properties';
-import {
-    BOOLEAN,
-    COLOR_STRING,
-    INTERACTION_RANGE,
-    LINE_DASH,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    REAL_NUMBER,
-    STRING,
-    TempValidate,
-} from '../../util/validation';
+import { Property } from '../../util/properties';
 import type { SeriesTooltip } from './seriesTooltip';
 
 export class SeriesItemHighlightStyle extends BaseProperties {
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     fill?: string = 'rgba(255,255,255, 0.33)';
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     fillOpacity?: number;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string = `rgba(0, 0, 0, 0.4)`;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth?: number = 2;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     strokeOpacity?: number;
 
-    @TempValidate(LINE_DASH, { optional: true })
+    @Property
     lineDash?: number[];
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     lineDashOffset?: number;
 }
 
 class SeriesHighlightStyle extends BaseProperties {
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth?: number;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     dimOpacity?: number;
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     enabled?: boolean;
 }
 
 class TextHighlightStyle extends BaseProperties {
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     color?: string = 'black';
 }
 
 export class HighlightProperties extends BaseProperties {
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     enabled = true;
 }
 
+export class FillGradientDefaults
+    extends BaseProperties<Required<InternalAgGradientColor>>
+    implements Required<InternalAgGradientColor>
+{
+    @Property
+    type: 'gradient' = 'gradient' as const;
+
+    @Property
+    colorStops: AgGradientColorStop[] = [];
+
+    @Property
+    bounds: AgGradientColorBounds = 'item';
+
+    @Property
+    gradient: AgGradientType = 'linear';
+
+    @Property
+    rotation: number = 0;
+
+    @Property
+    reverse: boolean = false;
+}
+
+export class FillPatternDefaults
+    extends BaseProperties<Required<InternalAgPatternColor>>
+    implements Required<InternalAgPatternColor>
+{
+    @Property
+    type: 'pattern' = 'pattern' as const;
+
+    @Property
+    colorStops: AgGradientColorStop[] = [];
+
+    @Property
+    bounds: AgGradientColorBounds = 'item';
+
+    @Property
+    gradient: AgGradientType = 'linear';
+
+    @Property
+    rotation: number = 0;
+
+    @Property
+    reverse: boolean = false;
+
+    @Property
+    pattern: AgPatternName = 'forward-slanted-lines';
+
+    @Property
+    width: number = 26;
+
+    @Property
+    height: number = 26;
+
+    @Property
+    padding: number = 6;
+
+    @Property
+    fill: CssColor = 'black';
+
+    @Property
+    fillOpacity: Opacity = 1;
+
+    @Property
+    backgroundFill: CssColor = 'white';
+
+    @Property
+    backgroundFillOpacity: Opacity = 1;
+
+    @Property
+    stroke: CssColor = 'black';
+
+    @Property
+    strokeOpacity: number = 1;
+
+    @Property
+    strokeWidth: PixelSize = 0;
+}
+
 export class HighlightStyle extends BaseProperties {
-    @TempValidate(OBJECT)
+    @Property
     readonly item = new SeriesItemHighlightStyle();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly series = new SeriesHighlightStyle();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly text = new TextHighlightStyle();
 }
 
 export abstract class SeriesProperties<T extends object> extends BaseProperties<T> {
-    @TempValidate(STRING, { optional: true })
+    @Property
     id?: string;
 
     // Private - use series.visible
-    @TempValidate(BOOLEAN)
+    @Property
     protected readonly visible: boolean = true;
 
-    @TempValidate(REAL_NUMBER, { optional: true })
+    @Property
     focusPriority?: number = Infinity;
 
-    @TempValidate(BOOLEAN)
+    @Property
     showInLegend: boolean = true;
 
-    @TempValidate(STRING)
+    @Property
     cursor = 'default';
 
-    @TempValidate(INTERACTION_RANGE)
+    @Property
     nodeClickRange: InteractionRange = 'exact';
 
-    @TempValidate(OBJECT)
+    @Property
     readonly highlight = new HighlightProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly highlightStyle = new HighlightStyle();
 
     abstract tooltip: SeriesTooltip<never>;

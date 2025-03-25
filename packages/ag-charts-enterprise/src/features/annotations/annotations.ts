@@ -34,13 +34,11 @@ import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
 
 const {
-    BOOLEAN,
-    OBJECT,
     ChartUpdateType,
     InteractionState,
     ObserveChanges,
     PropertiesArray,
-    Validate,
+    Property,
     ChartAxisDirection,
     Vec2,
     keyProperty,
@@ -75,23 +73,23 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             target.clear();
         }
     })
-    @Validate(BOOLEAN)
+    @Property
     public enabled: boolean = true;
 
-    @Validate(OBJECT)
+    @Property
     public readonly toolbar = new AnnotationsToolbar(this.ctx);
 
-    @Validate(OBJECT)
+    @Property
     public optionsToolbar = new AnnotationOptionsToolbar(this.ctx, () => {
         const active = this.state.getActive();
         if (active == null) return;
         return getTypedDatum(this.annotationData.at(active));
     });
 
-    @Validate(OBJECT)
+    @Property
     public axesButtons = new AxesButtons();
 
-    @Validate(BOOLEAN)
+    @Property
     public snap: boolean = false;
 
     // Hidden options for use with measurer statistics
@@ -120,8 +118,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
-
-    private isRestoringAnnotations = true;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -696,7 +692,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.clear();
         this.annotationData.set(event.annotations);
 
-        this.isRestoringAnnotations = true;
         this.postUpdateFns.push(() => {
             this.ctx.annotationManager.fireChangedEvent();
         });
@@ -872,7 +867,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
             .each((node, datum) => {
-                if (!showAnnotations || !this.validateDatum(datum)) {
+                if (!showAnnotations) {
                     node.visible = false;
                     if ('setAxisLabelVisible' in node) {
                         node.setAxisLabelVisible(false);
@@ -889,19 +884,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.postUpdateFns.forEach((fn) => fn());
         this.postUpdateFns = [];
-
-        this.isRestoringAnnotations = false;
     }
 
     private postUpdateFns: Array<() => void> = [];
-
-    // Validation of the options beyond the scope of the @Validate decorator
-    private validateDatum(datum: AnnotationProperties) {
-        if (!this.isRestoringAnnotations) return true;
-        const context = this.getAnnotationContext();
-        const warningPrefix = `Annotation [${datum.type}] `;
-        return context ? datum.isValidWithContext(context, warningPrefix) : true;
-    }
 
     private getAnnotationContext(): AnnotationContext | undefined {
         const { seriesRect, xAxis, yAxis, snap } = this;
@@ -1090,7 +1075,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const ctrlMeta = ctrlKey || metaKey;
         const ctrlShift = ctrlKey || shiftKey;
 
-        this.state.transition('keyDown', { shiftKey, context });
+        state.transition('keyDown', { shiftKey, context });
 
         const translation = { x: 0, y: 0 };
 

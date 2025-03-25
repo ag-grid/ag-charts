@@ -69,8 +69,8 @@ const options: AgChartOptions = {
             position: 'bottom',
             crossLines: [
                 {
-                    type: 'line',
-                    value: '2017',
+                    type: 'range',
+                    range: ['2017', '2017'],
                     lineDash: [6, 8],
                     strokeOpacity: 0.5,
                     label: {
@@ -78,8 +78,8 @@ const options: AgChartOptions = {
                     },
                 },
                 {
-                    type: 'line',
-                    value: '2020',
+                    type: 'range',
+                    range: ['2020', '2020'],
                     lineDash: [6, 8],
                     strokeOpacity: 0.5,
                     label: {

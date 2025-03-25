@@ -29,6 +29,7 @@ const {
     Rect,
     motion,
     applyShapeStyle,
+    getShapeStyle,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
@@ -101,7 +102,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, yKey, totals } = this.properties;
         const { data = [] } = this;
 
-        if (!this.properties.isValid() || !this.visible) return;
+        if (!this.visible) return;
 
         const positiveNumber = (v: unknown) => isContinuous(v) && Number(v) >= 0;
         const negativeNumber = (v: unknown) => isContinuous(v) && Number(v) >= 0;
@@ -511,10 +512,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
-        const { itemStyler, defaultColorRange } = item;
+        const { itemStyler, fillGradientDefaults, fillPatternDefaults } = item;
         const { xKey, yKey } = properties;
 
-        const format = this.getShapeStyle(
+        const format = getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? item.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,
@@ -525,7 +526,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
                 cornerRadius: item.cornerRadius,
             },
-            defaultColorRange
+            fillGradientDefaults,
+            fillPatternDefaults
         );
 
         if (itemStyler != null) {
@@ -541,7 +543,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 });
             });
 
-            itemStyle = this.getShapeStyle(itemStyle, defaultColorRange);
+            itemStyle = getShapeStyle(itemStyle, fillGradientDefaults, fillPatternDefaults);
 
             Object.assign(format, itemStyle);
         }
@@ -651,10 +653,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(item: AgWaterfallSeriesItemType): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, defaultColorRange } =
-            this.getItemConfig(item);
+        const {
+            fill,
+            stroke,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            fillGradientDefaults,
+            fillPatternDefaults,
+        } = this.getItemConfig(item);
         return {
-            marker: this.getShapeStyle(
+            marker: getShapeStyle(
                 {
                     fill,
                     stroke,
@@ -664,7 +675,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                defaultColorRange
+                fillGradientDefaults,
+                fillPatternDefaults
             ),
         };
     }
@@ -702,7 +714,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         // Legend item toggling is unsupported.
     }
 
-    override animateEmptyUpdateReady({ datumSelection, labelSelection, contextData, paths }: WaterfallAnimationData) {
+    override animateEmptyUpdateReady(opts: WaterfallAnimationData) {
+        const { datumSelection, labelSelection, contextData } = opts;
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
 
@@ -711,15 +724,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { pointData } = contextData;
         if (!pointData) return;
 
-        const [lineNode] = paths;
         if (this.isVertical()) {
-            this.animateConnectorLinesVertical(lineNode, pointData);
+            this.animateConnectorLinesVertical(opts);
         } else {
-            this.animateConnectorLinesHorizontal(lineNode, pointData);
+            this.animateConnectorLinesHorizontal(opts);
         }
     }
 
-    protected animateConnectorLinesHorizontal(lineNode: _ModuleSupport.Path, pointData: WaterfallNodePointDatum[]) {
+    protected animateConnectorLinesHorizontal(opts: WaterfallAnimationData) {
+        const { pointData = [] } = opts.contextData;
+        const [lineNode] = opts.paths;
         const { path: linePath } = lineNode;
 
         this.updateLineNode(lineNode);
@@ -765,10 +779,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
                 lineNode.checkPathDirty();
             },
+            onStop: () => this.resetConnectorLinesPath(opts),
         });
     }
 
-    protected animateConnectorLinesVertical(lineNode: _ModuleSupport.Path, pointData: WaterfallNodePointDatum[]) {
+    protected animateConnectorLinesVertical(opts: WaterfallAnimationData) {
+        const { pointData = [] } = opts.contextData;
+        const [lineNode] = opts.paths;
         const { path: linePath } = lineNode;
 
         this.updateLineNode(lineNode);
@@ -814,6 +831,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
                 lineNode.checkPathDirty();
             },
+            onStop: () => this.resetConnectorLinesPath(opts),
         });
     }
 

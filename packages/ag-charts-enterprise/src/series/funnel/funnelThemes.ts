@@ -1,4 +1,5 @@
-import { type AgAxisLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
+import { type AgAxisLabelFormatterParams, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
@@ -57,7 +58,15 @@ export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTe
         fills: [{ $palette: 'fill' }],
         strokes: [{ $palette: 'stroke' }],
         // @ts-expect-error undocumented option
-        defaultColorRange: { $palette: 'gradient' },
+        fillGradientDefaults: {
+            type: 'gradient',
+            gradient: 'linear',
+            bounds: 'item',
+            colorStops: { $palette: 'gradient' },
+            rotation: 0,
+            reverse: false,
+        } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         label: {
             enabled: true,
             fontSize: { $ref: 'fontSize' },

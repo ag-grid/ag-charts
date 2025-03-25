@@ -22,6 +22,7 @@ const {
     ChartAxisDirection,
     motion,
     isGradientFill,
+    getShapeStyle,
 } = _ModuleSupport;
 
 class BoxPlotSeriesNodeEvent<
@@ -76,7 +77,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (!this.properties.isValid() || !this.visible) return;
+        if (!this.visible) return;
 
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.properties;
 
@@ -252,11 +253,20 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, defaultColorRange } =
-            this.properties;
+        const {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            fillGradientDefaults,
+            fillPatternDefaults,
+        } = this.properties;
 
         return {
-            marker: this.getShapeStyle(
+            marker: getShapeStyle(
                 {
                     fill,
                     fillOpacity,
@@ -266,7 +276,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                defaultColorRange
+                fillGradientDefaults,
+                fillPatternDefaults
             ),
         };
     }
@@ -399,11 +410,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     private getItemBaseStyle(highlighted: boolean): Required<AgBoxPlotSeriesStyle> {
         const { properties } = this;
-        const { cornerRadius, cap, whisker, defaultColorRange } = properties;
+        const { cornerRadius, cap, whisker, fillGradientDefaults, fillPatternDefaults } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
-        return this.getShapeStyle(
+        return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -416,7 +427,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 cap,
                 whisker,
             },
-            defaultColorRange
+            fillGradientDefaults,
+            fillPatternDefaults
         );
     }
 
@@ -428,7 +440,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     ) {
         const { id: seriesId, properties } = this;
 
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, defaultColorRange, itemStyler } = properties;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, fillGradientDefaults, fillPatternDefaults, itemStyler } =
+            properties;
 
         if (itemStyler == null) return;
 
@@ -447,7 +460,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             });
         });
 
-        return this.getShapeStyle(overrides, defaultColorRange);
+        return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults);
     }
 
     protected override updateDatumNodes({
@@ -507,11 +520,21 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     getFormattedStyles(nodeDatum: BoxPlotNodeDatum, scope: 'tooltip' | 'node' | 'highlight'): AgBoxPlotSeriesStyle {
         const { id: seriesId, properties } = this;
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler, cornerRadius, defaultColorRange } =
-            properties;
+        const {
+            xKey,
+            minKey,
+            q1Key,
+            medianKey,
+            q3Key,
+            maxKey,
+            itemStyler,
+            cornerRadius,
+            fillGradientDefaults,
+            fillPatternDefaults,
+        } = properties;
         const { datum, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
         let fill;
-        let fillOpacity: number | undefined;
+        let fillOpacity: number = 1;
 
         if (isGradientFill(nodeDatum.fill)) {
             fill = nodeDatum.fill;
@@ -520,10 +543,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             fillOpacity = properties.fillOpacity;
         }
 
-        let styles: Required<AgBoxPlotSeriesStyle> = this.getShapeStyle(
+        let styles: Required<AgBoxPlotSeriesStyle> = getShapeStyle(
             {
                 fill,
-                fillOpacity: fillOpacity!,
+                fillOpacity,
                 stroke,
                 strokeWidth,
                 strokeOpacity,
@@ -533,7 +556,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 cap: extractDecoratedProperties(cap),
                 whisker: extractDecoratedProperties(whisker),
             },
-            defaultColorRange
+            fillGradientDefaults,
+            fillPatternDefaults
         );
 
         if (itemStyler) {
@@ -553,7 +577,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             );
 
             if (formatStyles) {
-                styles = this.getShapeStyle(mergeDefaults(formatStyles, styles), defaultColorRange);
+                styles = getShapeStyle(mergeDefaults(formatStyles, styles), fillGradientDefaults, fillPatternDefaults);
             }
         }
 

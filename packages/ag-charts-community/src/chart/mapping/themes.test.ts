@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { InternalAgColorType } from 'ag-charts-core';
 import type {
     AgBarSeriesOptions,
     AgChartInstance,
@@ -7,7 +8,6 @@ import type {
     AgChartTheme,
     AgChartThemeName,
     AgChartThemePalette,
-    AgColorType,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -33,7 +33,7 @@ describe('themes module', () => {
     const getActualPalette = (chart: AgChartInstance) => {
         let result = undefined;
         for (const series of deproxy(chart).chartOptions.processedOptions.series ?? []) {
-            result ??= { fills: [] as AgColorType[], strokes: [] as string[] };
+            result ??= { fills: [] as InternalAgColorType[], strokes: [] as string[] };
 
             expect(series.type).toEqual('bar');
             const barseries = series as AgBarSeriesOptions;
@@ -158,10 +158,10 @@ describe('themes module', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Option \`theme.palette.fills\` cannot be set to \`"red"\`; expecting a color or a gradient object array, ignoring.",
+    "AG Charts - Option \`theme.palette.fills\` cannot be set to \`"red"\`; expecting a color string or a color object array, ignoring.",
   ],
   [
-    "AG Charts - Option \`theme.palette.strokes\` cannot be set to \`"black"\`; expecting a color array, ignoring.",
+    "AG Charts - Option \`theme.palette.strokes\` cannot be set to \`"black"\`; expecting a color string array, ignoring.",
   ],
 ]
 `);

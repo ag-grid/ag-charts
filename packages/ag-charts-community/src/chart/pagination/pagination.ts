@@ -7,54 +7,45 @@ import { Text } from '../../scene/shape/text';
 import { type RotatableType, Transformable } from '../../scene/transformable';
 import { createId } from '../../util/id';
 import { BaseProperties } from '../../util/properties';
+import { Property } from '../../util/properties';
 import { ActionOnSet } from '../../util/proxy';
-import {
-    COLOR_STRING,
-    FONT_STYLE,
-    FONT_WEIGHT,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    Validate,
-} from '../../util/validation';
 import { ChartUpdateType } from '../chartUpdateType';
 import { Marker } from '../marker/marker';
 
 class PaginationLabel extends BaseProperties {
-    @Validate(COLOR_STRING)
+    @Property
     color: string = 'black';
 
-    @Validate(FONT_STYLE, { optional: true })
+    @Property
     fontStyle?: FontStyle = undefined;
 
-    @Validate(FONT_WEIGHT, { optional: true })
+    @Property
     fontWeight?: FontWeight = undefined;
 
-    @Validate(POSITIVE_NUMBER)
+    @Property
     fontSize: number = 12;
 
-    @Validate(STRING)
+    @Property
     fontFamily: string = 'Verdana, sans-serif';
 }
 
 class PaginationMarkerStyle extends BaseProperties {
-    @Validate(POSITIVE_NUMBER)
+    @Property
     size = 15;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @Property
     fill?: string = undefined;
 
-    @Validate(RATIO, { optional: true })
+    @Property
     fillOpacity?: number = undefined;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string = undefined;
 
-    @Validate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @Validate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 }
 
@@ -68,13 +59,13 @@ class PaginationMarker extends BaseProperties {
     })
     shape: AgMarkerShape = 'triangle';
 
-    @Validate(POSITIVE_NUMBER)
+    @Property
     size = 15;
 
     /**
      * Inner padding between a pagination button and the label.
      */
-    @Validate(POSITIVE_NUMBER)
+    @Property
     padding: number = 8;
 
     constructor(readonly parent: Pagination) {
@@ -87,19 +78,19 @@ export class Pagination extends BaseProperties {
 
     readonly id = createId(this);
 
-    @Validate(OBJECT)
+    @Property
     readonly marker = new PaginationMarker(this);
 
-    @Validate(OBJECT)
+    @Property
     readonly activeStyle = new PaginationMarkerStyle();
 
-    @Validate(OBJECT)
+    @Property
     readonly inactiveStyle = new PaginationMarkerStyle();
 
-    @Validate(OBJECT)
+    @Property
     readonly highlightStyle = new PaginationMarkerStyle();
 
-    @Validate(OBJECT)
+    @Property
     readonly label = new PaginationLabel();
 
     private readonly group = new TranslatableGroup({ name: 'pagination' });

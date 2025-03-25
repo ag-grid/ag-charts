@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, AgRadarAreaSeriesOptions } from 'ag-charts-community';
 import {
     extractImageData,
     setupMockCanvas,
@@ -270,7 +270,7 @@ describe('RadarAreaSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgRadarAreaSeriesOptions,
                 ],
             };
             prepareEnterpriseTestOptions(options);
@@ -300,7 +300,7 @@ describe('RadarAreaSeries', () => {
                                 },
                             ],
                         },
-                    },
+                    } as AgRadarAreaSeriesOptions,
                 ],
             };
             prepareEnterpriseTestOptions(options);

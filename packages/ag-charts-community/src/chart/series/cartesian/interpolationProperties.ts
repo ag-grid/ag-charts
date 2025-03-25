@@ -1,16 +1,13 @@
 import { BaseProperties } from '../../../util/properties';
-import { RATIO, TempValidate, UNION } from '../../../util/validation';
-
-export const INTERPOLATION_TYPE = UNION(['linear', 'smooth', 'step'], 'a line style');
-export const INTERPOLATION_STEP_POSITION = UNION(['start', 'middle', 'end']);
+import { Property } from '../../../util/properties';
 
 export class InterpolationProperties extends BaseProperties {
-    @TempValidate(INTERPOLATION_TYPE)
+    @Property
     type: 'linear' | 'smooth' | 'step' = 'linear';
 
-    @TempValidate(RATIO)
+    @Property
     tension: number = 1;
 
-    @TempValidate(INTERPOLATION_STEP_POSITION)
+    @Property
     position: 'start' | 'middle' | 'end' = 'end';
 }

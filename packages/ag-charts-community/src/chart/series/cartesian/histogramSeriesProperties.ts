@@ -1,5 +1,5 @@
+import type { InternalAgColorType } from 'ag-charts-core';
 import type {
-    AgColorType,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesTooltipRendererParams,
@@ -7,22 +7,9 @@ import type {
 
 import type { BBox } from '../../../scene/bbox';
 import { DropShadow } from '../../../scene/dropShadow';
-import {
-    ARRAY,
-    BOOLEAN,
-    COLOR_GRADIENT,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    LINE_DASH,
-    OBJECT,
-    OR,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    TempValidate,
-    UNION,
-} from '../../../util/validation';
+import { Property } from '../../../util/properties';
 import { Label } from '../../label';
+import { FillGradientDefaults, FillPatternDefaults } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
@@ -50,63 +37,66 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
 }
 
 export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHistogramSeriesOptions> {
-    @TempValidate(STRING)
+    @Property
     xKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yName?: string;
 
-    @TempValidate(COLOR_STRING_ARRAY)
-    defaultColorRange: string[] = [];
+    @Property
+    fill?: InternalAgColorType;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING), { optional: true })
-    fill?: AgColorType;
+    @Property
+    readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(RATIO)
+    @Property
+    readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
     fillOpacity = 1;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     cornerRadius: number = 0;
 
-    @TempValidate(BOOLEAN)
+    @Property
     areaPlot: boolean = false;
 
-    @TempValidate(ARRAY, { optional: true })
+    @Property
     bins?: [number, number][];
 
-    @TempValidate(UNION(['count', 'sum', 'mean'], 'a histogram aggregation'))
+    @Property
     aggregation: NonNullable<AgHistogramSeriesOptions['aggregation']> = 'sum';
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     binCount?: number;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly shadow = new DropShadow();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new Label<AgHistogramSeriesLabelFormatterParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams<HistogramNodeDatum>>();
 }

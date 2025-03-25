@@ -1,4 +1,5 @@
-import { type AgAxisLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
+import { type AgAxisLabelFormatterParams, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
@@ -11,18 +12,26 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
             $if: [
                 { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                 { $palette: 'secondSequentialColors' },
-                { $palette: 'range2' },
+                _ModuleSupport.SAFE_RANGE2_OPERATION,
             ],
         },
         strokes: {
             $if: [
                 { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                 { $palette: 'secondSequentialColors' },
-                { $palette: 'range2' },
+                _ModuleSupport.SAFE_RANGE2_OPERATION,
             ],
         },
         // @ts-expect-error undocumented option
-        defaultColorRange: { $palette: 'gradient' }, // TODO: update cone funnel to handle 'gradients'
+        fillGradientDefaults: {
+            type: 'gradient',
+            gradient: 'linear',
+            bounds: 'item',
+            colorStops: { $palette: 'gradient' },
+            rotation: 0,
+            reverse: false,
+        } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         strokeWidth: 0,
         label: {
             enabled: true,

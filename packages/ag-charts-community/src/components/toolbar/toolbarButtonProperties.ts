@@ -1,18 +1,18 @@
 import type { AgIconName } from 'ag-charts-types';
 
 import { BaseProperties } from '../../util/properties';
-import { STRING, Validate } from '../../util/validation';
+import { Property } from '../../util/properties';
 
 export class ToolbarButtonProperties extends BaseProperties {
-    @Validate(STRING, { optional: true })
+    @Property
     public icon?: AgIconName;
 
-    @Validate(STRING, { optional: true })
+    @Property
     public label?: string;
 
-    @Validate(STRING, { optional: true })
+    @Property
     public ariaLabel?: string;
 
-    @Validate(STRING, { optional: true })
+    @Property
     public tooltip?: string;
 }

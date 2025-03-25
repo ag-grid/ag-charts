@@ -36,6 +36,7 @@ export class MaterialLight extends ChartTheme {
         return {
             ...super.getDefaultColors(),
             fills: MATERIAL_LIGHT_FILLS,
+            fillsFallback: Object.values(MATERIAL_LIGHT_FILLS),
             strokes: MATERIAL_LIGHT_STROKES,
             sequentialColors: getSequentialColors(MATERIAL_LIGHT_FILLS),
             divergingColors: [MATERIAL_LIGHT_FILLS.ORANGE, MATERIAL_LIGHT_FILLS.YELLOW, MATERIAL_LIGHT_FILLS.GREEN],

@@ -17,18 +17,18 @@ export function simpleMemorize<F extends (...args: any[]) => any>(
     fn: F,
     cacheCallback?: (type: 'hit' | 'miss', fn: F, keys: any[]) => void
 ) {
-    const primitveCache = new Map<string | number, object>();
+    const primitiveCache = new Map<string | number, object>();
 
-    const paramsToKeys = (...params: (WeakKey | string | number)[]) => {
+    const paramsToKeys = (...params: (WeakKey | string | number | symbol)[]) => {
         return params.map((v) => {
             if (typeof v === 'object') return v;
             if (typeof v === 'symbol') return v;
 
-            if (!primitveCache.has(v)) {
-                primitveCache.set(v, { v });
+            if (!primitiveCache.has(v)) {
+                primitiveCache.set(v, { v });
             }
 
-            return primitveCache.get(v)!;
+            return primitiveCache.get(v)!;
         });
     };
 

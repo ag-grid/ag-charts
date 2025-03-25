@@ -6,20 +6,10 @@ import { RotatableText } from '../scene/shape/text';
 import { Transformable } from '../scene/transformable';
 import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
+import { Property } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import { TextUtils } from '../util/textMeasurer';
 import { TextWrapper } from '../util/textWrapper';
-import {
-    BOOLEAN,
-    COLOR_STRING,
-    FONT_STYLE,
-    FONT_WEIGHT,
-    POSITIVE_NUMBER,
-    STRING,
-    TEXT_ALIGN,
-    TEXT_WRAP,
-    Validate,
-} from '../util/validation';
 import type { BoundedTextWidget } from '../widget/boundedTextWidget';
 import type { MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
@@ -33,54 +23,54 @@ export class Caption extends BaseProperties implements CaptionLike {
         pointerEvents: PointerEvents.None,
     });
 
-    @Validate(BOOLEAN)
+    @Property
     @ProxyPropertyOnWrite('node', 'visible')
     enabled: boolean = false;
 
-    @Validate(STRING, { optional: true })
+    @Property
     @ProxyPropertyOnWrite('node')
     text?: string;
 
-    @Validate(TEXT_ALIGN, { optional: true })
+    @Property
     @ProxyPropertyOnWrite('node')
     textAlign: TextAlign = 'center';
 
-    @Validate(FONT_STYLE, { optional: true })
+    @Property
     @ProxyPropertyOnWrite('node')
     fontStyle?: FontStyle;
 
-    @Validate(FONT_WEIGHT, { optional: true })
+    @Property
     @ProxyPropertyOnWrite('node')
     fontWeight?: FontWeight;
 
-    @Validate(POSITIVE_NUMBER)
+    @Property
     @ProxyPropertyOnWrite('node')
     fontSize: number = 10;
 
-    @Validate(STRING)
+    @Property
     @ProxyPropertyOnWrite('node')
     fontFamily: string = 'sans-serif';
 
-    @Validate(COLOR_STRING, { optional: true })
+    @Property
     @ProxyPropertyOnWrite('node', 'fill')
     color?: string;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @Property
     spacing?: number;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @Property
     maxWidth?: number;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @Property
     maxHeight?: number;
 
-    @Validate(TEXT_WRAP)
+    @Property
     wrapping: TextWrap = 'always';
 
-    @Validate(POSITIVE_NUMBER)
+    @Property
     padding: number = 0;
 
-    @Validate(STRING)
+    @Property
     layoutStyle: 'block' | 'overlay' = 'block';
 
     private truncated = false;

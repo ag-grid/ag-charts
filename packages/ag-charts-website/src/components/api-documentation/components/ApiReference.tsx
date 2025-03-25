@@ -117,7 +117,7 @@ export function ChildPropertiesButton({
             aria-label={`See child properties of ${name}`}
         >
             <Icon svgClasses={styles.childChevron} name="chevronRight" />
-            <span>See child properties</span>
+            <span>{isExpanded ? 'Hide' : 'See'} child properties</span>
         </button>
     );
 }
@@ -371,18 +371,24 @@ function useMemberAdditionalDetails(member: MemberNode) {
     if (memberType === 'function') {
         return member;
     }
-    if (reference?.has(memberType) && !isInterfaceHidden(memberType)) {
-        const ref = reference.get(memberType);
+    const resolve = (resolveType: string) => {
+        if (reference?.has(resolveType) && !isInterfaceHidden(resolveType)) {
+            const ref = reference.get(resolveType);
 
-        if (ref?.kind === 'typeAlias' && typeof ref.type === 'string' && reference.has(ref.type)) {
-            return [ref, reference.get(ref.type)];
+            if (ref?.kind === 'typeAlias' && typeof ref.type === 'string' && reference.has(ref.type)) {
+                return [ref, reference.get(ref.type)];
+            }
+
+            return ref;
         }
-
-        return ref;
+    };
+    const resolvedDetails = resolve(memberType);
+    if (resolvedDetails) {
+        return resolvedDetails;
     }
     if (typeof member.type === 'object' && member.type.kind === 'union') {
         const unionTypes = member.type.type
-            .map((unionType) => typeof unionType === 'string' && reference?.get(unionType))
+            .flatMap((unionType) => typeof unionType === 'string' && resolve(unionType))
             .filter(
                 (apiNode): apiNode is TypeAliasNode =>
                     typeof apiNode === 'object' && apiNode.kind === 'typeAlias' && !isInterfaceHidden(apiNode.name)

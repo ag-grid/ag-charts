@@ -1,8 +1,8 @@
 import { Logger } from 'ag-charts-core';
+import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
-    AgColorType,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesVisibilityChange,
@@ -17,7 +17,6 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
-import { isGradientFill } from '../../scene/util/fill';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';
 import { formatValue } from '../../util/format.util';
@@ -44,7 +43,7 @@ import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
-import { type ShapeFillBBox, applyShapeStyle } from './shapeUtil';
+import { type ShapeFillBBox, applyShapeStyle, getShapeStyle } from './shapeUtil';
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -279,7 +278,7 @@ export abstract class Series<
     set visible(newVisibility: boolean) {
         // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
         this.properties.visible = newVisibility;
-        this.ctx.legendManager.toggleItem({ enabled: newVisibility, seriesId: this.id });
+        this.ctx.legendManager.toggleItem(newVisibility, this.id);
         this.ctx.legendManager.update();
         this.visibleMaybeChanged();
     }
@@ -779,7 +778,7 @@ export abstract class Series<
         };
         this.fireEvent(event);
 
-        this.ctx.legendManager.toggleItem({ enabled, seriesId, itemId, legendItemName });
+        this.ctx.legendManager.toggleItem(enabled, seriesId, itemId, legendItemName);
     }
 
     isEnabled() {
@@ -808,52 +807,45 @@ export abstract class Series<
         return this.callWithContext(defaultFormatter, params.value);
     }
 
-    private getMarkerNodeFill(fill: AgColorType, defaultColorRange: string[]): Required<AgColorType> {
-        if (!isGradientFill(fill)) return fill;
-
-        return {
-            type: 'gradient',
-            gradient: fill.gradient ?? 'radial',
-            bounds: fill.bounds ?? 'item',
-            colorStops: fill.colorStops ?? defaultColorRange.map((color) => ({ color })).reverse(),
-            rotation: fill.rotation ?? 0,
-        };
-    }
-
     public getMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams> & { defaultColorRange: string[] },
+        marker: ISeriesMarker<TParams> & {
+            fillGradientDefaults: Required<InternalAgGradientColor>;
+            fillPatternDefaults: Required<InternalAgPatternColor>;
+        },
         datum?: any,
         params?: TParams,
         highlighted = false,
         size = marker.size ?? 0,
-        defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
+        defaultStyle?: AgSeriesMarkerStyle
     ) {
+        const { itemStyler, fillGradientDefaults, fillPatternDefaults } = marker;
         const defaultSize = { size };
 
-        let markerStyle = mergeDefaults(defaultSize, defaultStyle, marker.getStyle());
-        if (isGradientFill(markerStyle.fill)) {
-            markerStyle = { ...markerStyle, fill: this.getMarkerNodeFill(markerStyle.fill, marker.defaultColorRange) };
-        }
+        let markerStyle = getShapeStyle(
+            mergeDefaults(defaultSize, defaultStyle, marker.getStyle()),
+            fillGradientDefaults,
+            fillPatternDefaults
+        );
 
-        if (marker.itemStyler && params) {
-            const style = this.ctx.callbackCache.call(this.properties, marker.itemStyler, {
+        if (itemStyler && params) {
+            const style = this.ctx.callbackCache.call(this.properties, itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,
                 highlighted,
                 datum,
             });
-            return mergeDefaults(
-                style,
-                markerStyle,
-                style?.fill != null ? { fill: this.getMarkerNodeFill(style.fill, marker.defaultColorRange) } : undefined
-            );
+            markerStyle = getShapeStyle(mergeDefaults(style, markerStyle), fillGradientDefaults, fillPatternDefaults);
         }
+
         return markerStyle;
     }
 
     protected updateMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams> & { defaultColorRange: string[] },
+        marker: ISeriesMarker<TParams> & {
+            fillGradientDefaults: Required<InternalAgGradientColor>;
+            fillPatternDefaults: Required<InternalAgPatternColor>;
+        },
         markerNode: Marker,
         datum: any,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,

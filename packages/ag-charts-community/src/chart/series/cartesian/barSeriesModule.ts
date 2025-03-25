@@ -1,10 +1,11 @@
 import { type SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgBarSeriesOptions } from 'ag-charts-types';
+import type { InternalAgGradientColor } from 'ag-charts-core';
+import type { AgBarSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { DIRECTION_SWAP_AXES } from '../../themes/util';
+import { DIRECTION_SWAP_AXES, FILL_PATTERN_DEFAULTS } from '../../themes/util';
 import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
 
@@ -26,7 +27,15 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             fill: { $palette: 'fill' },
             stroke: { $palette: 'stroke' },
             // @ts-expect-error undocumented option
-            defaultColorRange: { $palette: 'gradient' },
+            fillGradientDefaults: {
+                type: 'gradient',
+                gradient: 'linear',
+                bounds: 'item',
+                colorStops: { $palette: 'gradient' },
+                rotation: 0,
+                reverse: false,
+            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             fillOpacity: 1,
             strokeWidth: 0,
             lineDash: [0],

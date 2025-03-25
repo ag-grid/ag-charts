@@ -3,7 +3,7 @@ import type { AgGradientColorMode, AgGradientColorStop } from 'ag-charts-types';
 
 import { ColorScale } from '../../scale/colorScale';
 import { BaseProperties } from '../../util/properties';
-import { COLOR_STRING, NUMBER, Validate } from '../../util/validation';
+import { Property } from '../../util/properties';
 
 export interface GradientColorStop {
     stop: number;
@@ -11,10 +11,10 @@ export interface GradientColorStop {
 }
 
 export class StopProperties extends BaseProperties implements AgGradientColorStop {
-    @Validate(NUMBER, { optional: true })
+    @Property
     stop?: number;
 
-    @Validate(COLOR_STRING, { optional: true })
+    @Property
     color?: string = 'black';
 }
 
@@ -53,11 +53,12 @@ function getDefaultColorStops(defaultColorStops: string[], fillMode: AgGradientC
 }
 
 export function getColorStops(
-    fills: AgGradientColorStop[],
+    baseFills: Array<AgGradientColorStop | string>,
     defaultColorStops: string[],
     domain: number[],
     fillMode: AgGradientColorMode = 'continuous'
 ): GradientColorStop[] {
+    const fills = baseFills.map<AgGradientColorStop>((fill) => (typeof fill === 'string' ? { color: fill } : fill));
     if (fills.length === 0) {
         return getDefaultColorStops(defaultColorStops, fillMode);
     } else if (!stopsAreAscending(fills)) {

@@ -8,16 +8,27 @@ export enum ModuleType {
     Series = 'series',
 }
 
+export type ModuleTypeSwitch<TModule extends ModuleType, TOptions = any> = TModule extends ModuleType.Axis
+    ? AxisModuleDefinition<TOptions>
+    : TModule extends ModuleType.Chart
+      ? ChartModuleDefinition<TOptions>
+      : TModule extends ModuleType.Plugin
+        ? PluginModuleDefinition<TOptions>
+        : TModule extends ModuleType.Series
+          ? SeriesModuleDefinition<TOptions>
+          : never;
+
 export interface ModuleInstance {}
 
 export interface ModuleDefinition<TModule extends ModuleType = ModuleType, TOptions = any> {
     type: `${TModule}` | TModule;
-    enterprise?: boolean;
     name: string;
+    enterprise?: boolean;
+    placeholder?: boolean;
 
     style?: string; // css string to inject into a style element
     themeTemplate?: object; // module's default theme template
-    options?: OptionsDefs<TOptions>; // options definitions validation
+    options: OptionsDefs<TOptions>; // options definitions validation
 
     // Utility Methods:
     create(this: void, ...args: any[]): ModuleInstance;
@@ -29,18 +40,18 @@ export interface ModuleDefinition<TModule extends ModuleType = ModuleType, TOpti
     ): ValidationResult<TOptions>;
 }
 
-export interface ChartModuleDefinition<TOptions = any> extends ModuleDefinition<ModuleType.Chart, TOptions> {
+export interface ChartModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Chart, TOptions> {
     detect(options: object): boolean;
 }
 
 export interface AxisModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Axis, TOptions> {
     chartType: string;
-
-    options: OptionsDefs<TOptions>;
 }
 
 export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Series, TOptions> {
     chartType: string;
+}
 
-    options: OptionsDefs<TOptions>;
+export interface PluginModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Plugin, TOptions> {
+    chartType?: string;
 }

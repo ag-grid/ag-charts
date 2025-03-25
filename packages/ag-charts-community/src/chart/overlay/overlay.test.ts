@@ -1,20 +1,14 @@
 import { afterEach, describe, expect } from '@jest/globals';
 
+import { getDocument } from 'ag-charts-core';
+
 import type { Chart } from '../chart';
-import {
-    IMAGE_SNAPSHOT_DEFAULTS,
-    createChart,
-    expectWarningsCalls,
-    extractImageData,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from '../test/utils';
+import { createChart, expectWarningsCalls, setupMockCanvas, setupMockConsole } from '../test/utils';
 
 describe('Overlay', () => {
     setupMockConsole();
+    setupMockCanvas();
 
-    const ctx = setupMockCanvas();
     let chart: Chart;
 
     afterEach(() => {
@@ -23,12 +17,6 @@ describe('Overlay', () => {
         }
     });
 
-    const compare = async () => {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
-    };
-
     describe('#validation', () => {
         test('invalid objects', async () => {
             const invalidObj = 0 as unknown as object;
@@ -36,10 +24,10 @@ describe('Overlay', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - unable to set Overlay - expecting a properties object",
+    "AG Charts - Option \`overlays.noData\` cannot be set to \`0\`; expecting an object, ignoring.",
   ],
   [
-    "AG Charts - unable to set Overlay - expecting a properties object",
+    "AG Charts - Option \`overlays.noVisibleSeries\` cannot be set to \`0\`; expecting an object, ignoring.",
   ],
 ]
 `);
@@ -51,10 +39,10 @@ describe('Overlay', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.",
+    "AG Charts - Option \`overlays.noData.text\` cannot be set to \`0\`; expecting a string, ignoring.",
   ],
   [
-    "AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.",
+    "AG Charts - Option \`overlays.noVisibleSeries.text\` cannot be set to \`0\`; expecting a string, ignoring.",
   ],
 ]
 `);
@@ -66,18 +54,17 @@ describe('Overlay', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.",
+    "AG Charts - Option \`overlays.noData.renderer\` cannot be set to \`0\`; expecting a function, ignoring.",
   ],
   [
-    "AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.",
+    "AG Charts - Option \`overlays.noVisibleSeries.renderer\` cannot be set to \`0\`; expecting a function, ignoring.",
   ],
 ]
 `);
         });
     });
 
-    // FIXME: unfortunately, overlays do not render on mock canvases.
-    xdescribe('#create', () => {
+    describe('#create', () => {
         test('no data', async () => {
             chart = await createChart({
                 data: [],
@@ -86,7 +73,8 @@ describe('Overlay', () => {
                     { xKey: 'x', yKey: 'y2' },
                 ],
             });
-            await compare();
+            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
         test('no visible series', async () => {
@@ -101,7 +89,8 @@ describe('Overlay', () => {
                     { xKey: 'x', yKey: 'y2', visible: false },
                 ],
             });
-            await compare();
+            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.innerText).toEqual('No visible series');
         });
 
         test('neither data nor visible series', async () => {
@@ -112,7 +101,8 @@ describe('Overlay', () => {
                     { xKey: 'x', yKey: 'y2', visible: false },
                 ],
             });
-            await compare();
+            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
         test('custom no data text', async () => {
@@ -126,7 +116,8 @@ describe('Overlay', () => {
                     noData: { text: 'TEST CUSTOM NO DATA TEXT' },
                 },
             });
-            await compare();
+            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.innerText).toEqual('TEST CUSTOM NO DATA TEXT');
         });
 
         test('custom no visible series text', async () => {
@@ -141,10 +132,11 @@ describe('Overlay', () => {
                     { xKey: 'x', yKey: 'y2', visible: false },
                 ],
                 overlays: {
-                    noData: { text: 'TEST CUSTOM NO VISIBLE SERIES TEXT' },
+                    noVisibleSeries: { text: 'TEST CUSTOM NO VISIBLE SERIES TEXT' },
                 },
             });
-            await compare();
+            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.innerText).toEqual('TEST CUSTOM NO VISIBLE SERIES TEXT');
         });
     });
 });

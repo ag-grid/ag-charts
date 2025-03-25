@@ -42,6 +42,17 @@ const options = {
 const chart = AgCharts.create(options);
 `;
 
+const getExampleFolderParts = ({ exampleFolder }: { exampleFolder: string }) => {
+    const folders = exampleFolder.split('/');
+    const pageName = folders[folders.length - 3];
+    const exampleName = folders[folders.length - 1];
+
+    return {
+        pageName,
+        exampleName,
+    };
+};
+
 /**
  * Get the file list of the generated contents
  * (without generating the contents)
@@ -90,9 +101,11 @@ type GeneratedContentParams = {
 export const getGeneratedContents = async (params: GeneratedContentParams): Promise<GeneratedContents | undefined> => {
     const { internalFramework, folderPath, ignoreDarkMode, isDev } = params;
     let { extractOptions = false } = params;
-    const folders = folderPath.split('/');
-    const pageName = folders[folders.length - 3];
-    const exampleName = folders[folders.length - 1];
+    const { pageName, exampleName } = getExampleFolderParts({ exampleFolder: folderPath });
+
+    if (!pageName || !exampleName) {
+        throw new Error('Invalid example folder path: ' + folderPath);
+    }
 
     const sourceFileList = await fs.readdir(folderPath);
 

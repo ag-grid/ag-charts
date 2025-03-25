@@ -4,11 +4,12 @@ import {
     arrayOf,
     callback,
     color,
+    colorUnion,
     constant,
+    fillGradientDefaults,
     fillOptionsDef,
-    gradient,
+    fillPatternDefaults,
     lineDashOptionsDef,
-    or,
     positiveNumber,
     ratio,
     required,
@@ -24,7 +25,7 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     toKey: required(string),
     sizeKey: string,
     sizeName: string,
-    fills: arrayOf(or(color, gradient)),
+    fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
     label: {
         spacing: positiveNumber,
@@ -49,3 +50,8 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     tooltip: tooltipOptionsDefs,
     ...commonSeriesOptionsDefs,
 };
+
+// @ts-expect-error undocumented option
+chordSeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
+// @ts-expect-error undocumented option
+chordSeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;

@@ -1,4 +1,5 @@
-import { type Operation, _ModuleSupport } from 'ag-charts-community';
+import { type Operation, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE, POLAR_AXIS_SHAPE },
@@ -13,7 +14,15 @@ export const RADIAL_COLUMN_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-col
         fill: { $palette: 'fill' },
         stroke: { $palette: 'stroke' },
         // @ts-expect-error undocumented option
-        defaultColorRange: { $palette: 'gradient' },
+        fillGradientDefaults: {
+            type: 'gradient',
+            gradient: 'radial',
+            bounds: 'series',
+            colorStops: { $palette: 'gradient' },
+            rotation: 0,
+            reverse: false,
+        } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         columnWidthRatio: 0.5,
         maxColumnWidthRatio: 0.5,
         strokeWidth: 0,

@@ -1,4 +1,5 @@
-import { type AgColorType, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
@@ -172,9 +173,7 @@ export abstract class FlowProportionSeries<
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         const { data, nodes } = this;
 
-        if (data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (data == null) return;
 
         const { fromKey, toKey, sizeKey, idKey, labelKey } = this.properties;
 
@@ -531,14 +530,13 @@ export abstract class FlowProportionSeries<
         _type: FlowProportionDatumType,
         nodeIndex: number,
         format: {
-            fill?: AgColorType;
+            fill?: InternalAgColorType;
             fillOpacity?: number;
             stroke?: string;
             strokeWidth?: number;
             strokeOpacity?: number;
             lineDash?: number[];
             lineDashOffset?: number;
-            defaultColorRange?: string[];
         } = {}
     ): _ModuleSupport.LegendSymbolOptions {
         const { fills, strokes } = this.properties;

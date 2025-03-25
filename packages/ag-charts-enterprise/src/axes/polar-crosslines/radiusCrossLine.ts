@@ -5,22 +5,19 @@ import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 
 const {
     ChartAxisDirection,
-    TempValidate,
-    NUMBER,
+    Property,
     getCrossLineValue,
     validateCrossLineValue,
     normalizeAngle360,
     toRadians,
-
     Group,
     Path,
     Sector,
-    BandScale,
     RotatableText,
 } = _ModuleSupport;
 
 class RadiusCrossLineLabel extends PolarCrossLineLabel {
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     positionAngle?: number = undefined;
 }
 
@@ -49,17 +46,12 @@ export class RadiusCrossLine extends PolarCrossLine {
     }
 
     update(visible: boolean) {
-        const { scale, value } = this;
-        if (!scale || !this.isValid() || !validateCrossLineValue(getCrossLineValue(this), scale)) {
+        const { scale } = this;
+        if (!scale || !validateCrossLineValue(getCrossLineValue(this), scale)) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
             this.labelGroup.visible = false;
             return;
-        }
-
-        if (this.type === 'line' && BandScale.is(scale)) {
-            this.type = 'range';
-            this.range = [value, value];
         }
 
         this.updateRadii();

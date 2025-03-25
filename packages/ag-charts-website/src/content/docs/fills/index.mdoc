@@ -1,0 +1,130 @@
+---
+title: 'Series Fills'
+---
+
+Series and Markers can have solid, gradient and pattern fills, allowing for unique visual styles and improved contrasts between series.
+
+## Fill Types
+
+{% chartExampleRunner title="Fill Types" name="series-fill-types" type="generated" /%}
+
+Supported Fill Types are:
+
+-   **Solid Fill**: A single CSS colour (provided as a `#rgb` hex code, `rgb()` or `rgba()` values, or a CSS colour name such as 'black').
+
+-   **Gradient Fill**: A transition between multiple colours.
+
+-   **Pattern Fill**: Predefined patterns including lines and shapes.
+
+The default colours and fills come from the default or user provided [Theme Palette](./themes/#palette).
+
+## Setting a Fill
+
+### Series
+
+The `fill` attribute is set at the series level.
+
+Solid fills use a CSS colour string. Gradient and Pattern fills require an object with type `gradient` or `pattern`.
+
+```js
+series: [
+    // ...
+    fill: {
+        type: 'gradient'
+    }
+]
+```
+
+### Markers
+
+[Series Markers](./markers) support the same fill options. The `fill` attribute is contained in the `marker` property of the `series` options.
+
+```js
+series: [
+    // ...
+    marker: {
+        fill: {
+            type: 'gradient'
+        },
+    },
+]
+```
+
+## Customisation
+
+### Gradients
+
+{% chartExampleRunner title="Gradient Fill" name="gradient-fill" type="generated" /%}
+
+Gradient `colorStops` define an array of colours for the gradient to use.
+
+The array should contain a minimum of two objects, with each object providing optional values for:
+
+-   `color`: Any valid CSS colour value.
+-   `stop`: A ratio between `0` and `1` indicating the position within the gradient where the colour changes.
+
+```js
+{
+    series: {
+        fill: {
+            type: 'gradient',
+            colorStops: [
+                { color: '#70C1FF', stop: 0.1 },
+                { color: '#FFD86F', stop: 0.3 },
+                { color: '#FF9A60', stop: 0.5},
+                { color: '#D16BA5' },  //will continue to the end
+            ],
+        },
+    },
+}
+```
+
+In this configuration:
+
+-   Each colour stops at the `stop` value, and the next colour begins at that point.
+-   If no `stop` is provided, the fills will be distributed equally.
+-   The last colour is used until the end of the gradient scale.
+
+See the [Gradient API reference](#reference-AgGradientColor) for all the available options.
+
+### Patterns
+
+{% chartExampleRunner title="Pattern Fill" name="pattern-fill" type="generated" /%}
+
+Any of the [stock patterns](#reference-AgPatternColor-pattern) can be provided in the `fill.pattern` property.
+
+```js
+{
+    series: {
+        fill: {
+            type: 'pattern',
+            pattern: 'stars'
+        },
+    },
+}
+```
+
+Stock patterns include:
+
+-   Lines: `vertical-lines`, `horizontal-lines`, `forward-slanted-lines`, `backward-slanted-lines`.
+-   Shapes: `squares`, `circles`, `triangles`, `diamonds`, `stars`, `hearts`, `crosses`.
+
+{% chartExampleRunner title="Pattern Fill Customisation" name="pattern-fill-customisation" type="generated" /%}
+
+Use styling properties such as `stroke`, `fill` and `backgroundFill` to further customise the patterns.
+
+See the [Pattern API reference](#reference-AgPatternColor) all the available options.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgGradientColor" label="Gradient Fill" %}
+{% apiReference id="AgGradientColor" /%}
+{% /tabItem %}
+
+{% tabItem id="AgPatternColor" label="Pattern Fill" %}
+{% apiReference id="AgPatternColor" /%}
+{% /tabItem %}
+
+{% /tabs %}

@@ -1,4 +1,4 @@
-import { type AgRadiusCrossLineOptions, _ModuleSupport, time } from 'ag-charts-community';
+import { type AgRadiusCrossLineOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     type AxisModuleDefinition,
     type OptionsDefs,
@@ -8,7 +8,6 @@ import {
     constant,
     date,
     fontOptionsDef,
-    instanceOf,
     number,
     or,
     positiveNumber,
@@ -40,20 +39,20 @@ const {
     commonAxisOptionsDefs,
     commonCrossLineOptionsDefs,
     commonCrossLineLabelOptionsDefs,
-    without,
+    numberFormatValidator,
 } = _ModuleSupport;
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
-    ...continuousAxisOptions(or(number, date), or(number, date, instanceOf(time.TimeInterval))),
     type: required(constant('ordinal-time')),
-    paddingInner: positiveNumber,
-    paddingOuter: positiveNumber,
-    groupPaddingInner: positiveNumber,
+    paddingInner: ratio,
+    paddingOuter: ratio,
+    groupPaddingInner: ratio,
     label: {
         ...cartesianAxisLabelOptionsDefs,
         format: string,
     },
+    interval: continuousAxisOptions(or(number, date), true).interval,
     crosshair: cartesianAxisCrosshairOptions(true),
 };
 
@@ -67,20 +66,25 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> =
     label: {
         ...commonAxisLabelOptionsDefs,
         orientation: union('fixed', 'parallel', 'perpendicular'),
-        format: string,
+        format: numberFormatValidator,
     },
 };
 
+const invalidOptionsFromIntegratedCharts: OptionsDefs<AgAngleCategoryAxisOptions> = {
+    // @ts-expect-error integrated sets this from the formatting panel, but it isn't relevant.
+    innerRadiusRatio: ratio,
+};
+
 export const angleCategoryAxisOptionsDefs: OptionsDefs<AgAngleCategoryAxisOptions> = {
-    ...without(commonAxisOptionsDefs, ['interval']),
-    ...continuousAxisOptions(number),
+    ...commonAxisOptionsDefs,
+    ...invalidOptionsFromIntegratedCharts,
     type: required(constant('angle-category')),
     shape: union('polygon', 'circle'),
     crossLines: arrayOfDefs(commonCrossLineOptionsDefs),
     startAngle: number,
     endAngle: number,
-    paddingInner: positiveNumber,
-    groupPaddingInner: positiveNumber,
+    paddingInner: ratio,
+    groupPaddingInner: ratio,
     label: {
         ...commonAxisLabelOptionsDefs,
         orientation: union('fixed', 'parallel', 'perpendicular'),
@@ -94,13 +98,16 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
     shape: union('polygon', 'circle'),
     positionAngle: number,
     innerRadiusRatio: ratio,
-    crossLines: arrayOfDefs<AgRadiusCrossLineOptions>({
-        ...commonCrossLineOptionsDefs,
-        label: {
-            ...commonCrossLineLabelOptionsDefs,
-            positionAngle: number,
+    crossLines: arrayOfDefs<AgRadiusCrossLineOptions>(
+        {
+            ...commonCrossLineOptionsDefs,
+            label: {
+                ...commonCrossLineLabelOptionsDefs,
+                positionAngle: number,
+            },
         },
-    }),
+        'cross-line options'
+    ),
     title: {
         enabled: boolean,
         text: string,
@@ -110,27 +117,29 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
     },
     label: {
         ...commonAxisLabelOptionsDefs,
-        format: string,
+        format: numberFormatValidator,
     },
 };
 
 export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOptions> = {
-    ...without(commonAxisOptionsDefs, ['interval']),
-    ...continuousAxisOptions(number),
+    ...commonAxisOptionsDefs,
     type: required(constant('radius-category')),
     positionAngle: number,
     innerRadiusRatio: ratio,
-    paddingInner: positiveNumber,
-    paddingOuter: positiveNumber,
-    groupPaddingInner: positiveNumber,
+    paddingInner: ratio,
+    paddingOuter: ratio,
+    groupPaddingInner: ratio,
     label: commonAxisLabelOptionsDefs,
-    crossLines: arrayOfDefs<AgRadiusCrossLineOptions>({
-        ...commonCrossLineOptionsDefs,
-        label: {
-            ...commonCrossLineLabelOptionsDefs,
-            positionAngle: number,
+    crossLines: arrayOfDefs<AgRadiusCrossLineOptions>(
+        {
+            ...commonCrossLineOptionsDefs,
+            label: {
+                ...commonCrossLineLabelOptionsDefs,
+                positionAngle: number,
+            },
         },
-    }),
+        'cross-line options'
+    ),
     title: {
         enabled: boolean,
         text: string,

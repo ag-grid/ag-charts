@@ -1,4 +1,5 @@
 import { type AgCandlestickSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 const { CARTESIAN_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
@@ -19,23 +20,36 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
             ],
         },
         // @ts-expect-error undocumented-option
-        defaultColorRange: {
-            $if: [
-                { $isGradient: [{ $palette: `${key}.fill` }] },
-                {
-                    $map: [
-                        { $path: ['./color', undefined, { $value: '$1' }] },
-                        {
-                            $path: ['./colorStops', undefined, { $palette: `${key}.fill` }],
-                        },
+        fillGradientDefaults: {
+            type: 'gradient',
+            gradient: 'linear',
+            bounds: 'item',
+            colorStops: {
+                $if: [
+                    {
+                        $or: [
+                            { $isGradient: [{ $palette: `${key}.fill` }] },
+                            { $isPattern: [{ $palette: `${key}.fill` }] },
+                        ],
+                    },
+                    {
+                        $map: [
+                            { $path: ['./color', undefined, { $value: '$1' }] },
+                            {
+                                $path: ['./colorStops', undefined, { $palette: `${key}.fill` }],
+                            },
+                        ],
+                    },
+                    [
+                        { $mix: [{ $palette: `${key}.fill` }, 'black', 0.15] },
+                        { $mix: [{ $palette: `${key}.fill` }, 'white', 0.15] },
                     ],
-                },
-                [
-                    { $mix: [{ $palette: `${key}.fill` }, 'black', 0.15] },
-                    { $mix: [{ $palette: `${key}.fill` }, 'white', 0.15] },
                 ],
-            ],
-        },
+            } as any,
+            rotation: 0,
+            reverse: false,
+        } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
     };
 }
 

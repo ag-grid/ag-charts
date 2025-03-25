@@ -23,6 +23,7 @@ const {
     Text,
     Marker,
     mergeDefaults,
+    getShapeStyle,
 } = _ModuleSupport;
 
 export interface RadarPathPoint {
@@ -66,15 +67,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     protected resetInvalidToZero: boolean = false;
 
-    protected get defaultShapeStyle(): _ModuleSupport.ShapeFillDefaults {
-        return {
-            gradient: 'radial',
-            bounds: 'series',
-            rotation: 0,
-            colorStops: this.properties.marker.defaultColorRange,
-        };
-    }
-
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -110,10 +102,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) {
-            return;
-        }
-
         const { angleKey, radiusKey } = this.properties;
         const extraProps = [];
 
@@ -165,7 +153,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     override createNodeData() {
         const { processedData, dataModel } = this;
 
-        if (!processedData || !dataModel || !this.properties.isValid()) return;
+        if (!processedData || !dataModel) return;
 
         const { angleKey, radiusKey, angleName, radiusName, marker, label } = this.properties;
         const angleScale = this.axes[ChartAxisDirection.X]?.scale;
@@ -412,21 +400,24 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
 
+        const markerStyle = getShapeStyle(
+            {
+                shape: marker.shape,
+                enabled: marker.enabled || strokeWidth <= 0,
+                fill: this.getMarkerFill() ?? marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+                stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity: marker.fillOpacity,
+                strokeOpacity: marker.strokeOpacity,
+                strokeWidth: marker.strokeWidth,
+                lineDash: marker.lineDash,
+                lineDashOffset: marker.lineDashOffset,
+            },
+            marker.fillGradientDefaults,
+            marker.fillPatternDefaults
+        );
+
         return {
-            marker: _ModuleSupport.getShapeStyle(
-                {
-                    shape: marker.shape,
-                    fill: this.getMarkerFill() ?? marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                    stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity: marker.fillOpacity,
-                    strokeOpacity: marker.strokeOpacity,
-                    strokeWidth: marker.strokeWidth,
-                    lineDash: marker.lineDash,
-                    lineDashOffset: marker.lineDashOffset,
-                    enabled: marker.enabled || strokeWidth <= 0,
-                },
-                this.defaultShapeStyle
-            ),
+            marker: markerStyle,
             line: {
                 stroke,
                 strokeOpacity,
@@ -437,7 +428,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        if (!this.properties.isValid() || legendType !== 'category') {
+        if (legendType !== 'category') {
             return [];
         }
 
