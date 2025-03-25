@@ -12,7 +12,7 @@ export interface AgBaseCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions>
     /** The range of values from the data used to display lines at a desired chart region. This property is only used for Cross Line type `range`. */
     range?: [AxisValue, AxisValue];
     /** The colour to use for the fill of the range. */
-    fill?: string;
+    fill?: CssColor;
     /** The opacity of the fill for the range. */
     fillOpacity?: Opacity;
     /** The colour of the stroke for the lines. */

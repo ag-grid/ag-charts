@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaLabelRangesToolbar: '範囲',
     ariaLabelSettingsTabBar: '設定',
     ariaLabelZoomToolbar: 'ズーム',
-    ariaValuePanRange: '${min}[percent] から ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] から ${max}[percent0to2dp]',
     contextMenuDownload: 'ダウンロード',
     contextMenuPanToCursor: 'ここにパンする',
     contextMenuToggleOtherSeries: '他のシリーズを切り替える',

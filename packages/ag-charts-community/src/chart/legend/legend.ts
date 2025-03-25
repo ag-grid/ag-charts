@@ -1,5 +1,5 @@
-import { Logger, clamp } from 'ag-charts-core';
 import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
+import { Logger, clamp } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -26,22 +26,10 @@ import { isPatternFill } from '../../scene/util/fill';
 import { createId } from '../../util/id';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
+import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
-import {
-    BOOLEAN,
-    COLOR_STRING,
-    FONT_STYLE,
-    FONT_WEIGHT,
-    FUNCTION,
-    OBJECT,
-    POSITION,
-    POSITIVE_NUMBER,
-    STRING,
-    TempValidate,
-    UNION,
-} from '../../util/validation';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { Page } from '../gridLayout';
@@ -51,7 +39,6 @@ import { InteractionState } from '../interaction/interactionManager';
 import { LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
-import { MARKER_SHAPE } from '../series/seriesMarker';
 import { applyShapeStyle, getShapeStyle } from '../series/shapeUtil';
 import { type TooltipMeta } from '../tooltip/tooltip';
 import { ZIndexMap } from '../zIndexMap';
@@ -63,25 +50,25 @@ import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
 
 class LegendLabel extends BaseProperties {
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     maxLength?: number = undefined;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     color: string = 'black';
 
-    @TempValidate(FONT_STYLE, { optional: true })
+    @Property
     fontStyle?: FontStyle = undefined;
 
-    @TempValidate(FONT_WEIGHT, { optional: true })
+    @Property
     fontWeight?: FontWeight = undefined;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     fontSize: number = 12;
 
-    @TempValidate(STRING)
+    @Property
     fontFamily: string = 'Verdana, sans-serif';
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     formatter?: Formatter<AgChartLegendLabelFormatterParams>;
 }
 
@@ -90,70 +77,70 @@ class LegendMarker extends BaseProperties {
      * If the marker type is set, the legend will always use that marker type for all its items,
      * regardless of the type that comes from the `data`.
      */
-    @TempValidate(MARKER_SHAPE, { optional: true })
+    @Property
     shape?: AgMarkerShape = undefined;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     size = 15;
 
     /**
      * Padding between the marker and the label within each legend item.
      */
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     padding: number = 8;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth?: number;
 
-    @TempValidate(BOOLEAN)
+    @Property
     enabled?: boolean;
 }
 
 class LegendLine extends BaseProperties {
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth?: number;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     length?: number;
 }
 
 class LegendItem extends BaseProperties {
     /** Used to constrain the width of legend items. */
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     maxWidth?: number;
     /**
      * The legend uses grid layout for its items, occupying as few columns as possible when positioned to left or right,
      * and as few rows as possible when positioned to top or bottom. This config specifies the amount of horizontal
      * padding between legend items.
      */
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     paddingX: number = 16;
     /**
      * The legend uses grid layout for its items, occupying as few columns as possible when positioned to left or right,
      * and as few rows as possible when positioned to top or bottom. This config specifies the amount of vertical
      * padding between legend items.
      */
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     paddingY: number = 8;
 
-    @TempValidate(BOOLEAN)
+    @Property
     showSeriesStroke: boolean = false;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly marker = new LegendMarker();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new LegendLabel();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly line = new LegendLine();
 }
 
 class LegendListeners extends BaseProperties implements AgChartLegendListeners {
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     legendItemClick?: (event: AgChartLegendClickEvent) => void;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void;
 }
 
@@ -220,16 +207,16 @@ export class Legend extends BaseProperties {
 
     context!: never;
 
-    @TempValidate(BOOLEAN)
+    @Property
     toggleSeries: boolean = true;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly pagination: Pagination;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly item = new LegendItem();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly listeners = new LegendListeners();
 
     @ObserveChanges<Legend>((target, newValue?: boolean, oldValue?: boolean) => {
@@ -247,34 +234,34 @@ export class Legend extends BaseProperties {
             stateManager.restoreState(legendManager);
         }
     })
-    @TempValidate(BOOLEAN)
+    @Property
     enabled: boolean = true;
 
-    @TempValidate(POSITION)
+    @Property
     position: AgChartLegendPosition = 'bottom';
 
     /** Used to constrain the width of the legend. */
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     maxWidth?: number;
 
     /** Used to constrain the height of the legend. */
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     maxHeight?: number;
 
     /** Reverse the display order of legend items if `true`. */
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     reverseOrder?: boolean;
 
-    @TempValidate(UNION(['horizontal', 'vertical'], 'an orientation'), { optional: true })
+    @Property
     orientation?: AgChartLegendOrientation;
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     preventHidingAll?: boolean;
 
     /**
      * Spacing between the legend and the edge of the chart's element.
      */
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     spacing = 20;
 
     private readonly destroyFns: Function[] = [];
@@ -1000,7 +987,21 @@ export class Legend extends BaseProperties {
 
         if (toggleSeries) {
             const legendData = chartService.series.flatMap((s) => s.getLegendData('category'));
-            const numVisibleItems = legendData.filter((d) => d.enabled).length;
+
+            // Get the number of visible items but only count each legend item name once
+            let numVisibleItems = 0;
+            const visibleLegendItemNames = new Set<string>();
+            for (const d of legendData) {
+                if (!d.enabled) continue;
+                numVisibleItems += 1;
+                if (d.legendItemName != null) {
+                    visibleLegendItemNames.add(d.legendItemName);
+                }
+            }
+            if (visibleLegendItemNames.size > 0) {
+                numVisibleItems = visibleLegendItemNames.size;
+            }
+
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 
             this.ctx.chartEventManager.legendItemDoubleClick(

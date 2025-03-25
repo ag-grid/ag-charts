@@ -3,8 +3,8 @@ import {
     type OptionsDefs,
     constant,
     fillOptionsDef,
+    geoJson,
     lineDashOptionsDef,
-    object,
     required,
     strokeOptionsDef,
 } from 'ag-charts-core';
@@ -13,7 +13,7 @@ const { commonSeriesOptionsDefs } = _ModuleSupport;
 
 export const mapShapeBackgroundSeriesOptionsDef: OptionsDefs<AgMapShapeBackgroundOptions> = {
     type: required(constant('map-shape-background')),
-    topology: object,
+    topology: geoJson,
     ...commonSeriesOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,

@@ -6,10 +6,10 @@ import type { AnnotationTextAlignment, AnnotationTextPosition } from '../text/ut
 import { convertPoint } from '../utils/values';
 import { StartEndProperties } from './startEndProperties';
 
-const { STRING, TempValidate } = _ModuleSupport;
+const { Property } = _ModuleSupport;
 
 export class TextualStartEndProperties extends Localisable(Label(Font(StartEndProperties))) {
-    @TempValidate(STRING)
+    @Property
     text: string = '';
 
     position: AnnotationTextPosition = 'top';
@@ -17,10 +17,6 @@ export class TextualStartEndProperties extends Localisable(Label(Font(StartEndPr
     placement: 'inside' | 'outside' = 'inside';
     width?: number;
     placeholderText?: string = 'inputTextareaPlaceholder';
-
-    override isValidWithContext(_context: AnnotationContext, warningPrefix?: string) {
-        return super.isValid(warningPrefix);
-    }
 
     override getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.color;

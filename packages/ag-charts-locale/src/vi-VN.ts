@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaLabelRangesToolbar: 'Phạm vi',
     ariaLabelSettingsTabBar: 'Cài đặt',
     ariaLabelZoomToolbar: 'Thu phóng',
-    ariaValuePanRange: '${min}[percent] đến ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] đến ${max}[percent0to2dp]',
     contextMenuDownload: 'Tải về',
     contextMenuPanToCursor: 'Chuyển đến đây',
     contextMenuToggleOtherSeries: 'Chuyển đổi các dòng khác',

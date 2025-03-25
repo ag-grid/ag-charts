@@ -132,10 +132,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) {
-            return;
-        }
-
         const { xKey, yLowKey, yHighKey, fastDataProcessing } = this.properties;
         const grouped = !fastDataProcessing;
 

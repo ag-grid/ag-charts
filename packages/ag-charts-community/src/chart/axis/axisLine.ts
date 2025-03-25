@@ -1,12 +1,12 @@
-import { BOOLEAN, COLOR_STRING, POSITIVE_NUMBER, TempValidate } from '../../util/validation';
+import { Property } from '../../util/properties';
 
 export class AxisLine {
-    @TempValidate(BOOLEAN)
+    @Property
     enabled = true;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     width: number = 1;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string = undefined;
 }

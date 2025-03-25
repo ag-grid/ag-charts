@@ -17,32 +17,10 @@ import { TransformableText } from '../../scene/shape/text';
 import { createId } from '../../util/id';
 import { clampArray } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
-import {
-    AND,
-    ARRAY,
-    BOOLEAN,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    FONT_STYLE,
-    FONT_WEIGHT,
-    LINE_DASH,
-    NUMBER,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    TempValidate,
-    UNION,
-} from '../../util/validation';
+import { Property } from '../../util/properties';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
-import {
-    type CrossLine,
-    type CrossLineType,
-    MATCHING_CROSSLINE_TYPE,
-    getCrossLineValue,
-    validateCrossLineValue,
-} from './crossLine';
+import { type CrossLine, type CrossLineType, getCrossLineValue, validateCrossLineValue } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
 import {
     POSITION_TOP_COORDINATES,
@@ -51,67 +29,44 @@ import {
     labelDirectionHandling,
 } from './crossLineLabelPosition';
 
-const CROSSLINE_LABEL_POSITION = UNION(
-    [
-        'top',
-        'left',
-        'right',
-        'bottom',
-        'top-left',
-        'top-right',
-        'bottom-left',
-        'bottom-right',
-        'inside',
-        'inside-left',
-        'inside-right',
-        'inside-top',
-        'inside-bottom',
-        'inside-top-left',
-        'inside-bottom-left',
-        'inside-top-right',
-        'inside-bottom-right',
-    ],
-    'crossLine label position'
-);
-
 class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCrossLineLabelOptions {
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     enabled?: boolean;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     text?: string;
 
-    @TempValidate(FONT_STYLE, { optional: true })
+    @Property
     fontStyle?: FontStyle;
 
-    @TempValidate(FONT_WEIGHT, { optional: true })
+    @Property
     fontWeight?: FontWeight;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     fontSize: number = 14;
 
-    @TempValidate(STRING)
+    @Property
     fontFamily: string = 'Verdana, sans-serif';
 
     /**
      * The padding between the label and the line.
      */
-    @TempValidate(NUMBER)
+    @Property
     padding: number = 5;
 
     /**
      * The color of the labels.
      */
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     color?: string = 'rgba(87, 87, 87, 1)';
 
-    @TempValidate(CROSSLINE_LABEL_POSITION, { optional: true })
+    @Property
     position?: CrossLineLabelPosition;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     rotation?: number;
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     parallel?: boolean;
 }
 
@@ -121,42 +76,40 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     static readonly className = 'CrossLine';
     readonly id = createId(this);
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     enabled?: boolean;
 
-    @TempValidate(UNION(['range', 'line'], 'a crossLine type'))
+    @Property
     type!: CrossLineType;
 
-    @TempValidate(AND(MATCHING_CROSSLINE_TYPE('range'), ARRAY.restrict({ length: 2 })), {
-        optional: true,
-    })
+    @Property
     range?: [unknown, unknown];
 
-    @TempValidate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
+    @Property
     value?: unknown;
 
-    @TempValidate(COLOR_STRING_ARRAY)
+    @Property
     defaultColorRange: string[] = [];
 
-    @TempValidate(COLOR_STRING)
+    @Property
     fill: string = '#c16068';
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     fillOpacity?: number;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     strokeWidth?: number;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     strokeOpacity?: number;
 
-    @TempValidate(LINE_DASH, { optional: true })
+    @Property
     lineDash?: [];
 
-    @TempValidate(OBJECT)
+    @Property
     label: CartesianCrossLineLabel = new CartesianCrossLineLabel();
 
     scale?: Scale<any, number> = undefined;
@@ -190,14 +143,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private _isRange: boolean | undefined = undefined;
     update(visible: boolean) {
         const { enabled, type, data, scale } = this;
-        if (
-            !scale ||
-            !enabled ||
-            !visible ||
-            !this.isValid() ||
-            !validateCrossLineValue(getCrossLineValue(this), scale) ||
-            data == null
-        ) {
+        if (!scale || !enabled || !visible || !validateCrossLineValue(getCrossLineValue(this), scale) || data == null) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
             this.labelGroup.visible = false;

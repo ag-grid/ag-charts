@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { AND, ARRAY, FUNCTION, NUMBER, OR, ToolbarButtonProperties, TempValidate } = _ModuleSupport;
+const { ToolbarButtonProperties, Property } = _ModuleSupport;
 
 type RangesButtonValue =
     | number
@@ -8,6 +8,6 @@ type RangesButtonValue =
     | ((start: Date | number, end: Date | number) => [Date | number, Date | number]);
 
 export class RangesButtonProperties extends ToolbarButtonProperties {
-    @TempValidate(OR(NUMBER, AND(ARRAY, ARRAY.restrict({ length: 2 })), FUNCTION))
+    @Property
     public value!: RangesButtonValue;
 }

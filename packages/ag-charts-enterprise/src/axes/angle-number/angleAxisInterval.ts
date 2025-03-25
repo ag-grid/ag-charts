@@ -1,8 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { OR, POSITIVE_NUMBER, NAN, AxisInterval, TempValidate } = _ModuleSupport;
+const { AxisInterval, Property } = _ModuleSupport;
 
 export class AngleAxisInterval extends AxisInterval<number> {
-    @TempValidate(OR(POSITIVE_NUMBER, NAN))
+    @Property
     override minSpacing?: number;
 }

@@ -49,6 +49,10 @@ export function preparePieSeriesAnimationFunctions(
         let { startAngle, endAngle, innerRadius, outerRadius } = sect;
         let { fill, stroke } = datum.sectorFormat;
 
+        if (status === 'updated' && sect.previousDatum == null) {
+            status = 'added';
+        }
+
         if (status === 'unknown' || (status === 'added' && !prevFromProps)) {
             // Start of animation (full new data) - sweep in.
             startAngle = rotation;

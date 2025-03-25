@@ -3,7 +3,6 @@ import { createElement, entries } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
-    ANCHOR_POINT,
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
     UNIT,
@@ -19,10 +18,6 @@ import {
 } from './zoomUtils';
 
 const {
-    ARRAY,
-    BOOLEAN,
-    STRING,
-    UNION,
     ActionOnSet,
     BaseProperties,
     ChartAxisDirection,
@@ -30,14 +25,14 @@ const {
     PropertiesArray,
     Toolbar,
     ToolbarButtonProperties,
-    TempValidate,
+    Property,
 } = _ModuleSupport;
 
 class ZoomButtonProperties extends ToolbarButtonProperties {
-    @TempValidate(UNION(['reset', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right', 'pan-start', 'pan-end']))
+    @Property
     value!: 'reset' | 'zoom-in' | 'zoom-out' | 'pan-left' | 'pan-right' | 'pan-start' | 'pan-end';
 
-    @TempValidate(STRING)
+    @Property
     section!: string;
 }
 
@@ -48,7 +43,7 @@ interface ZoomToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
 type ZoomButtonsVisible = 'always' | 'zoomed' | 'hover';
 
 export class ZoomToolbar extends BaseProperties {
-    @TempValidate(BOOLEAN)
+    @Property
     @ActionOnSet<ZoomToolbar>({
         changeValue(enabled) {
             this.toolbar?.setHidden(!enabled);
@@ -56,10 +51,10 @@ export class ZoomToolbar extends BaseProperties {
     })
     public enabled?: boolean = false;
 
-    @TempValidate(ARRAY)
+    @Property
     public buttons = new PropertiesArray(ZoomButtonProperties);
 
-    @TempValidate(UNION(['always', 'zoomed', 'hover']))
+    @Property
     @ActionOnSet<ZoomToolbar>({
         changeValue(visible: ZoomButtonsVisible, oldValue: any) {
             if (oldValue == null) return;
@@ -68,10 +63,10 @@ export class ZoomToolbar extends BaseProperties {
     })
     public visible: ZoomButtonsVisible = 'hover';
 
-    @TempValidate(ANCHOR_POINT)
+    @Property
     public anchorPointX?: AgZoomAnchorPoint;
 
-    @TempValidate(ANCHOR_POINT)
+    @Property
     public anchorPointY?: AgZoomAnchorPoint;
 
     private readonly verticalSpacing = 10;
@@ -105,6 +100,9 @@ export class ZoomToolbar extends BaseProperties {
 
         this.toolbar = new Toolbar<ZoomToolbarButtonOptions>(ctx.localeManager);
         this.container.addChild(this.toolbar);
+
+        // Initially translate by an estimated offset to prevent flash on load
+        this.toolbar.getElement().style.transform = `translateY(54px)`;
 
         this.toggleVisibility(this.visible === 'always');
 

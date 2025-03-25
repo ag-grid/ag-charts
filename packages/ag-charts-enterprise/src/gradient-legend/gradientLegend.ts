@@ -1,15 +1,11 @@
 import { type AgChartLegendPosition, type AgGradientLegendScaleOptions, _ModuleSupport } from 'ag-charts-community';
 
 const {
-    BOOLEAN,
-    OBJECT,
-    POSITION,
-    POSITIVE_NUMBER,
     BaseProperties,
     AxisTicks,
     ZIndexMap,
     ProxyProperty,
-    TempValidate,
+    Property,
     LayoutElement,
     createId,
     Group,
@@ -20,10 +16,10 @@ const {
 } = _ModuleSupport;
 
 class GradientBar extends BaseProperties {
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     thickness = 16;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     preferredLength = 100;
 }
 
@@ -55,16 +51,16 @@ export class GradientLegend {
     private readonly ticksGroup = new Group({ name: 'legend-axis-group' });
     private readonly destroyFns: Function[] = [];
 
-    @TempValidate(BOOLEAN)
+    @Property
     enabled = false;
 
-    @TempValidate(POSITION)
+    @Property
     position: AgChartLegendPosition = 'bottom';
 
-    @TempValidate(BOOLEAN)
+    @Property
     reverseOrder: boolean = false;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly gradient = new GradientBar();
 
     private isVertical(): boolean {
@@ -74,7 +70,7 @@ export class GradientLegend {
     /**
      * Spacing between the legend and the edge of the chart's element.
      */
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     spacing = 20;
 
     scale: GradientLegendScale;

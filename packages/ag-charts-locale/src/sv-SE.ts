@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     ariaLabelRangesToolbar: 'Områden',
     ariaLabelSettingsTabBar: 'Inställningar',
     ariaLabelZoomToolbar: 'Zooma',
-    ariaValuePanRange: '${min}[percent] till ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] till ${max}[percent0to2dp]',
     contextMenuDownload: 'Ladda ner',
     contextMenuPanToCursor: 'Panorera hit',
     contextMenuToggleOtherSeries: 'Växla andra serier',

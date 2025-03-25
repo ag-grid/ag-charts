@@ -43,6 +43,8 @@ import type {
     ToolbarButton,
 } from 'ag-charts-types';
 
+import { numberFormatValidator } from './axesOptionsDefs';
+
 const shapeValidator = or(
     union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle'),
     callback
@@ -109,10 +111,13 @@ const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     renderer: callback,
 };
 
-const contextMenuActionOptionsDefs: OptionsDefs<AgContextMenuAction> = {
-    label: string,
-    action: callback,
-};
+const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
+    {
+        label: string,
+        action: callback,
+    },
+    'a context menu actions array'
+);
 
 export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
     label: string,
@@ -266,7 +271,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         scale: {
             label: {
                 ...fontOptionsDef,
-                format: string,
+                format: numberFormatValidator,
                 formatter: callback,
             },
             padding: positiveNumber,
@@ -318,10 +323,10 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     contextMenu: {
         enabled: boolean,
-        extraActions: arrayOfDefs(contextMenuActionOptionsDefs),
-        extraSeriesAreaActions: arrayOfDefs(contextMenuActionOptionsDefs),
-        extraNodeActions: arrayOfDefs(contextMenuActionOptionsDefs),
-        extraLegendItemActions: arrayOfDefs(contextMenuActionOptionsDefs),
+        extraActions: contextMenuActionsArray,
+        extraSeriesAreaActions: contextMenuActionsArray,
+        extraNodeActions: contextMenuActionsArray,
+        extraLegendItemActions: contextMenuActionsArray,
     },
     dataSource: {
         getData: callback,
@@ -340,7 +345,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
                 ...toolbarButtonOptionsDefs,
                 value: or(number, and(arrayOf(or(number, date)), arrayLength(2, 2)), callback),
             },
-            'range button options'
+            'range button options array'
         ),
     },
     // modules
@@ -350,7 +355,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     background: {
         visible: boolean,
-        fill: fillOptionsDef.fill,
+        fill: color,
         // enterprise
         image: {
             url: string,
@@ -394,11 +399,14 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         },
         buttons: {
             enabled: boolean,
-            buttons: arrayOfDefs<AgZoomButton>({
-                ...toolbarButtonOptionsDefs,
-                value: union('reset', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right', 'pan-start', 'pan-end'),
-                section: string,
-            }),
+            buttons: arrayOfDefs<AgZoomButton>(
+                {
+                    ...toolbarButtonOptionsDefs,
+                    value: union('reset', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right', 'pan-start', 'pan-end'),
+                    section: string,
+                },
+                'zoom button options array'
+            ),
             visible: union('always', 'zoomed', 'hover'),
         },
     },

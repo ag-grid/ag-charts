@@ -13,8 +13,8 @@ import { Line } from '../../scene/shape/line';
 import { TransformableText } from '../../scene/shape/text';
 import { normalizeAngle360 } from '../../util/angle';
 import { findMinMax } from '../../util/number';
+import { Property } from '../../util/properties';
 import { StateMachine } from '../../util/stateMachine';
-import { POSITION, POSITIVE_NUMBER, TempValidate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -26,12 +26,10 @@ import {
     NiceMode,
     type TickDatum,
     axisLinePosition,
-    resetAxisGroupFnNoRotation,
-} from './axisUtil';
-import {
     prepareAxisAnimationContext,
     prepareAxisAnimationFunctions,
     resetAxisGroupFn,
+    resetAxisGroupFnNoRotation,
     resetAxisLabelSelectionFn,
     resetAxisLineSelectionFn,
     resetAxisSelectionFn,
@@ -57,10 +55,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return value instanceof CartesianAxis;
     }
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     thickness?: number;
 
-    @TempValidate(POSITION)
+    @Property
     position!: AgCartesianAxisPosition;
 
     protected animationManager: AnimationManager;

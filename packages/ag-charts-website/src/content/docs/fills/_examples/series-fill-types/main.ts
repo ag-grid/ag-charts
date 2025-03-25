@@ -1,4 +1,4 @@
-import { AgAreaSeriesOptions, AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgBarSeriesOptions, AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -7,19 +7,33 @@ const options: AgCartesianChartOptions = {
     data: getData(),
     series: [
         {
-            type: 'area',
-            xKey: 'animal',
-            xName: 'Animal',
-            yKey: 'lifespan',
-            yName: 'Lifespan',
-            strokeWidth: 1,
-            interpolation: {
-                type: 'smooth',
-            },
-            marker: {
-                size: 15,
-                strokeWidth: 1,
-            },
+            type: 'bar',
+            xKey: 'station',
+            yKey: 'early',
+        },
+        {
+            type: 'bar',
+            xKey: 'station',
+            yKey: 'morningPeak',
+            yName: 'Morning peak',
+        },
+        {
+            type: 'bar',
+            xKey: 'station',
+            yKey: 'interPeak',
+            yName: 'Between peak',
+        },
+        {
+            type: 'bar',
+            xKey: 'station',
+            yKey: 'afternoonPeak',
+            yName: 'Afternoon peak',
+        },
+        {
+            type: 'bar',
+            xKey: 'station',
+            yKey: 'evening',
+            yName: 'Evening',
         },
     ],
 };
@@ -27,39 +41,29 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function defaultFill() {
-    (options.series![0] as AgAreaSeriesOptions).fill = undefined;
+    options.series?.forEach((series) => {
+        (series as AgBarSeriesOptions).fill = undefined;
+    });
+
     chart.update(options);
 }
 
 function gradientFill() {
-    (options.series![0] as AgAreaSeriesOptions).fill = {
-        type: 'gradient',
-    };
+    options.series?.forEach((series) => {
+        (series as AgBarSeriesOptions).fill = {
+            type: 'gradient',
+        };
+    });
+
     chart.update(options);
 }
 
 function patternFill() {
-    (options.series![0] as AgAreaSeriesOptions).fill = {
-        type: 'pattern',
-    };
-    chart.update(options);
-}
+    options.series?.forEach((series) => {
+        (series as AgBarSeriesOptions).fill = {
+            type: 'pattern',
+        };
+    });
 
-function defaultMarkerFill() {
-    (options.series![0] as AgAreaSeriesOptions).marker!.fill = undefined;
-    chart.update(options);
-}
-
-function gradientMarkerFill() {
-    (options.series![0] as AgAreaSeriesOptions).marker!.fill = {
-        type: 'gradient',
-    };
-    chart.update(options);
-}
-
-function patternMarkerFill() {
-    (options.series![0] as AgAreaSeriesOptions).marker!.fill = {
-        type: 'pattern',
-    };
     chart.update(options);
 }

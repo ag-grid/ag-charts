@@ -3,30 +3,19 @@ import { Logger } from 'ag-charts-core';
 
 import { MiniChartGroup } from './shapes/miniChartGroup';
 
-const {
-    TempValidate,
-    BOOLEAN,
-    POSITIVE_NUMBER,
-    ZIndexMap,
-    ActionOnSet,
-    CategoryAxis,
-    TextUtils,
-    Padding,
-    Group,
-    BBox,
-    ProxyProperty,
-} = _ModuleSupport;
+const { Property, ZIndexMap, ActionOnSet, CategoryAxis, TextUtils, Padding, Group, BBox, ProxyProperty } =
+    _ModuleSupport;
 
 class MiniChartPadding {
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     top: number = 0;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     bottom: number = 0;
 }
 
 export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @TempValidate(BOOLEAN)
+    @Property
     enabled: boolean = false;
 
     @ProxyProperty(['seriesRoot', 'inset'])

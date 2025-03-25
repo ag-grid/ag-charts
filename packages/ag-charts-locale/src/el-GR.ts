@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaLabelRangesToolbar: 'Εύρη',
     ariaLabelSettingsTabBar: 'Ρυθμίσεις',
     ariaLabelZoomToolbar: 'Ζουμ',
-    ariaValuePanRange: '${min}[percent] έως ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] έως ${max}[percent0to2dp]',
     contextMenuDownload: 'Λήψη',
     contextMenuPanToCursor: 'Μετακίνηση εδώ',
     contextMenuToggleOtherSeries: 'Εναλλαγή άλλων σειρών',

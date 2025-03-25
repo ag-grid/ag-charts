@@ -102,7 +102,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, yKey, totals } = this.properties;
         const { data = [] } = this;
 
-        if (!this.properties.isValid() || !this.visible) return;
+        if (!this.visible) return;
 
         const positiveNumber = (v: unknown) => isContinuous(v) && Number(v) >= 0;
         const negativeNumber = (v: unknown) => isContinuous(v) && Number(v) >= 0;
@@ -714,7 +714,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         // Legend item toggling is unsupported.
     }
 
-    override animateEmptyUpdateReady({ datumSelection, labelSelection, contextData, paths }: WaterfallAnimationData) {
+    override animateEmptyUpdateReady(opts: WaterfallAnimationData) {
+        const { datumSelection, labelSelection, contextData } = opts;
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
 
@@ -723,15 +724,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { pointData } = contextData;
         if (!pointData) return;
 
-        const [lineNode] = paths;
         if (this.isVertical()) {
-            this.animateConnectorLinesVertical(lineNode, pointData);
+            this.animateConnectorLinesVertical(opts);
         } else {
-            this.animateConnectorLinesHorizontal(lineNode, pointData);
+            this.animateConnectorLinesHorizontal(opts);
         }
     }
 
-    protected animateConnectorLinesHorizontal(lineNode: _ModuleSupport.Path, pointData: WaterfallNodePointDatum[]) {
+    protected animateConnectorLinesHorizontal(opts: WaterfallAnimationData) {
+        const { pointData = [] } = opts.contextData;
+        const [lineNode] = opts.paths;
         const { path: linePath } = lineNode;
 
         this.updateLineNode(lineNode);
@@ -777,10 +779,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
                 lineNode.checkPathDirty();
             },
+            onStop: () => this.resetConnectorLinesPath(opts),
         });
     }
 
-    protected animateConnectorLinesVertical(lineNode: _ModuleSupport.Path, pointData: WaterfallNodePointDatum[]) {
+    protected animateConnectorLinesVertical(opts: WaterfallAnimationData) {
+        const { pointData = [] } = opts.contextData;
+        const [lineNode] = opts.paths;
         const { path: linePath } = lineNode;
 
         this.updateLineNode(lineNode);
@@ -826,6 +831,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
                 lineNode.checkPathDirty();
             },
+            onStop: () => this.resetConnectorLinesPath(opts),
         });
     }
 

@@ -280,6 +280,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             activeTheme.templateTheme(options, false);
         }
 
+        // Must run before chart validation to cleanup invalid types.
+        this.validateSeriesOptions(options);
+
         this.chartDef = ModuleRegistry.detectChartDefinition(options);
 
         if (!this.chartDef.placeholder) {
@@ -289,7 +292,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         this.validatePluginOptions(options);
-        this.validateSeriesOptions(options);
         this.validateAxesOptions(options);
         this.removeDisabledOptions(options);
 
@@ -383,18 +385,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (seriesDef == null) {
                 validSeriesTypes ??= joinFormatted(
                     Array.from(ModuleRegistry.listModulesByType(ModuleType.Series))
-                        .filter((def) => def.chartType === chartType)
+                        .filter((def) => !chartType || def.chartType === chartType)
                         .map((def) => def.name),
                     'or',
                     stringFormat
                 );
                 Logger.warn(
-                    `Unknown series type \`${seriesOptions.type}\` at \`${keyPath}\`; expecting ${validSeriesTypes}, ignoring.\``
+                    `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
                 );
                 continue;
-            } else if (seriesDef.chartType !== chartType) {
+            } else if (chartType && seriesDef.chartType !== chartType) {
                 Logger.warn(
-                    `Series type \`${seriesDef.name}\` at \`${keyPath}\` is not supported by chart type \`${chartType}\`, ignoring.\``
+                    `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 continue;
             }
@@ -432,13 +434,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     stringFormat
                 );
                 Logger.warn(
-                    `Option \`${keyPath}.type\` cannot be set to \`${axisOptions.type}\`; expecting one of ${validAxesTypes}, ignoring all axes options.\``
+                    `Unknown type \`${axisOptions.type}\` at  \`${keyPath}.type\`; expecting one of ${validAxesTypes}, ignoring all axes options.`
                 );
                 delete options.axes;
                 break;
             } else if (axisDef.chartType !== chartType) {
                 Logger.warn(
-                    `Axis type \`${axisDef.name}\` is not supported by chart type \`${chartType}\`, ignoring.\``
+                    `Axis type \`${axisDef.name}\` at  \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 break;
             }

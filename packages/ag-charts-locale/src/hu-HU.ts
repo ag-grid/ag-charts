@@ -36,7 +36,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaLabelRangesToolbar: 'Tartományok',
     ariaLabelSettingsTabBar: 'Beállítások',
     ariaLabelZoomToolbar: 'Nagyítás',
-    ariaValuePanRange: '${min}[percent] és ${max}[percent] között',
+    ariaValuePanRange: '${min}[percent0to2dp] és ${max}[percent0to2dp] között',
     contextMenuDownload: 'Letöltés',
     contextMenuPanToCursor: 'Pásztázás ide',
     contextMenuToggleOtherSeries: 'További sorozatok megjelenítése/elrejtése',

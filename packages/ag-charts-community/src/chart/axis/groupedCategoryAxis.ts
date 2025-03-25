@@ -9,20 +9,9 @@ import { Transformable } from '../../scene/transformable';
 import { getAngleRatioRadians, normalizeAngle360, toRadians } from '../../util/angle';
 import { extent } from '../../util/extent';
 import { BaseProperties, PropertiesArray } from '../../util/properties';
+import { Property } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
-import {
-    BOOLEAN,
-    COLOR_STRING,
-    FONT_STYLE,
-    FONT_WEIGHT,
-    NUMBER,
-    OBJECT,
-    OBJECT_ARRAY,
-    POSITIVE_NUMBER,
-    STRING,
-    TempValidate,
-} from '../../util/validation';
 import { createDatumId } from '../data/processors';
 import { calculateLabelRotation } from '../label';
 import type { LabelNodeDatum } from './axis';
@@ -45,47 +34,47 @@ interface ComputedGroupAxisLayout {
 }
 
 class DepthLabelProperties extends BaseProperties {
-    @TempValidate(BOOLEAN)
+    @Property
     enabled = true;
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     avoidCollisions?: boolean;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     color?: string;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     spacing?: number;
 
-    @TempValidate(FONT_STYLE, { optional: true })
+    @Property
     fontStyle?: FontStyle;
 
-    @TempValidate(FONT_WEIGHT, { optional: true })
+    @Property
     fontWeight?: FontWeight;
 
-    @TempValidate(NUMBER.restrict({ min: 1 }), { optional: true })
+    @Property
     fontSize?: number;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     fontFamily?: string;
 }
 
 class DepthTickProperties extends BaseProperties {
-    @TempValidate(BOOLEAN)
+    @Property
     enabled = true;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     width?: number;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string;
 }
 
 class DepthProperties extends BaseProperties {
-    @TempValidate(OBJECT)
+    @Property
     label = new DepthLabelProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     tick = new DepthTickProperties();
 }
 
@@ -100,7 +89,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private computedLayout?: ComputedGroupAxisLayout;
     private tickTreeLayout?: TreeLayout;
 
-    @TempValidate(OBJECT_ARRAY)
+    @Property
     depthOptions = new PropertiesArray(DepthProperties);
 
     constructor(moduleCtx: ModuleContext) {

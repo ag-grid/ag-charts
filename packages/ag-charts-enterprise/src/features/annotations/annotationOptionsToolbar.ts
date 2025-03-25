@@ -19,12 +19,6 @@ import { getLineStyle } from './utils/line';
 import { isTextType } from './utils/types';
 
 const {
-    ARRAY,
-    BOOLEAN,
-    NUMBER,
-    OBJECT,
-    STRING,
-    UNION,
     Color,
     FloatingToolbar,
     Listeners,
@@ -32,7 +26,7 @@ const {
     PropertiesArray,
     ToolbarButtonProperties,
     ToolbarButtonWidget,
-    TempValidate,
+    Property,
 } = _ModuleSupport;
 
 interface EventMap {
@@ -59,31 +53,19 @@ interface EventMap {
 }
 
 class AnnotationOptionsButtonProperties extends ToolbarButtonProperties {
-    @TempValidate(
-        UNION([
-            'line-stroke-width',
-            'line-style-type',
-            'line-color',
-            'fill-color',
-            'text-color',
-            'text-size',
-            'delete',
-            'settings',
-            'lock',
-        ])
-    )
+    @Property
     value!: AnnotationOptions;
 
-    @TempValidate(OBJECT, { optional: true })
+    @Property
     checkedOverrides = new ToolbarButtonProperties();
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     color?: string;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     strokeWidth?: number;
 
-    @TempValidate(Boolean, { optional: true })
+    @Property
     isMultiColor?: boolean;
 }
 
@@ -135,10 +117,10 @@ class FloatingAnnotationOptionsToolbar extends FloatingToolbar<
 }
 
 export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
-    @TempValidate(BOOLEAN)
+    @Property
     public enabled?: boolean = true;
 
-    @TempValidate(ARRAY)
+    @Property
     public buttons = new PropertiesArray(AnnotationOptionsButtonProperties);
 
     private readonly destroyFns: (() => void)[] = [];

@@ -8,25 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { GEOJSON_OBJECT } from '../map-util/validation';
-
-const {
-    AND,
-    ARRAY,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    FUNCTION,
-    LINE_DASH,
-    NUMBER_ARRAY,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    TempValidate,
-    SeriesProperties,
-    SeriesTooltip,
-    Label,
-} = _ModuleSupport;
+const { Property, SeriesProperties, SeriesTooltip, Label } = _ModuleSupport;
 
 export interface MapLineNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
 
@@ -39,72 +21,72 @@ export interface MapLineNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatu
 }
 
 export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOptions> {
-    @TempValidate(GEOJSON_OBJECT, { optional: true })
+    @Property
     topology?: _ModuleSupport.FeatureCollection = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     title?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     legendItemName?: string;
 
-    @TempValidate(STRING)
+    @Property
     idKey: string = '';
 
-    @TempValidate(STRING)
+    @Property
     topologyIdKey: string = 'name';
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     idName?: string = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelKey?: string = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelName?: string = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     colorKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     colorName?: string;
 
-    @TempValidate(NUMBER_ARRAY, { optional: true })
+    @Property
     sizeDomain?: [number, number];
 
-    @TempValidate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
+    @Property
     colorRange: string[] | undefined = undefined;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     maxStrokeWidth?: number = undefined;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = 'black';
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 0;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgMapLineSeriesItemStylerParams<unknown>, AgMapLineSeriesStyle>;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new Label<AgMapLineSeriesLabelFormatterParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgMapLineSeriesTooltipRendererParams<any>>();
 }

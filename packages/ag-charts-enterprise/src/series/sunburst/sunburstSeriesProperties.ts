@@ -10,83 +10,71 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const {
-    HierarchySeriesProperties,
-    HighlightStyle,
-    SeriesTooltip,
-    TempValidate,
-    COLOR_STRING,
-    FUNCTION,
-    NUMBER,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-} = _ModuleSupport;
+const { HierarchySeriesProperties, HighlightStyle, SeriesTooltip, Property } = _ModuleSupport;
 
 class SunburstSeriesTileHighlightStyle extends HighlightStyle {
-    @TempValidate(STRING, { optional: true })
+    @Property
     fill?: string;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     fillOpacity?: number;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth?: number;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     strokeOpacity?: number;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly secondaryLabel = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
 }
 
 export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunburstSeriesOptions> {
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     secondaryLabelKey?: string;
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 0;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     cornerRadius: number = 0;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     sectorSpacing?: number;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     padding?: number;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgSunburstSeriesItemStylerParams<unknown>, AgSunburstSeriesStyle>;
 
-    @TempValidate(OBJECT)
+    @Property
     override highlightStyle = new SunburstSeriesTileHighlightStyle();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly secondaryLabel = new AutoSizedSecondaryLabel<AgSunburstSeriesLabelFormatterParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgSunburstSeriesTooltipRendererParams<any>>();
 }
