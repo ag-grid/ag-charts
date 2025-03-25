@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { lineDistanceSquared, BBox, Path, ScenePathChangeDetection } = _ModuleSupport;
+const { lineDistanceSquared, BBox, Path, SceneChangeDetection } = _ModuleSupport;
 
 const delta = 1e-6;
 function pointsEq([ax, ay]: readonly [number, number], [bx, by]: readonly [number, number]) {
@@ -8,28 +8,28 @@ function pointsEq([ax, ay]: readonly [number, number], [bx, by]: readonly [numbe
 }
 
 export class FunnelConnector<D = any> extends Path<D> implements _ModuleSupport.DistantObject {
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     x0: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     y0: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     x1: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     y1: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     x2: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     y2: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     x3: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     y3: number = 0;
 
     get midPoint(): { x: number; y: number } {

@@ -1,12 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { Path, BBox, ExtendedPath2D, clippedRoundRect, Property, ScenePathChangeDetection } = _ModuleSupport;
+const { Path, BBox, ExtendedPath2D, clippedRoundRect, Property, SceneChangeDetection } = _ModuleSupport;
 
 export class RangeMask<D = any> extends Path<D> {
     static override readonly className = 'RangeMask';
 
     @Property
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     cornerRadius: number = 4;
 
     override zIndex = 2;

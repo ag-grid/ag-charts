@@ -408,6 +408,10 @@ export abstract class Node<D = any> {
         return;
     }
 
+    onChangeDetection(property: string): void {
+        this.markDirty(property);
+    }
+
     markDirty(property?: string) {
         const { _dirty } = this;
 

@@ -1,8 +1,9 @@
 import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
+import { SceneChangeDetection } from '../changeDetectable';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { type Corner, drawCorner } from '../util/corner';
-import { Path, ScenePathChangeDetection } from './path';
+import { Path } from './path';
 import { Shape } from './shape';
 
 interface CornerRadii {
@@ -238,28 +239,28 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
 
     readonly borderPath = new ExtendedPath2D();
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     x: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     y: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     width: number = 10;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     height: number = 10;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     topLeftCornerRadius: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     topRightCornerRadius: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     bottomRightCornerRadius: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     bottomLeftCornerRadius: number = 0;
 
     set cornerRadius(cornerRadius: number) {
@@ -269,7 +270,7 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         this.bottomLeftCornerRadius = cornerRadius;
     }
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     clipBBox?: BBox = undefined;
 
     /**
@@ -277,7 +278,7 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
      * Animated rects may not look nice with this option enabled, for example
      * when a rect is translated by a sub-pixel value on each frame.
      */
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     crisp: boolean = false;
 
     private borderClipPath?: ExtendedPath2D;
