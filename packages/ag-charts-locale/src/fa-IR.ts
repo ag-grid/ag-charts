@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaLabelRangesToolbar: 'محدوده‌ها',
     ariaLabelSettingsTabBar: 'تنظیمات',
     ariaLabelZoomToolbar: 'بزرگنمایی',
-    ariaValuePanRange: '${min}[percent] تا ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] تا ${max}[percent0to2dp]',
     contextMenuDownload: 'دانلود',
     contextMenuPanToCursor: 'حرکت به اینجا',
     contextMenuToggleOtherSeries: 'تغییر وضعیت سایر سری‌ها',
@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'دسته ابزار را بکشید',
     toolbarAnnotationsFibonacciAnnotations: 'فیبوناچی',
     toolbarAnnotationsFibonacciRetracement: 'فیب بازگشتی',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'روند فیب بر اساس',
     toolbarAnnotationsFillColor: 'رنگ پر کردن',
     toolbarAnnotationsHorizontalLine: 'خط افقی',
     toolbarAnnotationsLineAnnotations: 'خطوط روند',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     toolbarZoomReset: 'بازنشانی بزرگ‌نمایی',
     toolbarZoomZoomIn: 'بزرگنمایی',
     toolbarZoomZoomOut: 'بزرگنمایی کمتر',
+    tooltipPaginationStatus: '${index}[number] از ${count}[number]',
 };

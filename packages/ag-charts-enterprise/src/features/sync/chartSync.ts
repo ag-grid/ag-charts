@@ -1,17 +1,7 @@
 import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
 import { Logger, isDate, isDefined, isFiniteNumber, unique } from 'ag-charts-core';
 
-const {
-    BOOLEAN,
-    STRING,
-    UNION,
-    BaseProperties,
-    CartesianAxis,
-    ChartUpdateType,
-    ObserveChanges,
-    TooltipManager,
-    Validate,
-} = _ModuleSupport;
+const { BaseProperties, CartesianAxis, ChartUpdateType, ObserveChanges, TooltipManager, Property } = _ModuleSupport;
 
 interface ChartLike {
     ctx: {
@@ -29,23 +19,23 @@ interface ChartLike {
 export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
     static readonly className = 'Sync';
 
-    @Validate(BOOLEAN)
+    @Property
     @ObserveChanges<ChartSync>((target) => target.onEnabledChange())
     enabled: boolean = false;
 
-    @Validate(STRING, { optional: true })
+    @Property
     @ObserveChanges<ChartSync>((target, newValue, oldValue) => target.onGroupIdChange(newValue, oldValue))
     groupId?: string;
 
-    @Validate(UNION(['x', 'y', 'xy'], 'an axis'))
+    @Property
     @ObserveChanges<ChartSync>((target) => target.onAxesChange())
     axes: 'x' | 'y' | 'xy' = 'x';
 
-    @Validate(BOOLEAN)
+    @Property
     @ObserveChanges<ChartSync>((target) => target.onNodeInteractionChange())
     nodeInteraction: boolean = true;
 
-    @Validate(BOOLEAN)
+    @Property
     @ObserveChanges<ChartSync>((target) => target.onZoomChange())
     zoom: boolean = true;
 

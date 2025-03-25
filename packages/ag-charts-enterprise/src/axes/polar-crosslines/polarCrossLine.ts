@@ -1,106 +1,83 @@
 import type { AgBaseCrossLineLabelOptions, FontStyle, FontWeight } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-const {
-    BaseProperties,
-    ChartAxisDirection,
-    ARRAY,
-    BOOLEAN,
-    COLOR_STRING,
-    FONT_STYLE,
-    FONT_WEIGHT,
-    LINE_DASH,
-    NUMBER,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    UNION,
-    AND,
-    COLOR_STRING_ARRAY,
-    TempValidate,
-    MATCHING_CROSSLINE_TYPE,
-    createId,
-    Group,
-} = _ModuleSupport;
+const { BaseProperties, ChartAxisDirection, Property, createId, Group } = _ModuleSupport;
 
 export class PolarCrossLineLabel extends BaseProperties implements AgBaseCrossLineLabelOptions {
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     enabled?: boolean;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     text?: string;
 
-    @TempValidate(FONT_STYLE, { optional: true })
+    @Property
     fontStyle?: FontStyle;
 
-    @TempValidate(FONT_WEIGHT, { optional: true })
+    @Property
     fontWeight?: FontWeight;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     fontSize: number = 14;
 
-    @TempValidate(STRING)
+    @Property
     fontFamily: string = 'Verdana, sans-serif';
 
     /**
      * The padding between the label and the line.
      */
-    @TempValidate(NUMBER)
+    @Property
     padding: number = 5;
 
     /**
      * The color of the labels.
      */
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     color?: string = 'rgba(87, 87, 87, 1)';
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     parallel?: boolean;
 }
 
 export abstract class PolarCrossLine extends BaseProperties implements _ModuleSupport.CrossLine {
     readonly id = createId(this);
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     enabled?: boolean;
 
-    @TempValidate(UNION(['range', 'line'], 'a crossLine type'))
+    @Property
     type!: _ModuleSupport.CrossLineType;
 
-    @TempValidate(AND(MATCHING_CROSSLINE_TYPE('range'), ARRAY.restrict({ length: 2 })), {
-        optional: true,
-    })
+    @Property
     range?: [unknown, unknown];
 
-    @TempValidate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
+    @Property
     value?: unknown;
 
-    @TempValidate(COLOR_STRING_ARRAY)
+    @Property
     defaultColorRange: string[] = [];
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     fill?: string;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     fillOpacity?: number;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string;
 
-    @TempValidate(NUMBER, { optional: true })
+    @Property
     strokeWidth?: number;
 
-    @TempValidate(RATIO, { optional: true })
+    @Property
     strokeOpacity?: number;
 
-    @TempValidate(LINE_DASH, { optional: true })
+    @Property
     lineDash?: [];
 
-    @TempValidate(UNION(['polygon', 'circle'], 'a shape'))
+    @Property
     shape: 'polygon' | 'circle' = 'polygon';
 
-    @TempValidate(OBJECT)
+    @Property
     label = new PolarCrossLineLabel();
 
     scale?: _ModuleSupport.Scale<any, number> = undefined;

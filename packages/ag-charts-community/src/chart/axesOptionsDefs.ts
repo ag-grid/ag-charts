@@ -52,24 +52,27 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     ...fontOptionsDef,
 };
 
-export const commonCrossLineOptionsDefs: OptionsDefs<AgBaseCrossLineOptions> = {
-    enabled: boolean,
-    type: required(union('line', 'range')),
-    range: and(
-        attachDescription((_, { options }) => options.type === 'range', "crossLine type to be 'range'"),
-        arrayOf(defined),
-        arrayLength(2, 2)
-    ),
-    value: and(
-        attachDescription((_, { options }) => options.type === 'line', "crossLine type to be 'line'"),
-        defined
-    ),
-    label: commonCrossLineLabelOptionsDefs,
-    fill: string,
-    fillOpacity: ratio,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
-};
+export const commonCrossLineOptionsDefs = attachDescription<AgBaseCrossLineOptions>(
+    {
+        enabled: boolean,
+        type: required(union('line', 'range')),
+        range: and(
+            attachDescription((_, { options }) => options.type === 'range', "crossLine type to be 'range'"),
+            arrayOf(defined),
+            arrayLength(2, 2)
+        ),
+        value: and(
+            attachDescription((_, { options }) => options.type === 'line', "crossLine type to be 'line'"),
+            defined
+        ),
+        label: commonCrossLineLabelOptionsDefs,
+        fill: string,
+        fillOpacity: ratio,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    'cross-line options'
+);
 
 export const cartesianCrossLineOptionsDefs: OptionsDefs<AgCartesianCrossLineOptions> = {
     ...commonCrossLineOptionsDefs,

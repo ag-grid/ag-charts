@@ -17,13 +17,13 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
-            stroke: { $palette: 'fill' },
+            stroke: _ModuleSupport.SAFE_STROKE_FILL_OPERATION,
             // @ts-expect-error undocumented option
             colorRange: {
                 $if: [
                     { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                     { $palette: 'divergingColors' },
-                    { $palette: 'range2' },
+                    _ModuleSupport.SAFE_RANGE2_OPERATION,
                 ],
             },
             strokeWidth: 1,
@@ -37,6 +37,9 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'textColor' },
             },
+        },
+        tooltip: {
+            range: 'exact',
         },
     },
 };

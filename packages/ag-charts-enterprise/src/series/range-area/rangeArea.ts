@@ -112,8 +112,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) return;
-
         const { xKey, yLowKey, yHighKey } = this.properties;
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
@@ -441,7 +439,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible: visible || animationEnabled,
         });
 
-        const seriesFill = getShapeFill(this.properties.fill, this.properties.fillGradientDefaults);
+        const seriesFill = getShapeFill(
+            this.properties.fill,
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
+        );
         const fillBBox = this.getShapeFillBBox();
 
         applyShapeFillBBox(fill, seriesFill, fillBBox);
@@ -681,7 +683,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 lineDash: marker.lineDash,
                 lineDashOffset: marker.lineDashOffset,
             },
-            marker.fillGradientDefaults
+            marker.fillGradientDefaults,
+            marker.fillPatternDefaults
         );
 
         return {

@@ -6,7 +6,9 @@ import {
     color,
     colorUnion,
     constant,
+    fillGradientDefaults,
     fillOptionsDef,
+    fillPatternDefaults,
     lineDashOptionsDef,
     positiveNumber,
     ratio,
@@ -48,3 +50,8 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     tooltip: tooltipOptionsDefs,
     ...commonSeriesOptionsDefs,
 };
+
+// @ts-expect-error undocumented option
+chordSeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
+// @ts-expect-error undocumented option
+chordSeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;

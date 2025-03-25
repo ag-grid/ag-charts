@@ -10,19 +10,8 @@ import {
     TEXT_ANNOTATION_ITEMS,
 } from './annotationsMenuOptions';
 
-const {
-    ARRAY,
-    BOOLEAN,
-    UNION,
-    POSITIVE_NUMBER,
-    ActionOnSet,
-    LayoutElement,
-    Menu,
-    PropertiesArray,
-    ToolbarButtonProperties,
-    Validate,
-    ChartAxisDirection,
-} = _ModuleSupport;
+const { ActionOnSet, LayoutElement, Menu, PropertiesArray, ToolbarButtonProperties, Property, ChartAxisDirection } =
+    _ModuleSupport;
 
 interface EventMap {
     'cancel-create-annotation': void;
@@ -45,12 +34,12 @@ type AnnotationsToolbarButtonValue =
     | 'clear';
 
 class AnnotationsToolbarButtonProperties extends ToolbarButtonProperties {
-    @Validate(UNION(['line-menu', 'fibonacci-menu', 'text-menu', 'shape-menu', 'measurer-menu', 'clear']))
+    @Property
     value!: AnnotationsToolbarButtonValue;
 }
 
 export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
-    @Validate(BOOLEAN)
+    @Property
     @ActionOnSet<AnnotationsToolbar>({
         changeValue(enabled) {
             this.toolbar?.setHidden(!enabled);
@@ -61,10 +50,10 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     /**
      * The padding between the toolbar and the chart area.
      */
-    @Validate(POSITIVE_NUMBER)
+    @Property
     padding: number = 20;
 
-    @Validate(ARRAY)
+    @Property
     public buttons = new PropertiesArray(AnnotationsToolbarButtonProperties);
 
     private readonly events = new _ModuleSupport.Listeners<keyof EventMap, any>();

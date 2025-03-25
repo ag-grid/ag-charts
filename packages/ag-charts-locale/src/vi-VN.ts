@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaLabelRangesToolbar: 'Phạm vi',
     ariaLabelSettingsTabBar: 'Cài đặt',
     ariaLabelZoomToolbar: 'Thu phóng',
-    ariaValuePanRange: '${min}[percent] đến ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] đến ${max}[percent0to2dp]',
     contextMenuDownload: 'Tải về',
     contextMenuPanToCursor: 'Chuyển đến đây',
     contextMenuToggleOtherSeries: 'Chuyển đổi các dòng khác',
@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Kéo Thanh Công Cụ',
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Fib Phục hồi',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Đường xu hướng dựa trên Fibonacci',
     toolbarAnnotationsFillColor: 'Màu nền',
     toolbarAnnotationsHorizontalLine: 'Đường Ngang',
     toolbarAnnotationsLineAnnotations: 'Đường Xu Hướng',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     toolbarZoomReset: 'Đặt lại thu phóng',
     toolbarZoomZoomIn: 'Thu nhỏ',
     toolbarZoomZoomOut: 'Thu nhỏ',
+    tooltipPaginationStatus: '${index}[number] trong số ${count}[number]',
 };

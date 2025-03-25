@@ -2,10 +2,10 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { Image } from '../image/image';
 
-const { ZIndexMap, ActionOnSet, Validate, ProxyPropertyOnWrite, OBJECT, RATIO, COLOR_STRING } = _ModuleSupport;
+const { ZIndexMap, ActionOnSet, Property, ProxyPropertyOnWrite } = _ModuleSupport;
 
 export class Foreground extends _ModuleSupport.Background<Image> {
-    @Validate(OBJECT, { optional: true })
+    @Property
     @ActionOnSet<Foreground>({
         newValue(image: Image) {
             this.node.appendChild(image.node);
@@ -18,11 +18,11 @@ export class Foreground extends _ModuleSupport.Background<Image> {
     })
     override image = new Image();
 
-    @Validate(COLOR_STRING, { optional: true })
+    @Property
     @ProxyPropertyOnWrite('rectNode', 'fill')
     override fill?: string = 'transparent';
 
-    @Validate(RATIO, { optional: true })
+    @Property
     @ProxyPropertyOnWrite('rectNode', 'fillOpacity')
     fillOpacity?: number = undefined;
 

@@ -67,7 +67,7 @@ export interface AgDonutInnerLabelThemeOptions extends Omit<AgDonutInnerLabel, '
 
 export interface AgDonutInnerCircle {
     /** The colour of the fill for the inner circle. */
-    fill: string;
+    fill: CssColor;
     /** The opacity of the fill for the inner circle. */
     fillOpacity?: Opacity;
 }

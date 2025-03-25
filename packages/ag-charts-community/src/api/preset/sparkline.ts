@@ -122,16 +122,17 @@ const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
                     placement: 'inside-end',
                     padding: 4,
                 },
-                tooltip: {
-                    position: {
-                        anchorTo: 'pointer',
-                    },
-                    range: 'nearest',
-                },
                 // @ts-expect-error undocumented option
                 sparklineMode: true,
             },
-            tooltip: chartTooltipDefaults,
+            tooltip: {
+                ...chartTooltipDefaults,
+                position: {
+                    ...chartTooltipDefaults.position,
+                    anchorTo: 'pointer',
+                },
+                range: 'nearest',
+            },
             axes: barAxisDefaults,
         },
         line: {

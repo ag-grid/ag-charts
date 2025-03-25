@@ -399,7 +399,8 @@ export class SankeySeries extends FlowProportionSeries<
                 lineDash: highlightStyle?.lineDash ?? lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
             },
-            this.properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -413,11 +414,13 @@ export class SankeySeries extends FlowProportionSeries<
         highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
-        const { fills, strokes } = properties;
+        const { fills, strokes, defaultColorRange, defaultPatternFills } = properties;
         const { itemStyler } = properties.node;
 
         const fill = format.fill ?? fills[datumIndex % fills.length];
         const stroke = format.stroke ?? strokes[datumIndex % strokes.length];
+        const defaultColorStops = defaultColorRange[datumIndex % defaultColorRange.length].map((color) => ({ color }));
+        const defaultPatternFill = defaultPatternFills[datumIndex % defaultPatternFills.length];
 
         let overrides: Partial<NodeStyle> | undefined;
 
@@ -460,7 +463,11 @@ export class SankeySeries extends FlowProportionSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
+        return getShapeStyle(
+            overrides,
+            { ...this.properties.fillGradientDefaults.toJson(), colorStops: defaultColorStops },
+            { ...this.properties.fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill }
+        );
     }
 
     protected updateNodeNodes(opts: {
@@ -524,7 +531,8 @@ export class SankeySeries extends FlowProportionSeries<
                 lineDash: highlightStyle?.lineDash ?? lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
             },
-            this.properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -536,11 +544,13 @@ export class SankeySeries extends FlowProportionSeries<
         highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
-        const { fills, strokes } = properties;
+        const { fills, strokes, defaultColorRange, defaultPatternFills } = properties;
         const { itemStyler } = properties.link;
 
         const fill = format.fill ?? fills[datumIndex % fills.length];
         const stroke = format.stroke ?? strokes[datumIndex % strokes.length];
+        const defaultColorStops = defaultColorRange[datumIndex % defaultColorRange.length].map((color) => ({ color }));
+        const defaultPatternFill = defaultPatternFills[datumIndex % defaultPatternFills.length];
 
         let overrides: Partial<LinkStyle> | undefined;
 
@@ -581,7 +591,11 @@ export class SankeySeries extends FlowProportionSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
+        return getShapeStyle(
+            overrides,
+            { ...this.properties.fillGradientDefaults.toJson(), colorStops: defaultColorStops },
+            { ...this.properties.fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill }
+        );
     }
 
     protected updateLinkNodes(opts: {

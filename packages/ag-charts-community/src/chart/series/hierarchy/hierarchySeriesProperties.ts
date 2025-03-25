@@ -1,41 +1,34 @@
 import type { AgColorType } from 'ag-charts-types';
 
-import {
-    ARRAY_OF,
-    COLOR_GRADIENT,
-    COLOR_PATTERN,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    OBJECT,
-    OR,
-    STRING,
-    TempValidate,
-} from '../../../util/validation';
+import { Property } from '../../../util/properties';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
-import { FillGradientDefaults, SeriesProperties } from '../seriesProperties';
+import { FillGradientDefaults, FillPatternDefaults, SeriesProperties } from '../seriesProperties';
 
 export abstract class HierarchySeriesProperties<T extends object> extends SeriesProperties<T> {
-    @TempValidate(STRING)
+    @Property
     childrenKey: string = 'children';
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     colorKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     colorName?: string;
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING)))
+    @Property
     fills: AgColorType[] = Object.values(DEFAULT_FILLS);
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(COLOR_STRING_ARRAY)
+    @Property
+    readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
     strokes: string[] = Object.values(DEFAULT_STROKES);
 
-    @TempValidate(COLOR_STRING_ARRAY, { optional: true })
+    @Property
     colorRange?: string[];
 }

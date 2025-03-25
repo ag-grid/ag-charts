@@ -6,6 +6,11 @@ const messageRegExp = /\$\{(\w+)}(?:\[(\w+)])?/gi;
 const formatters: Record<string, { format(value: unknown): string }> = {
     number: new Intl.NumberFormat('en-US'),
     percent: new Intl.NumberFormat('en-US', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    percent0to2dp: new Intl.NumberFormat('en-US', {
+        style: 'percent',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+    }),
     date: new Intl.DateTimeFormat('en-US', { dateStyle: 'full' }),
     time: new Intl.DateTimeFormat('en-US', { timeStyle: 'full' }),
     datetime: new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeStyle: 'full' }),

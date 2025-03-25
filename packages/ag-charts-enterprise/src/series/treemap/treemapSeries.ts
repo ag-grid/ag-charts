@@ -7,7 +7,7 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import { type InternalAgColorType, isNumberEqual } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
@@ -340,7 +340,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
                 strokeWidth: highlightStyle?.strokeWidth ?? group.strokeWidth,
                 strokeOpacity: highlightStyle?.strokeOpacity ?? group.strokeOpacity,
             },
-            this.properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -384,7 +385,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     private getTileBaseStyle(highlighted: boolean): ItemStyle {
@@ -399,7 +400,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
                 strokeWidth: highlightStyle?.strokeWidth ?? tile.strokeWidth,
                 strokeOpacity: highlightStyle?.strokeOpacity ?? tile.strokeOpacity,
             },
-            this.properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -445,7 +447,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     override updateSelections() {
@@ -830,7 +832,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             Object.assign(format, this.getGroupStyleOverrides(datumIndex, datum, depth, format, false));
         }
 
-        const color = format.fill as _ModuleSupport.InternalAgColorType;
+        const color = format.fill as InternalAgColorType;
 
         const markerStyle = getShapeStyle(
             {
@@ -843,7 +845,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
                 lineDash: [0],
                 lineDashOffset: 0,
             },
-            this.properties.fillGradientDefaults
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
         );
 
         if (_ModuleSupport.isGradientFill(markerStyle.fill)) {

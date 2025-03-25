@@ -6,19 +6,19 @@ import { AngleAxisInterval } from '../angle-number/angleAxisInterval';
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 
-const { RATIO, OBJECT, TempValidate, CategoryScale } = _ModuleSupport;
+const { Property, CategoryScale } = _ModuleSupport;
 
 export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScale<string>> {
     static readonly className = 'AngleCategoryAxis';
     static readonly type = 'angle-category' as const;
 
-    @TempValidate(RATIO)
+    @Property
     groupPaddingInner: number = 0;
 
-    @TempValidate(RATIO)
+    @Property
     paddingInner: number = 0;
 
-    @TempValidate(OBJECT)
+    @Property
     override interval = new AngleAxisInterval();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
@@ -38,7 +38,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
                 maxTickCount: Infinity,
             }) ??
             [];
-        if (ticks.length < 2 || isNaN(minSpacing)) {
+        if (ticks.length < 2 || minSpacing == null) {
             return ticks.map((value) => {
                 return { value, visible: true };
             });
@@ -77,18 +77,15 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        let { minSpacing } = this.label;
-        if (!Number.isFinite(minSpacing)) {
-            minSpacing = 0;
-        }
+        const { minSpacing } = this.label;
 
-        if (labelData.length < 3) {
-            return;
-        }
+        if (labelData.length < 3) return;
 
         const labelsCollide = (prev: AngleAxisLabelDatum, next: AngleAxisLabelDatum) => {
             if (prev.hidden || next.hidden) {
                 return false;
+            } else if (minSpacing == null) {
+                return prev.box!.collidesBBox(next.box!);
             }
             const prevBox = prev.box!.clone().grow(minSpacing / 2);
             const nextBox = next.box!.clone().grow(minSpacing / 2);

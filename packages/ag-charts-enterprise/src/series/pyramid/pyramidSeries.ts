@@ -149,9 +149,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const {
             id: seriesId,
@@ -475,7 +473,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
-            this.properties.fillGradientDefaults
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
         );
     }
 
@@ -518,7 +517,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     private updateDatumNodes(opts: {
@@ -681,7 +680,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                this.properties.fillGradientDefaults
+                this.properties.fillGradientDefaults,
+                this.properties.fillPatternDefaults
             ),
         };
     }
@@ -695,7 +695,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             visible,
         } = this;
 
-        if (!dataModel || !processedData || legendType !== 'category' || !this.properties.isValid()) {
+        if (!dataModel || !processedData || legendType !== 'category') {
             return [];
         }
 

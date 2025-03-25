@@ -7,29 +7,11 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
-import { GEOJSON_OBJECT } from '../map-util/validation';
 import { AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const {
-    AND,
-    ARRAY,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    COLOR_GRADIENT,
-    COLOR_PATTERN,
-    FUNCTION,
-    LINE_DASH,
-    OR,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    TempValidate,
-    SeriesProperties,
-    SeriesTooltip,
-    FillGradientDefaults,
-} = _ModuleSupport;
+const { Property, SeriesProperties, SeriesTooltip, FillGradientDefaults, FillPatternDefaults } = _ModuleSupport;
 
 export interface MapShapeNodeLabelDatum {
     readonly x: number;
@@ -47,72 +29,75 @@ export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDat
 }
 
 export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesOptions> {
-    @TempValidate(GEOJSON_OBJECT, { optional: true })
+    @Property
     topology?: _ModuleSupport.FeatureCollection = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     title?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     legendItemName?: string;
 
-    @TempValidate(STRING)
+    @Property
     idKey: string = '';
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     idName: string | undefined = undefined;
 
-    @TempValidate(STRING)
+    @Property
     topologyIdKey: string = 'name';
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelKey: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelName: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     colorKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     colorName?: string;
 
-    @TempValidate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
+    @Property
     colorRange: string[] | undefined = undefined;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
-    fill: _ModuleSupport.InternalAgColorType = 'black';
+    @Property
+    fill: InternalAgColorType = 'black';
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(RATIO)
+    @Property
+    readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = 'black';
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 0;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     padding: number = 0;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<unknown>, AgMapShapeSeriesStyle>;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new AutoSizedSecondaryLabel<AgMapShapeSeriesLabelFormatterParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgMapShapeSeriesTooltipRendererParams<any>>();
 }

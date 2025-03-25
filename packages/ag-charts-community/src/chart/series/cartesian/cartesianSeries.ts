@@ -16,8 +16,8 @@ import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { findMinMax } from '../../../util/number';
+import { Property } from '../../../util/properties';
 import { StateMachine } from '../../../util/stateMachine';
-import { BOOLEAN, STRING, TempValidate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
@@ -133,10 +133,10 @@ export interface CartesianAnimationData<
 }
 
 export abstract class CartesianSeriesProperties<T extends object> extends SeriesProperties<T> {
-    @TempValidate(STRING, { optional: true })
+    @Property
     legendItemName?: string;
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     pickOutsideVisibleMinorAxis = false;
 }
 
@@ -1148,10 +1148,8 @@ export abstract class CartesianSeries<
 function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined {
     let min: number | Date | undefined;
     let max: number | Date | undefined;
-    if (axis instanceof NumberAxis && (Number.isFinite(axis.min) || Number.isFinite(axis.max))) {
-        min = Number.isFinite(axis.min) ? axis.min : undefined;
-        max = Number.isFinite(axis.max) ? axis.max : undefined;
-    } else if (axis instanceof TimeAxis && (axis.min != null || axis.max != null)) {
+
+    if (axis instanceof NumberAxis || axis instanceof TimeAxis) {
         ({ min, max } = axis);
     }
 

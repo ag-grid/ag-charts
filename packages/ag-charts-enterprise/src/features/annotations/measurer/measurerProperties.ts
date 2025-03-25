@@ -20,17 +20,17 @@ import {
 import { StartEndProperties } from '../properties/startEndProperties';
 import { getLineCap, getLineDash } from '../utils/line';
 
-const { BOOLEAN, OBJECT, STRING, BaseProperties, Validate } = _ModuleSupport;
+const { BaseProperties, Property } = _ModuleSupport;
 
 class MeasurerStatisticsDivider extends Stroke(BaseProperties) {}
 
 class MeasurerStatistics extends Font(Fill(Stroke(BaseProperties))) {
-    @Validate(OBJECT, { optional: true })
+    @Property
     public divider = new MeasurerStatisticsDivider();
 }
 
 class MeasurerDirectionProperties extends Fill(Stroke(Handle(BaseProperties))) {
-    @Validate(OBJECT, { optional: true })
+    @Property
     public statistics = new MeasurerStatistics();
 }
 
@@ -40,12 +40,12 @@ export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineSt
     public hasDateRange = false;
     public hasPriceRange = false;
 
-    @Validate(OBJECT, { optional: true })
+    @Property
     public statistics = new MeasurerStatistics();
 
     public getVolume: (from: Point['x'], to: Point['x']) => number | undefined = () => undefined;
 
-    @Validate(OBJECT, { optional: true })
+    @Property
     text = new LineTextProperties();
 
     override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
@@ -96,13 +96,13 @@ export class DateRangeProperties extends DateRange(MeasurerTypeProperties) {
         return isObject(value) && value.type === AnnotationType.DateRange;
     }
 
-    @Validate(STRING)
+    @Property
     type = AnnotationType.DateRange as const;
 
-    @Validate(BOOLEAN, { optional: true })
+    @Property
     extendAbove?: boolean;
 
-    @Validate(BOOLEAN, { optional: true })
+    @Property
     extendBelow?: boolean;
 
     override direction = 'horizontal' as const;
@@ -113,13 +113,13 @@ export class PriceRangeProperties extends PriceRange(MeasurerTypeProperties) {
         return isObject(value) && value.type === AnnotationType.PriceRange;
     }
 
-    @Validate(STRING)
+    @Property
     type = AnnotationType.PriceRange as const;
 
-    @Validate(BOOLEAN, { optional: true })
+    @Property
     extendLeft?: boolean;
 
-    @Validate(BOOLEAN, { optional: true })
+    @Property
     extendRight?: boolean;
 
     override direction = 'vertical' as const;
@@ -130,7 +130,7 @@ export class DatePriceRangeProperties extends DateRange(PriceRange(MeasurerTypeP
         return isObject(value) && value.type === AnnotationType.DatePriceRange;
     }
 
-    @Validate(STRING)
+    @Property
     type = AnnotationType.DatePriceRange as const;
 
     override direction = 'both' as const;
@@ -141,13 +141,13 @@ export class QuickDatePriceRangeProperties extends DateRange(PriceRange(Measurer
         return isObject(value) && value.type === AnnotationType.QuickDatePriceRange;
     }
 
-    @Validate(STRING)
+    @Property
     type = AnnotationType.QuickDatePriceRange as const;
 
-    @Validate(OBJECT, { optional: true })
+    @Property
     public up = new MeasurerDirectionProperties();
 
-    @Validate(OBJECT, { optional: true })
+    @Property
     public down = new MeasurerDirectionProperties();
 
     override direction = 'both' as const;

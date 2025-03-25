@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 import type { AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -151,7 +152,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             },
-            this.properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
     }
 
@@ -197,7 +199,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     updateNodes() {
@@ -569,7 +571,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const format = this.getItemBaseStyle(false) as Required<ItemStyle>;
         Object.assign(format, this.getItemStyleOverrides(datumIndex, datum, depth, datumColor, format, false));
 
-        const color = format.fill as _ModuleSupport.InternalAgColorType;
+        const color = format.fill as InternalAgColorType;
 
         const markerStyle = getShapeStyle(
             {
@@ -582,7 +584,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 lineDash: [0],
                 lineDashOffset: 0,
             },
-            this.properties.fillGradientDefaults
+            properties.fillGradientDefaults,
+            properties.fillPatternDefaults
         );
 
         if (_ModuleSupport.isGradientFill(markerStyle.fill)) {

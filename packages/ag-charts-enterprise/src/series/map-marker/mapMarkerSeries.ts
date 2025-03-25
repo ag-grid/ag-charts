@@ -181,9 +181,7 @@ export class MapMarkerSeries
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const { data, topology, sizeScale, colorScale } = this;
         const { topologyIdKey, idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, sizeDomain, colorRange } =
@@ -572,7 +570,8 @@ export class MapMarkerSeries
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
-            this.properties.fillGradientDefaults
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
         );
     }
 
@@ -732,7 +731,8 @@ export class MapMarkerSeries
                     lineDash,
                     lineDashOffset,
                 },
-                this.properties.fillGradientDefaults
+                this.properties.fillGradientDefaults,
+                this.properties.fillPatternDefaults
             ),
         };
     }

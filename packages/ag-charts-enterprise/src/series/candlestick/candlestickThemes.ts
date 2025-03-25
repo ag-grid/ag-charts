@@ -1,4 +1,5 @@
 import { type AgCandlestickSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 const { CARTESIAN_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
@@ -25,7 +26,12 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
             bounds: 'item',
             colorStops: {
                 $if: [
-                    { $isGradient: [{ $palette: `${key}.fill` }] },
+                    {
+                        $or: [
+                            { $isGradient: [{ $palette: `${key}.fill` }] },
+                            { $isPattern: [{ $palette: `${key}.fill` }] },
+                        ],
+                    },
                     {
                         $map: [
                             { $path: ['./color', undefined, { $value: '$1' }] },
@@ -42,7 +48,8 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
             } as any,
             rotation: 0,
             reverse: false,
-        } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
+        } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
     };
 }
 

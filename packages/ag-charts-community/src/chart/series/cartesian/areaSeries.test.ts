@@ -121,7 +121,6 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         AREA__TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.AREA_TIME_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('area', 2) }),
-            skip: true, // TODO: AG-9184 data per series with varying lengths
         },
         AREA_NUMBER_X_AXIS_TIME_Y_AXIS: {
             options: examples.AREA_NUMBER_X_AXIS_TIME_Y_AXIS,
@@ -134,7 +133,6 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
                 axisTypes: ['number', 'number'],
                 seriesTypes: repeat('area', 2),
             }),
-            skip: true, // TODO: AG-9184 data per series with varying lengths
         },
         AREA_NUMBER_AXES_0_Y_DOMAIN: {
             options: examples.AREA_NUMBER_AXES_0_Y_DOMAIN,
@@ -142,7 +140,6 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
                 axisTypes: ['number', 'number'],
                 seriesTypes: repeat('area', 2),
             }),
-            skip: true, // TODO: AG-9184 data per series with varying lengths
         },
         STACKED_AREA_STROKE_MARKER_LABEL_RENDERING: {
             options: {
@@ -244,10 +241,11 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         options: examples.AREA_SERIES_CROSSES_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
     },
-    AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL: {
-        options: examples.AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
-    },
+    // @todo(AG-14458) - Re-enable
+    // AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL: {
+    //     options: examples.AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL,
+    //     assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    // },
     AREA_SERIES_CUSTOMISED_PATTERN_FILL: {
         options: examples.AREA_SERIES_CUSTOMISED_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
@@ -653,7 +651,7 @@ describe('AreaSeries', () => {
                     await clickAction(x, y)(chart);
                 }
             });
-            xtest('touch', async () => {
+            test('touch', async () => {
                 // Faulty because of AG-14228
                 for (const { x, y } of iterAreaSectors(chart)) {
                     await waitForChartStability(chart);

@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaLabelRangesToolbar: 'Rozsahy',
     ariaLabelSettingsTabBar: 'Nastavení',
     ariaLabelZoomToolbar: 'Přiblížit',
-    ariaValuePanRange: '${min}[percent] až ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] až ${max}[percent0to2dp]',
     contextMenuDownload: 'Stáhnout',
     contextMenuPanToCursor: 'Posunout sem',
     contextMenuToggleOtherSeries: 'Přepnout ostatní série',
@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Přetáhněte panel nástrojů',
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Výpočet Fibonacciho korekcí',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Fib Trend Nezávislý na Čase',
     toolbarAnnotationsFillColor: 'Barva výplně',
     toolbarAnnotationsHorizontalLine: 'Horizontální čára',
     toolbarAnnotationsLineAnnotations: 'Trendy linie',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     toolbarZoomReset: 'Obnovit zoom',
     toolbarZoomZoomIn: 'Přiblížit',
     toolbarZoomZoomOut: 'Oddálit',
+    tooltipPaginationStatus: '${index}[number] z ${count}[number]',
 };

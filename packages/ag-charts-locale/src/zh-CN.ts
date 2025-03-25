@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     ariaLabelRangesToolbar: '范围',
     ariaLabelSettingsTabBar: '设置',
     ariaLabelZoomToolbar: '缩放',
-    ariaValuePanRange: '${min}[percent] 至 ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] 至 ${max}[percent0to2dp]',
     contextMenuDownload: '下载',
     contextMenuPanToCursor: '平移到此处',
     contextMenuToggleOtherSeries: '切换其他系列',
@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     toolbarAnnotationsDragHandle: '“拖动工具栏”',
     toolbarAnnotationsFibonacciAnnotations: '斐波那契',
     toolbarAnnotationsFibonacciRetracement: '斐波那契回撤',
+    toolbarAnnotationsFibonacciRetracementTrendBased: '基于趋势的斐波纳契',
     toolbarAnnotationsFillColor: '填充颜色',
     toolbarAnnotationsHorizontalLine: '水平线',
     toolbarAnnotationsLineAnnotations: '趋势线',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     toolbarZoomReset: '重置缩放',
     toolbarZoomZoomIn: '放大',
     toolbarZoomZoomOut: '缩小',
+    tooltipPaginationStatus: '${index}[number] / ${count}[number]',
 };

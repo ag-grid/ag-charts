@@ -1,4 +1,5 @@
 import { type AgCandlestickSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 
 import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
@@ -37,7 +38,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                 lineDash: up.lineDash,
                 lineDashOffset: up.lineDashOffset,
             },
-            up.fillGradientDefaults
+            up.fillGradientDefaults,
+            up.fillPatternDefaults
         );
         const downStyle = getShapeStyle(
             {
@@ -49,7 +51,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                 lineDash: down.lineDash,
                 lineDashOffset: down.lineDashOffset,
             },
-            down.fillGradientDefaults
+            down.fillGradientDefaults,
+            down.fillPatternDefaults
         );
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
 
@@ -84,7 +87,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                                 highlighted: isHighlight,
                             })
                     ),
-                    isRising ? up.fillGradientDefaults : down.fillGradientDefaults
+                    isRising ? up.fillGradientDefaults : down.fillGradientDefaults,
+                    isRising ? up.fillPatternDefaults : down.fillPatternDefaults
                 );
             }
 
@@ -126,7 +130,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { up, down } = this.properties.item;
 
-        const upFill = getShapeFill(up.fill, up.fillGradientDefaults);
+        const upFill = getShapeFill(up.fill, up.fillGradientDefaults, up.fillPatternDefaults);
         const upColorStops = isGradientFill(upFill)
             ? upFill.colorStops.map((c) =>
                   typeof c === 'string' ? c : { color: c.color, stop: c.stop != null ? c.stop * 0.5 : undefined }
@@ -136,14 +140,14 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                   { color: isPatternFill(upFill) ? up.stroke : upFill, stop: 0.5 },
               ];
 
-        const downFill = getShapeFill(down.fill, down.fillGradientDefaults);
+        const downFill = getShapeFill(down.fill, down.fillGradientDefaults, down.fillPatternDefaults);
         const downColorStops = isGradientFill(downFill)
             ? downFill.colorStops.map((c) =>
                   typeof c === 'string' ? c : { color: c.color, stop: c.stop != null ? c.stop * 0.5 : undefined }
               )
             : [{ color: isPatternFill(downFill) ? down.stroke : downFill, stop: 0.5 }];
 
-        const fill: _ModuleSupport.InternalAgGradientColor = {
+        const fill: InternalAgGradientColor = {
             type: 'gradient',
             gradient: 'linear',
             rotation: 90,
@@ -151,7 +155,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             reverse: false,
         };
 
-        const stroke: _ModuleSupport.InternalAgGradientColor = {
+        const stroke: InternalAgGradientColor = {
             type: 'gradient',
             gradient: 'linear',
             rotation: 90,

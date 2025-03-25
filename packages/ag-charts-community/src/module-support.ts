@@ -22,7 +22,6 @@ export { NewScatterSeriesModule } from './chart/series/cartesian/scatterSeriesMo
 
 export * from './util/angle';
 export * from './util/date';
-export * from './util/default';
 export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties } from './util/decorator';
 export * from './util/dom';
 export * from './util/deprecation';
@@ -42,7 +41,7 @@ export * from './util/timeFormatDefaults';
 export * from './util/textMeasurer';
 export * from './util/textWrapper';
 export * from './util/timeFormat';
-export * from './util/validation';
+export * from './util/properties';
 export * from './util/vector';
 export * from './util/vector4';
 export * from './module/axisModule';
@@ -149,13 +148,7 @@ export { setAttribute, setAttributes, setElementStyle } from './util/attributeUt
 export { Debug } from './util/debug';
 export { isContinuous } from './util/value';
 export type { PlacedLabel, PointLabelDatum, LabelPlacement } from './scene/util/labelPlacement';
-export {
-    isGradientFill,
-    isPatternFill,
-    isGradientOrPatternFill,
-    type InternalAgColorType,
-    type InternalAgGradientColor,
-} from './scene/util/fill';
+export { isGradientFill, isPatternFill, isGradientOrPatternFill } from './scene/util/fill';
 export * from './util/bboxinterface';
 export { Padding } from './util/padding';
 export { lineDistanceSquared } from './util/distance';

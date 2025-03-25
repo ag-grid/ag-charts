@@ -16,7 +16,7 @@ type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
 type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
-const { BOOLEAN, Validate, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } = _ModuleSupport;
+const { Property, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } = _ModuleSupport;
 
 const moduleId = 'context-menu';
 
@@ -34,10 +34,10 @@ function getChildrenOfType<TElem extends Element>(parent: Element, ctor: new () 
 }
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @Validate(BOOLEAN)
+    @Property
     enabled = true;
 
-    @Validate(BOOLEAN)
+    @Property
     darkTheme = false;
 
     /**

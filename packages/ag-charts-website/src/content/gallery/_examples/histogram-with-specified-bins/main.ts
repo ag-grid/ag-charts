@@ -36,7 +36,7 @@ const options: AgChartOptions = {
     padding: {
         left: 0,
     },
-    series: Object.entries(getData()).map(([grade, gradeData]) => ({
+    series: Object.entries(getData()).map(([grade, gradeData], index) => ({
         data: gradeData,
         type: 'histogram',
         xKey: 'score',
@@ -58,6 +58,7 @@ const options: AgChartOptions = {
         stroke: 'transparent',
         strokeWidth: 2,
         cornerRadius: 6,
+        fill: index % 2 === 0 ? { type: 'pattern' } : undefined,
     })),
     axes: [
         {

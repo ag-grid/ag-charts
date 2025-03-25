@@ -1,6 +1,6 @@
 import type { AgHeatmapSeriesStyle, FontStyle, FontWeight, TextAlign, VerticalAlign } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { type InternalAgColorType, Logger } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
@@ -101,7 +101,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
-        if (!xAxis || !yAxis || !this.properties.isValid() || !this.data?.length) {
+        if (!xAxis || !yAxis || !this.data?.length) {
             return;
         }
 
@@ -466,7 +466,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        let fill: _ModuleSupport.InternalAgColorType;
+        let fill: InternalAgColorType;
         if (colorValue == null) {
             fill = colorRange[0];
         } else {
@@ -521,7 +521,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.GradientLegendDatum[] {
-        if (legendType !== 'gradient' || !this.properties.isValid() || !this.isColorScaleValid() || !this.dataModel) {
+        if (legendType !== 'gradient' || !this.isColorScaleValid() || !this.dataModel) {
             return [];
         }
 

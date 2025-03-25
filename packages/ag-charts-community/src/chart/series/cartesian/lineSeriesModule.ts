@@ -1,10 +1,10 @@
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { InternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgLineSeriesOptions, AgTooltipPositionOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
-import type { InternalAgGradientColor } from '../../../scene/util/fill';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
+import { FILL_PATTERN_DEFAULTS, SAFE_STROKE_FILL_OPERATION } from '../../themes/util';
 import { LineSeries } from './lineSeries';
 import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
 
@@ -31,15 +31,13 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     themeTemplate: {
         series: {
             tooltip: { position: { _seriesOverrideType: 'node' } as AgTooltipPositionOptions },
-            stroke: { $palette: 'fill' },
+            stroke: SAFE_STROKE_FILL_OPERATION,
             strokeWidth: 2,
             strokeOpacity: 1,
             lineDash: [0],
             lineDashOffset: 0,
             interpolation: {
                 type: 'linear',
-                tension: 1,
-                position: 'end',
             },
             marker: {
                 shape: 'circle',
@@ -56,6 +54,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
                     rotation: 0,
                     reverse: true,
                 } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+                fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             },
             label: {
                 enabled: false,

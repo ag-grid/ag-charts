@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     ariaLabelRangesToolbar: 'Plages',
     ariaLabelSettingsTabBar: 'Paramètres',
     ariaLabelZoomToolbar: 'Zoom',
-    ariaValuePanRange: '${min}[percent] à ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] à ${max}[percent0to2dp]',
     contextMenuDownload: 'Télécharger',
     contextMenuPanToCursor: "Panoramique jusqu'ici",
     contextMenuToggleOtherSeries: 'Basculer les autres séries',
@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     toolbarAnnotationsDragHandle: "Faites glisser la barre d'outils",
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Retrait Fib',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Fib tendance basée',
     toolbarAnnotationsFillColor: 'Couleur de remplissage',
     toolbarAnnotationsHorizontalLine: 'Ligne Horizontale',
     toolbarAnnotationsLineAnnotations: 'Lignes de tendance',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     toolbarZoomReset: 'Réinitialiser le zoom',
     toolbarZoomZoomIn: 'Agrandir',
     toolbarZoomZoomOut: 'Dézoomer',
+    tooltipPaginationStatus: '${index}[number] sur ${count}[number]',
 };

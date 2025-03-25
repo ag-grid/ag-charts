@@ -1,7 +1,8 @@
-import { clamp } from 'ag-charts-core';
+import { type InternalAgGradientColor, clamp } from 'ag-charts-core';
 import type { AgPatternColor } from 'ag-charts-types';
 
 import { generateUUID } from '../../util/id';
+import { objectsEqual } from '../../util/object';
 import type { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
 import { ConicGradient } from '../gradient/conicGradient';
@@ -11,7 +12,7 @@ import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Node, type RenderContext, SceneChangeDetection } from '../node';
 import { Pattern } from '../pattern/pattern';
-import { type InternalAgGradientColor, isGradientFill, isPatternFill } from '../util/fill';
+import { isGradientFill, isPatternFill } from '../util/fill';
 import { align } from '../util/pixel';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
@@ -113,9 +114,17 @@ export abstract class Shape<D = any> extends Node<D> {
         return new Pattern(fill, pixelRatio);
     }
 
+    private _cachedFill?: ShapeColor;
     protected onFillChange() {
+        if (typeof this.fill === 'object') {
+            if (objectsEqual(this._cachedFill ?? {}, this.fill)) {
+                return;
+            }
+        }
+
         this.fillGradient = this.getGradient(this.fill);
         this.fillPattern = this.getPattern(this.fill);
+        this._cachedFill = this.fill;
     }
 
     protected fillGradient: Gradient | undefined;
@@ -316,6 +325,19 @@ export abstract class Shape<D = any> extends Node<D> {
             defs.push(gradient);
 
             element.setAttribute('fill', `url(#${id})`);
+        } else if (isPatternFill(fill) && this.fillPattern) {
+            defs ??= [];
+
+            const pattern = this.fillPattern.toSvg();
+
+            const id = generateUUID();
+            pattern.setAttribute('id', id);
+
+            defs.push(pattern);
+
+            element.setAttribute('fill', `url(#${id})`);
+        } else {
+            element.setAttribute('fill', 'none');
         }
 
         element.setAttribute('fill-opacity', String(fillOpacity));

@@ -120,11 +120,6 @@ describe('BubbleSeries', () => {
                                 fill: {
                                     type: 'pattern',
                                     pattern,
-                                    stroke: 'green',
-                                    fill: 'orange',
-                                    backgroundFill: 'yellow',
-                                    strokeWidth: 2,
-                                    padding: 2,
                                 },
                             },
                         },

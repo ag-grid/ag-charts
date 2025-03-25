@@ -1,5 +1,5 @@
 import { type AgMapShapeSeriesOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { InternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeSeries } from './mapShapeSeries';
@@ -23,7 +23,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 $if: [
                     { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                     { $palette: 'divergingColors' },
-                    { $palette: 'range2' },
+                    _ModuleSupport.SAFE_RANGE2_OPERATION,
                 ],
             },
             // @ts-expect-error undocumented option
@@ -34,7 +34,8 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: false,
-            } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
+            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillOpacity: 1,
             strokeWidth: 1,
             lineDash: [0],
@@ -47,6 +48,9 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 fontWeight: 'bold',
                 overflowStrategy: 'hide',
             },
+        },
+        tooltip: {
+            range: 'exact',
         },
     },
 };

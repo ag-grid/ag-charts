@@ -132,10 +132,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) {
-            return;
-        }
-
         const { xKey, yLowKey, yHighKey, fastDataProcessing } = this.properties;
         const grouped = !fastDataProcessing;
 
@@ -486,7 +482,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     private getItemBaseStyle(highlighted: boolean): Required<AgRangeBarSeriesStyle> {
         const { properties } = this;
-        const { cornerRadius, fillGradientDefaults } = properties;
+        const { cornerRadius, fillGradientDefaults, fillPatternDefaults } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return getShapeStyle(
@@ -500,7 +496,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius,
             },
-            fillGradientDefaults
+            fillGradientDefaults,
+            fillPatternDefaults
         );
     }
 
@@ -512,7 +509,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     ) {
         const { id: seriesId, properties } = this;
 
-        const { xKey, yHighKey, yLowKey, itemStyler, fillGradientDefaults } = properties;
+        const { xKey, yHighKey, yLowKey, itemStyler, fillGradientDefaults, fillPatternDefaults } = properties;
 
         if (itemStyler == null) return;
 
@@ -528,7 +525,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             });
         });
 
-        return getShapeStyle(overrides, fillGradientDefaults);
+        return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults);
     }
 
     protected override updateDatumNodes(opts: {
@@ -633,6 +630,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             lineDash,
             lineDashOffset,
             fillGradientDefaults,
+            fillPatternDefaults,
         } = this.properties;
         return {
             marker: getShapeStyle(
@@ -645,7 +643,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                fillGradientDefaults
+                fillGradientDefaults,
+                fillPatternDefaults
             ),
         };
     }

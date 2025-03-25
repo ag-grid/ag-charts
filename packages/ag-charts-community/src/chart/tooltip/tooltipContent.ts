@@ -57,14 +57,19 @@ function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipConte
     return out;
 }
 
-export function tooltipContentAriaLabel(content: TooltipContent) {
+export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
+    const content = aggregateTooltipContent(ungroupedContent);
     const ariaLabel: string[] = [];
 
-    if (content.type === 'raw') return '';
-    if (content.heading != null) ariaLabel.push(content.heading);
-    if (content.title != null) ariaLabel.push(content.title);
-    content.data?.forEach((datum) => {
-        ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
+    content.forEach((c) => {
+        if (c.type === 'raw') return '';
+        if (c.heading != null) ariaLabel.push(c.heading);
+        c.items.forEach((i) => {
+            if (i.title != null) ariaLabel.push(i.title);
+            i.data?.forEach((datum) => {
+                ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
+            });
+        });
     });
 
     return ariaLabel.join('; ');

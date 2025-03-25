@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaLabelRangesToolbar: 'Alueet',
     ariaLabelSettingsTabBar: 'Asetukset',
     ariaLabelZoomToolbar: 'Zoomaa',
-    ariaValuePanRange: '${min}[percent] - ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] - ${max}[percent0to2dp]',
     contextMenuDownload: 'Lataa',
     contextMenuPanToCursor: 'Siirry tähän',
     contextMenuToggleOtherSeries: 'Vaihda muiden sarjojen näkyvyyttä',
@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Vedä työkaluriviä',
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Fib Retracement',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Fib Trendiin Perustuva',
     toolbarAnnotationsFillColor: 'Täyttöväri',
     toolbarAnnotationsHorizontalLine: 'Vaakasuora viiva',
     toolbarAnnotationsLineAnnotations: 'Trendiviivat',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     toolbarZoomReset: 'Palauta zoomaus',
     toolbarZoomZoomIn: 'Lähennä',
     toolbarZoomZoomOut: 'Loitonna',
+    tooltipPaginationStatus: '${index}[number] / ${count}[number]',
 };

@@ -1,8 +1,8 @@
+import type { InternalAgPatternColor } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgGaugeOptions,
     AgHierarchyChartOptions,
-    AgPatternColor,
     AgPatternName,
     AgPolarChartOptions,
 } from 'ag-charts-types';
@@ -2251,7 +2251,7 @@ function setPattern(
     options: AgCartesianChartOptions,
     pattern?: AgPatternName,
     path?: string,
-    fillOptions?: Omit<AgPatternColor, 'type'>
+    fillOptions?: Omit<InternalAgPatternColor, 'type'>
 ): AgCartesianChartOptions {
     return {
         ...options,
@@ -3196,6 +3196,58 @@ export const STACKED_COLUMN_PATTERN_FILL: AgCartesianChartOptions = {
         {
             type: 'category',
             position: 'bottom',
+        },
+    ],
+};
+
+export const GROUPED_COLUMN_SMALL_PATTERN_FILL: AgCartesianChartOptions = {
+    ...STACKED_COLUMN_PATTERN_FILL,
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    fill: {
+                        type: 'pattern',
+                        pattern: 'circles',
+                        width: 2,
+                        height: 2,
+                    },
+                },
+            },
+        },
+    },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'mac',
+            yName: 'Mac',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'ipad',
+            yName: 'iPad',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'wearables',
+            yName: 'Wearables',
+            strokeWidth: 1,
+            stroke: 'black',
+        },
+        {
+            type: 'bar',
+            xKey: 'iphone',
+            yKey: 'services',
+            yName: 'Services',
+            strokeWidth: 1,
+            stroke: 'black',
         },
     ],
 };

@@ -1,5 +1,5 @@
 import { type AgMapMarkerSeriesOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import { type SeriesModuleDefinition, ValidationError, validate } from 'ag-charts-core';
+import { type InternalAgGradientColor, type SeriesModuleDefinition, ValidationError, validate } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
@@ -25,7 +25,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 $if: [
                     { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                     { $palette: 'divergingColors' },
-                    { $palette: 'range2' },
+                    _ModuleSupport.SAFE_RANGE2_OPERATION,
                 ],
             },
             // @ts-expect-error undocumented option
@@ -36,11 +36,15 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: true,
-            } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
+            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillOpacity: 0.5,
             label: {
                 color: { $ref: 'textColor' },
             },
+        },
+        tooltip: {
+            range: 'exact',
         },
     },
 };

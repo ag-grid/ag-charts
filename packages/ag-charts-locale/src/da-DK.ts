@@ -35,7 +35,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaLabelRangesToolbar: 'Områder',
     ariaLabelSettingsTabBar: 'Indstillinger',
     ariaLabelZoomToolbar: 'Zoom',
-    ariaValuePanRange: '${min}[percent] til ${max}[percent]',
+    ariaValuePanRange: '${min}[percent0to2dp] til ${max}[percent0to2dp]',
     contextMenuDownload: 'Download',
     contextMenuPanToCursor: 'Panorer hertil',
     contextMenuToggleOtherSeries: 'Skift Andre Serier',
@@ -107,6 +107,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Træk værktøjslinje',
     toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     toolbarAnnotationsFibonacciRetracement: 'Fib Tilbageførsel',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Fib-trendbaseret',
     toolbarAnnotationsFillColor: 'Fyldfarve',
     toolbarAnnotationsHorizontalLine: 'Vandret linje',
     toolbarAnnotationsLineAnnotations: 'Trendlinjer',
@@ -156,4 +157,5 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     toolbarZoomReset: 'Nulstil zoom',
     toolbarZoomZoomIn: 'Zoom ind',
     toolbarZoomZoomOut: 'Zoom ud',
+    tooltipPaginationStatus: '${index}[number] af ${count}[number]',
 };

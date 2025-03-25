@@ -1,10 +1,10 @@
+import type { InternalAgColorType, InternalAgPatternColor } from 'ag-charts-core';
 import type {
     AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesOptions,
     AgBubbleSeriesOptionsKeys,
     AgBubbleSeriesStyle,
     AgBubbleSeriesTooltipRendererParams,
-    AgGradientColor,
     AgMarkerShape,
     BubbleSeriesItemStylerParams,
     LabelPlacement,
@@ -13,10 +13,9 @@ import type {
 
 import { SceneChangeDetection } from '../../../scene/changeDetectable';
 import type { Point, SizedPoint } from '../../../scene/point';
-import type { InternalAgColorType } from '../../../scene/util/fill';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
+import { Property } from '../../../util/properties';
 import { ProxyProperty } from '../../../util/proxy';
-import { LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, POSITIVE_NUMBER, STRING, TempValidate } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -38,55 +37,55 @@ class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys> {
      * `[size, maxSize]` range, where the largest values will correspond to the `maxSize` and the
      * lowest to the `size`.
      */
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     @SceneChangeDetection()
     maxSize = 30;
 
-    @TempValidate(NUMBER_ARRAY, { optional: true })
+    @Property
     @SceneChangeDetection()
     domain?: [number, number];
 }
 
 class BubbleSeriesLabel extends Label<AgBubbleSeriesLabelFormatterParams> {
-    @TempValidate(LABEL_PLACEMENT)
+    @Property
     placement: LabelPlacement = 'top';
 }
 
 export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSeriesOptions> {
-    @TempValidate(STRING)
+    @Property
     xKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     yKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     sizeKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xFilterKey: string | undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yFilterKey: string | undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeFilterKey: string | undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     title?: string;
 
     @ProxyProperty('marker.shape')
@@ -98,19 +97,22 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     @ProxyProperty('marker.maxSize')
     maxSize!: number;
 
-    @ProxyProperty('marker.domain', { optional: true })
+    @ProxyProperty('marker.domain')
     domain?: [number, number];
 
     @ProxyProperty('marker.fillGradientDefaults')
-    fillGradientDefaults!: Required<AgGradientColor>;
+    fillGradientDefaults!: Required<InternalAgColorType>;
 
-    @ProxyProperty('marker.fill', { optional: true })
+    @ProxyProperty('marker.fillPatternDefaults')
+    fillPatternDefaults!: Required<InternalAgPatternColor>;
+
+    @ProxyProperty('marker.fill')
     fill?: InternalAgColorType;
 
     @ProxyProperty('marker.fillOpacity')
     fillOpacity!: number;
 
-    @ProxyProperty('marker.stroke', { optional: true })
+    @ProxyProperty('marker.stroke')
     stroke?: string;
 
     @ProxyProperty('marker.strokeWidth')
@@ -125,13 +127,13 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     @ProxyProperty('marker.lineDashOffset')
     lineDashOffset!: number;
 
-    @ProxyProperty('marker.itemStyler', { optional: true })
+    @ProxyProperty('marker.itemStyler')
     itemStyler?: Styler<BubbleSeriesItemStylerParams<unknown>, AgBubbleSeriesStyle>;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new BubbleSeriesLabel();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgBubbleSeriesTooltipRendererParams>();
 
     // No validation. Not a part of the options contract.

@@ -1,7 +1,8 @@
+import type { InternalAgColorType } from 'ag-charts-core';
+
 import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Point } from '../../../scene/point';
 import type { Sector } from '../../../scene/shape/sector';
-import type { InternalAgColorType } from '../../../scene/util/fill';
 import { isBetweenAngles, toRadians } from '../../../util/angle';
 import type { Marker } from '../../marker/marker';
 import type { SeriesNodePickMatch } from '../series';
@@ -47,6 +48,10 @@ export function preparePieSeriesAnimationFunctions(
         // Default to starting from current state.
         let { startAngle, endAngle, innerRadius, outerRadius } = sect;
         let { fill, stroke } = datum.sectorFormat;
+
+        if (status === 'updated' && sect.previousDatum == null) {
+            status = 'added';
+        }
 
         if (status === 'unknown' || (status === 'added' && !prevFromProps)) {
             // Start of animation (full new data) - sweep in.

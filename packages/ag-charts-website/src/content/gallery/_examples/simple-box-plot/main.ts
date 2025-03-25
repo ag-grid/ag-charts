@@ -31,8 +31,9 @@ const options: AgChartOptions = {
             maxKey: 'max',
             maxName: 'Max',
             cornerRadius: 8,
-            strokeOpacity: 0,
+            stroke: 'white',
             whisker: {
+                stroke: '#2b5c95',
                 strokeOpacity: 0.9,
             },
             cap: {

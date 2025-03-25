@@ -139,9 +139,7 @@ export class MapShapeSeries
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const { data, topology, colorScale } = this;
         const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
@@ -447,7 +445,8 @@ export class MapShapeSeries
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
-            this.properties.fillGradientDefaults
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults
         );
     }
 
@@ -488,7 +487,7 @@ export class MapShapeSeries
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults);
+        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
     }
 
     private updateDatumNodes(opts: {
@@ -607,7 +606,8 @@ export class MapShapeSeries
                     lineDash,
                     lineDashOffset,
                 },
-                this.properties.fillGradientDefaults
+                this.properties.fillGradientDefaults,
+                this.properties.fillPatternDefaults
             ),
         };
     }

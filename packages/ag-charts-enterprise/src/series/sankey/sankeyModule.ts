@@ -1,5 +1,5 @@
 import { type AgSankeySeriesOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { InternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
 
 import { SankeySeries } from './sankeySeries';
 import { sankeySeriesOptionsDef } from './sankeySeriesOptionsDef';
@@ -33,7 +33,10 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: false,
-            } satisfies WithThemeParams<Required<_ModuleSupport.InternalAgGradientColor>>,
+            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
+            defaultColorRange: { $palette: 'gradients' },
+            defaultPatternFills: _ModuleSupport.SAFE_FILLS_OPERATION,
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,

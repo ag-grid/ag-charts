@@ -1,7 +1,7 @@
 import { BaseProperties } from '../util/properties';
-import { UNION, Validate } from '../util/validation';
+import { Property } from '../util/properties';
 
 export class ChartHighlight extends BaseProperties {
-    @Validate(UNION(['tooltip', 'node'], 'a range'))
+    @Property
     public range: 'tooltip' | 'node' = 'tooltip';
 }

@@ -8,31 +8,9 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
-import { GEOJSON_OBJECT } from '../map-util/validation';
-
-const {
-    FillGradientDefaults,
-    AND,
-    ARRAY,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    FUNCTION,
-    NUMBER_ARRAY,
-    OBJECT,
-    OR,
-    COLOR_GRADIENT,
-    COLOR_PATTERN,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    MARKER_SHAPE,
-    LINE_DASH,
-    TempValidate,
-    SeriesProperties,
-    SeriesTooltip,
-    Label,
-} = _ModuleSupport;
+const { FillGradientDefaults, FillPatternDefaults, Property, SeriesProperties, SeriesTooltip, Label } = _ModuleSupport;
 
 export interface MapMarkerNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
 
@@ -48,105 +26,108 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDa
 }
 
 class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> {
-    @TempValidate(STRING)
+    @Property
     placement: _ModuleSupport.LabelPlacement = 'bottom';
 }
 
 export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSeriesOptions> {
-    @TempValidate(GEOJSON_OBJECT, { optional: true })
+    @Property
     topology: _ModuleSupport.FeatureCollection | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     title?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     legendItemName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     idKey: string | undefined = undefined;
 
-    @TempValidate(STRING)
+    @Property
     topologyIdKey: string = 'name';
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     idName: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     latitudeKey: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     latitudeName: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     longitudeKey: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     longitudeName: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelKey: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelName: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     colorKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     colorName?: string;
 
-    @TempValidate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
+    @Property
     colorRange: string[] | undefined = undefined;
 
     /** One of the predefined marker names, or a marker shape function (for user-defined markers). */
-    @TempValidate(MARKER_SHAPE)
+    @Property
     shape: AgMarkerShape = 'circle';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     size: number = 6;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     maxSize: number | undefined;
 
-    @TempValidate(NUMBER_ARRAY, { optional: true })
+    @Property
     sizeDomain?: [number, number];
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
-    fill: _ModuleSupport.InternalAgColorType = 'black';
+    @Property
+    fill: InternalAgColorType = 'black';
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(RATIO)
+    @Property
+    readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
     fillOpacity: number = 1;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = 'black';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<unknown>, AgMapMarkerSeriesStyle>;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new MapMarkerSeriesLabel();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<any>>();
 }

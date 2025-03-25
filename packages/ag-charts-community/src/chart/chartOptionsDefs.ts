@@ -1,4 +1,4 @@
-import { type OptionsDefs, array, defined, object, union } from 'ag-charts-core';
+import { type OptionsDefs, array, attachDescription, defined, geoJson, union } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgFlowProportionChartOptions,
@@ -11,12 +11,18 @@ import type {
 
 import { commonChartOptionsDefs } from './commonOptionsDefs';
 
+// Pass validator if HTMLElement doesn't exist, for server-side environments.
+const htmlElement = attachDescription(
+    (value) => typeof HTMLElement === 'undefined' || value instanceof HTMLElement,
+    'an html element'
+);
+
 // These options are being validated by other modules
 const commonChartOptions = {
     mode: union('integrated', 'standalone'),
-    container: defined,
+    container: htmlElement,
     theme: defined,
-    series: defined,
+    series: array,
     annotations: defined,
     navigator: defined,
     initialState: defined,
@@ -40,7 +46,7 @@ export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
-    topology: object,
+    topology: geoJson,
 };
 
 export const standaloneChartOptionsDefs: OptionsDefs<AgStandaloneChartOptions> = {

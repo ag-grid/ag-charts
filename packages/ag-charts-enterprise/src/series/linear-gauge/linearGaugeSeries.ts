@@ -527,9 +527,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     override createNodeData() {
         const { id: seriesId, properties, horizontal, scale, seriesRect } = this;
-
-        if (!properties.isValid()) return;
-
         const { value, segmentation, thickness, cornerRadius, cornerMode, bar, scale: scaleProps, label } = properties;
 
         scale.domain = [scaleProps.min, scaleProps.max];
@@ -1303,8 +1300,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     override getTooltipContent(datumIndex: LinearGaugeNodeDatumIndex): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
-
-        if (!properties.isValid()) return;
 
         let value: number | undefined;
         let text: string | undefined;

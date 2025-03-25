@@ -6,18 +6,7 @@ import { AngleAxis } from '../angle/angleAxis';
 import { AngleAxisInterval } from './angleAxisInterval';
 import { LinearAngleScale } from './linearAngleScale';
 
-const {
-    AND,
-    Default,
-    GREATER_THAN,
-    LESS_THAN,
-    NUMBER_OR_NAN,
-    OBJECT,
-    TempValidate,
-    angleBetween,
-    normalisedExtentWithMetadata,
-    findMinMax,
-} = _ModuleSupport;
+const { Property, angleBetween, normalisedExtentWithMetadata, findMinMax } = _ModuleSupport;
 
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     static readonly className = 'AngleNumberAxis';
@@ -25,15 +14,13 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
 
     override shape = 'circle' as const;
 
-    @TempValidate(AND(NUMBER_OR_NAN, LESS_THAN('max')))
-    @Default(NaN)
-    min: number = NaN;
+    @Property
+    min?: number;
 
-    @TempValidate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
-    @Default(NaN)
-    max: number = NaN;
+    @Property
+    max?: number;
 
-    @TempValidate(OBJECT)
+    @Property
     override interval = new AngleAxisInterval();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
@@ -92,14 +79,13 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        let { minSpacing } = this.label;
-        if (!Number.isFinite(minSpacing)) {
-            minSpacing = 0;
-        }
+        const { minSpacing } = this.label;
 
         const labelsCollide = (prev: AngleAxisLabelDatum, next: AngleAxisLabelDatum) => {
             if (prev.hidden || next.hidden) {
                 return false;
+            } else if (minSpacing == null) {
+                return prev.box!.collidesBBox(next.box!);
             }
             const prevBox = prev.box!.clone().grow(minSpacing / 2);
             const nextBox = next.box!.clone().grow(minSpacing / 2);

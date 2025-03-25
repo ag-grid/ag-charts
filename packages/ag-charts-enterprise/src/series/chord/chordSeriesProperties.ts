@@ -9,144 +9,129 @@ import {
     type Styler,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
-const {
-    FillGradientDefaults,
-    BaseProperties,
-    SeriesTooltip,
-    SeriesProperties,
-    ARRAY,
-    ARRAY_OF,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    FUNCTION,
-    LINE_DASH,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    OR,
-    COLOR_GRADIENT,
-    TempValidate,
-    COLOR_PATTERN,
-    Label,
-} = _ModuleSupport;
+const { FillGradientDefaults, FillPatternDefaults, BaseProperties, SeriesTooltip, SeriesProperties, Property, Label } =
+    _ModuleSupport;
 
 class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     spacing: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     maxWidth: number = 1;
 }
 
 class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
-    fill: _ModuleSupport.InternalAgColorType | undefined = undefined;
+    @Property
+    fill: InternalAgColorType | undefined = undefined;
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity = 1;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke: string | undefined = undefined;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(RATIO)
+    @Property
     tension = 0;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<unknown>, AgChordSeriesLinkStyle>;
 }
 
 class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     spacing: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     width: number = 1;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN), { optional: true })
-    fill: _ModuleSupport.InternalAgColorType | undefined = undefined;
+    @Property
+    fill: InternalAgColorType | undefined = undefined;
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity = 1;
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke: string | undefined = undefined;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity = 1;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<unknown>, AgChordSeriesNodeStyle>;
 }
 
 export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions> {
-    @TempValidate(STRING)
+    @Property
     fromKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     toKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     idKey: string = '';
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     idName: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelKey: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     labelName: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeKey: string | undefined = undefined;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     sizeName: string | undefined = undefined;
 
-    @TempValidate(ARRAY, { optional: true })
+    @Property
     nodes: any[] | undefined = undefined;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(ARRAY_OF(OR(COLOR_GRADIENT, COLOR_STRING, COLOR_PATTERN)))
-    fills: _ModuleSupport.InternalAgColorType[] = [];
+    @Property
+    readonly fillPatternDefaults = new FillPatternDefaults();
 
-    @TempValidate(COLOR_STRING_ARRAY)
+    @Property
+    fills: InternalAgColorType[] = [];
+
+    @Property
     strokes: string[] = [];
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new ChordSeriesLabelProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly link = new ChordSeriesLinkProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly node = new ChordSeriesNodeProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams<any>>();
 }

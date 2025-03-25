@@ -6,125 +6,120 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 
 const {
     BaseProperties,
     FillGradientDefaults,
+    FillPatternDefaults,
     AbstractBarSeriesProperties,
     SeriesTooltip,
-    TempValidate,
-    COLOR_STRING,
-    FUNCTION,
-    LINE_DASH,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
+    Property,
     mergeDefaults,
-    COLOR_GRADIENT,
-    COLOR_PATTERN,
-    OR,
 } = _ModuleSupport;
 
 class BoxPlotSeriesCap extends BaseProperties {
-    @TempValidate(RATIO)
+    @Property
     lengthRatio = 0.5;
 }
 
 class BoxPlotSeriesWhisker extends BaseProperties {
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke?: string;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth?: number;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity?: number;
 
-    @TempValidate(LINE_DASH, { optional: true })
+    @Property
     lineDash?: number[];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset?: number;
 }
 
 export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPlotSeriesOptions> {
-    @TempValidate(STRING)
+    @Property
     xKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     minKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     q1Key!: string;
 
-    @TempValidate(STRING)
+    @Property
     medianKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     q3Key!: string;
 
-    @TempValidate(STRING)
+    @Property
     maxKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     minName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     q1Name?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     medianName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     q3Name?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     maxName?: string;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
-    fill: _ModuleSupport.InternalAgColorType = '#c16068';
+    @Property
+    fill: InternalAgColorType = '#c16068';
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(RATIO)
+    @Property
+    readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
     fillOpacity = 1;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = '#333';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     cornerRadius: number = 0;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<unknown>, AgBoxPlotSeriesStyle>;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly cap = new BoxPlotSeriesCap();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly whisker = new BoxPlotSeriesWhisker();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<any>>();
 
     override toJson() {

@@ -23,19 +23,19 @@ export function extent(values: Array<unknown>): [number, number] | null {
 
 export function normalisedExtentWithMetadata(
     d: number[],
-    min: number,
-    max: number
+    min?: number,
+    max?: number
 ): { extent: number[]; clipped: boolean } {
     let clipped = false;
 
     if (d.length > 2) {
         d = extent(d) ?? [NaN, NaN];
     }
-    if (!isNaN(min)) {
+    if (min != null) {
         clipped ||= min > d[0];
         d = [min, d[1]];
     }
-    if (!isNaN(max)) {
+    if (max != null) {
         clipped ||= max < d[1];
         d = [d[0], max];
     }
