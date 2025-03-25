@@ -319,13 +319,13 @@ function classify(value: any): Classification | null {
  *
  * @returns An object of modified paths.
  */
-export function jsonResolveOperations<T extends object, P extends object>(
-    source: T,
-    params: P,
-    skip?: Set<string>,
-    context?: T
+export function jsonResolveOperations<S extends object, L extends object, P extends object>(
+    source: S,
+    logic: L = {} as L,
+    params: P = {} as P,
+    skip?: Set<string>
 ) {
-    return jsonResolveInner(source, params, context ?? source, { matches: new Map() }, skip);
+    return jsonResolveInner(source, source, logic, params, { matches: new Map() }, skip);
 }
 
 type OperationMeta = {
@@ -335,58 +335,82 @@ type OperationMeta = {
 
 const operationResolvedUndefined = Symbol('operation-resolved-undefined');
 
-function jsonResolveInner<T extends object, P extends object>(
-    json: any,
+function jsonResolveInner<S extends object, P extends object>(
+    json: unknown,
+    source: S,
+    logic: unknown,
     params: P,
-    source: T,
     meta: OperationMeta,
     skip?: Set<string>,
     path: string[] = [],
     modifiedPaths: Record<string, any> = {}
 ) {
     if (isArray(json)) {
-        jsonResolveVisitor(json, params, source, meta, path, modifiedPaths);
+        jsonResolveVisitor(json, source, logic, params, meta, path, modifiedPaths);
         let index = 0;
         for (const node of json) {
-            jsonResolveInner(node, params, source, meta, skip, [...path, `${index}`], modifiedPaths);
+            const logicNode = isArray(logic) ? logic.at(index) : undefined;
+            jsonResolveInner(node, source, logicNode, params, meta, skip, [...path, `${index}`], modifiedPaths);
             index++;
         }
     } else if (isPlainObject(json)) {
-        jsonResolveVisitor(json, params, source, meta, path, modifiedPaths);
-        for (const key of Object.keys(json)) {
+        jsonResolveVisitor(json, source, logic, params, meta, path, modifiedPaths);
+        const hasLogic = isPlainObject(logic);
+        const keys = hasLogic ? new Set([...Object.keys(json), ...Object.keys(logic)]) : Object.keys(json);
+        for (const key of keys) {
             if (skip?.has(key)) {
                 continue;
             }
-            const node = json[key as keyof T];
-            jsonResolveInner(node, params, source, meta, skip, [...path, key], modifiedPaths);
+            const logicNode = hasLogic ? logic[key] : undefined;
+            jsonResolveInner(json[key], source, logicNode, params, meta, skip, [...path, key], modifiedPaths);
         }
     }
 
     return modifiedPaths;
 }
 
-function jsonResolveVisitor<T extends object, P extends object>(
-    node: any,
+function jsonResolveVisitor<S extends object, P extends object>(
+    node: unknown,
+    source: S,
+    logic: unknown,
     params: P,
-    source: T,
     meta: OperationMeta,
     path: string[],
     modifiedPaths: Record<string, any>
 ) {
     if (isArray(node)) {
         for (let i = 0; i < node.length; i++) {
-            node[i] = jsonResolveVisitorValue(node[i], params, source, meta, [...path, `${i}`], modifiedPaths);
+            const logicNode = isArray(logic) ? logic.at(i) : undefined;
+            node[i] = jsonResolveVisitorValue(
+                node[i],
+                source,
+                logicNode,
+                params,
+                meta,
+                [...path, `${i}`],
+                modifiedPaths
+            );
             if (node[i] === operationResolvedUndefined) {
                 node[i] = undefined;
             }
         }
-    } else {
+    } else if (isPlainObject(node)) {
         let hasOperation = false;
-        for (const name of Object.keys(node)) {
-            node[name] = jsonResolveVisitorValue(node[name], params, source, meta, [...path, name], modifiedPaths);
-            hasOperation ||= isKey(name, operations);
-            if (node[name] === operationResolvedUndefined) {
-                delete node[name];
+        const keys = isPlainObject(logic) ? new Set([...Object.keys(node), ...Object.keys(logic)]) : Object.keys(node);
+        for (const key of keys) {
+            const logicNode = isPlainObject(logic) ? logic[key] : undefined;
+            node[key] = jsonResolveVisitorValue(
+                node[key],
+                source,
+                logicNode,
+                params,
+                meta,
+                [...path, key],
+                modifiedPaths
+            );
+            hasOperation ||= isKey(key, operations);
+            if (node[key] === operationResolvedUndefined) {
+                delete node[key];
             }
         }
 
@@ -402,17 +426,26 @@ function jsonResolveVisitor<T extends object, P extends object>(
     }
 }
 
-function jsonResolveVisitorValue<T extends object, P extends object>(
+function jsonResolveVisitorValue<S extends object, P extends object>(
     value: unknown,
+    source: S,
+    logic: unknown,
     params: P,
-    source: T,
     meta: OperationMeta,
     path: string[],
     modifiedPaths: Record<string, any>
 ) {
-    const operation = getOperation(value);
-    if (!operation) return value;
-    modifiedPaths[path.join('.')] = value;
+    const valueOrLogic = value ?? logic;
+    let operation = getOperation(valueOrLogic);
+
+    const logicOperation = getOperation(logic);
+    if (logicOperation?.operation === TransformOperation.Apply) {
+        logicOperation.values = [logicOperation.values, value];
+        operation = logicOperation;
+    }
+
+    if (!operation) return valueOrLogic;
+    modifiedPaths[path.join('.')] = valueOrLogic;
 
     const resolved = resolveOperation(operation.operation, operation.values, params, source, path, meta);
     if (resolved === undefined) return operationResolvedUndefined;
@@ -444,6 +477,7 @@ enum NumericOperation {
 enum TransformOperation {
     Map = '$map',
     Merge = '$merge',
+    Apply = '$apply',
     Value = '$value',
     Find = '$find',
     Omit = '$omit',
@@ -585,6 +619,7 @@ const transformOperations: Record<TransformOperation, OperationFn> = {
     $map: map,
     $find: find,
     $merge: merge,
+    $apply: apply,
     $omit: omit,
     $value: valueOperation,
 };
@@ -682,11 +717,11 @@ function palette(value: string | Array<unknown>, path: string[], params: any, so
     return getPath(p, value);
 }
 
-function pathOperation<T extends object, P extends object>(
+function pathOperation<S extends object, P extends object>(
     value: string | Array<unknown>,
     path: string[],
     _params: P,
-    source: T
+    source: S
 ) {
     let hasDefaultValue = false;
     let defaultValue;
@@ -697,7 +732,7 @@ function pathOperation<T extends object, P extends object>(
         hasDefaultValue = true;
         defaultValue = value[1];
         usingCustomBranch = value.length === 3;
-        branch = usingCustomBranch ? (value[2] as T) : branch;
+        branch = usingCustomBranch ? (value[2] as S) : branch;
         value = value[0] as string;
     } else if (!isString(value)) {
         Logger.warnOnce(
@@ -806,6 +841,15 @@ function merge(values: string | Array<unknown>) {
     return mergeDefaults(...(values as any));
 }
 
+function apply(values: string | Array<unknown>, path: string[], params: any, source: any, meta: any) {
+    if (!isArray(values)) return;
+    const [[appliedTo], withValue] = values as any;
+    const operation = getOperation(appliedTo);
+    if (!operation) return;
+    const operationValues = isArray(operation.values) ? [...operation.values, withValue] : operation.values;
+    return resolveOperation(operation.operation, operationValues, params, source, path, meta);
+}
+
 function omit([keys, object]: string | Array<unknown>) {
     if (!isArray(keys) || !isPlainObject(object)) return;
     return without(object, keys as string[]);
@@ -815,13 +859,13 @@ function valueOperation(
     value: string | Array<unknown>,
     path: string[],
     _params: any,
-    _source: any,
+    source: any,
     meta: OperationMeta
 ) {
     if (value !== '$1' && value !== '$index') return value;
 
     const indexIndex = path.findLastIndex((v) => !isNaN(Number(v)));
-    if (indexIndex === -1) return value;
+    if (indexIndex === -1) return getPath(source, path.join('.'));
 
     const index = Number(path[indexIndex]);
     if (value === '$index') return index;

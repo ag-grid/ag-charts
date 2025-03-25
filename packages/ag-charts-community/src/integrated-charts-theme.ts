@@ -19,6 +19,6 @@ export function resolveOperation(operation: Operation): any {
     const params = ChartTheme.getDefaultPublicParameters();
     (params as any).__palette = ChartTheme.getDefaultColors();
     const source = { operation };
-    jsonResolveOperations(source, params);
+    jsonResolveOperations(source, {}, params);
     return source.operation as any;
 }
