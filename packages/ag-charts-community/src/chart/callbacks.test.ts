@@ -222,11 +222,11 @@ describe('callback cache', () => {
         await compare('AG-10112-reevaluate-Spain');
 
         selectedCountry = 'UK';
-        chart.update(opts);
+        await chart.update(opts);
         await compare('AG-10112-reevaluate-UK');
 
         selectedCountry = 'Germany';
-        chart.update(opts);
+        await chart.update(opts);
         await compare('AG-10112-reevaluate-Germany');
     });
 });
