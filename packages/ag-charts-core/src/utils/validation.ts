@@ -106,7 +106,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
                 if (validatorResult.valid) {
                     cleared[key as keyof T] = validatorResult.cleared as any;
                 } else if (!validatorResult.invalid.some(requiredInPath(keyPath))) {
-                    const message = validateMessage(keyPath, validatorResult.cleared, validatorOrDefs, required);
+                    const message = validateMessage(keyPath, value, validatorOrDefs, required);
                     invalid.push(new ValidationError(message, path, required));
                 }
             } else if (validatorResult) {
