@@ -12,11 +12,10 @@ import {
     LineStyle,
     Stroke,
 } from '../annotationProperties';
-import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import { type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { getLineCap, getLineDash } from '../utils/line';
-import { validateDatumLine } from '../utils/validation';
 
-const { NUMBER, STRING, OBJECT, BaseProperties, TempValidate } = _ModuleSupport;
+const { BaseProperties, Property } = _ModuleSupport;
 
 export class ParallelChannelProperties extends Annotation(
     Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))
@@ -25,16 +24,16 @@ export class ParallelChannelProperties extends Annotation(
         return isObject(value) && value.type === AnnotationType.ParallelChannel;
     }
 
-    @TempValidate(STRING)
+    @Property
     type = AnnotationType.ParallelChannel as const;
 
-    @TempValidate(NUMBER)
+    @Property
     height!: number;
 
-    @TempValidate(OBJECT, { optional: true })
+    @Property
     middle = new ChannelAnnotationMiddleProperties();
 
-    @TempValidate(OBJECT, { optional: true })
+    @Property
     text = new ChannelTextProperties();
 
     snapToAngle: number = 45;
@@ -53,14 +52,6 @@ export class ParallelChannelProperties extends Annotation(
         }
 
         return bottom;
-    }
-
-    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
-        return (
-            super.isValid(warningPrefix) &&
-            validateDatumLine(context, this, { overflowContinuous: true }, warningPrefix) &&
-            validateDatumLine(context, this.bottom, { overflowContinuous: true }, warningPrefix)
-        );
     }
 
     getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {

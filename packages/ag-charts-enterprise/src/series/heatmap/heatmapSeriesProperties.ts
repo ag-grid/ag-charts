@@ -12,72 +12,57 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { AutoSizedLabel } from '../util/autoSizedLabel';
 
-const {
-    CartesianSeriesProperties,
-    SeriesTooltip,
-    TempValidate,
-    AND,
-    ARRAY,
-    COLOR_STRING,
-    COLOR_STRING_ARRAY,
-    FUNCTION,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    TEXT_ALIGN,
-    VERTICAL_ALIGN,
-} = _ModuleSupport;
+const { CartesianSeriesProperties, SeriesTooltip, Property } = _ModuleSupport;
 
 export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmapSeriesOptions> {
-    @TempValidate(STRING, { optional: true })
+    @Property
     title?: string;
 
-    @TempValidate(STRING)
+    @Property
     xKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     yKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     colorKey?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     colorName?: string;
 
-    @TempValidate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })))
+    @Property
     colorRange: string[] = ['black', 'black'];
 
-    @TempValidate(COLOR_STRING, { optional: true })
+    @Property
     stroke: string = 'black';
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity: number = 1;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     strokeWidth: number = 0;
 
-    @TempValidate(TEXT_ALIGN)
+    @Property
     textAlign: TextAlign = 'center';
 
-    @TempValidate(VERTICAL_ALIGN)
+    @Property
     verticalAlign: VerticalAlign = 'middle';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     itemPadding: number = 0;
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<unknown>, AgHeatmapSeriesStyle>;
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new AutoSizedLabel<AgHeatmapSeriesLabelFormatterParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgHeatmapSeriesTooltipRendererParams<any>>();
 }

@@ -7,19 +7,7 @@ import type {
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
-import {
-    BOOLEAN,
-    COLOR_GRADIENT,
-    COLOR_PATTERN,
-    COLOR_STRING,
-    LINE_DASH,
-    OBJECT,
-    OR,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    TempValidate,
-} from '../../../util/validation';
+import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { FillGradientDefaults, FillPatternDefaults } from '../seriesProperties';
@@ -28,66 +16,66 @@ import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
 
 export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesAreaOptions> {
-    @TempValidate(STRING)
+    @Property
     xKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xName?: string = undefined;
 
-    @TempValidate(STRING)
+    @Property
     yKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yFilterKey: string | undefined;
 
-    @TempValidate(POSITIVE_NUMBER, { optional: true })
+    @Property
     normalizedTo?: number;
 
-    @TempValidate(OR(COLOR_GRADIENT, COLOR_PATTERN, COLOR_STRING))
+    @Property
     fill: InternalAgColorType = '#c16068';
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillGradientDefaults = new FillGradientDefaults();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
 
-    @TempValidate(RATIO)
+    @Property
     fillOpacity = 1;
 
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = '#874349';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth = 2;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 
-    @TempValidate(OBJECT)
+    @Property
     interpolation: InterpolationProperties = new InterpolationProperties();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly shadow = new DropShadow();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly marker = new SeriesMarker<AgAreaSeriesMarkerItemStylerParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly label = new Label<AgAreaSeriesLabelFormatterParams>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgAreaSeriesTooltipRendererParams<any>>();
 
-    @TempValidate(BOOLEAN)
+    @Property
     connectMissingData: boolean = false;
 }

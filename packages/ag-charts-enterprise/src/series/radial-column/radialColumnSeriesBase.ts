@@ -121,9 +121,6 @@ export abstract class RadialColumnSeriesBase<
     override async processData(dataController: _ModuleSupport.DataController) {
         const { angleKey, radiusKey, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-        if (!this.properties.isValid()) return;
-
         const stackGroupId = this.getStackId();
         const stackGroupTrailingId = `${stackGroupId}-trailing`;
         const extraProps = [];
@@ -222,9 +219,7 @@ export abstract class RadialColumnSeriesBase<
     override createNodeData() {
         const { processedData, dataModel, groupScale } = this;
 
-        if (!dataModel || !processedData || processedData.type !== 'grouped' || !this.properties.isValid()) {
-            return;
-        }
+        if (!dataModel || !processedData || processedData.type !== 'grouped') return;
 
         const angleAxis = this.axes[ChartAxisDirection.X];
         const radiusAxis = this.axes[ChartAxisDirection.Y];
@@ -597,7 +592,7 @@ export abstract class RadialColumnSeriesBase<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        if (!this.properties.isValid() || legendType !== 'category') {
+        if (legendType !== 'category') {
             return [];
         }
 

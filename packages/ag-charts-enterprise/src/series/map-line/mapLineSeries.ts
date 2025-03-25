@@ -117,9 +117,7 @@ export class MapLineSeries extends TopologySeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const { data, topology, sizeScale, colorScale } = this;
         const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, sizeDomain, colorRange } = this.properties;

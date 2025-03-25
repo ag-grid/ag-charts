@@ -2,8 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
-const { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, TempValidate, normalisedExtentWithMetadata, LinearScale } =
-    _ModuleSupport;
+const { Property, normalisedExtentWithMetadata, LinearScale } = _ModuleSupport;
 
 type TickDatum = {
     tickLabel: string;
@@ -18,10 +17,10 @@ export class RadiusNumberAxis extends RadiusAxis {
 
     override shape: 'polygon' | 'circle' = 'polygon';
 
-    @TempValidate(AND(NUMBER_OR_NAN, LESS_THAN('max')), { optional: true })
+    @Property
     min?: number;
 
-    @TempValidate(AND(NUMBER_OR_NAN, GREATER_THAN('min')), { optional: true })
+    @Property
     max?: number;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {

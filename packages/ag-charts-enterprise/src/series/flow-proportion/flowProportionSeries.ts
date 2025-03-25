@@ -173,9 +173,7 @@ export abstract class FlowProportionSeries<
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         const { data, nodes } = this;
 
-        if (data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (data == null) return;
 
         const { fromKey, toKey, sizeKey, idKey, labelKey } = this.properties;
 

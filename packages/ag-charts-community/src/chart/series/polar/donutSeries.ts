@@ -211,9 +211,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     override async processData(dataController: DataController) {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const {
             visible,
@@ -375,13 +373,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             visible,
         } = this;
         const { rotation, innerRadiusRatio } = this.properties;
-
-        if (!this.properties.isValid()) {
-            this.zerosumOuterRing.visible = true;
-            this.zerosumInnerRing.visible = true;
-
-            return { itemId: seriesId, nodeData: [], labelData: [] };
-        }
 
         if (!dataModel || processedData?.type !== 'ungrouped') return;
 
@@ -1529,7 +1520,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             ctx: { legendManager },
         } = this;
 
-        if (!dataModel || !processedData || !this.properties.isValid() || legendType !== 'category') {
+        if (!dataModel || !processedData || legendType !== 'category') {
             return [];
         }
 

@@ -2,13 +2,12 @@ import { _ModuleSupport, _Widget } from 'ag-charts-community';
 
 import { convert, invert } from './utils/values';
 
-const { BaseModuleInstance, InteractionState, TempValidate, BOOLEAN, ChartAxisDirection, getIconClassNames } =
-    _ModuleSupport;
+const { BaseModuleInstance, InteractionState, Property, ChartAxisDirection, getIconClassNames } = _ModuleSupport;
 
 export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `ag-charts-annotations__axis-button`;
 
 export class AxisButton extends BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @TempValidate(BOOLEAN)
+    @Property
     public enabled = true;
 
     private readonly button: _Widget.ButtonWidget;

@@ -15,42 +15,30 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 
-const {
-    BaseProperties,
-    TempValidate,
-    AbstractBarSeriesProperties,
-    SeriesTooltip,
-    STRING,
-    COLOR_STRING,
-    FUNCTION,
-    LINE_DASH,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-} = _ModuleSupport;
+const { BaseProperties, Property, AbstractBarSeriesProperties, SeriesTooltip } = _ModuleSupport;
 
 class OhlcSeriesItem extends BaseProperties {
-    @TempValidate(COLOR_STRING)
+    @Property
     stroke: string = '#333';
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     strokeWidth: number = 1;
 
-    @TempValidate(RATIO)
+    @Property
     strokeOpacity = 1;
 
-    @TempValidate(LINE_DASH)
+    @Property
     lineDash: number[] = [0];
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     lineDashOffset: number = 0;
 }
 
 class OhlcSeriesItems extends BaseProperties {
-    @TempValidate(OBJECT)
+    @Property
     readonly up = new OhlcSeriesItem();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly down = new OhlcSeriesItem();
 }
 
@@ -67,37 +55,37 @@ export abstract class OhlcSeriesBaseProperties<
             }
     >;
 
-    @TempValidate(STRING)
+    @Property
     xKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     openKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     closeKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     highKey!: string;
 
-    @TempValidate(STRING)
+    @Property
     lowKey!: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     xName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     yName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     openName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     closeName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     highName?: string;
 
-    @TempValidate(STRING, { optional: true })
+    @Property
     lowName?: string;
 
     abstract override readonly tooltip: _ModuleSupport.SeriesTooltip<
@@ -109,12 +97,12 @@ export abstract class OhlcSeriesBaseProperties<
 }
 
 export class OhlcSeriesProperties extends OhlcSeriesBaseProperties<AgOhlcSeriesOptions> {
-    @TempValidate(OBJECT)
+    @Property
     readonly tooltip = new SeriesTooltip<AgOhlcSeriesTooltipRendererParams<any>>();
 
-    @TempValidate(OBJECT)
+    @Property
     readonly item = new OhlcSeriesItems();
 
-    @TempValidate(FUNCTION, { optional: true })
+    @Property
     itemStyler?: Styler<AgOhlcSeriesItemStylerParams<unknown>, AgOhlcSeriesItemOptions>;
 }

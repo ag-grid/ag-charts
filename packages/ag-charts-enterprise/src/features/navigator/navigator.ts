@@ -7,16 +7,16 @@ import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
 
-const { BaseModuleInstance, ObserveChanges, TempValidate, BOOLEAN, POSITIVE_NUMBER } = _ModuleSupport;
+const { BaseModuleInstance, ObserveChanges, Property } = _ModuleSupport;
 
 export class Navigator extends BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    // @TempValidate(OBJECT, { optional: true })
+    // @TempValidate
     @ObserveChanges<Navigator, MiniChart>((target, value, oldValue) => {
         target.updateBackground(oldValue?.root, value?.root);
     })
     public miniChart?: MiniChart;
 
-    @TempValidate(BOOLEAN)
+    @Property
     @ObserveChanges<Navigator>((target, value) => {
         target.ctx.zoomManager.setNavigatorEnabled(Boolean(value));
         target.updateGroupVisibility();
@@ -33,16 +33,16 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         fromCanvasPoint: (x: number, y: number) => ({ x, y }),
     } satisfies _ModuleSupport.BBoxProvider & { getBBox(): _ModuleSupport.BBox };
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     public height: number = 30;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     @ObserveChanges<Navigator>((target, value) => {
         target.mask.cornerRadius = value;
     })
     public cornerRadius: number = 0;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     public spacing: number = 10;
 
     protected x = 0;

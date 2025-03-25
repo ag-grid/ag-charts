@@ -199,9 +199,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     override async processData(dataController: DataController) {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const {
             visible,

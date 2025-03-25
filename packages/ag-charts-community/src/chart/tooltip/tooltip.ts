@@ -6,19 +6,8 @@ import type { LocaleManager } from '../../locale/localeManager';
 import { Deprecated } from '../../util/deprecation';
 import { type Bounds, type Placement, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
+import { Property } from '../../util/properties';
 import { SizeMonitor } from '../../util/sizeMonitor';
-import {
-    ARRAY_OF,
-    BOOLEAN,
-    INTERACTION_RANGE,
-    NUMBER,
-    OBJECT,
-    OR,
-    POSITIVE_NUMBER,
-    TEXT_WRAP,
-    TempValidate,
-    UNION,
-} from '../../util/validation';
 import { SpringAnimation } from './springAnimation';
 import {
     DEFAULT_TOOLTIP_CLASS,
@@ -134,21 +123,6 @@ const directionChecks: Record<AgTooltipPlacement, DirectionCheck> = {
     center: DirectionCheck.None,
 };
 
-const TOOLTIP_MODE = UNION(['single', 'shared', 'compact']);
-
-const POSITION_TYPE = UNION(
-    ['pointer', 'node', 'top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-right', 'bottom-left'],
-    'a position type'
-);
-
-const ANCHOR_TO = UNION(['pointer', 'node', 'chart'], 'an anchorTo');
-
-const PLACEMENT_UNION = UNION(
-    ['top', 'right', 'bottom', 'left', 'top-right', 'bottom-right', 'bottom-left', 'top-left', 'center'],
-    'a placement'
-);
-const PLACEMENT = OR(PLACEMENT_UNION, ARRAY_OF(PLACEMENT_UNION));
-
 export class TooltipPosition extends BaseProperties {
     /**
      * @todo(AG-10870) - this should never be undefined, but there's something odd going on with
@@ -158,26 +132,26 @@ export class TooltipPosition extends BaseProperties {
      * derive their defaults from this property. Eventually those properties will be set via the
      * theme, and we'll make sure they are applied normally.
      */
-    @TempValidate(POSITION_TYPE, { optional: true })
+    @Property
     @Deprecated('Use `anchorTo` and/or `placement` options instead.')
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
     protected type?: TooltipPositionType;
     /** @todo Remove this when type is removed. */
-    @TempValidate(POSITION_TYPE, { optional: true })
+    @Property
     protected _seriesOverrideType?: TooltipPositionType;
 
-    @TempValidate(NUMBER)
+    @Property
     /** The horizontal offset in pixels for the position of the tooltip. */
     xOffset: number = 0;
 
-    @TempValidate(NUMBER)
+    @Property
     /** The vertical offset in pixels for the position of the tooltip. */
     yOffset: number = 0;
 
-    @TempValidate(ANCHOR_TO, { optional: true })
+    @Property
     anchorTo?: AgTooltipAnchorTo;
 
-    @TempValidate(PLACEMENT, { optional: true })
+    @Property
     placement?: AgTooltipPlacement | AgTooltipPlacement[];
 
     get defaultAnchorTo(): AgTooltipAnchorTo {
@@ -204,35 +178,35 @@ export class TooltipPosition extends BaseProperties {
 }
 
 export class Tooltip extends BaseProperties {
-    @TempValidate(BOOLEAN)
+    @Property
     enabled: boolean = true;
 
-    @TempValidate(TOOLTIP_MODE)
+    @Property
     mode: AgTooltipMode = 'single';
 
-    @TempValidate(BOOLEAN, { optional: true })
+    @Property
     showArrow?: boolean;
 
-    @TempValidate(POSITIVE_NUMBER)
+    @Property
     delay: number = 0;
 
-    @TempValidate(INTERACTION_RANGE, { optional: true })
+    @Property
     range?: InteractionRange = undefined;
 
-    @TempValidate(TEXT_WRAP)
+    @Property
     wrapping: TextWrap = 'hyphenate';
 
-    @TempValidate(OBJECT)
+    @Property
     readonly position = new TooltipPosition();
 
-    @TempValidate(BOOLEAN)
+    @Property
     readonly pagination = false;
 
-    @TempValidate(BOOLEAN)
+    @Property
     darkTheme = false;
 
     /** Escape-hatch for changes in AG-11645. */
-    @TempValidate(UNION(['extended', 'canvas']))
+    @Property
     bounds: 'extended' | 'canvas' = 'extended';
 
     private readonly destroyFns: Array<() => void> = [];

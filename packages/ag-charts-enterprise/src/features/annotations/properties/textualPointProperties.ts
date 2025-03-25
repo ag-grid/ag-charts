@@ -5,10 +5,10 @@ import { type AnnotationContext, type AnnotationOptionsColorPickerType, type Pad
 import type { AnnotationTextAlignment, AnnotationTextPosition } from '../text/util';
 import { convertPoint } from '../utils/values';
 
-const { STRING, BaseProperties, TempValidate } = _ModuleSupport;
+const { BaseProperties, Property } = _ModuleSupport;
 
 export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(BaseProperties))))) {
-    @TempValidate(STRING)
+    @Property
     text: string = '';
 
     position: AnnotationTextPosition = 'top';
@@ -16,10 +16,6 @@ export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(B
     placement: 'inside' | 'outside' = 'inside';
     width?: number;
     placeholderText?: string = 'inputTextareaPlaceholder';
-
-    override isValidWithContext(_context: AnnotationContext, warningPrefix?: string) {
-        return super.isValid(warningPrefix);
-    }
 
     getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.color;

@@ -6,17 +6,7 @@ import { AngleAxis } from '../angle/angleAxis';
 import { AngleAxisInterval } from './angleAxisInterval';
 import { LinearAngleScale } from './linearAngleScale';
 
-const {
-    AND,
-    GREATER_THAN,
-    LESS_THAN,
-    NUMBER_OR_NAN,
-    OBJECT,
-    TempValidate,
-    angleBetween,
-    normalisedExtentWithMetadata,
-    findMinMax,
-} = _ModuleSupport;
+const { Property, angleBetween, normalisedExtentWithMetadata, findMinMax } = _ModuleSupport;
 
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     static readonly className = 'AngleNumberAxis';
@@ -24,13 +14,13 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
 
     override shape = 'circle' as const;
 
-    @TempValidate(AND(NUMBER_OR_NAN, LESS_THAN('max')), { optional: true })
+    @Property
     min?: number;
 
-    @TempValidate(AND(NUMBER_OR_NAN, GREATER_THAN('min')), { optional: true })
+    @Property
     max?: number;
 
-    @TempValidate(OBJECT)
+    @Property
     override interval = new AngleAxisInterval();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {

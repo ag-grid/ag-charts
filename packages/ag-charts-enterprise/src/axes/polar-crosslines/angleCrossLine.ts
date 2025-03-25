@@ -57,12 +57,7 @@ export class AngleCrossLine extends PolarCrossLine {
         const { scale } = this;
 
         // TODO support clipping if only end is out-of-bounds
-        if (
-            !scale ||
-            !this.isValid() ||
-            !validateCrossLineValue(getCrossLineValue(this), scale) ||
-            !this.visibilityCheck()
-        ) {
+        if (!scale || !validateCrossLineValue(getCrossLineValue(this), scale) || !this.visibilityCheck()) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
             this.labelGroup.visible = false;

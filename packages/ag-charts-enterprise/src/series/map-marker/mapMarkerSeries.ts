@@ -181,9 +181,7 @@ export class MapMarkerSeries
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null) return;
 
         const { data, topology, sizeScale, colorScale } = this;
         const { topologyIdKey, idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, sizeDomain, colorRange } =
