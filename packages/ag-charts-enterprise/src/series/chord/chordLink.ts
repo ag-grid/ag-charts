@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { BBox, Path, SceneChangeDetection } = _ModuleSupport;
+const { Path, SceneChangeDetection } = _ModuleSupport;
 
 export function bezierControlPoints({
     radius,
@@ -51,26 +51,6 @@ export class ChordLink<D = any> extends Path<D> {
 
     @SceneChangeDetection()
     tension: number = 1;
-
-    protected override computeBBox(): _ModuleSupport.BBox | undefined {
-        const { centerX, centerY, radius, startAngle1, endAngle1, startAngle2, endAngle2, tension } = this;
-
-        const outer = bezierControlPoints({ radius, startAngle: startAngle1, endAngle: endAngle2, tension });
-        const inner = bezierControlPoints({ radius, startAngle: startAngle2, endAngle: endAngle1, tension });
-
-        // The bbox of a Bezier's control points contains the bbox of the bezier itself
-        const x = Math.min(...outer.x, ...inner.x);
-        const width = Math.max(...outer.x, ...inner.x) - x;
-        const y = Math.min(...outer.y, ...inner.y);
-        const height = Math.max(...outer.y, ...inner.y) - y;
-
-        return new BBox(centerX + x, centerY + y, width, height);
-    }
-
-    // @todo(CRT-731) - this is a temporary workaround
-    override isPointInPath(x: number, y: number): boolean {
-        return super.isPointInPath(x, y) && this.getBBox().containsPoint(x, y);
-    }
 
     private tensionedCurveTo(
         cp0x: number,
