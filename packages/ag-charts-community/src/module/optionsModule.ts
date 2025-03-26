@@ -286,12 +286,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.chartDef = ModuleRegistry.detectChartDefinition(options);
 
         if (!this.chartDef.placeholder) {
-            const { valid, errors } = validate(options, this.chartDef.options);
-            errors.forEach((error) => Logger.warn(error));
-            options = valid as T;
+            const { cleared, invalid } = validate(options, this.chartDef.options);
+            invalid.forEach((error) => Logger.warn(error));
+            options = cleared as T;
         }
 
-        this.validatePluginOptions(options);
         this.validateAxesOptions(options);
         this.removeDisabledOptions(options);
 
@@ -354,6 +353,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.validateSeriesOptions(processedOptions);
         this.validateAxesOptions(processedOptions);
+        this.validatePluginOptions(processedOptions);
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
@@ -364,9 +364,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             const pluginKey = pluginDef.name as keyof T;
             if (pluginKey in options && (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)) {
-                const { valid, errors } = validate(options[pluginKey], pluginDef.options, pluginDef.name);
-                errors.forEach((error) => Logger.warn(error));
-                options[pluginKey] = valid as T[keyof T];
+                const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name);
+                invalid.forEach((error) => Logger.warn(error));
+                options[pluginKey] = cleared as T[keyof T];
             }
         }
     }
@@ -402,12 +402,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
 
             const { validate: validateSeries = validate } = seriesDef;
-            const { valid, errors } = validateSeries(seriesOptions, seriesDef.options, keyPath);
+            const { cleared, invalid } = validateSeries(seriesOptions, seriesDef.options, keyPath);
 
-            errors.forEach((error) => Logger.warn(error));
+            invalid.forEach((error) => Logger.warn(error));
 
-            if (!errors.some((e) => e.required && e.path === keyPath)) {
-                validatedSeriesOptions.push(valid);
+            if (!invalid.some((e) => e.required && e.path === keyPath)) {
+                validatedSeriesOptions.push(cleared);
             }
         }
         options.series = validatedSeriesOptions;
@@ -446,12 +446,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
 
             const { validate: validateAxis = validate } = axisDef;
-            const { valid, errors } = validateAxis(axisOptions, axisDef.options, keyPath);
+            const { cleared, invalid } = validateAxis(axisOptions, axisDef.options, keyPath);
 
-            errors.forEach((error) => Logger.warn(error));
+            invalid.forEach((error) => Logger.warn(error));
 
-            if (!errors.some((e) => e.required && e.path === keyPath)) {
-                validatedAxesOptions.push(valid);
+            if (!invalid.some((e) => e.required && e.path === keyPath)) {
+                validatedAxesOptions.push(cleared);
             }
         }
         options.axes = validatedAxesOptions;
@@ -576,13 +576,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return defaultParameters;
         }
 
-        const { valid, errors } = validate(options.theme.params, themeOptionsDef.params);
-
-        for (const { message } of errors) {
+        const { cleared, invalid } = validate(options.theme.params, themeOptionsDef.params);
+        for (const { message } of invalid) {
             Logger.warnOnce(message);
         }
 
-        return mergeDefaults(valid, defaultParameters);
+        return mergeDefaults(cleared, defaultParameters);
     }
 
     private resolveThemeOperations(params: WithThemeParams<AgChartThemeParams>, options: object) {

@@ -150,7 +150,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         return this.getMementoRanges() as ZoomMemento;
     }
 
-    public guardMemento(blob: unknown, messages: Array<string>): blob is ZoomMemento | undefined {
+    public guardMemento(blob: unknown, messages: string[]): blob is ZoomMemento | undefined {
         if (blob == null) return true;
         if (!isObject(blob)) return false;
 
@@ -171,9 +171,9 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             autoScaledAxes: arrayOf(union('y')),
         };
 
-        const result = validate(blob, zoomMementoDefs);
-        if (result.errors.length > 0) {
-            messages.push(...result.errors.map((e) => e.message));
+        const { invalid } = validate(blob, zoomMementoDefs);
+        if (invalid.length > 0) {
+            messages.push(...invalid.map((e) => e.message));
             return false;
         }
 
