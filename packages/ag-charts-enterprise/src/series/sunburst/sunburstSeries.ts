@@ -592,8 +592,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };
         }
 
-        return tooltip.formatTooltip(
-            properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 title: labelKey != null ? datum[labelKey] : undefined,
                 symbol: {

@@ -2,7 +2,8 @@ import { isNumberEqual } from 'ag-charts-core';
 
 import { normalizeAngle360 } from '../../util/angle';
 import { BBox } from '../bbox';
-import { Path, ScenePathChangeDetection } from './path';
+import { SceneChangeDetection } from '../changeDetectable';
+import { Path } from './path';
 
 enum ArcType {
     Open,
@@ -21,26 +22,26 @@ export class Arc<D = any> extends Path<D> {
         this.restoreOwnStyles();
     }
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     centerX: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     centerY: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     radius: number = 10;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     startAngle: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     endAngle: number = Math.PI * 2;
 
     private get fullPie(): boolean {
         return isNumberEqual(normalizeAngle360(this.startAngle), normalizeAngle360(this.endAngle));
     }
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     counterClockwise: boolean = false;
 
     /**
@@ -55,7 +56,7 @@ export class Arc<D = any> extends Path<D> {
      * doesn't seem to be a compelling reason to do that, when one can just use {@link ArcType.Chord}
      * to create a closed path.
      */
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     type: ArcType = ArcType.Open;
 
     override updatePath(): void {

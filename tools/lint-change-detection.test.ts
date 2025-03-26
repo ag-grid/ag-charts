@@ -29,17 +29,6 @@ export class TestDecoratorUsages {
     @SceneChangeDetection() requiredArray: any[] = [];
     @SceneChangeDetection() optionalArray?: any[];
 
-    @ScenePathChangeDetection() requiredPathString: string = '';
-    @ScenePathChangeDetection() optionalPathString?: string;
-    @ScenePathChangeDetection() requiredPathNumber: number = 0;
-    @ScenePathChangeDetection() optionalPathNumber?: number;
-    @ScenePathChangeDetection() requiredPathBoolean: boolean = true;
-    @ScenePathChangeDetection() optionalPathBoolean?: boolean;
-    @ScenePathChangeDetection() requiredPathObject: object = {};
-    @ScenePathChangeDetection() optionalPathObject?: object;
-    @ScenePathChangeDetection() requiredPathArray: any[] = [];
-    @ScenePathChangeDetection() optionalPathArray?: any[];
-
     @SceneObjectChangeDetection() requiredObjectDetection: object = {};
     @SceneObjectChangeDetection() optionalObjectDetection?: object;
 

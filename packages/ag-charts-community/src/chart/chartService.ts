@@ -14,5 +14,6 @@ export interface ChartService {
     readonly seriesRoot: Group;
     readonly publicApi?: AgChartInstance;
     readonly touch: DeepRequired<AgTouchOptions>;
+    readonly context?: unknown;
     overrideFocusVisible(visible: boolean | undefined): void;
 }

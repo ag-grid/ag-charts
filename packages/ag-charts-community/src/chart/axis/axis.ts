@@ -1,4 +1,4 @@
-import { Logger, isArray } from 'ag-charts-core';
+import { type AnyFn, Logger, isArray } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -411,7 +411,7 @@ export abstract class Axis<
         };
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
-            stylerOutput = this.moduleCtx.callbackCache.call(this, label.itemStyler, {
+            stylerOutput = this.callWithContext(label.itemStyler, {
                 ...params,
                 ...defaultStyle,
             });
@@ -651,13 +651,12 @@ export abstract class Axis<
         const {
             labelFormatter,
             label: { formatter },
-            moduleCtx: { callbackCache },
         } = this;
 
         let result: string | undefined;
         if (formatter) {
             const boundSeries = this.getFormatterBoundSeries();
-            result = callbackCache.call(this, formatter, { value, index, domain, fractionDigits, boundSeries });
+            result = this.callWithContext(formatter, { value, index, domain, fractionDigits, boundSeries });
         } else if (defaultFormatter) {
             result = defaultFormatter(value);
         } else if (labelFormatter) {
@@ -670,7 +669,6 @@ export abstract class Axis<
     formatDatum(value: unknown): string {
         const {
             label: { formatter },
-            moduleCtx: { callbackCache },
             datumFormatter: valueFormatter = this.labelFormatter,
         } = this;
 
@@ -678,9 +676,9 @@ export abstract class Axis<
         if (formatter) {
             const { domain } = this.scale;
             const boundSeries = this.getFormatterBoundSeries();
-            result = callbackCache.call(this, formatter, { value: value, index: NaN, domain, boundSeries });
+            result = this.callWithContext(formatter, { value: value, index: NaN, domain, boundSeries });
         } else if (valueFormatter) {
-            result = callbackCache.call(this, valueFormatter, value);
+            result = this.callWithContext(valueFormatter, value);
         } else if (isArray(value)) {
             // Handle grouped categories value.
             result = value.filter(Boolean).join(' - ');
@@ -802,5 +800,10 @@ export abstract class Axis<
 
     isReversed() {
         return this.reverse;
+    }
+
+    protected callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+        const { callbackCache, chartService } = this.moduleCtx;
+        return callbackCache.call(this, chartService, fn, ...params);
     }
 }

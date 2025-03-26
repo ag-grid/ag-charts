@@ -24,6 +24,7 @@ import {
     strokeOptionsDef,
     typeUnion,
     union,
+    unknown,
 } from 'ag-charts-core';
 import type {
     AgBaseSeriesOptions,
@@ -442,6 +443,8 @@ commonChartOptionsDefs.foreground = {
 };
 
 // @ts-expect-error undocumented option
+commonChartOptionsDefs.context = unknown;
+// @ts-expect-error undocumented option
 commonChartOptionsDefs.overrideDevicePixelRatio = number;
 
 export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
@@ -466,7 +469,7 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
 };
 
 // @ts-expect-error undocumented option
-commonSeriesOptionsDefs.context = defined;
+commonSeriesOptionsDefs.context = unknown;
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.seriesGrouping = defined;
 

@@ -291,6 +291,14 @@ function calculateStatus<N extends Node, D>(
         return 'removed';
     }
 
+    if (node.previousDatum == null && node.datum != null) {
+        return 'added';
+    }
+
+    if (node.previousDatum != null && node.datum == null) {
+        return 'removed';
+    }
+
     // NOTE: This function is only called for LIVE scene graph nodes, so returning a status of
     // 'removed' is nonsensical and incorrect.
     return 'updated';

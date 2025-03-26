@@ -1,30 +1,30 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { Path, ScenePathChangeDetection, BBox } = _ModuleSupport;
+const { Path, SceneChangeDetection, BBox } = _ModuleSupport;
 
 export class OhlcBaseNode<D = any> extends Path<D> implements _ModuleSupport.DistantObject {
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     centerX: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     y: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     width: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     height: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     yOpen: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     yClose: number = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     crisp: boolean = false;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     strokeAlignment: number = 0;
 
     protected override computeBBox(): _ModuleSupport.BBox | undefined {

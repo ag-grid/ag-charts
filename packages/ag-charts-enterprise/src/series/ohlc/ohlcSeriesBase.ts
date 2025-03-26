@@ -180,7 +180,7 @@ export abstract class OhlcSeriesBase<
             return this.padBandExtent(keys);
         }
 
-        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['highValue', 'lowValue'], 'xValue', true);
+        const yExtent = this.domainForClippedRange(direction, ['highValue', 'lowValue'], 'xValue', true);
         return fixNumericExtent(yExtent);
     }
 
@@ -521,8 +521,8 @@ export abstract class OhlcSeriesBase<
             marker = getShapeStyle(marker, item.fillGradientDefaults, item.fillPatternDefaults);
         }
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: xAxis.formatDatum(xValue),
                 title: legendItemName,
@@ -553,7 +553,7 @@ export abstract class OhlcSeriesBase<
                 closeKey,
                 closeName,
                 ...format,
-            }
+            } as const
         );
     }
 

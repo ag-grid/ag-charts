@@ -7,14 +7,10 @@ tools/lint-change-detection.test.ts:27:29 - Decorator @SceneChangeDetection appl
 tools/lint-change-detection.test.ts:28:29 - Decorator @SceneChangeDetection applied to property 'optionalObject' with type 'object'. Property type is not allowed for change detection.
 tools/lint-change-detection.test.ts:29:29 - Decorator @SceneChangeDetection applied to property 'requiredArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
 tools/lint-change-detection.test.ts:30:29 - Decorator @SceneChangeDetection applied to property 'optionalArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
-tools/lint-change-detection.test.ts:38:33 - Decorator @ScenePathChangeDetection applied to property 'requiredPathObject' with type 'object'. Property type is not allowed for change detection.
-tools/lint-change-detection.test.ts:39:33 - Decorator @ScenePathChangeDetection applied to property 'optionalPathObject' with type 'object'. Property type is not allowed for change detection.
-tools/lint-change-detection.test.ts:40:33 - Decorator @ScenePathChangeDetection applied to property 'requiredPathArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
-tools/lint-change-detection.test.ts:41:33 - Decorator @ScenePathChangeDetection applied to property 'optionalPathArray' with type 'any[]'. Switch to @SceneArrayChangeDetection for array properties.
-tools/lint-change-detection.test.ts:43:35 - Decorator @SceneObjectChangeDetection applied to property 'requiredObjectDetection' with type 'object'. SceneObjectChangeDetection should only be applied to non-array object types.
-tools/lint-change-detection.test.ts:44:35 - Decorator @SceneObjectChangeDetection applied to property 'optionalObjectDetection' with type 'object'. SceneObjectChangeDetection should only be applied to non-array object types.
-tools/lint-change-detection.test.ts:46:34 - Decorator @SceneArrayChangeDetection applied to property 'requiredArrayDetection' with type 'any[]'. SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.
-tools/lint-change-detection.test.ts:47:34 - Decorator @SceneArrayChangeDetection applied to property 'optionalArrayDetection' with type 'any[]'. SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.
+tools/lint-change-detection.test.ts:32:35 - Decorator @SceneObjectChangeDetection applied to property 'requiredObjectDetection' with type 'object'. SceneObjectChangeDetection should only be applied to non-array object types.
+tools/lint-change-detection.test.ts:33:35 - Decorator @SceneObjectChangeDetection applied to property 'optionalObjectDetection' with type 'object'. SceneObjectChangeDetection should only be applied to non-array object types.
+tools/lint-change-detection.test.ts:35:34 - Decorator @SceneArrayChangeDetection applied to property 'requiredArrayDetection' with type 'any[]'. SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.
+tools/lint-change-detection.test.ts:36:34 - Decorator @SceneArrayChangeDetection applied to property 'optionalArrayDetection' with type 'any[]'. SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.
 ",
   "stdout": "",
 }

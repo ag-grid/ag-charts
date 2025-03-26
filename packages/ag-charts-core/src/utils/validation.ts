@@ -285,6 +285,7 @@ const isValidDateValue = (value: unknown) =>
     isDate(value) || ((isFiniteNumber(value) || isString(value)) && isValidDate(new Date(value)));
 
 // Base type validators with descriptions.
+export const unknown = (_value: unknown): _value is unknown => true; // no validation required.
 export const array = attachDescription(isArray, 'an array');
 export const boolean = attachDescription(isBoolean, 'a boolean');
 export const callback = attachDescription(isFunction, 'a function');

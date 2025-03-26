@@ -14,4 +14,8 @@ export class ChangeDetectableProperties extends BaseProperties {
     isDirty(): boolean {
         return this._dirty;
     }
+
+    onChangeDetection(_property: string): void {
+        this.markDirty();
+    }
 }

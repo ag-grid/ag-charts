@@ -617,8 +617,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const format = this.getItemBaseStyle(false) as any as Required<ItemStyle>;
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, datumIndex, format, false));
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
                 data: [

@@ -1,12 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { TranslatableGroup, ScenePathChangeDetection } = _ModuleSupport;
+const { TranslatableGroup, SceneChangeDetection } = _ModuleSupport;
 
 export class MiniChartGroup extends TranslatableGroup {
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     inset = 0;
 
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     cornerRadius = 0;
 
     protected override applyClip(ctx: _ModuleSupport.CanvasContext, clipRect: _ModuleSupport.BBox) {

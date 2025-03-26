@@ -502,8 +502,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                   }
                 : undefined;
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             { title: title ?? legendItemName, symbol, data },
             {
                 seriesId,

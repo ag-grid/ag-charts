@@ -201,12 +201,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             }
             return this.padBandExtent(keys);
         } else {
-            const yExtent = this.domainForClippedRange(
-                ChartAxisDirection.Y,
-                ['yHighValue', 'yLowValue'],
-                'xValue',
-                true
-            );
+            const yExtent = this.domainForClippedRange(direction, ['yHighValue', 'yLowValue'], 'xValue', true);
             const fixedYExtent = findMinMax(yExtent);
             return fixNumericExtent(fixedYExtent);
         }
@@ -597,8 +592,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),

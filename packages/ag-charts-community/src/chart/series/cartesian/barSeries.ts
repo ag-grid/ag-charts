@@ -266,7 +266,7 @@ export class BarSeries extends AbstractBarSeries<
         }
 
         const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
-        let yExtent = this.domainForClippedRange(ChartAxisDirection.Y, [yKey], 'xValue', true);
+        let yExtent = this.domainForClippedRange(direction, [yKey], 'xValue', true);
         const yFilterExtent = this.crossFilteringEnabled()
             ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData)
             : undefined;
@@ -761,8 +761,8 @@ export class BarSeries extends AbstractBarSeries<
         const format = this.getItemBaseStyle(false);
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format, false));
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),

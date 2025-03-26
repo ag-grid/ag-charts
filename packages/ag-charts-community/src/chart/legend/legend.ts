@@ -1,5 +1,5 @@
+import { type AnyFn, Logger, clamp } from 'ag-charts-core';
 import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
-import { Logger, clamp } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -343,13 +343,10 @@ export class Legend extends BaseProperties {
     }
 
     getItemLabel(datum: CategoryLegendDatum) {
-        const {
-            ctx: { callbackCache },
-        } = this;
         const { formatter } = this.item.label;
         if (formatter) {
             const seriesDatum = datum.datum;
-            return callbackCache.call(this, formatter, {
+            return this.cachedCallWithContext(formatter, {
                 itemId: datum.itemId,
                 value: datum.label.text,
                 seriesId: datum.seriesId,
@@ -1197,5 +1194,10 @@ export class Legend extends BaseProperties {
         }
 
         return [legendWidth, legendHeight];
+    }
+
+    private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+        const { callbackCache, chartService } = this.ctx;
+        return callbackCache.call(this, chartService, fn, ...params);
     }
 }

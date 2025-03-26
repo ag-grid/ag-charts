@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { Property, ScenePathChangeDetection, BBox, ExtendedPath2D } = _ModuleSupport;
+const { Property, SceneChangeDetection, BBox, ExtendedPath2D } = _ModuleSupport;
 
 export class RangeHandle extends _ModuleSupport.Path {
     static override readonly className = 'RangeHandle';
@@ -11,19 +11,19 @@ export class RangeHandle extends _ModuleSupport.Path {
     private centerY: number = 0;
 
     @Property
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     width: number = 8;
 
     @Property
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     height: number = 16;
 
     @Property
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     cornerRadius: number = 4;
 
     @Property
-    @ScenePathChangeDetection()
+    @SceneChangeDetection()
     grip: boolean = true;
 
     private readonly gripPath = new ExtendedPath2D();

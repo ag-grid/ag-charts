@@ -225,6 +225,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
     @ProxyProperty('chartCaptions.footnote')
     readonly footnote!: Caption;
 
+    context?: unknown;
+
     @Property
     suppressFieldDotNotation: boolean = false;
 

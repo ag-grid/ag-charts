@@ -250,7 +250,7 @@ export abstract class BaseFunnelSeries<
             }
             return this.padBandExtent(keys);
         } else {
-            const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValue'], 'xValue', true);
+            const yExtent = this.domainForClippedRange(direction, ['yValue'], 'xValue', true);
             const maxExtent = Math.max(...yExtent);
             const fixedYExtent = [-maxExtent, maxExtent];
             return fixNumericExtent(fixedYExtent);
@@ -548,8 +548,8 @@ export abstract class BaseFunnelSeries<
 
         if (xValue == null) return;
 
-        return tooltip.formatTooltip(
-            this.properties,
+        return this.formatTooltipWithContext(
+            tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
                 data: [{ label: xAxis.formatDatum(xValue), value: yAxis.formatDatum(yValue) }],
