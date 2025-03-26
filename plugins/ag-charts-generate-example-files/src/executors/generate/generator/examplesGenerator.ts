@@ -123,7 +123,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     let layout: Layout = hasToolbarClass ? 'toolbar' : 'grid';
 
     if (entryFile.includes('@ag-skip-fws')) {
-        if (['vanilla', 'typescript'].includes(internalFramework)) {
+        if (['vanilla'].includes(internalFramework)) {
             entryFile = entryFile.replace(/^\s*\/\/ @ag-skip-fws\s*\n*$/g, '');
         } else {
             entryFile = PLACEHOLDER_MAIN_TS;
