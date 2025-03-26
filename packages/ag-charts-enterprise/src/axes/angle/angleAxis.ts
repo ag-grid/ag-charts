@@ -55,7 +55,9 @@ export abstract class AngleAxis<
 
     protected labelData: AngleAxisLabelDatum[] = [];
     protected tickData: AngleAxisTickDatum<TDomain>[] = [];
-    protected radiusLine: _ModuleSupport.Path = this.axisGroup.appendChild(new Path());
+
+    protected radiusLineGroup = this.axisGroup.appendChild(new _ModuleSupport.TransformableGroup());
+    protected radiusLine: _ModuleSupport.Path = this.radiusLineGroup.appendChild(new Path());
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: TScale) {
         super(moduleCtx, scale);
@@ -144,25 +146,13 @@ export abstract class AngleAxis<
     }
 
     override updatePosition() {
-        const { translation, axisGroup, gridGroup, crossLineRangeGroup, crossLineLineGroup, crossLineLabelGroup } =
-            this;
+        super.updatePosition();
+        const { translation, radiusLineGroup } = this;
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
-        axisGroup.translationX = translationX;
-        axisGroup.translationY = translationY;
-
-        gridGroup.translationX = translationX;
-        gridGroup.translationY = translationY;
-
-        crossLineRangeGroup.translationX = translationX;
-        crossLineRangeGroup.translationY = translationY;
-
-        crossLineLineGroup.translationX = translationX;
-        crossLineLineGroup.translationY = translationY;
-
-        crossLineLabelGroup.translationX = translationX;
-        crossLineLabelGroup.translationY = translationY;
+        radiusLineGroup.translationX = translationX;
+        radiusLineGroup.translationY = translationY;
     }
 
     protected updateRadiusLine() {

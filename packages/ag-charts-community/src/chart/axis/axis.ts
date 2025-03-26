@@ -18,8 +18,7 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale, ScaleFormatParams } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
-import { Group, TransformableGroup } from '../../scene/group';
-import { Matrix } from '../../scene/matrix';
+import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
@@ -46,7 +45,7 @@ import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
-import { type AxisLineDatum, NiceMode } from './axisUtil';
+import { NiceMode } from './axisUtil';
 
 export interface LabelNodeDatum {
     tickId: string;
@@ -139,21 +138,21 @@ export abstract class Axis<
 
     interactionEnabled = true;
 
-    readonly axisGroup = new TransformableGroup({ name: `${this.id}-axis` });
+    protected readonly axisGroup = new Group({ name: `${this.id}-axis` });
 
     // Order is important to apply the correct z-index.
     protected readonly tickLineGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-lines`, zIndex: AxisGroupZIndexMap.TickLines })
+        new TransformableGroup({ name: `${this.id}-Axis-tick-lines`, zIndex: AxisGroupZIndexMap.TickLines })
     );
     protected readonly tickLabelGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: AxisGroupZIndexMap.TickLabels })
+        new TransformableGroup({ name: `${this.id}-Axis-tick-labels`, zIndex: AxisGroupZIndexMap.TickLabels })
     );
     protected readonly labelGroup = new Group({
         name: `${this.id}-Labels`,
         zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
 
-    readonly gridGroup = new TransformableGroup({ name: `${this.id}-Axis-grid`, zIndex: ZIndexMap.AXIS_GRID });
+    readonly gridGroup = new TranslatableGroup({ name: `${this.id}-Axis-grid`, zIndex: ZIndexMap.AXIS_GRID });
     protected readonly gridLineGroup = this.gridGroup.appendChild(new Group({ name: `${this.id}-gridLines` }));
 
     protected readonly crossLineRangeGroup = new TransformableGroup({
@@ -391,11 +390,6 @@ export abstract class Axis<
         this.updateCrossLines();
     }
 
-    protected getAxisLineCoordinates(): AxisLineDatum {
-        const [min, max] = findMinMax(this.range);
-        return { x: 0, y1: min, y2: max };
-    }
-
     protected getLabelStyles(
         params: { value: string; depth?: number },
         additionalStyles?: AgBaseAxisLabelStyleOptions
@@ -552,13 +546,6 @@ export abstract class Axis<
         bbox?: BBox;
     };
 
-    protected getTransformBox(bbox: BBox) {
-        const matrix = new Matrix();
-        const { rotation, translationX, translationY } = this.getAxisTransform();
-        Matrix.updateTransformMatrix(matrix, 1, 1, rotation, translationX, translationY);
-        return matrix.transformBBox(bbox);
-    }
-
     protected calculateRotations() {
         const rotation = toRadians(this.rotation);
         // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
@@ -607,10 +594,10 @@ export abstract class Axis<
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
+        gridGroup.setProperties({ translationX, translationY });
         crossLineRangeGroup.setProperties({ rotation, translationX, translationY });
         crossLineLineGroup.setProperties({ rotation, translationX, translationY });
         crossLineLabelGroup.setProperties({ rotation, translationX, translationY });
-        gridGroup.setProperties({ rotation, translationX, translationY });
     }
 
     protected abstract updateSelections(): void;
