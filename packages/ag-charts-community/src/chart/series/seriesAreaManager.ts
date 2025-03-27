@@ -30,7 +30,6 @@ import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import { TooltipManager } from '../interaction/tooltipManager';
-import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import {
@@ -38,12 +37,14 @@ import {
     Tooltip,
     type TooltipContent,
     type TooltipPaginationState,
+    type TooltipPointerEvent,
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { type Series, type SeriesNodePickIntent } from './series';
+import { type PickFocusOutputs, type Series, type SeriesNodePickIntent } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { ISeries, SeriesNodeDatum } from './seriesTypes';
+import { getDatumRefPoint } from './util';
 
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
@@ -85,6 +86,40 @@ interface PickedNode {
 
 function pickedNodesEqual(a: PickedNode, b: PickedNode) {
     return a.series === b.series && objectsEqual(a.datumIndex, b.datumIndex);
+}
+
+function computeCenter(series: ISeries<any, any, any>, hoverRect: BBox, pick: PickFocusOutputs) {
+    const refPoint = getDatumRefPoint(series, pick.datum, pick.movedBounds);
+    if (refPoint != null) return { x: refPoint.canvasX, y: refPoint.canvasY };
+
+    const bboxOrPath = pick.bounds;
+    if (bboxOrPath == null) return;
+    if (bboxOrPath instanceof BBox) {
+        const { x: centerX, y: centerY } = bboxOrPath.computeCenter();
+        return {
+            x: hoverRect.x + centerX,
+            y: hoverRect.y + centerY,
+        };
+    }
+    return Transformable.toCanvas(bboxOrPath).computeCenter();
+}
+
+function getPickedFocusBBox({ bounds }: PickFocusOutputs): Readonly<BBox> {
+    if (bounds instanceof BBox) return bounds;
+    if (bounds != null) return Transformable.toCanvas(bounds);
+    return BBox.NaN;
+}
+
+function makeKeyboardPointerEvent(
+    series: ISeries<any, any, any>,
+    hoverRect: BBox,
+    pick: PickFocusOutputs
+): TooltipPointerEvent<'keyboard'> | undefined {
+    const { x: canvasX, y: canvasY } = computeCenter(series, hoverRect, pick) ?? {};
+    if (canvasX !== undefined && canvasY !== undefined) {
+        return { type: 'keyboard', canvasX, canvasY };
+    }
+    return undefined;
 }
 
 class PickedNodeState {
