@@ -1,8 +1,4 @@
-import type { AgCartesianAxisPosition } from 'ag-charts-types';
-
 import type { BBox } from '../../scene/bbox';
-import type { Point } from '../../scene/point';
-import { ChartAxisDirection } from '../chartAxisDirection';
 
 export type CrossLineLabelPosition =
     | 'top'
@@ -22,14 +18,6 @@ export type CrossLineLabelPosition =
     | 'inside-bottom-left'
     | 'inside-top-right'
     | 'inside-bottom-right';
-
-type CoordinatesFnOpts = { direction: ChartAxisDirection; xStart: number; xEnd: number; yStart: number; yEnd: number };
-
-type CoordinatesFn = ({ direction, xStart, xEnd, yStart, yEnd }: CoordinatesFnOpts) => Point;
-
-type PositionCalcFns = {
-    c: CoordinatesFn;
-};
 
 type LabelTranslationDirection = 1 | -1 | 0;
 type CrossLineTranslationDirection = {
@@ -100,118 +88,3 @@ export function calculateLabelTranslation({
         yTranslation,
     };
 }
-
-export function calculateLabelChartPadding({
-    yDirection,
-    bbox,
-    padding = 0,
-    position = 'top',
-}: {
-    yDirection: boolean;
-    padding: number;
-    position: CrossLineLabelPosition;
-    bbox: BBox;
-}) {
-    const chartPadding: Partial<Record<AgCartesianAxisPosition, number>> = {};
-    if (position.startsWith('inside')) return chartPadding;
-
-    if (position === 'top' && !yDirection) {
-        chartPadding.top = padding + bbox.height;
-    } else if (position === 'bottom' && !yDirection) {
-        chartPadding.bottom = padding + bbox.height;
-    } else if (position === 'left' && yDirection) {
-        chartPadding.left = padding + bbox.width;
-    } else if (position === 'right' && yDirection) {
-        chartPadding.right = padding + bbox.width;
-    }
-
-    return chartPadding;
-}
-
-export const POSITION_TOP_COORDINATES: CoordinatesFn = ({ direction, xEnd, yStart, yEnd }) => {
-    if (direction === ChartAxisDirection.Y) {
-        return { x: xEnd / 2, y: yStart };
-    } else {
-        return { x: xEnd, y: isNaN(yEnd) ? yStart : (yStart + yEnd) / 2 };
-    }
-};
-
-const POSITION_LEFT_COORDINATES: CoordinatesFn = ({ direction, xStart, xEnd, yStart, yEnd }) => {
-    if (direction === ChartAxisDirection.Y) {
-        return { x: xStart, y: isNaN(yEnd) ? yStart : (yStart + yEnd) / 2 };
-    } else {
-        return { x: xEnd / 2, y: yStart };
-    }
-};
-
-const POSITION_RIGHT_COORDINATES: CoordinatesFn = ({ direction, xEnd, yStart, yEnd }) => {
-    if (direction === ChartAxisDirection.Y) {
-        return { x: xEnd, y: isNaN(yEnd) ? yStart : (yStart + yEnd) / 2 };
-    } else {
-        return { x: xEnd / 2, y: isNaN(yEnd) ? yStart : yEnd };
-    }
-};
-
-const POSITION_BOTTOM_COORDINATES: CoordinatesFn = ({ direction, xStart, xEnd, yStart, yEnd }) => {
-    if (direction === ChartAxisDirection.Y) {
-        return { x: xEnd / 2, y: isNaN(yEnd) ? yStart : yEnd };
-    } else {
-        return { x: xStart, y: isNaN(yEnd) ? yStart : (yStart + yEnd) / 2 };
-    }
-};
-
-const POSITION_INSIDE_COORDINATES: CoordinatesFn = ({ xEnd, yStart, yEnd }) => {
-    return { x: xEnd / 2, y: isNaN(yEnd) ? yStart : (yStart + yEnd) / 2 };
-};
-
-const POSITION_TOP_LEFT_COORDINATES: CoordinatesFn = ({ direction, xStart, xEnd, yStart }) => {
-    if (direction === ChartAxisDirection.Y) {
-        return { x: xStart / 2, y: yStart };
-    } else {
-        return { x: xEnd, y: yStart };
-    }
-};
-
-const POSITION_BOTTOM_LEFT_COORDINATES: CoordinatesFn = ({ direction, xStart, yStart, yEnd }) => {
-    if (direction === ChartAxisDirection.Y) {
-        return { x: xStart, y: isNaN(yEnd) ? yStart : yEnd };
-    } else {
-        return { x: xStart, y: yStart };
-    }
-};
-
-const POSITION_TOP_RIGHT_COORDINATES: CoordinatesFn = ({ direction, xEnd, yStart, yEnd }) => {
-    if (direction === ChartAxisDirection.Y) {
-        return { x: xEnd, y: yStart };
-    } else {
-        return { x: xEnd, y: isNaN(yEnd) ? yStart : yEnd };
-    }
-};
-
-const POSITION_BOTTOM_RIGHT_COORDINATES: CoordinatesFn = ({ direction, xStart, xEnd, yStart, yEnd }) => {
-    if (direction === ChartAxisDirection.Y) {
-        return { x: xEnd, y: isNaN(yEnd) ? yStart : yEnd };
-    } else {
-        return { x: xStart, y: isNaN(yEnd) ? yStart : yEnd };
-    }
-};
-
-export const labelDirectionHandling: Record<CrossLineLabelPosition, PositionCalcFns> = {
-    top: { c: POSITION_TOP_COORDINATES },
-    bottom: { c: POSITION_BOTTOM_COORDINATES },
-    left: { c: POSITION_LEFT_COORDINATES },
-    right: { c: POSITION_RIGHT_COORDINATES },
-    'top-left': { c: POSITION_TOP_LEFT_COORDINATES },
-    'top-right': { c: POSITION_TOP_RIGHT_COORDINATES },
-    'bottom-left': { c: POSITION_BOTTOM_LEFT_COORDINATES },
-    'bottom-right': { c: POSITION_BOTTOM_RIGHT_COORDINATES },
-    inside: { c: POSITION_INSIDE_COORDINATES },
-    'inside-left': { c: POSITION_LEFT_COORDINATES },
-    'inside-right': { c: POSITION_RIGHT_COORDINATES },
-    'inside-top': { c: POSITION_TOP_COORDINATES },
-    'inside-bottom': { c: POSITION_BOTTOM_COORDINATES },
-    'inside-top-left': { c: POSITION_TOP_LEFT_COORDINATES },
-    'inside-bottom-left': { c: POSITION_BOTTOM_LEFT_COORDINATES },
-    'inside-top-right': { c: POSITION_TOP_RIGHT_COORDINATES },
-    'inside-bottom-right': { c: POSITION_BOTTOM_RIGHT_COORDINATES },
-};

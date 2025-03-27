@@ -20,27 +20,23 @@ describe('Range', () => {
             {
                 startLine: true,
                 endLine: true,
-                isRange: true,
             },
             {
                 startLine: true,
                 endLine: false,
-                isRange: true,
             },
             {
                 startLine: false,
                 endLine: true,
-                isRange: true,
             },
             {
                 startLine: false,
                 endLine: false,
-                isRange: true,
             },
             {
                 startLine: true,
                 endLine: true,
-                isRange: false,
+                fill: undefined,
             },
         ];
         const STROKE_WIDTH_CASES = [0, 3, 8, 10, 20];
@@ -51,18 +47,18 @@ describe('Range', () => {
             BASE_TEST_CASES,
             // Stroke-width cases.
             STROKE_WIDTH_CASES.map((strokeWidth, index) => ({
-                ...BASE_TEST_CASES[index],
                 strokeWidth,
+                ...BASE_TEST_CASES[index],
             })),
             LINE_DASH_CASES.map((lineDash, index) => ({
-                ...BASE_TEST_CASES[index],
                 strokeWidth: 2,
                 lineDash,
+                ...BASE_TEST_CASES[index],
             })),
             FILL_OPACITY_CASES.map((fillOpacity, index) => ({
-                ...BASE_TEST_CASES[index],
-                fillOpacity,
                 fill: 'rgb(238,102,102)',
+                fillOpacity,
+                ...BASE_TEST_CASES[index],
             })),
         ];
 

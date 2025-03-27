@@ -35,7 +35,7 @@ export class Range<D = any> extends Shape<D> {
     endLine: boolean = false;
 
     @SceneChangeDetection()
-    isRange: boolean = false;
+    horizontal: boolean = false;
 
     protected override computeBBox(): BBox {
         return new BBox(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1);
@@ -55,10 +55,9 @@ export class Range<D = any> extends Shape<D> {
         x2 = this.align(x2);
         y2 = this.align(y2);
 
-        const { fill, opacity, isRange } = this;
-        const fillActive = !!(isRange && fill);
+        const { fill, opacity, horizontal } = this;
 
-        if (fillActive) {
+        if (fill != null) {
             const { fillOpacity } = this;
 
             this.applyFill(ctx);
@@ -101,12 +100,20 @@ export class Range<D = any> extends Shape<D> {
 
             if (startLine) {
                 ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y1);
+                if (horizontal) {
+                    ctx.lineTo(x1, y2);
+                } else {
+                    ctx.lineTo(x2, y1);
+                }
             }
 
             if (endLine) {
                 ctx.moveTo(x2, y2);
-                ctx.lineTo(x1, y2);
+                if (horizontal) {
+                    ctx.lineTo(x2, y1);
+                } else {
+                    ctx.lineTo(x1, y2);
+                }
             }
 
             ctx.stroke();

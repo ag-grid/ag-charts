@@ -171,7 +171,6 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
                 y2,
                 startLine: false,
                 endLine: false,
-                isRange: true,
                 stroke: color,
                 strokeOpacity,
                 fill: color,
