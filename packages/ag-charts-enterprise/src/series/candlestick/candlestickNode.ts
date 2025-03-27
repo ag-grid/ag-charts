@@ -124,7 +124,7 @@ export class CandlestickNode extends OhlcBaseNode {
         ctx.lineWidth = wickStrokeWidth;
 
         if (wickLineDash != null) {
-            ctx.setLineDash(wickLineDash);
+            ctx.setLineDash([...wickLineDash]);
         }
         ctx.lineDashOffset = wickLineDashOffset;
 
