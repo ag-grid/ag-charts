@@ -27,7 +27,7 @@ interface ChartLike {
     id: string;
     ctx: {
         updateService: {
-            update(type: _ModuleSupport.ChartUpdateType, options: { skipSync: boolean }): void;
+            update(type: _ModuleSupport.ChartUpdateType): void;
         };
         zoomManager: {
             getZoom(): AxisZoomState | undefined;
@@ -81,7 +81,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     private updateChart(chart: ChartLike, updateType = ChartUpdateType.UPDATE_DATA) {
         debug('ChartSync.updateChart()', chart.id, updateType, chart);
-        chart.ctx.updateService.update(updateType, { skipSync: true });
+        chart.ctx.updateService.update(updateType);
     }
 
     private enabledZoomSync() {

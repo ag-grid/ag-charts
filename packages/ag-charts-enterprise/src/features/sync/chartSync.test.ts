@@ -78,11 +78,7 @@ describe('ChartSync', () => {
     });
 
     describe('animation on initial load', () => {
-        // const animate = spyOnAnimationManager();
-
         beforeEach(async () => {
-            // animate(1200, 0.5);
-
             charts = BAR_SHARED_Y_AXIS.map((o) =>
                 prepareEnterpriseTestOptions({ ...o, animation: { enabled: true, duration: 10_000 } })
             ).map((o) => AgCharts.create(o));

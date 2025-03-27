@@ -242,9 +242,6 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     private readonly _destroyFns: (() => void)[] = [];
 
-    // Used to prevent infinite update loops when syncing charts.
-    protected skipSync = false;
-
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
     public readonly modulesManager = new ModulesManager();
@@ -593,8 +590,6 @@ export abstract class Chart extends Observable implements ModuleInstance {
         if (newAnimationBatch && this.ctx.animationManager.isActive()) {
             this._performUpdateSkipAnimations = true;
         }
-
-        this.skipSync = opts?.skipSync ?? false;
 
         if (this.debug.check()) {
             let stack = new Error().stack ?? '<unknown>';
