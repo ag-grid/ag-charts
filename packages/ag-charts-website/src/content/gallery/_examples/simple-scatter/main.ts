@@ -40,7 +40,7 @@ const options: AgChartOptions = {
                     lineDash: [5, 4],
                     label: {
                         text: 'Height (Inches)',
-                        position: 'top-left',
+                        position: 'inside-top-left',
                     },
                 },
             ],
@@ -62,7 +62,7 @@ const options: AgChartOptions = {
                     lineDash: [5, 4],
                     label: {
                         text: 'Weight (Pounds)',
-                        position: 'inside-top-right',
+                        position: 'inside-bottom-right',
                     },
                 },
             ],
