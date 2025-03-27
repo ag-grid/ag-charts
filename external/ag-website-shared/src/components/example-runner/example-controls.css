@@ -9,6 +9,8 @@
     --button-color-border-primary: #d0d5dd;
     --button-hover-background-color: rgba(0, 0, 0, 0.1);
     --select-chevron: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23182230" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
+    --color-input-bg-checked: #0e4491;
+    --checkbox-tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E");
 }
 
 :root[data-dark-mode='true'] {
@@ -21,6 +23,8 @@
     --button-color-border-primary: rgba(255, 255, 255, 0.2);
     --button-hover-background-color: #2a343e;
     --select-chevron: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23667085" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
+
+    --color-input-bg-checked: #0e4491;
 }
 
 :root,
@@ -57,7 +61,7 @@ body > #highlighter {
     flex: 0 0 100%;
 }
 
-.toolbar :is(button, select) {
+.toolbar :is(button, select, input[type='submit']) {
     appearance: none;
     border: 1px solid var(--button-color-border-primary);
     border-radius: 6px;
@@ -70,9 +74,12 @@ body > #highlighter {
     font-size: 14px;
     font-weight: 500;
     letter-spacing: 0.01em;
-    padding: 0.375em 1em 0.5em;
     white-space: nowrap;
     transition: background-color 0.25s ease-in-out;
+}
+
+.toolbar :is(button, input[type='submit']) {
+    padding: 0.375em 1em 0.5em;
 }
 
 .toolbar :is(button, select):hover {
@@ -83,7 +90,78 @@ body > #highlighter {
     text-align: center;
 }
 
+/* Common input base styles */
+.toolbar :is(input[type='text'], input[type='number'], input[type='checkbox'], input[type='radio']) {
+    appearance: none;
+    border: 1px solid var(--button-color-border-primary);
+    border-radius: 6px;
+    color: var(--button-text-color);
+    background-color: var(--button-background-color);
+    font: inherit;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    transition:
+        border-color 0.25s ease-in-out,
+        box-shadow 0.25s ease-in-out;
+}
+
+/* Text and number inputs specific styles */
+.toolbar :is(input[type='text'], input[type='number']) {
+    height: 28px;
+    padding: 0.375em 1em 0.5em;
+    white-space: nowrap;
+}
+
+.toolbar input[type='radio'] {
+    outline: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 100px;
+    border: 1px solid var(--button-color-border-primary);
+    cursor: pointer;
+}
+
+.toolbar input[type='radio']:hover:not(:disabled):not([readonly]),
+.toolbar input[type='radio'].hover {
+    border: 1px solid var(--button-color-border-primary);
+}
+
+.toolbar input[type='radio']:checked:not(:disabled):not([readonly]) {
+    border: 6px solid var(--color-input-bg-checked);
+}
+
+.toolbar input[type='radio'] {
+    outline: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+}
+
+.toolbar input[type='checkbox']:checked {
+    background-color: var(--color-input-bg-checked);
+    border-color: var(--color-input-bg-checked);
+    background-image: var(--checkbox-tick-icon);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 75%;
+}
+
+.toolbar input[type='checkbox'] {
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+}
+
+.toolbar :is(input:focus-visible) {
+    box-shadow:
+        0 0 0 4px #d4e3f8,
+        0 1px 2px 0 color-mix(in srgb, #0c111d 05%, transparent);
+    outline: 1px #a9c5ec solid;
+}
+
 .toolbar select {
     padding-right: 2.4em;
     background: no-repeat center right 4px var(--select-chevron);
+    padding-left: 1em;
 }
