@@ -32,7 +32,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
-import { applyShapeStyle, getShapeStyle } from '../shapeUtil';
+import { applyShapeStyle, getShapeFill2, getShapeStyle } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
@@ -696,6 +696,7 @@ export class BarSeries extends AbstractBarSeries<
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const style = this.getItemBaseStyle(opts.isHighlight);
         const fillBBox = this.getShapeFillBBox();
+        const fill = getShapeFill2(style.fill, fillBBox);
 
         opts.datumSelection.each((rect, datum) => {
             const overrides = this.getItemStyleOverrides(
@@ -710,6 +711,7 @@ export class BarSeries extends AbstractBarSeries<
             rect.opacity = datum.opacity ?? 0;
 
             applyShapeStyle(rect, style, overrides, fillBBox);
+            rect.fill = getShapeFill2(overrides?.fill) ?? fill;
 
             const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
             rect.topLeftCornerRadius = datum.topLeftCornerRadius ? cornerRadius : 0;

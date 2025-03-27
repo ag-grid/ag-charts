@@ -73,7 +73,7 @@ export function preparePieSeriesAnimationFunctions(
         }
 
         if (status === 'updated') {
-            fill = sect.fill ?? fill;
+            fill = (sect.fill as any) ?? fill;
             stroke = (typeof sect.stroke === 'string' ? sect.stroke : undefined) ?? stroke;
         }
 

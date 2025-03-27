@@ -29,7 +29,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
 
 export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
 
-export type ShapeColor = string | ShapeGradientColor | AgPatternColor;
+export type ShapeColor = string | Gradient | Pattern | ShapeGradientColor | AgPatternColor;
 
 export interface DefaultStyles {
     fill?: ShapeColor;
@@ -82,6 +82,7 @@ export abstract class Shape<D = any> extends Node<D> {
     fill: ShapeColor | undefined = Shape.defaultStyles.fill;
 
     private getGradient(fill: ShapeColor | undefined) {
+        if (fill instanceof Gradient) return fill;
         if (isGradientFill(fill)) return this.createGradient(fill);
     }
 
@@ -105,13 +106,12 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     private getPattern(fill: ShapeColor | undefined) {
+        if (fill instanceof Pattern) return fill;
         if (isPatternFill(fill)) return this.createPattern(fill);
     }
 
     private createPattern(fill: AgPatternColor) {
-        const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-
-        return new Pattern(fill, pixelRatio);
+        return new Pattern(fill);
     }
 
     private _cachedFill?: ShapeColor;
@@ -224,10 +224,19 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyFill(ctx: CanvasContext) {
-        const { fill, fillGradient, fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
-        const gradientFill = fillBBox ? fillGradient?.createGradient(ctx as any, fillBBox, fillParams) : undefined;
-        const patternFill = this.fillPattern?.createPattern(ctx as any);
-        ctx.fillStyle = patternFill ?? gradientFill ?? (typeof fill === 'string' ? fill : undefined) ?? 'black';
+        const { fill, fillGradient, fillPattern } = this;
+        if (fillGradient) {
+            const { fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
+            ctx.fillStyle = fillGradient.createGradient(ctx as any, fillBBox, fillParams) ?? 'black';
+        } else if (fillPattern) {
+            const { x, y } = this.getBBox();
+            const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
+            const pattern = fillPattern.createPattern(ctx as any, pixelRatio);
+            fillPattern.setPatternTransform(pattern, pixelRatio, x, y);
+            ctx.fillStyle = pattern ?? 'black';
+        } else {
+            ctx.fillStyle = typeof fill === 'string' ? fill : 'black';
+        }
     }
 
     protected applyStroke(ctx: CanvasContext) {

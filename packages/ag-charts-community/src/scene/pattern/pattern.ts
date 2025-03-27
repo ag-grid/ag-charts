@@ -20,10 +20,7 @@ export class Pattern implements Omit<Required<InternalAgPatternColor>, 'type'> {
     strokeWidth: number;
     rotation: number;
 
-    constructor(
-        patternOptions: InternalAgPatternColor,
-        public pixelRatio = 1
-    ) {
+    constructor(patternOptions: InternalAgPatternColor) {
         this.width = Math.max(patternOptions?.width ?? 10, 1);
         this.height = Math.max(patternOptions?.height ?? 10, 1);
         this.fill = patternOptions.fill ?? 'transparent';
@@ -38,8 +35,8 @@ export class Pattern implements Omit<Required<InternalAgPatternColor>, 'type'> {
         this.rotation = patternOptions.rotation ?? 0;
     }
 
-    private getPath() {
-        const { pattern, width, height, padding, strokeWidth, pixelRatio } = this;
+    private getPath(pixelRatio: number) {
+        const { pattern, width, height, padding, strokeWidth } = this;
 
         const path = new ExtendedPath2D();
         PATTERNS[pattern](path, { width, height, pixelRatio, strokeWidth, padding });
@@ -63,8 +60,8 @@ export class Pattern implements Omit<Required<InternalAgPatternColor>, 'type'> {
         ctx.fill(path2d);
     }
 
-    protected createCanvasPattern(ctx: CanvasRenderingContext2D): CanvasPattern | null {
-        const { width, height, backgroundFill, backgroundFillOpacity, pixelRatio, rotation } = this;
+    protected createCanvasPattern(ctx: CanvasRenderingContext2D, pixelRatio: number): CanvasPattern | null {
+        const { width, height, backgroundFill, backgroundFillOpacity } = this;
 
         const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio });
         const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
@@ -73,35 +70,43 @@ export class Pattern implements Omit<Required<InternalAgPatternColor>, 'type'> {
         offscreenPatternCtx.globalAlpha = backgroundFillOpacity;
         offscreenPatternCtx.fillRect(0, 0, width, height);
 
-        const path2d = this.getPath().getPath2D();
+        const path2d = this.getPath(pixelRatio).getPath2D();
 
         this.renderFill(path2d, offscreenPatternCtx);
         this.renderStroke(path2d, offscreenPatternCtx);
 
         const pattern = ctx.createPattern(offscreenPattern.canvas, 'repeat');
 
-        const angle = normalizeAngle360(toRadians(rotation));
-        const scale = 1 / pixelRatio;
-        const cos = Math.cos(angle) * scale;
-        const sin = Math.sin(angle) * scale;
-
-        pattern?.setTransform(new DOMMatrix([cos, sin, -sin, cos, 0, 0]));
+        this.setPatternTransform(pattern, pixelRatio);
 
         offscreenPattern.destroy();
 
         return pattern;
     }
 
-    private _cache: { ctx: CanvasRenderingContext2D; pattern: CanvasPattern | undefined } | undefined = undefined;
-    createPattern(ctx: CanvasRenderingContext2D): CanvasPattern | undefined {
-        if (this._cache != null && this._cache.ctx === ctx) {
+    setPatternTransform(pattern: CanvasPattern | null | undefined, pixelRatio: number, tx: number = 0, ty: number = 0) {
+        const { rotation } = this;
+
+        const angle = normalizeAngle360(toRadians(rotation));
+        const scale = 1 / pixelRatio;
+        const cos = Math.cos(angle) * scale;
+        const sin = Math.sin(angle) * scale;
+
+        pattern?.setTransform(new DOMMatrix([cos, sin, -sin, cos, tx, ty]));
+    }
+
+    private _cache:
+        | { ctx: CanvasRenderingContext2D; pattern: CanvasPattern | undefined; pixelRatio: number }
+        | undefined = undefined;
+    createPattern(ctx: CanvasRenderingContext2D, pixelRatio: number): CanvasPattern | undefined {
+        if (this._cache != null && this._cache.ctx === ctx && this._cache.pixelRatio === pixelRatio) {
             return this._cache.pattern;
         }
 
-        const pattern = this.createCanvasPattern(ctx);
+        const pattern = this.createCanvasPattern(ctx, pixelRatio);
         if (pattern == null) return;
 
-        this._cache = { ctx, pattern };
+        this._cache = { ctx, pattern, pixelRatio };
 
         return pattern;
     }
@@ -142,7 +147,7 @@ export class Pattern implements Omit<Required<InternalAgPatternColor>, 'type'> {
         path.setAttribute('stroke', stroke);
         path.setAttribute('stroke-width', String(strokeWidth));
         path.setAttribute('transform', `rotate(${rotation})`);
-        path.setAttribute('d', this.getPath().toSVG());
+        path.setAttribute('d', this.getPath(1).toSVG());
         pattern.appendChild(path);
 
         return pattern;

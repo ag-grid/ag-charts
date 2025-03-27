@@ -1,7 +1,12 @@
 import type { InternalAgColorType, InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
-import { type GradientParams } from '../../scene/gradient/gradient';
+import { ConicGradient } from '../../scene/gradient/conicGradient';
+import { Gradient, type GradientParams } from '../../scene/gradient/gradient';
+import { LinearGradient } from '../../scene/gradient/linearGradient';
+import { RadialGradient } from '../../scene/gradient/radialGradient';
+import { getColorStops } from '../../scene/gradient/stops';
+import { Pattern } from '../../scene/pattern/pattern';
 import type { Shape, ShapeColor } from '../../scene/shape/shape';
 import { isGradientFill, isPatternFill } from '../../scene/util/fill';
 
@@ -12,6 +17,40 @@ export type ShapeStyle = Partial<
 export interface ShapeFillBBox {
     series: BBox;
     axis: BBox;
+}
+
+export function getShapeFill2(fill: InternalAgColorType, fillBBox?: ShapeFillBBox): Gradient | Pattern | string;
+export function getShapeFill2(
+    fill: InternalAgColorType | undefined,
+    fillBBox?: ShapeFillBBox
+): Gradient | Pattern | string | undefined;
+export function getShapeFill2(
+    fill: InternalAgColorType | undefined,
+    fillBBox?: ShapeFillBBox
+): Gradient | Pattern | string | undefined {
+    if (isGradientFill(fill)) {
+        const { gradient = 'linear', colorStops = ['black'], bounds = 'item', rotation = 0, reverse = false } = fill;
+
+        let stops = getColorStops(colorStops, ['black'], [0, 1]);
+        if (reverse) {
+            stops = stops.map((s) => ({ color: s.color, stop: 1 - s.stop })).reverse();
+        }
+
+        const bbox = bounds === 'item' ? undefined : fillBBox?.[bounds];
+
+        switch (gradient) {
+            case 'linear':
+                return new LinearGradient('rgb', stops, rotation, bbox);
+            case 'radial':
+                return new RadialGradient('rgb', stops);
+            case 'conic':
+                return new ConicGradient('rgb', stops, rotation);
+        }
+    } else if (isPatternFill(fill)) {
+        return new Pattern(fill);
+    } else {
+        return fill;
+    }
 }
 
 export function getShapeFill(
