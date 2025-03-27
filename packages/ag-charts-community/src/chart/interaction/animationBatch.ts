@@ -211,6 +211,19 @@ export class AnimationBatch {
         return this.skipAnimations;
     }
 
+    getRemainingTime() {
+        if (!this.isActive()) return 0;
+
+        let total = 0;
+        for (const [, controllers] of this.phases) {
+            if (controllers.length === 0) continue;
+
+            total += Math.max(...controllers.map((c) => (c.isComplete ? 0 : c.delay + c.duration - (c.elapsed ?? 0))));
+        }
+
+        return total;
+    }
+
     destroy() {
         this.stop();
         this.controllers.clear();

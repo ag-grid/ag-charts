@@ -163,6 +163,10 @@ export class AnimationManager {
         return this.isPlaying && this.batch.isActive();
     }
 
+    public getRemainingTime() {
+        return this.batch.getRemainingTime();
+    }
+
     public skipCurrentBatch() {
         if (this.debug.check()) {
             this.debug(`AnimationManager - skipCurrentBatch()`, { stack: new Error().stack });
