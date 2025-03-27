@@ -34,6 +34,19 @@ export class Test_SceneChangeDetection {
     @SceneChangeDetection() optionalNumberArray?: number[];
     @SceneChangeDetection() requiredObjectTuple: [string, string, string] = ['a', 'b', 'c'];
     @SceneChangeDetection() optionalObjectTuple?: [string, string, string];
+
+    @SceneChangeDetection() requiredUnion1: number | readonly [number, number] = 0;
+    @SceneChangeDetection() optionalUnion1?: number | readonly [number, number];
+    @SceneChangeDetection() requiredUnion2: number | readonly string[] = 0;
+    @SceneChangeDetection() optionalUnion2?: number | readonly string[];
+    @SceneChangeDetection() requiredUnion3: object | readonly [number, number] = {};
+    @SceneChangeDetection() optionalUnion3?: object | readonly [number, number];
+    @SceneChangeDetection() requiredUnion4: object | readonly string[] = ['a', 'b', 'c'];
+    @SceneChangeDetection() optionalUnion4?: object | readonly string[];
+    @SceneChangeDetection() requiredUnion5: object | readonly boolean[] | string = [true, false];
+    @SceneChangeDetection() optionalUnion5?: object | readonly boolean[] | string;
+    @SceneChangeDetection() requiredUnion6: object | object[] = {};
+    @SceneChangeDetection() optionalUnion6?: object | object[];
 }
 
 export class Test_SceneObjectChangeDetection {
@@ -49,6 +62,19 @@ export class Test_SceneObjectChangeDetection {
     @SceneObjectChangeDetection() optionalObjectArray?: object[];
     @SceneObjectChangeDetection() requiredObjectTuple: [boolean, boolean] = [false, true];
     @SceneObjectChangeDetection() optionalObjectTuple?: [boolean, boolean];
+
+    @SceneObjectChangeDetection() requiredUnion1: number | readonly [number, number] = 0;
+    @SceneObjectChangeDetection() optionalUnion1?: number | readonly [number, number];
+    @SceneObjectChangeDetection() requiredUnion2: number | readonly string[] = 0;
+    @SceneObjectChangeDetection() optionalUnion2?: number | readonly string[];
+    @SceneObjectChangeDetection() requiredUnion3: object | readonly [number, number] = {};
+    @SceneObjectChangeDetection() optionalUnion3?: object | readonly [number, number];
+    @SceneObjectChangeDetection() requiredUnion4: object | readonly string[] = ['a', 'b', 'c'];
+    @SceneObjectChangeDetection() optionalUnion4?: object | readonly string[];
+    @SceneObjectChangeDetection() requiredUnion5: object | readonly boolean[] | string = [true, false];
+    @SceneObjectChangeDetection() optionalUnion5?: object | readonly boolean[] | string;
+    @SceneObjectChangeDetection() requiredUnion6: object | object[] = {};
+    @SceneObjectChangeDetection() optionalUnion6?: object | object[];
 }
 
 export class Test_SceneArrayChangeDetection {
@@ -87,6 +113,19 @@ export class Test_SceneArrayChangeDetection {
     @SceneArrayChangeDetection() optionalMutableNumberTuple?: [number, number];
     @SceneArrayChangeDetection() requiredReadonlyNumberTuple: readonly [number, number] = [0, 0];
     @SceneArrayChangeDetection() optionalReadonlyNumberTuple?: readonly [number, number];
+
+    @SceneArrayChangeDetection() requiredUnion1: number | readonly [number, number] = 0;
+    @SceneArrayChangeDetection() optionalUnion1?: number | readonly [number, number];
+    @SceneArrayChangeDetection() requiredUnion2: number | readonly string[] = 0;
+    @SceneArrayChangeDetection() optionalUnion2?: number | readonly string[];
+    @SceneArrayChangeDetection() requiredUnion3: object | readonly [number, number] = {};
+    @SceneArrayChangeDetection() optionalUnion3?: object | readonly [number, number];
+    @SceneArrayChangeDetection() requiredUnion4: object | readonly string[] = ['a', 'b', 'c'];
+    @SceneArrayChangeDetection() optionalUnion4?: object | readonly string[];
+    @SceneArrayChangeDetection() requiredUnion5: object | readonly boolean[] | string = [true, false];
+    @SceneArrayChangeDetection() optionalUnion5?: object | readonly boolean[] | string;
+    @SceneArrayChangeDetection() requiredUnion6: object | object[] = {};
+    @SceneArrayChangeDetection() optionalUnion6?: object | object[];
 }
 
 export class Test_ProxyProperty {

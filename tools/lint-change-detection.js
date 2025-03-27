@@ -65,7 +65,7 @@ function isMutableArray(type) {
  */
 function isReadonlyArray(type) {
     if (type.isUnion()) {
-        return type.types.every((t) => isReadonlyArray(t));
+        return type.types.every((t) => isReadonlyArray(t) || !isArrayType(t));
     }
     if (type.flags & ts.TypeFlags.Object) {
         if (type.objectFlags & ts.ObjectFlags.Reference && type.symbol) {
@@ -119,6 +119,20 @@ function isObjectType(type) {
 }
 
 /**
+ * Returns true if the type is a union with at least two of these three types: primitive (string | number | boolean),
+ * object, array (or tuple).
+ */
+function isObjectLikeUnionType(type) {
+    let count = 0;
+    if (type.isUnion()) {
+        count += type.types.some((t) => isObjectType(t)) ? 1 : 0;
+        count += type.types.some((t) => isArrayType(t)) || type.types.some((t) => isTupleType(t)) ? 1 : 0;
+        count += type.types.some((t) => isAllowedPrimitive(t)) ? 1 : 0;
+    }
+    return count >= 2;
+}
+
+/**
  * Processes a source file AST and pushes any linting errors to the errors array.
  */
 function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
@@ -153,7 +167,11 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
 
                         if (decoratorName === 'SceneChangeDetection') {
                             if (!checkAllowedType(type)) {
-                                if (isArrayType(type)) {
+                                if (isObjectLikeUnionType(type)) {
+                                    suggestion.push(
+                                        'Switch to @SceneObjectChangeDetection for (primitive | object | array) union properties.'
+                                    );
+                                } else if (isArrayType(type)) {
                                     suggestion.push('Switch to @SceneArrayChangeDetection for array properties.');
                                 } else if (isTupleType(type)) {
                                     suggestion.push('Switch to @SceneArrayChangeDetection for tuple properties.');
@@ -164,13 +182,19 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
                                 }
                             }
                         } else if (decoratorName === 'SceneArrayChangeDetection') {
-                            if (!isAllowedPrimitiveArray(type)) {
+                            if (isObjectLikeUnionType(type)) {
+                                suggestion.push(
+                                    'Switch to @SceneObjectChangeDetection for (primitive | object | array) union properties.'
+                                );
+                            } else if (!isAllowedPrimitiveArray(type)) {
                                 suggestion.push(
                                     'SceneArrayChangeDetection should only be applied to readonly (string | number | boolean)[] types.'
                                 );
                             }
                         } else if (decoratorName === 'SceneObjectChangeDetection') {
-                            if (isArrayType(type)) {
+                            if (isObjectLikeUnionType(type)) {
+                                // no-suggestion (this is correct usage)
+                            } else if (isArrayType(type)) {
                                 suggestion.push('Switch to @SceneArrayChangeDetection for array properties.');
                             } else if (isTupleType(type)) {
                                 suggestion.push('Switch to @SceneArrayChangeDetection for tuple properties.');
