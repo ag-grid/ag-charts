@@ -5,7 +5,7 @@ import { RadiusAxis } from '../radius/radiusAxis';
 const { Property, normalisedExtentWithMetadata, LinearScale } = _ModuleSupport;
 
 type TickDatum = {
-    tickLabel: string;
+    tickLabel: string | undefined;
     tick: any;
     tickId: string;
     translationY: number;

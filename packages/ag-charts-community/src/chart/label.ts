@@ -120,7 +120,7 @@ export function getTextAlign(
 }
 
 export function createLabelData(
-    tickData: { tickLabel: string; translationY: number }[],
+    tickData: { tickLabel: string | undefined; translationY: number }[],
     labelX: number,
     labelMatrix: Matrix,
     textMeasurer: TextMeasurer

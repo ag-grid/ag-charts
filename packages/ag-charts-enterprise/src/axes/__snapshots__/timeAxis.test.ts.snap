@@ -2,7 +2,7 @@
 
 exports[`Time Axis Examples when zooming for should render as expected as zoom [0, 1] 1`] = `
 {
-  "height": 20.33333333333337,
+  "height": 20.333333333333258,
   "width": 721,
   "x": 59,
   "y": 499,
@@ -11,7 +11,7 @@ exports[`Time Axis Examples when zooming for should render as expected as zoom [
 
 exports[`Time Axis Examples when zooming for should render as expected as zoom [0.2, 0.5] 1`] = `
 {
-  "height": 20.333333333333485,
+  "height": 20.333333333333258,
   "width": 721,
   "x": 59,
   "y": 499,
@@ -21,15 +21,15 @@ exports[`Time Axis Examples when zooming for should render as expected as zoom [
 exports[`Time Axis Examples when zooming for should render as expected as zoom [0.3, 0.35] 1`] = `
 {
   "height": 23,
-  "width": 725.6666666666667,
+  "width": 721,
   "x": 59,
-  "y": 496,
+  "y": 497,
 }
 `;
 
 exports[`Time Axis Examples when zooming for should render as expected as zoom [0.4, 0.4125] 1`] = `
 {
-  "height": 20.333333333333485,
+  "height": 20.333333333333258,
   "width": 721,
   "x": 59,
   "y": 499,
@@ -41,7 +41,7 @@ exports[`Time Axis Examples when zooming for should render as expected as zoom [
   "height": 23,
   "width": 721,
   "x": 59,
-  "y": 496,
+  "y": 497,
 }
 `;
 
@@ -50,15 +50,15 @@ exports[`Time Axis Examples when zooming for should render as expected as zoom [
   "height": 23,
   "width": 721,
   "x": 59,
-  "y": 496,
+  "y": 497,
 }
 `;
 
 exports[`Time Axis Examples when zooming for should render as expected as zoom [0.45, 0.45625] 1`] = `
 {
   "height": 23,
-  "width": 738.3333333333333,
+  "width": 734.3333333333333,
   "x": 45.666666666666686,
-  "y": 496,
+  "y": 497,
 }
 `;

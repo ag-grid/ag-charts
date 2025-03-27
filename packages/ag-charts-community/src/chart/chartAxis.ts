@@ -87,7 +87,6 @@ export interface ChartAxis {
     position?: AgCartesianAxisPosition;
     range: [number, number];
     reverse: boolean;
-    rotation: number;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
     thickness?: number;
