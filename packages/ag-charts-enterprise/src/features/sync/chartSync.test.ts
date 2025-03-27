@@ -25,13 +25,6 @@ describe('ChartSync', () => {
         }
     };
 
-    // const compare = async () => {
-    //     await waitForAllChartStability();
-
-    //     const imageData = extractImageData(ctx);
-    //     expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
-    // };
-
     describe('domain synchronization between charts', () => {
         beforeEach(async () => {
             charts = BAR_SHARED_Y_AXIS.map((o) => prepareEnterpriseTestOptions({ ...o })).map((o) =>
@@ -92,7 +85,7 @@ describe('ChartSync', () => {
                     ctx: { animationManager },
                 } = deproxy(c);
 
-                return animationManager.getRemainingTime();
+                return animationManager.getRemainingTime('initial');
             });
 
             expect(remainingAnimationTime[0]).toBeGreaterThan(6000);

@@ -1,6 +1,6 @@
 import { Logger } from 'ag-charts-core';
 
-import { type IAnimation, PHASE_METADATA, PHASE_ORDER } from '../../motion/animation';
+import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } from '../../motion/animation';
 import { Debug } from '../../util/debug';
 
 /**
@@ -211,12 +211,13 @@ export class AnimationBatch {
         return this.skipAnimations;
     }
 
-    getRemainingTime() {
+    getRemainingTime(restrictPhase?: AnimationPhase) {
         if (!this.isActive()) return 0;
 
         let total = 0;
-        for (const [, controllers] of this.phases) {
+        for (const [phase, controllers] of this.phases) {
             if (controllers.length === 0) continue;
+            if (restrictPhase != null && restrictPhase !== phase) continue;
 
             total += Math.max(...controllers.map((c) => (c.isComplete ? 0 : c.delay + c.duration - (c.elapsed ?? 0))));
         }
