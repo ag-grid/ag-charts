@@ -20,11 +20,14 @@ type AxisLike = {
     max?: number;
 };
 
+export type SyncStatus = 'init' | 'domains-calculated' | 'ready';
+
 /** Breaks circular dependencies which occur when importing Chart. */
 type ChartLike = {
     id: string;
     axes: AxisLike[];
     series: ISeries<any, any, any>[];
+    syncStatus: SyncStatus;
     modulesManager: { getModule<R>(module: string): R | undefined };
     ctx: {
         highlightManager: HighlightManager;

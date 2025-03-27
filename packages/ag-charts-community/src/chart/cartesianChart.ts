@@ -29,7 +29,7 @@ const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left']
 
 interface SyncModule extends ModuleInstance {
     enabled?: boolean;
-    getSyncedDomain(axis: ChartAxis): any[] | undefined;
+    getSyncedDomain(axis: ChartAxis): Promise<any[] | undefined>;
     updateSiblings(): void;
 }
 
@@ -78,11 +78,15 @@ export class CartesianChart extends Chart {
     override async processData(): Promise<void> {
         await super.processData();
 
+        if (this.syncStatus === 'init') {
+            this.syncStatus = 'domains-calculated';
+        }
+
         for (const axis of this.axes) {
-            const syncedDomain = this.getSyncedDomain(axis);
+            const syncedDomain = await this.getSyncedDomain(axis);
 
             if (syncedDomain != null) {
-                (axis as any).setDomains(syncedDomain);
+                axis.setDomains(syncedDomain);
             }
         }
 
@@ -315,10 +319,10 @@ export class CartesianChart extends Chart {
         return direction === 1 ? Math.min(value, bound + size) : Math.max(value, bound);
     }
 
-    private getSyncedDomain(axis: ChartAxis) {
+    private async getSyncedDomain(axis: ChartAxis) {
         const syncModule = this.modulesManager.getModule<SyncModule>('sync');
         if (!syncModule?.enabled) return;
-        const syncedDomain = syncModule.getSyncedDomain(axis);
+        const syncedDomain = await syncModule.getSyncedDomain(axis);
 
         // If synced domain available and axis domain is already set.
         if (syncedDomain && axis.dataDomain.domain.length) {
