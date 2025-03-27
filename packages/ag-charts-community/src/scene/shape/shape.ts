@@ -4,7 +4,7 @@ import type { AgPatternColor } from 'ag-charts-types';
 import { generateUUID } from '../../util/id';
 import { objectsEqual } from '../../util/object';
 import type { BBox } from '../bbox';
-import { SceneArrayChangeDetection } from '../changeDetectable';
+import { SceneArrayChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../changeDetectable';
 import type { DropShadow } from '../dropShadow';
 import { ConicGradient } from '../gradient/conicGradient';
 import { type ColorSpace, Gradient, type GradientParams } from '../gradient/gradient';
@@ -79,7 +79,7 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection()
     strokeOpacity: number = 1;
 
-    @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
+    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onFillChange() })
     fill: ShapeColor | undefined = Shape.defaultStyles.fill;
 
     private getGradient(fill: ShapeColor | undefined) {
@@ -141,7 +141,7 @@ export abstract class Shape<D = any> extends Node<D> {
      * The preferred way of making the stroke invisible is setting the `lineWidth` to zero,
      * unless specific looks that is achieved by having an invisible stroke is desired.
      */
-    @SceneChangeDetection({ changeCb: (s: Shape) => s.onStrokeChange() })
+    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onStrokeChange() })
     stroke?: ShapeColor = Shape.defaultStyles.stroke;
 
     protected onStrokeChange() {
@@ -181,13 +181,13 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = Shape.defaultStyles.opacity;
 
-    @SceneChangeDetection({ checkDirtyOnAssignment: true })
+    @SceneObjectChangeDetection({ equals: TRIPLE_EQ, checkDirtyOnAssignment: true })
     fillShadow: DropShadow | undefined = Shape.defaultStyles.fillShadow;
 
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fillBBox?: BBox;
 
-    @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
+    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onFillChange() })
     fillParams?: GradientParams;
 
     private cachedDefaultGradientFillBBox?: BBox;
