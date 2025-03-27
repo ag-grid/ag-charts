@@ -150,6 +150,7 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
                     } else if (ts.isIdentifier(decorator.expression)) {
                         decoratorName = decorator.expression.escapedText;
                     }
+                    if (!SCENE_DECORATORS.includes(decoratorName)) return;
 
                     const propertyName = node.name.getText(sourceFile);
                     const symbol = checker.getSymbolAtLocation(node.name);
@@ -157,12 +158,10 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
                         const type = checker.getTypeOfSymbolAtLocation(symbol, node);
                         const typeString = checker.typeToString(type);
                         let suggestion = [];
-                        if (SCENE_DECORATORS.includes(decoratorName)) {
-                            if (isMutableArray(type)) {
-                                suggestion.push('Mutable arrays are not allowed. Use readonly arrays instead.');
-                            } else if (isMutableTuple(type)) {
-                                suggestion.push('Mutable tuples are not allowed. Use readonly tuples instead.');
-                            }
+                        if (isMutableArray(type)) {
+                            suggestion.push('Mutable arrays are not allowed. Use readonly arrays instead.');
+                        } else if (isMutableTuple(type)) {
+                            suggestion.push('Mutable tuples are not allowed. Use readonly tuples instead.');
                         }
 
                         if (decoratorName === 'SceneChangeDetection') {

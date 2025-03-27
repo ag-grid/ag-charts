@@ -12,7 +12,7 @@ function SceneObjectChangeDetection() {
 function SceneArrayChangeDetection() {
     return function (_target: any, _key: string) {};
 }
-function ProxyProperty(_proxyPath: string) {
+function Property() {
     return function (_target: any, _key: string) {};
 }
 
@@ -128,8 +128,9 @@ export class Test_SceneArrayChangeDetection {
     @SceneArrayChangeDetection() optionalUnion6?: object | object[];
 }
 
-export class Test_ProxyProperty {
-    @ProxyProperty('marker.lineDash') lineDash?: number[];
+export class Test_IgnoredDecorator {
+    @Property() lineDash?: number[];
+    @Property() node: object[];
 }
 
 describe('lint-change-detection', () => {
