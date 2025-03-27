@@ -42,8 +42,17 @@ type ChartLike = {
     ): TooltipContent[];
 };
 
+type ChartDomainState = {
+    [id: string]: Record<string, unknown[]>;
+};
+
+type GroupState = {
+    members: Set<ChartLike>;
+    domains?: { [key in 'x' | 'y']?: { derived: unknown[]; sources: ChartDomainState } };
+};
+
 export class SyncManager extends BaseManager {
-    private static readonly chartsGroups = new Map<GroupId, Set<ChartLike>>();
+    private static readonly chartsGroups = new Map<GroupId, GroupState>();
     private static readonly DEFAULT_GROUP = Symbol('sync-group-default');
 
     constructor(protected chart: ChartLike) {
@@ -53,15 +62,18 @@ export class SyncManager extends BaseManager {
     subscribe(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         let syncGroup = this.get(groupId);
         if (!syncGroup) {
-            syncGroup = new Set();
+            syncGroup = { members: new Set() };
             SyncManager.chartsGroups.set(groupId, syncGroup);
         }
-        syncGroup.add(this.chart);
+        syncGroup.members.add(this.chart);
         return this;
     }
 
     unsubscribe(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
-        this.get(groupId)?.delete(this.chart);
+        const groupState = this.get(groupId);
+        groupState?.members.delete(this.chart);
+        delete groupState?.domains?.x?.sources?.[this.chart.id];
+        delete groupState?.domains?.y?.sources?.[this.chart.id];
         return this;
     }
 
@@ -69,13 +81,17 @@ export class SyncManager extends BaseManager {
         return this.chart;
     }
 
-    getGroup(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
+    getGroupState(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
+        return this.get(groupId);
+    }
+
+    getGroupMembers(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         const syncGroup = this.get(groupId);
-        return syncGroup ? Array.from(syncGroup) : [];
+        return syncGroup ? Array.from(syncGroup.members) : [];
     }
 
     getGroupSiblings(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
-        return this.getGroup(groupId).filter((chart) => chart !== this.chart);
+        return this.getGroupMembers(groupId).filter((chart) => chart !== this.chart);
     }
 
     private get(groupId: GroupId) {

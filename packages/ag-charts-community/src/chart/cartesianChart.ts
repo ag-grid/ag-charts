@@ -30,6 +30,7 @@ const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left']
 interface SyncModule extends ModuleInstance {
     enabled?: boolean;
     getSyncedDomain(axis: ChartAxis): Promise<any[] | undefined>;
+    removeAxis(axis: ChartAxis): void;
     updateSiblings(): void;
 }
 
@@ -50,6 +51,8 @@ export class CartesianChart extends Chart {
 
     override onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         super.onAxisChange(newValue, oldValue);
+
+        this.syncAxisChanges(newValue, oldValue);
 
         if (this.ctx != null) {
             this.ctx.zoomManager.updateAxes(newValue);
@@ -322,24 +325,20 @@ export class CartesianChart extends Chart {
     private async getSyncedDomain(axis: ChartAxis) {
         const syncModule = this.modulesManager.getModule<SyncModule>('sync');
         if (!syncModule?.enabled) return;
-        const syncedDomain = await syncModule.getSyncedDomain(axis);
+        return await syncModule.getSyncedDomain(axis);
+    }
 
-        // If synced domain available and axis domain is already set.
-        if (syncedDomain && axis.dataDomain.domain.length) {
-            let shouldUpdate: boolean;
-            const { domain } = axis.scale;
-            if (ContinuousScale.is(axis.scale)) {
-                const [min, max] = findMinMax(syncedDomain);
-                shouldUpdate = min !== domain[0] || max !== domain[1];
-            } else {
-                shouldUpdate = !arraysEqual(syncedDomain, domain);
-            }
-            if (shouldUpdate && !this.skipSync) {
-                syncModule.updateSiblings();
-            }
+    private syncAxisChanges(newValue: ChartAxis[], oldValue: ChartAxis[] | undefined) {
+        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
+        if (!syncModule?.enabled) return;
+
+        const removed = new Set(oldValue ?? []);
+        for (const axis of newValue) {
+            removed.delete(axis);
         }
-
-        return syncedDomain;
+        for (const removedAxis of removed) {
+            syncModule.removeAxis(removedAxis);
+        }
     }
 
     private sizeAxis(axis: ChartAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {

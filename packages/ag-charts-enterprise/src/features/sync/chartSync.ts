@@ -1,7 +1,16 @@
 import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
-import { AsyncAwaitQueue, Logger, isDate, isDefined, isFiniteNumber, unique } from 'ag-charts-core';
+import { AsyncAwaitQueue, Logger, arraysEqual, isDate, isDefined, isFiniteNumber, unique } from 'ag-charts-core';
 
-const { BaseProperties, CartesianAxis, ChartUpdateType, ObserveChanges, TooltipManager, Property } = _ModuleSupport;
+const {
+    BaseProperties,
+    CartesianAxis,
+    ContinuousScale,
+    ChartUpdateType,
+    ObserveChanges,
+    TooltipManager,
+    Property,
+    findMinMax,
+} = _ModuleSupport;
 
 interface ZoomState {
     min: number;
@@ -173,11 +182,21 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             return;
         }
 
+        const { syncManager } = this.moduleContext;
+        const chartId = syncManager.getChart().id;
+        const groupState = syncManager.getGroupState(this.groupId);
+        if (!groupState) throw new Error('AG Charts - no GroupState for groupId: ' + this.groupId);
+
+        // Update shared state of synced axis domain.
+        const domains = (groupState.domains ??= {});
+        const directionDomains = (domains[axis.direction] ??= { derived: [], sources: {} });
+        const chartDomains = (directionDomains.sources[chartId] ??= {});
+        chartDomains[axis.id] = axis.dataDomain.domain;
+
         await this.waitForDomainsToBeReady();
 
-        const { syncManager } = this.moduleContext;
-        const syncGroup = syncManager.getGroup(this.groupId);
-        const [{ axes: syncAxes }] = syncGroup;
+        const members = groupState.members;
+        const [{ axes: syncAxes }] = members;
 
         const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
 
@@ -198,22 +217,38 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             }
         }
 
-        return unique(
-            syncGroup
-                .flatMap((c) => c.series)
-                .filter((series) => {
-                    if (series.visible) {
-                        const seriesKeys = series.getKeys(axis.direction);
-                        return axis.keys.length ? axis.keys.some((key) => seriesKeys.includes(key)) : true;
-                    }
-                })
-                .flatMap((series) => series.getDomain(axis.direction))
+        const previousDerived = directionDomains.derived;
+        directionDomains.derived = unique(
+            Object.values(directionDomains.sources)
+                .map((d) => Object.values(d))
+                .flat()
+                .flat()
         );
+
+        if (ContinuousScale.is(axis.scale)) {
+            directionDomains.derived = findMinMax(directionDomains.derived as number[]);
+        }
+        if (!arraysEqual(previousDerived, directionDomains.derived)) {
+            this.updateSiblings();
+        }
+
+        return directionDomains.derived;
+    }
+
+    removeAxis(axis: unknown) {
+        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
+            return;
+        }
+
+        const { syncManager } = this.moduleContext;
+        const syncGroup = syncManager.getGroupState(this.groupId);
+
+        delete syncGroup?.domains?.[axis.direction]?.sources?.[syncManager.getChart().id]?.[axis.id];
     }
 
     private async waitForDomainsToBeReady() {
         const { syncManager } = this.moduleContext;
-        while (syncManager.getGroup(this.groupId).some((c) => c.syncStatus === 'init')) {
+        while (syncManager.getGroupMembers(this.groupId).some((c) => c.syncStatus === 'init')) {
             debug('ChartSync.waitForDomainsToBeReady() - waiting for all domains to be calculated', this.groupId);
             await this.domainSync.await();
         }
