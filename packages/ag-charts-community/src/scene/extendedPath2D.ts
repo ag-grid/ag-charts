@@ -376,6 +376,11 @@ export class ExtendedPath2D {
                 [sx, sy] = [x, y];
             }
         };
+        const joinAngle = (cx: number, cy: number, r: number, angle: number, updatestart?: boolean) => {
+            const px = cx + r * Math.cos(angle);
+            const py = cy + r * Math.sin(angle);
+            joinPoint(px, py, updatestart);
+        };
 
         let pi = 0;
         for (const command of commands) {
@@ -394,43 +399,36 @@ export class ExtendedPath2D {
                     const cp2y = params[pi++];
                     const x = params[pi++];
                     const y = params[pi++];
-                    joinPoint(x, y, true);
 
-                    const Ts = calculateDerivativeExtremaXY(sx, sy, cp1x, cp1y, cp2x, cp2y, x, y);
+                    const ts = calculateDerivativeExtremaXY(sx, sy, cp1x, cp1y, cp2x, cp2y, x, y);
 
                     // Check points where the derivative is zero
-                    Ts.forEach((t: number) => {
+                    ts.forEach((t: number) => {
                         const px = evaluateBezier(sx, cp1x, cp2x, x, t);
                         const py = evaluateBezier(sy, cp1y, cp2y, y, t);
                         joinPoint(px, py);
                     });
+
+                    joinPoint(x, y, true);
                     break;
                 }
                 case Command.Arc: {
                     const cx = params[pi++];
                     const cy = params[pi++];
                     const r = params[pi++];
-                    let A0 = normalizeAngle360(params[pi++]);
-                    let A1 = normalizeAngle360(params[pi++]);
+                    const a0 = normalizeAngle360(params[pi++]);
+                    const a1 = normalizeAngle360(params[pi++]);
                     const ccw = params[pi++];
 
-                    if (ccw) {
-                        [A0, A1] = [A1, A0];
-                    }
-
-                    const joinAngle = (angle: number, updatestart?: boolean) => {
-                        const px = cx + r * Math.cos(angle);
-                        const py = cy + r * Math.sin(angle);
-                        joinPoint(px, py, updatestart);
-                    };
-                    joinAngle(A0);
-                    joinAngle(A1, true);
+                    joinAngle(cx, cy, r, a0);
                     const criticalAngles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+                    const [r0, r1] = ccw ? [a1, a0] : [a0, a1];
                     for (const crit of criticalAngles) {
-                        if ((A0 < A1 && A0 <= crit && crit <= A1) || (A0 > A1 && (A0 <= crit || crit <= A1))) {
-                            joinAngle(crit);
+                        if ((r0 < r1 && r0 <= crit && crit <= r1) || (r0 > r1 && (r0 <= crit || crit <= r1))) {
+                            joinAngle(cx, cy, r, crit);
                         }
                     }
+                    joinAngle(cx, cy, r, a1, true);
                     break;
                 }
                 case Command.ClosePath:
