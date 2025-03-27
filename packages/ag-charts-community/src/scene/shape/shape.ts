@@ -1,6 +1,7 @@
 import { type InternalAgGradientColor, clamp } from 'ag-charts-core';
 import type { AgPatternColor } from 'ag-charts-types';
 
+import { BBoxValues } from '../../util/bboxinterface';
 import { generateUUID } from '../../util/id';
 import { objectsEqual } from '../../util/object';
 import type { BBox } from '../bbox';
@@ -184,7 +185,7 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneObjectChangeDetection({ equals: TRIPLE_EQ, checkDirtyOnAssignment: true })
     fillShadow: DropShadow | undefined = Shape.defaultStyles.fillShadow;
 
-    @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
+    @SceneObjectChangeDetection({ equals: BBoxValues.equals, changeCb: (s: Shape) => s.onFillChange() })
     fillBBox?: BBox;
 
     @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onFillChange() })
