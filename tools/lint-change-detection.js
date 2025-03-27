@@ -27,9 +27,9 @@ function isAllowedPrimitive(type) {
 /**
  * Checks if the type (or union) is an array of allowed primitive types.
  */
-function isAllowedPrimitiveArray(type) {
+function isAllowedPrimitiveArray(type, defaultValue) {
     if (type.isUnion()) {
-        return type.types.every((t) => isAllowedPrimitiveArray(t));
+        return type.types.every((t) => isAllowedPrimitiveArray(t, defaultValue));
     }
     if (isTupleType(type)) {
         if (type.resolvedTypeArguments) {
@@ -40,7 +40,7 @@ function isAllowedPrimitiveArray(type) {
         const typeArguments = type.typeArguments || [];
         return typeArguments.length === 1 && isAllowedPrimitive(typeArguments[0]);
     }
-    return false;
+    return defaultValue;
 }
 
 /**
@@ -186,13 +186,17 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
                                 suggestion.push(
                                     'Switch to @SceneObjectChangeDetection for (primitive | object | array) union properties.'
                                 );
-                            } else if (!isAllowedPrimitiveArray(type)) {
-                                suggestion.push(
-                                    'SceneArrayChangeDetection should only be applied to readonly (string | number | boolean)[] types.'
-                                );
+                            } else if (!isAllowedPrimitiveArray(type, false)) {
+                                if (checkAllowedType(type)) {
+                                    suggestion.push('Switch to @SceneChangeDetection for primitive properties.');
+                                } else if (!isArrayType(type) && !isTupleType(type) && isObjectType(type)) {
+                                    suggestion.push('Switch to @SceneObjectChangeDetection for object properties.');
+                                }
                             }
                         } else if (decoratorName === 'SceneObjectChangeDetection') {
-                            if (isObjectLikeUnionType(type)) {
+                            if (checkAllowedType(type)) {
+                                suggestion.push('Switch to @SceneChangeDetection for primitive properties.');
+                            } else if (isObjectLikeUnionType(type)) {
                                 // no-suggestion (this is correct usage)
                             } else if (isArrayType(type)) {
                                 suggestion.push('Switch to @SceneArrayChangeDetection for array properties.');
@@ -201,6 +205,13 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
                             } else if (!isObjectType(type)) {
                                 suggestion.push(
                                     'SceneObjectChangeDetection should only be applied to non-array object types.'
+                                );
+                            }
+                        }
+                        if (isArrayType(type) || isTupleType(type)) {
+                            if (!isAllowedPrimitiveArray(type, true)) {
+                                suggestion.push(
+                                    'SceneArrayChangeDetection should only be applied to readonly (string | number | boolean)[] types.'
                                 );
                             }
                         }
