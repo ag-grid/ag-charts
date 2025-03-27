@@ -61,12 +61,7 @@
     "lint:change-detection": {},
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": [
-        "lint:eslint",
-        "lint:circular",
-        "lint:depcruise"
-        // TODO: "lint:change-detection"
-      ],
+      "dependsOn": ["lint:eslint", "lint:circular", "lint:depcruise", "lint:change-detection"],
       "configurations": {
         "fix": {}
       }

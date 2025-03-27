@@ -1,7 +1,7 @@
 import type { AgMarkerShape, AgMarkerShapeFnParams } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
-import { SceneChangeDetection } from '../../scene/changeDetectable';
+import { SceneChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../../scene/changeDetectable';
 import { type NodeOptions } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { Path } from '../../scene/shape/path';
@@ -10,7 +10,7 @@ import { Rotatable, Scalable, Translatable } from '../../scene/transformable';
 import { MARKER_SHAPES } from './shapes';
 
 class InternalMarker<D = any> extends Path<D> {
-    @SceneChangeDetection()
+    @SceneObjectChangeDetection({ equals: TRIPLE_EQ })
     shape: AgMarkerShape = 'square';
 
     @SceneChangeDetection()

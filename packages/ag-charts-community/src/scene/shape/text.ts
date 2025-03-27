@@ -131,7 +131,7 @@ export class Text<D = any> extends Shape<D> {
             const { lineDash, lineDashOffset, lineCap, lineJoin } = this;
 
             if (lineDash) {
-                ctx.setLineDash(lineDash);
+                ctx.setLineDash([...lineDash]);
             }
 
             if (lineDashOffset) {

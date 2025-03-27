@@ -165,7 +165,8 @@ export * from './scale/invalidating';
 
 export { DropShadow } from './scene/dropShadow';
 export { ChangeDetectableProperties } from './scene/util/changeDetectableProperties';
-export { Node, PointerEvents, SceneChangeDetection } from './scene/node';
+export { Node, PointerEvents } from './scene/node';
+export * from './scene/changeDetectable';
 export type { RenderContext, ChildNodeCounts } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';

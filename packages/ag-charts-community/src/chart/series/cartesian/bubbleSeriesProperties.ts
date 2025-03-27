@@ -11,7 +11,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { SceneChangeDetection } from '../../../scene/changeDetectable';
+import { SceneArrayChangeDetection, SceneChangeDetection } from '../../../scene/changeDetectable';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { Property } from '../../../util/properties';
@@ -42,8 +42,8 @@ class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys> {
     maxSize = 30;
 
     @Property
-    @SceneChangeDetection()
-    domain?: [number, number];
+    @SceneArrayChangeDetection()
+    domain?: readonly [number, number];
 }
 
 class BubbleSeriesLabel extends Label<AgBubbleSeriesLabelFormatterParams> {

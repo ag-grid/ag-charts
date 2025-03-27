@@ -1,8 +1,9 @@
 import { createSvgElement, toIterable } from 'ag-charts-core';
 
 import { createId } from '../util/id';
+import { objectsEqual } from '../util/object';
 import { BBox } from './bbox';
-import { SceneChangeDetection } from './changeDetectable';
+import { SceneChangeDetection, SceneObjectChangeDetection } from './changeDetectable';
 import type { LayersManager } from './layersManager';
 import type { ZIndex } from './zIndex';
 
@@ -127,7 +128,8 @@ export abstract class Node<D = any> {
     @SceneChangeDetection<Node>()
     visible: boolean = true;
 
-    @SceneChangeDetection<Node>({
+    @SceneObjectChangeDetection<Node>({
+        equals: objectsEqual,
         changeCb: (target) => target.onZIndexChange(),
     })
     zIndex: ZIndex = 0;
