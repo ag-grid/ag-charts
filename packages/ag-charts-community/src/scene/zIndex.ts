@@ -1,4 +1,4 @@
-export type ZIndex = number | number[];
+export type ZIndex = number | readonly number[];
 
 type CompareResult = -1 | 0 | 1;
 const cmp = (a: number, b: number): CompareResult => Math.sign(a - b) as CompareResult;
