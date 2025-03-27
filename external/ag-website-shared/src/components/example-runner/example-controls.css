@@ -167,60 +167,54 @@ body > #highlighter {
 }
 
 /* Range input styles */
+
 .toolbar input[type='range'] {
+    /* removing default appearance */
+    -webkit-appearance: none;
     appearance: none;
-    background: transparent;
-    width: 200px;
-    height: 36px;
-    padding: 0;
-}
-
-/* Track styles */
-.toolbar input[type='range']::-webkit-slider-runnable-track {
-    appearance: none;
-    height: 6px;
-    border-radius: 3px;
-    background: linear-gradient(to right, var(--color-input-bg-checked) 50%, var(--button-color-border-primary) 50%);
-}
-
-.toolbar input[type='range']::-moz-range-track {
-    height: 6px;
-    border-radius: 3px;
-    background: var(--button-color-border-primary);
-}
-
-/* Thumb styles */
-.toolbar input[type='range']::-webkit-slider-thumb {
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: white;
-    border: 2px solid var(--color-input-bg-checked);
-    margin-top: -7px;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.toolbar input[type='range']::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: white;
-    border: 2px solid var(--color-input-bg-checked);
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Focus styles */
-.toolbar input[type='range']:focus {
     outline: none;
+    /*  slider progress trick  */
+    overflow: hidden;
+    border-radius: 16px;
 }
 
-.toolbar input[type='range']:focus::-webkit-slider-thumb {
-    box-shadow: 0 0 0 4px var(--color-input-bg-checked-alpha);
+/* Track: webkit browsers */
+.toolbar input[type='range']::-webkit-slider-runnable-track {
+    height: 15px;
+    background: #efefef;
+    border-radius: 16px;
 }
 
-.toolbar input[type='range']:focus::-moz-range-thumb {
-    box-shadow: 0 0 0 4px var(--color-input-bg-checked-alpha);
+/* Track: Mozilla Firefox */
+.toolbar input[type='range']::-moz-range-track {
+    height: 15px;
+    background: #efefef;
+    border-radius: 16px;
+}
+
+/* Thumb: webkit */
+.toolbar input[type='range']::-webkit-slider-thumb {
+    /* removing default appearance */
+    -webkit-appearance: none;
+    appearance: none;
+    /* creating a custom design */
+    height: 15px;
+    width: 15px;
+    background-color: #fff;
+    border-radius: 50%;
+    border: 2px solid var(--color-input-bg-checked);
+    /*  slider progress trick  */
+    box-shadow: -407px 0 0 400px var(--color-input-bg-checked);
+}
+
+/* Thumb: Firefox */
+.toolbar input[type='range']::-moz-range-thumb {
+    height: 15px;
+    width: 15px;
+    background-color: #fff;
+    border-radius: 50%;
+    border: 1px solid var(--color-input-bg-checked);
+    /*  slider progress trick  */
+    box-shadow: -407px 0 0 400px var(--color-input-bg-checked);
 }
