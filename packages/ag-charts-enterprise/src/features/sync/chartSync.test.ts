@@ -10,7 +10,7 @@ describe('ChartSync', () => {
     setupMockConsole();
 
     let charts: AgChartInstance<AgCartesianChartOptions>[];
-    const ctx = setupMockCanvas();
+    setupMockCanvas();
 
     afterEach(() => {
         if (charts) {
@@ -79,9 +79,9 @@ describe('ChartSync', () => {
 
     describe('animation on initial load', () => {
         beforeEach(async () => {
-            charts = BAR_SHARED_Y_AXIS.map((o) =>
-                prepareEnterpriseTestOptions({ ...o, animation: { enabled: true, duration: 10_000 } })
-            ).map((o) => AgCharts.create(o));
+            charts = [...BAR_SHARED_Y_AXIS, ...BAR_SHARED_Y_AXIS]
+                .map((o) => prepareEnterpriseTestOptions({ ...o, animation: { enabled: true, duration: 10_000 } }))
+                .map((o) => AgCharts.create(o));
 
             await waitForAllChartStability();
         });
@@ -97,6 +97,8 @@ describe('ChartSync', () => {
 
             expect(remainingAnimationTime[0]).toBeGreaterThan(6000);
             expect(remainingAnimationTime[1]).toBeGreaterThan(6000);
+            expect(remainingAnimationTime[2]).toBeGreaterThan(6000);
+            expect(remainingAnimationTime[3]).toBeGreaterThan(6000);
         });
     });
 });
