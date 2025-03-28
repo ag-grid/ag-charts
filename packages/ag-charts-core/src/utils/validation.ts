@@ -255,13 +255,24 @@ export const partialDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
  * @param validators An array of validators to combine.
  * @returns A validator that requires all specified validators to pass.
  */
-export const and = (...validators: Validator[]) =>
+export const and = (...validators: Validator[]): Validator =>
     attachDescription(
-        (value, context) =>
-            validators.every((validator) => {
+        (value: any, context) => {
+            const invalid: ValidationError[] = [];
+            for (const validator of validators) {
                 const result = validator(value, context);
-                return typeof result === 'object' ? result.valid : result;
-            }),
+                if (typeof result === 'object') {
+                    invalid.push(...result.invalid);
+                    if (!result.valid) {
+                        return { valid: false, cleared: value, invalid };
+                    }
+                    value = result.cleared;
+                } else if (!result) {
+                    return false;
+                }
+            }
+            return { valid: true, cleared: value, invalid };
+        },
         validators
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
@@ -275,11 +286,15 @@ export const and = (...validators: Validator[]) =>
  */
 export const or = (...validators: Validator[]) =>
     attachDescription(
-        (value, context) =>
-            validators.some((validator) => {
+        (value, context) => {
+            for (const validator of validators) {
                 const result = validator(value, context);
-                return typeof result === 'object' ? result.valid : result;
-            }),
+                if (typeof result === 'object' ? result.valid : result) {
+                    return result;
+                }
+            }
+            return false;
+        },
         validators
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)

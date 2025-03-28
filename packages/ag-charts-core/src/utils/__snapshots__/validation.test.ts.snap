@@ -22,17 +22,69 @@ exports[`Validation utils Utility Functions attachDescription adds a description
 ]
 `;
 
-exports[`Validation utils Validate Method nested validations returns all levels of validation errors 1`] = `[]`;
+exports[`Validation utils Validate Method nested validations returns all levels of validation errors 1`] = `
+{
+  "cleared": {
+    "employees": [
+      "John Doe",
+      {
+        "age": 30,
+        "employers": [
+          {
+            "department": "b",
+            "name": "Dave",
+          },
+          {
+            "department": "c",
+            "name": "John",
+          },
+        ],
+        "name": "John Doe",
+        "salaries": [
+          10000,
+          22000,
+          45000,
+        ],
+      },
+    ],
+  },
+  "invalid": [
+    ValidationError {
+      "message": "Unknown option \`employees[1].position\`, ignoring.",
+      "path": "employees[1]",
+      "required": undefined,
+      "unknown": true,
+    },
+  ],
+}
+`;
 
 exports[`Validation utils Validate Method nested validations returns all levels of validation errors 2`] = `
-[
-  ValidationError {
-    "message": "Option \`test\` cannot be set to \`{"age":30,"position":"NA","salaries":[10000,22000,... (+96 characters)\`; expecting person details or employee details and position details, ignoring.",
-    "path": "",
-    "required": undefined,
-    "unknown": undefined,
-  },
-]
+{
+  "cleared": {},
+  "invalid": [
+    ValidationError {
+      "message": "Option \`employees\` cannot be set to \`[1337,{"age":30,"position":"NA","salaries":[10000,... (+103 characters)\`; expecting a string or person details array and an array of at least 1 items, ignoring.",
+      "path": "",
+      "required": undefined,
+      "unknown": undefined,
+    },
+  ],
+}
+`;
+
+exports[`Validation utils Validate Method nested validations returns all levels of validation errors 3`] = `
+{
+  "cleared": {},
+  "invalid": [
+    ValidationError {
+      "message": "Option \`employees\` cannot be set to \`[]\`; expecting a string or person details array and an array of at least 1 items, ignoring.",
+      "path": "",
+      "required": undefined,
+      "unknown": undefined,
+    },
+  ],
+}
 `;
 
 exports[`Validation utils Validate Method validate returns expected validated object and errors 1`] = `
