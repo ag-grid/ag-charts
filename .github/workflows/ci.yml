@@ -46,14 +46,19 @@ concurrency:
     cancel-in-progress: ${{ github.ref != 'refs/heads/latest' }}
 
 jobs:
-    cache_init:
+    init:
         runs-on: ubuntu-24.04
-        name: Cache Initialisation
+        name: Initialise Workflow
+        env:
+            AG_FORCE_ALL_TESTS: 1
+            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
         outputs:
             nx_base: ${{ steps.setup.outputs.base }}
             test_count: ${{ steps.matrix.outputs.test_count }}
             test_matrix: ${{ steps.matrix.outputs.test_matrix }}
             test_pkg_matrix: ${{ steps.matrix.outputs.pkg_matrix }}
+            e2e_matrix: ${{ steps.matrix.outputs.e2e_matrix }}
+            e2e_count: ${{ steps.matrix.outputs.e2e_count }}
             build_type: ${{ steps.setup.outputs.type }}
         steps:
             - name: Checkout
@@ -74,6 +79,9 @@ jobs:
               run: |
                   yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude tag:skip-gha-cache --parallel=3  --exclude all
 
+            - name: build examples
+              run: yarn nx run-many -t generate --parallel=3
+
             - name: calculate matrix
               id: matrix
               run: |
@@ -92,10 +100,31 @@ jobs:
                   echo "pkg_matrix=${pkg_matrix}" >> $GITHUB_OUTPUT
                   echo "Package test matrix determined to be: ${pkg_matrix}"
 
+                  e2e_nx_count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | wc -l)
+                  if [[ ${e2e_nx_count} -gt 0 ]] ; then
+                    e2e_count=$(cd packages/ag-charts-website/ ; npx playwright test --list | grep -v '!!!SKIPPED!!!' | wc -l)
+                  else
+                    e2e_count=0
+                  fi
+
+                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --zero ${e2e_count})
+                  echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
+                  echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
+                  echo "E2E matrix determined to be: ${e2e_matrix}"
+
+            - name: Perist build outputs
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: e2e-init-outputs
+                  path: |
+                      dist/
+                      packages/*/dist/
+
     build_lint:
         runs-on: ubuntu-24.04
         name: Build & Lint
-        needs: cache_init
+        needs: init
         outputs:
             build: ${{ steps.build.outcome || '' }}
             lint: ${{ steps.lint.outcome || '' }}
@@ -151,13 +180,13 @@ jobs:
     test:
         runs-on: ubuntu-24.04
         name: Unit & Integration Tests (${{ matrix.shard }}/${{ strategy.job-total }})
-        needs: cache_init
-        if: needs.cache_init.outputs.test_count > 0
+        needs: init
+        if: needs.init.outputs.test_count > 0
         strategy:
-            matrix: ${{ fromJson(needs.cache_init.outputs.test_matrix )}}
+            matrix: ${{ fromJson(needs.init.outputs.test_matrix )}}
         env:
             NX_PARALLEL: 1
-            NX_BASE: ${{ needs.cache_init.outputs.nx_base }}
+            NX_BASE: ${{ needs.init.outputs.nx_base }}
         steps:
             - name: Checkout
               id: checkout
@@ -201,74 +230,16 @@ jobs:
                       reports/
                       packages/**/__diff_output__/*
 
-    e2e_init:
-        runs-on: ubuntu-latest
-        name: E2E Test Setup
-        needs: cache_init
-        env:
-            AG_FORCE_ALL_TESTS: 1
-            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
-        outputs:
-            nx_base: ${{ steps.setup.outputs.base }}
-            matrix: ${{ steps.matrix.outputs.matrix }}
-            count: ${{ steps.matrix.outputs.count }}
-        steps:
-            - name: Checkout
-              id: checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
-
-            - name: Fetch Refs
-              run: |
-                  git fetch origin --depth 1 latest
-                  git fetch origin --depth 1 tag latest-success
-
-            - name: Setup
-              id: setup
-              uses: ./.github/actions/setup-nx
-              with:
-                  cache_mode: ro
-
-            - name: build
-              run: yarn nx run-many -t build -p tag:package -p tag:fw --parallel=3
-            - name: build examples
-              run: yarn nx run-many -t generate --parallel=3
-
-            - name: calculate matrix
-              id: matrix
-              run: |
-                  nx_count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | wc -l)
-                  if [[ ${nx_count} -gt 0 ]] ; then
-                    count=$(cd packages/ag-charts-website/ ; npx playwright test --list | grep -v '!!!SKIPPED!!!' | wc -l)
-                  else
-                    count=0
-                  fi
-
-                  matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --zero ${count})
-                  echo "matrix=${matrix}" >> $GITHUB_OUTPUT
-                  echo "count=${count}" >> $GITHUB_OUTPUT
-                  echo "E2E matrix determined to be: ${matrix}"
-
-            - name: Perist build outputs
-              if: always()
-              uses: actions/upload-artifact@v4
-              with:
-                  name: e2e-init-outputs
-                  path: |
-                      dist/
-                      packages/*/dist/
-
     e2e:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
-        needs: [e2e_init, cache_init]
-        if: needs.e2e_init.outputs.count > 0
+        needs: init
+        if: needs.init.outputs.e2e_count > 0
         strategy:
             fail-fast: false
-            matrix: ${{ fromJson(needs.e2e_init.outputs.matrix )}}
+            matrix: ${{ fromJson(needs.init.outputs.e2e_matrix )}}
         env:
-            NX_BASE: ${{ needs.e2e_init.outputs.nx_base }}
+            NX_BASE: ${{ needs.init.outputs.nx_base }}
             AG_FORCE_ALL_TESTS: 1
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
         steps:
@@ -411,13 +382,13 @@ jobs:
     fw_pkg_test:
         runs-on: ubuntu-24.04
         name: Framework Package Tests (${{ matrix.framework }})
-        needs: cache_init
+        needs: init
         strategy:
             fail-fast: false
-            matrix: ${{ fromJson(needs.cache_init.outputs.test_pkg_matrix )}}
-        if: (needs.cache_init.outputs.build_type == 'latest' || needs.cache_init.outputs.build_type == 'release')
+            matrix: ${{ fromJson(needs.init.outputs.test_pkg_matrix )}}
+        if: (needs.init.outputs.build_type == 'latest' || needs.init.outputs.build_type == 'release')
         env:
-            NX_BASE: ${{ needs.cache_init.outputs.nx_base }}
+            NX_BASE: ${{ needs.init.outputs.nx_base }}
         steps:
             - name: Checkout
               id: checkout
@@ -446,7 +417,7 @@ jobs:
 
     report:
         runs-on: ubuntu-24.04
-        needs: [cache_init, build_lint, test, e2e, sonarqube, fw_pkg_test]
+        needs: [init, build_lint, test, e2e, sonarqube, fw_pkg_test]
         if: cancelled() != true
         steps:
             - name: Checkout
@@ -490,7 +461,7 @@ jobs:
                   WORKFLOW_STATUS="success"
                   if [[ "${{ needs.build_lint.result }}" == "failure" ]] ; then
                     WORKFLOW_STATUS="failure"
-                  elif [ "${{ needs.cache_init.result }}" == "failure" ] ; then
+                  elif [ "${{ needs.init.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
@@ -523,7 +494,7 @@ jobs:
               id: commits
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
               run: |
-                  GIT_LOG=$(git log HEAD ^${{ needs.cache_init.outputs.nx_base }} --format="%an (%h) %s")
+                  GIT_LOG=$(git log HEAD ^${{ needs.init.outputs.nx_base }} --format="%an (%h) %s")
                   echo "GIT_LOG<<EOF" >> $GITHUB_ENV
                   echo "$GIT_LOG" >> $GITHUB_ENV
                   echo "EOF" >> $GITHUB_ENV
