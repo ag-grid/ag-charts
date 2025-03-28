@@ -280,7 +280,7 @@ jobs:
 
                   ./playwright.sh --host test -u $(grep -lR 'toHaveScreenshot' e2e)
 
-                  git add packages/ag-charts-website/e2e/
+                  git add e2e/
                   git status
                   if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
                     echo "Stashing changes."
