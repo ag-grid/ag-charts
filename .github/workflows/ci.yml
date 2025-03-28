@@ -60,6 +60,7 @@ jobs:
             e2e_matrix: ${{ steps.matrix.outputs.e2e_matrix }}
             e2e_count: ${{ steps.matrix.outputs.e2e_count }}
             build_type: ${{ steps.setup.outputs.type }}
+            snapshot_branch: ${{ steps.branch.outputs.branch }}
         steps:
             - name: Checkout
               id: checkout
@@ -79,10 +80,10 @@ jobs:
               run: |
                   yarn nx run-many -t build --exclude tag:skip-gha-cache,all --parallel=3
 
-            - name: build examples
+            - name: Build examples
               run: yarn nx run-many -t generate --parallel=3
 
-            - name: calculate matrix
+            - name: Calculate test matrices
               id: matrix
               run: |
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
@@ -111,6 +112,18 @@ jobs:
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix}"
+
+            - name: Calculate snapshot branch name + cleanup previous runs
+              id: branch
+              run: |
+                  branch=gha/snapshots-${{github.head_ref || github.run_id}}
+                  branch_sha=$(git rev-parse origin/${branch} || echo -n "")
+
+                  if (git ls-remote --exit-code --heads origin ${branch} >/dev/null) ; then
+                      git push -d origin ${branch}
+                  fi
+
+                  echo "branch=${branch}" >> $GITHUB_OUTPUT
 
             - name: Perist build outputs
               if: always()
@@ -261,17 +274,8 @@ jobs:
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
 
-            - name: nx test:e2e:without-snapshots
-              if: matrix.shard != 0
+            - name: nx test:e2e
               id: test
-              run: |
-                  cd packages/ag-charts-website/
-                  ./playwright.sh --host test --shard=${{ matrix.shard }}/$((${{ strategy.job-total }} - 1)) $(grep -LR 'toHaveScreenshot' e2e)
-              timeout-minutes: 10
-
-            - name: nx test:e2e:update
-              if: matrix.shard == 0
-              id: test-no-shard
               run: |
                   cd packages/ag-charts-website/
 
@@ -294,80 +298,19 @@ jobs:
               timeout-minutes: 10
 
             - name: Push Snapshot Changes
-              if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true'
+              if: steps.test.outputs.updates == 'true'
               id: push
               run: |
-                  branch=gha/snapshots-${{github.head_ref || github.ref}}
-
                   git fetch origin ${{github.head_ref || github.ref}}
                   git switch ${{github.head_ref || github.ref}}
-                  git cherry-pick ${{steps.test-no-shard.outputs.updateSha}}
-                  git push origin -f HEAD:${branch}
-
-                  echo "branch=${branch}" >> $GITHUB_OUTPUT
-
-            - name: Add PR Comment
-              if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true' && github.head_ref
-              uses: actions/github-script@v7
-              continue-on-error: true
-              with:
-                  script: |
-                      github.rest.issues.createComment({
-                        issue_number: context.issue.number,
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        body: `Snapshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...${{steps.push.outputs.branch}})`
-                      })
-
-            - name: Raise PR with Snapshot Changes on latest
-              id: raise-pr
-              if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true' && github.ref == 'refs/heads/latest'
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  pr_count=$(
-                    gh pr list \
-                      --base ${{ github.ref }} \
-                      --head ${{ steps.push.outputs.branch }} \
-                      --json title \
-                      --jq 'length'
-                  )
-
-                  if ((prs > 0)); then
-                      echo "Existing PRs for snapshots, skipping PR creation."
-                      echo "skip=true" >> "$GITHUB_OUTPUT"
-                      exit
-                  fi
-
-                  gh pr create \
-                    --base ${{ github.ref }} \
-                    --head ${{ steps.push.outputs.branch }} \
-                    --title "Snapshot updates at $(date +%Y/%m/%d-%H:%M)" \
-                    --body "Automatically generated for review."
-
-                  url=$(
-                    gh pr view \
-                    --base ${{ github.ref }} \
-                    --head ${{ steps.push.outputs.branch }} \
-                    --json url | jq -r .url
-                  )
-
-                  echo "url=${url}" >> $GITHUB_OUTPUT
-
-            - name: Slack Notification
-              uses: rtCamp/action-slack-notify@v2
-              if: matrix.shard == 0 && steps.raise-pr.outputs.url
-              env:
-                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-                  SLACK_COLOR: 'warning'
-                  SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
-                  SLACK_USERNAME: ag-charts CI
-                  SLACK_FOOTER: ''
-                  SLACK_MESSAGE: >
-                      New E2E Snapshot PR: ${{ steps.raise-pr.outputs.url }}
+                  git checkout -b ${{needs.init.outputs.snapshot_branch}}
+                  git cherry-pick ${{steps.test.outputs.updateSha}}
+                  while ! (git push origin HEAD:${{needs.init.outputs.snapshot_branch}}) ; do
+                      git pull origin ${{needs.init.outputs.snapshot_branch}} --rebase
+                  done
 
             - name: Fail PR checks if updates needed
-              if: steps.test-no-shard.outputs.updates == 'true' && github.head_ref
+              if: steps.test.outputs.updates == 'true' && github.head_ref
               run: |
                   echo "Snapshots need to be updated, failing test execution."
                   exit 1
@@ -435,6 +378,77 @@ jobs:
             - uses: actions/download-artifact@v4
               with:
                   path: test-results/
+
+            - name: Check for snapshot updates
+              id: snapshot_check
+              run: |
+                  branch=${{ needs.init.outputs.snapshot_branch }}
+
+                  if (git ls-remote --exit-code --heads origin ${branch} >/dev/null) ; then
+                      echo "updated=true" >> $GITHUB_OUTPUT
+                  else
+                      echo "updated=false" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Add PR Comment
+              if: steps.snapshot_check.outputs.updated == 'true' && github.ref != 'refs/heads/latest'
+              uses: actions/github-script@v7
+              continue-on-error: true
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: `Snapshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...${{needs.e2e.outputs.snapshot_branch}})`
+                      })
+
+            - name: Raise PR with Snapshot Changes on latest
+              id: raise-pr
+              if: steps.snapshot_check.outputs.updated == 'true' && github.ref == 'refs/heads/latest'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  pr_count=$(
+                    gh pr list \
+                      --base ${{ github.ref }} \
+                      --head ${{ needs.init.outputs.snapshot_branch }} \
+                      --json title \
+                      --jq 'length'
+                  )
+
+                  if ((prs > 0)); then
+                      echo "Existing PRs for snapshots, skipping PR creation."
+                      echo "skip=true" >> "$GITHUB_OUTPUT"
+                      exit
+                  fi
+
+                  gh pr create \
+                    --base ${{ github.ref }} \
+                    --head ${{ needs.init.outputs.snapshot_branch }} \
+                    --title "Snapshot updates at $(date +%Y/%m/%d-%H:%M)" \
+                    --body "Automatically generated for review."
+
+                  url=$(
+                    gh pr view \
+                    --base ${{ github.ref }} \
+                    --head ${{ needs.init.outputs.snapshot_branch }} \
+                    --json url | jq -r .url
+                  )
+
+                  echo "url=${url}" >> $GITHUB_OUTPUT
+
+            - name: Slack Notification
+              uses: rtCamp/action-slack-notify@v2
+              if: steps.raise-pr.outputs.url
+              env:
+                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+                  SLACK_COLOR: 'warning'
+                  SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
+                  SLACK_USERNAME: ag-charts CI
+                  SLACK_FOOTER: ''
+                  SLACK_MESSAGE: >
+                      New E2E Snapshot PR: ${{ steps.raise-pr.outputs.url }}
 
             - name: Merge JUnit Report XMLs
               run: |
