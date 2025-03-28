@@ -90,6 +90,7 @@ export class ConicGradient {
         externalCtx.putImageData(imageData, 0, 0);
 
         const pattern = ctx.createPattern(externalCanvas, 'no-repeat');
+        (pattern as any).__skipSetTransformWorkaround = true;
         pattern.setTransform(new DOMMatrix([1, 0, 0, 1, -tx, -ty]));
 
         return pattern;
