@@ -399,7 +399,7 @@ jobs:
                         issue_number: context.issue.number,
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        body: `Snapshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...${{needs.e2e.outputs.snapshot_branch}})`
+                        body: `Snapshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...${{needs.init.outputs.snapshot_branch}})`
                       })
 
             - name: Raise PR with Snapshot Changes on latest
