@@ -32,8 +32,6 @@ jobs:
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
                   yarn nx benchmark
-                  yarn nx benchmark
-                  yarn nx benchmark
 
             - name: nx benchmark:report
               run: yarn nx benchmark:report
