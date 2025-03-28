@@ -120,6 +120,7 @@ jobs:
                   path: |
                       dist/
                       packages/*/dist/
+                      external/*/dist/
 
     build_lint:
         runs-on: ubuntu-24.04
