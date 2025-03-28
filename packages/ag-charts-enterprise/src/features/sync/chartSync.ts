@@ -1,12 +1,36 @@
 import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
-import { Logger, isDate, isDefined, isFiniteNumber, unique } from 'ag-charts-core';
+import { AsyncAwaitQueue, Logger, arraysEqual, isDate, isDefined, isFiniteNumber, unique } from 'ag-charts-core';
 
-const { BaseProperties, CartesianAxis, ChartUpdateType, ObserveChanges, TooltipManager, Property } = _ModuleSupport;
+const {
+    BaseProperties,
+    CartesianAxis,
+    ContinuousScale,
+    ChartUpdateType,
+    ObserveChanges,
+    TooltipManager,
+    Property,
+    findMinMax,
+} = _ModuleSupport;
+
+interface ZoomState {
+    min: number;
+    max: number;
+}
+
+interface AxisZoomState {
+    x?: ZoomState;
+    y?: ZoomState;
+    autoScaleYAxis?: boolean;
+}
 
 interface ChartLike {
+    id: string;
     ctx: {
         updateService: {
-            update(type: _ModuleSupport.ChartUpdateType, options: { skipSync: boolean }): void;
+            update(type: _ModuleSupport.ChartUpdateType): void;
+        };
+        zoomManager: {
+            getZoom(): AxisZoomState | undefined;
         };
     };
     getTooltipContent(
@@ -15,6 +39,8 @@ interface ChartLike {
         removeMeDatum: unknown
     ): _ModuleSupport.TooltipContent[];
 }
+
+const debug = _ModuleSupport.Debug.create('sync');
 
 export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
     static readonly className = 'Sync';
@@ -39,6 +65,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     @ObserveChanges<ChartSync>((target) => target.onZoomChange())
     zoom: boolean = true;
 
+    private readonly domainSync = new AsyncAwaitQueue();
+
     constructor(protected moduleContext: _ModuleSupport.ModuleContext) {
         super();
     }
@@ -46,12 +74,14 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     updateSiblings(groupId?: string) {
         const { syncManager } = this.moduleContext;
         for (const chart of syncManager.getGroupSiblings(groupId ?? this.groupId)) {
+            debug('ChartSync.updateSiblings()', chart.id, chart);
             this.updateChart(chart);
         }
     }
 
     private updateChart(chart: ChartLike, updateType = ChartUpdateType.UPDATE_DATA) {
-        chart.ctx.updateService.update(updateType, { skipSync: true });
+        debug('ChartSync.updateChart()', chart.id, updateType, chart);
+        chart.ctx.updateService.update(updateType);
     }
 
     private enabledZoomSync() {
@@ -70,6 +100,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     private enabledNodeInteractionSync() {
         const { highlightManager, syncManager } = this.moduleContext;
         this.disableNodeInteractionSync = highlightManager.addListener('highlight-change', (event) => {
+            debug('ChartSync - highlight-change', event);
+
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
                 if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
 
@@ -145,14 +177,26 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     private disableNodeInteractionSync?: () => void;
 
-    getSyncedDomain(axis: unknown) {
+    async getSyncedDomain(axis: unknown) {
         if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
             return;
         }
 
         const { syncManager } = this.moduleContext;
-        const syncGroup = syncManager.getGroup(this.groupId);
-        const [{ axes: syncAxes }] = syncGroup;
+        const chartId = syncManager.getChart().id;
+        const groupState = syncManager.getGroupState(this.groupId);
+        if (!groupState) throw new Error('AG Charts - no GroupState for groupId: ' + this.groupId);
+
+        // Update shared state of synced axis domain.
+        const domains = (groupState.domains ??= {});
+        const directionDomains = (domains[axis.direction] ??= { derived: [], sources: {} });
+        const chartDomains = (directionDomains.sources[chartId] ??= {});
+        chartDomains[axis.id] = axis.dataDomain.domain;
+
+        await this.waitForDomainsToBeReady();
+
+        const members = groupState.members;
+        const [{ axes: syncAxes }] = members;
 
         const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
 
@@ -173,20 +217,44 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             }
         }
 
-        return unique(
-            syncGroup
-                .flatMap((c) => c.series)
-                .filter((series) => {
-                    if (series.visible) {
-                        const seriesKeys = series.getKeys(axis.direction);
-                        return axis.keys.length ? axis.keys.some((key) => seriesKeys.includes(key)) : true;
-                    }
-                })
-                .flatMap((series) => series.getDomain(axis.direction))
+        const previousDerived = directionDomains.derived;
+        directionDomains.derived = unique(
+            Object.values(directionDomains.sources)
+                .map((d) => Object.values(d))
+                .flat(2)
         );
+
+        if (ContinuousScale.is(axis.scale)) {
+            directionDomains.derived = findMinMax(directionDomains.derived as number[]);
+        }
+        if (!arraysEqual(previousDerived, directionDomains.derived)) {
+            this.updateSiblings();
+        }
+
+        return directionDomains.derived;
     }
 
-    private mergeZoom(chart: any) {
+    removeAxis(axis: unknown) {
+        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
+            return;
+        }
+
+        const { syncManager } = this.moduleContext;
+        const syncGroup = syncManager.getGroupState(this.groupId);
+
+        delete syncGroup?.domains?.[axis.direction]?.sources?.[syncManager.getChart().id]?.[axis.id];
+    }
+
+    private async waitForDomainsToBeReady() {
+        const { syncManager } = this.moduleContext;
+        while (syncManager.getGroupMembers(this.groupId).some((c) => c.syncStatus === 'init')) {
+            debug('ChartSync.waitForDomainsToBeReady() - waiting for all domains to be calculated', this.groupId);
+            await this.domainSync.await();
+        }
+        this.domainSync.notify();
+    }
+
+    private mergeZoom(chart: ChartLike) {
         const { zoomManager } = this.moduleContext;
 
         if (this.axes === 'xy') {

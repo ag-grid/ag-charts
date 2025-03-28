@@ -99,6 +99,7 @@ export interface IAnimation {
     readonly isComplete: boolean;
     readonly delay: number;
     readonly duration: number;
+    readonly elapsed: number;
     readonly autoplay: boolean;
     readonly play: (initialUpdate?: boolean) => void;
     readonly stop: () => void;
@@ -141,7 +142,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     public autoplay;
     protected ease;
 
-    protected elapsed = 0;
+    public elapsed = 0;
     protected iteration = 0;
 
     private isPlaying = false;

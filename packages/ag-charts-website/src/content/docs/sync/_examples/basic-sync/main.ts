@@ -68,11 +68,6 @@ const chartOptions2: AgChartOptions = {
     navigator: {
         enabled: true,
     },
-    initialState: {
-        zoom: {
-            ratioX: { start: 0.8, end: 1 },
-        },
-    },
 };
 
 AgCharts.create(chartOptions2);

@@ -1,6 +1,10 @@
+/**
+ * Primitive to allow coordination between async processes.
+ */
 export class AsyncAwaitQueue {
     private readonly queue: (() => void)[] = [];
 
+    /** Await another async process to call notify(). */
     public await(timeout = 50) {
         return new Promise<boolean>((resolve) => {
             const successFn = () => {
@@ -19,6 +23,7 @@ export class AsyncAwaitQueue {
         });
     }
 
+    /** Trigger any await()ing async processes to continue. */
     public notify() {
         this.queue.splice(0).forEach((cb) => cb());
     }
