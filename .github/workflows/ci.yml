@@ -117,7 +117,6 @@ jobs:
               id: branch
               run: |
                   branch=gha/snapshots-${{github.head_ref || github.run_id}}
-                  branch_sha=$(git rev-parse origin/${branch} || echo -n "")
 
                   if (git ls-remote --exit-code --heads origin ${branch} >/dev/null) ; then
                       git push -d origin ${branch}
