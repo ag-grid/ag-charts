@@ -280,16 +280,12 @@ jobs:
 
                   ./playwright.sh --host test -u $(grep -lR 'toHaveScreenshot' e2e)
 
-                  # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
-                  git config user.name "github-actions[bot]"
-                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git add packages/ag-charts-website/e2e/
                   git status
-                  git add e2e/
                   if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
-                    echo "Committing changes."
-                    git commit -m "Update E2E snapshots."
+                    echo "Stashing changes."
+                    git stash push -S
                     echo "updates=true" >> $GITHUB_OUTPUT
-                    echo "updateSha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
                   else
                     echo "No changes to commit."
                     echo "updates=false" >> $GITHUB_OUTPUT
@@ -303,9 +299,16 @@ jobs:
                   git fetch origin ${{github.head_ref || github.ref}}
                   git switch ${{github.head_ref || github.ref}}
                   git checkout -b ${{needs.init.outputs.snapshot_branch}}
-                  git cherry-pick ${{steps.test.outputs.updateSha}}
+
+                  git stash pop
+                  git add packages/ag-charts-website/e2e/
+                  # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git commit -m "Update E2E snapshots."
+
                   while ! (git push origin HEAD:${{needs.init.outputs.snapshot_branch}}) ; do
-                      git pull origin ${{needs.init.outputs.snapshot_branch}} --rebase
+                      git pull origin ${{needs.init.outputs.snapshot_branch}} --rebase --reapply-cherry-picks
                   done
 
             - name: Fail PR checks if updates needed
