@@ -46,9 +46,32 @@ concurrency:
     cancel-in-progress: ${{ github.ref != 'refs/heads/latest' }}
 
 jobs:
+    cache_init:
+        runs-on: ubuntu-24.04
+        name: Cache Initialisation
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
+
+            - name: nx build
+              id: build
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: |
+                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude excluded-app tag:skip-gha-cache --parallel=3  --exclude all
+
     build_lint:
         runs-on: ubuntu-24.04
         name: Build & Lint
+        needs: cache_init
         outputs:
             nx_base: ${{ steps.setup.outputs.base }}
             build: ${{ steps.build.outcome || '' }}
@@ -74,7 +97,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
-                  cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
+                  cache_mode: ro
 
             - name: nx format:check
               id: format
@@ -180,6 +203,7 @@ jobs:
     e2e_init:
         runs-on: ubuntu-latest
         name: E2E Test Setup
+        needs: cache_init
         env:
             AG_FORCE_ALL_TESTS: 1
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
@@ -237,7 +261,7 @@ jobs:
     e2e:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
-        needs: [e2e_init, build_lint]
+        needs: [e2e_init, cache_init]
         if: needs.e2e_init.outputs.count > 0
         strategy:
             fail-fast: false
