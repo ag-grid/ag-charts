@@ -37,3 +37,11 @@ jobs:
 
             - name: nx benchmark:report
               run: yarn nx benchmark:report
+
+            - name: Perist benchmark results
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: benchmark-results
+                  path: |
+                      packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/*
