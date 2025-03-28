@@ -1,0 +1,39 @@
+name: Bump Beta Version
+
+on:
+    workflow_dispatch: {}
+    # schedule:
+    #     - cron: '0 20 * * *'
+
+env:
+    NX_NO_CLOUD: true
+    NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+    NX_BRANCH: ${{ github.ref }}
+    BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+    benchmark:
+        runs-on: ubuntu-24.04
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+
+            - name: nx benchmark
+              id: benchmark
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: |
+                  yarn nx benchmark
+                  yarn nx benchmark
+                  yarn nx benchmark
+
+            - name: nx benchmark:report
+              run: yarn nx benchmark:report
