@@ -260,7 +260,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
-                  yarn_postinstall: false
+                  yarn_postinstall: no-install
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
 
