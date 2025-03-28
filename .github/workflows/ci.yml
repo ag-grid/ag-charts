@@ -232,6 +232,7 @@ jobs:
                   name: e2e-init-outputs
                   path: |
                       dist/
+                      external/*/dist/
                       packages/*/dist/
 
     e2e:
