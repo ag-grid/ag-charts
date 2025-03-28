@@ -135,7 +135,7 @@ runs:
 
         - name: yarn install (skipping postinstall)
           if: inputs.yarn_postinstall == 'no-install'
-          id: yarn_install_fast
+          id: yarn_install_check
           shell: bash
           run: |
               yarn check --integrity
