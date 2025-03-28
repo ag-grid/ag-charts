@@ -72,7 +72,7 @@ jobs:
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude excluded-app tag:skip-gha-cache --parallel=3  --exclude all
+                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude tag:skip-gha-cache --parallel=3  --exclude all
 
             - name: calculate matrix
               id: matrix
