@@ -35,15 +35,8 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
         Object.defineProperty(target, CONFIG_KEY, { value: {} });
     }
     if (Object.getOwnPropertyDescriptor(target, ACCESSORS_KEY) == null) {
-        const parentAccessors: (string | symbol)[][] = [];
-        for (
-            let prototype = Object.getPrototypeOf(target), prototypeAccessors = prototype?.[ACCESSORS_KEY];
-            prototypeAccessors != null;
-            prototype = Object.getPrototypeOf(prototype), prototypeAccessors = prototype?.[ACCESSORS_KEY]
-        ) {
-            parentAccessors.unshift(prototypeAccessors);
-        }
-        const accessors = parentAccessors.flat();
+        const parentAccessors: (string | symbol)[] | undefined = Object.getPrototypeOf(target)?.[ACCESSORS_KEY];
+        const accessors = parentAccessors?.slice() ?? [];
         Object.defineProperty(target, ACCESSORS_KEY, { value: accessors });
     }
 
