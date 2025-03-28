@@ -2,6 +2,7 @@
 export const BREAK_TRANSFORM_CHAIN = Symbol('BREAK');
 
 const CONFIG_KEY = '__decorator_config';
+const ACCESSORS_KEY = '__decorator_accessors';
 
 type TransformFn = (
     target: any,
@@ -17,11 +18,10 @@ interface TransformConfig {
     setters: TransformFn[];
     getters: TransformFn[];
     observers: ObserveFn[];
-    valuesMap: WeakMap<object, Map<string, unknown>>;
     optional?: boolean;
 }
 
-type ConfigMetadata = Omit<TransformConfig, 'setters' | 'getters' | 'observers' | 'valuesMap'>;
+type ConfigMetadata = Omit<TransformConfig, 'setters' | 'getters' | 'observers'>;
 
 type DecoratedObject = { __decorator_config: Record<string, TransformConfig> };
 
@@ -34,23 +34,59 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
     if (Object.getOwnPropertyDescriptor(target, CONFIG_KEY) == null) {
         Object.defineProperty(target, CONFIG_KEY, { value: {} });
     }
+    if (Object.getOwnPropertyDescriptor(target, ACCESSORS_KEY) == null) {
+        const parentAccessors: (string | symbol)[][] = [];
+        for (
+            let prototype = Object.getPrototypeOf(target), prototypeAccessors = prototype?.[ACCESSORS_KEY];
+            prototypeAccessors != null;
+            prototype = Object.getPrototypeOf(prototype), prototypeAccessors = prototype?.[ACCESSORS_KEY]
+        ) {
+            parentAccessors.unshift(prototypeAccessors);
+        }
+        const accessors = parentAccessors.flat();
+        Object.defineProperty(target, ACCESSORS_KEY, { value: accessors });
+    }
 
     const config: Record<string, TransformConfig> = target[CONFIG_KEY];
     const propertyKey = propertyKeyOrSymbol.toString();
 
-    if (typeof config[propertyKey] !== 'undefined') {
+    if (config[propertyKey] != null) {
         return config[propertyKey];
     }
 
-    const valuesMap = new WeakMap();
-    config[propertyKey] = { setters: [], getters: [], observers: [], valuesMap };
+    config[propertyKey] = { setters: [], getters: [], observers: [] };
 
     const descriptor = Object.getOwnPropertyDescriptor(target, propertyKeyOrSymbol);
-    const prevSet = descriptor?.set;
-    const prevGet = descriptor?.get;
+    let prevGet = descriptor?.get;
+    let prevSet = descriptor?.set;
+
+    if (prevGet == null || prevSet == null) {
+        const accessors: any[] = target[ACCESSORS_KEY];
+        let index = accessors.indexOf(propertyKeyOrSymbol);
+        if (index === -1) {
+            index = accessors.push(propertyKeyOrSymbol) - 1;
+        }
+
+        prevGet ??= function (this: any): any {
+            let accessorValues = this.__accessors;
+            if (accessorValues == null) {
+                accessorValues = accessors.slice().fill(undefined);
+                Object.defineProperty(this, '__accessors', { value: accessorValues });
+            }
+            return accessorValues[index];
+        };
+        prevSet ??= function (this: any, value: any) {
+            let accessorValues = this.__accessors;
+            if (accessorValues == null) {
+                accessorValues = accessors.slice().fill(undefined);
+                Object.defineProperty(this, '__accessors', { value: accessorValues });
+            }
+            accessorValues[index] = value;
+        };
+    }
 
     const getter = function (this: any) {
-        let value = prevGet ? prevGet.call(this) : valuesMap.get(this);
+        let value = prevGet.call(this);
         for (const transformFn of config[propertyKey].getters) {
             value = transformFn(this, propertyKeyOrSymbol, value);
 
@@ -67,7 +103,7 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
         let oldValue;
         if (setters.some((f) => f.length > 2)) {
             // Lazily retrieve old value.
-            oldValue = prevGet ? prevGet.call(this) : valuesMap.get(this);
+            oldValue = prevGet.call(this);
         }
 
         for (const transformFn of setters) {
@@ -78,11 +114,7 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
             }
         }
 
-        if (prevSet) {
-            prevSet.call(this, value);
-        } else {
-            valuesMap.set(this, value);
-        }
+        prevSet.call(this, value);
 
         for (const observerFn of observers) {
             observerFn(this, value, oldValue);
