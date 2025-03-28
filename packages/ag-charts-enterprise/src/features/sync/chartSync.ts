@@ -221,8 +221,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         directionDomains.derived = unique(
             Object.values(directionDomains.sources)
                 .map((d) => Object.values(d))
-                .flat()
-                .flat()
+                .flat(2)
         );
 
         if (ContinuousScale.is(axis.scale)) {
