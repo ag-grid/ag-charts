@@ -77,7 +77,7 @@ jobs:
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  yarn nx run-many -t build --exclude tag:skip-gha-cache --parallel=3  --exclude all
+                  yarn nx run-many -t build --exclude tag:skip-gha-cache,all --parallel=3
 
             - name: build examples
               run: yarn nx run-many -t generate --parallel=3
