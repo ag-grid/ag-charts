@@ -237,7 +237,7 @@ jobs:
     e2e:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
-        needs: [e2e_init]
+        needs: [e2e_init, build_lint]
         if: needs.e2e_init.outputs.count > 0
         strategy:
             fail-fast: false
