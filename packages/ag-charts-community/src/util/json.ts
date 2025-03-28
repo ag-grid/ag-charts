@@ -15,7 +15,7 @@ import type { DeepPartial, PlainObject } from 'ag-charts-core';
 import type { AgGradientColor, AgPatternColor } from 'ag-charts-types';
 
 import { Color } from './color';
-import { SKIP_JS_BUILTINS, getPath, mergeDefaults, without } from './object';
+import { SKIP_JS_BUILTINS, getPath, partialAssign, without } from './object';
 import { isProperties } from './properties';
 
 type StringSet = { has(value: string): boolean };
@@ -312,143 +312,177 @@ function classify(value: any): Classification | null {
 /**
  * Resolve logical operations within a json object.
  *
- * @param source JSON object to walk and onto which to apply the resolved values.
+ * @param source[] JSON objects to walk in parallel and resolve in priority from first to last.
  * @param params An object of parameters to use with the `$ref` operation.
  * @param skip (optional) A set of keys to skip processing
- * @param context (optional) A JSON object that is used as the context for operations, e.g. `$path`
  *
- * @returns An object of modified paths.
+ * @returns The resolved object.
  */
-export function jsonResolveOperations<S extends object, L extends object, P extends object>(
-    source: S,
-    logic: L = {} as L,
+export function jsonResolveOperations<S extends object = object, P extends object = object>(
+    sources: Array<object>,
     params: P = {} as P,
     skip?: Set<string>
 ) {
-    return jsonResolveInner(source, source, logic, params, { matches: new Map() }, skip);
+    const resolved = {} as S;
+    const meta: OperationMeta = { root: resolved, params, path: [], skip, extendPath: true, sources };
+
+    for (const source of sources) {
+        const resolvedSource = jsonResolveSource(source, meta);
+        if (!isObject(resolvedSource)) continue;
+        for (const key of Object.keys(resolvedSource)) {
+            jsonResolveSourceWithTarget(resolved, resolvedSource, { ...meta, key, path: [key] });
+        }
+    }
+
+    return resolved;
 }
 
 type OperationMeta = {
-    matches: Map<string, any>;
+    path: string[];
+    params: PlainObject;
+    root: PlainObject;
+    skip?: Set<string>;
+    delay?: Set<string>;
+    extendPath?: boolean;
+    key?: string;
+    matchIndex?: number;
+    matches?: Array<unknown>;
+    target?: any;
+    sources: Array<object>;
     referencedParams?: Set<string>;
 };
 
-const operationResolvedUndefined = Symbol('operation-resolved-undefined');
+/**
+ * Resolve the `source` object if it is an operation, with deferred resolution for operation values.
+ */
+function jsonResolveSource(source: unknown, meta: OperationMeta) {
+    const operation = getOperation(source);
+    if (!operation) return source;
 
-function jsonResolveInner<S extends object, P extends object>(
-    json: unknown,
-    source: S,
-    logic: unknown,
-    params: P,
-    meta: OperationMeta,
-    skip?: Set<string>,
-    path: string[] = [],
-    modifiedPaths: Record<string, any> = {}
-) {
-    if (isArray(json)) {
-        jsonResolveVisitor(json, source, logic, params, meta, path, modifiedPaths);
-        let index = 0;
-        for (const node of json) {
-            const logicNode = isArray(logic) ? logic.at(index) : undefined;
-            jsonResolveInner(node, source, logicNode, params, meta, skip, [...path, `${index}`], modifiedPaths);
-            index++;
-        }
-    } else if (isPlainObject(json)) {
-        jsonResolveVisitor(json, source, logic, params, meta, path, modifiedPaths);
-        const hasLogic = isPlainObject(logic);
-        const keys = hasLogic ? new Set([...Object.keys(json), ...Object.keys(logic)]) : Object.keys(json);
-        for (const key of keys) {
-            if (skip?.has(key)) {
-                continue;
-            }
-            const logicNode = hasLogic ? logic[key] : undefined;
-            jsonResolveInner(json[key], source, logicNode, params, meta, skip, [...path, key], modifiedPaths);
-        }
-    }
-
-    return modifiedPaths;
+    const innerTarget: PlainObject = {};
+    jsonResolveSourceWithTarget(innerTarget, operation, {
+        ...meta,
+        key: 'values',
+        extendPath: false,
+    });
+    return resolveOperation(operation.operation, innerTarget.values, meta);
 }
 
-function jsonResolveVisitor<S extends object, P extends object>(
-    node: unknown,
-    source: S,
-    logic: unknown,
-    params: P,
-    meta: OperationMeta,
-    path: string[],
-    modifiedPaths: Record<string, any>
-) {
-    if (isArray(node)) {
-        for (let i = 0; i < node.length; i++) {
-            const logicNode = isArray(logic) ? logic.at(i) : undefined;
-            node[i] = jsonResolveVisitorValue(
-                node[i],
-                source,
-                logicNode,
-                params,
-                meta,
-                [...path, `${i}`],
-                modifiedPaths
-            );
-            if (node[i] === operationResolvedUndefined) {
-                node[i] = undefined;
-            }
-        }
-    } else if (isPlainObject(node)) {
-        let hasOperation = false;
-        const keys = isPlainObject(logic) ? new Set([...Object.keys(node), ...Object.keys(logic)]) : Object.keys(node);
-        for (const key of keys) {
-            const logicNode = isPlainObject(logic) ? logic[key] : undefined;
-            node[key] = jsonResolveVisitorValue(
-                node[key],
-                source,
-                logicNode,
-                params,
-                meta,
-                [...path, key],
-                modifiedPaths
-            );
-            hasOperation ||= isKey(key, operations);
-            if (node[key] === operationResolvedUndefined) {
-                delete node[key];
-            }
+/**
+ * Merge the key `meta.key` on `target` with the value on `source, first processing any operations with deferred
+ * resolution.
+ */
+function jsonResolveSourceWithTarget(target: PlainObject, source: PlainObject, meta: OperationMeta) {
+    const { delay, key, skip } = meta;
+
+    if (key == null || skip?.has(key)) return;
+
+    const operation = getOperation(source[key]);
+
+    if (operation && (target[key] == null || parallelOperations.has(operation.operation))) {
+        if (operation.operation === TransformOperation.Unresolved) {
+            target[key] = { [operation.operation]: operation.values };
+            return;
         }
 
-        // Purge excess unused operations to prevent leaks. These occur when the default operation object is merged an
-        // object at the option key.
-        if (hasOperation && Object.keys(node).length > 1) {
-            for (const key of Object.keys(node)) {
-                if (isKey(key, operations)) {
-                    delete node[key];
-                }
-            }
+        if (delay?.has(key)) {
+            delay.delete(key);
+            target[key] = { [operation.operation]: operation.values };
+            return;
         }
+
+        const targetValue = target[key];
+        const resolverFn = () => {
+            // Defer resolving the operation's values until they are accessed
+            const innerTarget: PlainObject = {};
+            jsonResolveSourceWithTarget(innerTarget, operation, {
+                ...meta,
+                key: 'values',
+
+                // Do not resolve these values the first time they are accessed, i.e. leave their resolution for
+                // the operator to handle
+                delay: delayFirstValueOperations.has(operation.operation) ? new Set(['0']) : undefined,
+
+                // Do not extend the path since this is an array of operation values
+                extendPath: false,
+
+                // The `$apply` operator updates `$value: '$target'`
+                target: operation.operation === TransformOperation.Apply ? targetValue : meta.target,
+            });
+
+            return resolveOperation(operation.operation, innerTarget.values, meta);
+        };
+
+        // Defer resolving this operator until it is accessed
+        const resolver = createResolver(target, key, resolverFn);
+        Object.defineProperty(target, key, { get: resolver, configurable: true, enumerable: true });
+    } else if (isPlainObject(source[key])) {
+        if (isPlainObject(target[key])) {
+            target[key] = jsonResolveObjects([target[key], source[key]], meta);
+        } else {
+            target[key] ??= jsonResolveObjects([source[key]], meta);
+        }
+    } else if (isArray(source[key])) {
+        if (isArray(target[key])) {
+            target[key] = jsonResolveArrays([target[key], source[key]], meta);
+        } else {
+            target[key] ??= jsonResolveArrays([source[key]], meta);
+        }
+    } else {
+        target[key] ??= source[key];
     }
 }
 
-function jsonResolveVisitorValue<S extends object, P extends object>(
-    value: unknown,
-    source: S,
-    logic: unknown,
-    params: P,
-    meta: OperationMeta,
-    path: string[],
-    modifiedPaths: Record<string, any>
-) {
-    const valueOrLogic = value ?? logic;
-    let operation = getOperation(valueOrLogic);
+function createResolver(object: PlainObject, key: string | number, fn: () => any) {
+    return () => {
+        let value = fn();
 
-    const logicOperation = getOperation(logic);
-    if (logicOperation?.operation === TransformOperation.Apply) {
-        logicOperation.values = [logicOperation.values, value];
-        operation = logicOperation;
+        // Remove operations that resolve to undefined to avoid polluting object
+        if (value === undefined) {
+            delete object[key];
+            return;
+        }
+
+        Object.defineProperty(object, key, { value, configurable: true, enumerable: true });
+        return value;
+    };
+}
+
+function jsonResolveObjects(sources: Array<unknown>, meta: OperationMeta) {
+    const resolved: PlainObject = {};
+
+    for (const source of sources) {
+        const resolvedSource = jsonResolveSource(source, meta);
+        if (!isObject(resolvedSource)) continue;
+        for (const key of Object.keys(resolvedSource)) {
+            jsonResolveSourceWithTarget(resolved, resolvedSource, {
+                ...meta,
+                extendPath: true,
+                key,
+                path: [...meta.path, key],
+            });
+        }
     }
 
-    if (!operation) return valueOrLogic;
-    modifiedPaths[path.join('.')] = valueOrLogic;
+    return resolved;
+}
 
-    const resolved = resolveOperation(operation.operation, operation.values, params, source, path, meta);
-    if (resolved === undefined) return operationResolvedUndefined;
+function jsonResolveArrays(sources: Array<unknown>, meta: OperationMeta) {
+    const resolved: Array<unknown> = [];
+
+    for (const source of sources) {
+        if (!isArray(source)) continue;
+        for (let index = 0; index < source.length; index++) {
+            const path = meta.extendPath ? [...meta.path, `${index}`] : meta.path;
+            jsonResolveSourceWithTarget(resolved, source, {
+                ...meta,
+                extendPath: true,
+                key: `${index}`,
+                path: path,
+            });
+        }
+    }
+
     return resolved;
 }
 
@@ -464,7 +498,6 @@ enum LogicOperation {
     Not = '$not',
     Or = '$or',
     And = '$and',
-    Switch = '$switch',
     IsOperation = '$isOperation',
 }
 
@@ -480,7 +513,11 @@ enum TransformOperation {
     Apply = '$apply',
     Value = '$value',
     Find = '$find',
+    Pick = '$pick',
     Omit = '$omit',
+    Clone = '$clone',
+    Unresolved = '$unresolved',
+    Resolved = '$resolved',
 }
 
 enum FontOperation {
@@ -504,38 +541,25 @@ type Operation =
     | FontOperation
     | ColorOperation;
 
+const parallelOperations: Set<Operation> = new Set([TransformOperation.Apply]);
+const delayFirstValueOperations: Set<Operation> = new Set([TransformOperation.Find, TransformOperation.Map]);
+
 function getOperation(value: unknown) {
     if (!isPlainObject(value)) return;
     const [operation] = Object.keys(value) as Array<Operation>;
-    if (!isKey(operation, operations)) return;
+    if (!operationKeys.has(operation)) return;
     return { operation, values: value[operation] };
 }
 
-function resolveOperation<T extends object, P extends object>(
-    operation: Operation,
-    value: string | Array<unknown>,
-    params: P,
-    source: T,
-    path: string[],
-    meta: OperationMeta
-): any {
+function resolveOperation(operation: Operation, value: string | Array<unknown>, meta: OperationMeta): any {
     meta.referencedParams ??= new Set();
-
-    const resolveBranchFirst: Array<Operation> = [TransformOperation.Find, TransformOperation.Map];
-    if (isArray(value) && !resolveBranchFirst.includes(operation)) {
-        value = value.map((v) => {
-            const nestedOperation = getOperation(v);
-            if (!nestedOperation) return v;
-            return resolveOperation(nestedOperation.operation, nestedOperation.values, params, source, path, meta);
-        });
-    }
-
     const fn = operations[operation];
-    return fn(value, path, params, source, meta);
+    return fn(value, meta);
 }
 
 function isKey<T extends object>(key: unknown, obj: T): key is keyof T & string {
-    return isString(key) && (isObject(obj) || isArray(obj)) && key in obj;
+    // return isString(key) && (isObject(obj) || isArray(obj)) && key in obj;
+    return typeof key === 'string' && obj !== null && (typeof obj === 'object' || Array.isArray(obj)) && key in obj;
 }
 
 function isRatio(value: unknown): value is number {
@@ -552,9 +576,9 @@ function isPatternFill(fill: any): fill is AgPatternColor {
     return fill !== null && isObject(fill) && fill.type == 'pattern';
 }
 
-function resolvePath(root: string[], path: string) {
+function resolvePath(currentPath: string[], path: string, index?: string, variables?: PlainObject) {
     const relativePathParts = path.split('/');
-    let resolvedPath = [...root];
+    let resolvedPath = [...currentPath];
     if (path.startsWith('/')) {
         resolvedPath = [];
         relativePathParts.shift();
@@ -568,11 +592,11 @@ function resolvePath(root: string[], path: string) {
         } else if (part === '.') {
             resolvedPath.pop();
         } else if (part === '$index') {
-            const index = root.findLast((v) => !isNaN(Number(v)));
             if (index != null) resolvedPath.push(index);
         } else if (part === '$prevIndex') {
-            const index = root.findLast((v) => !isNaN(Number(v)));
             if (index != null) resolvedPath.push(`${Number(index) - 1}`);
+        } else if (part.startsWith('$')) {
+            resolvedPath.push(variables?.[part.slice(1)]);
         } else if (part.length !== 0) {
             resolvedPath.push(part);
         }
@@ -583,13 +607,7 @@ function resolvePath(root: string[], path: string) {
     return resolvedPath;
 }
 
-type OperationFn<T extends object = object, P extends object = object> = (
-    value: string | Array<unknown>,
-    path: string[],
-    params: P,
-    source: T,
-    meta: OperationMeta
-) => any;
+type OperationFn = (value: string | Array<unknown>, meta: OperationMeta) => any;
 
 const locationOperations: Record<LocationOperation, OperationFn> = {
     $ref: ref,
@@ -603,9 +621,6 @@ const logicOperations: Record<LogicOperation, OperationFn> = {
     $not: ([a]) => !a,
     $or: (values) => isArray(values) && values.some(Boolean),
     $and: (values) => isArray(values) && values.every(Boolean),
-    $switch: () => {
-        // TODO
-    },
     $isOperation: isOperationOperator,
 };
 
@@ -620,8 +635,23 @@ const transformOperations: Record<TransformOperation, OperationFn> = {
     $find: find,
     $merge: merge,
     $apply: apply,
+    $pick: pick,
     $omit: omit,
     $value: valueOperation,
+    $clone: clone,
+    $unresolved: ([value]) => {
+        return { $unresolved: [value] };
+    },
+    $resolved: ([value], meta) => {
+        if (!isPlainObject(value) || !('$unresolved' in value)) return;
+
+        const target = {};
+        for (const key of Object.keys(value.$unresolved[0])) {
+            jsonResolveSourceWithTarget(target, value.$unresolved[0], { ...meta, key });
+        }
+
+        return target;
+    },
 };
 
 const fontOperations: Record<FontOperation, OperationFn> = {
@@ -637,7 +667,7 @@ const colorOperations: Record<ColorOperation, OperationFn> = {
     $isPattern: ([value]: string | Array<unknown>) => isPatternFill(value),
 };
 
-const operations: Record<Operation, OperationFn<any, any>> = {
+const operations: Record<Operation, OperationFn> = {
     ...locationOperations,
     ...logicOperations,
     ...numericOperations,
@@ -645,14 +675,11 @@ const operations: Record<Operation, OperationFn<any, any>> = {
     ...fontOperations,
     ...colorOperations,
 };
+const operationKeys = new Set(Object.keys(operations));
 
-function ref<T extends object, P extends object>(
-    value: string | Array<unknown>,
-    path: string[],
-    params: P,
-    source: T,
-    meta: OperationMeta
-) {
+function ref(value: string | Array<unknown>, meta: OperationMeta) {
+    const { path, params, referencedParams } = meta;
+
     if (!isKey(value, params)) {
         Logger.warnOnce(
             `\`$ref\` json operation failed on [${String(value)}] at [${path.join('.')}], expecting one of [${Object.keys(params).join(', ')}].`
@@ -665,18 +692,18 @@ function ref<T extends object, P extends object>(
         return params[value];
     }
 
-    if (meta.referencedParams?.has(operation.values)) {
+    if (referencedParams?.has(operation.values)) {
         Logger.warnOnce(
-            `\`$ref\` json operation failed on [${String(value)}] at [${path.join('.')}], circular reference detected with [${[...meta.referencedParams].join(', ')}].`
+            `\`$ref\` json operation failed on [${String(value)}] at [${path.join('.')}], circular reference detected with [${[...referencedParams].join(', ')}].`
         );
         return;
     }
 
     meta.referencedParams?.add(operation.values);
-    return ref(operation.values, path, params, source, meta);
+    return ref(operation.values, meta);
 }
 
-function palette(value: string | Array<unknown>, path: string[], params: any, source: any) {
+function palette(value: string | Array<unknown>, { key, matchIndex, path, params, root }: OperationMeta) {
     if (!isString(value)) return;
 
     const p = params.__palette;
@@ -685,14 +712,23 @@ function palette(value: string | Array<unknown>, path: string[], params: any, so
     if (indexPaletteParams.includes(value)) {
         const indexIndex = path.findLastIndex((v) => !isNaN(Number(v)));
         let index = Number(path[indexIndex]);
-        if (isNaN(index)) return;
 
-        const seriesPath = path.slice(0, indexIndex);
-        const ignoreIndexSeries = ['map-shape-background', 'map-line-background'];
-        const ignoreIndexOffset = getPath(source, seriesPath)
-            .slice(0, index)
-            .filter((s: any) => ignoreIndexSeries.includes(s.type)).length;
-        index -= ignoreIndexOffset;
+        if (isNaN(index)) {
+            if (matchIndex != null) {
+                index = matchIndex;
+            } else if (key != null) {
+                index = Number(key);
+            } else {
+                return;
+            }
+        } else {
+            const seriesPath = path.slice(0, indexIndex);
+            const ignoreIndexSeries = ['map-shape-background', 'map-line-background'];
+            const ignoreIndexOffset = (getPath(root, seriesPath) ?? [])
+                .slice(0, index)
+                .filter((s: any) => ignoreIndexSeries.includes(s.type)).length;
+            index -= ignoreIndexOffset;
+        }
 
         switch (value) {
             case 'fill':
@@ -717,22 +753,19 @@ function palette(value: string | Array<unknown>, path: string[], params: any, so
     return getPath(p, value);
 }
 
-function pathOperation<S extends object, P extends object>(
-    value: string | Array<unknown>,
-    path: string[],
-    _params: P,
-    source: S
-) {
+function pathOperation(value: string | Array<unknown>, { path, root, key }: OperationMeta) {
     let hasDefaultValue = false;
     let defaultValue;
     let usingCustomBranch = false;
-    let branch = source;
+    let branch = root;
+    let variables;
 
     if (isArray(value)) {
         hasDefaultValue = true;
         defaultValue = value[1];
-        usingCustomBranch = value.length === 3;
-        branch = usingCustomBranch ? (value[2] as S) : branch;
+        usingCustomBranch = value.length >= 3;
+        branch = usingCustomBranch ? (value[2] as PlainObject) : branch;
+        variables = isPlainObject(value[3]) ? value[3] : undefined;
         value = value[0] as string;
     } else if (!isString(value)) {
         Logger.warnOnce(
@@ -742,7 +775,18 @@ function pathOperation<S extends object, P extends object>(
     }
 
     // Apply the relative path to the current path
-    const resolvedPath = resolvePath(usingCustomBranch ? [] : path, value);
+    const resolvedPath = resolvePath(usingCustomBranch ? [] : path, value, key, variables);
+
+    // const isCircular =
+    //     !usingCustomBranch &&
+    //     path.length > 0 &&
+    //     path.every((part, index) => part === resolvedPath[index] || index >= resolvedPath.length);
+    // if (isCircular) {
+    //     Logger.warnOnce(
+    //         `\`$path\` json operation failed on [${String(value)}] at [${path.join('.')}] resolved to [${resolvedPath.join('.')}], path is circular.`
+    //     );
+    //     return;
+    // }
 
     let resolvedValue: any = branch;
     for (const part of resolvedPath) {
@@ -762,92 +806,106 @@ function pathOperation<S extends object, P extends object>(
     return Object.isFrozen(resolvedValue) ? deepClone(resolvedValue) : resolvedValue;
 }
 
-function isOperationOperator<T extends object, P extends object>(
-    value: string | Array<unknown>,
-    path: string[],
-    _params: P,
-    source: T
-) {
+function isOperationOperator(value: string | Array<unknown>, { path, sources }: OperationMeta) {
     const resolvedPath = isString(value) ? resolvePath(path, value) : path;
-    const branch = resolvedPath.length === 0 ? source : getPath(source, resolvedPath);
-    return getOperation(branch) != null;
+    // Iterate sources in reverse since a later non-operation value will overwrite an earlier operation
+    for (let i = sources.length - 1; i >= 0; i--) {
+        const source = sources[i];
+        const branch = resolvedPath.length === 0 ? source : getPath(source, resolvedPath);
+        if (branch == null) continue;
+        return getOperation(branch) != null;
+    }
+    return false;
 }
 
-function isEven([a]: string | Array<unknown>, path: string[]) {
+function isEven([a]: string | Array<unknown>, { path }: OperationMeta) {
     if (typeof a === 'number') return a % 2 === 0;
     Logger.warnOnce(`\`$isEven\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`);
 }
 
-function mul([a, b]: string | Array<unknown>, path: string[]) {
+function mul([a, b]: string | Array<unknown>, { path }: OperationMeta) {
     if (typeof a === 'number' && typeof b === 'number') return a * b;
     Logger.warnOnce(
         `\`$mul\` json operation failed on [${String(a)}] and [${String(b)}] at [${path.join('.')}], expecting two numbers.`
     );
 }
 
-function round([a]: string | Array<unknown>, path: string[]) {
+function round([a]: string | Array<unknown>, { path }: OperationMeta) {
     if (typeof a === 'number') return Math.round(a);
     Logger.warnOnce(`\`$round\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`);
 }
 
-function map<T extends object, P extends object>(
-    [mapOperation, mapValues]: string | Array<unknown>,
-    path: string[],
-    params: P,
-    source: T,
-    meta: OperationMeta
-) {
-    const valuesOperation = getOperation(mapValues);
-    if (valuesOperation) {
-        mapValues = resolveOperation(valuesOperation.operation, valuesOperation.values, params, source, path, meta);
+function map([mapOperation, mapValues]: string | Array<unknown>, meta: OperationMeta) {
+    if (!isArray(mapValues)) {
+        return [];
     }
-    if (!isArray(mapValues)) return [];
 
     const mappedOperation = getOperation(mapOperation);
-    if (!mappedOperation) return [];
-    meta.matches.set(path.join('.'), mapValues);
+    if (!mappedOperation) {
+        return mapValues.map(() => mapOperation);
+    }
 
-    return mapValues.map(() => ({ [mappedOperation.operation]: mappedOperation.values }));
+    const target: any[] = [];
+    const source = mapValues.map(() => ({ [mappedOperation.operation]: deepClone(mappedOperation.values) }));
+
+    for (let index = 0; index < mapValues.length; index++) {
+        jsonResolveSourceWithTarget(target, source, {
+            ...meta,
+            key: `${index}`,
+            matchIndex: index,
+            matches: mapValues,
+        });
+    }
+
+    return target;
 }
 
-function find<T extends object, P extends object>(
-    [findCondition, findValues]: string | Array<unknown>,
-    path: string[],
-    params: P,
-    source: T,
-    meta: OperationMeta
-) {
-    const valuesOperation = getOperation(findValues);
-    if (valuesOperation) {
-        findValues = resolveOperation(valuesOperation.operation, valuesOperation.values, params, source, path, meta);
+function find([findCondition, findValues]: string | Array<unknown>, meta: OperationMeta) {
+    if (!isArray(findValues)) {
+        return;
     }
-    if (!isArray(findValues)) return undefined;
 
     const conditionOperation = getOperation(findCondition);
     if (!conditionOperation) {
         return findCondition ? findValues[0] : undefined;
     }
 
-    return findValues.find((value) =>
-        resolveOperation(conditionOperation.operation, conditionOperation.values, params, value as object, [], meta)
-    );
-}
+    const target: any[] = [];
 
-function merge(values: string | Array<unknown>) {
-    if (!isArray(values)) return;
-    for (const value of values) {
-        if (!isPlainObject(value)) return;
+    // Do not access `findValues` directly to avoid resolving values and creating circular references
+    const source = Array.from({ length: findValues.length }, () => ({
+        [conditionOperation.operation]: deepClone(conditionOperation.values),
+    }));
+
+    const indexIndex = meta.path.findLastIndex((v) => !isNaN(Number(v)));
+    for (let index = 0; index < findValues.length; index++) {
+        const path = [...meta.path];
+        path[indexIndex] = `${index}`;
+        jsonResolveSourceWithTarget(target, source, {
+            ...meta,
+            path,
+            key: `${index}`,
+            matchIndex: index,
+            matches: findValues,
+        });
     }
-    return mergeDefaults(...(values as any));
+
+    return findValues[target.findIndex((value) => value)];
 }
 
-function apply(values: string | Array<unknown>, path: string[], params: any, source: any, meta: any) {
+function merge(values: string | Array<unknown>, meta: OperationMeta) {
     if (!isArray(values)) return;
-    const [[appliedTo], withValue] = values as any;
-    const operation = getOperation(appliedTo);
-    if (!operation) return;
-    const operationValues = isArray(operation.values) ? [...operation.values, withValue] : operation.values;
-    return resolveOperation(operation.operation, operationValues, params, source, path, meta);
+    return jsonResolveObjects(values, meta);
+}
+
+function apply(values: string | Array<unknown>) {
+    if (!isArray(values)) return;
+    return values[0];
+}
+
+function pick([keys, object]: string | Array<unknown>) {
+    if (!isArray(keys) || !isPlainObject(object)) return;
+    return partialAssign<PlainObject>(keys as string[], {}, object);
 }
 
 function omit([keys, object]: string | Array<unknown>) {
@@ -855,26 +913,31 @@ function omit([keys, object]: string | Array<unknown>) {
     return without(object, keys as string[]);
 }
 
-function valueOperation(
-    value: string | Array<unknown>,
-    path: string[],
-    _params: any,
-    source: any,
-    meta: OperationMeta
-) {
-    if (value !== '$1' && value !== '$index') return value;
-
-    const indexIndex = path.findLastIndex((v) => !isNaN(Number(v)));
-    if (indexIndex === -1) return getPath(source, path.join('.'));
-
-    const index = Number(path[indexIndex]);
-    if (value === '$index') return index;
-
-    const key = path.slice(0, indexIndex).join('.');
-    return meta.matches.get(key)?.at(index);
+function clone([value]: string | Array<unknown>) {
+    if (isPlainObject(value)) return deepClone(value);
+    return value;
 }
 
-function rem<P extends object>([a]: string | Array<unknown>, path: string[], params: P) {
+function valueOperation(value: string | Array<unknown>, { path, key, matchIndex, matches, target }: OperationMeta) {
+    if (value === '$path') {
+        return path.join('.');
+    }
+
+    if (value === '$target') {
+        return target;
+    }
+
+    if (value === '$index') {
+        return Number(key);
+    }
+
+    if (value === '$1') {
+        if (matchIndex == null) return;
+        return matches?.[matchIndex];
+    }
+}
+
+function rem([a]: string | Array<unknown>, { path, params }: OperationMeta) {
     const fontSize = 'fontSize';
     if (isKey(fontSize, params) && typeof params[fontSize] === 'number' && typeof a === 'number') {
         return Math.round(a * params[fontSize]);
@@ -882,7 +945,7 @@ function rem<P extends object>([a]: string | Array<unknown>, path: string[], par
     Logger.warnOnce(`\`$rem\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`);
 }
 
-function mix([a, b, c]: string | Array<unknown>, path: string[]) {
+function mix([a, b, c]: string | Array<unknown>, { path }: OperationMeta) {
     const warningPrefix = `\`$mix\` json operation failed on [${String(a)}, ${String(b)}, ${String(c)}] at [${path.join('.')}], expecting`;
     const warningMessage = `${warningPrefix} two colors and a number between 0 and 1.`;
 
@@ -922,7 +985,7 @@ function mix([a, b, c]: string | Array<unknown>, path: string[]) {
     return { ...a, colorStops };
 }
 
-function foregroundBackgroundMix<P extends object>([background]: string | Array<unknown>, path: string[], params: P) {
+function foregroundBackgroundMix([background]: string | Array<unknown>, { path, params }: OperationMeta) {
     const foregroundColor = 'foregroundColor';
     const backgroundColor = 'backgroundColor';
     if (
@@ -943,11 +1006,7 @@ function foregroundBackgroundMix<P extends object>([background]: string | Array<
     );
 }
 
-function foregroundBackgroundAccentMix<P extends object>(
-    [background, accent]: string | Array<unknown>,
-    path: string[],
-    params: P
-) {
+function foregroundBackgroundAccentMix([background, accent]: string | Array<unknown>, { path, params }: OperationMeta) {
     const foregroundColor = 'foregroundColor';
     const backgroundColor = 'backgroundColor';
     const accentColor = 'accentColor';

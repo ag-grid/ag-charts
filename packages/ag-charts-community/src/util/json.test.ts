@@ -526,16 +526,69 @@ describe('json module', () => {
     describe('#jsonResolveOperations', () => {
         setupMockConsole();
 
-        it('should merge values prioritising source before logic and take non-operation values from logic', () => {
-            const source = { a: 'source-a', b: 'source-b' };
-            const logic = { b: { $ref: 'key' }, c: { $ref: 'key' }, d: 'logic-d' };
+        it('should resolve nested operations', () => {
+            const source = { a: { b: { $ref: 'key' } }, c: [{ $ref: 'key' }, 'other', { $ref: 'key' }] };
+            const params = { key: 'ref', second: 'ref' };
+            const resolved = jsonResolveOperations([source], params);
+            expect(resolved).toEqual({ a: { b: 'ref' }, c: ['ref', 'other', 'ref'] });
+        });
+
+        it('should resolve top-level operations', () => {
+            const source = { $ref: 'key' };
+            const params = { key: { a: 'object-ref' } };
+            const resolved = jsonResolveOperations([source], params);
+            expect(resolved).toEqual({ a: 'object-ref' });
+        });
+
+        it('should resolve operations within operations', () => {
+            const source = {
+                a: { $path: [{ $path: '/b' }, 'default'] },
+                b: { $path: '/c' },
+                c: '/d',
+                d: 'd-value',
+            };
+            const resolved = jsonResolveOperations([source]);
+            expect(resolved).toEqual({ a: 'd-value', b: '/d', c: '/d', d: 'd-value' });
+        });
+
+        it('should ignore sources that do not resolve to an object', () => {
+            // TODO: should it warn?
+            const source = { $ref: 'key' };
             const params = { key: 'ref' };
-            jsonResolveOperations(source, logic, params);
-            expect(source).toEqual({
-                a: 'source-a',
-                b: 'source-b',
-                c: 'ref',
-                d: 'logic-d',
+            const resolved = jsonResolveOperations([source], params);
+            expect(resolved).toEqual({});
+        });
+
+        it('should merge sources', () => {
+            const options = { a: 'options-a' };
+            const defaults = { a: 'defaults-a', b: 'defaults-b' };
+            const resolved = jsonResolveOperations([options, defaults]);
+            expect(resolved).toEqual({ a: 'options-a', b: 'defaults-b' });
+        });
+
+        it('should merge sources with operations', () => {
+            const options = { a: 'options-a', c: { $ref: 'key' } };
+            const defaults = { a: { $ref: 'key' }, b: { $ref: 'key' }, d: 'defaults-d' };
+            const params = { key: 'ref' };
+            const resolved = jsonResolveOperations([options, defaults], params);
+            expect(resolved).toEqual({ a: 'options-a', b: 'ref', c: 'ref', d: 'defaults-d' });
+        });
+
+        it('should merge deeply nested sources with operations', () => {
+            const options = { a: { b: { c: { $ref: 'optionsRef' } }, e: { $ref: 'optionsRef' }, f: 'options-f' } };
+            const defaults = { a: { b: { c: { $ref: 'defaultsRef' }, d: { $ref: 'defaultsRef' } }, g: 'defaults-g' } };
+            const params = { optionsRef: 'options-ref', defaultsRef: 'defaults-ref' };
+            const resolved = jsonResolveOperations([options, defaults], params);
+            expect(resolved).toEqual({
+                a: {
+                    b: {
+                        c: 'options-ref',
+                        d: 'defaults-ref',
+                    },
+                    e: 'options-ref',
+                    f: 'options-f',
+                    g: 'defaults-g',
+                },
             });
         });
 
@@ -543,15 +596,15 @@ describe('json module', () => {
             it('should resolve `$ref` operation with params', () => {
                 const source = { a: { $ref: 'key' } };
                 const params = { key: 'hello' };
-                jsonResolveOperations(source, {}, params);
-                expect(source).toEqual({ a: 'hello' });
+                const resolved = jsonResolveOperations([source], params);
+                expect(resolved).toEqual({ a: 'hello' });
             });
 
             it('should warn on invalid `$ref` operation', () => {
                 const source = { a: { $ref: 'missing' } };
                 const params = { key: 'hello', other: 'world' };
-                jsonResolveOperations(source, {}, params);
-                expect(source).toEqual({ a: undefined });
+                const resolved = jsonResolveOperations([source], params);
+                expect(resolved).toEqual({ a: undefined });
                 expectWarningMessages([
                     'AG Charts - `$ref` json operation failed on [missing] at [a], expecting one of [key, other].',
                 ]);
@@ -560,43 +613,112 @@ describe('json module', () => {
             it('should resolve `$ref` operation on second `$ref` operation', () => {
                 const source = { a: { $ref: 'first' } };
                 const params = { first: { $ref: 'second' }, second: 'hello' };
-                jsonResolveOperations(source, {}, params);
-                expect(source).toEqual({ a: 'hello' });
+                const resolved = jsonResolveOperations([source], params);
+                expect(resolved).toEqual({ a: 'hello' });
             });
 
-            it('should catch circular references', () => {
-                const source = { a: { $ref: 'first' } };
+            it('should catch circular `$ref` operations', () => {
+                const source = { a: { $ref: 'first' }, b: { $ref: 'fourth' } };
                 const params = {
                     first: { $ref: 'second' },
                     second: { $ref: 'third' },
                     third: { $ref: 'first' },
+                    fourth: 'fourth',
                 };
-                jsonResolveOperations(source, {}, params);
-                expect(source).toEqual({ a: undefined });
+                const resolved = jsonResolveOperations([source], params);
+                expect(resolved).toEqual({ a: undefined, b: 'fourth' });
                 expectWarningMessages([
                     'AG Charts - `$ref` json operation failed on [first] at [a], circular reference detected with [second, third, first].',
                 ]);
             });
 
-            it('should resolve `$path` operation', () => {
+            it('should resolve `$path` operations', () => {
                 const source = {
-                    a: 'parent',
-                    b: {
-                        c: 'cousin',
-                    },
-                    d: {
-                        e: 'sibling',
-                        f: { $path: './e' },
-                        g: { $path: '../a' },
-                        h: { $path: '../b/c' },
-                        i: { $path: '/a' },
+                    key: 'key-value',
+                    parent: { child: 'child-value' },
+                };
+                const paths = {
+                    cousin: { $path: '/key' },
+                    secondCousin: { $path: '/parent/child' },
+                    youngerSibling: { $path: '/sibling' },
+                    sibling: 'sibling-value',
+                    olderSibling: { $path: '/sibling' },
+                    relative: {
+                        relativeChild: { $path: '../parent/child' },
                     },
                 };
-                jsonResolveOperations(source);
-                expect(source).toEqual({
-                    a: 'parent',
-                    b: { c: 'cousin' },
-                    d: { e: 'sibling', f: 'sibling', g: 'parent', h: 'cousin', i: 'parent' },
+                const resolved = jsonResolveOperations([source, paths]);
+                expect(resolved).toEqual({
+                    key: 'key-value',
+                    parent: { child: 'child-value' },
+                    cousin: 'key-value',
+                    secondCousin: 'child-value',
+                    youngerSibling: 'sibling-value',
+                    sibling: 'sibling-value',
+                    olderSibling: 'sibling-value',
+                    relative: {
+                        relativeChild: 'child-value',
+                    },
+                });
+            });
+
+            it("should resolve `$value: '$path'` operations", () => {
+                const source = {
+                    parent1: { child: { $value: '$path' } },
+                    parent2: { child: [{ $value: '$path' }, { $value: '$path' }] },
+                    parent3: [{ child: { $value: '$path' } }, { child: { $value: '$path' } }],
+                    parent4: [
+                        { child: [{ $value: '$path' }, { $value: '$path' }] },
+                        { child: [{ $value: '$path' }, { $value: '$path' }] },
+                    ],
+                    parent5: {
+                        child: { $path: ['.', undefined, { $value: '$path' }] },
+                    },
+                    parent6: {
+                        child: [
+                            { $path: ['.', undefined, { $value: '$path' }] },
+                            { $path: ['.', undefined, { $value: '$path' }] },
+                        ],
+                    },
+                    parent7: {
+                        child: { $find: [true, { $path: '../parent6/child' }] },
+                    },
+                    // parent8: {
+                    //     child: [{ $path: '../../parent8/child' }],
+                    // },
+                };
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({
+                    parent1: { child: 'parent1.child' },
+                    parent2: { child: ['parent2.child.0', 'parent2.child.1'] },
+                    parent3: [{ child: 'parent3.0.child' }, { child: 'parent3.1.child' }],
+                    parent4: [
+                        { child: ['parent4.0.child.0', 'parent4.0.child.1'] },
+                        { child: ['parent4.1.child.0', 'parent4.1.child.1'] },
+                    ],
+                    parent5: { child: 'parent5.child' },
+                    parent6: { child: ['parent6.child.0', 'parent6.child.1'] },
+                    parent7: { child: 'parent6.child.0' },
+                    // parent8: { child: [undefined] },
+                });
+                // expectWarningMessages([
+                //     'AG Charts - `$path` json operation failed on [../../parent8/child] at [parent8.child.0] resolved to [parent8.child], path is circular.',
+                // ]);
+            });
+
+            it('should resolve `$path` operations within `$path` operations', () => {
+                const source = {
+                    parent: {
+                        a: { greeting: 'hello' },
+                        b: { $path: ['./greeting', undefined, { $path: './a' }] },
+                    },
+                };
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({
+                    parent: {
+                        a: { greeting: 'hello' },
+                        b: 'hello',
+                    },
                 });
             });
 
@@ -608,11 +730,11 @@ describe('json module', () => {
                     },
                     d: {
                         e: 'sibling',
-                        f: { $path: '../e' },
+                        f: { $path: '../e' }, // invalid path
                     },
                 };
-                jsonResolveOperations(source);
-                expect(source).toEqual({
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({
                     a: 'parent',
                     b: { c: 'cousin' },
                     d: { e: 'sibling', f: undefined },
@@ -627,8 +749,8 @@ describe('json module', () => {
                     a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
                     b: ['other', { $path: '/a/$index/greeting' }],
                 };
-                jsonResolveOperations(source, {});
-                expect(source).toEqual({
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({
                     a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
                     b: ['other', 'bonjour'],
                 });
@@ -639,96 +761,128 @@ describe('json module', () => {
                     a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
                     b: [{ $path: ['/a/$prevIndex/greeting', undefined] }, { $path: '/a/$prevIndex/greeting' }],
                 };
-                jsonResolveOperations(source, {});
+                const resolved = jsonResolveOperations([source]);
 
                 // Requires a default fallback value since `$prevIndex` does not handle circular indices
-                expect(source).toEqual({
+                expect(resolved).toEqual({
                     a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
                     b: [undefined, 'hello'],
                 });
             });
 
+            it('should resolve `$path` operations with variables', () => {
+                const source = {
+                    a: {
+                        $path: [
+                            '/$lang/greeting',
+                            {},
+                            { en: { greeting: 'hello' }, fr: { greeting: 'bonjour' } },
+                            { lang: 'fr' },
+                        ],
+                    },
+                };
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: 'bonjour' });
+            });
+
             it("should resolve `$value: '$1'` operations", () => {
                 const source = {
-                    a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
-                    b: ['other', { $value: '$1' }],
+                    a: ['other', { $value: '$1' }],
                 };
-                jsonResolveOperations(source, {});
+                const resolved = jsonResolveOperations([source]);
 
                 // Since this is outside a transform operation, `$value: '$1'` points to itself and so correctly resolves to `undefined`
-                expect(source).toEqual({
-                    a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
-                    b: ['other', undefined],
+                expect(resolved).toEqual({
+                    a: ['other', undefined],
                 });
             });
 
             it("should resolve `$value: '$index'` operations", () => {
                 const source = {
-                    a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
-                    b: [{ $value: '$index' }, { $value: '$index' }],
+                    a: [{ $value: '$index' }, 'other', { $value: '$index' }],
                 };
-                jsonResolveOperations(source, {});
-                expect(source).toEqual({ a: [{ greeting: 'hello' }, { greeting: 'bonjour' }], b: [0, 1] });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: [0, 'other', 2] });
+            });
+
+            it("should resolve `$value: '$target'` operations", () => {
+                const source = {
+                    a: [
+                        { greeting: 'hello', farewell: 'goodbye' },
+                        { greeting: 'bonjour', farewell: 'ciao' },
+                    ],
+                };
+                const logic = {
+                    a: [
+                        { $apply: [{ $value: '$target' }] },
+                        { greeting: { $apply: [{ $value: '$target' }] }, farewell: 'au revoir' },
+                    ],
+                };
+                const resolved = jsonResolveOperations([source, logic]);
+                expect(resolved).toEqual({
+                    a: [
+                        { greeting: 'hello', farewell: 'goodbye' },
+                        { greeting: 'bonjour', farewell: 'ciao' },
+                    ],
+                });
             });
         });
 
         describe('logical', () => {
             it('should resolve `$eq` operation with strict equality', () => {
                 const source = { a: { $eq: [1, 1] }, b: { $eq: [1, '1'] }, c: { $eq: ['hello', 'hello'] } };
-                jsonResolveOperations(source);
-                expect(source).toEqual({ a: true, b: false, c: true });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: true, b: false, c: true });
             });
 
             it('should resolve `$not` operation', () => {
                 const source = { a: { $not: [true] }, b: { $not: [false] }, c: { $not: ['hello'] } };
-                jsonResolveOperations(source);
-                expect(source).toEqual({ a: false, b: true, c: false });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: false, b: true, c: false });
             });
 
             it('should resolve `$or` operation', () => {
                 const source = { a: { $or: [true, true] }, b: { $or: [true, false] }, c: { $or: [false, false] } };
-                jsonResolveOperations(source);
-                expect(source).toEqual({ a: true, b: true, c: false });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: true, b: true, c: false });
             });
 
             it('should resolve `$and` operation', () => {
                 const source = { a: { $and: [true, true] }, b: { $and: [true, false] }, c: { $and: [false, false] } };
-                jsonResolveOperations(source);
-                expect(source).toEqual({ a: true, b: false, c: false });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: true, b: false, c: false });
             });
 
             it('should resolve `$if` operation', () => {
                 const source = { a: { $if: [true, 'yes', 'no'] }, b: { $if: [false, 'yes', 'no'] } };
-                jsonResolveOperations(source);
-                expect(source).toEqual({ a: 'yes', b: 'no' });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: 'yes', b: 'no' });
             });
 
             it('should resolve `$isOperation` operation', () => {
                 const source = { a: { $isOperation: './b' }, b: { $not: [true] }, c: { $isOperation: './b' } };
-                jsonResolveOperations(source, {});
-                // Note: `a` resolves before `b`, so it considers `b` to be an operation, while `c` resolves after `b`
-                // has been resolved to a value.
-                expect(source).toEqual({ a: true, b: false, c: false });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: true, b: false, c: true });
             });
         });
 
         describe('numeric', () => {
             it('should resolve `$isEven` operation', () => {
                 const source = { a: { $isEven: [0] }, b: { $isEven: [1] }, c: { $isEven: [2] } };
-                jsonResolveOperations(source, {});
-                expect(source).toEqual({ a: true, b: false, c: true });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: true, b: false, c: true });
             });
 
             it('should resolve `$mul` operation', () => {
                 const source = { a: { $mul: [2, 4] } };
-                jsonResolveOperations(source);
-                expect(source).toEqual({ a: 8 });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: 8 });
             });
 
             it('should warn on invalid `$mul` operation', () => {
                 const source = { a: { $mul: [2, 'hello'] } };
-                jsonResolveOperations(source);
-                expect(source).toEqual({ a: undefined });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: undefined });
                 expectWarningMessages([
                     'AG Charts - `$mul` json operation failed on [2] and [hello] at [a], expecting two numbers.',
                 ]);
@@ -736,16 +890,40 @@ describe('json module', () => {
 
             it('should resolve `$round` operation', () => {
                 const source = { a: { $round: [1.234] }, b: { $round: [1.987] } };
-                jsonResolveOperations(source);
-                expect(source).toEqual({ a: 1, b: 2 });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: 1, b: 2 });
             });
         });
 
         describe('transform', () => {
+            it('should resolve `$map` operations', () => {
+                const source = { a: { $map: ['ciao', ['hello', 'bonjour']] } };
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: ['ciao', 'ciao'] });
+            });
+
+            it('should resolve `$map` and `$path` operations', () => {
+                const source = { a: ['hello', 'bonjour'], b: { $map: ['ciao', { $path: '/a' }] } };
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: ['hello', 'bonjour'], b: ['ciao', 'ciao'] });
+            });
+
             it('should resolve `$map` and `$value` operations', () => {
                 const source = { a: ['hello', 'bonjour'], b: { $map: [{ $value: '$1' }, { $path: '/a' }] } };
-                jsonResolveOperations(source);
-                expect(source).toEqual({ a: ['hello', 'bonjour'], b: ['hello', 'bonjour'] });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: ['hello', 'bonjour'], b: ['hello', 'bonjour'] });
+            });
+
+            it('should resolve `$map` and `$merge` operations', () => {
+                const source = {
+                    a: ['hello', 'bonjour'],
+                    b: { $map: [{ $merge: [{ greeting: { $value: '$1' } }] }, { $path: '/a' }] },
+                };
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({
+                    a: ['hello', 'bonjour'],
+                    b: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
+                });
             });
 
             it('should resolve `$map` and `$path` operations with `$index`', () => {
@@ -753,8 +931,8 @@ describe('json module', () => {
                     a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
                     b: { $map: [{ $path: '/a/$index/greeting' }, { $path: '/a' }] },
                 };
-                jsonResolveOperations(source);
-                expect(source).toEqual({
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({
                     a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
                     b: ['hello', 'bonjour'],
                 });
@@ -765,75 +943,43 @@ describe('json module', () => {
                     a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
                     b: { $map: [{ $path: ['/a/$prevIndex/greeting', undefined] }, { $path: '/a' }] },
                 };
-                jsonResolveOperations(source, {});
-                expect(source).toEqual({
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({
                     a: [{ greeting: 'hello' }, { greeting: 'bonjour' }],
                     b: [undefined, 'hello'],
                 });
             });
 
-            it('should resolve `$apply` operation', () => {
-                const source = { values: [{ type: 'one' }, { type: 'two' }, { type: 'two' }] };
-                const logic = {
-                    values: {
-                        $apply: [
+            it('should resolve `$find` operations', () => {
+                const source = {
+                    a: {
+                        $find: [
+                            { $eq: [{ $path: ['./greeting', undefined, { $value: '$1' }] }, 'bonjour'] },
+                            [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
+                        ],
+                    },
+                };
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: { greeting: 'bonjour' } });
+            });
+
+            it('should resolve `$find` operations wrapped in `$path`', () => {
+                const source = {
+                    a: {
+                        $path: [
+                            './greeting',
+                            undefined,
                             {
-                                $map: [
-                                    {
-                                        $merge: [
-                                            {
-                                                $path: [
-                                                    { $path: ['./type', 'one', { $value: '$1' }] },
-                                                    {},
-                                                    { one: { value: false }, two: { value: true } },
-                                                ],
-                                            },
-                                            { $value: '$1' },
-                                        ],
-                                    },
+                                $find: [
+                                    { $eq: [{ $path: ['./greeting', undefined, { $value: '$1' }] }, 'bonjour'] },
+                                    [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
                                 ],
                             },
                         ],
                     },
                 };
-                jsonResolveOperations(source, logic);
-                expect(source).toEqual({
-                    values: [
-                        { type: 'one', value: false },
-                        { type: 'two', value: true },
-                        { type: 'two', value: true },
-                    ],
-                });
-            });
-
-            it('should resolve `$find` operations', () => {
-                const source = {
-                    a: [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
-                    b: { $find: [{ $eq: [{ $path: './greeting' }, 'bonjour'] }, { $path: './a' }] },
-                };
-                jsonResolveOperations(source);
-                expect(source).toEqual({
-                    a: [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
-                    b: { greeting: 'bonjour' },
-                });
-            });
-
-            it('should resolve `$find` operations wrapped in `$path`', () => {
-                const source = {
-                    a: [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
-                    b: {
-                        $path: [
-                            './greeting',
-                            'default',
-                            { $find: [{ $eq: [{ $path: './greeting' }, 'bonjour'] }, { $path: './a' }] },
-                        ],
-                    },
-                };
-                jsonResolveOperations(source);
-                expect(source).toEqual({
-                    a: [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
-                    b: 'bonjour',
-                });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: 'bonjour' });
             });
 
             it('should resolve `$find` and safely handle circular references with `$isOperation` operation', () => {
@@ -844,8 +990,8 @@ describe('json module', () => {
                         { greeting: 'howdy', lang: 'en-US' },
                     ],
                 };
-                jsonResolveOperations(source);
-                expect(source).toEqual({
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({
                     a: [
                         { greeting: 'bonjour', lang: 'fr' },
                         { greeting: 'bonjour', lang: 'fr' },
@@ -871,8 +1017,8 @@ describe('json module', () => {
                         { greeting: 'howdy', lang: 'en-US' },
                     ],
                 };
-                jsonResolveOperations(source);
-                expect(source).toEqual({
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({
                     a: [
                         { greeting: 'bonjour', lang: 'en' },
                         { greeting: 'bonjour', lang: 'fr' },
@@ -881,22 +1027,93 @@ describe('json module', () => {
                 });
             });
 
+            it('should resolve `$apply` operation', () => {
+                const source = { values: [{ type: 'one' }, { type: 'two' }, { type: 'two' }] };
+                const logic = {
+                    values: {
+                        $apply: [
+                            {
+                                $map: [
+                                    {
+                                        $merge: [
+                                            {
+                                                $path: [
+                                                    { $path: ['./type', 'one', { $value: '$1' }] },
+                                                    {},
+                                                    { one: { value: false }, two: { value: true } },
+                                                ],
+                                            },
+                                            { $value: '$1' },
+                                        ],
+                                    },
+                                    { $value: '$target' },
+                                ],
+                            },
+                        ],
+                    },
+                };
+                const resolved = jsonResolveOperations([source, logic]);
+                expect(resolved).toEqual({
+                    values: [
+                        { type: 'one', value: false },
+                        { type: 'two', value: true },
+                        { type: 'two', value: true },
+                    ],
+                });
+            });
+
             it('should resolve `$merge` operation', () => {
                 const source = {
-                    a: { hello: 'world', bonjour: 'monde' },
-                    b: { $merge: [{ hello: 'test', goodbye: 'test' }, { $path: '/a' }] },
+                    a: { hello: 'world', bonjour: 'monde', people: [{ name: 'alice' }] },
+                    b: {
+                        $merge: [{ hello: 'test', goodbye: 'test', people: [{ age: 36 }] }, { $path: '/a' }],
+                    },
                 };
-                jsonResolveOperations(source);
-                expect(source).toEqual({
-                    a: { hello: 'world', bonjour: 'monde' },
-                    b: { hello: 'test', goodbye: 'test', bonjour: 'monde' },
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({
+                    a: { hello: 'world', bonjour: 'monde', people: [{ name: 'alice' }] },
+                    b: { hello: 'test', goodbye: 'test', bonjour: 'monde', people: [{ name: 'alice', age: 36 }] },
                 });
             });
 
             it('should resolve `$omit` operations', () => {
                 const source = { a: { $omit: [['b'], { b: 'hello', c: 'world' }] } };
-                jsonResolveOperations(source);
-                expect(source).toEqual({ a: { c: 'world' } });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: { c: 'world' } });
+            });
+
+            it('should resolve `$clone` operations', () => {
+                const source = { a: { greeting: 'hello' }, b: { $clone: [{ $path: './a' }] } };
+                const resolved = jsonResolveOperations([source]) as any;
+                expect(resolved.b).toEqual({ greeting: 'hello' });
+                resolved.a.greeting = 'bonjour';
+                expect(resolved.b).toEqual({ greeting: 'hello' });
+            });
+
+            it.skip('should not resolve `$unresolved` operations', () => {
+                const source = {
+                    a: { $unresolved: [{ greeting: { $path: './b' } }] },
+                    b: { lang: 'en-GB', value: 'hello' },
+                };
+                const resolved = jsonResolveOperations([source]) as any;
+                expect(resolved).toEqual({
+                    a: { $unresolved: [{ greeting: { $path: './b' } }] },
+                    b: { lang: 'en-GB', value: 'hello' },
+                });
+            });
+
+            it.skip('should resolve `$unresolved` operations within `$resolved` operations', () => {
+                const source = {
+                    a: { $unresolved: [{ greeting: { $path: '../b' } }] },
+                    b: { lang: 'en-GB', value: 'hello' },
+                    c: { $resolved: [{ $path: './a' }] },
+                };
+                const resolved = jsonResolveOperations([source]) as any;
+                expect(resolved).toEqual({
+                    a: { $unresolved: [{ greeting: { $path: '../b' } }] },
+                    b: { lang: 'en-GB', value: 'hello' },
+                    c: { greeting: { lang: 'en-GB', value: 'hello' } },
+                });
             });
         });
 
@@ -904,16 +1121,16 @@ describe('json module', () => {
             it('should resolve `$rem` operation', () => {
                 const source = { a: { $rem: [1.5] } };
                 const params = { fontSize: 12 };
-                jsonResolveOperations(source, {}, params);
-                expect(source).toEqual({ a: 18 });
+                const resolved = jsonResolveOperations([source], params);
+                expect(resolved).toEqual({ a: 18 });
             });
         });
 
         describe('color', () => {
             it('should resolve `$mix` operation', () => {
                 const source = { a: { $mix: ['#ffffff', '#000000', 0.5] } };
-                jsonResolveOperations(source);
-                expect(source).toEqual({ a: '#808080' });
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({ a: '#808080' });
             });
 
             it('should resolve `$mix` operation with gradients', () => {
@@ -933,8 +1150,8 @@ describe('json module', () => {
                         ],
                     },
                 };
-                jsonResolveOperations(source);
-                expect(source).toEqual({
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({
                     a: {
                         type: 'gradient',
                         colorStops: [{ color: '#808080' }, { color: '#808000', stop: 0.3 }, { color: '#800000' }],
@@ -971,8 +1188,8 @@ describe('json module', () => {
                     },
                 };
                 const params = { key: 'hello', indirectRelative: { $ref: 'relative' }, relative: 'parent' };
-                jsonResolveOperations(source, logic, params);
-                expect(source).toEqual({
+                const resolved = jsonResolveOperations([source, logic], params);
+                expect(resolved).toEqual({
                     a: 'parent',
                     b: { c: 'cousin' },
                     d: { e: 'sibling', f: 'hello' },
@@ -996,8 +1213,75 @@ describe('json module', () => {
                     },
                 };
                 const params = { one: 'ref-one', two: 'ref-two' };
-                jsonResolveOperations(source, logic, params);
-                expect(source).toEqual({ a: { b: 'yes', c: 'ref-one' } });
+                const resolved = jsonResolveOperations([source, logic], params);
+                expect(resolved).toEqual({ a: { b: 'yes', c: 'ref-one' } });
+            });
+
+            it('should resolve options with defaults by type', () => {
+                const params = {
+                    __palette: {
+                        fills: ['red', 'green', 'blue'],
+                    },
+                };
+                const themeConfig = {
+                    bar: {
+                        background: 'white',
+                        foreground: 'black',
+                        series: { fill: { $palette: 'fill' } },
+                    },
+                    line: {
+                        background: 'black',
+                        foreground: 'white',
+                        series: { stroke: { $palette: 'fill' } },
+                    },
+                };
+                const userOptions = {
+                    title: 'User Options',
+                    background: 'grey',
+                    series: [{ type: 'line', stroke: 'purple' }, { type: 'bar' }, { type: 'line' }],
+                };
+                const chartDefaults = {
+                    $path: ['/$seriesType', {}, themeConfig, { seriesType: { $path: '/series/0/type' } }],
+                };
+                const seriesDefaults = {
+                    series: {
+                        $apply: [
+                            {
+                                $map: [
+                                    {
+                                        $merge: [
+                                            { $value: '$1' },
+                                            {
+                                                $path: [
+                                                    '/$seriesType/series',
+                                                    {},
+                                                    themeConfig,
+                                                    { seriesType: { $path: ['./type', 'line', { $value: '$1' }] } },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                    { $value: '$target' },
+                                ],
+                            },
+                        ],
+                    },
+                };
+
+                const resolved = jsonResolveOperations(
+                    [themeConfig, userOptions, chartDefaults, seriesDefaults],
+                    params
+                );
+                expect(resolved).toEqual({
+                    title: 'User Options', // from user options
+                    background: 'grey', // from user options
+                    foreground: 'white', // from first series' chart defaults
+                    series: [
+                        { type: 'line', stroke: 'purple' }, // stroke from user options
+                        { type: 'bar', fill: 'green' }, // fill from series defaults by type
+                        { type: 'line', stroke: 'blue' }, // stroke from series defaults by type
+                    ],
+                });
             });
         });
     });
