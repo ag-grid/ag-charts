@@ -58,7 +58,7 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
     },
 };
 
-export const NewBubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> = {
+export const NewBubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions<never>> = {
     type: 'series',
     name: 'bubble',
     chartType: 'cartesian',

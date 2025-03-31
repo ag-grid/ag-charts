@@ -19,7 +19,7 @@ export const DonutSeriesModule: SeriesModule<'donut'> = {
     themeTemplate: donutTheme,
 };
 
-export const NewDonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions> = {
+export const NewDonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions<never>> = {
     type: 'series',
     name: 'donut',
     chartType: 'polar',

@@ -62,7 +62,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
     },
 };
 
-export const NewScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {
+export const NewScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions<never>> = {
     type: 'series',
     name: 'scatter',
     chartType: 'cartesian',

@@ -28,40 +28,40 @@ const commonChartOptions = {
     initialState: defined,
 };
 
-export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
+export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions<never>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     axes: defined,
     data: array,
 };
 
-export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {
+export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions<never>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     axes: defined,
     data: array,
 };
 
-export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions> = {
+export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions<never>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
     topology: geoJson,
 };
 
-export const standaloneChartOptionsDefs: OptionsDefs<AgStandaloneChartOptions> = {
+export const standaloneChartOptionsDefs: OptionsDefs<AgStandaloneChartOptions<never>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
 };
 
-export const hierarchyChartOptionsDefs: OptionsDefs<AgHierarchyChartOptions> = {
+export const hierarchyChartOptionsDefs: OptionsDefs<AgHierarchyChartOptions<never>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
 };
 
-export const flowProportionChartOptionsDefs: OptionsDefs<AgFlowProportionChartOptions> = {
+export const flowProportionChartOptionsDefs: OptionsDefs<AgFlowProportionChartOptions<never>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,

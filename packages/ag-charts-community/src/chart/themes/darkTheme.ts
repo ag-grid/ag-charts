@@ -120,7 +120,7 @@ export class DarkTheme extends ChartTheme {
         return params;
     }
 
-    constructor(options?: AgChartThemeOptions) {
+    constructor(options?: AgChartThemeOptions<unknown>) {
         super(options);
     }
 }

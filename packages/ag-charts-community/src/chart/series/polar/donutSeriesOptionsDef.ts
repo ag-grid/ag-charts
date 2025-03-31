@@ -13,7 +13,7 @@ import type { AgDonutInnerLabel, AgDonutSeriesOptions } from 'ag-charts-types';
 
 import { pieSeriesOptionsDef } from './pieSeriesOptionsDef';
 
-export const donutSeriesOptionsDef: OptionsDefs<AgDonutSeriesOptions> = {
+export const donutSeriesOptionsDef: OptionsDefs<AgDonutSeriesOptions<never>> = {
     ...pieSeriesOptionsDef,
     type: required(constant('donut')),
     innerRadiusOffset: number,

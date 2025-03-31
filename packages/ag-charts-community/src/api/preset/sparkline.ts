@@ -81,7 +81,7 @@ const barAxisDefaults: WithThemeParams<AgCommonThemeableAxisOptions> = {
     },
 };
 
-const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
+const SPARKLINE_THEME: WithThemeParams<AgChartTheme<never>> = {
     overrides: {
         common: {
             animation: { enabled: false },
@@ -176,9 +176,9 @@ const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
 const setInitialBaseTheme = simpleMemorize(createInitialBaseTheme);
 
 function createInitialBaseTheme(
-    baseTheme: AgChartTheme | AgChartThemeName | undefined,
-    initialBaseTheme: WithThemeParams<AgChartTheme>
-): WithThemeParams<AgChartTheme> {
+    baseTheme: AgChartTheme<unknown> | AgChartThemeName | undefined,
+    initialBaseTheme: WithThemeParams<AgChartTheme<unknown>>
+): WithThemeParams<AgChartTheme<unknown>> {
     if (typeof baseTheme === 'string') {
         return {
             ...initialBaseTheme,
@@ -252,10 +252,10 @@ function axisPreset(
     return { type: defaultType };
 }
 
-function gridLinePreset(
+function gridLinePreset<TDatum>(
     opts: AgSparklineAxisOptions | undefined,
     defaultEnabled: boolean,
-    sparkOpts: AgSparklineOptions
+    sparkOpts: AgSparklineOptions<TDatum>
 ): AgAxisGridLineOptions {
     const gridLineOpts: AgAxisGridLineOptions = {};
 
@@ -279,10 +279,13 @@ function gridLinePreset(
 
 const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineTooltip<any>, datumKey?: string) => {
     return (
-        params: AgBarSeriesTooltipRendererParams | AgLineSeriesTooltipRendererParams | AgAreaSeriesTooltipRendererParams
+        params:
+            | AgBarSeriesTooltipRendererParams<Record<string, unknown>>
+            | AgLineSeriesTooltipRendererParams<Record<string, unknown>>
+            | AgAreaSeriesTooltipRendererParams<Record<string, unknown>>
     ): AgTooltipRendererResult | string => {
         const xValue = params.datum[params.xKey];
-        const yValue = params.datum[params.yKey];
+        const yValue = params.datum[params.yKey] as number;
         const datum = datumKey != null ? params.datum[datumKey] : params.datum;
 
         const userContent = tooltip?.renderer?.({ context, datum, xValue, yValue });
@@ -306,7 +309,9 @@ interface UndocumentedProperties {
     overrideDevicePixelRatio?: number;
 }
 
-export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
+export function sparkline(
+    opts: AgSparklineOptions<unknown> & UndocumentedProperties
+): AgCartesianChartOptions<unknown> {
     const {
         background,
         container,
@@ -327,9 +332,11 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         tooltip,
         context,
         ...optsRest
-    } = opts as any as AgBaseSparklinePresetOptions & UndocumentedProperties;
+    } = opts;
 
-    const chartOpts: AgCartesianChartOptions = pickProps<AgBaseSparklinePresetOptions & UndocumentedProperties>(opts, {
+    const chartOpts: AgCartesianChartOptions<unknown> = pickProps<
+        AgBaseSparklinePresetOptions<unknown> & UndocumentedProperties
+    >(opts, {
         background,
         container,
         height,
@@ -352,7 +359,10 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
 
     const { data, series: [seriesOverrides] = [], datumKey } = sparklineDataPreset(baseData);
 
-    const seriesOptions = optsRest as any as AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions;
+    const seriesOptions = optsRest as any as
+        | AgBarSeriesOptions<any>
+        | AgLineSeriesOptions<any>
+        | AgAreaSeriesOptions<any>;
 
     // Assign is safe as it comes from a rest object
     if (seriesOverrides != null) Object.assign(seriesOptions, seriesOverrides);
@@ -361,7 +371,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         renderer: tooltipRendererFn(context, tooltip, datumKey),
     };
 
-    chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME) as AgChartTheme; // TODO: Remove cast when `WithThemeParams` is public
+    chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME) as AgChartTheme<unknown>; // TODO: Remove cast when `WithThemeParams` is public
     chartOpts.data = data;
     chartOpts.series = [seriesOptions];
 

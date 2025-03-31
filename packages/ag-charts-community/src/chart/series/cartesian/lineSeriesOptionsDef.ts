@@ -19,7 +19,7 @@ import {
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
-export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
+export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions<never>> = {
     type: constant('line'),
     xKey: required(string),
     yKey: required(string),

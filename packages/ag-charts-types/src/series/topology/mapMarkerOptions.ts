@@ -15,7 +15,7 @@ export type AgMapMarkerSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & 
 
 export type AgMapMarkerSeriesLabelFormatterParams = AgMapMarkerSeriesOptionsKeys & AgMapMarkerSeriesOptionsNames;
 
-export type AgMapMarkerSeriesItemStylerParams<TDatum = any> = DatumCallbackParams<TDatum> &
+export type AgMapMarkerSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgMapMarkerSeriesOptionsKeys &
     Required<AgMapMarkerSeriesStyle>;
 
@@ -66,7 +66,7 @@ export interface AgMapMarkerSeriesLabel<TDatum>
     placement?: LabelPlacement;
 }
 
-export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
+export interface AgMapMarkerSeriesThemeableOptions<TDatum>
     extends AgMapMarkerSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** Determines the largest size a marker can be in pixels. */
@@ -80,12 +80,12 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map marker based on the input parameters. */
-    itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams, AgMapMarkerSeriesStyle>;
+    itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<TDatum>, AgMapMarkerSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapMarkerSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgMapMarkerSeriesOptions<TDatum = any>
+export interface AgMapMarkerSeriesOptions<TDatum>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgMapMarkerSeriesOptionsKeys,
         AgMapMarkerSeriesOptionsNames,

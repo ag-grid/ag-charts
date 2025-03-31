@@ -28,12 +28,12 @@ import {
 } from '../factory/expectedEnterpriseModules';
 
 export type SeriesOptionsTypes =
-    | AgCartesianSeriesOptions
-    | AgPolarSeriesOptions
-    | AgHierarchySeriesOptions
-    | AgTopologySeriesOptions
-    | AgFlowProportionSeriesOptions
-    | AgStandaloneSeriesOptions
+    | AgCartesianSeriesOptions<unknown>
+    | AgPolarSeriesOptions<unknown>
+    | AgHierarchySeriesOptions<unknown>
+    | AgTopologySeriesOptions<unknown>
+    | AgFlowProportionSeriesOptions<unknown>
+    | AgStandaloneSeriesOptions<unknown>
     | AgGaugeOptions;
 
 export type SeriesType = SeriesOptionsTypes['type'];
@@ -43,32 +43,32 @@ export function optionsType(input: { series?: { type?: SeriesType }[] }): NonNul
     return series?.[0]?.type ?? 'line';
 }
 
-export function isAgCartesianChartOptions(input: AgChartOptions): input is AgCartesianChartOptions {
+export function isAgCartesianChartOptions<D>(input: AgChartOptions<D>): input is AgCartesianChartOptions<D> {
     const specifiedType = optionsType(input);
     return chartTypes.isCartesian(specifiedType) || isEnterpriseCartesian(specifiedType);
 }
 
-export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarChartOptions {
+export function isAgPolarChartOptions<D>(input: AgChartOptions<D>): input is AgPolarChartOptions<D> {
     const specifiedType = optionsType(input);
     return chartTypes.isPolar(specifiedType) || isEnterprisePolar(specifiedType);
 }
 
-export function isAgHierarchyChartOptions(input: AgChartOptions): input is AgHierarchyChartOptions {
+export function isAgHierarchyChartOptions<D>(input: AgChartOptions<D>): input is AgHierarchyChartOptions<D> {
     const specifiedType = optionsType(input);
     return chartTypes.isHierarchy(specifiedType) || isEnterpriseHierarchy(specifiedType);
 }
 
-export function isAgTopologyChartOptions(input: AgChartOptions): input is AgTopologyChartOptions {
+export function isAgTopologyChartOptions<D>(input: AgChartOptions<D>): input is AgTopologyChartOptions<D> {
     const specifiedType = optionsType(input);
     return chartTypes.isTopology(specifiedType) || isEnterpriseTopology(specifiedType);
 }
 
-export function isAgFlowProportionChartOptions(input: AgChartOptions): input is AgFlowProportionChartOptions {
+export function isAgFlowProportionChartOptions<D>(input: AgChartOptions<D>): input is AgFlowProportionChartOptions<D> {
     const specifiedType = optionsType(input);
     return chartTypes.isFlowProportion(specifiedType) || isEnterpriseFlowProportion(specifiedType);
 }
 
-export function isAgStandaloneChartOptions(input: AgChartOptions): input is AgStandaloneChartOptions {
+export function isAgStandaloneChartOptions<D>(input: AgChartOptions<D>): input is AgStandaloneChartOptions<D> {
     const specifiedType = optionsType(input);
     return chartTypes.isStandalone(specifiedType) || isEnterpriseStandalone(specifiedType);
 }
@@ -78,7 +78,9 @@ export function isAgGaugeChartOptions(input: any): input is AgGaugeChartOptions 
     return chartTypes.isGauge(specifiedType) || isEnterpriseGauge(specifiedType);
 }
 
-export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptions): input is AgPolarChartOptions {
+export function isAgPolarChartOptionsWithSeriesBasedLegend<D>(
+    input: AgChartOptions<D>
+): input is AgPolarChartOptions<D> {
     const specifiedType = optionsType(input);
     return isAgPolarChartOptions(input) && specifiedType !== 'pie' && specifiedType !== 'donut';
 }

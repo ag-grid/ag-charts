@@ -5,7 +5,7 @@ import type { CssColor, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgSankeySeriesOptions<TDatum = any>
+export interface AgSankeySeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
@@ -29,7 +29,7 @@ export interface AgSankeySeriesNodeItemStylerParams<TDatum>
     size: number;
 }
 
-export interface AgSankeySeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
+export interface AgSankeySeriesThemeableOptions<TDatum> extends AgBaseSeriesThemeableOptions<TDatum> {
     /** Options for the label for each node. */
     label?: AgSankeySeriesLabelOptions<TDatum>;
     /** The colours to cycle through for the fills of the nodes and links. */
@@ -96,4 +96,4 @@ export interface AgSankeySeriesTooltipRendererParams<TDatum>
         AgSankeySeriesOptionsNames,
         SizeParams {}
 
-export interface AgSankeySeriesLabelFormatterParams<_TDatum = any> extends AgSankeySeriesOptionsKeys, SizeParams {}
+export interface AgSankeySeriesLabelFormatterParams<_TDatum> extends AgSankeySeriesOptionsKeys, SizeParams {}

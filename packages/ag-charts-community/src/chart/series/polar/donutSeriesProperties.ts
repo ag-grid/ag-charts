@@ -78,7 +78,7 @@ class DonutSeriesCalloutLine extends BaseProperties {
     strokeWidth: number = 1;
 }
 
-export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions> {
+export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions<unknown>> {
     @Property
     angleKey!: string;
 

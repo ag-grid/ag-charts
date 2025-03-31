@@ -2,9 +2,13 @@ import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions, AgGaugeO
 
 export interface AgChartsApi {
     /** Create a new `AgChartInstance` based upon the given configuration options. */
-    create<T extends AgChartOptions>(options: AgChartOptions): AgChartInstance<T>;
+    create<TDatum, T extends AgChartOptions<TDatum>>(options: AgChartOptions<TDatum>): AgChartInstance<T>;
+
     /** Create a new `AgChartInstance` based upon the given configuration options. */
-    createFinancialChart(options: AgFinancialChartOptions): AgChartInstance<AgFinancialChartOptions>;
+    createFinancialChart<TDatum>(
+        options: AgFinancialChartOptions<TDatum>
+    ): AgChartInstance<AgFinancialChartOptions<TDatum>>;
+
     /** Create a new `AgChartInstance` based upon the given configuration options. */
     createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions>;
 

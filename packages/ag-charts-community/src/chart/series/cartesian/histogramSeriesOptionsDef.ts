@@ -21,7 +21,7 @@ import {
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
-export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = {
+export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions<never>> = {
     type: required(constant('histogram')),
     xKey: required(string),
     yKey: string,

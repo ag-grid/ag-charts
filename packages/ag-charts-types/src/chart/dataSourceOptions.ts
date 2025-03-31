@@ -1,4 +1,4 @@
-export interface AgDataSourceOptions<TDatum = any> {
+export interface AgDataSourceOptions<TDatum> {
     /** Asynchronous callback to load data into the chart. */
     getData: (params: AgDataSourceCallbackParams) => Promise<TDatum[]>;
 }

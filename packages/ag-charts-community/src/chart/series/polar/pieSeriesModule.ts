@@ -19,7 +19,7 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
     themeTemplate: pieTheme,
 };
 
-export const NewPieSeriesModule: SeriesModuleDefinition<AgPieSeriesOptions> = {
+export const NewPieSeriesModule: SeriesModuleDefinition<AgPieSeriesOptions<never>> = {
     type: 'series',
     name: 'pie',
     chartType: 'polar',

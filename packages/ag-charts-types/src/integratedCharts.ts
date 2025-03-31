@@ -5,7 +5,12 @@
 /* eslint-disable sonarjs/prefer-function-type */
 import type { Operation } from './chart/operationOptions';
 import type { AgChartThemePalette, AgPaletteColors } from './chart/themeOptions';
-import type { AgChartInstance, AgChartInstanceOptions, AgSparklineOptions } from './chartBuilderOptions';
+import type {
+    AgChartInstance,
+    AgChartInstanceOptions,
+    AgGaugeChartOptions,
+    AgSparklineOptions,
+} from './chartBuilderOptions';
 import type {
     Arc,
     BBox,
@@ -96,8 +101,9 @@ export interface IntegratedModule {
     _Scene: _IScene;
     _Theme: _ITheme;
     _Util: _IUtil;
-    create(options: AgChartInstanceOptions): AgChartInstance<AgChartInstanceOptions>;
-    createSparkline(options: AgSparklineOptions): AgChartInstance<AgSparklineOptions>;
+    create(options: AgGaugeChartOptions): AgChartInstance<AgGaugeChartOptions>;
+    create<TDatum>(options: AgChartInstanceOptions<TDatum>): AgChartInstance<AgChartInstanceOptions<TDatum>>;
+    createSparkline<TDatum>(options: AgSparklineOptions<TDatum>): AgChartInstance<AgSparklineOptions<TDatum>>;
     setup(): void;
     setGridContext?(gridContext: boolean): void;
     setLicenseKey?(licenseKey: string): void;

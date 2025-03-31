@@ -9,12 +9,12 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export type AgAreaSeriesLabelFormatterParams = AgAreaSeriesOptionsKeys & AgAreaSeriesOptionsNames;
 
-export interface AgAreaSeriesTooltipRendererParams<TDatum = any>
+export interface AgAreaSeriesTooltipRendererParams<TDatum>
     extends AgCartesianSeriesTooltipRendererParams<TDatum>,
         FillOptions,
         StrokeOptions {}
 
-export interface AgAreaSeriesThemeableOptions<TDatum = any>
+export interface AgAreaSeriesThemeableOptions<TDatum>
     extends StrokeOptions,
         FillOptions,
         LineDashOptions,
@@ -62,7 +62,7 @@ export interface AgAreaSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgAreaSeriesOptions<TDatum = any>
+export interface AgAreaSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgAreaSeriesOptionsKeys,
         AgAreaSeriesOptionsNames,

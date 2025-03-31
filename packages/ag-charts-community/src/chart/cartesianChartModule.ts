@@ -7,7 +7,7 @@ import type { TransferableResources } from './chart';
 import { cartesianChartOptionsDefs } from './chartOptionsDefs';
 import { isAgCartesianChartOptions } from './mapping/types';
 
-export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions> = {
+export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions<never>> = {
     type: 'chart',
     name: 'cartesian',
 

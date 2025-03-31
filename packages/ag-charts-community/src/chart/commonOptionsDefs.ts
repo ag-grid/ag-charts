@@ -179,7 +179,7 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
     ),
 };
 
-export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, 'navigator'>> = {
+export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions<never>, 'navigator'>> = {
     // container: required(instanceOf(HTMLElement)),
     width: positiveNumber,
     height: positiveNumber,

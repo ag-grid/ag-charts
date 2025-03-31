@@ -61,11 +61,11 @@ export interface AgGroupedCategoryAxisLabelStylerParams extends AgAxisLabelStyle
     readonly depth: number;
 }
 
-export interface AgBaseCartesianChartOptions {
+export interface AgBaseCartesianChartOptions<TDatum> {
     /** Axis configurations. */
     axes?: AgCartesianAxisOptions[];
     /** Series configurations. */
-    series?: AgCartesianSeriesOptions[];
+    series?: AgCartesianSeriesOptions<TDatum>[];
     /** Annotations configurations. */
     annotations?: AgAnnotationsOptions;
 }
@@ -164,7 +164,7 @@ export interface AgCartesianAxisThemeOptions<T> {
     left?: Omit<T, AgCartesianAxisThemeSpecialOptions>;
 }
 
-export interface AgBaseCartesianThemeOptions extends AgBaseThemeableChartOptions {
+export interface AgBaseCartesianThemeOptions<TDatum> extends AgBaseThemeableChartOptions<TDatum> {
     /** Axis configurations. */
     axes?: AgCartesianAxesTheme;
 }

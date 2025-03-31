@@ -67,11 +67,11 @@ const toolbarButtons: AgAnnotationsToolbarButton[] = [
     },
 ];
 
-export function priceVolume(
-    opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions,
+export function priceVolume<TDatum extends { [K in string]: number }>(
+    opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions<TDatum>,
     _presetTheme: any,
     getTheme: () => ChartTheme
-): AgCartesianChartOptions {
+): AgCartesianChartOptions<TDatum> {
     const {
         dateKey = 'date',
         highKey = 'high',
@@ -121,7 +121,7 @@ export function priceVolume(
         navigator: {
             enabled: navigator,
             ...miniChart,
-        } satisfies AgNavigatorOptions,
+        } satisfies AgNavigatorOptions<TDatum>,
     };
 
     const annotationOpts = {
@@ -304,13 +304,13 @@ export function priceVolume(
         ...zoomOpts,
         ...toolbarOpts,
         ...unusedOpts,
-    } satisfies AgCartesianChartOptions;
+    } satisfies AgCartesianChartOptions<TDatum>;
 }
 
-function createVolumeSeries(
+function createVolumeSeries<Keys extends string, TDatum extends { [K in Keys]: number }>(
     getTheme: () => ChartTheme,
-    openKey: string,
-    closeKey: string,
+    openKey: Keys,
+    closeKey: Keys,
     volume: boolean,
     volumeKey: string
 ) {
@@ -322,7 +322,7 @@ function createVolumeSeries(
             xKey: 'date',
             yKey: volumeKey,
             tooltip: { enabled: false },
-            itemStyler({ datum }: AgBarSeriesItemStylerParams<any>) {
+            itemStyler({ datum }: AgBarSeriesItemStylerParams<TDatum>) {
                 const { up, down } = getTheme().palette;
                 return { fill: datum[openKey] < datum[closeKey] ? up?.fill : down?.fill };
             },
@@ -330,7 +330,7 @@ function createVolumeSeries(
             focusPriority: 1,
             fastDataProcessing: true,
             highlight: { enabled: false },
-        } satisfies AgBarSeriesOptions,
+        } satisfies AgBarSeriesOptions<TDatum>,
     ];
 }
 
@@ -395,7 +395,7 @@ function createPriceSeries(
     }
 }
 
-function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys) {
+function createPriceSeriesOHLC<TDatum>(common: PriceSeriesCommon, keys: PriceSeriesKeys) {
     return [
         {
             type: 'ohlc',
@@ -403,11 +403,11 @@ function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys)
             focusPriority: 0,
             ...common,
             ...keys,
-        } satisfies AgOhlcSeriesOptions,
+        } satisfies AgOhlcSeriesOptions<TDatum>,
     ];
 }
 
-function createPriceSeriesLine(common: PriceSeriesCommon, singleKeys: PriceSeriesSingleKeys) {
+function createPriceSeriesLine<TDatum>(common: PriceSeriesCommon, singleKeys: PriceSeriesSingleKeys) {
     return [
         {
             type: 'line',
@@ -415,11 +415,11 @@ function createPriceSeriesLine(common: PriceSeriesCommon, singleKeys: PriceSerie
             focusPriority: 0,
             ...common,
             ...singleKeys,
-        } satisfies AgLineSeriesOptions,
+        } satisfies AgLineSeriesOptions<TDatum>,
     ];
 }
 
-function createPriceSeriesHLC(
+function createPriceSeriesHLC<TDatum>(
     common: PriceSeriesCommon,
     singleKeys: PriceSeriesSingleKeys,
     { xKey, highKey, closeKey, lowKey }: PriceSeriesKeys
@@ -435,7 +435,7 @@ function createPriceSeriesHLC(
             yLowKey: closeKey,
             fill: PALETTE_UP_FILL,
             stroke: PALETTE_UP_STROKE,
-        } satisfies AgRangeAreaSeriesOptions,
+        } satisfies AgRangeAreaSeriesOptions<TDatum>,
         {
             type: RANGE_AREA_TYPE,
             // @ts-expect-error undocumented option
@@ -446,16 +446,16 @@ function createPriceSeriesHLC(
             yLowKey: lowKey,
             fill: PALETTE_DOWN_FILL,
             stroke: PALETTE_DOWN_STROKE,
-        } satisfies AgRangeAreaSeriesOptions,
+        } satisfies AgRangeAreaSeriesOptions<TDatum>,
         {
             type: 'line',
             ...common,
             ...singleKeys,
-        } satisfies AgLineSeriesOptions,
+        } satisfies AgLineSeriesOptions<TDatum>,
     ];
 }
 
-function createPriceSeriesHighLow(common: PriceSeriesCommon, { xKey, highKey, lowKey }: PriceSeriesKeys) {
+function createPriceSeriesHighLow<TDatum>(common: PriceSeriesCommon, { xKey, highKey, lowKey }: PriceSeriesKeys) {
     return [
         {
             type: 'range-bar',
@@ -471,11 +471,11 @@ function createPriceSeriesHighLow(common: PriceSeriesCommon, { xKey, highKey, lo
             // @ts-expect-error undocumented option
             focusPriority: 0,
             fastDataProcessing: true,
-        } satisfies AgRangeBarSeriesOptions,
+        } satisfies AgRangeBarSeriesOptions<TDatum>,
     ];
 }
 
-function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeriesKeys) {
+function createPriceSeriesCandlestick<TDatum>(common: PriceSeriesCommon, keys: PriceSeriesKeys) {
     return [
         {
             type: 'candlestick',
@@ -483,7 +483,7 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
             focusPriority: 0,
             ...common,
             ...keys,
-        } satisfies AgCandlestickSeriesOptions,
+        } satisfies AgCandlestickSeriesOptions<TDatum>,
     ];
 }
 

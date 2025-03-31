@@ -27,7 +27,7 @@ export interface AgSparklineTooltipRendererResult {
     content?: string;
 }
 
-export interface AgSparklineTooltip<TDatum = any> {
+export interface AgSparklineTooltip<TDatum> {
     /** Whether to show tooltips when the series are hovered over. */
     enabled?: boolean;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */
@@ -42,7 +42,7 @@ export interface AgSparklineTooltip<TDatum = any> {
     renderer?: Renderer<AgSparklineTooltipRendererParams<TDatum>, AgSparklineTooltipRendererResult>;
 }
 
-export interface AgSparklineBaseThemeableOptions {
+export interface AgSparklineBaseThemeableOptions<TDatum> {
     /** Context to use for tooltips. */
     context?: any;
     /** Crosshair configurations. */
@@ -54,7 +54,7 @@ export interface AgSparklineBaseThemeableOptions {
     /** User override for the automatically determined max value (based on series data). */
     max?: number;
     /** Tooltip configuration. */
-    tooltip?: AgSparklineTooltip;
+    tooltip?: AgSparklineTooltip<TDatum>;
 }
 
 export interface AgSparklineDataKeysOptions {
@@ -62,11 +62,11 @@ export interface AgSparklineDataKeysOptions {
     yKey?: string;
 }
 
-export interface AgBarSparklinePreset
-    extends AgSparklineBaseThemeableOptions,
+export interface AgBarSparklinePreset<TDatum>
+    extends AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
         Omit<
-            AgBarSeriesOptions,
+            AgBarSeriesOptions<TDatum>,
             | 'showInLegend'
             | 'showInMiniChart'
             | 'grouped'
@@ -77,19 +77,22 @@ export interface AgBarSparklinePreset
             | 'xKey'
             | 'yKey'
         > {}
-export interface AgLineSparklinePreset
-    extends AgSparklineBaseThemeableOptions,
+export interface AgLineSparklinePreset<TDatum>
+    extends AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
         Omit<
-            AgLineSeriesOptions,
+            AgLineSeriesOptions<TDatum>,
             'showInLegend' | 'showInMiniChart' | 'stacked' | 'stackGroup' | 'errorBar' | 'tooltip' | 'xKey' | 'yKey'
         > {}
-export interface AgAreaSparklinePreset
-    extends AgSparklineBaseThemeableOptions,
+export interface AgAreaSparklinePreset<TDatum>
+    extends AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
         Omit<
-            AgAreaSeriesOptions,
+            AgAreaSeriesOptions<TDatum>,
             'showInLegend' | 'showInMiniChart' | 'stacked' | 'stackGroup' | 'tooltip' | 'xKey' | 'yKey'
         > {}
 
-export type AgSparklinePresets = AgBarSparklinePreset | AgLineSparklinePreset | AgAreaSparklinePreset;
+export type AgSparklinePresets<TDatum> =
+    | AgBarSparklinePreset<TDatum>
+    | AgLineSparklinePreset<TDatum>
+    | AgAreaSparklinePreset<TDatum>;

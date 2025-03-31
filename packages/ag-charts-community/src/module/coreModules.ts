@@ -57,12 +57,12 @@ export interface LegendModule extends BaseOptionsModule, RemovableModule {
 
 type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
 
-type Themes = AgChartThemeOverrides & {
+type Themes = AgChartThemeOverrides<never> & {
     'linear-gauge'?: { series: AgLinearGaugeOptions };
     'radial-gauge'?: { series: AgRadialGaugeOptions };
 };
 
-export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = WithThemeParams<NonNullable<Themes[SeriesType]>>;
+export type ExtensibleTheme<SeriesType extends keyof Themes> = WithThemeParams<NonNullable<Themes[SeriesType]>>;
 
 export type SeriesTypeOptions<SeriesType extends RequiredSeriesType> = Extract<
     SeriesOptionsTypes,
@@ -70,16 +70,16 @@ export type SeriesTypeOptions<SeriesType extends RequiredSeriesType> = Extract<
 >;
 
 type GaugeAxes = {
-    'radial-gauge': AgPolarChartOptions['axes'];
-    'linear-gauge': AgCartesianChartOptions['axes'];
+    'radial-gauge': AgPolarChartOptions<never>['axes'];
+    'linear-gauge': AgCartesianChartOptions<never>['axes'];
 };
 
-type Axes = Record<Required<AgCartesianSeriesOptions>['type'], AgCartesianChartOptions['axes']> &
-    Record<Required<AgPolarSeriesOptions>['type'], AgPolarChartOptions['axes']> &
-    Record<Required<AgHierarchySeriesOptions>['type'], never> &
-    Record<Required<AgTopologySeriesOptions>['type'], never> &
-    Record<Required<AgFlowProportionSeriesOptions>['type'], never> &
-    Record<Required<AgStandaloneSeriesOptions>['type'], never> &
+type Axes = Record<Required<AgCartesianSeriesOptions<never>>['type'], AgCartesianChartOptions<never>['axes']> &
+    Record<Required<AgPolarSeriesOptions<never>>['type'], AgPolarChartOptions<never>['axes']> &
+    Record<Required<AgHierarchySeriesOptions<never>>['type'], never> &
+    Record<Required<AgTopologySeriesOptions<never>>['type'], never> &
+    Record<Required<AgFlowProportionSeriesOptions<never>>['type'], never> &
+    Record<Required<AgStandaloneSeriesOptions<never>>['type'], never> &
     GaugeAxes;
 
 export type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> = WithThemeParams<Axes[SeriesType]>;

@@ -15,7 +15,7 @@ interface ChartAxisLike {
 
 // Ensure that the created contextmenu event matches the API option contract:
 type NodeContextMenuActionEvent = Parameters<
-    NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']
+    NonNullable<AgContextMenuOptions<unknown>['extraNodeActions']>[number]['action']
 >[0];
 
 export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {

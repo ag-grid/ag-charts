@@ -72,7 +72,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     },
 };
 
-export const NewLineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
+export const NewLineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions<never>> = {
     type: 'series',
     name: 'line',
     chartType: 'cartesian',

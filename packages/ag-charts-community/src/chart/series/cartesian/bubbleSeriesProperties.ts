@@ -51,7 +51,7 @@ class BubbleSeriesLabel extends Label<AgBubbleSeriesLabelFormatterParams> {
     placement: LabelPlacement = 'top';
 }
 
-export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSeriesOptions> {
+export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSeriesOptions<unknown>> {
     @Property
     xKey!: string;
 
@@ -134,7 +134,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     readonly label = new BubbleSeriesLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgBubbleSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgBubbleSeriesTooltipRendererParams<unknown>>();
 
     // No validation. Not a part of the options contract.
     readonly marker = new BubbleSeriesMarker();

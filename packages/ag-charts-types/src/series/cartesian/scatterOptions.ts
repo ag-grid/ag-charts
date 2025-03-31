@@ -8,7 +8,7 @@ import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../se
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
-export interface AgScatterSeriesTooltipRendererParams<TDatum = any>
+export interface AgScatterSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgScatterSeriesOptionsKeys,
         AgScatterSeriesOptionsNames,
@@ -31,7 +31,7 @@ export interface AgScatterSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum
     placement?: LabelPlacement;
 }
 
-export interface AgScatterSeriesThemeableOptions<TDatum = any>
+export interface AgScatterSeriesThemeableOptions<TDatum>
     extends AgBaseCartesianThemeableOptions<TDatum>,
         AgSeriesMarkerStyle {
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
@@ -64,7 +64,7 @@ export interface AgScatterSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgScatterSeriesOptions<TDatum = any>
+export interface AgScatterSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgScatterSeriesOptionsKeys,
         AgScatterSeriesOptionsNames,

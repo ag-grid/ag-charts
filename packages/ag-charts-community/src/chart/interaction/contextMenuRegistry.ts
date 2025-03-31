@@ -25,12 +25,16 @@ export type ContextMenuEvent<K extends ContextType = ContextType> = {
     readonly sourceEvent: MouseEventWithPointerType;
 };
 
+type APIContextMenuEvent<
+    K extends 'extraActions' | 'extraLegendItemActions' | 'extraSeriesAreaActions' | 'extraNodeActions',
+> = Parameters<NonNullable<AgContextMenuOptions<unknown>[K]>[number]['action']>[0];
+
 // Extract the TEvent types from the AgContextMenuOptions contract:
 type ContextMenuActionEventMap = {
-    all: Parameters<NonNullable<AgContextMenuOptions['extraActions']>[number]['action']>[0];
-    legend: Parameters<NonNullable<AgContextMenuOptions['extraLegendItemActions']>[number]['action']>[0];
-    'series-area': Parameters<NonNullable<AgContextMenuOptions['extraSeriesAreaActions']>[number]['action']>[0];
-    node: Parameters<NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']>[0];
+    all: APIContextMenuEvent<'extraActions'>;
+    legend: APIContextMenuEvent<'extraLegendItemActions'>;
+    'series-area': APIContextMenuEvent<'extraSeriesAreaActions'>;
+    node: APIContextMenuEvent<'extraNodeActions'>;
 };
 
 export type ContextMenuCallback<K extends ContextType> = {

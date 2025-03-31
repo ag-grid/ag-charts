@@ -96,7 +96,7 @@ export interface AgTreemapSeriesHighlightStyle<TDatum> {
     tile?: AgTreemapSeriesTileHighlightStyle<TDatum>;
 }
 
-export interface AgTreemapSeriesThemeableOptions<TDatum = any>
+export interface AgTreemapSeriesThemeableOptions<TDatum>
     extends Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** The colours to cycle through for the fills of the groups and tiles. */
     fills?: CssColor[];
@@ -116,7 +116,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     highlightStyle?: AgTreemapSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgTreemapSeriesOptions<TDatum = any>
+export interface AgTreemapSeriesOptions<TDatum>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesOptionsNames,
@@ -154,7 +154,7 @@ export interface AgTreemapSeriesItemStylerParams<TDatum>
     depth: number;
 }
 
-export interface AgTreemapSeriesLabelFormatterParams<_TDatum = any>
+export interface AgTreemapSeriesLabelFormatterParams<_TDatum>
     extends AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */

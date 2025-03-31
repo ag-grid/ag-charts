@@ -68,7 +68,7 @@ export const themes: ThemeMap = {
 
 export const getChartTheme = simpleMemorize(createChartTheme, cacheCallback);
 
-function createChartTheme(value: unknown): ChartTheme {
+function createChartTheme<D>(value: unknown): ChartTheme {
     if (value instanceof ChartTheme) {
         return value;
     }
@@ -85,7 +85,7 @@ function createChartTheme(value: unknown): ChartTheme {
     const { invalid } = validate(value, themeOptionsDef, 'theme');
 
     if (!invalid.length) {
-        const flattenedTheme = reduceThemeOptions(value);
+        const flattenedTheme = reduceThemeOptions<D>(value);
         const baseTheme: any = flattenedTheme.baseTheme ? getChartTheme(flattenedTheme.baseTheme) : lightTheme();
         return new baseTheme.constructor(flattenedTheme);
     }
@@ -97,11 +97,11 @@ function createChartTheme(value: unknown): ChartTheme {
     return lightTheme();
 }
 
-function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
-    let maybeNested: AgChartTheme | AgChartThemeName | undefined = options;
+function reduceThemeOptions<TDatum>(options: AgChartTheme<TDatum>): AgChartTheme<TDatum> {
+    let maybeNested: AgChartTheme<TDatum> | AgChartThemeName | undefined = options;
     let palette: AgChartThemePalette | undefined;
     let params: AgChartThemeParams | undefined;
-    const overrides: AgChartThemeOverrides[] = [];
+    const overrides: AgChartThemeOverrides<TDatum>[] = [];
     while (typeof maybeNested === 'object') {
         palette ??= maybeNested.palette; // Use first palette found, they can't be merged.
         params ??= maybeNested.params;
@@ -118,7 +118,7 @@ function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
     };
 }
 
-export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
+export const themeOptionsDef: OptionsDefs<AgChartTheme<never>> = {
     baseTheme: or(string, object),
     overrides: object,
     params: {

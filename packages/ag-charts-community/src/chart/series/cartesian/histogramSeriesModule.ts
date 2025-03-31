@@ -66,7 +66,7 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
     },
 };
 
-export const NewHistogramSeriesModule: SeriesModuleDefinition<AgHistogramSeriesOptions> = {
+export const NewHistogramSeriesModule: SeriesModuleDefinition<AgHistogramSeriesOptions<never>> = {
     type: 'series',
     name: 'histogram',
     chartType: 'cartesian',

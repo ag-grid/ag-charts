@@ -17,7 +17,7 @@ export type AgMapShapeSeriesStyle = FillOptions & StrokeOptions & LineDashOption
 
 export type AgMapShapeSeriesLabelFormatterParams = AgMapShapeSeriesOptionsKeys & AgMapShapeSeriesOptionsNames;
 
-export type AgMapShapeSeriesItemStylerParams<TDatum = any> = DatumCallbackParams<TDatum> &
+export type AgMapShapeSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgMapShapeSeriesOptionsKeys &
     Required<AgMapShapeSeriesStyle>;
 
@@ -39,7 +39,7 @@ export interface AgMapShapeSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgMapShapeSeriesThemeableOptions<TDatum = any>
+export interface AgMapShapeSeriesThemeableOptions<TDatum>
     extends AgMapShapeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
@@ -51,12 +51,12 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapShapeSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map shape based on the input parameters. */
-    itemStyler?: Styler<AgMapShapeSeriesItemStylerParams, AgMapShapeSeriesStyle>;
+    itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<TDatum>, AgMapShapeSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapShapeSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgMapShapeSeriesOptions<TDatum = any>
+export interface AgMapShapeSeriesOptions<TDatum>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgMapShapeSeriesOptionsKeys,
         AgMapShapeSeriesOptionsNames,

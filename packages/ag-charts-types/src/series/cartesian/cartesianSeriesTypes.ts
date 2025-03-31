@@ -14,19 +14,19 @@ import type { AgRangeBarSeriesOptions } from './rangeBarOptions';
 import type { AgScatterSeriesOptions } from './scatterOptions';
 import type { AgWaterfallSeriesOptions } from './waterfallOptions';
 
-export type AgCartesianSeriesOptions =
-    | AgAreaSeriesOptions
-    | AgBarSeriesOptions
-    | AgBoxPlotSeriesOptions
-    | AgBubbleSeriesOptions
-    | AgCandlestickSeriesOptions
-    | AgConeFunnelSeriesOptions
-    | AgFunnelSeriesOptions
-    | AgHeatmapSeriesOptions
-    | AgHistogramSeriesOptions
-    | AgLineSeriesOptions
-    | AgOhlcSeriesOptions
-    | AgRangeAreaSeriesOptions
-    | AgRangeBarSeriesOptions
-    | AgScatterSeriesOptions
-    | AgWaterfallSeriesOptions;
+export type AgCartesianSeriesOptions<TDatum> =
+    | AgAreaSeriesOptions<TDatum>
+    | AgBarSeriesOptions<TDatum>
+    | AgBoxPlotSeriesOptions<TDatum>
+    | AgBubbleSeriesOptions<TDatum>
+    | AgCandlestickSeriesOptions<TDatum>
+    | AgConeFunnelSeriesOptions<TDatum>
+    | AgFunnelSeriesOptions<TDatum>
+    | AgHeatmapSeriesOptions<TDatum>
+    | AgHistogramSeriesOptions<TDatum>
+    | AgLineSeriesOptions<TDatum>
+    | AgOhlcSeriesOptions<TDatum>
+    | AgRangeAreaSeriesOptions<TDatum>
+    | AgRangeBarSeriesOptions<TDatum>
+    | AgScatterSeriesOptions<TDatum>
+    | AgWaterfallSeriesOptions<TDatum>;

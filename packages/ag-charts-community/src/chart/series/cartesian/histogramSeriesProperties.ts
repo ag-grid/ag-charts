@@ -36,7 +36,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly opacity?: number;
 }
 
-export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHistogramSeriesOptions> {
+export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHistogramSeriesOptions<unknown>> {
     @Property
     xKey!: string;
 
@@ -86,7 +86,7 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
     bins?: [number, number][];
 
     @Property
-    aggregation: NonNullable<AgHistogramSeriesOptions['aggregation']> = 'sum';
+    aggregation: NonNullable<AgHistogramSeriesOptions<never>['aggregation']> = 'sum';
 
     @Property
     binCount?: number;

@@ -7,7 +7,7 @@ import { polarChartOptionsDefs } from './chartOptionsDefs';
 import { isAgPolarChartOptions } from './mapping/types';
 import { PolarChart } from './polarChart';
 
-export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
+export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions<never>> = {
     type: 'chart',
     name: 'polar',
 

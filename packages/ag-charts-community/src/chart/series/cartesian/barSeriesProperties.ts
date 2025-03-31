@@ -24,7 +24,7 @@ class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
     padding: number = 0;
 }
 
-export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeriesOptions> {
+export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeriesOptions<unknown>> {
     @Property
     xKey!: string;
 
@@ -89,7 +89,7 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     readonly label = new BarSeriesLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgBarSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgBarSeriesTooltipRendererParams<unknown>>();
 
     @Property
     sparklineMode: boolean = false;

@@ -48,7 +48,7 @@ export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOp
 
 export type AgBarSeriesLabelFormatterParams = AgBarSeriesOptionsKeys & AgBarSeriesOptionsNames;
 
-export interface AgBarSeriesTooltipRendererParams<TDatum = any>
+export interface AgBarSeriesTooltipRendererParams<TDatum>
     extends AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,
         AgBarSeriesStyle,
@@ -57,9 +57,7 @@ export interface AgBarSeriesTooltipRendererParams<TDatum = any>
     readonly stackGroup?: string;
 }
 
-export interface AgBarSeriesThemeableOptions<TDatum = any>
-    extends AgBarSeriesStyle,
-        AgBaseCartesianThemeableOptions<TDatum> {
+export interface AgBarSeriesThemeableOptions<TDatum> extends AgBarSeriesStyle, AgBaseCartesianThemeableOptions<TDatum> {
     /**
      * Bar rendering direction.
      *
@@ -73,7 +71,7 @@ export interface AgBarSeriesThemeableOptions<TDatum = any>
     /** Configuration for the labels shown on bars. */
     label?: AgBarSeriesLabelOptions<TDatum, AgBarSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgBarSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgBarSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgBarSeriesItemStylerParams<TDatum>, AgBarSeriesStyle>;
     /** Configuration for the Error Bars. */
@@ -96,7 +94,7 @@ export interface AgBarSeriesOptionsNames {
     legendItemName?: string;
 }
 
-export interface AgBarSeriesOptions<TDatum = any>
+export interface AgBarSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,

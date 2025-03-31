@@ -21,7 +21,7 @@ import type { AgPieSeriesOptions } from 'ag-charts-types';
 import { without } from '../../../util/object';
 import { commonSeriesOptionsDefs, shadowOptionsDefs, tooltipOptionsDefs } from '../../commonOptionsDefs';
 
-export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
+export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions<never>> = {
     type: required(constant('pie')),
     angleKey: required(string),
     radiusKey: string,

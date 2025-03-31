@@ -20,7 +20,7 @@ import {
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
-export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
+export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions<never>> = {
     type: required(constant('area')),
     xKey: required(string),
     yKey: required(string),

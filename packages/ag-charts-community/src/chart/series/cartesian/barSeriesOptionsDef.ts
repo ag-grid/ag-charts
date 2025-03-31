@@ -22,7 +22,7 @@ import {
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
-export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
+export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions<never>> = {
     type: required(constant('bar')),
     xKey: required(string),
     yKey: required(string),

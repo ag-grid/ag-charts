@@ -37,7 +37,7 @@ export abstract class AgCharts {
     private static licenseManager?: LicenseManager;
     private static licenseChecked = false;
 
-    private static licenseCheck(options: AgChartOptions) {
+    private static licenseCheck(options: AgChartOptions<unknown>) {
         if (this.licenseChecked) return;
 
         this.licenseManager = enterpriseModule.licenseManager?.(options);
@@ -46,7 +46,7 @@ export abstract class AgCharts {
     }
 
     /** @private - for use by Charts website dark-mode support. */
-    static readonly optionsMutationFn?: (opts: AgChartOptions, preset?: string) => AgChartOptions;
+    static readonly optionsMutationFn?: (opts: AgChartOptions<unknown>, preset?: string) => AgChartOptions;
 
     public static getLicenseDetails(licenseKey: string) {
         return enterpriseModule.licenseManager?.({}).getLicenseDetails(licenseKey);
@@ -85,7 +85,9 @@ export abstract class AgCharts {
         });
     }
 
-    public static createFinancialChart(options: AgFinancialChartOptions): AgChartInstance<AgFinancialChartOptions> {
+    public static createFinancialChart<TDatum>(
+        options: AgFinancialChartOptions<TDatum>
+    ): AgChartInstance<AgFinancialChartOptions<TDatum>> {
         return debug.group('AgCharts.createFinancialChart()', () => {
             return this.create(options as any, { presetType: 'price-volume' }) as any;
         });
@@ -97,10 +99,12 @@ export abstract class AgCharts {
         });
     }
 
-    public static __createSparkline(options: AgSparklineOptions): AgChartInstance<AgSparklineOptions> {
+    public static __createSparkline<TDatum>(
+        options: AgSparklineOptions<TDatum>
+    ): AgChartInstance<AgSparklineOptions<TDatum>> {
         return debug.group('AgCharts.__createSparkline()', () => {
             const { pool, ...normalOptions } = options as any;
-            return this.create(normalOptions as AgChartOptions, {
+            return this.create(normalOptions, {
                 presetType: 'sparkline',
                 pool: pool ?? true,
                 domMode: 'minimal',
@@ -146,9 +150,9 @@ class AgChartsInternal {
     };
 
     static createOrUpdate(opts: {
-        userOptions?: AgChartOptions & Partial<ChartSpecialOverrides>;
-        deltaOptions?: DeepPartial<AgChartOptions>;
-        processedOverrides?: Partial<AgChartOptions>;
+        userOptions?: AgChartOptions<unknown> & Partial<ChartSpecialOverrides>;
+        deltaOptions?: DeepPartial<AgChartOptions<unknown>>;
+        processedOverrides?: Partial<AgChartOptions<unknown>>;
         proxy?: AgChartInstanceProxy;
         licenseManager?: LicenseManager;
         specialOverrides?: Partial<ChartSpecialOverrides>;
@@ -223,7 +227,7 @@ class AgChartsInternal {
         }
 
         styles.forEach(([id, css]) => {
-            chart.ctx.domManager.addStyles(id, css);
+            chart?.ctx.domManager.addStyles(id, css);
         });
 
         if (proxy == null) {
@@ -269,7 +273,7 @@ class AgChartsInternal {
         return modified;
     }
 
-    static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
+    static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions<unknown>>) {
         deltaOptions = deepClone(deltaOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
         const stripSymbols = jsonWalk(

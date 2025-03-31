@@ -24,13 +24,13 @@ export interface AgPyramidSeriesStyle extends FillOptions, StrokeOptions, LineDa
 
 export interface AgPyramidSeriesLabelFormatterParams extends AgPyramidSeriesOptionsKeys {}
 
-export interface AgPyramidSeriesTooltipRendererParams<TDatum = any>
+export interface AgPyramidSeriesTooltipRendererParams<TDatum>
     extends AgPyramidSeriesOptionsKeys,
         AgPyramidSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum>,
         AgPyramidSeriesStyle {}
 
-export interface AgPyramidSeriesThemeableOptions<TDatum = any> extends LineDashOptions {
+export interface AgPyramidSeriesThemeableOptions<TDatum> extends LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the stages. */
@@ -56,7 +56,7 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = any> extends LineDashO
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgPyramidSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgPyramidSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgPyramidSeriesItemStylerParams<TDatum>, AgPyramidSeriesStyle>;
 }
@@ -70,7 +70,7 @@ export interface AgPyramidSeriesOptionsKeys {
 
 export interface AgPyramidSeriesOptionsNames {}
 
-export interface AgPyramidSeriesOptions<TDatum = any>
+export interface AgPyramidSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgPyramidSeriesOptionsKeys,
         AgPyramidSeriesOptionsNames,

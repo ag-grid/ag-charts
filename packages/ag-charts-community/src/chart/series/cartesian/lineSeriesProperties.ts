@@ -12,7 +12,7 @@ import { SeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
 
-export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
+export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions<unknown>> {
     @Property
     xKey!: string;
 
@@ -62,7 +62,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     readonly label = new Label<AgLineSeriesLabelFormatterParams>();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgLineSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgLineSeriesTooltipRendererParams<unknown>>();
 
     @Property
     connectMissingData: boolean = false;

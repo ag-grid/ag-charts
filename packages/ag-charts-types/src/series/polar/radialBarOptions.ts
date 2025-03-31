@@ -5,9 +5,9 @@ import type {
     AgRadialSeriesOptionsNames,
 } from './radialOptions';
 
-export type AgRadialBarSeriesThemeableOptions<TDatum = any> = AgBaseRadialSeriesThemeableOptions<TDatum>;
+export type AgRadialBarSeriesThemeableOptions<TDatum> = AgBaseRadialSeriesThemeableOptions<TDatum>;
 
-export interface AgRadialBarSeriesOptions<TDatum = any>
+export interface AgRadialBarSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgRadialSeriesOptionsKeys,
         AgRadialSeriesOptionsNames,

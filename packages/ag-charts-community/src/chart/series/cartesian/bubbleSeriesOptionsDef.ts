@@ -19,7 +19,7 @@ import {
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
-export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
+export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions<never>> = {
     type: required(constant('bubble')),
     xKey: required(string),
     yKey: required(string),

@@ -22,7 +22,7 @@ export class ChartTypeOriginator implements MementoOriginator<ChartTypeMemento> 
     constructor(private readonly chartService: ChartService) {}
 
     public createMemento() {
-        let chartType = (this.chartService.publicApi?.getOptions() as AgFinancialChartOptions)?.chartType;
+        let chartType = (this.chartService.publicApi?.getOptions() as AgFinancialChartOptions<never>)?.chartType;
         if (chartType == null) chartType = 'candlestick';
         return chartType;
     }
@@ -36,7 +36,7 @@ export class ChartTypeOriginator implements MementoOriginator<ChartTypeMemento> 
 
         if (memento == null) return;
 
-        const options: AgFinancialChartOptions = { chartType: memento };
+        const options: AgFinancialChartOptions<never> = { chartType: memento };
         this.chartService.publicApi?.updateDelta(options as any).catch((e) => Logger.error('error restoring state', e));
     }
 }

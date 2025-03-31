@@ -75,7 +75,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     },
 };
 
-export const NewBarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
+export const NewBarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions<never>> = {
     type: 'series',
     name: 'bar',
     chartType: 'cartesian',

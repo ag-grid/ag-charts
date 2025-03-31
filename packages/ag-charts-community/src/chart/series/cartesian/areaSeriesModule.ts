@@ -90,7 +90,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     },
 };
 
-export const NewAreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
+export const NewAreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions<never>> = {
     type: 'series',
     name: 'area',
     chartType: 'cartesian',

@@ -5,7 +5,7 @@ import { Color } from '../../util/color';
 import { mapValues } from '../../util/object';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from './constants';
 
-type CartesianAxis = Exclude<AgCartesianChartOptions['axes'], undefined>[0];
+type CartesianAxis = Exclude<AgCartesianChartOptions<never>['axes'], undefined>[0];
 
 export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]> = [
     {

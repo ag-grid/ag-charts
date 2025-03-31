@@ -58,7 +58,7 @@ class PieSeriesCalloutLine extends BaseProperties {
     strokeWidth: number = 1;
 }
 
-export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
+export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions<unknown>> {
     @Property
     angleKey!: string;
 

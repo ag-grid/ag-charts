@@ -10,7 +10,7 @@ import {
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
-export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
+export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions<never>> = {
     type: required(constant('scatter')),
     xKey: required(string),
     yKey: required(string),

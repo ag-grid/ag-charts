@@ -19,12 +19,12 @@ import type { SeriesContext } from './moduleContext';
 export type PickNodeDatumResult = { datum: SeriesNodeDatum<unknown>; distanceSquared: number } | undefined;
 
 export type SeriesType = NonNullable<
-    | AgCartesianSeriesOptions['type']
-    | AgPolarSeriesOptions['type']
-    | AgHierarchySeriesOptions['type']
-    | AgTopologySeriesOptions['type']
-    | AgFlowProportionSeriesOptions['type']
-    | AgStandaloneSeriesOptions['type']
+    | AgCartesianSeriesOptions<never>['type']
+    | AgPolarSeriesOptions<never>['type']
+    | AgHierarchySeriesOptions<never>['type']
+    | AgTopologySeriesOptions<never>['type']
+    | AgFlowProportionSeriesOptions<never>['type']
+    | AgStandaloneSeriesOptions<never>['type']
     | AgGaugeOptions['type']
 >;
 

@@ -33,7 +33,7 @@ class ScatterSeriesLabel extends Label<AgScatterSeriesLabelFormatterParams> {
     placement: LabelPlacement = 'top';
 }
 
-export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatterSeriesOptions> {
+export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatterSeriesOptions<unknown>> {
     @Property
     xKey!: string;
 
@@ -101,7 +101,7 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     readonly label = new ScatterSeriesLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgScatterSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgScatterSeriesTooltipRendererParams<unknown>>();
 
     // No validation. Not a part of the options contract.
     readonly marker = new SeriesMarker<AgScatterSeriesOptionsKeys>();
