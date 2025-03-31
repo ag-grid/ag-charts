@@ -18,6 +18,9 @@ jobs:
     benchmark:
         runs-on: macos-benchmark
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/benchmarks')
+        env:
+            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+            JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         steps:
             - name: Notify start
               uses: actions/github-script@v6
