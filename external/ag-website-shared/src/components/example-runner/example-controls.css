@@ -11,6 +11,7 @@
     --select-chevron: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23667085" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
     --color-input-bg-checked: #0e4491;
     --checkbox-tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E");
+    --slide-range-track-background: #efefef;
 }
 
 :root[data-dark-mode='true'] {
@@ -23,8 +24,9 @@
     --button-color-border-primary: rgba(255, 255, 255, 0.2);
     --button-hover-background-color: #2a343e;
     --select-chevron: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%239CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
-
-    --color-input-bg-checked: #0e4491;
+    --checkbox-tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232a343e'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E");
+    --slide-range-track-background: #4a5465;
+    --color-input-bg-checked: #a9c5ec;
 }
 
 :root,
@@ -91,7 +93,8 @@ body > #highlighter {
 }
 
 /* Common input base styles */
-.toolbar :is(input[type='text'], input[type='number'], input[type='checkbox'], input[type='radio']) {
+.toolbar :is(input[type='text'], input[type='number'], input[type='checkbox'], textarea),
+input[type='textarea'] {
     appearance: none;
     border: 1px solid var(--button-color-border-primary);
     border-radius: 6px;
@@ -182,29 +185,26 @@ body > #highlighter {
 /* Track: webkit browsers */
 .toolbar input[type='range']::-webkit-slider-runnable-track {
     height: 15px;
-    background: #efefef;
+    background: var(--slide-range-track-background);
     border-radius: 16px;
 }
 
 /* Track: Mozilla Firefox */
 .toolbar input[type='range']::-moz-range-track {
     height: 15px;
-    background: #efefef;
+    background: var(--slide-range-track-background);
     border-radius: 16px;
 }
 
 /* Thumb: webkit */
 .toolbar input[type='range']::-webkit-slider-thumb {
-    /* removing default appearance */
     -webkit-appearance: none;
     appearance: none;
-    /* creating a custom design */
     height: 15px;
     width: 15px;
-    background-color: #fff;
+    background-color: var(--chart-bg);
     border-radius: 50%;
     border: 2px solid var(--color-input-bg-checked);
-    /*  slider progress trick  */
     box-shadow: -407px 0 0 400px var(--color-input-bg-checked);
 }
 
@@ -212,7 +212,7 @@ body > #highlighter {
 .toolbar input[type='range']::-moz-range-thumb {
     height: 15px;
     width: 15px;
-    background-color: #fff;
+    background-color: var(--chart-bg);
     border-radius: 50%;
     border: 1px solid var(--color-input-bg-checked);
     /*  slider progress trick  */
