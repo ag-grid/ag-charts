@@ -296,6 +296,7 @@ jobs:
               if: steps.test.outputs.updates == 'true'
               id: push
               run: |
+                  set -x
                   git fetch origin ${{github.head_ref || github.ref}}
                   git switch ${{github.head_ref || github.ref}}
                   git checkout -b ${{needs.init.outputs.snapshot_branch}}
@@ -308,7 +309,7 @@ jobs:
                   git commit -m "Update E2E snapshots."
 
                   while ! (git push origin HEAD:${{needs.init.outputs.snapshot_branch}}) ; do
-                      git pull origin ${{needs.init.outputs.snapshot_branch}} --rebase --reapply-cherry-picks
+                      git pull origin ${{needs.init.outputs.snapshot_branch}} --rebase
                   done
 
             - name: Fail PR checks if updates needed
