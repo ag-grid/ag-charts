@@ -35,11 +35,26 @@ jobs:
                         body: `⏱️ Benchmark job running: ${process.env.JOB_URL}`
                       })
 
-            - name: Checkout
-              id: checkout
-              uses: actions/checkout@v4
+            - id: 'get-branch'
+              if: github.event_name == 'issue_comment'
+              run: |
+                  echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
+              env:
+                  REPO: ${{ github.repository }}
+                  PR_NO: ${{ github.event.issue.number }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Checkout PR
+              uses: actions/checkout@v2
+              if: github.event_name == 'issue_comment'
               with:
-                  fetch-depth: 1
+                  ref: ${{ steps.get-branch.outputs.branch }}
+
+            - name: Checkout
+              uses: actions/checkout@v2
+              if: github.event_name == 'workflow_dispatch'
+              with:
+                  ref: ${{ github.ref }}
 
             - name: Setup
               id: setup
