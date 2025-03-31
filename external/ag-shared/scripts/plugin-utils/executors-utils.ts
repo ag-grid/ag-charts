@@ -112,9 +112,11 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string, extra
     ): AsyncGenerator<BatchExecutorTaskResult, any, unknown> {
         const results: Map<string, Promise<BatchExecutorTaskResult>> = new Map();
 
-        let threadCount = os.cpus().length;
+        let threadCount;
         if (process.env.CI == null) {
-            threadCount = Math.round(threadCount / 2);
+            threadCount = Math.round(os.cpus().length / 2);
+        } else {
+            threadCount = 2;
         }
         const { Tinypool } = await import('tinypool');
         const pool = new Tinypool({
