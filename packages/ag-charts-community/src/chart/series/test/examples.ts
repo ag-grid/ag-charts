@@ -15,20 +15,20 @@ import {
     DATA_TREEMAP,
 } from './data';
 
-const GROUPED_AREA_EXAMPLE: AgCartesianChartOptions & { series: AgAreaSeriesOptions[] } =
+const GROUPED_AREA_EXAMPLE: AgCartesianChartOptions<unknown> & { series: AgAreaSeriesOptions<unknown>[] } =
     loadExampleOptions('area-with-negative-values');
-const { axes: _, ...LINE_WITH_GAPS_EXAMPLE }: AgCartesianChartOptions = loadExampleOptions('line-with-gaps');
-const HISTOGRAM_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('simple-histogram');
-const SCATTER_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('simple-scatter');
-const GROUPED_LINE_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('time-axis-with-irregular-intervals');
-const BUBBLE_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('bubble-with-negative-values');
-const PIE_EXAMPLE: AgPolarChartOptions = loadExampleOptions('simple-pie');
-const DONUT_EXAMPLE: AgPolarChartOptions = loadExampleOptions('simple-donut');
+const { axes: _, ...LINE_WITH_GAPS_EXAMPLE }: AgCartesianChartOptions<unknown> = loadExampleOptions('line-with-gaps');
+const HISTOGRAM_EXAMPLE: AgCartesianChartOptions<unknown> = loadExampleOptions('simple-histogram');
+const SCATTER_EXAMPLE: AgCartesianChartOptions<unknown> = loadExampleOptions('simple-scatter');
+const GROUPED_LINE_EXAMPLE: AgCartesianChartOptions<unknown> = loadExampleOptions('time-axis-with-irregular-intervals');
+const BUBBLE_EXAMPLE: AgCartesianChartOptions<unknown> = loadExampleOptions('bubble-with-negative-values');
+const PIE_EXAMPLE: AgPolarChartOptions<unknown> = loadExampleOptions('simple-pie');
+const DONUT_EXAMPLE: AgPolarChartOptions<unknown> = loadExampleOptions('simple-donut');
 
 const columnSeriesLabelFormatter: ({ value }: { value: any }) => string = ({ value }) =>
     value == null ? '' : value.toFixed(0);
 
-export const COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
+export const COLUMN_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -46,7 +46,7 @@ export const COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const STACKED_COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
+export const STACKED_COLUMN_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -98,7 +98,7 @@ export const STACKED_COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const GROUPED_COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
+export const GROUPED_COLUMN_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -145,7 +145,7 @@ export const GROUPED_COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const BAR_SERIES_LABELS: AgCartesianChartOptions = {
+export const BAR_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -164,7 +164,7 @@ export const BAR_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const STACKED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
+export const STACKED_BAR_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -221,7 +221,7 @@ export const STACKED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const GROUPED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
+export const GROUPED_BAR_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -273,7 +273,7 @@ export const GROUPED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const AREA_SERIES_LABELS: AgCartesianChartOptions = {
+export const AREA_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -291,7 +291,7 @@ export const AREA_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const STACKED_AREA_SERIES_LABELS: AgCartesianChartOptions = {
+export const STACKED_AREA_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -335,7 +335,7 @@ export const STACKED_AREA_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const GROUPED_AREA_SERIES_LABELS: AgCartesianChartOptions = {
+export const GROUPED_AREA_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     ...GROUPED_AREA_EXAMPLE,
     series: [
         ...(GROUPED_AREA_EXAMPLE.series?.slice(0, 3).map((s: any) => {
@@ -349,7 +349,7 @@ export const GROUPED_AREA_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const LINE_SERIES_LABELS: AgCartesianChartOptions = {
+export const LINE_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     ...LINE_WITH_GAPS_EXAMPLE,
     series: [
         ...(LINE_WITH_GAPS_EXAMPLE.series?.slice(0, 3).map((s: any) => {
@@ -358,12 +358,12 @@ export const LINE_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const HISTOGRAM_SERIES_LABELS: AgCartesianChartOptions = {
+export const HISTOGRAM_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     ...HISTOGRAM_EXAMPLE,
     series: [...(HISTOGRAM_EXAMPLE.series?.map((s: any) => ({ ...s, label: { enabled: true } })) ?? [])],
 };
 
-export const HISTOGRAM_DATE_BASED_BUCKETS: AgCartesianChartOptions = {
+export const HISTOGRAM_DATE_BASED_BUCKETS: AgCartesianChartOptions<unknown> = {
     data: [
         {
             day: new Date('2010-07-30T00:00:00.000'),
@@ -723,7 +723,7 @@ export const HISTOGRAM_DATE_BASED_BUCKETS: AgCartesianChartOptions = {
     ],
 };
 
-export const SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
+export const SCATTER_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     ...SCATTER_EXAMPLE,
     series: [
         ...(SCATTER_EXAMPLE.series?.map((s: any) => {
@@ -738,7 +738,7 @@ export const SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const GROUPED_SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
+export const GROUPED_SCATTER_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     ...GROUPED_LINE_EXAMPLE,
     series: [
         ...(GROUPED_LINE_EXAMPLE.series?.map((s: any) => ({
@@ -750,7 +750,7 @@ export const GROUPED_SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
+export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     ...BUBBLE_EXAMPLE,
     series: [
         ...(BUBBLE_EXAMPLE.series?.map((s: any) => {
@@ -811,7 +811,7 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
+export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     title: {
         text: 'Weight vs Height',
     },
@@ -887,11 +887,11 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const PIE_SERIES_LABELS: AgPolarChartOptions = {
+export const PIE_SERIES_LABELS: AgPolarChartOptions<unknown> = {
     ...PIE_EXAMPLE,
 };
 
-export const DONUT_SERIES_LABELS: AgPolarChartOptions = {
+export const DONUT_SERIES_LABELS: AgPolarChartOptions<unknown> = {
     ...DONUT_EXAMPLE,
     series: [
         ...(DONUT_EXAMPLE.series?.map((s) => {
@@ -905,7 +905,7 @@ export const DONUT_SERIES_LABELS: AgPolarChartOptions = {
     ],
 };
 
-export const GROUPED_DONUT_SERIES_LABELS: AgPolarChartOptions = {
+export const GROUPED_DONUT_SERIES_LABELS: AgPolarChartOptions<unknown> = {
     data: DATA_MARKET_SHARE,
     series: [
         {
@@ -930,7 +930,7 @@ export const GROUPED_DONUT_SERIES_LABELS: AgPolarChartOptions = {
     ],
 };
 
-export const SUNBURST_SERIES_LABELS: AgHierarchyChartOptions = {
+export const SUNBURST_SERIES_LABELS: AgHierarchyChartOptions<unknown> = {
     data: DATA_TREEMAP,
     series: [
         {
@@ -950,7 +950,7 @@ export const SUNBURST_SERIES_LABELS: AgHierarchyChartOptions = {
     },
 };
 
-export const TREEMAP_SERIES_LABELS: AgHierarchyChartOptions = {
+export const TREEMAP_SERIES_LABELS: AgHierarchyChartOptions<unknown> = {
     data: DATA_TREEMAP,
     series: [
         {
@@ -978,7 +978,7 @@ export const TREEMAP_SERIES_LABELS: AgHierarchyChartOptions = {
     },
 };
 
-export const LINE_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
+export const LINE_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     data: DATA_FRUIT_VEG_CONSUMPTION,
     theme: {
         palette: {
@@ -1051,7 +1051,7 @@ export const LINE_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const AREA_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
+export const AREA_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     data: DATA_FRUIT_VEG_CONSUMPTION,
     theme: {
         palette: {
@@ -1127,7 +1127,7 @@ export const AREA_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
+export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions<unknown> = {
     data: DATA_MALE_HEIGHT_WEIGHT.concat(DATA_FEMALE_HEIGHT_WEIGHT),
     title: {
         text: 'Vehicle fuel efficiency by engine size (USA 1987)',

@@ -32,10 +32,10 @@ export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
 export * from '../../util/test/mockConsole';
 
-export type ChartOrProxy<O extends AgChartOptions | AgFinancialChartOptions | AgSparklineOptions = AgChartOptions> =
-    | AgChartInstance<O>
-    | AgChartProxy
-    | Chart;
+export type ChartOrProxy<
+    D = unknown,
+    O extends AgChartOptions<D> | AgFinancialChartOptions<D> | AgSparklineOptions<D> = AgChartOptions<D>,
+> = AgChartInstance<O> | AgChartProxy | Chart;
 
 export interface TestCase {
     options: AgChartOptions;
@@ -45,21 +45,21 @@ export interface TestCase {
 }
 
 export interface CartesianOrPolarTestCase extends TestCase {
-    options: AgCartesianChartOptions | AgPolarChartOptions;
+    options: AgCartesianChartOptions<unknown> | AgPolarChartOptions<unknown>;
 }
 
 export interface CartesianTestCase extends TestCase {
-    options: AgCartesianChartOptions;
+    options: AgCartesianChartOptions<unknown>;
 }
 
 export interface PolarTestCase extends TestCase {
-    options: AgPolarChartOptions;
+    options: AgPolarChartOptions<unknown>;
 }
 
-export type AgCartesianChartOptionsWithContext = Omit<AgCartesianChartOptions, 'series' | 'axes'> & {
+export type AgCartesianChartOptionsWithContext = Omit<AgCartesianChartOptions<unknown>, 'series' | 'axes'> & {
     context?: unknown;
-    series?: (NonNullable<AgCartesianChartOptions['series']>[number] & { context?: unknown })[];
-    axes?: (NonNullable<AgCartesianChartOptions['axes']>[number] & { context?: unknown })[];
+    series?: (NonNullable<AgCartesianChartOptions<unknown>['series']>[number] & { context?: unknown })[];
+    axes?: (NonNullable<AgCartesianChartOptions<unknown>['axes']>[number] & { context?: unknown })[];
 };
 
 const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0);
@@ -73,7 +73,10 @@ export async function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function prepareFinancialTestOptions(options: AgFinancialChartOptions, container = getDocument('body')) {
+export function prepareFinancialTestOptions(
+    options: AgFinancialChartOptions<unknown>,
+    container = getDocument('body')
+) {
     options.width = CANVAS_WIDTH;
     options.height = CANVAS_HEIGHT;
     options.container = container;
@@ -81,15 +84,15 @@ export function prepareFinancialTestOptions(options: AgFinancialChartOptions, co
     return options;
 }
 
-export function prepareTestOptions<T extends AgChartOptions | AgSparklineOptions>(
-    options: T,
-    container = getDocument('body')
-) {
+export function prepareTestOptions<
+    D = unknown,
+    T extends AgChartOptions<D> | AgSparklineOptions<D> = AgChartOptions<D>,
+>(options: T, container = getDocument('body')) {
     options.width = CANVAS_WIDTH;
     options.height = CANVAS_HEIGHT;
     options.container = container;
 
-    let baseTestTheme: AgChartTheme = {
+    let baseTestTheme: AgChartTheme<D> = {
         baseTheme: 'ag-default',
         palette: {
             fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
@@ -153,8 +156,8 @@ export function dateRange(start: Date, end: Date, step = 24 * 60 * 60 * 1000): D
     return result;
 }
 
-export async function waitForChartStability<O extends AgChartOptions | AgFinancialChartOptions | AgSparklineOptions>(
-    chartOrProxy: ChartOrProxy<O>,
+export async function waitForChartStability(
+    chartOrProxy: ChartOrProxy<unknown>,
     animationAdvanceMs = 0
 ): Promise<void> {
     const timeoutMs = 5000;
@@ -796,7 +799,10 @@ export function spyOnAnimationManager() {
     };
 }
 
-export function reverseAxes<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, reverse: boolean): T {
+export function reverseAxes<T extends AgCartesianChartOptions<unknown> | AgPolarChartOptions<unknown>>(
+    opts: T,
+    reverse: boolean
+): T {
     return {
         ...opts,
         axes: opts.axes?.map((axis) => ({ ...axis, reverse })),

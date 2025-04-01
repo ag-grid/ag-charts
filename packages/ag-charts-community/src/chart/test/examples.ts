@@ -69,48 +69,51 @@ export const DOCS_EXAMPLES = {
     'xy-histogram-with-mean-aggregation': loadExampleOptions('xy-histogram-with-mean-aggregation'),
 };
 
-export const GROUPED_CATEGORY_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['grouped-category'];
-export const BAR_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-bar'];
-export const GROUPED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['grouped-bar'];
-export const STACKED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['stacked-bar'];
-export const ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['100--stacked-bar'];
-export const BAR_CHART_WITH_LABELS_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['bar-with-labels'];
-export const SIMPLE_COLUMN_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-column'];
-export const GROUPED_COLUMN_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['grouped-column'];
-export const STACKED_COLUMN_GRAPH_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['stacked-column'];
-export const ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE: AgCartesianChartOptions =
+export const GROUPED_CATEGORY_CHART_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['grouped-category'];
+export const BAR_CHART_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['simple-bar'];
+export const GROUPED_BAR_CHART_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['grouped-bar'];
+export const STACKED_BAR_CHART_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['stacked-bar'];
+export const ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE: AgCartesianChartOptions<unknown> =
+    DOCS_EXAMPLES['100--stacked-bar'];
+export const BAR_CHART_WITH_LABELS_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['bar-with-labels'];
+export const SIMPLE_COLUMN_CHART_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['simple-column'];
+export const GROUPED_COLUMN_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['grouped-column'];
+export const STACKED_COLUMN_GRAPH_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['stacked-column'];
+export const ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE: AgCartesianChartOptions<unknown> =
     DOCS_EXAMPLES['100--stacked-column'];
-export const COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
+export const COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions<unknown> =
     DOCS_EXAMPLES['column-with-negative-values'];
-export const SIMPLE_PIE_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-pie'];
-export const SIMPLE_DONUT_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-donut'];
-export const PIE_IN_A_DONUT: AgPolarChartOptions = DOCS_EXAMPLES['pie-in-a-donut'];
-export const SIMPLE_LINE_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-line'];
-export const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['line-with-gaps'];
-export const SIMPLE_SCATTER_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-scatter'];
-export const BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
+export const SIMPLE_PIE_CHART_EXAMPLE: AgPolarChartOptions<unknown> = DOCS_EXAMPLES['simple-pie'];
+export const SIMPLE_DONUT_CHART_EXAMPLE: AgPolarChartOptions<unknown> = DOCS_EXAMPLES['simple-donut'];
+export const PIE_IN_A_DONUT: AgPolarChartOptions<unknown> = DOCS_EXAMPLES['pie-in-a-donut'];
+export const SIMPLE_LINE_CHART_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['simple-line'];
+export const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['line-with-gaps'];
+export const SIMPLE_SCATTER_CHART_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['simple-scatter'];
+export const BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions<unknown> =
     DOCS_EXAMPLES['bubble-with-negative-values'];
-export const BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['bubble-with-categories'];
-export const SIMPLE_AREA_GRAPH_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-area'];
-export const STACKED_AREA_GRAPH_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['stacked-area'];
-export const ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE: AgCartesianChartOptions =
+export const BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE: AgCartesianChartOptions<unknown> =
+    DOCS_EXAMPLES['bubble-with-categories'];
+export const SIMPLE_AREA_GRAPH_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['simple-area'];
+export const STACKED_AREA_GRAPH_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['stacked-area'];
+export const ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE: AgCartesianChartOptions<unknown> =
     DOCS_EXAMPLES['100--stacked-area'];
-export const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
+export const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions<unknown> =
     DOCS_EXAMPLES['area-with-negative-values'];
-export const SIMPLE_SUNBURST_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-sunburst'];
-export const SIMPLE_SANKEY_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-sankey'];
-export const SIMPLE_CHORD_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-chord'];
+export const SIMPLE_SUNBURST_EXAMPLE: AgPolarChartOptions<unknown> = DOCS_EXAMPLES['simple-sunburst'];
+export const SIMPLE_SANKEY_EXAMPLE: AgPolarChartOptions<unknown> = DOCS_EXAMPLES['simple-sankey'];
+export const SIMPLE_CHORD_EXAMPLE: AgPolarChartOptions<unknown> = DOCS_EXAMPLES['simple-chord'];
 export const SIMPLE_RADIAL_GAUGE_EXAMPLE: AgGaugeOptions = DOCS_EXAMPLES['simple-radial-gauge'];
 export const SIMPLE_LINEAR_GAUGE_EXAMPLE: AgGaugeOptions = DOCS_EXAMPLES['simple-linear-gauge'];
-export const TREEMAP_WITH_COLOR_RANGE_EXAMPLE: AgHierarchyChartOptions = DOCS_EXAMPLES['treemap-with-color-range'];
-export const SIMPLE_HISTOGRAM_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-histogram'];
-export const HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE: AgCartesianChartOptions =
+export const TREEMAP_WITH_COLOR_RANGE_EXAMPLE: AgHierarchyChartOptions<unknown> =
+    DOCS_EXAMPLES['treemap-with-color-range'];
+export const SIMPLE_HISTOGRAM_CHART_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['simple-histogram'];
+export const HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE: AgCartesianChartOptions<unknown> =
     DOCS_EXAMPLES['histogram-with-specified-bins'];
-export const XY_HISTOGRAM_WITH_MEAN_EXAMPLE: AgCartesianChartOptions =
+export const XY_HISTOGRAM_WITH_MEAN_EXAMPLE: AgCartesianChartOptions<unknown> =
     DOCS_EXAMPLES['xy-histogram-with-mean-aggregation'];
-export const CROSS_LINES_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['cross-lines'];
+export const CROSS_LINES_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['cross-lines'];
 
-export const GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions = {
+export const GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions<unknown> = {
     data: DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY,
     axes: [
         { type: 'grouped-category', position: 'bottom' },
@@ -154,7 +157,7 @@ function usdFormatter({ value }: { value: number }) {
     return value < 0 ? '-' + standardised : standardised;
 }
 
-export const INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions & { mode: string } = {
+export const INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions<unknown> & { mode: string } = {
     mode: 'integrated',
     data: [
         {
@@ -253,7 +256,7 @@ export const INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOp
     ],
 };
 
-export const INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE: AgCartesianChartOptions & {
+export const INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE: AgCartesianChartOptions<unknown> & {
     mode: string;
 } = {
     ...INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE,
@@ -264,7 +267,9 @@ export const INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE: Ag
     },
 };
 
-export const INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions & { mode: string } = {
+export const INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions<unknown> & {
+    mode: string;
+} = {
     mode: 'integrated',
     data: [
         {
@@ -1954,7 +1959,7 @@ export const INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCart
     ],
 };
 
-export const AREA_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
+export const AREA_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions<unknown> = {
     data: DATA_INTERNET_EXPLORER_MARKET_SHARE_BAD_Y_VALUE,
     axes: [
         { type: 'category', position: 'bottom' },
@@ -1979,7 +1984,7 @@ export const AREA_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
     },
 };
 
-export const STACKED_AREA_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
+export const STACKED_AREA_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions<unknown> = {
     data: DATA_BROWSER_MARKET_SHARE,
     axes: [
         { type: 'category', position: 'bottom' },
@@ -2035,7 +2040,7 @@ export const STACKED_AREA_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
     },
 };
 
-export const STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE: AgCartesianChartOptions = {
+export const STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE: AgCartesianChartOptions<unknown> = {
     axes: [
         { type: 'category', position: 'bottom' },
         { type: 'number', position: 'left' },
@@ -2094,7 +2099,7 @@ export const STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE: AgCartesianChartOpt
     },
 };
 
-export const STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
+export const STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE: AgCartesianChartOptions<unknown> = {
     data: DATA_BROWSER_MARKET_SHARE_MISSING_FIRST_Y,
     axes: [
         { type: 'category', position: 'bottom' },
@@ -2118,7 +2123,7 @@ export const STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE: AgCartesianChartOptions 
     ],
 };
 
-export const AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
+export const AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions<unknown> = {
     data: DATA_MISSING_X,
     axes: [
         { type: 'number', position: 'bottom' },
@@ -2136,7 +2141,7 @@ export const AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions 
     ],
 };
 
-export const AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
+export const AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions<unknown> = {
     data: DATA_TIME_MISSING_X,
     axes: [
         { type: 'time', position: 'bottom' },
@@ -2154,7 +2159,7 @@ export const AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = 
     ],
 };
 
-export const STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
+export const STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions<unknown> = {
     data: DATA_MISSING_X,
     axes: [
         { type: 'number', position: 'bottom' },
@@ -2182,7 +2187,7 @@ export const STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChart
     ],
 };
 
-export const STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
+export const STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions<unknown> = {
     data: DATA_TIME_MISSING_X,
     axes: [
         { type: 'time', position: 'bottom' },
@@ -2225,7 +2230,7 @@ const colorStops = [
     },
 ];
 
-export const AREA_SERIES_PATTERN_FILL: AgCartesianChartOptions = {
+export const AREA_SERIES_PATTERN_FILL: AgCartesianChartOptions<unknown> = {
     data: DATA_APPLE_REVENUE_BY_PRODUCT,
     series: [
         {
@@ -2248,11 +2253,11 @@ export const AREA_SERIES_PATTERN_FILL: AgCartesianChartOptions = {
 };
 
 function setPattern(
-    options: AgCartesianChartOptions,
+    options: AgCartesianChartOptions<unknown>,
     pattern?: AgPatternName,
     path?: string,
     fillOptions?: Omit<InternalAgPatternColor, 'type'>
-): AgCartesianChartOptions {
+): AgCartesianChartOptions<unknown> {
     return {
         ...options,
         theme: {
@@ -2309,7 +2314,7 @@ export const AREA_SERIES_CUSTOMISED_PATTERN_FILL = setPattern(AREA_SERIES_PATTER
     fillOpacity: 0.9,
 });
 
-export const AREA_SERIES_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
+export const AREA_SERIES_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     data: DATA_APPLE_REVENUE_BY_PRODUCT,
     theme: {
         overrides: {
@@ -2342,7 +2347,7 @@ export const AREA_SERIES_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
     ],
 };
 
-export const AREA_SERIES_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+export const AREA_SERIES_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     data: DATA_APPLE_REVENUE_BY_PRODUCT,
     theme: {
         overrides: {
@@ -2376,7 +2381,7 @@ export const AREA_SERIES_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
     ],
 };
 
-export const AREA_SERIES_DEFAULT_GRADIENT_FILL: AgCartesianChartOptions = {
+export const AREA_SERIES_DEFAULT_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     data: DATA_APPLE_REVENUE_BY_PRODUCT,
     theme: {
         overrides: {
@@ -2408,7 +2413,7 @@ export const AREA_SERIES_DEFAULT_GRADIENT_FILL: AgCartesianChartOptions = {
     ],
 };
 
-export const AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS: AgCartesianChartOptions = {
+export const AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS: AgCartesianChartOptions<unknown> = {
     data: DATA_APPLE_REVENUE_BY_PRODUCT,
     theme: {
         overrides: {
@@ -2448,7 +2453,7 @@ export const AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS: AgCartesianChartOptions = {
     ],
 };
 
-export const NORMALISED_STACKED_AREA: AgCartesianChartOptions = {
+export const NORMALISED_STACKED_AREA: AgCartesianChartOptions<unknown> = {
     data: DATA_BROWSER_MARKET_SHARE_MISSING_X,
     series: [
         {
@@ -2504,7 +2509,7 @@ export const NORMALISED_STACKED_AREA: AgCartesianChartOptions = {
     ],
 };
 
-export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
+export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions<unknown> = {
     axes: [
         {
             type: 'time',
@@ -2534,7 +2539,7 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     },
 };
 
-export const LINE_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
+export const LINE_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions<unknown> = {
     axes: [
         {
             type: 'number',
@@ -2564,7 +2569,7 @@ export const LINE_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
     },
 };
 
-export const LINE_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
+export const LINE_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions<unknown> = {
     data: DATA_INTERNET_EXPLORER_MARKET_SHARE_BAD_Y_VALUE,
     axes: [
         { type: 'category', position: 'bottom' },
@@ -2589,7 +2594,7 @@ export const LINE_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
     },
 };
 
-export const LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
+export const LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions<unknown> = {
     data: DATA_MISSING_X,
     axes: [
         { type: 'number', position: 'bottom' },
@@ -2607,7 +2612,7 @@ export const LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions 
     ],
 };
 
-export const LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
+export const LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions<unknown> = {
     data: DATA_TIME_MISSING_X,
     axes: [
         { type: 'time', position: 'bottom' },
@@ -2625,7 +2630,7 @@ export const LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = 
     ],
 };
 
-export const LINE_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions = {
+export const LINE_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions<unknown> = {
     axes: [
         {
             type: 'number',
@@ -2659,7 +2664,7 @@ export const LINE_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions = {
     },
 };
 
-export const LINE_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
+export const LINE_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions<unknown> = {
     axes: [
         {
             type: 'number',
@@ -2693,7 +2698,7 @@ export const LINE_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
     },
 };
 
-export const AREA_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
+export const AREA_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions<unknown> = {
     axes: [
         {
             type: 'time',
@@ -2731,7 +2736,7 @@ export const AREA_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     },
 };
 
-export const AREA_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
+export const AREA_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions<unknown> = {
     axes: [
         {
             type: 'number',
@@ -2769,7 +2774,7 @@ export const AREA_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
     },
 };
 
-export const AREA_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions = {
+export const AREA_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions<unknown> = {
     axes: [
         {
             type: 'number',
@@ -2811,7 +2816,7 @@ export const AREA_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions = {
     },
 };
 
-export const AREA_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
+export const AREA_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions<unknown> = {
     axes: [
         {
             type: 'number',
@@ -2853,7 +2858,7 @@ export const AREA_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
     },
 };
 
-export const INVALID_AXIS_LABEL_FORMAT: AgCartesianChartOptions = {
+export const INVALID_AXIS_LABEL_FORMAT: AgCartesianChartOptions<unknown> = {
     data: DATA_TIME_SENSOR,
     axes: [
         {
@@ -2878,7 +2883,7 @@ export const INVALID_AXIS_LABEL_FORMAT: AgCartesianChartOptions = {
     ],
 };
 
-export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS: AgCartesianChartOptions = {
+export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS: AgCartesianChartOptions<unknown> = {
     data: DATA_VISITORS,
     padding: {
         right: 400,
@@ -2910,7 +2915,7 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS: AgCartesianChartOptions = {
     ],
 };
 
-export const LINE_TIME_X_AXIS_POSITION_TOP_NUMBER_Y_AXIS_LABELS: AgCartesianChartOptions = {
+export const LINE_TIME_X_AXIS_POSITION_TOP_NUMBER_Y_AXIS_LABELS: AgCartesianChartOptions<unknown> = {
     data: DATA_VISITORS,
     padding: {
         right: 400,
@@ -2942,7 +2947,7 @@ export const LINE_TIME_X_AXIS_POSITION_TOP_NUMBER_Y_AXIS_LABELS: AgCartesianChar
     ],
 };
 
-export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS: AgCartesianChartOptions = {
+export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS: AgCartesianChartOptions<unknown> = {
     data: DATA_VISITORS,
     padding: {
         right: 400,
@@ -2974,7 +2979,7 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS: AgCartesianCh
     ],
 };
 
-export const LINE_STACKED_DATA_PER_SERIES: AgCartesianChartOptions = {
+export const LINE_STACKED_DATA_PER_SERIES: AgCartesianChartOptions<unknown> = {
     series: [
         {
             data: [
@@ -3029,7 +3034,7 @@ export const LINE_STACKED_DATA_PER_SERIES: AgCartesianChartOptions = {
     ],
 };
 
-export const COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
+export const COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions<unknown> = {
     title: {
         text: 'Mean Sea Level (mm)',
     },
@@ -3055,7 +3060,7 @@ export const COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     ],
 };
 
-export const COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
+export const COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -3083,7 +3088,7 @@ export const COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     ],
 };
 
-export const STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
+export const STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -3133,7 +3138,7 @@ export const STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions
     ],
 };
 
-export const STACKED_COLUMN_PATTERN_FILL: AgCartesianChartOptions = {
+export const STACKED_COLUMN_PATTERN_FILL: AgCartesianChartOptions<unknown> = {
     theme: {
         overrides: {
             bar: {
@@ -3200,7 +3205,7 @@ export const STACKED_COLUMN_PATTERN_FILL: AgCartesianChartOptions = {
     ],
 };
 
-export const GROUPED_COLUMN_SMALL_PATTERN_FILL: AgCartesianChartOptions = {
+export const GROUPED_COLUMN_SMALL_PATTERN_FILL: AgCartesianChartOptions<unknown> = {
     ...STACKED_COLUMN_PATTERN_FILL,
     theme: {
         overrides: {
@@ -3252,7 +3257,7 @@ export const GROUPED_COLUMN_SMALL_PATTERN_FILL: AgCartesianChartOptions = {
     ],
 };
 
-export const GROUPED_COLUMN_PATTERN_FILL: AgCartesianChartOptions = {
+export const GROUPED_COLUMN_PATTERN_FILL: AgCartesianChartOptions<unknown> = {
     ...STACKED_COLUMN_PATTERN_FILL,
     series: [
         {
@@ -3290,7 +3295,7 @@ export const GROUPED_COLUMN_PATTERN_FILL: AgCartesianChartOptions = {
     ],
 };
 
-export const STACKED_COLUMN_GRADIENT_FILL: AgCartesianChartOptions = {
+export const STACKED_COLUMN_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     theme: {
         overrides: {
             bar: {
@@ -3357,7 +3362,7 @@ export const STACKED_COLUMN_GRADIENT_FILL: AgCartesianChartOptions = {
     ],
 };
 
-export const STACKED_COLUMN_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+export const STACKED_COLUMN_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     ...STACKED_COLUMN_GRADIENT_FILL,
     theme: {
         overrides: {
@@ -3370,7 +3375,7 @@ export const STACKED_COLUMN_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = 
     },
 };
 
-export const STACKED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
+export const STACKED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     ...STACKED_COLUMN_GRADIENT_FILL,
     theme: {
         overrides: {
@@ -3384,7 +3389,7 @@ export const STACKED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChar
     },
 };
 
-export const STACKED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+export const STACKED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     ...STACKED_COLUMN_GRADIENT_FILL,
     theme: {
         overrides: {
@@ -3398,7 +3403,7 @@ export const STACKED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianCh
     },
 };
 
-export const STACKED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
+export const STACKED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     ...STACKED_COLUMN_GRADIENT_FILL,
     theme: {
         overrides: {
@@ -3412,7 +3417,7 @@ export const STACKED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartO
     },
 };
 
-export const STACKED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+export const STACKED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     ...STACKED_COLUMN_GRADIENT_FILL,
     theme: {
         overrides: {
@@ -3426,7 +3431,7 @@ export const STACKED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChar
     },
 };
 
-export const GROUPED_COLUMN_GRADIENT_FILL: AgCartesianChartOptions = {
+export const GROUPED_COLUMN_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     ...STACKED_COLUMN_GRADIENT_FILL,
     series: [
         {
@@ -3464,7 +3469,7 @@ export const GROUPED_COLUMN_GRADIENT_FILL: AgCartesianChartOptions = {
     ],
 };
 
-export const GROUPED_COLUMN_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+export const GROUPED_COLUMN_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     ...GROUPED_COLUMN_GRADIENT_FILL,
     theme: {
         overrides: {
@@ -3477,7 +3482,7 @@ export const GROUPED_COLUMN_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = 
     },
 };
 
-export const GROUPED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
+export const GROUPED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     ...GROUPED_COLUMN_GRADIENT_FILL,
     theme: {
         overrides: {
@@ -3491,7 +3496,7 @@ export const GROUPED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChar
     },
 };
 
-export const GROUPED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+export const GROUPED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     ...GROUPED_COLUMN_GRADIENT_FILL,
     theme: {
         overrides: {
@@ -3505,7 +3510,7 @@ export const GROUPED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianCh
     },
 };
 
-export const GROUPED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
+export const GROUPED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     ...GROUPED_COLUMN_GRADIENT_FILL,
     theme: {
         overrides: {
@@ -3519,7 +3524,7 @@ export const GROUPED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: AgCartesianChartO
     },
 };
 
-export const GROUPED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
+export const GROUPED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions<unknown> = {
     ...GROUPED_COLUMN_GRADIENT_FILL,
     theme: {
         overrides: {
@@ -3533,7 +3538,7 @@ export const GROUPED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: AgCartesianChar
     },
 };
 
-export const GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
+export const GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -3580,7 +3585,7 @@ export const GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions
     ],
 };
 
-export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = {
+export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -3648,7 +3653,7 @@ export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = 
     ],
 };
 
-export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCartesianChartOptions = {
+export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's Revenue by Product Category",
     },
@@ -3680,72 +3685,73 @@ export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCar
     ],
 };
 
-export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCartesianChartOptions = {
+export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCartesianChartOptions<unknown> = {
     ...GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
     series: GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES.series?.map((s) => ({ ...s, stacked: true })),
 };
 
-export const STACKED_NORMALIZED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCartesianChartOptions = {
-    title: {
-        text: "Apple's Revenue by Product Category",
-    },
-    subtitle: {
-        text: 'In Billion U.S. Dollars',
-    },
-    series: [
-        {
-            type: 'bar',
-            xKey: 'product',
-            yKey: 'value',
-            yName: 'iPad - Retail',
-            data: [
-                { product: 'Air', value: 400 },
-                { product: 'Pro', value: 280 },
-            ],
-            stackGroup: 'ipad',
-            normalizedTo: 100,
+export const STACKED_NORMALIZED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCartesianChartOptions<unknown> =
+    {
+        title: {
+            text: "Apple's Revenue by Product Category",
         },
-        {
-            type: 'bar',
-            xKey: 'product',
-            yKey: 'value',
-            yName: 'iPad - Student',
-            data: [
-                { product: 'Air', value: 140 },
-                { product: 'Pro', value: 90 },
-            ],
-            stackGroup: 'ipad',
-            normalizedTo: 100,
+        subtitle: {
+            text: 'In Billion U.S. Dollars',
         },
-        {
-            type: 'bar',
-            xKey: 'product',
-            yKey: 'value',
-            yName: 'MacBook - Retail',
-            data: [
-                { product: 'Air', value: 205 },
-                { product: 'Pro 15"', value: 195 },
-                { product: 'Pro 16"', value: 500 },
-            ],
-            stackGroup: 'macbook',
-            normalizedTo: 100,
-        },
-        {
-            type: 'bar',
-            xKey: 'product',
-            yKey: 'value',
-            yName: 'MacBook - Student',
-            data: [
-                { product: 'Air', value: 20 },
-                { product: 'Pro 16"', value: 50 },
-            ],
-            stackGroup: 'macbook',
-            normalizedTo: 100,
-        },
-    ],
-};
+        series: [
+            {
+                type: 'bar',
+                xKey: 'product',
+                yKey: 'value',
+                yName: 'iPad - Retail',
+                data: [
+                    { product: 'Air', value: 400 },
+                    { product: 'Pro', value: 280 },
+                ],
+                stackGroup: 'ipad',
+                normalizedTo: 100,
+            },
+            {
+                type: 'bar',
+                xKey: 'product',
+                yKey: 'value',
+                yName: 'iPad - Student',
+                data: [
+                    { product: 'Air', value: 140 },
+                    { product: 'Pro', value: 90 },
+                ],
+                stackGroup: 'ipad',
+                normalizedTo: 100,
+            },
+            {
+                type: 'bar',
+                xKey: 'product',
+                yKey: 'value',
+                yName: 'MacBook - Retail',
+                data: [
+                    { product: 'Air', value: 205 },
+                    { product: 'Pro 15"', value: 195 },
+                    { product: 'Pro 16"', value: 500 },
+                ],
+                stackGroup: 'macbook',
+                normalizedTo: 100,
+            },
+            {
+                type: 'bar',
+                xKey: 'product',
+                yKey: 'value',
+                yName: 'MacBook - Student',
+                data: [
+                    { product: 'Air', value: 20 },
+                    { product: 'Pro 16"', value: 50 },
+                ],
+                stackGroup: 'macbook',
+                normalizedTo: 100,
+            },
+        ],
+    };
 
-export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = {
+export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -3818,7 +3824,7 @@ export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = 
     ],
 };
 
-export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING: AgCartesianChartOptions = {
+export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -3891,7 +3897,7 @@ export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING: AgCartesianChartO
     ],
 };
 
-export const BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
+export const BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions<unknown> = {
     title: {
         text: 'Mean Sea Level (mm)',
     },
@@ -3917,7 +3923,7 @@ export const BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     ],
 };
 
-export const BAR_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
+export const BAR_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -3946,7 +3952,7 @@ export const BAR_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     ],
 };
 
-export const COLUMN_SINGLE_DATE_CATEGORY_AXIS: AgCartesianChartOptions = {
+export const COLUMN_SINGLE_DATE_CATEGORY_AXIS: AgCartesianChartOptions<unknown> = {
     axes: [
         {
             type: 'category',
@@ -3984,7 +3990,7 @@ export const COLUMN_SINGLE_DATE_CATEGORY_AXIS: AgCartesianChartOptions = {
     ],
 };
 
-export const COLUMN_SINGLE_DATE_TIME_AXIS: AgCartesianChartOptions = {
+export const COLUMN_SINGLE_DATE_TIME_AXIS: AgCartesianChartOptions<unknown> = {
     axes: [
         {
             type: 'time',
@@ -4022,7 +4028,7 @@ export const COLUMN_SINGLE_DATE_TIME_AXIS: AgCartesianChartOptions = {
     ],
 };
 
-export const STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
+export const STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -4077,7 +4083,7 @@ export const STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = 
     ],
 };
 
-export const STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: AgCartesianChartOptions = {
+export const STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -4127,7 +4133,7 @@ export const STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: AgCartesianChartO
     ],
 };
 
-export const GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
+export const GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -4177,7 +4183,7 @@ export const GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = 
     ],
 };
 
-export const TRUNCATED_LEGEND_ITEMS: AgCartesianChartOptions = {
+export const TRUNCATED_LEGEND_ITEMS: AgCartesianChartOptions<unknown> = {
     title: {
         text: "Apple's revenue by product category",
     },
@@ -4227,7 +4233,7 @@ export const TRUNCATED_LEGEND_ITEMS: AgCartesianChartOptions = {
 export const CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS = (
     data: any[],
     seriesType: 'line' | 'bar' | 'area' | 'scatter' | 'histogram'
-): AgCartesianChartOptions => {
+): AgCartesianChartOptions<unknown> => {
     return {
         data,
         series: [
@@ -4252,12 +4258,12 @@ export const CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS = (
 
 // START ADVANCED EXAMPLES =========================================================================
 
-export const ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS: AgCartesianChartOptions =
+export const ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS: AgCartesianChartOptions<unknown> =
     DOCS_EXAMPLES['time-axis-with-irregular-intervals'];
-export const LOG_AXIS_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['log-axis'];
-export const ADV_COMBINATION_SERIES_CHART_EXAMPLE: AgCartesianChartOptions =
+export const LOG_AXIS_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['log-axis'];
+export const ADV_COMBINATION_SERIES_CHART_EXAMPLE: AgCartesianChartOptions<unknown> =
     DOCS_EXAMPLES['combination-of-different-series-types'];
-export const ADV_CHART_CUSTOMISATION: AgCartesianChartOptions = DOCS_EXAMPLES['chart-customisation'];
-export const ADV_CUSTOM_MARKER_SHAPES_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['custom-marker-shapes'];
-export const ADV_CUSTOM_TOOLTIPS_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['custom-tooltips'];
-export const ADV_PER_MARKER_CUSTOMISATION: AgCartesianChartOptions = DOCS_EXAMPLES['per-marker-customisation'];
+export const ADV_CHART_CUSTOMISATION: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['chart-customisation'];
+export const ADV_CUSTOM_MARKER_SHAPES_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['custom-marker-shapes'];
+export const ADV_CUSTOM_TOOLTIPS_EXAMPLE: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['custom-tooltips'];
+export const ADV_PER_MARKER_CUSTOMISATION: AgCartesianChartOptions<unknown> = DOCS_EXAMPLES['per-marker-customisation'];

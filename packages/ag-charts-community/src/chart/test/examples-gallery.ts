@@ -1,4 +1,4 @@
-import type { AgChartOptions } from 'ag-charts-types';
+import type { AgChartOptions, AgGaugeOptions } from 'ag-charts-types';
 
 import * as examples from './examples';
 import {
@@ -13,7 +13,7 @@ import type { ChartOrProxy } from './utils';
 
 export type TestCase = {
     type?: 'chart' | 'gauge';
-    options: AgChartOptions;
+    options: AgChartOptions | AgGaugeOptions;
     enterprise: boolean;
     assertions: (chart: ChartOrProxy) => void | Promise<void>;
     extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;

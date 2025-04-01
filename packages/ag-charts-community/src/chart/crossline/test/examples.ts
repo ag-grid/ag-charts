@@ -4,16 +4,16 @@ import { DATA_MEAN_SEA_LEVEL } from '../../test/data';
 import { loadExampleOptions } from '../../test/load-example';
 import { DATA_OIL_PETROLEUM } from './data';
 
-const GROUPED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('grouped-bar');
-const GROUPED_COLUMN_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('grouped-column');
-const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('line-with-gaps');
-const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
+const GROUPED_BAR_CHART_EXAMPLE: AgCartesianChartOptions<unknown> = loadExampleOptions('grouped-bar');
+const GROUPED_COLUMN_EXAMPLE: AgCartesianChartOptions<unknown> = loadExampleOptions('grouped-column');
+const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions<unknown> = loadExampleOptions('line-with-gaps');
+const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions<unknown> =
     loadExampleOptions('area-with-negative-values');
 
 type CrossLinesRangeConfig = Record<string, { vertical: [Date, Date]; horizontal: [number, number] }>;
 type InvalidCrossLineConfig = Record<string, Partial<AgCartesianCrossLineOptions>>;
 
-const baseChartOptions: AgCartesianChartOptions = {
+const baseChartOptions: AgCartesianChartOptions<unknown> = {
     data: DATA_OIL_PETROLEUM,
     theme: {
         overrides: {
@@ -81,8 +81,8 @@ const baseCrossLineOptions: AgCartesianCrossLineOptions = {
     },
 };
 
-const createChartOptions = (rangeConfig: CrossLinesRangeConfig): Record<string, AgCartesianChartOptions> => {
-    const result: Record<string, AgCartesianChartOptions> = {};
+const createChartOptions = (rangeConfig: CrossLinesRangeConfig): Record<string, AgCartesianChartOptions<unknown>> => {
+    const result: Record<string, AgCartesianChartOptions<unknown>> = {};
 
     for (const name of Object.keys(rangeConfig)) {
         result[name] = {
@@ -99,8 +99,8 @@ const createChartOptions = (rangeConfig: CrossLinesRangeConfig): Record<string, 
 
 const createChartOptionsWithInvalidCrossLines = (
     config: InvalidCrossLineConfig
-): Record<string, AgCartesianChartOptions> => {
-    const result: Record<string, AgCartesianChartOptions> = {};
+): Record<string, AgCartesianChartOptions<unknown>> => {
+    const result: Record<string, AgCartesianChartOptions<unknown>> = {};
 
     for (const name of Object.keys(config)) {
         const invalidCrossLineOptions = config[name];
@@ -182,33 +182,36 @@ const crossLineLabelPositionOptions: CrossLinesRangeConfig = {
     },
 };
 
-const chartOptions: Record<string, AgCartesianChartOptions> = createChartOptions({
+const chartOptions: Record<string, AgCartesianChartOptions<unknown>> = createChartOptions({
     ...crossLinesOptions,
     ...crossLineLabelPositionOptions,
 });
 
-const invalidChartOptions: Record<string, AgCartesianChartOptions> =
-    createChartOptionsWithInvalidCrossLines(invalidCrossLinesOptions);
+const invalidChartOptions: Record<string, AgCartesianChartOptions<unknown>> = createChartOptionsWithInvalidCrossLines(
+    invalidCrossLinesOptions
+);
 
-export const VALID_RANGE_CROSSLINES: AgCartesianChartOptions = chartOptions['VALID_RANGE'];
-export const RANGE_OUTSIDE_DOMAIN_MAX_CROSSLINES: AgCartesianChartOptions = chartOptions['RANGE_OUTSIDE_DOMAIN_MAX'];
-export const RANGE_OUTSIDE_DOMAIN_MIN_CROSSLINES: AgCartesianChartOptions = chartOptions['RANGE_OUTSIDE_DOMAIN_MIN'];
-export const RANGE_OUTSIDE_DOMAIN_MIN_MAX_CROSSLINES: AgCartesianChartOptions =
+export const VALID_RANGE_CROSSLINES: AgCartesianChartOptions<unknown> = chartOptions['VALID_RANGE'];
+export const RANGE_OUTSIDE_DOMAIN_MAX_CROSSLINES: AgCartesianChartOptions<unknown> =
+    chartOptions['RANGE_OUTSIDE_DOMAIN_MAX'];
+export const RANGE_OUTSIDE_DOMAIN_MIN_CROSSLINES: AgCartesianChartOptions<unknown> =
+    chartOptions['RANGE_OUTSIDE_DOMAIN_MIN'];
+export const RANGE_OUTSIDE_DOMAIN_MIN_MAX_CROSSLINES: AgCartesianChartOptions<unknown> =
     chartOptions['RANGE_OUTSIDE_DOMAIN_MIN_MAX'];
-export const RANGE_OUTSIDE_DOMAIN_CROSSLINES: AgCartesianChartOptions = chartOptions['RANGE_OUTSIDE_DOMAIN'];
+export const RANGE_OUTSIDE_DOMAIN_CROSSLINES: AgCartesianChartOptions<unknown> = chartOptions['RANGE_OUTSIDE_DOMAIN'];
 
-export const INVALID_RANGE_VALUE_CROSSLINE: AgCartesianChartOptions =
+export const INVALID_RANGE_VALUE_CROSSLINE: AgCartesianChartOptions<unknown> =
     invalidChartOptions['INVALID_RANGE_VALUE_CROSSLINE'];
-export const INVALID_RANGE_LENGTH_CROSSLINE: AgCartesianChartOptions =
+export const INVALID_RANGE_LENGTH_CROSSLINE: AgCartesianChartOptions<unknown> =
     invalidChartOptions['INVALID_RANGE_LENGTH_CROSSLINE'];
-export const INVALID_RANGE_WITHOUT_TYPE_CROSSLINE: AgCartesianChartOptions =
+export const INVALID_RANGE_WITHOUT_TYPE_CROSSLINE: AgCartesianChartOptions<unknown> =
     invalidChartOptions['INVALID_RANGE_WITHOUT_TYPE_CROSSLINE'];
 export const INVALID_LINE_VALUE_CROSSLINES = invalidChartOptions['INVALID_LINE_VALUE_CROSSLINES'];
 export const INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE = invalidChartOptions['INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE'];
 export const INVALID_LINE_WITHOUT_TYPE_CROSSLINE = invalidChartOptions['INVALID_LINE_WITHOUT_TYPE_CROSSLINE'];
 export const INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE = invalidChartOptions['INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE'];
 
-export const DEFAULT_LABEL_POSITION_CROSSLINES: AgCartesianChartOptions = chartOptions['LABEL'];
+export const DEFAULT_LABEL_POSITION_CROSSLINES: AgCartesianChartOptions<unknown> = chartOptions['LABEL'];
 
 const xAxisCrossLineStyle = {
     fill: 'rgba(0,118,0,0.5)',
@@ -224,7 +227,7 @@ const yAxisCrossLineStyle = {
     strokeWidth: 1,
 };
 
-export const SCATTER_CROSSLINES: AgCartesianChartOptions = {
+export const SCATTER_CROSSLINES: AgCartesianChartOptions<unknown> = {
     title: {
         text: 'Mean Sea Level (mm)',
     },
@@ -298,7 +301,7 @@ export const SCATTER_CROSSLINES: AgCartesianChartOptions = {
     },
 };
 
-export const LINE_CROSSLINES: AgCartesianChartOptions = {
+export const LINE_CROSSLINES: AgCartesianChartOptions<unknown> = {
     ...LINE_GRAPH_WITH_GAPS_EXAMPLE,
     axes: [
         {
@@ -374,7 +377,7 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
     ],
 };
 
-export const AREA_CROSSLINES: AgCartesianChartOptions = {
+export const AREA_CROSSLINES: AgCartesianChartOptions<unknown> = {
     ...AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
     axes: [
         {
@@ -429,7 +432,7 @@ export const AREA_CROSSLINES: AgCartesianChartOptions = {
     ],
 };
 
-export const COLUMN_CROSSLINES: AgCartesianChartOptions = {
+export const COLUMN_CROSSLINES: AgCartesianChartOptions<unknown> = {
     ...GROUPED_COLUMN_EXAMPLE,
     axes: [
         {
@@ -491,7 +494,7 @@ export const COLUMN_CROSSLINES: AgCartesianChartOptions = {
     ],
 };
 
-export const BAR_CROSSLINES: AgCartesianChartOptions = {
+export const BAR_CROSSLINES: AgCartesianChartOptions<unknown> = {
     ...GROUPED_BAR_CHART_EXAMPLE,
     axes: [
         {

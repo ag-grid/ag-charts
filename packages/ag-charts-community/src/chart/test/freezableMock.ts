@@ -1,11 +1,13 @@
 import { Caster } from 'ag-charts-test';
 import type { AgBarSeriesOptions, AgBarSeriesThemeableOptions, AgCartesianAxisOptions } from 'ag-charts-types';
 
-export type MockItemStyler = NonNullable<AgBarSeriesThemeableOptions['itemStyler']>;
+export type MockItemStyler = NonNullable<AgBarSeriesThemeableOptions<unknown>['itemStyler']>;
 export type MockAxisLabelFormatter = NonNullable<NonNullable<AgCartesianAxisOptions['label']>['formatter']>;
-export type MockSeriesLabelFormatter = NonNullable<NonNullable<AgBarSeriesThemeableOptions['label']>['formatter']>;
-export type MockTooltipRenderer = NonNullable<NonNullable<AgBarSeriesThemeableOptions['tooltip']>['renderer']>;
-export type MockErrorBarStyler = NonNullable<NonNullable<AgBarSeriesOptions['errorBar']>['itemStyler']>;
+export type MockSeriesLabelFormatter = NonNullable<
+    NonNullable<AgBarSeriesThemeableOptions<unknown>['label']>['formatter']
+>;
+export type MockTooltipRenderer = NonNullable<NonNullable<AgBarSeriesThemeableOptions<unknown>['tooltip']>['renderer']>;
+export type MockErrorBarStyler = NonNullable<NonNullable<AgBarSeriesOptions<unknown>['errorBar']>['itemStyler']>;
 
 type APICallback =
     | MockItemStyler
