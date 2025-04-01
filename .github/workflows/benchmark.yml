@@ -57,7 +57,7 @@ jobs:
             - name: Fetch Refs
               if: github.event_name == 'issue_comment'
               run: |
-                  git fetch origin latest --unshallow
+                  git fetch origin latest
 
             - name: Checkout
               uses: actions/checkout@v4
