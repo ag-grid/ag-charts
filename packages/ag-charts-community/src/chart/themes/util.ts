@@ -1,4 +1,4 @@
-import type { InternalAgPatternColor } from 'ag-charts-core';
+import type { RequiredInternalAgPatternColor } from 'ag-charts-core';
 import type { AgCartesianChartOptions, WithThemeParams } from 'ag-charts-types';
 
 import { Color } from '../../util/color';
@@ -68,7 +68,7 @@ export const SAFE_RANGE2_OPERATION: any = {
     ],
 };
 
-export const FILL_PATTERN_DEFAULTS: WithThemeParams<Required<InternalAgPatternColor>> = {
+export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternColor> = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
     width: 10,

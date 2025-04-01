@@ -1,4 +1,9 @@
-import type { InternalAgColorType, InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
+import type {
+    InternalAgColorType,
+    RequiredInternalAgColorType,
+    RequiredInternalAgGradientColor,
+    RequiredInternalAgPatternColor,
+} from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
 import { type GradientParams } from '../../scene/gradient/gradient';
@@ -16,19 +21,19 @@ export interface ShapeFillBBox {
 
 export function getShapeFill(
     fill: InternalAgColorType,
-    defaultGradient: Required<InternalAgGradientColor>,
-    defaultPattern: Required<InternalAgPatternColor>
-): Required<InternalAgColorType>;
+    defaultGradient: RequiredInternalAgGradientColor,
+    defaultPattern: RequiredInternalAgPatternColor
+): RequiredInternalAgColorType;
 export function getShapeFill(
     fill: InternalAgColorType | undefined,
-    defaultGradient: Required<InternalAgGradientColor>,
-    defaultPattern: Required<InternalAgPatternColor>
-): Required<InternalAgColorType> | undefined;
+    defaultGradient: RequiredInternalAgGradientColor,
+    defaultPattern: RequiredInternalAgPatternColor
+): RequiredInternalAgColorType | undefined;
 export function getShapeFill(
     fill: InternalAgColorType | undefined,
-    defaultGradient: Required<InternalAgGradientColor>,
-    defaultPattern: Required<InternalAgPatternColor>
-): Required<InternalAgColorType> | undefined {
+    defaultGradient: RequiredInternalAgGradientColor,
+    defaultPattern: RequiredInternalAgPatternColor
+): RequiredInternalAgColorType | undefined {
     if (isGradientFill(fill)) {
         return {
             type: 'gradient',
@@ -64,6 +69,7 @@ export function getShapeFill(
             pattern,
             width,
             height,
+            path: fill.path,
             padding: fill.padding ?? defaultPattern.padding,
             fill: fill.fill ?? defaultPattern.fill,
             fillOpacity: fill.fillOpacity ?? defaultPattern.fillOpacity,
@@ -81,18 +87,18 @@ export function getShapeFill(
 
 export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T,
-    defaultGradient: Required<InternalAgGradientColor>,
-    defaultPattern: Required<InternalAgPatternColor>
+    defaultGradient: RequiredInternalAgGradientColor,
+    defaultPattern: RequiredInternalAgPatternColor
 ): T;
 export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T | undefined,
-    defaultGradient: Required<InternalAgGradientColor>,
-    defaultPattern: Required<InternalAgPatternColor>
+    defaultGradient: RequiredInternalAgGradientColor,
+    defaultPattern: RequiredInternalAgPatternColor
 ): T | undefined;
 export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T | undefined,
-    defaultGradient: Required<InternalAgGradientColor>,
-    defaultPattern: Required<InternalAgPatternColor>
+    defaultGradient: RequiredInternalAgGradientColor,
+    defaultPattern: RequiredInternalAgPatternColor
 ): T | undefined {
     if (!isGradientFill(style?.fill) && !isPatternFill(style?.fill)) return style;
     return {

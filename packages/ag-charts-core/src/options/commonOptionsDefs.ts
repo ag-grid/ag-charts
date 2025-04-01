@@ -77,7 +77,13 @@ export interface InternalAgPatternColor extends AgPatternColor {
     /** The rotation angle of the pattern. */
     rotation?: number;
 }
+export type RequiredInternalAgPatternColor = Required<Omit<InternalAgPatternColor, 'path'>> &
+    Pick<InternalAgPatternColor, 'path'>;
+
+export type RequiredInternalAgGradientColor = Required<InternalAgGradientColor>;
+
 export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor;
+export type RequiredInternalAgColorType = CssColor | RequiredInternalAgGradientColor | RequiredInternalAgPatternColor;
 
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
     stroke: color,
@@ -111,6 +117,7 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
             'crosses'
         )
     ),
+    path: string,
     width: required(positiveNumber),
     height: required(positiveNumber),
     fill: required(color),
