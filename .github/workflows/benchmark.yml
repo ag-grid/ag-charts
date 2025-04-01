@@ -78,7 +78,7 @@ jobs:
             - name: Notify Success
               uses: actions/github-script@v7
               continue-on-error: true
-              if: github.event_name == 'issue_comment' && success()
+              if: success() && github.event_name == 'issue_comment'
               with:
                   script: |
                       const body = `✅ ${process.env.JOB_URL}
@@ -95,7 +95,7 @@ jobs:
             - name: Notify Failure
               uses: actions/github-script@v7
               continue-on-error: true
-              if: github.event_name == 'issue_comment' && failure()
+              if: failure() && github.event_name == 'issue_comment'
               with:
                   script: |
                       const body = `❌ ${process.env.JOB_URL}`
