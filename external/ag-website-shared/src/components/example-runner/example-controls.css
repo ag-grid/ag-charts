@@ -10,8 +10,7 @@
     --button-hover-background-color: rgba(0, 0, 0, 0.1);
     --select-chevron: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23667085" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
     --color-input-bg-checked: #0e4491;
-    --checkbox-stroke-width: 3;
-    --checkbox-tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17L4 12'/%3E%3C/svg%3E");
+    --checkbox-tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17L4 12'/%3E%3C/svg%3E");
     --slide-range-track-background: #efefef;
 }
 
@@ -25,7 +24,7 @@
     --button-color-border-primary: rgba(255, 255, 255, 0.2);
     --button-hover-background-color: #2a343e;
     --select-chevron: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%239CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
-    --checkbox-tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a343e' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17L4 12'/%3E%3C/svg%3E");
+    --checkbox-tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a343e' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17L4 12'/%3E%3C/svg%3E");
     --slide-range-track-background: #4a5465;
     --color-input-bg-checked: #a9c5ec;
 }
@@ -57,6 +56,7 @@ body > #highlighter {
     justify-content: center;
     flex-wrap: wrap;
     gap: calc(var(--gap-vertical) * 0.5) var(--gap-horizontal);
+    font-size: 14px;
 }
 
 .toolbar hr {
@@ -85,7 +85,7 @@ body > #highlighter {
     padding: 0.375em 1em 0.5em;
 }
 
-.toolbar :is(button, select):hover {
+.toolbar :is(button, input[type='submit'], select):hover {
     background-color: var(--button-hover-background-color);
 }
 
@@ -116,6 +116,10 @@ input[type='textarea'] {
     height: 22px;
     padding: 6px 12px 6px 12px;
     white-space: nowrap;
+}
+
+.toolbar textarea {
+    padding: 6px 12px 6px 12px;
 }
 
 .toolbar input[type='radio'] {
@@ -159,7 +163,7 @@ input[type='textarea'] {
     background-size: 65%;
 }
 
-.toolbar :is(input:focus-visible) {
+.toolbar :is(input:focus-visible, textarea:focus-visible) {
     box-shadow:
         0 0 0 4px #d4e3f8,
         0 1px 2px 0 color-mix(in srgb, #0c111d 05%, transparent);
