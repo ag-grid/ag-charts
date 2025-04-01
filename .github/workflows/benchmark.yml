@@ -63,6 +63,10 @@ jobs:
                       git fetch origin latest
                   fi
 
+                  set -x
+                  git log -n 5 origin/atest
+                  git log -n 5
+
             - name: Setup
               id: setup
               uses: ./.github/actions/setup-nx
