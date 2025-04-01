@@ -10,6 +10,7 @@ interface PatternFnParams {
     pixelRatio: number;
     strokeWidth: number;
     padding: number;
+    svgPath?: string;
 }
 
 function drawPatternUnitPolygon(
@@ -143,5 +144,9 @@ export const PATTERNS: Record<AgPatternName, (path: ExtendedPath2D, params: Patt
         path.moveTo(-insetX, height - insetY);
         path.lineTo(insetX, height + insetY);
     },
-    custom() {},
+    custom(path, { svgPath }) {
+        if (svgPath) {
+            path.appendSvg(svgPath);
+        }
+    },
 };
