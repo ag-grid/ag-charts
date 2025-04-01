@@ -57,7 +57,7 @@ jobs:
             - name: Fetch Refs
               if: github.event_name == 'issue_comment'
               run: |
-                  git fetch origin latest
+                  git fetch origin latest --unshallow
 
             - name: Checkout
               uses: actions/checkout@v4
@@ -69,7 +69,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
-                  cache_mode: ro
+                  cache_mode: rw
 
             - name: nx benchmark
               id: benchmark
