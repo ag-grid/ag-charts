@@ -82,6 +82,8 @@ jobs:
               uses: actions/github-script@v7
               continue-on-error: true
               if: success() && github.event_name == 'issue_comment'
+              env:
+                  CONTENT: ${{ steps.benchmark.outputs.report}}
               with:
                   script: |
                       const body = `✅ ${process.env.JOB_URL}
