@@ -8,6 +8,7 @@ import { PATTERNS } from './patterns';
 
 export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     pattern: AgPatternName;
+    path?: string;
     width: number;
     height: number;
     padding: number;
@@ -33,13 +34,14 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         this.padding = patternOptions.padding ?? 1;
         this.pattern = patternOptions.pattern ?? 'forward-slanted-lines';
         this.rotation = patternOptions.rotation ?? 0;
+        this.path = patternOptions.path;
     }
 
     private getPath(pixelRatio: number) {
-        const { pattern, width, height, padding, strokeWidth } = this;
+        const { pattern, width, height, padding, strokeWidth, path: svgPath } = this;
 
         const path = new ExtendedPath2D();
-        PATTERNS[pattern](path, { width, height, pixelRatio, strokeWidth, padding });
+        PATTERNS[pattern](path, { width, height, pixelRatio, strokeWidth, padding, svgPath });
         return path;
     }
 
