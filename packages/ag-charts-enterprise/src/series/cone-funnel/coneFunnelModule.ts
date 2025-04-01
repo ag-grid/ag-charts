@@ -20,7 +20,7 @@ export const ConeFunnelModule: _ModuleSupport.SeriesModule<'cone-funnel'> = {
     themeTemplate: CONE_FUNNEL_SERIES_THEME,
 };
 
-export const ConeFunnelSeriesModule: SeriesModuleDefinition<AgConeFunnelSeriesOptions> = {
+export const ConeFunnelSeriesModule: SeriesModuleDefinition<AgConeFunnelSeriesOptions<never>> = {
     type: 'series',
     name: 'cone-funnel',
     chartType: 'cartesian',

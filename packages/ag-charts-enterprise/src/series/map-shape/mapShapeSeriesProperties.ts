@@ -28,7 +28,7 @@ export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDat
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
 }
 
-export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesOptions> {
+export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesOptions<unknown>> {
     @Property
     topology?: _ModuleSupport.FeatureCollection = undefined;
 

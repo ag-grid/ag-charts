@@ -4,7 +4,7 @@ import { RadarSeriesProperties } from '../radar/radarSeriesProperties';
 
 const { FillGradientDefaults, FillPatternDefaults, Property } = _ModuleSupport;
 
-export class RadarAreaSeriesProperties extends RadarSeriesProperties<AgRadarAreaSeriesOptions> {
+export class RadarAreaSeriesProperties extends RadarSeriesProperties<AgRadarAreaSeriesOptions<unknown>> {
     @Property
     fill: AgColorType = 'black';
 

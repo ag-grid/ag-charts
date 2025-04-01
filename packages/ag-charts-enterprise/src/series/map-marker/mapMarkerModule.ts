@@ -49,7 +49,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
     },
 };
 
-export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOptions> = {
+export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOptions<never>> = {
     type: 'series',
     name: 'map-marker',
     chartType: 'topology',

@@ -19,7 +19,7 @@ export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
     themeTemplate: FUNNEL_SERIES_THEME,
 };
 
-export const FunnelSeriesModule: SeriesModuleDefinition<AgFunnelSeriesOptions> = {
+export const FunnelSeriesModule: SeriesModuleDefinition<AgFunnelSeriesOptions<never>> = {
     type: 'series',
     name: 'funnel',
     chartType: 'cartesian',

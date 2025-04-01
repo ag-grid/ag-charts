@@ -38,7 +38,7 @@ class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> 
     padding: number = 6;
 }
 
-export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSeriesOptions> {
+export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSeriesOptions<unknown>> {
     @Property
     xKey!: string;
 
@@ -100,7 +100,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     readonly label = new RangeAreaSeriesLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgRangeAreaSeriesTooltipRendererParams<unknown>>();
 
     @Property
     connectMissingData: boolean = false;

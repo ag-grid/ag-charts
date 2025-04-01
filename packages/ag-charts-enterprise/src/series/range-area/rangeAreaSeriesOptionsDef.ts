@@ -22,7 +22,7 @@ const {
     tooltipOptionsDefs,
 } = _ModuleSupport;
 
-export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = {
+export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions<never>> = {
     type: required(constant('range-area')),
     xKey: required(string),
     yLowKey: required(string),

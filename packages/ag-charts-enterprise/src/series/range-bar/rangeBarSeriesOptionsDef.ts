@@ -16,7 +16,7 @@ import {
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, shadowOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
+export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions<never>> = {
     type: required(constant('range-bar')),
     xKey: required(string),
     yLowKey: required(string),

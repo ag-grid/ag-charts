@@ -58,8 +58,8 @@ class FunnelDropOff extends BaseProperties {
 }
 
 export class FunnelProperties
-    extends AbstractBarSeriesProperties<AgFunnelSeriesOptions>
-    implements BaseFunnelProperties<AgFunnelSeriesOptions>
+    extends AbstractBarSeriesProperties<AgFunnelSeriesOptions<never>>
+    implements BaseFunnelProperties<AgFunnelSeriesOptions<never>>
 {
     @Property
     stageKey!: string;

@@ -44,7 +44,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     },
 };
 
-export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions> = {
+export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions<never>> = {
     type: 'series',
     name: 'map-line',
     chartType: 'topology',

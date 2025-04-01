@@ -14,7 +14,7 @@ import type { InternalAgColorType } from 'ag-charts-core';
 const { FillGradientDefaults, FillPatternDefaults, BaseProperties, SeriesTooltip, SeriesProperties, Property, Label } =
     _ModuleSupport;
 
-class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
+class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams<unknown>> {
     @Property
     spacing: number = 1;
 
@@ -22,7 +22,7 @@ class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams
     maxWidth: number = 1;
 }
 
-class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
+class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions<unknown>> {
     @Property
     fill: InternalAgColorType | undefined = undefined;
 
@@ -51,7 +51,7 @@ class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<unknown>, AgChordSeriesLinkStyle>;
 }
 
-class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
+class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions<unknown>> {
     @Property
     spacing: number = 1;
 
@@ -83,7 +83,7 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
     itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<unknown>, AgChordSeriesNodeStyle>;
 }
 
-export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions> {
+export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions<unknown>> {
     @Property
     fromKey!: string;
 

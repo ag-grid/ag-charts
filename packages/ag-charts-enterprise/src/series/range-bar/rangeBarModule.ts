@@ -19,7 +19,7 @@ export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
     groupable: true,
 };
 
-export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOptions> = {
+export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOptions<never>> = {
     type: 'series',
     name: 'range-bar',
     chartType: 'cartesian',

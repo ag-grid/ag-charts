@@ -16,7 +16,7 @@ import {
 
 const { commonSeriesOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
+export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions<never>> = {
     type: required(constant('box-plot')),
     xKey: required(string),
     minKey: required(string),

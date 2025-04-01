@@ -15,7 +15,7 @@ import {
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const radialBarSeriesOptionsDef: OptionsDefs<AgRadialBarSeriesOptions> = {
+export const radialBarSeriesOptionsDef: OptionsDefs<AgRadialBarSeriesOptions<never>> = {
     type: required(constant('radial-bar')),
     angleKey: required(string),
     radiusKey: required(string),

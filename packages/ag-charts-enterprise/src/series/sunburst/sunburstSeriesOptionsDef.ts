@@ -15,7 +15,7 @@ import {
 
 const { commonSeriesOptionsDefs, autoSizedLabelOptionsDefs, tooltipOptionsDefs, without } = _ModuleSupport;
 
-export const sunburstSeriesOptionsDef: OptionsDefs<AgSunburstSeriesOptions> = {
+export const sunburstSeriesOptionsDef: OptionsDefs<AgSunburstSeriesOptions<never>> = {
     type: required(constant('sunburst')),
     labelKey: string,
     secondaryLabelKey: string,

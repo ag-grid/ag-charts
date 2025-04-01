@@ -5,7 +5,7 @@ import { StandaloneChart } from './standaloneChart';
 
 const { isAgStandaloneChartOptions, standaloneChartOptionsDefs } = _ModuleSupport;
 
-export const StandaloneChartModule: ChartModuleDefinition<AgStandaloneChartOptions> = {
+export const StandaloneChartModule: ChartModuleDefinition<AgStandaloneChartOptions<never>> = {
     type: 'chart',
     name: 'standalone',
     enterprise: true,

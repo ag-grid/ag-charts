@@ -21,7 +21,7 @@ import {
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, shadowOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<any>> = {
+const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<never>> = {
     name: string,
     cornerRadius: positiveNumber,
     itemStyler: callback,
@@ -37,7 +37,7 @@ const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<an
     ...lineDashOptionsDef,
 };
 
-export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = {
+export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions<never>> = {
     type: required(constant('waterfall')),
     xKey: required(string),
     yKey: required(string),

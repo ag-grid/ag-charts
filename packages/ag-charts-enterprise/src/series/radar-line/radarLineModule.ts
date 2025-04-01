@@ -20,7 +20,7 @@ export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {
     themeTemplate: RADAR_LINE_SERIES_THEME,
 };
 
-export const RadarLineSeriesModule: SeriesModuleDefinition<AgRadarLineSeriesOptions> = {
+export const RadarLineSeriesModule: SeriesModuleDefinition<AgRadarLineSeriesOptions<never>> = {
     type: 'series',
     name: 'radar-line',
     chartType: 'polar',

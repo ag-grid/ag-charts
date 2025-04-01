@@ -19,7 +19,7 @@ import {
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
+export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions<never>> = {
     type: required(constant('treemap')),
     labelKey: string,
     secondaryLabelKey: string,

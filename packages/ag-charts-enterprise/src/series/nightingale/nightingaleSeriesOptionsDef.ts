@@ -15,7 +15,7 @@ import {
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions> = {
+export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions<never>> = {
     type: required(constant('nightingale')),
     angleKey: required(string),
     radiusKey: required(string),

@@ -11,7 +11,9 @@ import type { InternalAgColorType } from 'ag-charts-core';
 
 const { SeriesProperties, FillGradientDefaults, FillPatternDefaults, SeriesTooltip, Property, Label } = _ModuleSupport;
 
-export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeriesOptions> extends SeriesProperties<T> {
+export class RadialColumnSeriesBaseProperties<
+    T extends AgBaseRadialColumnSeriesOptions<unknown>,
+> extends SeriesProperties<T> {
     @Property
     angleKey!: string;
 

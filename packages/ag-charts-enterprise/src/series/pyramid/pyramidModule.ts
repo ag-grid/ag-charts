@@ -18,7 +18,7 @@ export const PyramidModule: _ModuleSupport.SeriesModule<'pyramid'> = {
     themeTemplate: PYRAMID_SERIES_THEME,
 };
 
-export const PyramidSeriesModule: SeriesModuleDefinition<AgPyramidSeriesOptions> = {
+export const PyramidSeriesModule: SeriesModuleDefinition<AgPyramidSeriesOptions<never>> = {
     type: 'series',
     name: 'pyramid',
     chartType: 'standalone',

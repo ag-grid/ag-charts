@@ -36,7 +36,7 @@ export class WaterfallSeriesTotal extends BaseProperties {
 
 class WaterfallSeriesItemTooltip extends BaseProperties {
     @Property
-    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
+    renderer?: (params: AgWaterfallSeriesTooltipRendererParams<unknown>) => string | AgTooltipRendererResult;
 }
 
 class WaterfallSeriesLabel extends Label<AgWaterfallSeriesLabelFormatterParams> {
@@ -125,7 +125,7 @@ class WaterfallSeriesItems extends BaseProperties {
     readonly total = new WaterfallSeriesItem();
 }
 
-export class WaterfallSeriesProperties extends AbstractBarSeriesProperties<AgWaterfallSeriesOptions> {
+export class WaterfallSeriesProperties extends AbstractBarSeriesProperties<AgWaterfallSeriesOptions<unknown>> {
     @Property
     xKey!: string;
 
@@ -148,5 +148,5 @@ export class WaterfallSeriesProperties extends AbstractBarSeriesProperties<AgWat
     readonly line = new WaterfallSeriesConnectorLine();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgWaterfallSeriesTooltipRendererParams<unknown>>();
 }

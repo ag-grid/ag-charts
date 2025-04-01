@@ -15,7 +15,7 @@ export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions> = {
     },
 };
 
-export const NavigatorModule: PluginModuleDefinition<AgNavigatorOptions> = {
+export const NavigatorModule: PluginModuleDefinition<AgNavigatorOptions<never>> = {
     type: 'plugin',
     name: 'navigator',
     chartType: 'cartesian',

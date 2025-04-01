@@ -28,7 +28,7 @@ class RangeBarSeriesLabel extends Label<AgRangeBarSeriesLabelFormatterParams> {
     padding: number = 6;
 }
 
-export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSeriesOptions> {
+export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSeriesOptions<unknown>> {
     @Property
     xKey!: string;
 

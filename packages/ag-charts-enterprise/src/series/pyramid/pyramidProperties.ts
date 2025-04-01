@@ -23,7 +23,7 @@ class PyramidSeriesStageLabel extends Label<AgPyramidSeriesLabelFormatterParams>
     placement?: string;
 }
 
-export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> {
+export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions<unknown>> {
     @Property
     stageKey!: string;
 

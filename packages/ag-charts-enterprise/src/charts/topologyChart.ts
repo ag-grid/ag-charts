@@ -41,7 +41,7 @@ export class TopologyChart extends Chart {
     override async updateData() {
         await super.updateData();
 
-        const options = this.getOptions() as AgTopologyChartOptions;
+        const options = this.getOptions() as AgTopologyChartOptions<unknown>;
         if (this.topology !== options.topology) {
             this.topology = options.topology;
         }

@@ -12,7 +12,7 @@ import {
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, markerOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const radarAreaSeriesOptionsDef: OptionsDefs<AgRadarAreaSeriesOptions> = {
+export const radarAreaSeriesOptionsDef: OptionsDefs<AgRadarAreaSeriesOptions<never>> = {
     type: required(constant('radar-area')),
     angleKey: required(string),
     radiusKey: required(string),

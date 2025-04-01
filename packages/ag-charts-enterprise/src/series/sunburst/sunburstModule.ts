@@ -70,7 +70,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     },
 };
 
-export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOptions> = {
+export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOptions<never>> = {
     type: 'series',
     name: 'sunburst',
     chartType: 'hierarchy',

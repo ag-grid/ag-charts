@@ -11,7 +11,7 @@ import {
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, markerOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions> = {
+export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions<never>> = {
     type: required(constant('radar-line')),
     angleKey: required(string),
     radiusKey: required(string),

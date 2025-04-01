@@ -30,7 +30,7 @@ class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> 
     placement: _ModuleSupport.LabelPlacement = 'bottom';
 }
 
-export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSeriesOptions> {
+export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSeriesOptions<unknown>> {
     @Property
     topology: _ModuleSupport.FeatureCollection | undefined = undefined;
 

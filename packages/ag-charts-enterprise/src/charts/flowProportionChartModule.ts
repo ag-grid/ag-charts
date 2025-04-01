@@ -5,7 +5,7 @@ import { FlowProportionChart } from './flowProportionChart';
 
 const { isAgFlowProportionChartOptions, flowProportionChartOptionsDefs } = _ModuleSupport;
 
-export const FlowProportionChartModule: ChartModuleDefinition<AgFlowProportionChartOptions> = {
+export const FlowProportionChartModule: ChartModuleDefinition<AgFlowProportionChartOptions<never>> = {
     type: 'chart',
     name: 'flow-proportion',
     enterprise: true,

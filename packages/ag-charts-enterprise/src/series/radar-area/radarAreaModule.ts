@@ -22,7 +22,7 @@ export const RadarAreaModule: _ModuleSupport.SeriesModule<'radar-area'> = {
     themeTemplate: RADAR_AREA_SERIES_THEME,
 };
 
-export const RadarAreaSeriesModule: SeriesModuleDefinition<AgRadarAreaSeriesOptions> = {
+export const RadarAreaSeriesModule: SeriesModuleDefinition<AgRadarAreaSeriesOptions<never>> = {
     type: 'series',
     name: 'radar-area',
     chartType: 'polar',

@@ -60,7 +60,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
     },
 };
 
-export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
+export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions<never>> = {
     type: 'series',
     name: 'chord',
     chartType: 'flow-proportion',

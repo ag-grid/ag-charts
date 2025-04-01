@@ -19,7 +19,7 @@ import {
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
+export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions<never>> = {
     type: required(constant('chord')),
     fromKey: required(string),
     toKey: required(string),

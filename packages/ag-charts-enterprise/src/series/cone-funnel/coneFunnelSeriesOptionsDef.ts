@@ -19,7 +19,7 @@ import {
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs, without } = _ModuleSupport;
 
-export const coneFunnelSeriesOptionsDef: OptionsDefs<AgConeFunnelSeriesOptions> = {
+export const coneFunnelSeriesOptionsDef: OptionsDefs<AgConeFunnelSeriesOptions<never>> = {
     type: required(constant('cone-funnel')),
     stageKey: required(string),
     valueKey: required(string),

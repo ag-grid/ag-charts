@@ -19,7 +19,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     themeTemplate: WATERFALL_SERIES_THEME,
 };
 
-export const WaterfallSeriesModule: SeriesModuleDefinition<AgWaterfallSeriesOptions> = {
+export const WaterfallSeriesModule: SeriesModuleDefinition<AgWaterfallSeriesOptions<never>> = {
     type: 'series',
     name: 'waterfall',
     chartType: 'cartesian',

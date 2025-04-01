@@ -15,7 +15,7 @@ import {
 
 const { commonSeriesOptionsDefs, autoSizedLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const heatmapSeriesOptionsDef: OptionsDefs<AgHeatmapSeriesOptions> = {
+export const heatmapSeriesOptionsDef: OptionsDefs<AgHeatmapSeriesOptions<never>> = {
     type: required(constant('heatmap')),
     xKey: required(string),
     yKey: required(string),

@@ -40,7 +40,7 @@ class BoxPlotSeriesWhisker extends BaseProperties {
     lineDashOffset?: number;
 }
 
-export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPlotSeriesOptions> {
+export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPlotSeriesOptions<unknown>> {
     @Property
     xKey!: string;
 

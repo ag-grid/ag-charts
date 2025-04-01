@@ -22,7 +22,7 @@ export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum 
 
 const { Label, SeriesMarker, SeriesProperties, SeriesTooltip, Property } = _ModuleSupport;
 
-export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends SeriesProperties<T> {
+export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions<unknown>> extends SeriesProperties<T> {
     @Property
     angleKey!: string;
 

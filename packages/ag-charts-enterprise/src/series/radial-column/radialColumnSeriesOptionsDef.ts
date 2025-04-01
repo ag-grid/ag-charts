@@ -16,7 +16,7 @@ import {
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptions> = {
+export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptions<never>> = {
     type: required(constant('radial-column')),
     angleKey: required(string),
     radiusKey: required(string),

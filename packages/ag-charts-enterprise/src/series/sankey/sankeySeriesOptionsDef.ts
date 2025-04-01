@@ -19,7 +19,7 @@ import {
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
+export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions<never>> = {
     type: required(constant('sankey')),
     fromKey: required(string),
     toKey: required(string),

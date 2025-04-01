@@ -29,13 +29,13 @@ class SunburstSeriesTileHighlightStyle extends HighlightStyle {
     strokeOpacity?: number;
 
     @Property
-    readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
+    readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams<unknown>>();
 
     @Property
-    readonly secondaryLabel = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
+    readonly secondaryLabel = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams<unknown>>();
 }
 
-export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunburstSeriesOptions> {
+export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunburstSeriesOptions<unknown>> {
     @Property
     sizeName?: string;
 
@@ -70,10 +70,10 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     override highlightStyle = new SunburstSeriesTileHighlightStyle();
 
     @Property
-    readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
+    readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams<unknown>>();
 
     @Property
-    readonly secondaryLabel = new AutoSizedSecondaryLabel<AgSunburstSeriesLabelFormatterParams>();
+    readonly secondaryLabel = new AutoSizedSecondaryLabel<AgSunburstSeriesLabelFormatterParams<unknown>>();
 
     @Property
     readonly tooltip = new SeriesTooltip<AgSunburstSeriesTooltipRendererParams<any>>();

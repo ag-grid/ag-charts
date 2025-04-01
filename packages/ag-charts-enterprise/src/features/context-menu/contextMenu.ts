@@ -43,22 +43,22 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     /**
      * Extra menu actions with a label and callback.
      */
-    public extraActions: NonNullable<AgContextMenuOptions['extraActions']> = [];
+    public extraActions: NonNullable<AgContextMenuOptions<unknown>['extraActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a node.
      */
-    public extraNodeActions: NonNullable<AgContextMenuOptions['extraNodeActions']> = [];
+    public extraNodeActions: NonNullable<AgContextMenuOptions<unknown>['extraNodeActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a series.
      */
-    public extraSeriesAreaActions: NonNullable<AgContextMenuOptions['extraSeriesAreaActions']> = [];
+    public extraSeriesAreaActions: NonNullable<AgContextMenuOptions<unknown>['extraSeriesAreaActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a legend item
      */
-    public extraLegendItemActions: NonNullable<AgContextMenuOptions['extraLegendItemActions']> = [];
+    public extraLegendItemActions: NonNullable<AgContextMenuOptions<unknown>['extraLegendItemActions']> = [];
 
     // Module context
     private readonly interactionManager: _ModuleSupport.InteractionManager;

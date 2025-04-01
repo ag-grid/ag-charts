@@ -30,7 +30,7 @@ const candlestickSeriesItemOptionsDef: OptionsDefs<AgCandlestickSeriesItemOption
     ...lineDashOptionsDef,
 };
 
-export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions> = {
+export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions<never>> = {
     type: required(constant('candlestick')),
     xKey: required(string),
     openKey: required(string),

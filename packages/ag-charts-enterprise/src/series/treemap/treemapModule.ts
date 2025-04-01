@@ -108,7 +108,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     },
 };
 
-export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions> = {
+export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions<never>> = {
     type: 'series',
     name: 'treemap',
     chartType: 'hierarchy',

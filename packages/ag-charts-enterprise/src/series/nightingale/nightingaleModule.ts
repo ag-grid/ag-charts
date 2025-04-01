@@ -25,7 +25,7 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
     stackedByDefault: true,
 };
 
-export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeriesOptions> = {
+export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeriesOptions<never>> = {
     type: 'series',
     name: 'nightingale',
     chartType: 'polar',

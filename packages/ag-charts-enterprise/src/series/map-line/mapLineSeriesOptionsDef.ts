@@ -17,7 +17,7 @@ import {
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
+export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions<never>> = {
     type: required(constant('map-line')),
     idKey: required(string),
     sizeKey: string,

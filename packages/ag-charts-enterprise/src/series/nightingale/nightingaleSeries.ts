@@ -11,7 +11,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
     static readonly className = 'NightingaleSeries';
     static readonly type = 'nightingale' as const;
 
-    override properties = new RadialColumnSeriesBaseProperties<AgNightingaleSeriesOptions>();
+    override properties = new RadialColumnSeriesBaseProperties<AgNightingaleSeriesOptions<unknown>>();
 
     // TODO: Enable once the options contract has been revisited
     // @TempValidate

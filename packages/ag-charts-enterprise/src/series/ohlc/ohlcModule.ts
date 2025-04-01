@@ -60,7 +60,7 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
     groupable: false,
 };
 
-export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
+export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions<never>> = {
     type: 'series',
     name: 'ohlc',
     chartType: 'cartesian',

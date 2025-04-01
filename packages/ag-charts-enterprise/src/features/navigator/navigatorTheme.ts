@@ -1,6 +1,6 @@
 import { type AgNavigatorOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
-export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
+export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions<never>> = {
     enabled: false,
     // TODO: AG-10781 Breaking Change
     // height: { $if: [{ $path: './miniChart/enabled' }, 40, 18] },

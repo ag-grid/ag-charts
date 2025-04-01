@@ -25,7 +25,7 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
     themeTemplate: RANGE_AREA_SERIES_THEME,
 };
 
-export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOptions> = {
+export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOptions<never>> = {
     type: 'series',
     name: 'range-area',
     chartType: 'cartesian',

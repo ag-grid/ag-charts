@@ -19,7 +19,7 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     groupable: true,
 };
 
-export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions> = {
+export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions<never>> = {
     type: 'series',
     name: 'box-plot',
     chartType: 'cartesian',

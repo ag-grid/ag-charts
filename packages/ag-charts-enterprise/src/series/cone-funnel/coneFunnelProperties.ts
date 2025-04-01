@@ -32,8 +32,8 @@ class ConeFunnelSeriesStageLabel extends AxisLabel {
 }
 
 export class ConeFunnelProperties
-    extends AbstractBarSeriesProperties<AgConeFunnelSeriesOptions>
-    implements BaseFunnelProperties<AgConeFunnelSeriesOptions>
+    extends AbstractBarSeriesProperties<AgConeFunnelSeriesOptions<unknown>>
+    implements BaseFunnelProperties<AgConeFunnelSeriesOptions<unknown>>
 {
     @Property
     stageKey!: string;

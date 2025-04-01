@@ -81,12 +81,12 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     }
 
     private setChartType(chartType: AgPriceVolumeChartType) {
-        const options: AgFinancialChartOptions = { chartType };
+        const options: AgFinancialChartOptions<never> = { chartType };
         this.ctx.chartService.publicApi?.updateDelta(options as any).catch((e) => Logger.error(e));
     }
 
     private getChartType(): AgPriceVolumeChartType {
-        const chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions)?.chartType;
+        const chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions<never>)?.chartType;
         if (chartType == null || !menuItems.some((item) => item.value === chartType)) {
             return 'candlestick';
         }

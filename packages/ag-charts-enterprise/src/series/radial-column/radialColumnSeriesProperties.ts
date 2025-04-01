@@ -6,7 +6,7 @@ import { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseProper
 const { Property } = _ModuleSupport;
 
 export class RadialColumnSeriesProperties<
-    T extends AgBaseRadialColumnSeriesOptions,
+    T extends AgBaseRadialColumnSeriesOptions<unknown>,
 > extends RadialColumnSeriesBaseProperties<T> {
     @Property
     columnWidthRatio?: number;

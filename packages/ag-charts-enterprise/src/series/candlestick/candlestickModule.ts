@@ -30,7 +30,7 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
     groupable: false,
 };
 
-export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeriesOptions> = {
+export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeriesOptions<never>> = {
     type: 'series',
     name: 'candlestick',
     chartType: 'cartesian',

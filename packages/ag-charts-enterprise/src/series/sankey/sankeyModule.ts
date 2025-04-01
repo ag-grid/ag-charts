@@ -66,7 +66,7 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     },
 };
 
-export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> = {
+export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions<never>> = {
     type: 'series',
     name: 'sankey',
     chartType: 'flow-proportion',

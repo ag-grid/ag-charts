@@ -20,7 +20,7 @@ export interface MapLineNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatu
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
 }
 
-export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOptions> {
+export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOptions<unknown>> {
     @Property
     topology?: _ModuleSupport.FeatureCollection = undefined;
 

@@ -14,7 +14,7 @@ import { AutoSizedLabel } from '../util/autoSizedLabel';
 
 const { CartesianSeriesProperties, SeriesTooltip, Property } = _ModuleSupport;
 
-export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmapSeriesOptions> {
+export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmapSeriesOptions<unknown>> {
     @Property
     title?: string;
 

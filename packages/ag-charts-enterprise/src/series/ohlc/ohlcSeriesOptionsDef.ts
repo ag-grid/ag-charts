@@ -18,7 +18,7 @@ const ohlcSeriesItemOptionsDef: OptionsDefs<AgOhlcSeriesItemOptions> = {
     ...lineDashOptionsDef,
 };
 
-export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
+export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions<never>> = {
     type: required(constant('ohlc')),
     xKey: required(string),
     openKey: required(string),

@@ -23,7 +23,7 @@ export class FlowProportionChart extends Chart {
     override async updateData() {
         await super.updateData();
 
-        const options = this.getOptions() as AgFlowProportionChartOptions;
+        const options = this.getOptions() as AgFlowProportionChartOptions<unknown>;
         if (this.nodes !== options.nodes) {
             this.nodes = options.nodes;
         }

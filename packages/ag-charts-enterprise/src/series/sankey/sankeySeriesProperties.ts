@@ -42,7 +42,7 @@ export interface SankeyNodeLabelDatum {
     text: string;
 }
 
-class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
+class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams<unknown>> {
     @Property
     spacing: number = 1;
 }
@@ -108,7 +108,7 @@ class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOption
     itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<unknown>, AgSankeySeriesNodeStyle>;
 }
 
-export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptions> {
+export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptions<unknown>> {
     @Property
     nodes: any[] | undefined = undefined;
 

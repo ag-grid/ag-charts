@@ -96,7 +96,7 @@ export abstract class OhlcSeriesBaseProperties<
         Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
 }
 
-export class OhlcSeriesProperties extends OhlcSeriesBaseProperties<AgOhlcSeriesOptions> {
+export class OhlcSeriesProperties extends OhlcSeriesBaseProperties<AgOhlcSeriesOptions<unknown>> {
     @Property
     readonly tooltip = new SeriesTooltip<AgOhlcSeriesTooltipRendererParams<any>>();
 

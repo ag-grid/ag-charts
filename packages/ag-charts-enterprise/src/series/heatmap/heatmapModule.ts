@@ -25,7 +25,7 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     themeTemplate: HEATMAP_SERIES_THEME,
 };
 
-export const HeatmapSeriesModule: SeriesModuleDefinition<AgHeatmapSeriesOptions> = {
+export const HeatmapSeriesModule: SeriesModuleDefinition<AgHeatmapSeriesOptions<never>> = {
     type: 'series',
     name: 'heatmap',
     chartType: 'cartesian',

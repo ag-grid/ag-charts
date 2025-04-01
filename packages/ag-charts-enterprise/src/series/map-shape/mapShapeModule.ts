@@ -55,7 +55,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     },
 };
 
-export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOptions> = {
+export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOptions<never>> = {
     type: 'series',
     name: 'map-shape',
     chartType: 'topology',

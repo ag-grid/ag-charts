@@ -61,7 +61,7 @@ const commonIgnoredMiniChartProperties: CommonIgnoredProperties[] = [
     'yName',
 ];
 
-export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
+export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions<never>> = {
     enabled: boolean,
     height: positiveNumber,
     spacing: positiveNumber,
@@ -95,7 +95,7 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
             ...fontOptionsDef,
         },
         series: arrayOf(
-            typeUnion<Required<AgMiniChartSeriesOptions>>({
+            typeUnion<Required<AgMiniChartSeriesOptions<never>>>({
                 area: without(NewAreaSeriesModule.options, commonIgnoredMiniChartProperties),
                 bar: without(NewBarSeriesModule.options, [
                     ...commonIgnoredMiniChartProperties,

@@ -15,7 +15,7 @@ import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel'
 
 const { BaseProperties, HierarchySeriesProperties, HighlightStyle, SeriesTooltip, Property, Label } = _ModuleSupport;
 
-class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
+class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams<unknown>> {
     @Property
     spacing: number = 0;
 }
@@ -87,10 +87,10 @@ class TreemapSeriesTile extends BaseProperties {
     padding: number = 0;
 
     @Property
-    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams<unknown>>();
 
     @Property
-    readonly secondaryLabel = new AutoSizedSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly secondaryLabel = new AutoSizedSecondaryLabel<AgTreemapSeriesLabelFormatterParams<unknown>>();
 }
 
 class TreemapSeriesGroupHighlightStyle extends BaseProperties {
@@ -110,7 +110,7 @@ class TreemapSeriesGroupHighlightStyle extends BaseProperties {
     strokeOpacity?: number;
 
     @Property
-    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams<unknown>>();
 }
 
 class TreemapSeriesTileHighlightStyle extends BaseProperties {
@@ -130,10 +130,10 @@ class TreemapSeriesTileHighlightStyle extends BaseProperties {
     strokeOpacity?: number;
 
     @Property
-    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams<unknown>>();
 
     @Property
-    readonly secondaryLabel = new AutoSizedSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly secondaryLabel = new AutoSizedSecondaryLabel<AgTreemapSeriesLabelFormatterParams<unknown>>();
 }
 
 class TreemapSeriesHighlightStyle extends HighlightStyle {
@@ -144,7 +144,7 @@ class TreemapSeriesHighlightStyle extends HighlightStyle {
     readonly tile = new TreemapSeriesTileHighlightStyle();
 }
 
-export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemapSeriesOptions> {
+export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemapSeriesOptions<unknown>> {
     @Property
     sizeName?: string;
 

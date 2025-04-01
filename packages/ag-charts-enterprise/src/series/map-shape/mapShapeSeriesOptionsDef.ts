@@ -16,7 +16,7 @@ import {
 
 const { commonSeriesOptionsDefs, autoSizedLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
-export const mapShapeSeriesOptionsDef: OptionsDefs<AgMapShapeSeriesOptions> = {
+export const mapShapeSeriesOptionsDef: OptionsDefs<AgMapShapeSeriesOptions<never>> = {
     type: required(constant('map-shape')),
     idKey: required(string),
     colorKey: string,

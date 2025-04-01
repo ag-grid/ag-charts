@@ -22,7 +22,7 @@ export const RadialColumnModule: _ModuleSupport.SeriesModule<'radial-column'> = 
     groupable: true,
 };
 
-export const RadialColumnSeriesModule: SeriesModuleDefinition<AgRadialColumnSeriesOptions> = {
+export const RadialColumnSeriesModule: SeriesModuleDefinition<AgRadialColumnSeriesOptions<never>> = {
     type: 'series',
     name: 'radial-column',
     chartType: 'polar',

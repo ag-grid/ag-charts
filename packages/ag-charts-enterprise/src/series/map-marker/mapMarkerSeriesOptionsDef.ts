@@ -16,7 +16,7 @@ import {
 const { commonSeriesOptionsDefs, markerOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs, without } =
     _ModuleSupport;
 
-export const mapMarkerSeriesOptionsDef: OptionsDefs<AgMapMarkerSeriesOptions> = {
+export const mapMarkerSeriesOptionsDef: OptionsDefs<AgMapMarkerSeriesOptions<never>> = {
     type: required(constant('map-marker')),
     // TODO idKey OR latitudeKey & longitudeKey should be required - support for such conditions needed
     idKey: string,

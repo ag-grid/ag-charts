@@ -19,7 +19,7 @@ import {
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, shadowOptionsDefs, tooltipOptionsDefs, without } =
     _ModuleSupport;
 
-export const pyramidSeriesOptionsDef: OptionsDefs<AgPyramidSeriesOptions> = {
+export const pyramidSeriesOptionsDef: OptionsDefs<AgPyramidSeriesOptions<never>> = {
     type: required(constant('pyramid')),
     stageKey: required(string),
     valueKey: required(string),
