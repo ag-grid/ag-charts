@@ -47,23 +47,20 @@ jobs:
                   PR_NO: ${{ github.event.issue.number }}
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Checkout PR
+            - name: Checkout
               uses: actions/checkout@v4
-              if: github.event_name == 'issue_comment'
               with:
-                  ref: ${{ steps.get-branch.outputs.branch }}
                   fetch-depth: 0
 
             - name: Fetch Refs
               if: github.event_name == 'issue_comment'
               run: |
-                  git fetch origin latest
-
-            - name: Checkout
-              uses: actions/checkout@v4
-              if: github.event_name == 'workflow_dispatch'
-              with:
-                  ref: ${{ github.ref }}
+                  if [[ -f '.git/shallow' ]]; then
+                      echo "Shallow clone detected, fetching all refs..."
+                      git fetch origin latest --unshallow
+                  else
+                      git fetch origin latest
+                  fi
 
             - name: Setup
               id: setup
