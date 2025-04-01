@@ -50,6 +50,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
               with:
+                  ref: ${{ steps.get-branch.outputs.branch }}
                   fetch-depth: 0
 
             - name: Fetch Refs
