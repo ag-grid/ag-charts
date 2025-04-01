@@ -4,8 +4,8 @@
     --chart-bg: #fff;
     --chart-border: #d0d5dd;
 
-    --button-background-color: transparent;
     --button-text-color: #212529;
+    --button-background-color: transparent;
     --button-color-border-primary: #d0d5dd;
     --button-hover-background-color: rgba(0, 0, 0, 0.1);
     --select-chevron: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23667085" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
@@ -28,7 +28,6 @@
     --checkbox-tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a343e' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17L4 12'/%3E%3C/svg%3E");
     --slide-range-track-background: #4a5465;
     --color-input-bg-checked: #a9c5ec;
-    --placeholder-text-color: #667085;
 }
 
 :root,
@@ -114,8 +113,8 @@ input[type='textarea'] {
 
 /* Text and number inputs specific styles */
 .toolbar :is(input[type='text'], input[type='number']) {
-    height: 28px;
-    padding: 0.375em 1em 0.5em;
+    height: 22px;
+    padding: 6px 12px 6px 12px;
     white-space: nowrap;
 }
 
