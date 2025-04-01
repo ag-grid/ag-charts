@@ -1,12 +1,12 @@
 
 #!/bin/bash
 
-set -eu
+set -eux
 
 export NX_DAEMON=false
 yarn nx daemon --stop
 
-base=$(git merge-base HEAD latest)
+base=$(git merge-base HEAD origin/latest)
 head=$(git rev-parse HEAD)
 branch=$(git rev-parse --abbrev-ref HEAD)
 tools_dir=$(dirname "$0")
