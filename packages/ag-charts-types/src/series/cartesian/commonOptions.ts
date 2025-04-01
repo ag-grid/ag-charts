@@ -64,6 +64,8 @@ export interface AgPatternColor {
     type: 'pattern';
     /** The stock pattern to apply. */
     pattern?: AgPatternName;
+    /** The svg path for a custom pattern */
+    path?: string;
     /** Width of the pattern unit. */
     width?: number;
     /** Height of the pattern unit. */
@@ -95,7 +97,8 @@ export type AgPatternName =
     | 'diamonds'
     | 'stars'
     | 'hearts'
-    | 'crosses';
+    | 'crosses'
+    | 'custom';
 
 /**
  * Represents options for the strokes in a chart.

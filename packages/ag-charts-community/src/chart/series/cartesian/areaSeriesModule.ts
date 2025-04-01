@@ -1,5 +1,4 @@
-import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { InternalAgGradientColor } from 'ag-charts-core';
+import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
@@ -43,7 +42,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: false,
-            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             stroke: { $palette: 'stroke' },
             fillOpacity: 0.8,
@@ -76,7 +75,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                     colorStops: { $palette: 'gradient' },
                     rotation: 0,
                     reverse: true,
-                } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+                } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
                 fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             },
             label: {
