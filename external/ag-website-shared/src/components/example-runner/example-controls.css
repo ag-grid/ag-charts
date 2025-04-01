@@ -93,7 +93,9 @@ body > #highlighter {
 .toolbar button {
     text-align: center;
 }
-
+.toolbar pre {
+    font-size: 14px;
+}
 /* Common input base styles */
 .toolbar :is(input[type='text'], input[type='number'], input[type='checkbox'], textarea),
 input[type='textarea'] {
