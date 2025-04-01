@@ -106,9 +106,6 @@ input[type='textarea'] {
     font: inherit;
     font-size: 14px;
     letter-spacing: 0.01em;
-    transition:
-        border-color 0.25s ease-in-out,
-        box-shadow 0.25s ease-in-out;
 }
 
 /* Text and number inputs specific styles */
@@ -163,7 +160,7 @@ input[type='textarea'] {
     background-size: 65%;
 }
 
-.toolbar :is(input:focus-visible, textarea:focus-visible) {
+.toolbar :is(input:focus-visible, textarea:focus-visible, select:focus-visible) {
     box-shadow:
         0 0 0 4px #d4e3f8,
         0 1px 2px 0 color-mix(in srgb, #0c111d 05%, transparent);
