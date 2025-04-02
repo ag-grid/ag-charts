@@ -33,6 +33,10 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         return this._domain;
     }
 
+    get bandCount() {
+        return this._domain.length;
+    }
+
     override toDomain(value: number): Date {
         return new Date(value);
     }

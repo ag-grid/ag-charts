@@ -22,6 +22,7 @@ import {
     LogAxisModule,
     NumberAxisModule,
     TimeAxisModule,
+    UnitTimeAxisModule,
 } from './module/axisModules';
 
 export { ModuleRegistry } from 'ag-charts-core';
@@ -33,6 +34,7 @@ export {
     TimeAxisModule,
     CategoryAxisModule,
     GroupedCategoryAxisModule,
+    UnitTimeAxisModule,
     NewAreaSeriesModule,
     NewBarSeriesModule,
     NewBubbleSeriesModule,
@@ -51,6 +53,7 @@ export const AllCartesianCommunityModules = [
     TimeAxisModule,
     CategoryAxisModule,
     GroupedCategoryAxisModule,
+    UnitTimeAxisModule,
     NewAreaSeriesModule,
     NewBarSeriesModule,
     NewBubbleSeriesModule,

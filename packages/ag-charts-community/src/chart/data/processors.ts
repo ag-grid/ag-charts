@@ -30,6 +30,7 @@ function getValidationFn(scaleType?: ScaleType) {
         case 'number':
         case 'log':
         case 'ordinal-time':
+        case 'unit-time':
         case 'time':
         case 'color':
             return basicContinuousCheckDatumValidation;
