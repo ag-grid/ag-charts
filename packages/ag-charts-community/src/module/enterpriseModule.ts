@@ -12,7 +12,7 @@ export interface LicenseManager {
 interface EnterpriseModuleOptions {
     isEnterprise: boolean;
     styles?: string;
-    licenseManager?: (options: AgChartOptions<unknown>) => LicenseManager;
+    licenseManager?: <TDatum, TOptions extends AgChartOptions<TDatum>>(options: TOptions) => LicenseManager;
     injectWatermark?: (domManager: DOMManager, text: string) => void;
 }
 

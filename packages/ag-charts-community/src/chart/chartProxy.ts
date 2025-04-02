@@ -20,21 +20,28 @@ import { ChartUpdateType } from './chartUpdateType';
 const debug = Debug.create(true, 'opts');
 const DESTROYED_ERROR = 'AG Charts - Chart was destroyed, cannot perform request.';
 
-export interface AgChartProxy extends AgChartInstance {
+export interface AgChartProxy extends AgChartInstance<unknown, AgChartOptions<unknown>> {
     chart?: Chart;
 }
 
 export interface FactoryApi {
     caretaker: MementoCaretaker;
 
-    create(
-        userOptions: AgChartOptions,
-        processedOverrides?: Partial<AgChartOptions>,
+    create<TDatum, TOptions extends AgChartOptions<TDatum>>(
+        userOptions: TOptions,
+        processedOverrides?: Partial<TOptions>,
         specialOverrides?: ChartSpecialOverrides,
         optionsMetadata?: ChartInternalOptionMetadata
     ): AgChartProxy;
-    update(opts: AgChartOptions, chart?: AgChartInstance, specialOverrides?: ChartSpecialOverrides): AgChartProxy;
-    updateUserDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>): void;
+    update<TDatum, TOptions extends AgChartOptions<TDatum>>(
+        opts: TOptions,
+        chart?: AgChartInstance<TDatum, TOptions>,
+        specialOverrides?: ChartSpecialOverrides
+    ): AgChartProxy;
+    updateUserDelta<TDatum, TOptions extends AgChartOptions<TDatum>>(
+        chart: AgChartInstance<TDatum, TOptions>,
+        deltaOptions: DeepPartial<TOptions>
+    ): void;
 }
 
 /**

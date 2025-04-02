@@ -27,13 +27,13 @@ import {
     isEnterpriseTopology,
 } from '../factory/expectedEnterpriseModules';
 
-export type SeriesOptionsTypes =
-    | AgCartesianSeriesOptions<unknown>
-    | AgPolarSeriesOptions<unknown>
-    | AgHierarchySeriesOptions<unknown>
-    | AgTopologySeriesOptions<unknown>
-    | AgFlowProportionSeriesOptions<unknown>
-    | AgStandaloneSeriesOptions<unknown>
+export type SeriesOptionsTypes<TDatum = unknown> =
+    | AgCartesianSeriesOptions<TDatum>
+    | AgPolarSeriesOptions<TDatum>
+    | AgHierarchySeriesOptions<TDatum>
+    | AgTopologySeriesOptions<TDatum>
+    | AgFlowProportionSeriesOptions<TDatum>
+    | AgStandaloneSeriesOptions<TDatum>
     | AgGaugeOptions;
 
 export type SeriesType = SeriesOptionsTypes['type'];

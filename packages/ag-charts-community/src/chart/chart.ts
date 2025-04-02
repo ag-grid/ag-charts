@@ -251,9 +251,9 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     private readonly processors: UpdateProcessor[] = [];
 
-    queuedUserOptions: AgChartOptions[] = [];
-    queuedChartOptions: ChartOptions[] = [];
-    chartOptions: ChartOptions;
+    private queuedUserOptions: AgChartOptions<unknown>[] = [];
+    private queuedChartOptions: ChartOptions<unknown, AgChartOptions<unknown>>[] = [];
+    chartOptions: ChartOptions<unknown, AgChartOptions<unknown>>;
     private firstApply = true;
 
     /**
@@ -1170,15 +1170,17 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
     }
 
-    private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;
+    private filterMiniChartSeries<TDatum>(
+        series: AgChartOptions<TDatum>['series'] | undefined
+    ): AgChartOptions<TDatum>['series'] | undefined;
     private filterMiniChartSeries(series: any[] | undefined): any[] | undefined {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
 
-    applyOptions(newChartOptions: ChartOptions) {
+    applyOptions<TDatum, TOptions extends AgChartOptions<TDatum>>(newChartOptions: ChartOptions<TDatum, TOptions>) {
         const deltaOptions = this.firstApply
             ? newChartOptions.processedOptions
-            : newChartOptions.diffOptions(this.chartOptions);
+            : newChartOptions.diffOptions(this.chartOptions as typeof newChartOptions);
         if (deltaOptions == null || Object.keys(deltaOptions).length === 0) return;
 
         const oldOpts = this.firstApply ? {} : this.chartOptions.processedOptions;
@@ -1236,7 +1238,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
             this.modulesManager.getModule<any>('locale').localeText = deltaOptions.locale?.localeText;
         }
 
-        this.chartOptions = newChartOptions;
+        this.chartOptions = newChartOptions as typeof this.chartOptions;
 
         const navigatorModule = this.modulesManager.getModule<any>('navigator');
         const zoomModule = this.modulesManager.getModule<any>('zoom');
@@ -1277,7 +1279,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
         this.firstApply = false;
     }
 
-    private applyInitialState(options: AgChartOptions) {
+    private applyInitialState<TDatum>(options: AgChartOptions<TDatum>) {
         const { annotationManager, chartTypeOriginator, historyManager, stateManager, zoomManager } = this.ctx;
         const { initialState } = options;
 
@@ -1321,7 +1323,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
     }
 
-    private shouldForceNodeDataRefresh(deltaOptions: AgChartOptions, seriesStatus: SeriesChangeType) {
+    private shouldForceNodeDataRefresh<TDatum>(
+        deltaOptions: Partial<AgChartOptions<TDatum>>,
+        seriesStatus: SeriesChangeType
+    ) {
         const seriesDataUpdate = !!deltaOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
         const legendKeys = legendRegistry.getKeys();
         const optionsHaveLegend = Object.values(legendKeys).some(
@@ -1331,7 +1336,11 @@ export abstract class Chart extends Observable implements ModuleInstance {
         return seriesDataUpdate || optionsHaveLegend || otherRefreshUpdate;
     }
 
-    private shouldClearLegendData(options: AgChartOptions, oldOpts: AgChartOptions, seriesStatus: SeriesChangeType) {
+    private shouldClearLegendData<TDatum>(
+        options: AgChartOptions<TDatum>,
+        oldOpts: AgChartOptions<unknown>,
+        seriesStatus: SeriesChangeType
+    ) {
         const seriesChanged =
             seriesStatus === 'replaced' || seriesStatus === 'series-grouping-change' || seriesStatus === 'updated';
         const legendRemoved = oldOpts.legend != null && options.legend == null;
@@ -1339,10 +1348,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
         return seriesChanged || legendRemoved;
     }
 
-    private applyMiniChartOptions(
+    private applyMiniChartOptions<TDatum>(
         miniChart: any,
-        miniChartSeries: NonNullable<AgChartOptions['series']>,
-        completeOptions: AgChartOptions,
+        miniChartSeries: NonNullable<AgChartOptions<TDatum>['series']>,
+        completeOptions: AgChartOptions<TDatum>,
         oldOpts: AgChartOptions & { type?: SeriesOptionsTypes['type'] }
     ) {
         const oldSeries = oldOpts?.navigator?.miniChart?.series ?? oldOpts?.series;
@@ -1411,12 +1420,12 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
     }
 
-    private applyModules(options: AgChartOptions) {
+    private applyModules<TDatum>(options: AgChartOptions<TDatum>) {
         const { type: chartType } = this.constructor as any;
 
         let modulesChanged = false;
         for (const module of moduleRegistry.byType<RootModule | LegendModule>('root', 'legend')) {
-            const isConfigured = options[module.optionsKey as keyof AgChartOptions] != null;
+            const isConfigured = options[module.optionsKey as keyof AgChartOptions<never>] != null;
             const shouldBeEnabled = isConfigured && module.chartTypes.includes(chartType);
 
             if (shouldBeEnabled === this.modulesManager.isEnabled(module)) continue;
@@ -1447,10 +1456,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
     }
 
-    private applySeries(
+    private applySeries<D1, D2>(
         chart: { series: Series<unknown, any, any>[] },
-        optSeries: AgChartOptions['series'],
-        oldOptSeries?: AgChartOptions['series']
+        optSeries: AgChartOptions<D1>['series'],
+        oldOptSeries?: AgChartOptions<D2>['series']
     ): SeriesChangeType {
         if (!optSeries) {
             return 'no-change';
@@ -1520,10 +1529,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
         return isUpdated ? 'updated' : 'no-op';
     }
 
-    private applyAxes(
+    private applyAxes<D1, D2>(
         chart: { axes: ChartAxis[] },
-        options: AgChartOptions,
-        oldOpts: AgChartOptions,
+        options: AgChartOptions<D1>,
+        oldOpts: AgChartOptions<D2>,
         seriesStatus: SeriesChangeType,
         skip: string[] = []
     ) {
@@ -1557,7 +1566,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
         return true;
     }
 
-    private createSeries(seriesOptions: SeriesOptionsTypes): Series<unknown, any, any> {
+    private createSeries<TDatum>(seriesOptions: SeriesOptionsTypes<TDatum>): Series<unknown, any, any>;
+    private createSeries(seriesOptions: SeriesOptionsTypes<unknown>): Series<unknown, any, any> {
         const seriesInstance = seriesRegistry.create(seriesOptions.type, this.getModuleContext()) as Series<
             any,
             any,
@@ -1683,5 +1693,18 @@ export abstract class Chart extends Observable implements ModuleInstance {
                 }
             }
         }
+    }
+
+    public pushOptions<D, T extends AgChartOptions<D>>(chartOptions: ChartOptions<D, T>): void;
+    public pushOptions(chartOptions: ChartOptions<unknown, AgChartOptions<unknown>>) {
+        this.queuedUserOptions.push(chartOptions.userOptions);
+        this.queuedChartOptions.push(chartOptions);
+    }
+
+    public popOptions<D, T extends AgChartOptions<D>>(chartOptions: ChartOptions<D, T>): void;
+    public popOptions(chartOptions: ChartOptions<unknown, AgChartOptions<unknown>>) {
+        const queueIdx = this.queuedUserOptions.indexOf(chartOptions.userOptions) + 1;
+        this.queuedUserOptions.splice(0, queueIdx);
+        this.queuedChartOptions.splice(0, queueIdx);
     }
 }

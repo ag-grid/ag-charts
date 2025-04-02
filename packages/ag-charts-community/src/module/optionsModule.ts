@@ -94,7 +94,7 @@ enum GroupingType {
 
 const stringFormat = (value: string) => `'${value}'`;
 
-export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
+export class ChartOptions<D = unknown, T extends AgChartOptions<D> = AgChartOptions<D>> {
     public static readonly OPTIONS_CLONE_OPTS: CloneOptions = {
         shallow: new Set(['data', 'container']),
         assign: new Set(['context', 'theme']),
@@ -103,10 +103,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static readonly perfDebug = Debug.create(true, 'perf');
 
-    private static readonly FAST_PATH_OPTIONS = new Set<keyof AgChartOptions>(['data', 'width', 'height', 'container']);
-    private static isFastPathDelta(deltaOptions: DeepPartial<AgChartOptions> | null) {
+    private static readonly FAST_PATH_OPTIONS = new Set<keyof AgChartOptions<never>>([
+        'data',
+        'width',
+        'height',
+        'container',
+    ]);
+    private static isFastPathDelta<D>(deltaOptions: DeepPartial<AgChartOptions<D>> | null) {
         for (const key of Object.keys(deltaOptions ?? {})) {
-            if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions)) {
+            if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions<never>)) {
                 ChartOptions.perfDebug('ChartOptions.isFastPathDelta() - slow path required due to presence of: ', key);
                 return false;
             }
@@ -124,15 +129,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     optionMetadata: ChartInternalOptionMetadata;
     themeParameters: AgChartThemeParams = {};
     annotationThemes: any;
-    fastDelta?: DeepPartial<T>;
+    fastDelta?: Partial<T>;
     chartDef?: ChartModuleDefinition<any>;
 
     private static readonly debug = Debug.create(true, 'opts');
 
     constructor(
-        currentUserOptions: T | ChartOptions<T> | undefined,
-        newUserOptions: T,
-        processedOverrides: Partial<T>,
+        currentUserOptions: AgChartOptions<D> | ChartOptions<D, AgChartOptions<D>> | undefined,
+        newUserOptions: AgChartOptions<D>,
+        processedOverrides: Partial<AgChartOptions<D>>,
         specialOverrides: Partial<ChartSpecialOverrides>,
         metadata: ChartInternalOptionMetadata,
         deltaOptions?: DeepPartial<T> | null,
@@ -141,16 +146,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.optionMetadata = metadata ?? {};
         this.processedOverrides = processedOverrides ?? {};
 
-        let baseChartOptions: ChartOptions<T> | null = null;
+        let baseChartOptions: ChartOptions<unknown, AgChartOptions<unknown>> | null = null;
         if (currentUserOptions instanceof ChartOptions) {
             // Delta update case.
-            baseChartOptions = currentUserOptions;
+            baseChartOptions = currentUserOptions as ChartOptions<unknown, AgChartOptions<unknown>>;
             this.specialOverrides = baseChartOptions.specialOverrides;
 
             if (deltaOptions === undefined) {
                 // No diff case - null means diff was a no-op.
                 deltaOptions = jsonDiff(
-                    baseChartOptions.userOptions as T,
+                    baseChartOptions.userOptions,
                     newUserOptions,
                     ChartOptions.JSON_DIFF_OPTS
                 ) as DeepPartial<T>;
@@ -204,7 +209,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         Debug.inDevelopmentMode(() => deepFreeze(this));
     }
 
-    private fastSetup(deltaOptions: DeepPartial<T> | null, baseChartOptions: ChartOptions<T>) {
+    private fastSetup(deltaOptions: DeepPartial<T> | null, baseChartOptions: ChartOptions<D, T>) {
         const { activeTheme, defaultAxes, processedOptions: baseOptions } = baseChartOptions;
 
         const { presetType } = this.optionMetadata;
@@ -271,7 +276,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.soloSeriesIntegrity(options);
 
         if (!enterpriseModule.isEnterprise) {
-            removeUsedEnterpriseOptions(options);
+            removeUsedEnterpriseOptions<D, T>(options);
         }
 
         const activeTheme = getChartTheme(options.theme);
@@ -457,7 +462,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.axes = validatedAxesOptions;
     }
 
-    diffOptions(other?: ChartOptions): Partial<T> {
+    diffOptions<D2, T2 extends AgChartOptions<D2>>(other?: ChartOptions<D, T>): Partial<T>;
+    diffOptions<D2, T2 extends AgChartOptions<D2>>(other?: ChartOptions<D2, T2>): Partial<T2>;
+    diffOptions<D2, T2 extends AgChartOptions<D2>>(other?: ChartOptions<D, T> | ChartOptions<D2, T2>): Partial<T | T2> {
         // Detect first creation case.
         if (this === other) return {};
         if (other == null) return this.processedOptions;

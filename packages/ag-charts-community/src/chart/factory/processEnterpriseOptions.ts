@@ -7,7 +7,7 @@ import { isAgGaugeChartOptions, optionsType } from '../mapping/types';
 import { chartTypes } from './chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';
 
-export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T, silent?: boolean) {
+export function removeUsedEnterpriseOptions<D, T extends Partial<AgChartOptions<D>>>(options: T, silent?: boolean) {
     let usedOptions: string[] = [];
     const isGaugeChart = isAgGaugeChartOptions(options);
     const optsType = optionsType(options);

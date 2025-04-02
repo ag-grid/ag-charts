@@ -5,10 +5,10 @@ import type { ISeries } from '../series/seriesTypes';
 
 const MATCHING_KEYS = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'radiusKey', 'normalizedTo'];
 
-export function matchSeriesOptions<S extends ISeries<any, any, any>>(
+export function matchSeriesOptions<D1, D2, S extends ISeries<any, any, any>>(
     series: S[],
-    optSeries: NonNullable<AgChartOptions['series']>,
-    oldOptsSeries?: AgChartOptions['series']
+    optSeries: NonNullable<AgChartOptions<D1>['series']>,
+    oldOptsSeries?: AgChartOptions<D2>['series']
 ) {
     const generateKey = (type: string | undefined, i: any, opts?: any) => {
         const result = [type];
@@ -31,7 +31,7 @@ export function matchSeriesOptions<S extends ISeries<any, any, any>>(
         seriesMap.get(key)?.push([s, idx++]);
     }
 
-    const optsMap = new Map<string, [NonNullable<AgChartOptions['series']>[number], number][]>();
+    const optsMap = new Map<string, [NonNullable<AgChartOptions<D1>['series']>[number], number][]>();
     idx = 0;
     for (const o of optSeries) {
         const key = generateKey(o.type, o, o);

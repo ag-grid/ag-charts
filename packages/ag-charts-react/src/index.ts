@@ -32,7 +32,7 @@ function getOptions(options: AgChartOptions, containerRef: RefObject<HTMLElement
 }
 
 function ChartWithConstructor<Props extends BaseChartProps>(
-    ctor: (options: Props['options']) => AgChartInstance<Props['options']>,
+    ctor: (options: Props['options']) => AgChartInstance,
     displayName: string
 ) {
     const Component = forwardRef<AgChartInstance, Props>(function AgChartsReact(props, ref) {
@@ -87,9 +87,10 @@ export const AgCharts = /*#__PURE__*/ ChartWithConstructor<AgChartProps>(
     (options) => AgChartsAPI.create(options),
     'AgCharts'
 );
+type t = ReturnType<(typeof AgChartsAPI)['create']>;
 
 export interface AgFinancialChartProps {
-    options: AgFinancialChartOptions;
+    options: AgFinancialChartOptions<unknown>;
     style?: CSSProperties;
     className?: string;
 }

@@ -41,11 +41,11 @@ export const AgCharts = /*#__PURE__*/ defineComponent({
 export const AgFinancialCharts = /*#__PURE__*/ defineComponent({
     props: {
         options: {
-            type: Object as PropType<AgFinancialChartOptions>,
-            default: (): AgFinancialChartOptions => ({}),
+            type: Object as PropType<AgFinancialChartOptions<unknown>>,
+            default: (): AgFinancialChartOptions<unknown> => ({}),
         },
     },
-    setup(): { chart: AgChartInstance<AgFinancialChartOptions> | undefined } {
+    setup(): { chart: AgChartInstance<AgFinancialChartOptions<unknown>> | undefined } {
         return {
             chart: undefined,
         };

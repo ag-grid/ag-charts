@@ -37,16 +37,19 @@ export abstract class AgCharts {
     private static licenseManager?: LicenseManager;
     private static licenseChecked = false;
 
-    private static licenseCheck(options: AgChartOptions<unknown>) {
+    private static licenseCheck<TDatum, TOptions extends AgChartOptions<TDatum>>(options: TOptions) {
         if (this.licenseChecked) return;
 
-        this.licenseManager = enterpriseModule.licenseManager?.(options);
+        this.licenseManager = enterpriseModule.licenseManager?.<TDatum, TOptions>(options);
         this.licenseManager?.validateLicense();
         this.licenseChecked = true;
     }
 
     /** @private - for use by Charts website dark-mode support. */
-    static readonly optionsMutationFn?: (opts: AgChartOptions<unknown>, preset?: string) => AgChartOptions;
+    static readonly optionsMutationFn?: <TDatum, TOptions extends AgChartOptions<TDatum>>(
+        opts: TOptions,
+        preset?: string
+    ) => TOptions;
 
     public static getLicenseDetails(licenseKey: string) {
         return enterpriseModule.licenseManager?.({}).getLicenseDetails(licenseKey);
@@ -62,14 +65,14 @@ export abstract class AgCharts {
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
-    public static create<O extends AgChartOptions>(
-        userOptions: O,
+    public static create<TDatum, TOptions extends AgChartOptions<TDatum>>(
+        userOptions: TOptions,
         optionsMetadata?: ChartInternalOptionMetadata
-    ): AgChartInstance<O> {
+    ): AgChartInstance<TDatum, TOptions> {
         return debug.group('AgCharts.create()', () => {
             userOptions = Debug.inDevelopmentMode(() => deepFreeze(deepClone(userOptions))) ?? userOptions;
-            this.licenseCheck(userOptions);
-            const chart = AgChartsInternal.createOrUpdate({
+            this.licenseCheck<TDatum, TOptions>(userOptions);
+            const chart = AgChartsInternal.createOrUpdate<TDatum, TOptions>({
                 userOptions,
                 licenseManager: this.licenseManager,
                 optionsMetadata,
@@ -81,7 +84,7 @@ export abstract class AgCharts {
                     this.licenseManager.getWatermarkMessage()
                 );
             }
-            return chart as unknown as AgChartInstance<O>;
+            return chart as unknown as AgChartInstance<TDatum, TOptions>;
         });
     }
 
@@ -134,7 +137,9 @@ class AgChartsInternal {
     private static readonly callbackApi: FactoryApi = {
         caretaker: AgChartsInternal.caretaker,
         create(userOptions, processedOverrides, specialOverrides, optionsMetadata) {
-            return AgChartsInternal.createOrUpdate({
+            type TOptions = typeof userOptions;
+            type TDatum = NonNullable<TOptions['data']>[number];
+            return AgChartsInternal.createOrUpdate<TDatum, TOptions>({
                 userOptions,
                 processedOverrides,
                 specialOverrides,
@@ -142,17 +147,27 @@ class AgChartsInternal {
             });
         },
         update(opts, chart) {
-            return AgChartsInternal.createOrUpdate({ userOptions: opts, proxy: chart as AgChartInstanceProxy });
+            type TOptions = typeof opts;
+            type TDatum = NonNullable<TOptions['data']>[number];
+            return AgChartsInternal.createOrUpdate<TDatum, TOptions>({
+                userOptions: opts,
+                proxy: chart as unknown as AgChartInstanceProxy,
+            });
         },
         updateUserDelta(chart, deltaOptions) {
-            return AgChartsInternal.updateUserDelta(chart as AgChartInstanceProxy, deltaOptions);
+            type TOptions = ReturnType<(typeof chart)['getOptions']>;
+            type TDatum = NonNullable<TOptions['data']>[number];
+            return AgChartsInternal.updateUserDelta<TDatum, TOptions>(
+                chart as unknown as AgChartInstanceProxy,
+                deltaOptions
+            );
         },
     };
 
-    static createOrUpdate(opts: {
-        userOptions?: AgChartOptions<unknown> & Partial<ChartSpecialOverrides>;
-        deltaOptions?: DeepPartial<AgChartOptions<unknown>>;
-        processedOverrides?: Partial<AgChartOptions<unknown>>;
+    static createOrUpdate<TDatum, TOptions extends AgChartOptions<TDatum>>(opts: {
+        userOptions?: TOptions & Partial<ChartSpecialOverrides>;
+        deltaOptions?: DeepPartial<TOptions>;
+        processedOverrides?: Partial<TOptions>;
         proxy?: AgChartInstanceProxy;
         licenseManager?: LicenseManager;
         specialOverrides?: Partial<ChartSpecialOverrides>;
@@ -179,7 +194,7 @@ class AgChartsInternal {
 
         let mutableOptions = userOptions;
         if (AgCharts.optionsMutationFn && mutableOptions) {
-            mutableOptions = AgCharts.optionsMutationFn(deepClone(mutableOptions), presetType);
+            mutableOptions = AgCharts.optionsMutationFn<TDatum, TOptions>(deepClone(mutableOptions), presetType);
             debug(() => ['>>> AgCharts.createOrUpdate() MUTATED user options', deepClone(mutableOptions)]);
         }
 
@@ -196,9 +211,9 @@ class AgChartsInternal {
 
         const { document, window: userWindow, styleContainer, ...options } = mutableOptions ?? {};
         const baseOptions = chart?.getChartOptions();
-        const chartOptions = new ChartOptions(
+        const chartOptions: ChartOptions<TDatum, TOptions> = new ChartOptions<any, any>(
             baseOptions,
-            options,
+            options as AgChartOptions<unknown>,
             processedOverrides,
             {
                 ...specialOverrides,
@@ -217,12 +232,12 @@ class AgChartsInternal {
                 ModuleRegistry.detectChartDefinition(chart.chartOptions.processedOptions)
         ) {
             poolResult?.release(); // Undo previous obtain(), we need to use a different pool!
-            poolResult = this.getPool(chartOptions.optionMetadata)?.obtain(chartOptions);
+            poolResult = this.getPool<TDatum, TOptions>(chartOptions.optionMetadata)?.obtain(chartOptions);
             if (poolResult) {
                 chart = poolResult.item;
             } else {
                 create = true;
-                chart = AgChartsInternal.createChartInstance(chartOptions, chart);
+                chart = AgChartsInternal.createChartInstance<TDatum, TOptions>(chartOptions, chart);
             }
         }
 
@@ -244,16 +259,13 @@ class AgChartsInternal {
             (window as any).agChartInstances[chart.id] = chart;
         }
 
-        chart.queuedUserOptions.push(chartOptions.userOptions);
-        chart.queuedChartOptions.push(chartOptions);
+        chart.pushOptions(chartOptions);
         chart.requestFactoryUpdate((chartRef) => {
             debug.group('>>>> Chart.applyOptions()', () => {
                 chartRef.applyOptions(chartOptions);
                 // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
                 // so we need to remove all queue items up to the last successfully applied item.
-                const queueIdx = chartRef.queuedUserOptions.indexOf(chartOptions.userOptions) + 1;
-                chartRef.queuedUserOptions.splice(0, queueIdx);
-                chartRef.queuedChartOptions.splice(0, queueIdx);
+                chartRef.popOptions(chartOptions);
             });
         });
 
@@ -273,7 +285,10 @@ class AgChartsInternal {
         return modified;
     }
 
-    static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions<unknown>>) {
+    static updateUserDelta<TDatum, TOptions extends AgChartOptions<TDatum>>(
+        proxy: AgChartInstanceProxy,
+        deltaOptions: DeepPartial<TOptions>
+    ) {
         deltaOptions = deepClone(deltaOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
         const stripSymbols = jsonWalk(
@@ -286,14 +301,18 @@ class AgChartsInternal {
         );
 
         debug(() => ['>>> AgCharts.updateUserDelta() user delta', deepClone(deltaOptions)]);
-        AgChartsInternal.createOrUpdate({
+        AgChartsInternal.createOrUpdate<TDatum, TOptions>({
             proxy,
             deltaOptions,
             stripSymbols,
         });
     }
 
-    private static createChartInstance(this: void, options: ChartOptions, oldChart?: Chart): Chart {
+    private static createChartInstance<TDatum, TOptions extends AgChartOptions<TDatum>>(
+        this: void,
+        options: ChartOptions<TDatum, TOptions>,
+        oldChart?: Chart
+    ): Chart {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
         const chartDef = ModuleRegistry.detectChartDefinition(options.processedOptions);
         return chartDef.create(options, transferableResource) as Chart;
@@ -301,10 +320,12 @@ class AgChartsInternal {
 
     private static readonly detachAndClear = (chart: Chart) => chart.detachAndClear();
     private static readonly destroy = (chart: Chart) => chart.destroy();
-    private static getPool(optionMetadata: ChartInternalOptionMetadata) {
+    private static getPool<TDatum, TOptions extends AgChartOptions<TDatum>>(
+        optionMetadata: ChartInternalOptionMetadata
+    ) {
         if (optionMetadata.pool !== true) return;
 
-        return Pool.getPool<Chart, ChartOptions>(
+        return Pool.getPool<Chart, ChartOptions<TDatum, TOptions>>(
             optionMetadata.presetType ?? 'default',
             this.createChartInstance,
             this.detachAndClear,
