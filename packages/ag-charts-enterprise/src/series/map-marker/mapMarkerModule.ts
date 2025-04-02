@@ -1,5 +1,10 @@
 import { type AgMapMarkerSeriesOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import { type InternalAgGradientColor, type SeriesModuleDefinition, ValidationError, validate } from 'ag-charts-core';
+import {
+    type RequiredInternalAgGradientColor,
+    type SeriesModuleDefinition,
+    ValidationError,
+    validate,
+} from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
@@ -36,7 +41,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: true,
-            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillOpacity: 0.5,
             label: {
@@ -60,11 +65,12 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
     create: (ctx: _ModuleSupport.ModuleContext) => new MapMarkerSeries(ctx),
     validate(options, optionsDefs, path) {
         const result = validate(options, optionsDefs, path);
+        const { cleared, invalid } = result;
 
-        if (result.valid?.idKey == null && (result.valid?.latitudeKey == null || result.valid?.longitudeKey == null)) {
+        if (cleared?.idKey == null && (cleared?.latitudeKey == null || cleared?.longitudeKey == null)) {
             const extendPath = (key: string) => (path ? `${path}.${key}` : key);
             const message = `Either \`${extendPath('idKey')}\` or both \`${extendPath('latitudeKey')}\` and \`${extendPath('longitudeKey')}\` are required.`;
-            result.errors.push(new ValidationError(message, path, true));
+            invalid.push(new ValidationError(message, path, true));
         }
 
         return result;

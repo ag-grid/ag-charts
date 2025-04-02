@@ -1,4 +1,4 @@
-export const BBoxValues = { containsPoint, isEmpty, normalize };
+export const BBoxValues = { containsPoint, equals, isEmpty, normalize };
 
 export interface BBoxValues {
     x: number;
@@ -20,6 +20,10 @@ export interface BBoxProvider<T = BBoxValues> {
 
 function containsPoint(bbox: BBoxValues, x: number, y: number): boolean {
     return x >= bbox.x && x <= bbox.x + bbox.width && y >= bbox.y && y <= bbox.y + bbox.height;
+}
+
+function equals(lhs: BBoxValues, rhs: BBoxValues): boolean {
+    return lhs.x === rhs.x && lhs.y === rhs.y && lhs.width === rhs.width && lhs.height === rhs.height;
 }
 
 function isEmpty(bbox: BBoxValues | undefined): boolean {

@@ -5,6 +5,8 @@ const ts = require('typescript');
 const glob = require('glob');
 const path = require('path');
 
+const SCENE_DECORATORS = ['SceneChangeDetection', 'SceneArrayChangeDetection', 'SceneObjectChangeDetection'];
+
 /**
  * Returns true if the type is one of the allowed primitive types.
  * Allowed: number, boolean, string, or undefined.
@@ -25,27 +27,20 @@ function isAllowedPrimitive(type) {
 /**
  * Checks if the type (or union) is an array of allowed primitive types.
  */
-function isAllowedPrimitiveArray(type) {
+function isAllowedPrimitiveArray(type, defaultValue) {
     if (type.isUnion()) {
-        return type.types.every((t) => isAllowedPrimitiveArray(t));
+        return type.types.every((t) => isAllowedPrimitiveArray(t, defaultValue));
     }
-    if (type.flags & ts.TypeFlags.Object) {
-        if (type.objectFlags & ts.ObjectFlags.Reference && type.symbol) {
-            const name = type.symbol.name;
-            if (name === 'Array' || name === 'ReadonlyArray') {
-                const typeArguments = type.typeArguments || [];
-                return typeArguments.length === 1 && isAllowedPrimitive(typeArguments[0]);
-            }
+    if (isTupleType(type)) {
+        if (type.resolvedTypeArguments) {
+            return type.resolvedTypeArguments.every(isAllowedPrimitive);
         }
     }
-    return false;
-}
-
-/**
- * Checks if the type (or union) is an object but NOT an array.
- */
-function isStrictObjectType(type) {
-    return isObjectType(type) && !isArrayType(type);
+    if (isArrayType(type)) {
+        const typeArguments = type.typeArguments || [];
+        return typeArguments.length === 1 && isAllowedPrimitive(typeArguments[0]);
+    }
+    return defaultValue;
 }
 
 /**
@@ -56,6 +51,45 @@ function checkAllowedType(type) {
         return type.types.every((t) => checkAllowedType(t));
     }
     return isAllowedPrimitive(type);
+}
+
+/**
+ * Checks if the type (or union) is a mutable array.
+ */
+function isMutableArray(type) {
+    return isArrayType(type) && !isReadonlyArray(type);
+}
+
+/**
+ * Checks if the type (or union) is a readonly array.
+ */
+function isReadonlyArray(type) {
+    if (type.isUnion()) {
+        return type.types.every((t) => isReadonlyArray(t) || !isArrayType(t));
+    }
+    if (type.flags & ts.TypeFlags.Object) {
+        if (type.objectFlags & ts.ObjectFlags.Reference && type.symbol) {
+            return type.symbol.name === 'ReadonlyArray';
+        }
+    }
+    return false;
+}
+
+/**
+ * Checks if the type (or union) is a tuple.
+ */
+function isTupleType(type) {
+    return (
+        (type.objectFlags & ts.ObjectFlags.Tuple) !== 0 ||
+        (type.target && (type.target.objectFlags & ts.ObjectFlags.Tuple) !== 0)
+    );
+}
+
+/**
+ * Checks if the type (or union) is a mutable tuple.
+ */
+function isMutableTuple(type) {
+    return isTupleType(type) && !(type.target && type.target.readonly);
 }
 
 /**
@@ -81,7 +115,21 @@ function isObjectType(type) {
     if (type.isUnion()) {
         return type.types.some((t) => isObjectType(t));
     }
-    return (type.flags & ts.TypeFlags.Object) !== 0;
+    return (type.flags & ts.TypeFlags.Object) !== 0 || type.flags === ts.TypeFlags.NonPrimitive;
+}
+
+/**
+ * Returns true if the type is a union with at least two of these three types: primitive (string | number | boolean),
+ * object, array (or tuple).
+ */
+function isObjectLikeUnionType(type) {
+    let count = 0;
+    if (type.isUnion()) {
+        count += type.types.some((t) => isObjectType(t)) ? 1 : 0;
+        count += type.types.some((t) => isArrayType(t)) || type.types.some((t) => isTupleType(t)) ? 1 : 0;
+        count += type.types.some((t) => isAllowedPrimitive(t)) ? 1 : 0;
+    }
+    return count >= 2;
 }
 
 /**
@@ -102,44 +150,80 @@ function processSourceFile(sourceFile, checker, errors, useRelativePaths) {
                     } else if (ts.isIdentifier(decorator.expression)) {
                         decoratorName = decorator.expression.escapedText;
                     }
+                    if (!SCENE_DECORATORS.includes(decoratorName)) return;
 
                     const propertyName = node.name.getText(sourceFile);
                     const symbol = checker.getSymbolAtLocation(node.name);
                     if (symbol) {
                         const type = checker.getTypeOfSymbolAtLocation(symbol, node);
                         const typeString = checker.typeToString(type);
-                        let suggestion = '';
+                        let suggestion = [];
+                        if (isMutableArray(type)) {
+                            suggestion.push('Mutable arrays are not allowed. Use readonly arrays instead.');
+                        } else if (isMutableTuple(type)) {
+                            suggestion.push('Mutable tuples are not allowed. Use readonly tuples instead.');
+                        }
 
                         if (decoratorName === 'SceneChangeDetection') {
                             if (!checkAllowedType(type)) {
-                                if (isArrayType(type)) {
-                                    suggestion = 'Switch to @SceneArrayChangeDetection for array properties.';
+                                if (isObjectLikeUnionType(type)) {
+                                    suggestion.push(
+                                        'Switch to @SceneObjectChangeDetection for (primitive | object | array) union properties.'
+                                    );
+                                } else if (isArrayType(type)) {
+                                    suggestion.push('Switch to @SceneArrayChangeDetection for array properties.');
+                                } else if (isTupleType(type)) {
+                                    suggestion.push('Switch to @SceneArrayChangeDetection for tuple properties.');
                                 } else if (isObjectType(type)) {
-                                    suggestion = 'Switch to @SceneObjectChangeDetection for object properties.';
+                                    suggestion.push('Switch to @SceneObjectChangeDetection for object properties.');
                                 } else {
-                                    suggestion = 'Property type is not allowed for change detection.';
+                                    suggestion.push('Property type is not allowed for change detection.');
                                 }
                             }
                         } else if (decoratorName === 'SceneArrayChangeDetection') {
-                            if (!isAllowedPrimitiveArray(type)) {
-                                suggestion =
-                                    'SceneArrayChangeDetection should only be applied to (string | number | boolean)[] types.';
+                            if (isObjectLikeUnionType(type)) {
+                                suggestion.push(
+                                    'Switch to @SceneObjectChangeDetection for (primitive | object | array) union properties.'
+                                );
+                            } else if (!isAllowedPrimitiveArray(type, false)) {
+                                if (checkAllowedType(type)) {
+                                    suggestion.push('Switch to @SceneChangeDetection for primitive properties.');
+                                } else if (!isArrayType(type) && !isTupleType(type) && isObjectType(type)) {
+                                    suggestion.push('Switch to @SceneObjectChangeDetection for object properties.');
+                                }
                             }
                         } else if (decoratorName === 'SceneObjectChangeDetection') {
-                            if (!isStrictObjectType(type)) {
-                                suggestion =
-                                    'SceneObjectChangeDetection should only be applied to non-array object types.';
+                            if (checkAllowedType(type)) {
+                                suggestion.push('Switch to @SceneChangeDetection for primitive properties.');
+                            } else if (isObjectLikeUnionType(type)) {
+                                // no-suggestion (this is correct usage)
+                            } else if (isArrayType(type)) {
+                                suggestion.push('Switch to @SceneArrayChangeDetection for array properties.');
+                            } else if (isTupleType(type)) {
+                                suggestion.push('Switch to @SceneArrayChangeDetection for tuple properties.');
+                            } else if (!isObjectType(type)) {
+                                suggestion.push(
+                                    'SceneObjectChangeDetection should only be applied to non-array object types.'
+                                );
+                            }
+                        }
+                        if (isArrayType(type) || isTupleType(type)) {
+                            if (!isAllowedPrimitiveArray(type, true)) {
+                                suggestion.push(
+                                    'SceneArrayChangeDetection should only be applied to readonly (string | number | boolean)[] types.'
+                                );
                             }
                         }
 
-                        if (suggestion) {
+                        if (suggestion.length > 0) {
                             const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.name.getStart());
                             const filePath = useRelativePaths
                                 ? path.relative(process.cwd(), sourceFile.fileName)
                                 : sourceFile.fileName;
                             errors.push(
-                                `${filePath}:${line + 1}:${character + 1} - Decorator @${decoratorName} applied to property '${propertyName}' with type '${typeString}'. ${suggestion}`
+                                `${filePath}:${line + 1}:${character + 1} - Decorator @${decoratorName} applied to property '${propertyName}' with type '${typeString}'.`
                             );
+                            errors.push(...suggestion.map((s) => `    * ${s}`), '');
                         }
                     }
                 });

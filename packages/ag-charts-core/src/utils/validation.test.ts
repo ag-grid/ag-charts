@@ -2,10 +2,13 @@ import { beforeEach, describe, expect, jest } from '@jest/globals';
 
 import {
     type OptionsDefs,
+    Validator,
     type ValidatorContext,
+    ValidatorResult,
     and,
     array,
     arrayOf,
+    arrayOfDefs,
     attachDescription,
     boolean,
     callback,
@@ -28,12 +31,16 @@ import {
 } from './validation';
 
 function isValid<T extends object>(options: unknown, defs: OptionsDefs<T>, path?: string): options is T {
-    const { errors } = validate(options, defs, path);
-    return errors.length === 0;
+    const { invalid } = validate(options, defs, path);
+    return invalid.length === 0;
 }
 
 describe('Validation utils', () => {
     const mockContext = (): ValidatorContext => ({ options: {}, path: 'pathTo' });
+    const isValidatorResultValid = (result: ValidatorResult | boolean) =>
+        typeof result === 'object' ? result.valid : result;
+    const runValidator = (validator: Validator, value: unknown, context: ValidatorContext = mockContext()) =>
+        isValidatorResultValid(validator(value, context));
 
     beforeEach(() => {
         console.warn = jest.fn();
@@ -57,7 +64,7 @@ describe('Validation utils', () => {
                 [callback, () => {}, true],
                 [callback, 'not a function', false],
             ])('%p validates %p as %p', (validator, input, expected) => {
-                expect(validator(input, mockContext())).toBe(expected);
+                expect(runValidator(validator, input)).toBe(expected);
             });
         });
 
@@ -71,7 +78,7 @@ describe('Validation utils', () => {
                 [lessThan('contextKey'), 4.2, true],
                 [lessThan('contextKey'), 420, false],
             ])('%p validates %p as %p', (validator, input, expected) => {
-                expect(validator(input, { options: { contextKey: 42 }, path: '' })).toBe(expected);
+                expect(runValidator(validator, input, { options: { contextKey: 42 }, path: '' })).toBe(expected);
             });
         });
     });
@@ -81,15 +88,15 @@ describe('Validation utils', () => {
         const isStringOrNumber = or(string, number);
 
         test('and combines validators correctly', () => {
-            expect(isNonEmptyString('hello', mockContext())).toBe(true);
-            expect(isNonEmptyString('', mockContext())).toBe(false);
-            expect(isNonEmptyString(42, mockContext())).toBe(false);
+            expect(runValidator(isNonEmptyString, 'hello')).toBe(true);
+            expect(runValidator(isNonEmptyString, '')).toBe(false);
+            expect(runValidator(isNonEmptyString, 42)).toBe(false);
         });
 
         test('or combines validators correctly', () => {
-            expect(isStringOrNumber('hello', mockContext())).toBe(true);
-            expect(isStringOrNumber(42, mockContext())).toBe(true);
-            expect(isStringOrNumber(true, mockContext())).toBe(false);
+            expect(runValidator(isStringOrNumber, 'hello')).toBe(true);
+            expect(runValidator(isStringOrNumber, 42)).toBe(true);
+            expect(runValidator(isStringOrNumber, true)).toBe(false);
         });
     });
 
@@ -122,7 +129,7 @@ describe('Validation utils', () => {
                 (value: unknown, context) => string(value, context) && value !== '',
                 'a non-empty string'
             );
-            expect(validate<{ str: string }>({ str: '' }, { str: describedValidator }).errors).toMatchSnapshot();
+            expect(validate<{ str: string }>({ str: '' }, { str: describedValidator }).invalid).toMatchSnapshot();
         });
     });
 
@@ -130,9 +137,9 @@ describe('Validation utils', () => {
         const isRedOrBlue = union('red', 'blue');
 
         test('validates correctly against multiple allowed values', () => {
-            expect(isRedOrBlue('red', mockContext())).toBe(true);
-            expect(isRedOrBlue('blue', mockContext())).toBe(true);
-            expect(isRedOrBlue('green', mockContext())).toBe(false);
+            expect(runValidator(isRedOrBlue, 'red')).toBe(true);
+            expect(runValidator(isRedOrBlue, 'blue')).toBe(true);
+            expect(runValidator(isRedOrBlue, 'green')).toBe(false);
         });
     });
 
@@ -140,9 +147,9 @@ describe('Validation utils', () => {
         const isTrue = constant(true);
 
         test('validates only the exact value', () => {
-            expect(isTrue(true, mockContext())).toBe(true);
-            expect(isTrue(false, mockContext())).toBe(false);
-            expect(isTrue('true', mockContext())).toBe(false);
+            expect(runValidator(isTrue, true)).toBe(true);
+            expect(runValidator(isTrue, false)).toBe(false);
+            expect(runValidator(isTrue, 'true')).toBe(false);
         });
     });
 
@@ -152,8 +159,8 @@ describe('Validation utils', () => {
         const isInstanceOfTestClass = instanceOf(TestClass);
 
         test('validates instances of the specified class', () => {
-            expect(isInstanceOfTestClass(new TestClass(), mockContext())).toBe(true);
-            expect(isInstanceOfTestClass({}, mockContext())).toBe(false);
+            expect(runValidator(isInstanceOfTestClass, new TestClass())).toBe(true);
+            expect(runValidator(isInstanceOfTestClass, {})).toBe(false);
         });
     });
 
@@ -161,9 +168,9 @@ describe('Validation utils', () => {
         const isArrayOfStrings = arrayOf(string);
 
         test('validates arrays where every element passes the given validator', () => {
-            expect(isArrayOfStrings(['a', 'b', 'c'], mockContext())).toBe(true);
-            expect(isArrayOfStrings(['a', 1, 'c'], mockContext())).toBe(false);
-            expect(isArrayOfStrings('not an array', mockContext())).toBe(false);
+            expect(runValidator(isArrayOfStrings, ['a', 'b', 'c'])).toBe(true);
+            expect(runValidator(isArrayOfStrings, ['a', 1, 'c'])).toBe(false);
+            expect(runValidator(isArrayOfStrings, 'not an array')).toBe(false);
         });
     });
 
@@ -174,8 +181,8 @@ describe('Validation utils', () => {
         });
 
         test('validates objects against provided definitions', () => {
-            expect(optionDefsValidator({ key1: 'value', key2: 42 }, mockContext())).toBe(true);
-            expect(optionDefsValidator({ key1: 'value', key2: 'not a number' }, mockContext())).toBe(false);
+            expect(runValidator(optionDefsValidator, { key1: 'value', key2: 42 })).toBe(true);
+            expect(runValidator(optionDefsValidator, { key1: 'value', key2: 'not a number' })).toBe(false);
         });
     });
 
@@ -185,14 +192,14 @@ describe('Validation utils', () => {
                 a: { aa: boolean },
                 b: { bb: required(number) },
             });
-            expect(isTypeUnionOfFoo({ type: 'a', aa: true }, mockContext())).toBe(true);
-            expect(isTypeUnionOfFoo({ type: 'a' }, mockContext())).toBe(true);
-            expect(isTypeUnionOfFoo({ type: 'b', bb: 1 }, mockContext())).toBe(true);
-            expect(isTypeUnionOfFoo({ type: 'b' }, mockContext())).toBe(false);
-            expect(isTypeUnionOfFoo({ type: 'b', bb: false }, mockContext())).toBe(false);
-            expect(isTypeUnionOfFoo({ type: 'a', aa: 'not a boolean' }, mockContext())).toBe(true);
-            expect(isTypeUnionOfFoo({ type: 'a', bb: 1 }, mockContext())).toBe(true);
-            expect(isTypeUnionOfFoo({ type: 'c', aa: 1 }, mockContext())).toBe(false);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'a', aa: true })).toBe(true);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'a' })).toBe(true);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'b', bb: 1 })).toBe(true);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'b' })).toBe(false);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'b', bb: false })).toBe(false);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'a', aa: 'not a boolean' })).toBe(true);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'a', bb: 1 })).toBe(true);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'c', aa: 1 })).toBe(false);
         });
     });
 
@@ -214,9 +221,9 @@ describe('Validation utils', () => {
             expect(isValid({ min: 1000 }, axisSchema)).toBe(true);
             expect(isValid({ max: 100 }, axisSchema)).toBe(true);
 
-            const { valid, errors } = validate({ min: 1000, max: '100' }, axisSchema);
-            expect(valid).toEqual({ min: 1000 });
-            expect(errors).toMatchSnapshot();
+            const { cleared, invalid } = validate({ min: 1000, max: '100' }, axisSchema);
+            expect(cleared).toEqual({ min: 1000 });
+            expect(invalid).toMatchSnapshot();
         });
     });
 
@@ -290,8 +297,8 @@ describe('Validation utils', () => {
                 typo: 'should suggest fuzzy match', // Unknown option
             };
 
-            const { valid: validatedValidUser, errors: errorsValidUser } = validate(validUser, userSchema);
-            const { valid: validatedInvalidUser, errors: errorsInvalidUser } = validate(invalidUser, userSchema);
+            const { cleared: validatedValidUser, invalid: errorsValidUser } = validate(validUser, userSchema);
+            const { cleared: validatedInvalidUser, invalid: errorsInvalidUser } = validate(invalidUser, userSchema);
 
             expect(validatedValidUser).toEqual(validUser);
             expect(errorsValidUser).toEqual([]);
@@ -303,6 +310,72 @@ describe('Validation utils', () => {
                 },
             });
             expect(errorsInvalidUser).toMatchSnapshot();
+        });
+
+        test('nested validations returns all levels of validation errors', () => {
+            const complexOptionsDef = {
+                test: and(
+                    or(
+                        optionsDefs<any>(
+                            {
+                                name: required(string),
+                                age: positiveNumber,
+                            },
+                            'person details'
+                        ),
+                        optionsDefs<any>(
+                            {
+                                id: required(string),
+                                position: string,
+                            },
+                            'employee details'
+                        )
+                    ),
+                    optionsDefs<any>(
+                        {
+                            salaries: arrayOf(positiveNumber),
+                            employers: arrayOfDefs<any>(
+                                {
+                                    name: required(string),
+                                    department: union('a', 'b', 'c'),
+                                },
+                                'an employers array'
+                            ),
+                        },
+                        'position details'
+                    )
+                ),
+            };
+
+            const validOptions = {
+                name: 'John Doe',
+                age: 30,
+                position: 'NA',
+                salaries: [10_000, 22_000, 45_000],
+                employers: [
+                    { name: 'Dave', department: 'b' },
+                    { name: 'John', department: 'c' },
+                ],
+            };
+
+            const invalidOptions = {
+                age: 30,
+                position: 'NA',
+                salaries: [10_000, 22_000, '45_000'],
+                employers: [
+                    { name: 'Dave', department: 'd' },
+                    { employeeId: 'John', department: 'c' },
+                ],
+            };
+
+            const validResult = validate({ test: validOptions }, complexOptionsDef);
+            const invalidResult = validate({ test: invalidOptions }, complexOptionsDef);
+
+            expect(validResult.cleared).not.toEqual({});
+            expect(invalidResult.cleared).toEqual({});
+
+            expect(validResult.invalid).toMatchSnapshot();
+            expect(invalidResult.invalid).toMatchSnapshot();
         });
     });
 });

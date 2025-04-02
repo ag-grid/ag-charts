@@ -18,5 +18,6 @@
     "**/cache/**": true,
     "**/dist/**": true,
     "**/node_modules/**": true
-  }
+  },
+  "image-diff.viewer.showDiffByDefault": true
 }

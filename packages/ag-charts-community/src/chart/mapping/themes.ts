@@ -82,15 +82,15 @@ function createChartTheme(value: unknown): ChartTheme {
         return lightTheme();
     }
 
-    const { errors } = validate(value, themeOptionsDef, 'theme');
+    const { invalid } = validate(value, themeOptionsDef, 'theme');
 
-    if (!errors.length) {
+    if (!invalid.length) {
         const flattenedTheme = reduceThemeOptions(value);
         const baseTheme: any = flattenedTheme.baseTheme ? getChartTheme(flattenedTheme.baseTheme) : lightTheme();
         return new baseTheme.constructor(flattenedTheme);
     }
 
-    for (const { message } of errors) {
+    for (const { message } of invalid) {
         Logger.warnOnce(message);
     }
 

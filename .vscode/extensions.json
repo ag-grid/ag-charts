@@ -9,6 +9,7 @@
     "eamodio.gitlens",
     "stripe.markdoc-language-support",
     "firsttris.vscode-jest-runner",
-    "naumovs.color-highlight"
+    "naumovs.color-highlight",
+    "raywiis.png-image-diff"
   ]
 }

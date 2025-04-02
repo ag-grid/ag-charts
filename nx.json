@@ -228,7 +228,7 @@
         }
       }
     },
-    "lint:changeDetection": {
+    "lint:change-detection": {
       "executor": "nx:run-commands",
       "inputs": ["{projectRoot}/src/**/*.ts", "{workspaceRoot}/tools/lint-change-detection.js"],
       "outputs": [],

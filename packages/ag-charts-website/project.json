@@ -193,5 +193,5 @@
     "ag-charts-react",
     "ag-charts-vue3"
   ],
-  "tags": []
+  "tags": ["skip-gha-cache"]
 }

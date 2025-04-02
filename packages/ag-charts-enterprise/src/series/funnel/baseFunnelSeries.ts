@@ -1,5 +1,9 @@
 import { type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType, InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
+import type {
+    InternalAgColorType,
+    RequiredInternalAgGradientColor,
+    RequiredInternalAgPatternColor,
+} from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -102,8 +106,8 @@ class FunnelSeriesNodeEvent<
 
 export interface FunnelSeriesShapeStyle {
     fill?: InternalAgColorType;
-    fillGradientDefaults: Required<InternalAgGradientColor>;
-    fillPatternDefaults: Required<InternalAgPatternColor>;
+    fillGradientDefaults: RequiredInternalAgGradientColor;
+    fillPatternDefaults: RequiredInternalAgPatternColor;
     fillOpacity: number;
     stroke?: string;
     strokeWidth: number;
@@ -250,7 +254,7 @@ export abstract class BaseFunnelSeries<
             }
             return this.padBandExtent(keys);
         } else {
-            const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValue'], 'xValue', true);
+            const yExtent = this.domainForClippedRange(direction, ['yValue'], 'xValue', true);
             const maxExtent = Math.max(...yExtent);
             const fixedYExtent = [-maxExtent, maxExtent];
             return fixNumericExtent(fixedYExtent);

@@ -165,8 +165,8 @@ export * from './scale/invalidating';
 
 export { DropShadow } from './scene/dropShadow';
 export { ChangeDetectableProperties } from './scene/util/changeDetectableProperties';
-export { ScalableGroup, RotatableGroup } from './scene/group';
-export { Node, PointerEvents, SceneChangeDetection } from './scene/node';
+export { Node, PointerEvents } from './scene/node';
+export * from './scene/changeDetectable';
 export type { RenderContext, ChildNodeCounts } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';
@@ -203,7 +203,7 @@ export type { NodeUpdateState, FromToMotionPropFn } from './motion/fromToMotion'
 
 export { Caption } from './chart/caption';
 export { BBox } from './scene/bbox';
-export { Group, TranslatableGroup } from './scene/group';
+export { Group, TranslatableGroup, ScalableGroup, RotatableGroup, TransformableGroup } from './scene/group';
 export { Scene } from './scene/scene';
 export { Arc } from './scene/shape/arc';
 export { Line } from './scene/shape/line';

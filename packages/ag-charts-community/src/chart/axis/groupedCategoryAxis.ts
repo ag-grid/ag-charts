@@ -1,4 +1,4 @@
-import { countLines, inRange, isArray, isObject, iterate, sortBasedOnArray, toArray } from 'ag-charts-core';
+import { countLines, inRange, isArray, isObject, sortBasedOnArray, toArray } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -15,7 +15,7 @@ import { TextUtils } from '../../util/textMeasurer';
 import { createDatumId } from '../data/processors';
 import { calculateLabelRotation } from '../label';
 import type { LabelNodeDatum } from './axis';
-import type { TickDatum } from './axisUtil';
+import { type TickDatum, axisLinePosition } from './axisUtil';
 import { CategoryAxis } from './categoryAxis';
 import { type TreeLayout, treeLayout } from './tree';
 
@@ -30,6 +30,7 @@ interface SeparatorDatum {
 interface ComputedGroupAxisLayout {
     tickLabelLayout: LabelNodeDatum[];
     separatorLayout: SeparatorDatum[];
+    spacing: number;
 }
 
 class DepthLabelProperties extends BaseProperties {
@@ -163,7 +164,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.resizeTickTree();
 
         if (!this.tickTreeLayout?.depth) {
-            return { bbox: BBox.zero, separatorLayout: [], tickLabelLayout: [] };
+            return { bbox: BBox.zero, spacing: 0, separatorLayout: [], tickLabelLayout: [] };
         }
 
         const { step } = this.scale;
@@ -347,17 +348,23 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const separatorLayout = [...separatorData.values()];
         separatorLayout.push(separatorLayout[0]);
 
-        const axisBoxes = [this.lineNode.getBBox(), new BBox(0, 0, separatorLayout[0].tickSize * sideFlag, 0)];
+        const bboxes = [
+            BBox.merge(labelBBoxes.values()),
+            this.lineNodeBBox(),
+            new BBox(0, 0, separatorLayout[0].tickSize * sideFlag, 0),
+        ];
 
+        let spacing = 0;
         if (title.enabled) {
-            this.updateTitle(this.scale.domain, false, separatorLayout[0].tickSize);
-            axisBoxes.push(title.caption.node.getBBox());
+            spacing = BBox.merge(bboxes).width;
+            bboxes.push(this.titleBBox(this.scale.domain, spacing));
         }
 
-        const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), axisBoxes));
+        const mergedBBox = BBox.merge(bboxes);
 
         return {
             bbox: this.getTransformBox(mergedBBox),
+            spacing,
             separatorLayout,
             tickLabelLayout,
         };
@@ -384,7 +391,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.moduleCtx.animationManager.skipCurrentBatch();
 
         const { tickScale, gridLine, gridLength } = this;
-        const { separatorLayout } = this.computedLayout;
+        const { separatorLayout, spacing } = this.computedLayout;
 
         const ticksData: TickDatum[] = tickScale
             .ticks({
@@ -410,14 +417,14 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.updateAxisLine();
         this.updateGridLines();
         this.updateTickLines();
-        this.updateTitle(this.scale.domain);
+        this.updateTitle(this.scale.domain, spacing);
 
         this.resetSelectionNodes();
     }
 
     override calculateLayout() {
-        const { separatorLayout, tickLabelLayout, bbox } = this.computeLayout();
-        this.computedLayout = { separatorLayout, tickLabelLayout };
+        const { separatorLayout, tickLabelLayout, spacing, bbox } = this.computeLayout();
+        this.computedLayout = { separatorLayout, tickLabelLayout, spacing };
         return { bbox, niceDomain: this.scale.domain };
     }
 
@@ -465,16 +472,19 @@ export class GroupedCategoryAxis extends CategoryAxis {
     protected override updateGridLines() {
         if (!this.gridLength) return;
 
+        const { horizontal } = this;
         const { width, style } = this.gridLine;
-        const lineSize = this.gridLength * -this.label.getSideFlag();
+
+        const [p1, p2] = this.axisExtents();
+        const crossAxisPosition = axisLinePosition(!horizontal, p1, p2);
 
         this.gridLineGroupSelection.each((line, datum, index) => {
             const { stroke, lineDash } = style[index % style.length];
             const y = datum.translationY;
+            const axisPosition = axisLinePosition(horizontal, y);
             line.visible = this.inRange(y);
-            line.x1 = 0;
-            line.x2 = lineSize;
-            line.y = y;
+            line.setProperties(crossAxisPosition);
+            line.setProperties(axisPosition);
             line.stroke = stroke;
             line.strokeWidth = width;
             line.lineDash = lineDash;

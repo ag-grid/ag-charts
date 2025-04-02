@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`options validation legend.context error 1`] = `
+exports[`AG-13024 API context validation legend.context error 1`] = `
 [
   [
     "AG Charts - Unknown option \`legend.context\`, ignoring.",
@@ -8,7 +8,7 @@ exports[`options validation legend.context error 1`] = `
 ]
 `;
 
-exports[`options validation tooltip.context error 1`] = `
+exports[`AG-13024 API context validation tooltip.context error 1`] = `
 [
   [
     "AG Charts - Unknown option \`tooltip.context\`, ignoring.",

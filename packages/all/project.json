@@ -24,6 +24,12 @@
         "fix": {}
       }
     },
+    "lint:change-detection": {
+      "executor": "nx:noop",
+      "inputs": [],
+      "outputs": [],
+      "dependsOn": ["^lint:change-detection"]
+    },
     "test": {
       "executor": "nx:noop",
       "inputs": [],
