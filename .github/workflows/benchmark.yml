@@ -111,16 +111,6 @@ jobs:
                         body,
                       })
 
-            - name: Pause on failure
-              if: failure()
-              run: |
-                  while [[ ! -f 'continue' ]]; do
-                      echo "Waiting for continue file..."
-                      sleep 5
-                  done
-                  echo "Continue file found, proceeding..."
-                  rm -f continue
-
             - name: Perist benchmark results
               if: always()
               uses: actions/upload-artifact@v4
