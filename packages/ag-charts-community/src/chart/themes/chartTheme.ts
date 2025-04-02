@@ -381,7 +381,7 @@ export class ChartTheme {
         }),
         [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults({
             keys: [],
-            groupPaddingInner: 0,
+            groupPaddingInner: 0.1,
             label: { autoRotate: false },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
             crosshair: { enabled: true },
