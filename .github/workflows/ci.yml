@@ -92,7 +92,7 @@ jobs:
                     count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test | wc -l)
                   fi
 
-                  matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --ratio 1 --zero ${count})
+                  matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 5 --ratio 1 --zero ${count})
                   echo "test_matrix=${matrix}" >> $GITHUB_OUTPUT
                   echo "test_count=${count}" >> $GITHUB_OUTPUT
                   echo "Test matrix determined to be: ${matrix}"
@@ -108,7 +108,7 @@ jobs:
                     e2e_count=0
                   fi
 
-                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 20 ${e2e_count})
+                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 8 ${e2e_count})
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix}"

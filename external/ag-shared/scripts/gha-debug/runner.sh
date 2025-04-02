@@ -18,29 +18,23 @@ if [[ "${RUNNER_TOKEN:-}" == "" ]]; then
     exit 1
 fi
 
+scriptdir=$(dirname $0)
 workdir=$(mktemp -d)
 echo "Using workdir: ${workdir}"
 
-trap "docker stop github-runner gha-cache-server && rm -rf ${workdir}" EXIT
+(
+    export REPO_URL="https://github.com/ag-grid/${repo}"
+    export RUNNER_NAME="$(hostname)"
+    export LABELS="ubuntu-debug,ubuntu-debug-${RUNNER_NAME}"
+    export RUNNER_TOKEN
+    cd ${scriptdir} && \
+    docker compose build && \
+    docker compose up gha-runner gha-cache
+        # -e REPO_URL="https://github.com/ag-grid/${repo}" \
+        # -e RUNNER_NAME="$(hostname)" \
+        # -e RUNNER_TOKEN="${RUNNER_TOKEN}" \
+        # -e LABELS="ubuntu-debug,ubuntu-debug-${RUNNER_NAME}"
+)
 
-docker run -d --rm --name gha-cache-server \
-    -e API_BASE_URL="http://localhost:3000" \
-    -p 3000:3000 \
-    -v cache-data:/app/.data \
-    ghcr.io/falcondev-oss/github-actions-cache-server:latest
-
-docker run -d --rm --name github-runner \
-  -e REPO_URL="https://github.com/ag-grid/${repo}" \
-  -e RUNNER_NAME="$(hostname)" \
-  -e RUNNER_TOKEN="${RUNNER_TOKEN}" \
-  -e RUNNER_SCOPE="repo" \
-  -e RUNNER_GROUP="default" \
-  -e ACTIONS_RESULTS_URL="http://localhost:3000" \
-  -e RUNNER_WORKDIR="/tmp/github-runner-your-repo" \
-  -e LABELS="ubuntu-debug,ubuntu-debug-${RUNNER_NAME}" \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v ${workdir}:/tmp/github-runner-your-repo \
-  myoung34/github-runner:latest
-
-sleep 2
-docker exec -it -w /tmp/github-runner-your-repo github-runner bash -il
+# sleep 2
+docker exec -it -w /tmp/github-runner-your-repo gha-worker bash -il
