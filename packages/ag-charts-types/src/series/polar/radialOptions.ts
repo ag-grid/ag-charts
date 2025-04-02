@@ -5,7 +5,7 @@ import type { PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgBaseRadialSeriesThemeableOptions<TDatum = any>
+export interface AgBaseRadialSeriesThemeableOptions<TDatum>
     extends AgBaseSeriesThemeableOptions<TDatum>,
         AgRadialSeriesStyle {
     /** Configuration for the labels shown on top of data points. */

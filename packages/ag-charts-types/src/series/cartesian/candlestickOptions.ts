@@ -37,7 +37,7 @@ export interface AgCandlestickSeriesStyles {
     item?: AgCandlestickSeriesItem;
 }
 
-export interface AgCandlestickSeriesThemeableOptions<TDatum = any>
+export interface AgCandlestickSeriesThemeableOptions<TDatum>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         AgCandlestickSeriesStyles {
     /** Series-specific tooltip configuration. */
@@ -46,7 +46,7 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = any>
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<TDatum>, AgCandlestickSeriesItemOptions>;
 }
 
-export interface AgCandlestickSeriesOptions<TDatum = any>
+export interface AgCandlestickSeriesOptions<TDatum>
     extends AgCandlestickSeriesThemeableOptions<TDatum>,
         AgBaseSeriesOptions<TDatum>,
         AgOhlcSeriesBaseOptions,

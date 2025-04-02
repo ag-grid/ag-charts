@@ -8,8 +8,8 @@ import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHigh
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgRangeAreaSeriesTooltipRendererParams
-    extends Omit<AgCartesianSeriesTooltipRendererParams, 'xKey' | 'xName' | 'yKey' | 'yName'>,
+export interface AgRangeAreaSeriesTooltipRendererParams<TDatum>
+    extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
         AgRangeAreaSeriesOptionsKeys,
         AgRangeAreaSeriesOptionsNames,
         Omit<AgSeriesMarkerStyle, 'shape'> {
@@ -28,7 +28,7 @@ export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
 
 export type AgRangeAreaSeriesLabelFormatterParams = AgRangeAreaSeriesOptionsKeys & AgRangeAreaSeriesOptionsNames;
 
-export interface AgRangeAreaSeriesThemeableOptions<TDatum = any>
+export interface AgRangeAreaSeriesThemeableOptions<TDatum>
     extends StrokeOptions,
         FillOptions,
         LineDashOptions,
@@ -44,7 +44,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = any>
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams<TDatum>>;
 }
 
 export interface AgRangeAreaSeriesOptionsKeys {
@@ -67,7 +67,7 @@ export interface AgRangeAreaSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgRangeAreaSeriesOptions<TDatum = any>
+export interface AgRangeAreaSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgRangeAreaSeriesOptionsKeys,
         AgRangeAreaSeriesOptionsNames,

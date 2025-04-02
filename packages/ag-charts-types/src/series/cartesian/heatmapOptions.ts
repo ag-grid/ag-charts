@@ -18,7 +18,7 @@ export type AgHeatmapSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRender
     AgHeatmapSeriesOptionsNames &
     AgHeatmapSeriesStyle;
 
-export interface AgHeatmapSeriesThemeableOptions<TDatum = any>
+export interface AgHeatmapSeriesThemeableOptions<TDatum>
     extends StrokeOptions,
         AgBaseCartesianThemeableOptions<TDatum> {
     /** Options for the label in each cell. */
@@ -55,7 +55,7 @@ export interface AgHeatmapSeriesOptionsNames {
     colorName?: string;
 }
 
-export interface AgHeatmapSeriesOptions<TDatum = any>
+export interface AgHeatmapSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgHeatmapSeriesOptionsKeys,
         AgHeatmapSeriesOptionsNames,

@@ -18,7 +18,7 @@ export type AgMapLineSeriesLabel<TDatum> = AgChartLabelOptions<TDatum, AgMapLine
 
 export type AgMapLineSeriesLabelFormatterParams = AgMapLineSeriesOptionsKeys & AgMapLineSeriesOptionsNames;
 
-export type AgMapLineSeriesItemStylerParams<TDatum = any> = DatumCallbackParams<TDatum> &
+export type AgMapLineSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgMapLineSeriesOptionsKeys &
     Required<AgMapLineSeriesStyle>;
 
@@ -44,7 +44,7 @@ export interface AgMapLineSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgMapLineSeriesThemeableOptions<TDatum = any>
+export interface AgMapLineSeriesThemeableOptions<TDatum>
     extends AgMapLineSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** Determines the largest width a stroke can be in pixels. */
@@ -56,12 +56,12 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapLineSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map line based on the input parameters. */
-    itemStyler?: Styler<AgMapLineSeriesItemStylerParams, AgMapLineSeriesStyle>;
+    itemStyler?: Styler<AgMapLineSeriesItemStylerParams<TDatum>, AgMapLineSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapLineSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgMapLineSeriesOptions<TDatum = any>
+export interface AgMapLineSeriesOptions<TDatum>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgMapLineSeriesOptionsKeys,
         AgMapLineSeriesOptionsNames,

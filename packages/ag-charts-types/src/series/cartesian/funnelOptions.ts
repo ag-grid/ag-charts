@@ -23,7 +23,7 @@ export interface AgFunnelSeriesStyle extends FillOptions, StrokeOptions, LineDas
 
 export interface AgFunnelSeriesLabelFormatterParams extends AgFunnelSeriesOptionsKeys {}
 
-export interface AgFunnelSeriesTooltipRendererParams<TDatum = any>
+export interface AgFunnelSeriesTooltipRendererParams<TDatum>
     extends AgFunnelSeriesOptionsKeys,
         AgFunnelSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum>,
@@ -34,7 +34,7 @@ export interface AgFunnelSeriesDropOff extends FillOptions, StrokeOptions, LineD
     enabled?: boolean;
 }
 
-export interface AgFunnelSeriesThemeableOptions<TDatum = any>
+export interface AgFunnelSeriesThemeableOptions<TDatum>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the bars. */
@@ -62,7 +62,7 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = any>
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgFunnelSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgFunnelSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<TDatum>, AgFunnelSeriesStyle>;
 }
@@ -76,7 +76,7 @@ export interface AgFunnelSeriesOptionsKeys {
 
 export interface AgFunnelSeriesOptionsNames {}
 
-export interface AgFunnelSeriesOptions<TDatum = any>
+export interface AgFunnelSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgFunnelSeriesOptionsKeys,
         AgFunnelSeriesOptionsNames,

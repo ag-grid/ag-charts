@@ -30,7 +30,7 @@ export interface AgRangeBarSeriesLabelOptions<TDatum>
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
-export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
+export interface AgRangeBarSeriesThemeableOptions<TDatum>
     extends AgBaseCartesianThemeableOptions<TDatum>,
         AgRangeBarSeriesStyle {
     /**
@@ -73,7 +73,7 @@ export interface AgRangeBarSeriesOptionsNames {
     yHighName?: string;
 }
 
-export interface AgRangeBarSeriesOptions<TDatum = any>
+export interface AgRangeBarSeriesOptions<TDatum>
     extends AgRangeBarSeriesOptionsKeys,
         AgRangeBarSeriesOptionsNames,
         AgRangeBarSeriesThemeableOptions<TDatum>,

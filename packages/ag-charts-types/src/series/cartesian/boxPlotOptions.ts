@@ -61,7 +61,7 @@ export interface AgBoxPlotSeriesStyle extends FillOptions, StrokeOptions, LineDa
     whisker?: AgBoxPlotWhiskerOptions;
 }
 
-export interface AgBoxPlotSeriesThemeableOptions<TDatum = any>
+export interface AgBoxPlotSeriesThemeableOptions<TDatum>
     extends AgBaseCartesianThemeableOptions<TDatum>,
         AgBoxPlotSeriesStyle {
     /**
@@ -75,7 +75,7 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = any>
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum>, AgBoxPlotSeriesStyle>;
 }
 
-export interface AgBoxPlotSeriesOptions<TDatum = any>
+export interface AgBoxPlotSeriesOptions<TDatum>
     extends AgBoxPlotSeriesThemeableOptions<TDatum>,
         AgBaseSeriesOptions<TDatum>,
         BoxPlotOptionsKeys,

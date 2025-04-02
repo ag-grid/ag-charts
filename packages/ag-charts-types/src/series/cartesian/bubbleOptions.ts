@@ -6,7 +6,7 @@ import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
-export interface AgBubbleSeriesTooltipRendererParams<TDatum = any>
+export interface AgBubbleSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgBubbleSeriesOptionsKeys,
         AgBubbleSeriesOptionsNames,
@@ -30,7 +30,7 @@ export type BubbleSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgBubbleSeriesOptionsKeys &
     Required<AgBubbleSeriesStyle>;
 
-export interface AgBubbleSeriesThemeableOptions<TDatum = any>
+export interface AgBubbleSeriesThemeableOptions<TDatum>
     extends AgBubbleSeriesStyle,
         AgBaseCartesianThemeableOptions<TDatum> {
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
@@ -71,7 +71,7 @@ export interface AgBubbleSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgBubbleSeriesOptions<TDatum = any>
+export interface AgBubbleSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgBubbleSeriesThemeableOptions<TDatum>,
         AgBubbleSeriesOptionsKeys,
