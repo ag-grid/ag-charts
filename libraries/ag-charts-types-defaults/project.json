@@ -1,0 +1,37 @@
+{
+  "name": "ag-charts-types-defaults",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libraries/ag-charts-types-defaults/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "inputs": ["{projectRoot}/src/**", "defaultExcludes"],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "{projectRoot}/dist/",
+        "main": "{projectRoot}/src/index.ts",
+        "tsConfig": "{projectRoot}/tsconfig.lib.json",
+        "assets": [],
+        "format": ["cjs"]
+      }
+    },
+    "build:types": {
+      // Alias target so dependents build:types can depend on ^build:types.
+      "executor": "nx:noop",
+      "dependsOn": ["build"],
+      "cache": false,
+      "inputs": [],
+      "outputs": []
+    },
+    "lint": {
+      "executor": "nx:noop",
+      "dependsOn": ["lint:eslint"],
+      "configurations": {
+        "fix": {}
+      }
+    },
+    "lint:eslint": {},
+  },
+  "tags": ["support"]
+}
