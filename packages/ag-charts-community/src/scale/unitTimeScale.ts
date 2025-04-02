@@ -80,7 +80,7 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval> {
     }
 
     private calculateBands(domain: Date[], interval: TimeInterval | undefined) {
-        if (interval == null) return [];
+        if (!domain.length || interval == null) return [];
 
         const start = interval.floor(domain[0]);
         const stop = interval.floor(domain[1]);
@@ -88,15 +88,11 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval> {
     }
 
     override ticks(
-        { interval }: ScaleTickParams<TimeInterval>,
+        _: ScaleTickParams<TimeInterval>,
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1]
     ): Date[] {
-        if (!domain.length) return [];
-
-        this.refresh();
-
-        return filterVisibleTicks(this.calculateBands(domain, interval), false, visibleRange);
+        return filterVisibleTicks(this.calculateBands(domain, this.interval), false, visibleRange);
     }
 
     override invert(position: number, nearest = false): Date | undefined {

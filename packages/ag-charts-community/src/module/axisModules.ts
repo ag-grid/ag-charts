@@ -2,7 +2,6 @@ import {
     type AxisModuleDefinition,
     type OptionsDefs,
     and,
-    arrayOf,
     arrayOfDefs,
     attachDescription,
     boolean,
@@ -120,6 +119,7 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
 export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     type: required(constant('unit-time')),
+    unit: instanceOf(TimeInterval),
     label: {
         ...cartesianAxisLabelOptionsDefs,
         format: string,
@@ -130,12 +130,6 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     crosshair: cartesianAxisCrosshairOptions(true),
     min: and(date, lessThan('max')),
     max: and(date, greaterThan('min')),
-    interval: {
-        step: instanceOf(TimeInterval),
-        values: arrayOf(date),
-        minSpacing: and(positiveNumber, lessThan('maxSpacing')),
-        maxSpacing: and(positiveNumber, greaterThan('minSpacing')),
-    },
 };
 
 export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions> = {

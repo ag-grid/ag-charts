@@ -113,14 +113,14 @@ export interface AgGroupedCategoryAxisOptions
 
 export interface AgUnitTimeAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'unit-time';
+    /** The size of each band. */
+    unit?: TimeInterval;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
     /** The padding on the outside i.e. left and right of the first and last category. In association with `paddingInner`, this value can be between 0 and 1. */
     paddingOuter?: Ratio;
     /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */
     groupPaddingInner?: Ratio;
-    /** Configuration for the axis ticks interval. */
-    interval?: AgAxisContinuousIntervalOptions<TimeInterval>;
     /** User override for the automatically determined min value (based on series data). */
     min?: Date;
     /** User override for the automatically determined max value (based on series data). */
