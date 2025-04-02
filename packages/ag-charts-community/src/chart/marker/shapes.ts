@@ -28,7 +28,6 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
     circle({ path, x, y, size }) {
         const r = size / 2;
 
-        path.clear();
         path.arc(x, y, r, 0, Math.PI * 2);
         path.closePath();
     },
@@ -60,7 +59,6 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
         const r = size / 4;
         y = y + r / 2;
 
-        path.clear();
         path.arc(x - r, y - r, r, toRadians(130), toRadians(330));
         path.arc(x + r, y - r, r, toRadians(220), toRadians(50));
         path.lineTo(x, y + r);
@@ -194,8 +192,6 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
     },
     square({ path, x, y, size, pixelRatio }) {
         const hs = size / 2;
-
-        path.clear();
 
         path.moveTo(align(pixelRatio, x - hs), align(pixelRatio, y - hs));
         path.lineTo(align(pixelRatio, x + hs), align(pixelRatio, y - hs));

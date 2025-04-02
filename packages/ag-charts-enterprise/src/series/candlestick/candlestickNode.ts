@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcBaseNode } from '../ohlc/ohlcNode';
 
-const { SceneChangeDetection, ExtendedPath2D, BBox } = _ModuleSupport;
+const { SceneArrayChangeDetection, SceneChangeDetection, ExtendedPath2D, BBox } = _ModuleSupport;
 
 export class CandlestickNode extends OhlcBaseNode {
     private readonly wickPath = new ExtendedPath2D();
@@ -16,8 +16,8 @@ export class CandlestickNode extends OhlcBaseNode {
     @SceneChangeDetection()
     wickStrokeOpacity: number | undefined = undefined;
 
-    @SceneChangeDetection()
-    wickLineDash: number[] | undefined;
+    @SceneArrayChangeDetection()
+    wickLineDash: readonly number[] | undefined;
 
     @SceneChangeDetection()
     wickLineDashOffset: number | undefined;
@@ -124,7 +124,7 @@ export class CandlestickNode extends OhlcBaseNode {
         ctx.lineWidth = wickStrokeWidth;
 
         if (wickLineDash != null) {
-            ctx.setLineDash(wickLineDash);
+            ctx.setLineDash([...wickLineDash]);
         }
         ctx.lineDashOffset = wickLineDashOffset;
 

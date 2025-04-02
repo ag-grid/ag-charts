@@ -110,7 +110,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         });
 
         const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`);
-        this.sizeScale.domain = marker.domain ?? processedData.domain.values[sizeKeyIdx] ?? [];
+        const mutableMarkerDomain: [number, number] | undefined = marker.domain
+            ? [marker.domain[0], marker.domain[1]]
+            : undefined;
+        this.sizeScale.domain = mutableMarkerDomain ?? processedData.domain.values[sizeKeyIdx] ?? [];
 
         this.animationState.transition('updateData');
     }

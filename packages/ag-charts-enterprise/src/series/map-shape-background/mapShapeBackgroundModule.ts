@@ -1,5 +1,5 @@
 import { type AgMapShapeBackgroundOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
+import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeBackgroundSeries } from './mapShapeBackgroundSeries';
@@ -43,7 +43,7 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
                 ] as any,
                 rotation: 0,
                 reverse: false,
-            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: {
                 ..._ModuleSupport.FILL_PATTERN_DEFAULTS,
                 fill: { $path: ['./1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },

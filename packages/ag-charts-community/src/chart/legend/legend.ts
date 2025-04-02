@@ -1,5 +1,5 @@
 import { type AnyFn, Logger, clamp } from 'ag-charts-core';
-import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
+import type { RequiredInternalAgGradientColor, RequiredInternalAgPatternColor } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -147,7 +147,7 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
 const ID_LEGEND_VISIBILITY = 'legend-visibility';
 const ID_LEGEND_OTHER_SERIES = 'legend-other-series';
 
-const fillGradientDefaults: Required<InternalAgGradientColor> = {
+const fillGradientDefaults: RequiredInternalAgGradientColor = {
     type: 'gradient',
     bounds: 'item',
     gradient: 'linear',
@@ -156,7 +156,7 @@ const fillGradientDefaults: Required<InternalAgGradientColor> = {
     reverse: false,
 };
 
-const fillPatternDefaults: Required<InternalAgPatternColor> = {
+const fillPatternDefaults: RequiredInternalAgPatternColor = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
     width: 8,

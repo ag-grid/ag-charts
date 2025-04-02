@@ -21,6 +21,7 @@ export function objectsEqual(a: unknown, b: unknown): boolean {
 }
 
 export function objectsEqualWith<T extends PlainObject>(a: T, b: T, cmp: (a: T, b: T) => boolean): boolean {
+    if (Object.is(a, b)) return true;
     for (const key of Object.keys(b)) {
         if (!(key in a)) return false;
     }

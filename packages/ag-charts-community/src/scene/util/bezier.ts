@@ -70,8 +70,8 @@ export function splitBezier(
 // Find the extreme points where the derivative is zero
 export function calculateDerivativeExtrema(p0: number, p1: number, p2: number, p3: number): number[] {
     const a = -p0 + 3 * p1 - 3 * p2 + p3;
-    const b = 3 * p0 - 6 * p1 + 3 * p2;
-    const c = -3 * p0 + 3 * p1;
+    const b = 2 * (p0 - 2 * p1 + p2);
+    const c = -p0 + p1;
 
     if (a === 0) {
         if (b !== 0) {

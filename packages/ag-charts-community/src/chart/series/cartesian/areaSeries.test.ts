@@ -5,6 +5,7 @@ import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
+    AgPatternName,
     AgTimeAxisOptions,
 } from 'ag-charts-types';
 
@@ -12,6 +13,7 @@ import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
 import { deepClone } from '../../../util/json';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
+import { CUSTOM_SVG_PATHS } from '../../test/customSvgPaths';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,
@@ -241,11 +243,10 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         options: examples.AREA_SERIES_CROSSES_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
     },
-    // @todo(AG-14458) - Re-enable
-    // AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL: {
-    //     options: examples.AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL,
-    //     assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
-    // },
+    AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL: {
+        options: examples.AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+    },
     AREA_SERIES_CUSTOMISED_PATTERN_FILL: {
         options: examples.AREA_SERIES_CUSTOMISED_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
@@ -713,5 +714,77 @@ describe('AreaSeries', () => {
                 expect(clicks).toHaveLength(0);
             });
         });
+    });
+
+    describe('pattern fill', () => {
+        const EXAMPLE = deepClone(examples.SIMPLE_AREA_GRAPH_EXAMPLE);
+
+        EXAMPLE.series?.forEach((s) => {
+            (s as AgAreaSeriesOptions).normalizedTo = 100;
+        });
+
+        it.each([
+            'vertical-lines',
+            'horizontal-lines',
+            'forward-slanted-lines',
+            'backward-slanted-lines',
+            'circles',
+            'squares',
+            'triangles',
+            'diamonds',
+            'stars',
+            'hearts',
+            'crosses',
+        ] as AgPatternName[])('it should create a chart with %s pattern', async (pattern) => {
+            const series = EXAMPLE.series as AgAreaSeriesOptions[];
+            const options: AgChartOptions = {
+                ...EXAMPLE,
+                series: series.map(
+                    (s) =>
+                        ({
+                            ...s,
+                            fill: {
+                                type: 'pattern',
+                                pattern,
+                            },
+                        }) as AgAreaSeriesOptions
+                ),
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it.each(CUSTOM_SVG_PATHS)(
+            'it should create a chart with custom svg pattern',
+            async ({ path, width, height }) => {
+                const series = EXAMPLE.series as AgAreaSeriesOptions[];
+
+                const options: AgChartOptions = {
+                    ...EXAMPLE,
+                    series: series.map(
+                        (s) =>
+                            ({
+                                ...s,
+                                fill: {
+                                    type: 'pattern',
+                                    pattern: 'custom',
+                                    path,
+                                    width,
+                                    height,
+                                },
+                            }) as AgAreaSeriesOptions
+                    ),
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+
+                await waitForChartStability(chart);
+                await compare();
+            }
+        );
     });
 });

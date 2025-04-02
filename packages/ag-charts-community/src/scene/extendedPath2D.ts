@@ -2,6 +2,7 @@ import { Logger } from 'ag-charts-core';
 
 import { normalizeAngle360 } from '../util/angle';
 import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
+import { parseSvg } from '../util/svg';
 import { BBox } from './bbox';
 import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
 import { calculateDerivativeExtremaXY, evaluateBezier } from './util/bezier';
@@ -71,6 +72,300 @@ export class ExtendedPath2D {
         this.lineTo(x + width, y + height);
         this.lineTo(x, y + height);
         this.closePath();
+    }
+
+    appendSvg(d: string) {
+        const parts = parseSvg(d);
+
+        let cx: number; // current point x
+        let cy: number; // current point y
+
+        let cpx: number = 0;
+        let cpy: number = 0;
+
+        for (const { command, params } of parts) {
+            cx ??= params[0];
+            cy ??= params[1];
+
+            const relative = command === command.toLowerCase();
+            const dx = relative ? cx : 0;
+            const dy = relative ? cy : 0;
+
+            // straight lines - L, l, H, h, V and v
+            // cubic curves - C, c, S and s
+            // quadratic curves - Q, q, T and t
+            // elliptical arc - A and a
+
+            switch (command.toLocaleLowerCase()) {
+                case 'm':
+                    this.moveTo(dx + params[0], dy + params[1]);
+                    cx = dx + params[0];
+                    cy = dy + params[1];
+
+                    break;
+
+                case 'c':
+                    this.cubicCurveTo(
+                        dx + params[0],
+                        dy + params[1],
+                        dx + params[2],
+                        dy + params[3],
+                        dx + params[4],
+                        dy + params[5]
+                    );
+                    cpx = dx + params[2];
+                    cpy = dy + params[3];
+
+                    cx = dx + params[4];
+                    cy = dy + params[5];
+
+                    break;
+
+                case 's':
+                    this.cubicCurveTo(
+                        cx + cx - cpx,
+                        cy + cy - cpy,
+                        dx + params[0],
+                        dy + params[1],
+                        dx + params[2],
+                        dy + params[3]
+                    );
+
+                    cpx = dx + params[0];
+                    cpy = dy + params[1];
+
+                    cx = dx + params[2];
+                    cy = dy + params[3];
+
+                    break;
+
+                case 'q':
+                    this.cubicCurveTo(
+                        (dx + 2 * params[0]) / 3,
+                        (dy + 2 * params[1]) / 3,
+                        (2 * params[0] + params[2]) / 3,
+                        (2 * params[1] + params[3]) / 3,
+                        params[2],
+                        params[3]
+                    );
+
+                    cpx = params[0];
+                    cpy = params[1];
+
+                    cx = params[2];
+                    cy = params[3];
+
+                    break;
+
+                case 't':
+                    this.cubicCurveTo(
+                        (cx + 2 * (cx + cx - cpx)) / 3,
+                        (cy + 2 * (cy + cy - cpy)) / 3,
+                        (2 * (cx + cx - cpx) + params[0]) / 3,
+                        (2 * (cy + cy - cpy) + params[1]) / 3,
+                        params[0],
+                        params[1]
+                    );
+
+                    cpx = cx + cx - cpx;
+                    cpy = cy + cy - cpy;
+
+                    cx = params[0];
+                    cy = params[1];
+
+                    break;
+
+                case 'a':
+                    this.ellipse(
+                        cx,
+                        cy,
+                        params[0],
+                        params[1],
+                        (params[2] * Math.PI) / 180,
+                        params[3],
+                        params[4],
+                        dx + params[5],
+                        dy + params[6]
+                    );
+
+                    cx = dx + params[5];
+                    cy = dy + params[6];
+
+                    break;
+
+                case 'h':
+                    this.lineTo(dx + params[0], cy);
+                    cx = dx + params[0];
+
+                    break;
+
+                case 'l':
+                    this.lineTo(dx + params[0], dy + params[1]);
+                    cx = dx + params[0];
+                    cy = dy + params[1];
+
+                    break;
+
+                case 'v':
+                    this.lineTo(cx, dy + params[0]);
+                    cy = dy + params[0];
+
+                    break;
+
+                case 'z':
+                    this.closePath();
+                    break;
+
+                default:
+                    throw new Error(`Could not translate command '${command}' with '${params.join(' ')}'`);
+            }
+        }
+    }
+
+    ellipse(
+        x1: number,
+        y1: number,
+        rx: number,
+        ry: number,
+        rotation: number,
+        fA: number,
+        fS: number,
+        x2: number,
+        y2: number
+    ) {
+        // https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
+        // https://www.w3.org/TR/SVG/implnote.html#ArcImplementationNotes
+        // https://www.w3.org/TR/SVG11/paths.html#PathDataEllipticalArcCommands
+        rx = Math.abs(rx);
+        ry = Math.abs(ry);
+
+        // half differences
+        const dx = (x1 - x2) / 2;
+        const dy = (y1 - y2) / 2;
+
+        const sin = Math.sin(rotation);
+        const cos = Math.cos(rotation);
+
+        // rotate the coordinate differences
+        const rotX = cos * dx + sin * dy;
+        const rotY = -sin * dx + cos * dy;
+
+        // normalise by radii
+        const normX = rotX / rx;
+        const normY = rotY / ry;
+        let scale = normX * normX + normY * normY;
+        let cx = (x1 + x2) / 2;
+        let cy = (y1 + y2) / 2;
+
+        // control points
+        let cpx = 0;
+        let cpy = 0;
+
+        if (scale >= 1) {
+            // scale radii if necessary
+            scale = Math.sqrt(scale);
+            rx *= scale;
+            ry *= scale;
+        } else {
+            // correct centre using the flag values
+            scale = Math.sqrt(1 / scale - 1);
+            if (fA === fS) scale = -scale;
+
+            cpx = scale * rx * normY;
+            cpy = -scale * ry * normX;
+
+            cx += cos * cpx - sin * cpy;
+            cy += sin * cpx + cos * cpy;
+        }
+
+        const sAngle = Math.atan2((rotY - cpy) / ry, (rotX - cpx) / rx);
+        const deltaTheta = Math.atan2((-rotY - cpy) / ry, (-rotX - cpx) / rx) - sAngle;
+        const eAngle = sAngle + deltaTheta;
+        const counterClockwise = !!(1 - fS);
+
+        this.ellipticalArc(cx, cy, rx, ry, rotation, sAngle, eAngle, counterClockwise);
+    }
+
+    ellipticalArc(
+        cx: number,
+        cy: number,
+        rx: number,
+        ry: number,
+        rotation: number,
+        sAngle: number,
+        eAngle: number,
+        counterClockwise: boolean
+    ) {
+        if (counterClockwise) {
+            [sAngle, eAngle] = [eAngle, sAngle];
+        }
+
+        const params: number[] = [];
+        const f90 = 0.5522847498307935; // approximation for cubic Bézier control points
+
+        // initial rotation matrix values
+        const sinS = Math.sin(sAngle);
+        const cosS = Math.cos(sAngle);
+        const sinR = Math.sin(rotation);
+        const cosR = Math.cos(rotation);
+
+        let xx = cosR * cosS * rx - sinR * sinS * ry;
+        let yx = sinR * cosS * rx + cosR * sinS * ry;
+        let xy = -cosR * sinS * rx - sinR * cosS * ry;
+        let yy = -sinR * sinS * rx + cosR * cosS * ry;
+
+        params.push(xx + cx, yx + cy); // do we need this
+
+        eAngle -= sAngle;
+        eAngle = normalizeAngle360(eAngle);
+
+        const rightAngle = Math.PI / 2;
+        const fullRightAngles = Math.floor(eAngle / rightAngle); // number of full 90 degree arcs
+        const remainderAngle = eAngle % rightAngle;
+
+        for (let i = 0; i < fullRightAngles; i++) {
+            params.push(
+                xx + xy * f90 + cx,
+                yx + yy * f90 + cy,
+                xx * f90 + xy + cx,
+                yx * f90 + yy + cy,
+                xy + cx,
+                yy + cy
+            );
+
+            // rotate by Math.PI / 2
+            [xx, xy] = [xy, -xx];
+            [yx, yy] = [yy, -yx];
+        }
+
+        if (remainderAngle > 0) {
+            const sinRA = Math.sin(remainderAngle);
+            const cosRA = Math.cos(remainderAngle);
+            const factor = Math.tan(remainderAngle / 4) * (4 / 3);
+            const cpx = cosRA + factor * sinRA;
+            const cpy = sinRA - factor * cosRA;
+
+            params.push(
+                xx + xy * factor + cx,
+                yx + yy * factor + cy,
+                xx * cpx + xy * cpy + cx,
+                yx * cpx + yy * cpy + cy,
+                xx * cosRA + xy * sinRA + cx,
+                yx * cosRA + yy * sinRA + cy
+            );
+        }
+
+        if (counterClockwise) {
+            for (let i = 0, j = params.length - 2; i < j; i += 2, j -= 2) {
+                [params[i], params[j]] = [params[j], params[i]];
+                [params[i + 1], params[j + 1]] = [params[j + 1], params[i + 1]];
+            }
+        }
+
+        for (let i = 2; i < params.length; i += 6) {
+            const [cx1, cy1, cx2, cy2, x, y] = params.slice(i, i + 6);
+            this.cubicCurveTo(cx1, cy1, cx2, cy2, x, y);
+        }
     }
 
     roundRect(x: number, y: number, width: number, height: number, radii: number) {
@@ -376,6 +671,11 @@ export class ExtendedPath2D {
                 [sx, sy] = [x, y];
             }
         };
+        const joinAngle = (cx: number, cy: number, r: number, angle: number, updatestart?: boolean) => {
+            const px = cx + r * Math.cos(angle);
+            const py = cy + r * Math.sin(angle);
+            joinPoint(px, py, updatestart);
+        };
 
         let pi = 0;
         for (const command of commands) {
@@ -394,43 +694,36 @@ export class ExtendedPath2D {
                     const cp2y = params[pi++];
                     const x = params[pi++];
                     const y = params[pi++];
-                    joinPoint(x, y, true);
 
-                    const Ts = calculateDerivativeExtremaXY(sx, sy, cp1x, cp1y, cp2x, cp2y, x, y);
+                    const ts = calculateDerivativeExtremaXY(sx, sy, cp1x, cp1y, cp2x, cp2y, x, y);
 
                     // Check points where the derivative is zero
-                    Ts.forEach((t: number) => {
+                    ts.forEach((t: number) => {
                         const px = evaluateBezier(sx, cp1x, cp2x, x, t);
                         const py = evaluateBezier(sy, cp1y, cp2y, y, t);
                         joinPoint(px, py);
                     });
+
+                    joinPoint(x, y, true);
                     break;
                 }
                 case Command.Arc: {
                     const cx = params[pi++];
                     const cy = params[pi++];
                     const r = params[pi++];
-                    let A0 = normalizeAngle360(params[pi++]);
-                    let A1 = normalizeAngle360(params[pi++]);
+                    const a0 = normalizeAngle360(params[pi++]);
+                    const a1 = normalizeAngle360(params[pi++]);
                     const ccw = params[pi++];
 
-                    if (ccw) {
-                        [A0, A1] = [A1, A0];
-                    }
-
-                    const joinAngle = (angle: number, updatestart?: boolean) => {
-                        const px = cx + r * Math.cos(angle);
-                        const py = cy + r * Math.sin(angle);
-                        joinPoint(px, py, updatestart);
-                    };
-                    joinAngle(A0);
-                    joinAngle(A1, true);
+                    joinAngle(cx, cy, r, a0);
                     const criticalAngles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+                    const [r0, r1] = ccw ? [a1, a0] : [a0, a1];
                     for (const crit of criticalAngles) {
-                        if ((A0 < A1 && A0 <= crit && crit <= A1) || (A0 > A1 && (A0 <= crit || crit <= A1))) {
-                            joinAngle(crit);
+                        if ((r0 < r1 && r0 <= crit && crit <= r1) || (r0 > r1 && (r0 <= crit || crit <= r1))) {
+                            joinAngle(cx, cy, r, crit);
                         }
                     }
+                    joinAngle(cx, cy, r, a1, true);
                     break;
                 }
                 case Command.ClosePath:

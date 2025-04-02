@@ -1,5 +1,5 @@
 import { type SeriesModuleDefinition } from 'ag-charts-core';
-import type { InternalAgGradientColor } from 'ag-charts-core';
+import type { RequiredInternalAgGradientColor } from 'ag-charts-core';
 import type { AgBarSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
@@ -34,7 +34,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: false,
-            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             fillOpacity: 1,
             strokeWidth: 0,

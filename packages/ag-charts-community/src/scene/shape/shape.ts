@@ -1,9 +1,11 @@
 import { type InternalAgGradientColor, clamp } from 'ag-charts-core';
 import type { AgPatternColor } from 'ag-charts-types';
 
+import { BBoxValues } from '../../util/bboxinterface';
 import { generateUUID } from '../../util/id';
 import { objectsEqual } from '../../util/object';
 import type { BBox } from '../bbox';
+import { SceneArrayChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../changeDetectable';
 import type { DropShadow } from '../dropShadow';
 import { ConicGradient } from '../gradient/conicGradient';
 import { type ColorSpace, Gradient, type GradientParams } from '../gradient/gradient';
@@ -78,7 +80,7 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection()
     strokeOpacity: number = 1;
 
-    @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
+    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onFillChange() })
     fill: ShapeColor | undefined = Shape.defaultStyles.fill;
 
     private getGradient(fill: ShapeColor | undefined) {
@@ -109,9 +111,7 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     private createPattern(fill: AgPatternColor) {
-        const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-
-        return new Pattern(fill, pixelRatio);
+        return new Pattern(fill);
     }
 
     private _cachedFill?: ShapeColor;
@@ -140,7 +140,7 @@ export abstract class Shape<D = any> extends Node<D> {
      * The preferred way of making the stroke invisible is setting the `lineWidth` to zero,
      * unless specific looks that is achieved by having an invisible stroke is desired.
      */
-    @SceneChangeDetection({ changeCb: (s: Shape) => s.onStrokeChange() })
+    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onStrokeChange() })
     stroke?: ShapeColor = Shape.defaultStyles.stroke;
 
     protected onStrokeChange() {
@@ -162,8 +162,8 @@ export abstract class Shape<D = any> extends Node<D> {
         return align(this.layerManager?.canvas?.pixelRatio ?? 1, start, length);
     }
 
-    @SceneChangeDetection()
-    lineDash?: number[] = Shape.defaultStyles.lineDash;
+    @SceneArrayChangeDetection()
+    lineDash?: readonly number[] = Shape.defaultStyles.lineDash;
 
     @SceneChangeDetection()
     lineDashOffset: number = Shape.defaultStyles.lineDashOffset;
@@ -180,13 +180,13 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = Shape.defaultStyles.opacity;
 
-    @SceneChangeDetection({ checkDirtyOnAssignment: true })
+    @SceneObjectChangeDetection({ equals: TRIPLE_EQ, checkDirtyOnAssignment: true })
     fillShadow: DropShadow | undefined = Shape.defaultStyles.fillShadow;
 
-    @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
+    @SceneObjectChangeDetection({ equals: BBoxValues.equals, changeCb: (s: Shape) => s.onFillChange() })
     fillBBox?: BBox;
 
-    @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
+    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onFillChange() })
     fillParams?: GradientParams;
 
     private cachedDefaultGradientFillBBox?: BBox;
@@ -224,10 +224,19 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyFill(ctx: CanvasContext) {
-        const { fill, fillGradient, fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
-        const gradientFill = fillBBox ? fillGradient?.createGradient(ctx as any, fillBBox, fillParams) : undefined;
-        const patternFill = this.fillPattern?.createPattern(ctx as any);
-        ctx.fillStyle = patternFill ?? gradientFill ?? (typeof fill === 'string' ? fill : undefined) ?? 'black';
+        const { fill, fillGradient, fillPattern } = this;
+        if (fillGradient) {
+            const { fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
+            ctx.fillStyle = fillGradient.createGradient(ctx as any, fillBBox, fillParams) ?? 'black';
+        } else if (fillPattern) {
+            const { x, y } = this.getBBox();
+            const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
+            const pattern = fillPattern.createPattern(ctx as any, pixelRatio);
+            fillPattern.setPatternTransform(pattern, pixelRatio, x, y);
+            ctx.fillStyle = pattern ?? 'black';
+        } else {
+            ctx.fillStyle = typeof fill === 'string' ? fill : 'black';
+        }
     }
 
     protected applyStroke(ctx: CanvasContext) {
@@ -255,7 +264,7 @@ export abstract class Shape<D = any> extends Node<D> {
         }
     }
 
-    protected renderStroke(ctx: CanvasContext, path?: Path2D) {
+    protected renderStroke(ctx: CanvasContext & { setLineDash(lineDash: readonly number[]): void }, path?: Path2D) {
         if (this.stroke && this.strokeWidth) {
             const { globalAlpha } = ctx;
             this.applyStroke(ctx);

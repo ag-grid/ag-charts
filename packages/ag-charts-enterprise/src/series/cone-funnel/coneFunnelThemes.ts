@@ -1,5 +1,5 @@
 import { type AgAxisLabelFormatterParams, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgGradientColor } from 'ag-charts-core';
+import type { RequiredInternalAgGradientColor } from 'ag-charts-core';
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
@@ -30,7 +30,7 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
             colorStops: { $palette: 'gradient' },
             rotation: 0,
             reverse: false,
-        } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+        } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
         fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         strokeWidth: 0,
         label: {

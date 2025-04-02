@@ -1,6 +1,7 @@
+import { BBoxValues } from '../../util/bboxinterface';
 import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
-import { SceneChangeDetection } from '../changeDetectable';
+import { SceneChangeDetection, SceneObjectChangeDetection } from '../changeDetectable';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
@@ -270,7 +271,7 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         this.bottomLeftCornerRadius = cornerRadius;
     }
 
-    @SceneChangeDetection()
+    @SceneObjectChangeDetection({ equals: BBoxValues.equals })
     clipBBox?: BBox = undefined;
 
     /**
@@ -440,7 +441,9 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         ctx.globalAlpha *= opacity * fillOpacity * microPixelEffectOpacity;
     }
 
-    protected override renderStroke(ctx: CanvasRenderingContext2D) {
+    protected override renderStroke(
+        ctx: CanvasRenderingContext2D & { setLineDash(lineDash: readonly number[]): void }
+    ) {
         const { stroke, effectiveStrokeWidth } = this;
 
         if (stroke && effectiveStrokeWidth) {

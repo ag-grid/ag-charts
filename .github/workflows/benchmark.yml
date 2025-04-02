@@ -1,0 +1,120 @@
+name: Benchmark
+
+on:
+    issue_comment:
+        types: [created]
+    workflow_dispatch:
+        {}
+        # schedule:
+        #     - cron: '0 20 * * *'
+
+env:
+    NX_NO_CLOUD: true
+    NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+    NX_BRANCH: ${{ github.ref }}
+    BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+    benchmark:
+        runs-on: macos-benchmark
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/benchmarks')
+        env:
+            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+            JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        steps:
+            - name: Notify start
+              id: notify-start
+              uses: actions/github-script@v7
+              continue-on-error: true
+              if: github.event_name == 'issue_comment'
+              with:
+                  result-encoding: string
+                  script: |
+                      const { data: comment } = await github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: `⏱️ ${process.env.JOB_URL}`
+                      })
+                      return comment.id;
+
+            - id: 'get-branch'
+              if: github.event_name == 'issue_comment'
+              run: |
+                  echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
+              env:
+                  REPO: ${{ github.repository }}
+                  PR_NO: ${{ github.event.issue.number }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ steps.get-branch.outputs.branch }}
+                  fetch-depth: 0
+
+            - name: Fetch Refs
+              if: github.event_name == 'issue_comment'
+              run: |
+                  if [[ -f '.git/shallow' ]]; then
+                      echo "Shallow clone detected, fetching all refs..."
+                      git fetch origin latest --unshallow
+                  else
+                      git fetch origin latest
+                  fi
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: rw
+
+            - name: nx benchmark
+              id: benchmark
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: |
+                  ./tools/benchmark/compare-latest.sh
+                  echo "report<<EOF" >> $GITHUB_OUTPUT
+                  cat ./reports/benchmark.log >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
+
+            - name: Notify Success
+              uses: actions/github-script@v7
+              continue-on-error: true
+              if: success() && github.event_name == 'issue_comment'
+              env:
+                  CONTENT: ${{ steps.benchmark.outputs.report}}
+              with:
+                  script: |
+                      const body = `✅ ${process.env.JOB_URL}
+                      \`\`\`
+                      ${process.env.CONTENT}
+                      \`\`\``;
+                      github.rest.issues.updateComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        comment_id: ${{ steps.notify-start.outputs.result }},
+                        body,
+                      })
+
+            - name: Notify Failure
+              uses: actions/github-script@v7
+              continue-on-error: true
+              if: failure() && github.event_name == 'issue_comment'
+              with:
+                  script: |
+                      const body = `❌ ${process.env.JOB_URL}`
+                      github.rest.issues.updateComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        comment_id: ${{ steps.notify-start.outputs.result }},
+                        body,
+                      })
+
+            - name: Perist benchmark results
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: benchmark-results
+                  path: |
+                      packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/*

@@ -249,7 +249,7 @@ export const AAPL = [
     { date: new Date('02/15/2023'), value: 155.33 },
     { date: new Date('02/14/2023'), value: 153.2 },
     { date: new Date('02/13/2023'), value: 153.85 },
-];
+].reverse();
 
 export const MSFT = [
     { date: new Date('02/09/2024'), value: 420.55 },
@@ -502,4 +502,4 @@ export const MSFT = [
     { date: new Date('02/15/2023'), value: 269.32 },
     { date: new Date('02/14/2023'), value: 272.17 },
     { date: new Date('02/13/2023'), value: 271.32 },
-];
+].reverse();

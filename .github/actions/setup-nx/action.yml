@@ -5,6 +5,10 @@ inputs:
         description: 'Always ensure yarn postinstall is run.'
         required: false
         default: 'true'
+        options:
+            - 'true'
+            - 'false'
+            - 'no-install'
     nx_restore:
         description: 'Restore Nx Cache.'
         required: false
@@ -123,8 +127,15 @@ runs:
               (yarn check --integrity && yarn postinstall) || yarn install --ci
 
         - name: yarn install (skipping postinstall)
-          if: inputs.yarn_postinstall != 'true'
+          if: inputs.yarn_postinstall == 'false'
           id: yarn_install_fast
           shell: bash
           run: |
               yarn check --integrity || yarn install --ci
+
+        - name: yarn install (skipping postinstall)
+          if: inputs.yarn_postinstall == 'no-install'
+          id: yarn_install_check
+          shell: bash
+          run: |
+              yarn check --integrity
