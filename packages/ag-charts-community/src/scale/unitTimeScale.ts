@@ -4,6 +4,7 @@ import type { TimeInterval } from 'ag-charts-types';
 import { buildFormatter } from '../util/timeFormat';
 import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
+import { normalizeContinuousDomains } from './continuousScale';
 import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams } from './scale';
 import { filterVisibleTicks } from './scaleUtil';
 
@@ -47,31 +48,7 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval> {
     }
 
     override normalizeDomains(...domains: Date[][]): NormalizedDomain<Date> {
-        let min: Date | undefined;
-        let minValue = Infinity;
-        let max: Date | undefined;
-        let maxValue = -Infinity;
-
-        for (const domain of domains) {
-            for (const d of domain) {
-                const value = d.valueOf();
-                if (value < minValue) {
-                    minValue = value;
-                    min = d;
-                }
-                if (value > maxValue) {
-                    maxValue = value;
-                    max = d;
-                }
-            }
-        }
-
-        if (min != null && max != null) {
-            const domain = [min, max];
-            return { domain, animatable: true };
-        } else {
-            return { domain: [], animatable: false };
-        }
+        return normalizeContinuousDomains(...domains);
     }
 
     override toDomain(value: number): Date {
