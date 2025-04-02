@@ -79,13 +79,15 @@ export async function generateFiles(options: ExecutorOptions) {
     }
 }
 
-// node --inspect-brk ./plugins/ag-grid-generate-example-files/dist/src/executors/generate/executor.js
-// console.log('should generate')
+// For debugging, uncomment below and run this in the root directory:
+// node --inspect-brk ./plugins/ag-charts-generate-example-files/dist/src/executors/generate/executor.js
+//
+// console.log('should generate');
 // generateFiles({
-//     examplePath: 'packages/ag-charts-website/src/content/docs/api-download/_examples/download',
+//     examplePath: 'packages/ag-charts-website/src/content/docs/layout-test/_examples/layout-matrix',
 //     mode: 'dev',
 //     inputs: [],
 //     output: '',
-//     outputPath: 'dist/generated-examples/ag-charts-website/docs/api-download/_examples/download',
-//     writeFiles: true,
+//     outputPath: 'dist/generated-examples/ag-charts-website/docs/layout-test/_examples/layout-matrix',
+//     writeFiles: false,
 // }).then(() => console.log('done'));

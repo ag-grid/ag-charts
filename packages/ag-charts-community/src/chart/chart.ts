@@ -1,4 +1,13 @@
-import { Logger, type ModuleInstance, entries, groupBy, isFiniteNumber, isFunction } from 'ag-charts-core';
+import {
+    AsyncAwaitQueue,
+    Logger,
+    type ModuleInstance,
+    entries,
+    groupBy,
+    isFiniteNumber,
+    isFunction,
+    pause,
+} from 'ag-charts-core';
 import type {
     AgBaseAxisOptions,
     AgChartInstance,
@@ -17,7 +26,6 @@ import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
-import { AsyncAwaitQueue, pause } from '../util/async';
 import { Debug } from '../util/debug';
 import { isInputPending } from '../util/dom';
 import { createId } from '../util/id';
@@ -49,7 +57,7 @@ import type { ChartType } from './factory/chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
-import { SyncManager } from './interaction/syncManager';
+import { SyncManager, type SyncStatus } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
 import { LayoutElement } from './layout/layoutManager';
 import type { ChartLegend, ChartLegendType } from './legend/legendDatum';
@@ -234,9 +242,6 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     private readonly _destroyFns: (() => void)[] = [];
 
-    // Used to prevent infinite update loops when syncing charts.
-    protected skipSync = false;
-
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
     public readonly modulesManager = new ModulesManager();
@@ -256,6 +261,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
      * wrapping class that implements AgChartInstance.
      */
     publicApi?: AgChartInstance;
+
+    syncStatus: SyncStatus = 'init';
 
     getOptions() {
         return this.queuedUserOptions.at(-1) ?? this.chartOptions.userOptions;
@@ -584,8 +591,6 @@ export abstract class Chart extends Observable implements ModuleInstance {
             this._performUpdateSkipAnimations = true;
         }
 
-        this.skipSync = opts?.skipSync ?? false;
-
         if (this.debug.check()) {
             let stack = new Error().stack ?? '<unknown>';
             stack = stack.replace(/\([^)]*/g, '');
@@ -714,6 +719,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
             ctx.updateService.dispatchUpdateComplete();
             this.ctx.domManager.setDataBoolean('updatePending', false);
             this.runningUpdateType = ChartUpdateType.NONE;
+            this.syncStatus = 'ready';
         }
         this._performUpdateNotify.notify();
 

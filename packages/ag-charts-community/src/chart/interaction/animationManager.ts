@@ -1,6 +1,12 @@
 import { EventEmitter, type EventListener, Logger, getWindow } from 'ag-charts-core';
 
-import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
+import type {
+    AdditionalAnimationOptions,
+    AnimationOptions,
+    AnimationPhase,
+    AnimationValue,
+    IAnimation,
+} from '../../motion/animation';
 import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';
 import type { Mutex } from '../../util/mutex';
@@ -161,6 +167,10 @@ export class AnimationManager {
 
     public isActive() {
         return this.isPlaying && this.batch.isActive();
+    }
+
+    public getRemainingTime(phase?: AnimationPhase) {
+        return this.batch.getRemainingTime(phase);
     }
 
     public skipCurrentBatch() {

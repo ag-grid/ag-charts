@@ -1,4 +1,4 @@
-import { Logger, arraysEqual, entries, groupBy } from 'ag-charts-core';
+import { Logger, entries, groupBy } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { LayoutContext, ModuleInstance } from '../module/baseModule';
@@ -6,7 +6,6 @@ import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import { ContinuousScale } from '../scale/continuousScale';
 import type { BBox } from '../scene/bbox';
-import { findMinMax } from '../util/number';
 import { CategoryAxis } from './axis/categoryAxis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
@@ -29,7 +28,8 @@ const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left']
 
 interface SyncModule extends ModuleInstance {
     enabled?: boolean;
-    getSyncedDomain(axis: ChartAxis): any[] | undefined;
+    getSyncedDomain(axis: ChartAxis): Promise<any[] | undefined>;
+    removeAxis(axis: ChartAxis): void;
     updateSiblings(): void;
 }
 
@@ -50,6 +50,8 @@ export class CartesianChart extends Chart {
 
     override onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         super.onAxisChange(newValue, oldValue);
+
+        this.syncAxisChanges(newValue, oldValue);
 
         if (this.ctx != null) {
             this.ctx.zoomManager.updateAxes(newValue);
@@ -78,11 +80,15 @@ export class CartesianChart extends Chart {
     override async processData(): Promise<void> {
         await super.processData();
 
+        if (this.syncStatus === 'init') {
+            this.syncStatus = 'domains-calculated';
+        }
+
         for (const axis of this.axes) {
-            const syncedDomain = this.getSyncedDomain(axis);
+            const syncedDomain = await this.getSyncedDomain(axis);
 
             if (syncedDomain != null) {
-                (axis as any).setDomains(syncedDomain);
+                axis.setDomains(syncedDomain);
             }
         }
 
@@ -315,27 +321,23 @@ export class CartesianChart extends Chart {
         return direction === 1 ? Math.min(value, bound + size) : Math.max(value, bound);
     }
 
-    private getSyncedDomain(axis: ChartAxis) {
+    private async getSyncedDomain(axis: ChartAxis) {
         const syncModule = this.modulesManager.getModule<SyncModule>('sync');
         if (!syncModule?.enabled) return;
-        const syncedDomain = syncModule.getSyncedDomain(axis);
+        return await syncModule.getSyncedDomain(axis);
+    }
 
-        // If synced domain available and axis domain is already set.
-        if (syncedDomain && axis.dataDomain.domain.length) {
-            let shouldUpdate: boolean;
-            const { domain } = axis.scale;
-            if (ContinuousScale.is(axis.scale)) {
-                const [min, max] = findMinMax(syncedDomain);
-                shouldUpdate = min !== domain[0] || max !== domain[1];
-            } else {
-                shouldUpdate = !arraysEqual(syncedDomain, domain);
-            }
-            if (shouldUpdate && !this.skipSync) {
-                syncModule.updateSiblings();
-            }
+    private syncAxisChanges(newValue: ChartAxis[], oldValue: ChartAxis[] | undefined) {
+        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
+        if (!syncModule?.enabled) return;
+
+        const removed = new Set(oldValue ?? []);
+        for (const axis of newValue) {
+            removed.delete(axis);
         }
-
-        return syncedDomain;
+        for (const removedAxis of removed) {
+            syncModule.removeAxis(removedAxis);
+        }
     }
 
     private sizeAxis(axis: ChartAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
