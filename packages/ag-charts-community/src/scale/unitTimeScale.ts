@@ -15,7 +15,6 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval> {
     }
 
     private _domain: Date[] = [];
-
     override set domain(domain: Date[]) {
         if (domain === this._domain) return;
 
