@@ -210,7 +210,7 @@ export interface AgCartesianAxesTheme {
     'ordinal-time'?: AgOrdinalTimeAxisThemeOptions;
     /** This extends the common axis configuration with options specific to grouped-category axes. */
     'grouped-category'?: AgGroupedCategoryAxisThemeOptions;
-    /** This extends the common axis configuration with options specific to grouped-category axes. */
+    /** This extends the common axis configuration with options specific to unit-time axes. */
     'unit-time'?: AgUnitTimeAxisOptions;
 }
 
