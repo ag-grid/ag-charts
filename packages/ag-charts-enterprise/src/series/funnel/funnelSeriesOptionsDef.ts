@@ -1,13 +1,19 @@
-import { type AgFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgBaseAxisLabelStyleOptions,
+    type AgFunnelSeriesOptions,
+    type AgFunnelSeriesStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
     boolean,
-    callback,
+    callbackDefs,
     color,
     colorUnion,
     constant,
     fillOptionsDef,
+    fontOptionsDef,
     lineDashOptionsDef,
     number,
     positiveNumber,
@@ -29,7 +35,11 @@ export const funnelSeriesOptionsDef: OptionsDefs<AgFunnelSeriesOptions> = {
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
     showInMiniChart: boolean,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgFunnelSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
     spacingRatio: ratio,
     crisp: boolean,
     dropOff: {
@@ -44,7 +54,10 @@ export const funnelSeriesOptionsDef: OptionsDefs<AgFunnelSeriesOptions> = {
         minSpacing: positiveNumber,
         placement: union('before', 'after'),
         avoidCollisions: boolean,
-        itemStyler: callback,
+        itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
+            ...fontOptionsDef,
+            spacing: number,
+        }),
         format: string,
         ...seriesLabelOptionsDefs,
     },

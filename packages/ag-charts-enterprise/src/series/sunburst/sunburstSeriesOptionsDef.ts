@@ -1,8 +1,8 @@
-import { type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgSunburstSeriesOptions, type AgSunburstSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
-    callback,
+    callbackDefs,
     color,
     colorUnion,
     constant,
@@ -30,7 +30,10 @@ export const sunburstSeriesOptionsDef: OptionsDefs<AgSunburstSeriesOptions> = {
     sectorSpacing: positiveNumber,
     cornerRadius: positiveNumber,
     padding: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgSunburstSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+    }),
     label: {
         spacing: positiveNumber,
         ...autoSizedLabelOptionsDefs,

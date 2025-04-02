@@ -6,7 +6,7 @@ import {
 import {
     type OptionsDefs,
     boolean,
-    callback,
+    callbackDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
@@ -47,7 +47,16 @@ export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions
         up: candlestickSeriesItemOptionsDef,
         down: candlestickSeriesItemOptionsDef,
     },
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgCandlestickSeriesItemOptions>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cornerRadius: positiveNumber,
+        wick: {
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        },
+    }),
     showInMiniChart: boolean,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesOptionsDefs,

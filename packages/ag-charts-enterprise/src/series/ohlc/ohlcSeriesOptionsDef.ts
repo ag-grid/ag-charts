@@ -2,7 +2,7 @@ import { type AgOhlcSeriesItemOptions, type AgOhlcSeriesOptions, _ModuleSupport 
 import {
     type OptionsDefs,
     boolean,
-    callback,
+    callbackDefs,
     constant,
     lineDashOptionsDef,
     number,
@@ -32,7 +32,10 @@ export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
     lowName: string,
     closeName: string,
     showInMiniChart: boolean,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgOhlcSeriesItemOptions>({
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
     item: {
         up: ohlcSeriesItemOptionsDef,
         down: ohlcSeriesItemOptionsDef,

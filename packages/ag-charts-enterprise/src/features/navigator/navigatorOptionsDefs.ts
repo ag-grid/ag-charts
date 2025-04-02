@@ -4,12 +4,13 @@ import {
     array,
     arrayOf,
     boolean,
-    callback,
+    callbackOf,
     color,
     fontOptionsDef,
     number,
     positiveNumber,
     ratio,
+    string,
     typeUnion,
 } from 'ag-charts-core';
 import type {
@@ -85,7 +86,7 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
             avoidCollisions: boolean,
             spacing: positiveNumber,
             format: numberFormatValidator,
-            formatter: callback,
+            formatter: callbackOf(string),
             interval: {
                 minSpacing: positiveNumber,
                 maxSpacing: positiveNumber,

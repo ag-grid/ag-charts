@@ -1,8 +1,13 @@
-import { type AgSankeySeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgSankeySeriesLinkStyle,
+    type AgSankeySeriesNodeStyle,
+    type AgSankeySeriesOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
-    callback,
+    callbackDefs,
     color,
     colorUnion,
     constant,
@@ -32,7 +37,11 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
         spacing: positiveNumber,
     },
     link: {
-        itemStyler: callback,
+        itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        }),
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
@@ -41,7 +50,11 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
         width: positiveNumber,
         spacing: positiveNumber,
         alignment: union('left', 'center', 'right', 'justify'),
-        itemStyler: callback,
+        itemStyler: callbackDefs<AgSankeySeriesNodeStyle>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        }),
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,

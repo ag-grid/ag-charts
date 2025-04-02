@@ -1,8 +1,13 @@
-import { type AgChordSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgChordSeriesLinkStyle,
+    type AgChordSeriesNodeStyle,
+    type AgChordSeriesOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
-    callback,
+    callbackDefs,
     color,
     colorUnion,
     constant,
@@ -34,7 +39,12 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     },
     link: {
         tension: ratio,
-        itemStyler: callback,
+        itemStyler: callbackDefs<AgChordSeriesLinkStyle>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+            tension: ratio,
+        }),
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
@@ -42,7 +52,11 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     node: {
         width: positiveNumber,
         spacing: positiveNumber,
-        itemStyler: callback,
+        itemStyler: callbackDefs<AgChordSeriesNodeStyle>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        }),
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,

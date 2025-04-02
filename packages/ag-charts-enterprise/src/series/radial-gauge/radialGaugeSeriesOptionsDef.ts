@@ -6,6 +6,7 @@ import {
     arrayOfDefs,
     boolean,
     callback,
+    callbackOf,
     color,
     constant,
     fillOptionsDef,
@@ -70,7 +71,7 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
         max: and(number, greaterThan('min')),
         label: {
             enabled: boolean,
-            formatter: callback,
+            formatter: callbackOf(string),
             rotation: number,
             spacing: positiveNumber,
             minSpacing: positiveNumber,

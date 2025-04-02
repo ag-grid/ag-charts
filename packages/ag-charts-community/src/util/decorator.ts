@@ -141,14 +141,3 @@ export function extractDecoratedProperties(target: any) {
         return result;
     }, {});
 }
-
-export function extractDecoratedPropertyMetadata(target: any, propertyKeyOrSymbol: string | symbol) {
-    const propertyKey = propertyKeyOrSymbol.toString();
-    while (isDecoratedObject(target)) {
-        const config: Record<string, TransformConfig> = target[CONFIG_KEY];
-        if (Object.hasOwn(config, propertyKey)) {
-            return config[propertyKey];
-        }
-        target = Object.getPrototypeOf(target);
-    }
-}

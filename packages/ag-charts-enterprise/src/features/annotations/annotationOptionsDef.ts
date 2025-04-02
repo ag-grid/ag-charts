@@ -19,7 +19,7 @@ import {
     arrayOf,
     arrayOfDefs,
     boolean,
-    callback,
+    callbackOf,
     color,
     constant,
     fillOptionsDef,
@@ -135,7 +135,7 @@ const annotationValue = or(
 const annotationAxisLabelOptionsDef: OptionsDefs<AgAnnotationAxisLabel> = {
     enabled: boolean,
     cornerRadius: positiveNumber,
-    formatter: callback,
+    formatter: callbackOf(string),
     ...fontOptionsDef,
     ...fillOptionsDef,
     ...strokeOptionsDef,

@@ -1,10 +1,15 @@
-import { type AgMapLineSeriesOptions, type AgSeriesHighlightStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgMapLineSeriesOptions,
+    type AgMapLineSeriesStyle,
+    type AgSeriesHighlightStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     and,
     arrayLength,
     arrayOf,
-    callback,
+    callbackDefs,
     color,
     constant,
     geoJson,
@@ -32,7 +37,10 @@ export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
     legendItemName: string,
     maxStrokeWidth: positiveNumber,
     title: string,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgMapLineSeriesStyle>({
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
     sizeDomain: arrayOf(positiveNumber),
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,

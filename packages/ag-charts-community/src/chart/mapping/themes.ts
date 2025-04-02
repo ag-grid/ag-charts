@@ -90,8 +90,8 @@ function createChartTheme(value: unknown): ChartTheme {
         return new baseTheme.constructor(flattenedTheme);
     }
 
-    for (const { message } of invalid) {
-        Logger.warnOnce(message);
+    for (const error of invalid) {
+        Logger.warnOnce(String(error));
     }
 
     return lightTheme();

@@ -1,9 +1,9 @@
-import { type AgTreemapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgTreemapSeriesOptions, type AgTreemapSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
     boolean,
-    callback,
+    callbackDefs,
     color,
     colorUnion,
     constant,
@@ -31,7 +31,10 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
     colorRange: arrayOf(color),
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgTreemapSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+    }),
     group: {
         gap: positiveNumber,
         padding: positiveNumber,

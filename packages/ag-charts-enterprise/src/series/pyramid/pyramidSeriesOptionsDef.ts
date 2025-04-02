@@ -1,9 +1,9 @@
-import { type AgPyramidSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgPyramidSeriesOptions, type AgPyramidSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
     boolean,
-    callback,
+    callbackDefs,
     color,
     colorUnion,
     constant,
@@ -27,7 +27,11 @@ export const pyramidSeriesOptionsDef: OptionsDefs<AgPyramidSeriesOptions> = {
     aspectRatio: positiveNumber,
     spacing: positiveNumber,
     reverse: boolean,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgPyramidSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
     label: seriesLabelOptionsDefs,
