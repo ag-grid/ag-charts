@@ -4,7 +4,7 @@ import {
     type OptionsDefs,
     arrayOfDefs,
     boolean,
-    callbackOf,
+    callback,
     constant,
     date,
     fontOptionsDef,
@@ -112,7 +112,7 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
         enabled: boolean,
         text: string,
         spacing: positiveNumber,
-        formatter: callbackOf(string),
+        formatter: callback,
         ...fontOptionsDef,
     },
     label: {
@@ -144,7 +144,7 @@ export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOpti
         enabled: boolean,
         text: string,
         spacing: positiveNumber,
-        formatter: callbackOf(string),
+        formatter: callback,
         ...fontOptionsDef,
     },
 };

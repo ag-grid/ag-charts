@@ -7,6 +7,7 @@ import {
     arrayOfDefs,
     attachDescription,
     boolean,
+    callback,
     callbackDefs,
     callbackOf,
     color,
@@ -111,7 +112,7 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     avoidCollisions: boolean,
     minSpacing: positiveNumber,
     spacing: positiveNumber,
-    formatter: callbackOf(string),
+    formatter: callback,
     itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
         ...fontOptionsDef,
         spacing: number,
@@ -179,7 +180,7 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
         enabled: boolean,
         text: string,
         spacing: positiveNumber,
-        formatter: callbackOf(string),
+        formatter: callback,
         ...fontOptionsDef,
     },
 };

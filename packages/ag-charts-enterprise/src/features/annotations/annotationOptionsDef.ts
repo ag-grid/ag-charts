@@ -19,7 +19,7 @@ import {
     arrayOf,
     arrayOfDefs,
     boolean,
-    callbackOf,
+    callback,
     color,
     constant,
     fillOptionsDef,
@@ -86,20 +86,22 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
             or(
                 optionsDefs<AgAnnotationOptionsToolbarButton>({
                     ...toolbarButtonOptionsDefs,
-                    value: union(
-                        'line-stroke-width',
-                        'line-style-type',
-                        'line-color',
-                        'fill-color',
-                        'text-color',
-                        'text-size',
-                        'delete',
-                        'settings'
+                    value: required(
+                        union(
+                            'line-stroke-width',
+                            'line-style-type',
+                            'line-color',
+                            'fill-color',
+                            'text-color',
+                            'text-size',
+                            'delete',
+                            'settings'
+                        )
                     ),
                 }),
                 optionsDefs<AgAnnotationOptionsToolbarSwitch>({
                     ...toolbarButtonOptionsDefs,
-                    value: union('lock'),
+                    value: required(union('lock')),
                     checkedOverrides: toolbarButtonOptionsDefs,
                 })
             )
@@ -135,7 +137,7 @@ const annotationValue = or(
 const annotationAxisLabelOptionsDef: OptionsDefs<AgAnnotationAxisLabel> = {
     enabled: boolean,
     cornerRadius: positiveNumber,
-    formatter: callbackOf(string),
+    formatter: callback,
     ...fontOptionsDef,
     ...fillOptionsDef,
     ...strokeOptionsDef,

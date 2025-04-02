@@ -1,4 +1,5 @@
 import {
+    type AgGaugeColorStop,
     type AgLinearGaugePreset,
     type AgLinearGaugeTarget,
     type FillsOptions,
@@ -7,20 +8,21 @@ import {
 import {
     type OptionsDefs,
     and,
+    arrayLength,
     arrayOf,
     arrayOfDefs,
     boolean,
     callback,
-    callbackOf,
     color,
+    colorStopsOrderValidator,
     constant,
     fillOptionsDef,
     fontOptionsDef,
-    gradientColorStops,
     greaterThan,
     lessThan,
     lineDashOptionsDef,
     number,
+    optionsDefs,
     or,
     positiveNumber,
     ratio,
@@ -39,7 +41,11 @@ const {
 } = _ModuleSupport;
 
 export const fillsOptionsDef: OptionsDefs<FillsOptions> = {
-    fills: gradientColorStops,
+    fills: and(
+        arrayLength(2),
+        arrayOf(optionsDefs<AgGaugeColorStop>({ color: color, stop: number }, '')),
+        colorStopsOrderValidator
+    ),
     fillMode: union('continuous', 'discrete'),
 };
 
@@ -71,7 +77,7 @@ export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
         max: and(number, greaterThan('min')),
         label: {
             enabled: boolean,
-            formatter: callbackOf(string),
+            formatter: callback,
             rotation: number,
             spacing: positiveNumber,
             minSpacing: positiveNumber,

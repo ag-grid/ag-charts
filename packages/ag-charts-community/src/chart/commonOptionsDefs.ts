@@ -235,7 +235,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             },
             label: {
                 maxLength: positiveNumber,
-                formatter: callbackOf(string),
+                formatter: callback,
                 ...fontOptionsDef,
             },
             maxWidth: positiveNumber,
@@ -281,7 +281,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             label: {
                 ...fontOptionsDef,
                 format: numberFormatValidator,
-                formatter: callbackOf(string),
+                formatter: callback,
             },
             padding: positiveNumber,
             interval: {
@@ -504,7 +504,7 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
     enabled: boolean,
-    formatter: callbackOf(string),
+    formatter: callback,
     ...fontOptionsDef,
 };
 
