@@ -6,7 +6,7 @@ import type {
 } from './eventOptions';
 import type { AgChartLegendContextMenuEvent } from './legendOptions';
 
-interface ContextMenuItemMixin<TType extends AgContextMenuItemType, TEvent extends  { type: string; event: Event }> {
+interface ContextMenuItemMixin<TType extends AgContextMenuItemType, TEvent extends { type: string; event: Event }> {
     /**  TODO: writeme. */
     type: TType;
     /**  TODO: writeme. */
