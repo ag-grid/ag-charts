@@ -116,3 +116,112 @@ HTMLCollection [
   </div>,
 ]
 `;
+
+exports[`Extra Actions callbacks 1`] = `
+[
+  {
+    "args": [
+      {
+        "event": MouseEvent {
+          "isTrusted": false,
+          "offsetX": 102,
+          "offsetY": 562,
+          "pageX": 102,
+          "pageY": 562,
+        },
+        "type": "contextMenuEvent",
+      },
+    ],
+    "label": "myExtraAction",
+  },
+  {
+    "args": [
+      {
+        "event": MouseEvent {
+          "isTrusted": false,
+          "offsetX": 485,
+          "offsetY": 271,
+          "pageX": 533,
+          "pageY": 291,
+        },
+        "type": "seriesContextMenuAction",
+      },
+    ],
+    "label": "myExtraSeriesAreaAction",
+  },
+  {
+    "args": [
+      CartesianSeriesNodeEvent {
+        "datum": {
+          "hats": 50,
+          "month": "Jul",
+          "sweaters": 70,
+        },
+        "defaultPrevented": false,
+        "event": MouseEvent {
+          "isTrusted": false,
+          "offsetX": 318,
+          "offsetY": 279,
+          "pageX": 366,
+          "pageY": 299,
+        },
+        "seriesId": "BarSeries-1",
+        "type": "nodeContextMenuAction",
+        "xKey": "month",
+        "yKey": "sweaters",
+      },
+    ],
+    "label": "myExtraNodeAction",
+  },
+  {
+    "args": [
+      CartesianSeriesNodeEvent {
+        "datum": {
+          "hats": 30,
+          "month": "Aug",
+          "sweaters": 60,
+        },
+        "defaultPrevented": false,
+        "event": MouseEvent {
+          "isTrusted": false,
+          "offsetX": 659,
+          "offsetY": 398,
+          "pageX": 707,
+          "pageY": 418,
+        },
+        "seriesId": "BarSeries-2",
+        "type": "nodeContextMenuAction",
+        "xKey": "month",
+        "yKey": "hats",
+      },
+    ],
+    "label": "myExtraNodeAction",
+  },
+  {
+    "args": [
+      {
+        "event": MouseEvent {
+          "isTrusted": false,
+        },
+        "itemId": "sweaters",
+        "seriesId": "BarSeries-1",
+        "type": "contextmenu",
+      },
+    ],
+    "label": "myExtraLegendItemAction",
+  },
+  {
+    "args": [
+      {
+        "event": MouseEvent {
+          "isTrusted": false,
+        },
+        "itemId": "hats",
+        "seriesId": "BarSeries-2",
+        "type": "contextmenu",
+      },
+    ],
+    "label": "myExtraLegendItemAction",
+  },
+]
+`;
