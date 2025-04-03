@@ -158,13 +158,13 @@ describe('Extra Actions', () => {
         });
     });
 
-    test('callbacks', async ()=> {
-        const landmark1 = {x: 102, y: 562}; // bottom left corner (i.e. background of the chart).
-        const landmark2 = {x: 533, y: 291}; // series-area between two nodes (i.e. pickNode miss)
-        const landmark3 = {x: 366, y: 299}; // 2nd node of 1st bar series.
-        const landmark4 = {x: 707, y: 418}; // 3rd node of 2nd bar series.
-        const landmark5 = {x: 376, y: 573}; // 1st legend item.
-        const landmark6 = {x: 458, y: 573}; // 2nd legend item.
+    test('callbacks', async () => {
+        const landmark1 = { x: 102, y: 562 }; // bottom left corner (i.e. background of the chart).
+        const landmark2 = { x: 533, y: 291 }; // series-area between two nodes (i.e. pickNode miss)
+        const landmark3 = { x: 366, y: 299 }; // 2nd node of 1st bar series.
+        const landmark4 = { x: 707, y: 418 }; // 3rd node of 2nd bar series.
+        const landmark5 = { x: 376, y: 573 }; // 1st legend item.
+        const landmark6 = { x: 458, y: 573 }; // 2nd legend item.
         expect(chart).toBeDefined();
 
         await contextMenuAction(landmark1.x, landmark1.y)(chart);
