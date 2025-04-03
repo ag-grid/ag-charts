@@ -28,6 +28,5 @@ echo "Using workdir: ${workdir}"
     export LABELS="${RUNNER_LABELS:-ubuntu-debug,ubuntu-debug-${RUNNER_NAME}}"
     export RUNNER_TOKEN
     cd ${scriptdir} && \
-    docker compose build && \
-    docker compose up gha-runner gha-cache
+    docker compose up --build gha-runner gha-cache
 )
