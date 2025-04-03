@@ -2,9 +2,8 @@ import { clamp } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
-import type { ChildNodeCounts, RenderContext } from './node';
+import type { ChildNodeCounts, IScene, RenderContext } from './node';
 import { Node, SceneChangeDetection } from './node';
-import type { Scene } from './scene';
 import { type CanvasContext, Shape } from './shape/shape';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
 import { alignBefore } from './util/pixel';
@@ -299,7 +298,7 @@ export class Group<D = any> extends Node<D> {
         this.clipRect = bbox;
     }
 
-    override setScene(scene?: Scene) {
+    override setScene(scene?: IScene) {
         if (this.layer) {
             this.scene?.layersManager.removeLayer(this.layer);
             this.layer = undefined;

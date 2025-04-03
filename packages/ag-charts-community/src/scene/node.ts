@@ -6,7 +6,6 @@ import { BBox } from './bbox';
 import { SceneChangeDetection, SceneObjectChangeDetection } from './changeDetectable';
 import type { ImageLoader } from './image/imageLoader';
 import type { LayersManager } from './layersManager';
-import type { Scene } from './scene';
 import type { ZIndex } from './zIndex';
 
 export { SceneChangeDetection };
@@ -49,6 +48,11 @@ export type ChildNodeCounts = {
     thisComplexity: number;
     complexity: number;
 };
+
+export interface IScene {
+    layersManager: LayersManager;
+    imageLoader: ImageLoader;
+}
 
 /**
  * Abstract scene graph node.
@@ -109,7 +113,7 @@ export abstract class Node<D = any> {
     protected _previousDatum?: D;
 
     protected _debug?: (...args: any[]) => void;
-    protected scene: Scene | undefined = undefined;
+    protected scene: IScene | undefined = undefined;
     private readonly _debugDirtyProperties?: Map<string, string[]>;
 
     protected _dirty: boolean = true;
@@ -220,7 +224,7 @@ export abstract class Node<D = any> {
         }
     }
 
-    setScene(scene?: Scene) {
+    setScene(scene?: IScene) {
         this.scene = scene;
         this._debug = scene?.layersManager?.debug;
 
