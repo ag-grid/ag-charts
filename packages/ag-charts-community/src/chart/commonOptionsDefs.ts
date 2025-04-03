@@ -332,7 +332,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     contextMenu: {
         enabled: boolean,
-        items: unknown,
+        items: defined,
         extraActions: contextMenuActionsArray,
         extraSeriesAreaActions: contextMenuActionsArray,
         extraNodeActions: contextMenuActionsArray,
