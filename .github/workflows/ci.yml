@@ -47,7 +47,7 @@ concurrency:
 
 jobs:
     init:
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-debug
         name: Initialise Workflow
         env:
             AG_FORCE_ALL_TESTS: 1
@@ -67,6 +67,10 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 1
+
+            - name: Debug
+              run: |
+                  sleep 300
 
             - name: Setup
               id: setup
