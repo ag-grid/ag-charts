@@ -64,8 +64,8 @@ runs:
                 echo "type=release" >> $GITHUB_OUTPUT
               else
                 # PR
-                echo "base=${{ inputs.base_ref }}" >> $GITHUB_OUTPUT
-                echo "NX_BASE=${{ inputs.base_ref }}" >> $GITHUB_ENV
+                echo "base=origin/${{ inputs.base_ref }}" >> $GITHUB_OUTPUT
+                echo "NX_BASE=origin/${{ inputs.base_ref }}" >> $GITHUB_ENV
                 echo "type=pr" >> $GITHUB_OUTPUT
                 if [[ ${{ inputs.fetch_latest }} == 'shallow' ]] ; then
                   git fetch origin --depth 1 ${{ inputs.base_ref }}
