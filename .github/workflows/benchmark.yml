@@ -42,6 +42,7 @@ jobs:
               if: github.event_name == 'issue_comment'
               run: |
                   echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
+                  echo "base=$(gh pr view 3928 --json baseRefName --jq '.baseRefName')" >> $GITHUB_OUTPUT
               env:
                   REPO: ${{ github.repository }}
                   PR_NO: ${{ github.event.issue.number }}
@@ -58,15 +59,15 @@ jobs:
               run: |
                   set -x
 
-                  git fetch --unshallow origin latest || echo "Not a shallow ref?"
+                  git fetch --unshallow origin ${{ steps.get-branch.outputs.base }} || echo "Not a shallow ref?"
 
                   # Preemptively fail if merge-base is not found.
-                  mergeBase=$(git merge-base HEAD origin/latest || echo "failed")
+                  mergeBase=$(git merge-base HEAD origin/${{ steps.get-branch.outputs.base }} || echo "failed")
 
                   if [[ ${mergeBase} == "failed" ]] ; then
                     # Debugging
                     git log -n 1 --decorate HEAD
-                    git log -n 20 --decorate origin/latest
+                    git log -n 20 --decorate origin/${{ steps.get-branch.outputs.base }}
 
                     # Allow for a few minutes for debugging
                     sleep 600
@@ -90,6 +91,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: rw
+                  base_ref: ${{ steps.get-branch.outputs.base }}
 
             - name: Notify Progress
               uses: actions/github-script@v7
@@ -108,7 +110,7 @@ jobs:
               id: benchmark
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  ./tools/benchmark/compare-latest.sh
+                  ./tools/benchmark/compare-latest.sh ${{ steps.get-branch.outputs.base }}
                   echo "report<<EOF" >> $GITHUB_OUTPUT
                   cat ./reports/benchmark.log >> $GITHUB_OUTPUT
                   echo "EOF" >> $GITHUB_OUTPUT
