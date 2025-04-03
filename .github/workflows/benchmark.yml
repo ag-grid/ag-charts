@@ -61,8 +61,7 @@ jobs:
                   grafted=$(git log -n 1 --oneline --decorate origin/latest | cut -d ' ' -f 2 | grep -o 'grafted')
                   if [[ -f '.git/shallow' || "${grafted}" == "grafted" ]] ; then
                       echo "Shallow clone detected, fetching all refs..."
-                      git fetch origin latest --unshallow
-                    git fetch --unshallow origin latest
+                      git fetch --unshallow origin latest
                   else
                       git fetch origin latest
                   fi
