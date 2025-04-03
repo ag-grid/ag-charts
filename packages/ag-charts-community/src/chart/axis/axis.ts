@@ -493,6 +493,7 @@ export abstract class Axis<
             visibleRange,
             initialPrimaryTickCount
         );
+        // console.log(tickLayoutDomain, domain, ticks);
 
         this.scale.domain = niceDomain;
 

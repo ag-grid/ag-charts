@@ -408,7 +408,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             case TickGenerationType.CREATE_SECONDARY:
                 if (ContinuousScale.is(scale)) {
                     const secondaryAxisTicks = calculateNiceSecondaryAxis(
-                        domain.map(Number),
+                        niceDomain.map(Number),
                         primaryTickCount ?? 0,
                         axis.reverse
                     );
