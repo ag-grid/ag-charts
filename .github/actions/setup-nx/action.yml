@@ -48,6 +48,8 @@ runs:
           id: nx_config
           shell: bash
           run: |
+              set -x
+
               branch=$(git branch --show-current)
               if [[ ${branch} == 'latest' ]] ; then
                 # Latest
@@ -71,6 +73,9 @@ runs:
                   git fetch origin ${{ inputs.base_ref }}
                 fi
               fi
+
+              cat $GITHUB_OUTPUT
+              cat $GITHUB_ENV
 
         - name: Restore node_modules
           if: inputs.cache_mode == 'ro'
