@@ -5,6 +5,7 @@ import type {
     AgGradientColorStop,
     AgGradientColorStrict,
     AgGradientType,
+    AgImageFill,
     AgPatternColor,
     CssColor,
     FillOptions,
@@ -78,12 +79,13 @@ export interface InternalAgPatternColor extends AgPatternColor {
     /** The rotation angle of the pattern. */
     rotation?: number;
 }
+export interface InternalAgImageFill extends AgImageFill {}
 export type RequiredInternalAgPatternColor = Required<Omit<InternalAgPatternColor, 'path'>> &
     Pick<InternalAgPatternColor, 'path'>;
 
 export type RequiredInternalAgGradientColor = Required<InternalAgGradientColor>;
 
-export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor;
+export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageFill;
 export type RequiredInternalAgColorType = CssColor | RequiredInternalAgGradientColor | RequiredInternalAgPatternColor;
 
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
@@ -169,6 +171,10 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
             // @ts-expect-error undocumented option
             rotation: undocumented(number),
             padding: undocumented(positiveNumber),
+        },
+        image: {
+            uri: required(string),
+            fallback: required(color),
         },
     },
     'a color object'

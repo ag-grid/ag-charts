@@ -4,6 +4,7 @@ import { Debug } from '../util/debug';
 import { createId } from '../util/id';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
+import { ImageLoader } from './image/imageLoader';
 import { LayersManager } from './layersManager';
 import { Node, type RenderContext } from './node';
 import {
@@ -23,15 +24,25 @@ export class Scene {
     readonly id = createId(this);
     readonly canvas: HdpiCanvas;
     readonly layersManager: LayersManager;
+    readonly imageLoader = new ImageLoader();
 
     private root: Node | null = null;
     private pendingSize: [number, number, number] | null = null;
     private isDirty: boolean = false;
 
+    private readonly destroyFns: (() => void)[] = [];
+
     constructor(canvasOptions: CanvasOptions) {
         this.updateDebugFlags();
         this.canvas = new HdpiCanvas(canvasOptions);
         this.layersManager = new LayersManager(this.canvas);
+
+        this.destroyFns.push(
+            this.imageLoader.on('request-redraw', () => {
+                this.root?.markDirty();
+                this.render();
+            })
+        );
     }
 
     get width(): number {
@@ -60,12 +71,12 @@ export class Scene {
         }
 
         this.isDirty = true;
-        this.root?._setLayerManager();
+        this.root?.setScene();
         this.root = node;
 
         if (node) {
             node.visible = true;
-            node._setLayerManager(this.layersManager);
+            node.setScene(this);
         }
 
         return this;
@@ -263,6 +274,7 @@ export class Scene {
         this.strip();
 
         this.canvas.destroy();
+        this.destroyFns.forEach((fn) => fn());
         Object.assign(this, { canvas: undefined });
     }
 }

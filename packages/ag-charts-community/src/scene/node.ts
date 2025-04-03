@@ -4,7 +4,9 @@ import { createId } from '../util/id';
 import { objectsEqual } from '../util/object';
 import { BBox } from './bbox';
 import { SceneChangeDetection, SceneObjectChangeDetection } from './changeDetectable';
+import type { ImageLoader } from './image/imageLoader';
 import type { LayersManager } from './layersManager';
+import type { Scene } from './scene';
 import type { ZIndex } from './zIndex';
 
 export { SceneChangeDetection };
@@ -107,7 +109,7 @@ export abstract class Node<D = any> {
     protected _previousDatum?: D;
 
     protected _debug?: (...args: any[]) => void;
-    protected _layerManager?: LayersManager;
+    protected scene: Scene | undefined = undefined;
     private readonly _debugDirtyProperties?: Map<string, string[]>;
 
     protected _dirty: boolean = true;
@@ -163,7 +165,11 @@ export abstract class Node<D = any> {
     }
 
     get layerManager(): LayersManager | undefined {
-        return this._layerManager;
+        return this.scene?.layersManager;
+    }
+
+    protected get imageLoader(): ImageLoader | undefined {
+        return this.scene?.imageLoader;
     }
 
     get dirty() {
@@ -214,12 +220,12 @@ export abstract class Node<D = any> {
         }
     }
 
-    _setLayerManager(value?: LayersManager) {
-        this._layerManager = value;
-        this._debug = value?.debug;
+    setScene(scene?: Scene) {
+        this.scene = scene;
+        this._debug = scene?.layersManager?.debug;
 
         for (const child of this.children()) {
-            child._setLayerManager(value);
+            child.setScene(scene);
         }
     }
 
@@ -288,7 +294,7 @@ export abstract class Node<D = any> {
             this.childNodes.add(node);
 
             node.parentNode = this;
-            node._setLayerManager(this.layerManager);
+            node.setScene(this.scene);
         }
 
         this.invalidateCachedBBox();
@@ -309,7 +315,7 @@ export abstract class Node<D = any> {
         }
 
         delete node.parentNode;
-        node._setLayerManager();
+        node.setScene();
 
         this.invalidateCachedBBox();
         this.dirtyZIndex = true;
@@ -323,7 +329,7 @@ export abstract class Node<D = any> {
     clear() {
         for (const child of this.children()) {
             delete child.parentNode;
-            child._setLayerManager();
+            child.setScene();
         }
         this.childNodes?.clear();
         this.invalidateCachedBBox();

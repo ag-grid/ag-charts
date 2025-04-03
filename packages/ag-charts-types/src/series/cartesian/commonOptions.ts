@@ -33,7 +33,7 @@ export interface FillOptions {
     fillOpacity?: Opacity;
 }
 
-export type AgColorType = CssColor | AgGradientColor | AgPatternColor;
+export type AgColorType = CssColor | AgGradientColor | AgPatternColor | AgImageFill;
 export type AgColorTypeStrict = CssColor | AgGradientColorStrict;
 
 export type AgGradientColorMode = 'continuous' | 'discrete';
@@ -84,6 +84,12 @@ export interface AgPatternColor {
     strokeOpacity?: Opacity;
     /** The width of the stroke of shapes in pixels. */
     strokeWidth?: PixelSize;
+}
+
+export interface AgImageFill {
+    type: 'image';
+    uri: string;
+    fallback?: string;
 }
 
 export type AgPatternName =
