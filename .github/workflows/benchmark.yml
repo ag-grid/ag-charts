@@ -3,10 +3,9 @@ name: Benchmark
 on:
     issue_comment:
         types: [created]
-    workflow_dispatch:
-        {}
-        # schedule:
-        #     - cron: '0 20 * * *'
+    workflow_dispatch: {}
+    schedule:
+        - cron: '0 0 * * *' # Run daily at midnight UTC
 
 env:
     NX_NO_CLOUD: true
@@ -17,7 +16,7 @@ env:
 jobs:
     benchmark:
         runs-on: macos-benchmark
-        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/benchmarks')
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/benchmarks') || github.event_name == 'schedule'
         env:
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
             JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -39,10 +38,21 @@ jobs:
                       return comment.id;
 
             - id: 'get-branch'
-              if: github.event_name == 'issue_comment'
               run: |
-                  echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
-                  echo "base=$(gh pr view $PR_NO --json baseRefName --jq '.baseRefName')" >> $GITHUB_OUTPUT
+                  if [[ "${{ github.event_name }}" == "issue_comment" ]] ; then
+                    # For PR comments, get the branch from the PR
+                    echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
+                    echo "base=$(gh pr view $PR_NO --repo $REPO --json baseRefName --jq '.baseRefName')" >> $GITHUB_OUTPUT
+                  elif [[ "${{ github.event_name }}" == "schedule" ]] ; then
+                    # For scheduled runs, get the most recent branch matching 'b' followed by semver (e.g. b1.2.3)
+                    release=$(git ls-remote --heads origin 'b[0-9]*.[0-9]*.[0-9]*' | sort -t '/' -k 2 -r | head -n 1 | sed 's/.*refs\/heads\///')
+                    echo "branch=latest" >> $GITHUB_OUTPUT
+                    echo "base=$release" >> $GITHUB_OUTPUT
+                  else
+                    # For manual workflow dispatch, use the current branch
+                    echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+                    echo "base=latest" >> $GITHUB_OUTPUT
+                  fi
               env:
                   REPO: ${{ github.repository }}
                   PR_NO: ${{ github.event.issue.number }}
@@ -55,7 +65,7 @@ jobs:
                   fetch-depth: 0
 
             - name: Fetch Refs
-              if: github.event_name == 'issue_comment'
+              if: github.event_name == 'issue_comment' || github.event_name == 'schedule'
               run: |
                   set -x
 
