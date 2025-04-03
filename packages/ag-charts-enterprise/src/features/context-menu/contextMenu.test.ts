@@ -119,7 +119,7 @@ describe('Extra Actions', () => {
 
     function findMenuItemByText(text: string): HTMLElement | undefined {
         const menuItems = document.querySelectorAll<HTMLElement>('.ag-charts-context-menu__item');
-        for (let item of Array.from(menuItems)) {
+        for (const item of Array.from(menuItems)) {
             if (item.textContent === text) {
                 return item;
             }
