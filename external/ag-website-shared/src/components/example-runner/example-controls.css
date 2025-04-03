@@ -14,8 +14,7 @@
     --input-focus-border: #3d7acd;
     --range-track-bg: #efefef;
 
-    --gap-vertical: 6px;
-    --gap-horizontal: 8px;
+    --row-gap: 6px;
 
     --select-chevron: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23667085" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
     --checkbox-tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17L4 12'/%3E%3C/svg%3E");
@@ -53,18 +52,15 @@ body > #highlighter {
     display: none;
 }
 
-.toolbar {
-    position: relative;
+.example-controls {
     display: flex;
-    align-items: baseline;
-    justify-content: center;
+    flex-direction: column;
     flex-wrap: wrap;
-    gap: calc(var(--gap-vertical) * 0.5) var(--gap-horizontal);
 }
 
-.toolbar *,
-.toolbar *::before,
-.toolbar *::after {
+.example-controls *,
+.example-controls *::before,
+.example-controls *::after {
     box-sizing: border-box;
     margin: 0;
     font-family: -apple-system, 'system-ui', sans-serif;
@@ -75,7 +71,7 @@ body > #highlighter {
     color: var(--main-fg);
 }
 
-.toolbar :where(button, input[type='submit'], input[type='text'], input[type='number'], textarea, select) {
+.example-controls :where(button, input[type='submit'], input[type='text'], input[type='number'], textarea, select) {
     appearance: none;
     display: inline-block;
     height: 36px;
@@ -93,85 +89,85 @@ body > #highlighter {
     cursor: pointer;
 }
 
-.toolbar select {
+.example-controls select {
     appearance: none;
     padding-right: 32px;
     padding-left: 14px;
     background: no-repeat center right 4px var(--select-chevron);
 }
 
-.toolbar textarea {
+.example-controls textarea {
     height: auto;
     padding: 7px 14px;
 }
 
-.toolbar pre,
-.toolbar code {
+.example-controls pre,
+.example-controls code {
     font-family: monospace;
 }
 
-.toolbar input {
+.example-controls input {
     appearance: none;
 }
 
-.toolbar input[type='checkbox'],
-.toolbar input[type='radio'] {
+.example-controls input[type='checkbox'],
+.example-controls input[type='radio'] {
     border: 1px solid var(--button-border);
     cursor: pointer;
 }
 
-.toolbar input[type='radio'] {
+.example-controls input[type='radio'] {
     width: 20px;
     height: 20px;
     border-radius: 50%;
 }
 
-.toolbar input[type='radio']:checked {
+.example-controls input[type='radio']:checked {
     border-width: 0;
     box-shadow: inset 0 0 0 6px var(--input-accent);
 }
 
-.toolbar input[type='radio']:checked:focus-visible {
+.example-controls input[type='radio']:checked:focus-visible {
     box-shadow:
         inset 0 0 0 2px var(--input-focus-border),
         inset 0 0 0 3px var(--main-bg),
         inset 0 0 0 6px var(--input-accent);
 }
 
-.toolbar input[type='checkbox'] {
+.example-controls input[type='checkbox'] {
     width: 24px;
     height: 24px;
     border-radius: 2px;
     cursor: pointer;
 }
 
-.toolbar input[type='checkbox']:checked {
+.example-controls input[type='checkbox']:checked {
     background: var(--input-accent) no-repeat center/14px var(--checkbox-tick-icon);
     border-color: var(--input-accent);
 }
 
-.toolbar input[type='range'] {
+.example-controls input[type='range'] {
     appearance: none;
     border-radius: 8px;
     cursor: pointer;
     overflow: hidden; /*  slider progress trick  */
 }
 
-.toolbar input[type='range']::-webkit-slider-runnable-track {
+.example-controls input[type='range']::-webkit-slider-runnable-track {
     appearance: none;
     height: 16px;
     background: var(--range-track-bg);
     border-radius: 8px;
 }
 
-.toolbar input[type='range']::-moz-range-track {
+.example-controls input[type='range']::-moz-range-track {
     appearance: none;
     height: 16px;
     background: var(--range-track-bg);
     border-radius: 8px;
 }
 
-.toolbar input[type='range']::-webkit-slider-thumb {
+.example-controls input[type='range']::-webkit-slider-thumb {
     appearance: none;
     height: 16px;
     width: 16px;
@@ -181,7 +177,7 @@ body > #highlighter {
     box-shadow: -1007px 0 0 1000px var(--input-accent); /*  slider progress trick  */
 }
 
-.toolbar input[type='range']::-moz-range-thumb {
+.example-controls input[type='range']::-moz-range-thumb {
     appearance: none;
     height: 16px;
     width: 16px;
@@ -191,14 +187,41 @@ body > #highlighter {
     box-shadow: -1007px 0 0 1000px var(--input-accent); /*  slider progress trick  */
 }
 
-.toolbar :is(button, input[type='submit'], select):hover {
+.example-controls :is(button, input[type='submit'], select):hover {
     background-color: var(--button-hover-bg);
 }
 
-.toolbar :is(button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible) {
+.example-controls :is(button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible) {
     border-color: var(--input-focus-border);
     box-shadow:
         inset 0 0 0 1px var(--input-focus-border),
         inset 0 0 0 2px var(--main-bg);
     outline: none;
+}
+
+.controls-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--row-gap);
+}
+
+.controls-row.center {
+    justify-content: center;
+}
+
+.controls-row .push-right {
+    margin-left: auto;
+}
+
+.controls-row .push-left {
+    margin-right: auto;
+}
+
+.controls-row .gap-right {
+    margin-right: calc(var(--row-gap) * 3);
+}
+
+.controls-row .gap-left {
+    margin-left: calc(var(--row-gap) * 3);
 }

@@ -1,4 +1,4 @@
-<div class="style-guide toolbar">
+<div class="style-guide example-controls">
     <div class="style-guide-item">
         <code>p</code>
         <p>I'm a paragraph.</p>
@@ -17,8 +17,10 @@
 
     <div class="style-guide-item">
         <code>button</code>
-        <button>I'm a button</button>
-        <button>I'm a button with <code>some code</code></button>
+        <div class="controls-row">
+            <button>I'm a button</button>
+            <button>I'm a button with <code>some code</code></button>
+        </div>
     </div>
 
     <div class="style-guide-item">
@@ -33,30 +35,38 @@
 
     <div class="style-guide-item">
         <code>input type="checkbox"</code>
-        <input type="checkbox" id="checked-c" name="checked" checked />
-        <label for="checked-c">I'm a checked checkbox with label</label>
-        <input type="checkbox" id="unchecked-c" name="unchecked" />
-        <label for="unchecked-c">I'm an unchecked checkbox with label</label>
+        <div class="controls-row">
+            <label for="checked-c">I'm a checked checkbox with label:</label>
+            <input type="checkbox" id="checked-c" name="checked" checked />
+            <label for="unchecked-c">I'm an unchecked checkbox with label:</label>
+            <input type="checkbox" id="unchecked-c" name="unchecked" />
+        </div>
     </div>
 
     <div class="style-guide-item">
         <code>input type="radio"</code>
-        <input type="radio" id="checked-r" name="radio" checked />
-        <label for="checked-r">I'm a checked radio button with label</label>
-        <input type="radio" id="unchecked-r" name="radio" />
-        <label for="unchecked-r">I'm an unchecked radio button with label</label>
+        <div class="controls-row">
+            <label for="checked-r">I'm a checked radio button with label:</label>
+            <input type="radio" id="checked-r" name="radio" checked />
+            <label for="unchecked-r">I'm an unchecked radio button with label:</label>
+            <input type="radio" id="unchecked-r" name="radio" />
+        </div>
     </div>
 
     <div class="style-guide-item">
         <code>input type="number"</code>
-        <input type="number" id="number" value="999" />
-        <label for="number">I'm a number input with label</label>
+        <div class="controls-row">
+            <label for="number">I'm a number input with label: </label>
+            <input type="number" id="number" value="999" />
+        </div>
     </div>
 
     <div class="style-guide-item">
         <code>input type="range"</code>
-        <input type="range" min="0" max="10" step="1" value="5" />
-        <label for="number">I'm a range input (slider) with label</label>
+        <div class="controls-row">
+            <label for="number">I'm a range input (slider) with label: </label>
+            <input type="range" min="0" max="10" step="1" value="5" />
+        </div>
     </div>
 
     <div class="style-guide-item">
@@ -72,6 +82,45 @@
             <option value="Beta">Beta</option>
             <option value="Gamma">Alpha</option>
         </select>
+    </div>
+
+    <div class="style-guide-item">
+        <code>div class="controls-row"</code>
+        <div class="controls-row">
+            <button>Wrap</button>
+            <button>With</button>
+            <button>Row</button>
+            <label for="">To Vertically Center</label>
+            <button>Items</button>
+        </div>
+    </div>
+
+    <div class="style-guide-item">
+        <code>div class="controls-row center"</code>
+        <div class="controls-row center">
+            <button>Center</button>
+            <button>The</button>
+            <button>Row</button>
+        </div>
+    </div>
+
+    <div class="style-guide-item">
+        <code>button class="push-right"</code>
+        <div class="controls-row">
+            <button>Push</button>
+            <label>An item to the </label>
+            <button class="push-right">Right</button>
+        </div>
+    </div>
+
+    <div class="style-guide-item">
+        <code>button class="gap-left"</code>
+        <div class="controls-row">
+            <button>Add</button>
+            <button>A</button>
+            <button class="gap-left">Gap</button>
+            <label for="">To the left of the item</label>
+        </div>
     </div>
 </div>
 
