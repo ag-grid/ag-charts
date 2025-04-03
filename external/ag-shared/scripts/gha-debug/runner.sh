@@ -24,17 +24,9 @@ echo "Using workdir: ${workdir}"
 
 (
     export REPO_URL="https://github.com/ag-grid/${repo}"
-    export RUNNER_NAME="$(hostname)"
-    export LABELS="ubuntu-debug,ubuntu-debug-${RUNNER_NAME}"
+    export RUNNER_NAME="${RUNNER_NAME:-$(hostname)}"
+    export LABELS="${RUNNER_LABELS:-ubuntu-debug,ubuntu-debug-${RUNNER_NAME}}"
     export RUNNER_TOKEN
     cd ${scriptdir} && \
-    docker compose build && \
-    docker compose up gha-runner gha-cache
-        # -e REPO_URL="https://github.com/ag-grid/${repo}" \
-        # -e RUNNER_NAME="$(hostname)" \
-        # -e RUNNER_TOKEN="${RUNNER_TOKEN}" \
-        # -e LABELS="ubuntu-debug,ubuntu-debug-${RUNNER_NAME}"
+    docker compose up --build gha-runner gha-cache
 )
-
-# sleep 2
-docker exec -it -w /tmp/github-runner-your-repo gha-worker bash -il

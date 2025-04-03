@@ -218,6 +218,16 @@
       "options": {
         "commands": ["nx run ag-charts-website-gallery_{args.example}_main.ts:generate-thumbnail --skip-nx-cache"]
       }
+    },
+    "ci:debug": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "./external/ag-shared/scripts/gha-debug/runner.sh ag-charts"
+          }
+        ]
+      }
     }
   },
   "implicitDependencies": [
