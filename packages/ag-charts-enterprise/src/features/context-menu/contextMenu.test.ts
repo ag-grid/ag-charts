@@ -183,6 +183,15 @@ describe('Extra Actions', () => {
         await contextMenuAction(landmark6.x, landmark6.y)(chart);
         clickMenuItem('myExtraLegendItemAction');
 
+        // The `AgChartEvent.event: Event` value is JS-engine dependent. We're seeing different results on macOS and
+        // Github action. But this is fine because different browsers will provide slightly different implementations of
+        // `Event`. So change these values to a platform-agnostic string constant.
+        for (const call of actions.calls) {
+            const arg0: unknown = call.args[0];
+            if (typeof arg0 === 'object' && arg0 && 'event' in arg0 && typeof arg0.event === 'object') {
+                arg0.event = '<Event>';
+            }
+        }
         expect(actions.calls).toMatchSnapshot();
     });
 });
