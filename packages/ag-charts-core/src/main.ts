@@ -14,6 +14,7 @@ export * from './options/commonOptionsDefs';
 // Utils
 export * from './utils/dom';
 export * from './utils/arrays';
+export * from './utils/async';
 export * from './utils/binarySearch';
 export * from './utils/diff';
 export * from './utils/functions';

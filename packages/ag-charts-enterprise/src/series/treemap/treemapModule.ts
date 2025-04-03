@@ -1,5 +1,5 @@
 import { type AgTreemapSeriesOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
+import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
 
 import { TreemapSeries } from './treemapSeries';
 import { treemapSeriesOptionsDef } from './treemapSeriesOptionsDef';
@@ -28,7 +28,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 colorStops: { $palette: 'gradient' },
                 rotation: 0,
                 reverse: false,
-            } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             undocumentedGroupFills: { $palette: 'hierarchyColors' },
             undocumentedGroupStrokes: { $palette: 'secondHierarchyColors' },

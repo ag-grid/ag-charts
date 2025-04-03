@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Canvas, Image, CanvasRenderingContext2D as NodeCanvasRenderingContext2D, createCanvas } from 'canvas';
+import { Canvas, CanvasPattern, CanvasRenderingContext2D, type DOMMatrix, Image, createCanvas } from 'canvas';
 
 import { ConicGradient } from './conicGradient';
 import { mockCanvasText } from './mock-canvas-text';
@@ -23,7 +23,7 @@ Object.defineProperty(Canvas.prototype, 'transferToImageBitmap', {
     configurable: true,
 });
 
-Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'createConicGradient', {
+Object.defineProperty(CanvasRenderingContext2D.prototype, 'createConicGradient', {
     value: function createConicGradient(startAngle: number, x: number, y: number) {
         return new ConicGradient(this, startAngle, x, y);
     },
@@ -33,8 +33,8 @@ Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'createConicGradie
 });
 
 // https://github.com/Automattic/node-canvas/issues/1852
-const context2dTransform = NodeCanvasRenderingContext2D.prototype.transform;
-Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'transform', {
+const context2dTransform = CanvasRenderingContext2D.prototype.transform;
+Object.defineProperty(CanvasRenderingContext2D.prototype, 'transform', {
     value: function transform(a: number, b: number, c: number, d: number, e: number, f: number) {
         if (a === 0) {
             context2dTransform.call(this, 1e-6, 0, 0, 1e-6, 0, 0);
@@ -48,10 +48,26 @@ Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'transform', {
     configurable: true,
 });
 
+const canvasPatternSetTransform = CanvasPattern.prototype.setTransform;
+Object.defineProperty(CanvasPattern.prototype, 'setTransform', {
+    value: function setTransform(matrix: DOMMatrix) {
+        if (this.__skipSetTransformWorkaround !== true) {
+            // Node canvas has bugs with pattern translations
+            matrix.e = 0;
+            matrix.f = 0;
+        }
+
+        canvasPatternSetTransform.call(this, matrix);
+    },
+    enumerable: false,
+    writable: true,
+    configurable: true,
+});
+
 export class MockContext {
     ctx: {
         nodeCanvas: Canvas;
-        getRenderContext2D: () => CanvasRenderingContext2D;
+        getRenderContext2D: () => globalThis.CanvasRenderingContext2D;
         getActiveCanvasInstances: () => Canvas[];
         getActiveOffscreenCanvasInstances: () => OffscreenCanvas[];
     };
@@ -80,12 +96,12 @@ export class MockContext {
         this.registerCanvasInstance(nodeCanvas);
     }
 
-    getRenderContext2D(): CanvasRenderingContext2D {
-        let ctx = this.ctx.nodeCanvas.getContext('2d') as unknown as NodeCanvasRenderingContext2D;
+    getRenderContext2D(): globalThis.CanvasRenderingContext2D {
+        let ctx = this.ctx.nodeCanvas.getContext('2d') as unknown as CanvasRenderingContext2D;
         if (this.mockText) {
             ctx = mockCanvasText(ctx);
         }
-        return ctx as unknown as CanvasRenderingContext2D;
+        return ctx as unknown as globalThis.CanvasRenderingContext2D;
     }
 
     registerCanvasInstance(canvas: Canvas) {

@@ -10,6 +10,7 @@ const options: AgCartesianChartOptions = {
             type: 'bar',
             xKey: 'station',
             yKey: 'early',
+            yName: 'Early',
         },
         {
             type: 'bar',

@@ -1,4 +1,4 @@
-import type { InternalAgGradientColor, InternalAgPatternColor } from 'ag-charts-core';
+import type { RequiredInternalAgGradientColor, RequiredInternalAgPatternColor } from 'ag-charts-core';
 import type {
     AgGradientColorBounds,
     AgGradientColorStop,
@@ -59,8 +59,8 @@ export class HighlightProperties extends BaseProperties {
 }
 
 export class FillGradientDefaults
-    extends BaseProperties<Required<InternalAgGradientColor>>
-    implements Required<InternalAgGradientColor>
+    extends BaseProperties<RequiredInternalAgGradientColor>
+    implements RequiredInternalAgGradientColor
 {
     @Property
     type: 'gradient' = 'gradient' as const;
@@ -82,8 +82,8 @@ export class FillGradientDefaults
 }
 
 export class FillPatternDefaults
-    extends BaseProperties<Required<InternalAgPatternColor>>
-    implements Required<InternalAgPatternColor>
+    extends BaseProperties<RequiredInternalAgPatternColor>
+    implements RequiredInternalAgPatternColor
 {
     @Property
     type: 'pattern' = 'pattern' as const;
@@ -102,6 +102,9 @@ export class FillPatternDefaults
 
     @Property
     reverse: boolean = false;
+
+    @Property
+    path?: string;
 
     @Property
     pattern: AgPatternName = 'forward-slanted-lines';

@@ -1,5 +1,5 @@
 import type { BBox } from '../bbox';
-import { SceneChangeDetection } from '../changeDetectable';
+import { SceneChangeDetection, SceneObjectChangeDetection } from '../changeDetectable';
 import type { Point } from '../point';
 import { SectorBox } from '../sectorBox';
 import {
@@ -78,7 +78,7 @@ export class Sector<D = any> extends Path<D> {
     @SceneChangeDetection()
     endAngle: number = Math.PI * 2;
 
-    @SceneChangeDetection()
+    @SceneObjectChangeDetection({ equals: (lhs: SectorBox, rhs: SectorBox) => lhs.equals(rhs) })
     clipSector: SectorBox | undefined = undefined;
 
     @SceneChangeDetection()

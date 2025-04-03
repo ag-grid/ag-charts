@@ -23,6 +23,11 @@ const argv = yargs(hideBin(process.argv))
         default: currentBranchName() ?? 'latest',
         description: 'Version to compare.',
     })
+    .option('report-only', {
+        type: 'boolean',
+        default: false,
+        description: 'Only report the results, do not exit with a failure code.',
+    })
     .demandOption('base')
     .help()
     .parse();
@@ -64,13 +69,13 @@ const compareData = dataFile.find(({ name }) => name === argv.compare);
 
 if (baseData == null) {
     console.error('Unknown base of: ' + argv.base);
-    console.error('Known bases: ' + data.map(({ name }) => name));
+    console.error('Known bases: ' + unmodifiedDataFile.map(({ name }) => name));
     process.exit(1);
 }
 
 if (compareData == null) {
     console.error('Unknown version of: ' + argv.compare);
-    console.error('Known bases: ' + data.map(({ name }) => name));
+    console.error('Known bases: ' + dataFile.map(({ name }) => name));
     process.exit(1);
 }
 
@@ -135,9 +140,14 @@ const rankedByMemory = result.toSorted((a, b) => a.pctMemoryChange - b.pctMemory
 const critical = result.filter(isCritical);
 
 if (critical.length > 0) {
-    console.error('Critical Cases');
-    console.table(critical, ['test', 'beforeMs', 'afterMs', 'beforeMB', 'afterMB']);
-    process.exitCode = 1;
+    if (argv['report-only']) {
+        console.log('Critical Cases');
+        console.table(critical, ['test', 'beforeMs', 'afterMs', 'beforeMB', 'afterMB']);
+    } else {
+        console.error('Critical Cases');
+        console.table(critical, ['test', 'beforeMs', 'afterMs', 'beforeMB', 'afterMB']);
+        process.exitCode = 1;
+    }
 }
 
 console.log('Time');

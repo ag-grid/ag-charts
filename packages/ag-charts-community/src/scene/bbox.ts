@@ -86,7 +86,7 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
     }
 
     equals(other: BBox) {
-        return this.x === other.x && this.y === other.y && this.width === other.width && this.height === other.height;
+        return BBoxValues.equals(this, other);
     }
 
     containsPoint(x: number, y: number): boolean {

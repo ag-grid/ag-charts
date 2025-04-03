@@ -1,4 +1,4 @@
-import type { InternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
+import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgLineSeriesOptions, AgTooltipPositionOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
@@ -53,7 +53,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
                     colorStops: { $palette: 'gradient' },
                     rotation: 0,
                     reverse: true,
-                } satisfies WithThemeParams<Required<InternalAgGradientColor>>,
+                } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
                 fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             },
             label: {

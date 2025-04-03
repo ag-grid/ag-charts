@@ -84,7 +84,7 @@ export class Range<D = any> extends Shape<D> {
 
             ctx.lineWidth = strokeWidth;
             if (lineDash) {
-                ctx.setLineDash(lineDash);
+                ctx.setLineDash([...lineDash]);
             }
             if (lineDashOffset) {
                 ctx.lineDashOffset = lineDashOffset;
