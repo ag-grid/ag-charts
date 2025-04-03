@@ -5,18 +5,21 @@ import type { TextWrap } from 'ag-charts-types';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { CachedTextMeasurerPool } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
-import type { LayersManager } from '../layersManager';
+import { IScene } from '../node';
 import { Text } from './text';
 
-function setUpMockLayerManager(canvasCtx: any): LayersManager {
+function setUpMockScene(canvasCtx: any): IScene {
     return {
-        debug: {} as any,
-        canvas: canvasCtx.nodeCanvas,
-        markDirty: () => {},
-        addLayer: () => undefined,
-        moveLayer: () => {},
-        removeLayer: () => {},
-    } as any;
+        imageLoader: null!,
+        layersManager: {
+            debug: {} as any,
+            canvas: canvasCtx.nodeCanvas,
+            markDirty: () => {},
+            addLayer: () => undefined,
+            moveLayer: () => {},
+            removeLayer: () => {},
+        } as any,
+    };
 }
 
 const BASE_OPTIONS = {
@@ -31,7 +34,7 @@ describe('Text', () => {
     const canvasCtx = setupMockCanvas();
 
     describe('rendering', () => {
-        const mockLayerManager = setUpMockLayerManager(canvasCtx);
+        const mockScene = setUpMockScene(canvasCtx);
 
         const GAP = 20;
 
@@ -231,7 +234,7 @@ describe('Text', () => {
 
                     textNode.x = currX;
                     textNode.y = currY;
-                    textNode._setLayerManager(mockLayerManager);
+                    textNode.setScene(mockScene);
 
                     ctx.save();
                     textNode.render({
@@ -289,7 +292,7 @@ describe('Text', () => {
                         font: textNode,
                         textWrap: wrapping,
                     });
-                    textNode._setLayerManager(mockLayerManager);
+                    textNode.setScene(mockScene);
 
                     ctx.save();
                     textNode.render({
