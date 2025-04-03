@@ -389,6 +389,7 @@ jobs:
 
             - name: Check for snapshot updates
               id: snapshot_check
+              if: needs.init.outputs.snapshot_branch != ''
               run: |
                   branch=${{ needs.init.outputs.snapshot_branch }}
 
