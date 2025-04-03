@@ -273,7 +273,9 @@ export class TreeLayout {
         let scalingX = 1;
         if (width > 0) {
             const { left, right } = this.dimensions;
-            scalingX = width / (right - left);
+            if (right !== left) {
+                scalingX = width / (right - left);
+            }
         }
         if (flip) {
             scalingX *= -1;
