@@ -47,7 +47,7 @@ concurrency:
 
 jobs:
     init:
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-debug
         name: Initialise Workflow
         env:
             AG_FORCE_ALL_TESTS: 1
