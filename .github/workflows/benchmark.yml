@@ -56,12 +56,20 @@ jobs:
             - name: Fetch Refs
               if: github.event_name == 'issue_comment'
               run: |
-                  if [[ -f '.git/shallow' ]]; then
+                  set -x
+
+                  grafted=$(git log -n 1 --oneline --decorate origin/latest | cut -d ' ' -f 2 | grep -o 'grafted')
+                  if [[ -f '.git/shallow' || "${grafted}" == "grafted" ]] ; then
                       echo "Shallow clone detected, fetching all refs..."
                       git fetch origin latest --unshallow
+                    git fetch --unshallow origin latest
                   else
                       git fetch origin latest
                   fi
+
+                  # Debugging
+                   git log -n 1
+                   git log -n 1 origin/latest
 
             - name: Setup
               id: setup
