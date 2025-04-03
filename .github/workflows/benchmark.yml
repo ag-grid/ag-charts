@@ -92,6 +92,7 @@ jobs:
               with:
                   cache_mode: rw
                   base_ref: ${{ steps.get-branch.outputs.base }}
+                  fetch_base: skip
 
             - name: Notify Progress
               uses: actions/github-script@v7

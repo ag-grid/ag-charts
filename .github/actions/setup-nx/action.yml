@@ -9,14 +9,14 @@ inputs:
             - 'true'
             - 'false'
             - 'no-install'
-    fetch_latest:
+    fetch_base:
         description: 'Shallow fetch latest branch.'
         required: false
         default: 'shallow'
         options:
             - 'shallow'
             - 'full'
-            - 'none'
+            - 'skip'
     nx_restore:
         description: 'Restore Nx Cache.'
         required: false
@@ -67,9 +67,9 @@ runs:
                 echo "base=origin/${{ inputs.base_ref }}" >> $GITHUB_OUTPUT
                 echo "NX_BASE=origin/${{ inputs.base_ref }}" >> $GITHUB_ENV
                 echo "type=pr" >> $GITHUB_OUTPUT
-                if [[ ${{ inputs.fetch_latest }} == 'shallow' ]] ; then
+                if [[ ${{ inputs.fetch_base }} == 'shallow' ]] ; then
                   git fetch origin --depth 1 ${{ inputs.base_ref }}
-                elif [[ ${{ inputs.fetch_latest }} == 'full' ]] ; then
+                elif [[ ${{ inputs.fetch_base }} == 'full' ]] ; then
                   git fetch origin ${{ inputs.base_ref }}
                 fi
               fi
