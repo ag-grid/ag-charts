@@ -58,23 +58,43 @@ jobs:
               run: |
                   set -x
 
-                  grafted=$(git log -n 1 --oneline --decorate origin/latest | cut -d ' ' -f 2 | grep -o 'grafted' || echo '')
-                  if [[ -f '.git/shallow' || "${grafted}" == "grafted" ]] ; then
-                      echo "Shallow clone detected, fetching all refs..."
-                      git fetch --unshallow origin latest
-                  else
-                      git fetch origin latest
-                  fi
+                  git fetch --unshallow origin latest || echo "Not a shallow ref?"
 
                   # Debugging
-                   git log -n 1
-                   git log -n 1 origin/latest
+                   git log -n 1 --decorate
+                   git log -n 1 --decorate origin/latest
+
+            - name: Notify Progress
+              uses: actions/github-script@v7
+              continue-on-error: true
+              if: github.event_name == 'issue_comment'
+              with:
+                  script: |
+                      github.rest.issues.updateComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        comment_id: ${{ steps.notify-start.outputs.result }},
+                        body: `⏱️ ${process.env.JOB_URL} (running setup...)`
+                      })
 
             - name: Setup
               id: setup
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: rw
+
+            - name: Notify Progress
+              uses: actions/github-script@v7
+              continue-on-error: true
+              if: github.event_name == 'issue_comment'
+              with:
+                  script: |
+                      github.rest.issues.updateComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        comment_id: ${{ steps.notify-start.outputs.result }},
+                        body: `⏱️ ${process.env.JOB_URL} (running benchmarks...)`
+                      })
 
             - name: nx benchmark
               id: benchmark
