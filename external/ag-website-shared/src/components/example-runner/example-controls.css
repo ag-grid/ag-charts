@@ -1,32 +1,43 @@
 :root {
     --main-fg: #101828;
+    --main-bg: #fff;
 
-    --chart-bg: #fff;
+    --chart-bg: transparent;
     --chart-border: #d0d5dd;
 
-    --button-text-color: #212529;
-    --button-background-color: transparent;
-    --button-color-border-primary: #d0d5dd;
-    --button-hover-background-color: rgba(0, 0, 0, 0.1);
+    --button-fg: #212529;
+    --button-bg: transparent;
+    --button-border: #d0d5dd;
+    --button-hover-bg: rgba(0, 0, 0, 0.1);
+
+    --input-accent: #0e4491;
+    --input-focus-border: #3d7acd;
+    --range-track-bg: #efefef;
+
+    --gap-vertical: 6px;
+    --gap-horizontal: 8px;
+
     --select-chevron: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23667085" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
-    --color-input-bg-checked: #0e4491;
     --checkbox-tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17L4 12'/%3E%3C/svg%3E");
-    --slide-range-track-background: #efefef;
 }
 
 :root[data-dark-mode='true'] {
     --main-fg: #fff;
+    --main-bg: #141d2c;
 
     --chart-bg: #192232;
     --chart-border: #344054;
 
-    --button-text-color: #f8f9fa;
-    --button-color-border-primary: rgba(255, 255, 255, 0.2);
-    --button-hover-background-color: #2a343e;
+    --button-fg: #f8f9fa;
+    --button-border: rgba(255, 255, 255, 0.2);
+    --button-hover-bg: #2a343e;
+
+    --input-accent: #a9c5ec;
+    --input-focus-border: #3d7acd;
+    --range-track-bg: #4a5465;
+
     --select-chevron: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%239CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
     --checkbox-tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a343e' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17L4 12'/%3E%3C/svg%3E");
-    --slide-range-track-background: #4a5465;
-    --color-input-bg-checked: #a9c5ec;
 }
 
 :root,
@@ -34,10 +45,6 @@ body {
     height: 100%;
     width: 100%;
     margin: 0;
-    box-sizing: border-box;
-    color: var(--main-fg);
-    font-family: -apple-system, 'system-ui', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans',
-        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     overflow: hidden;
 }
 
@@ -47,178 +54,151 @@ body > #highlighter {
 }
 
 .toolbar {
-    --gap-vertical: 6px;
-    --gap-horizontal: 8px;
-
     position: relative;
     display: flex;
     align-items: baseline;
     justify-content: center;
     flex-wrap: wrap;
     gap: calc(var(--gap-vertical) * 0.5) var(--gap-horizontal);
-    font-size: 14px;
 }
 
-.toolbar hr {
-    all: initial;
-    flex: 0 0 100%;
-}
-
-.toolbar :is(button, select, input[type='submit']) {
-    appearance: none;
-    border: 1px solid var(--button-color-border-primary);
-    border-radius: 6px;
-    height: 36px;
-    color: var(--button-text-color);
-    background-color: var(--button-background-color);
-    cursor: pointer;
-    display: inline-block;
-    font: inherit;
+.toolbar *,
+.toolbar *::before,
+.toolbar *::after {
+    box-sizing: border-box;
+    margin: 0;
+    font-family: -apple-system, 'system-ui', sans-serif;
     font-size: 14px;
     font-weight: 500;
+    line-height: 17px;
     letter-spacing: 0.01em;
-    white-space: nowrap;
-    transition: background-color 0.25s ease-in-out;
+    color: var(--main-fg);
 }
 
-.toolbar :is(button, input[type='submit']) {
-    padding: 0.375em 1em 0.5em;
-}
-
-.toolbar :is(button, input[type='submit'], select):hover {
-    background-color: var(--button-hover-background-color);
-}
-
-.toolbar button {
-    text-align: center;
-}
-.toolbar pre {
-    font-size: 14px;
-}
-/* Common input base styles */
-.toolbar :is(input[type='text'], input[type='number'], input[type='checkbox'], textarea),
-input[type='textarea'] {
+.toolbar :where(button, input[type='submit'], input[type='text'], input[type='number'], textarea, select) {
     appearance: none;
-    border: 1px solid var(--button-color-border-primary);
+    display: inline-block;
+    height: 36px;
+    padding: 5px 14px 7px;
+    white-space: nowrap;
     border-radius: 6px;
-    color: var(--button-text-color);
-    background-color: var(--button-background-color);
-    font: inherit;
-    font-size: 14px;
-    letter-spacing: 0.01em;
+    color: var(--button-fg);
+    background-color: var(--button-bg);
+    border: 1px solid var(--button-border);
+    box-shadow: 0 0 0 0 transparent;
+    transition:
+        background-color 0.25s ease-in-out,
+        border-color 0.25s ease-in-out,
+        box-shadow 0.25s ease-in-out;
+    cursor: pointer;
 }
 
-/* Text and number inputs specific styles */
-.toolbar :is(input[type='text'], input[type='number']) {
-    height: 22px;
-    padding: 6px 12px 6px 12px;
-    white-space: nowrap;
+.toolbar select {
+    appearance: none;
+    padding-right: 32px;
+    padding-left: 14px;
+    background: no-repeat center right 4px var(--select-chevron);
 }
 
 .toolbar textarea {
-    padding: 6px 12px 6px 12px;
+    height: auto;
+    padding: 7px 14px;
 }
 
-.toolbar input[type='radio'] {
-    outline: none;
+.toolbar pre,
+.toolbar code {
+    font-family: monospace;
+}
+
+.toolbar input {
     appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 100px;
-    border: 1px solid var(--button-color-border-primary);
+}
+
+.toolbar input[type='checkbox'],
+.toolbar input[type='radio'] {
+    border: 1px solid var(--button-border);
     cursor: pointer;
 }
 
-.toolbar input[type='radio']:hover:not(:disabled):not([readonly]),
-.toolbar input[type='radio'].hover {
-    border: 1px solid var(--button-color-border-primary);
-}
-
-.toolbar input[type='radio']:checked:not(:disabled):not([readonly]) {
-    border: 6px solid var(--color-input-bg-checked);
-}
-
 .toolbar input[type='radio'] {
-    outline: none;
-    appearance: none;
     width: 20px;
     height: 20px;
+    border-radius: 50%;
+}
+
+.toolbar input[type='radio']:checked {
+    border-width: 0;
+    box-shadow: inset 0 0 0 6px var(--input-accent);
+}
+
+.toolbar input[type='radio']:checked:focus-visible {
+    box-shadow:
+        inset 0 0 0 2px var(--input-focus-border),
+        inset 0 0 0 3px var(--main-bg),
+        inset 0 0 0 6px var(--input-accent);
 }
 
 .toolbar input[type='checkbox'] {
     width: 24px;
     height: 24px;
+    border-radius: 2px;
     cursor: pointer;
 }
 
 .toolbar input[type='checkbox']:checked {
-    background-color: var(--color-input-bg-checked);
-    border-color: var(--color-input-bg-checked);
-    background-image: var(--checkbox-tick-icon);
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 65%;
+    background: var(--input-accent) no-repeat center/14px var(--checkbox-tick-icon);
+    border-color: var(--input-accent);
 }
-
-.toolbar :is(input:focus-visible, textarea:focus-visible, select:focus-visible) {
-    box-shadow:
-        0 0 0 4px #d4e3f8,
-        0 1px 2px 0 color-mix(in srgb, #0c111d 05%, transparent);
-    outline: 1px #a9c5ec solid;
-}
-
-.toolbar select {
-    padding-right: 2.4em;
-    background: no-repeat center right 4px var(--select-chevron);
-    padding-left: 1em;
-}
-
-/* Range input styles */
 
 .toolbar input[type='range'] {
-    /* removing default appearance */
-    -webkit-appearance: none;
     appearance: none;
+    border-radius: 8px;
     cursor: pointer;
-    outline: none;
-    /*  slider progress trick  */
-    overflow: hidden;
-    border-radius: 16px;
+    overflow: hidden; /*  slider progress trick  */
 }
 
-/* Track: webkit browsers */
 .toolbar input[type='range']::-webkit-slider-runnable-track {
-    height: 15px;
-    background: var(--slide-range-track-background);
-    border-radius: 16px;
-}
-
-/* Track: Mozilla Firefox */
-.toolbar input[type='range']::-moz-range-track {
-    height: 15px;
-    background: var(--slide-range-track-background);
-    border-radius: 16px;
-}
-
-/* Thumb: webkit */
-.toolbar input[type='range']::-webkit-slider-thumb {
-    -webkit-appearance: none;
     appearance: none;
-    height: 15px;
-    width: 15px;
-    background-color: var(--chart-bg);
-    border-radius: 50%;
-    border: 2px solid var(--color-input-bg-checked);
-    box-shadow: -407px 0 0 400px var(--color-input-bg-checked);
+    height: 16px;
+    background: var(--range-track-bg);
+    border-radius: 8px;
 }
 
-/* Thumb: Firefox */
-.toolbar input[type='range']::-moz-range-thumb {
-    height: 15px;
-    width: 15px;
-    background-color: var(--chart-bg);
+.toolbar input[type='range']::-moz-range-track {
+    appearance: none;
+    height: 16px;
+    background: var(--range-track-bg);
+    border-radius: 8px;
+}
+
+.toolbar input[type='range']::-webkit-slider-thumb {
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    background-color: var(--main-bg);
     border-radius: 50%;
-    border: 1px solid var(--color-input-bg-checked);
-    /*  slider progress trick  */
-    box-shadow: -407px 0 0 400px var(--color-input-bg-checked);
+    border: 2px solid var(--input-accent);
+    box-shadow: -1007px 0 0 1000px var(--input-accent); /*  slider progress trick  */
+}
+
+.toolbar input[type='range']::-moz-range-thumb {
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    background-color: var(--main-bg);
+    border-radius: 50%;
+    border: 2px solid var(--input-accent);
+    box-shadow: -1007px 0 0 1000px var(--input-accent); /*  slider progress trick  */
+}
+
+.toolbar :is(button, input[type='submit'], select):hover {
+    background-color: var(--button-hover-bg);
+}
+
+.toolbar :is(button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible) {
+    border-color: var(--input-focus-border);
+    box-shadow:
+        inset 0 0 0 1px var(--input-focus-border),
+        inset 0 0 0 2px var(--main-bg);
+    outline: none;
 }

@@ -13,9 +13,11 @@
 
     &::before {
         content: '<';
+        color: #f09;
     }
 
     &::after {
         content: '>';
+        color: #f09;
     }
 }
