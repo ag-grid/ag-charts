@@ -1,7 +1,7 @@
 import {
     type OptionsDefs,
     boolean,
-    callback,
+    callbackDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
@@ -12,7 +12,7 @@ import {
     strokeOptionsDef,
     union,
 } from 'ag-charts-core';
-import type { AgBarSeriesOptions } from 'ag-charts-types';
+import type { AgBarSeriesOptions, AgBarSeriesStyle } from 'ag-charts-types';
 
 import {
     commonSeriesOptionsDefs,
@@ -36,7 +36,12 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     legendItemName: string,
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgBarSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cornerRadius: positiveNumber,
+    }),
     crisp: boolean,
     label: {
         ...seriesLabelOptionsDefs,

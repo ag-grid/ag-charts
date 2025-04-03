@@ -1,3 +1,5 @@
+import { warn, warnOnce } from '../globals/logger';
+import { safeCall } from './functions';
 import { joinFormatted, levenshteinDistance, stringifyValue } from './strings';
 import {
     isArray,
@@ -14,6 +16,7 @@ import {
 
 const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
+const markedSymbol = Symbol('marked');
 
 type ObjectLikeDef<T> = T extends object ? (keyof T extends never ? never : OptionsDefs<T>) : never;
 
@@ -39,6 +42,13 @@ export interface ValidatorContext {
     options: any;
 }
 
+enum ErrorType {
+    // Enterprise = 'enterprise',
+    Invalid = 'invalid',
+    Required = 'required',
+    Unknown = 'unknown',
+}
+
 // Validator interface with optional description and required flag for better error messages.
 export interface Validator extends Function {
     (value: unknown, context: ValidatorContext): ValidatorResult | boolean;
@@ -46,16 +56,58 @@ export interface Validator extends Function {
     [requiredSymbol]?: boolean;
 }
 
+function extendPath(path: string, key: string | number) {
+    if (isFiniteNumber(key)) {
+        return `${path}[${key}]`;
+    }
+    return path ? `${path}.${key}` : key;
+}
+
 export class ValidationError {
     constructor(
-        public message: string,
-        public path: string,
-        public required?: boolean,
-        public unknown?: boolean
+        public readonly type: ErrorType | `${ErrorType}`,
+        public description: string | undefined,
+        public readonly value: any,
+        public readonly path: string,
+        public readonly key?: string
     ) {}
 
+    getPrefix(): string {
+        const { path, key } = this;
+        if (!path && !key) return 'Value';
+        return `Option \`${key ? extendPath(path, key) : path}\``;
+    }
+
     toString() {
-        return this.message;
+        const { description = 'unknown', type, value } = this;
+        if (type === ErrorType.Required && value == null) {
+            return `${this.getPrefix()} is required and has not been provided; expecting ${description}, ignoring.`;
+        }
+        return `${this.getPrefix()} cannot be set to \`${stringifyValue(value, 50)}\`; expecting ${description}, ignoring.`;
+    }
+}
+
+class UnknownError extends ValidationError {
+    constructor(
+        public suggestions: string[],
+        value: unknown,
+        path: string,
+        public override key: string
+    ) {
+        super(ErrorType.Unknown, undefined, value, path, key);
+    }
+
+    override getPrefix(): string {
+        return `Unknown option \`${extendPath(this.path, this.key)}\``;
+    }
+
+    getPostfix() {
+        const match = findSuggestion(this.key, this.suggestions);
+        return match ? `; Did you mean \`${match}\`? Ignoring.` : ', ignoring.';
+    }
+
+    override toString() {
+        return `${this.getPrefix()}${this.getPostfix()}`;
     }
 }
 
@@ -68,8 +120,7 @@ export class ValidationError {
  */
 export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = ''): ValidationResult<T> {
     if (!isObject(options)) {
-        const message = validateMessage(path, options, 'an object', true);
-        return { cleared: null, invalid: [new ValidationError(message, path, true)] };
+        return { cleared: null, invalid: [new ValidationError(ErrorType.Required, 'an object', options, path)] };
     }
 
     const cleared: Partial<T> = {};
@@ -77,17 +128,10 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     const optionsKeys = new Set(Object.keys(options));
     const unusedKeys = [];
 
-    function extendPath(key: string) {
-        if (isArray(optionsDefs)) {
-            return `${path}[${key}]`;
-        }
-        return path ? `${path}.${key}` : key;
-    }
-
     for (const key of Object.keys(optionsDefs)) {
-        const validatorOrDefs: Validator | ObjectLikeDef<any> = (optionsDefs as any)[key];
-        const value = options[key as keyof object];
+        const validatorOrDefs: Validator | ObjectLikeDef<any> = optionsDefs[key as keyof T];
         const required = validatorOrDefs[requiredSymbol];
+        const value = options[key as keyof object];
 
         optionsKeys.delete(key);
         if (typeof value === 'undefined') {
@@ -95,7 +139,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
             if (!required) continue;
         }
 
-        const keyPath = extendPath(key);
+        const keyPath = extendPath(path, key);
         if (isFunction(validatorOrDefs)) {
             const context: ValidatorContext = { options, path: keyPath };
             const validatorResult = validatorOrDefs(value, context);
@@ -105,16 +149,23 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
                 invalid.push(...validatorResult.invalid);
                 if (validatorResult.valid) {
                     cleared[key as keyof T] = validatorResult.cleared as any;
-                } else if (!validatorResult.invalid.some(requiredInPath(keyPath))) {
-                    const message = validateMessage(keyPath, value, validatorOrDefs, required);
-                    invalid.push(new ValidationError(message, path, required));
+                    continue;
+                } else if (hasRequiredInPath(validatorResult.invalid, keyPath)) {
+                    continue;
                 }
             } else if (validatorResult) {
                 cleared[key as keyof T] = value;
-            } else {
-                const message = validateMessage(keyPath, value, validatorOrDefs, required);
-                invalid.push(new ValidationError(message, path, required));
+                continue;
             }
+            invalid.push(
+                new ValidationError(
+                    required ? ErrorType.Required : ErrorType.Invalid,
+                    validatorOrDefs[descriptionSymbol],
+                    value,
+                    path,
+                    key
+                )
+            );
         } else {
             const nestedResult = validate(value, validatorOrDefs, keyPath);
             if (nestedResult.cleared != null) {
@@ -127,46 +178,10 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     for (const key of optionsKeys) {
         const value = options[key as keyof object];
         if (typeof value === 'undefined') continue;
-        const message = unknownMessage(key, extendPath(key), unusedKeys);
-        invalid.push(new ValidationError(message, path, undefined, true));
+        invalid.push(new UnknownError(unusedKeys, value, path, key));
     }
 
     return { cleared, invalid };
-}
-
-/**
- * Generates a validation error message based on the path, value, and expected type.
- * @param path The path to the option.
- * @param value The invalid value.
- * @param validatorOrDefs The expected type, validator, or description.
- * @param required Whether the option is required.
- * @returns A formatted error message.
- */
-function validateMessage(
-    path: string,
-    value: unknown,
-    validatorOrDefs: Validator | OptionsDefs<any> | string,
-    required?: boolean
-): string {
-    const description = isString(validatorOrDefs) ? validatorOrDefs : validatorOrDefs[descriptionSymbol];
-    const expecting = description ? `; expecting ${description}` : '';
-    const prefix = path ? `Option \`${path}\`` : 'Value';
-    return required && value == null
-        ? `${prefix} is required and has not been provided${expecting}, ignoring.`
-        : `${prefix} cannot be set to \`${stringifyValue(value, 50)}\`${expecting}, ignoring.`;
-}
-
-/**
- * Generates an error message for unknown options.
- * @param key The unknown option key.
- * @param keyPath The path to the unknown option.
- * @param unusedKeys List of available but unused keys.
- * @returns A formatted error message with a suggestion if applicable.
- */
-function unknownMessage(key: string, keyPath: string, unusedKeys: string[]): string {
-    const match = findSuggestion(key, unusedKeys);
-    const postfix = match ? `; Did you mean \`${match}\`? Ignoring.` : ', ignoring.';
-    return `Unknown option \`${keyPath}\`${postfix}`;
 }
 
 /**
@@ -232,7 +247,7 @@ export function required<T extends Validator | OptionsDefs<any>>(validatorOrDefs
 export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
     attachDescription((value, context) => {
         const result = validate(value, defs, context.path);
-        const valid = !result.invalid.some(requiredInPath(context.path));
+        const valid = !hasRequiredInPath(result.invalid, context.path);
         return { valid, cleared: result.cleared, invalid: result.invalid };
     }, description);
 
@@ -245,8 +260,8 @@ export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
 export const partialDefs = <T>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
     attachDescription((value, context) => {
         const result = validate(value, defs, context.path);
-        const valid = !result.invalid.some(requiredInPath(context.path));
-        const invalid = result.invalid.filter((error) => !error.unknown);
+        const valid = !hasRequiredInPath(result.invalid, context.path);
+        const invalid = result.invalid.filter((error) => error.type !== ErrorType.Unknown);
         return { valid, cleared: result.cleared, invalid };
     }, description);
 
@@ -255,13 +270,24 @@ export const partialDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
  * @param validators An array of validators to combine.
  * @returns A validator that requires all specified validators to pass.
  */
-export const and = (...validators: Validator[]) =>
+export const and = (...validators: Validator[]): Validator =>
     attachDescription(
-        (value, context) =>
-            validators.every((validator) => {
+        (value: any, context) => {
+            const invalid: ValidationError[] = [];
+            for (const validator of validators) {
                 const result = validator(value, context);
-                return typeof result === 'object' ? result.valid : result;
-            }),
+                if (typeof result === 'object') {
+                    invalid.push(...result.invalid);
+                    if (!result.valid) {
+                        return { valid: false, cleared: value, invalid };
+                    }
+                    value = result.cleared;
+                } else if (!result) {
+                    return false;
+                }
+            }
+            return { valid: true, cleared: value, invalid };
+        },
         validators
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
@@ -275,11 +301,15 @@ export const and = (...validators: Validator[]) =>
  */
 export const or = (...validators: Validator[]) =>
     attachDescription(
-        (value, context) =>
-            validators.some((validator) => {
+        (value, context) => {
+            for (const validator of validators) {
                 const result = validator(value, context);
-                return typeof result === 'object' ? result.valid : result;
-            }),
+                if (typeof result === 'object' ? result.valid : result) {
+                    return result;
+                }
+            }
+            return false;
+        },
         validators
             .map((v) => v[descriptionSymbol])
             .filter(Boolean)
@@ -292,7 +322,6 @@ const isValidDateValue = (value: unknown) =>
     isDate(value) || ((isFiniteNumber(value) || isString(value)) && isValidDate(new Date(value)));
 
 // Base type validators with descriptions.
-export const unknown = (_value: unknown): _value is unknown => true; // no validation required.
 export const array = attachDescription(isArray, 'an array');
 export const boolean = attachDescription(isBoolean, 'a boolean');
 export const callback = attachDescription(isFunction, 'a function');
@@ -302,6 +331,12 @@ export const defined = attachDescription(isDefined, 'a defined value');
 export const number = attachDescription(isFiniteNumber, 'a number');
 export const object = attachDescription(isObject, 'an object');
 export const string = attachDescription(isString, 'a string');
+
+// Pass validator if HTMLElement doesn't exist, for server-side environments.
+export const htmlElement = attachDescription(
+    (value) => typeof HTMLElement === 'undefined' || value instanceof HTMLElement,
+    'an html element'
+);
 
 export const arrayLength = (minLength: number, maxLength = Infinity) => {
     let message: string;
@@ -434,7 +469,7 @@ export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description = 'an object ar
         for (let i = 0; i < value.length; i++) {
             const indexPath = `${context.path}[${i}]`;
             const result = validate(value[i], defs, indexPath);
-            if (!result.invalid.some(requiredInPath(indexPath))) {
+            if (!hasRequiredInPath(result.invalid, indexPath)) {
                 cleared.push(result.cleared);
             }
             invalid.push(...result.invalid);
@@ -458,13 +493,73 @@ export const typeUnion = <T extends { type: string }>(
         const result = optionsDefs(typeDefs)(value, context);
         if (typeof result === 'object') {
             for (const error of result.invalid) {
-                error.message += ` (type="${type}")`;
+                error.description += ` (type="${type}")`;
             }
         }
         return result;
     }, description);
 };
 
-function requiredInPath(rootPath: string) {
-    return (error: ValidationError) => error.required && error.path === rootPath;
+export const callbackOf = (validator: Validator, description?: string) =>
+    attachDescription((value, context) => {
+        if (!isFunction(value)) return false;
+        if (markedSymbol in value) return true;
+
+        const cbWithValidation = Object.assign(
+            (...args: any[]) => {
+                const result = safeCall(value, args, context.path);
+                if (result == null) return;
+                const validatorResult = validator(result, context);
+                if (typeof validatorResult === 'object') {
+                    validatorResult.invalid.forEach((error) => warn(error));
+                    if (validatorResult.valid) {
+                        return validatorResult.cleared;
+                    }
+                } else if (validatorResult) {
+                    return result;
+                } else {
+                    warnOnce(
+                        `Callback \`${context.path}\` cannot return \`${stringifyValue(result, 50)}\`; expecting ${description ?? validator[descriptionSymbol]}, ignoring.`
+                    );
+                }
+            },
+            { [markedSymbol]: true }
+        );
+
+        return { valid: true, cleared: cbWithValidation, invalid: [] };
+    }, 'a function');
+
+export const callbackDefs = <T>(defs: OptionsDefs<T>, description = 'an object') =>
+    attachDescription((value, context) => {
+        if (!isFunction(value)) return false;
+        if (markedSymbol in value) return true;
+
+        const cbWithValidation = Object.assign(
+            (...args: any[]) => {
+                const result = safeCall(value, args, context.path);
+                if (result == null) return;
+                const validatorResult = validate(result, defs);
+                validatorResult.invalid.forEach((error) => {
+                    if (error instanceof UnknownError) {
+                        return warnOnce(
+                            `Callback \`${context.path}\` returned an unknown property \`${error.key}\`${error.getPostfix()}`
+                        );
+                    }
+                    const errorValue = stringifyValue(error.value, 50);
+                    warnOnce(
+                        error.key
+                            ? `Callback \`${context.path}\` returned an invalid property \`${error.key}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
+                            : `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description}, ignoring.`
+                    );
+                });
+                return validatorResult.cleared;
+            },
+            { [markedSymbol]: true }
+        );
+
+        return { valid: true, cleared: cbWithValidation, invalid: [] };
+    }, 'a function');
+
+export function hasRequiredInPath(errors: ValidationError[], rootPath: string) {
+    return errors.some((error: ValidationError) => error.type === ErrorType.Required && error.path === rootPath);
 }

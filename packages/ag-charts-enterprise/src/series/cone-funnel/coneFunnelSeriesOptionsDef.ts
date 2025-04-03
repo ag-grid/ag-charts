@@ -1,13 +1,14 @@
-import { type AgConeFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgBaseAxisLabelStyleOptions, type AgConeFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
     boolean,
-    callback,
+    callbackDefs,
     color,
     colorUnion,
     constant,
     fillOptionsDef,
+    fontOptionsDef,
     lineDashOptionsDef,
     number,
     positiveNumber,
@@ -38,7 +39,10 @@ export const coneFunnelSeriesOptionsDef: OptionsDefs<AgConeFunnelSeriesOptions> 
         minSpacing: positiveNumber,
         placement: union('before', 'after'),
         avoidCollisions: boolean,
-        itemStyler: callback,
+        itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
+            ...fontOptionsDef,
+            spacing: number,
+        }),
         format: string,
         ...seriesLabelOptionsDefs,
     },

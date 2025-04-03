@@ -3,6 +3,7 @@ import {
     arrayOf,
     boolean,
     callback,
+    callbackDefs,
     color,
     colorUnion,
     constant,
@@ -16,7 +17,7 @@ import {
     string,
     strokeOptionsDef,
 } from 'ag-charts-core';
-import type { AgPieSeriesOptions } from 'ag-charts-types';
+import type { AgPieSeriesOptions, AgPieSeriesStyle } from 'ag-charts-types';
 
 import { without } from '../../../util/object';
 import { commonSeriesOptionsDefs, shadowOptionsDefs, tooltipOptionsDefs } from '../../commonOptionsDefs';
@@ -40,7 +41,12 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     hideZeroValueSectorsInLegend: boolean,
     sectorSpacing: positiveNumber,
     cornerRadius: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgPieSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cornerRadius: positiveNumber,
+    }),
     title: {
         enabled: boolean,
         text: string,

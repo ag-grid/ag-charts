@@ -34,7 +34,7 @@ import {
 } from '../utils/validation';
 
 const colorStop = optionsDefs<AgGradientColorStop>({ color: color, stop: ratio }, '');
-const colorStopsOrderValidator = attachDescription((value) => {
+export const colorStopsOrderValidator = attachDescription((value) => {
     let lastStop = -Infinity;
     for (const item of value as AgGradientColorStop[]) {
         if (item?.stop != null) {
@@ -46,7 +46,7 @@ const colorStopsOrderValidator = attachDescription((value) => {
     }
     return true;
 }, 'color stops to be defined in ascending order');
-export const gradientColorStops = and(arrayLength(2), and(arrayOf(colorStop), colorStopsOrderValidator));
+export const gradientColorStops = and(arrayLength(2), arrayOf(colorStop), colorStopsOrderValidator);
 const gradientBounds = union('axis', 'item', 'series');
 
 export const gradientStrict = typeUnion<AgGradientColorStrict>(
@@ -114,7 +114,8 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
             'diamonds',
             'stars',
             'hearts',
-            'crosses'
+            'crosses',
+            'custom'
         )
     ),
     path: string,
@@ -164,8 +165,10 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
                 'diamonds',
                 'stars',
                 'hearts',
-                'crosses'
+                'crosses',
+                'custom'
             ),
+            path: string,
             width: positiveNumber,
             height: positiveNumber,
             fill: color,

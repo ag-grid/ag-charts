@@ -1,3 +1,5 @@
+import { warnOnce } from '../globals/logger';
+
 interface DebounceOptions {
     leading?: boolean;
     trailing?: boolean;
@@ -121,4 +123,13 @@ export function throttle<T extends (...args: Parameters<T>) => void>(
             lastArgs = null;
         },
     });
+}
+
+export function safeCall<T = unknown>(callback: Function, args: any[], errorPath = ''): T | undefined {
+    try {
+        return callback(...args);
+    } catch (error) {
+        const postfix = errorPath ? ` \`${errorPath}\`` : '';
+        warnOnce(`Uncaught exception in user callback${postfix}`, error);
+    }
 }

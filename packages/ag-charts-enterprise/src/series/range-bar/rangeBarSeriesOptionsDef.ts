@@ -1,8 +1,8 @@
-import { type AgRangeBarSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgRangeBarSeriesOptions, type AgRangeBarSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
-    callback,
+    callbackDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
@@ -28,7 +28,12 @@ export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgRangeBarSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cornerRadius: positiveNumber,
+    }),
     label: {
         ...seriesLabelOptionsDefs,
         padding: positiveNumber,

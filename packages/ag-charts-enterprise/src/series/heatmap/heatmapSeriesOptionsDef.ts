@@ -1,11 +1,12 @@
-import { type AgHeatmapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgHeatmapSeriesOptions, type AgHeatmapSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
     boolean,
-    callback,
+    callbackDefs,
     color,
     constant,
+    fillOptionsDef,
     positiveNumber,
     required,
     string,
@@ -28,7 +29,10 @@ export const heatmapSeriesOptionsDef: OptionsDefs<AgHeatmapSeriesOptions> = {
     textAlign: union('left', 'center', 'right'),
     verticalAlign: union('top', 'middle', 'bottom'),
     itemPadding: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgHeatmapSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+    }),
     showInMiniChart: boolean,
     label: autoSizedLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,

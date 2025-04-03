@@ -7,6 +7,7 @@ import {
     getDocument,
     getWindow,
     groupBy,
+    hasRequiredInPath,
     isArray,
     isEnumValue,
     isFiniteNumber,
@@ -406,7 +407,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             invalid.forEach((error) => Logger.warn(error));
 
-            if (!invalid.some((e) => e.required && e.path === keyPath)) {
+            if (!hasRequiredInPath(invalid, keyPath)) {
                 validatedSeriesOptions.push(cleared);
             }
         }
@@ -450,7 +451,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             invalid.forEach((error) => Logger.warn(error));
 
-            if (!invalid.some((e) => e.required && e.path === keyPath)) {
+            if (!hasRequiredInPath(invalid, keyPath)) {
                 validatedAxesOptions.push(cleared);
             }
         }
@@ -577,9 +578,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         const { cleared, invalid } = validate(options.theme.params, themeOptionsDef.params);
-        for (const { message } of invalid) {
-            Logger.warnOnce(message);
-        }
+
+        invalid.forEach((error) => Logger.warn(error));
 
         return mergeDefaults(cleared, defaultParameters);
     }

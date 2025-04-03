@@ -7,24 +7,28 @@ import {
     arrayOfDefs,
     boolean,
     callback,
+    callbackDefs,
+    callbackOf,
     color,
     date,
     defined,
     fillOptionsDef,
     fontOptionsDef,
     greaterThan,
+    htmlElement,
     lessThan,
     lineDashOptionsDef,
     number,
     object,
+    optionsDefs,
     or,
     positiveNumber,
     ratio,
+    required,
     string,
     strokeOptionsDef,
     typeUnion,
     union,
-    unknown,
 } from 'ag-charts-core';
 import type {
     AgBaseSeriesOptions,
@@ -36,10 +40,14 @@ import type {
     AgContextMenuAction,
     AgDropShadowOptions,
     AgErrorBarOptions,
+    AgErrorBarThemeableOptions,
     AgInterpolationType,
     AgRangesButton,
     AgSeriesMarkerOptions,
+    AgSeriesMarkerStyle,
     AgSeriesTooltip,
+    AgTooltipRendererDataRow,
+    AgTooltipRendererResult,
     AgZoomButton,
     ToolbarButton,
 } from 'ag-charts-types';
@@ -109,7 +117,7 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
 const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     enabled: boolean,
     text: string,
-    renderer: callback,
+    renderer: callbackOf(or(string, htmlElement)),
 };
 
 const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
@@ -352,7 +360,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     // modules
     locale: {
         localeText: object,
-        getLocaleText: callback,
+        getLocaleText: callbackOf(string),
     },
     background: {
         visible: boolean,
@@ -443,7 +451,7 @@ commonChartOptionsDefs.foreground = {
 };
 
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.context = unknown;
+commonChartOptionsDefs.context = defined;
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.overrideDevicePixelRatio = number;
 
@@ -469,7 +477,7 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
 };
 
 // @ts-expect-error undocumented option
-commonSeriesOptionsDefs.context = unknown;
+commonSeriesOptionsDefs.context = defined;
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.seriesGrouping = defined;
 
@@ -482,7 +490,13 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     enabled: boolean,
     shape: shapeValidator,
     size: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgSeriesMarkerStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        shape: shapeValidator,
+        size: positiveNumber,
+    }),
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
@@ -512,7 +526,18 @@ export const errorBarOptionsDefs: OptionsDefs<AgErrorBarOptions<any>> = {
     xUpperName: string,
     yLowerName: string,
     yUpperName: string,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgErrorBarThemeableOptions>({
+        visible: boolean,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cap: {
+            visible: boolean,
+            length: positiveNumber,
+            lengthRatio: ratio,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        },
+    }),
     cap: {
         visible: boolean,
         length: positiveNumber,
@@ -528,7 +553,22 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
     enabled: boolean,
     showArrow: boolean,
     range: rangeValidator,
-    renderer: callback,
+    renderer: callbackOf(
+        or(
+            string,
+            optionsDefs<AgTooltipRendererResult>(
+                {
+                    heading: string,
+                    title: string,
+                    data: arrayOfDefs<AgTooltipRendererDataRow>({
+                        label: required(string),
+                        value: required(string),
+                    }),
+                },
+                'tooltip renderer result object'
+            )
+        )
+    ),
     position: {
         type: tooltipDeprecatedTypeValidator,
         anchorTo: union('node', 'pointer', 'chart'),

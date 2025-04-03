@@ -198,7 +198,7 @@ describe('ChartTheme', () => {
                 expect((chart.series[i] as BarSeries).properties.label.color).toBe('yellow');
                 expect((chart.series[i] as BarSeries).properties.label.fontSize).toBe(18);
                 expect((chart.series[i] as BarSeries).properties.tooltip.enabled).toBe(false);
-                expect((chart.series[i] as BarSeries).properties.tooltip.renderer).toBe(tooltipRenderer);
+                expect((chart.series[i] as BarSeries).properties.tooltip.renderer).toBeDefined();
             }
 
             const areaFills = ['blue', 'red', 'green', 'blue', 'red'];
@@ -207,7 +207,7 @@ describe('ChartTheme', () => {
                 expect(chart.series[i].type).toBe('area');
                 expect((chart.series[i] as unknown as AreaSeries).properties.fill).toEqual(areaFills[i - 5]);
                 expect((chart.series[i] as unknown as AreaSeries).properties.stroke).toEqual(areaStrokes[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).properties.marker.itemStyler).toBe(markerFormatter);
+                expect((chart.series[i] as unknown as AreaSeries).properties.marker.itemStyler).toBeDefined();
             }
         });
     });
@@ -290,7 +290,7 @@ describe('ChartTheme', () => {
             expect((chart.series[0] as PieSeries).properties.calloutLabel.color).toBe('yellow');
             expect((chart.series[0] as PieSeries).properties.calloutLabel.fontSize).toBe(18);
             expect((chart.series[0] as PieSeries).properties.tooltip.enabled).toBe(false);
-            expect((chart.series[0] as PieSeries).properties.tooltip.renderer).toBe(tooltipRenderer);
+            expect((chart.series[0] as PieSeries).properties.tooltip.renderer).toBeDefined();
         });
     });
 
@@ -442,7 +442,7 @@ describe('ChartTheme', () => {
                 expect((chart.series[i] as BarSeries).properties.label.color).toBe('blue');
                 expect((chart.series[i] as BarSeries).properties.label.fontSize).toBe(18);
                 expect((chart.series[i] as BarSeries).properties.tooltip.enabled).toBe(false);
-                expect((chart.series[i] as BarSeries).properties.tooltip.renderer).toBe(columnTooltipRenderer);
+                expect((chart.series[i] as BarSeries).properties.tooltip.renderer).toBeDefined();
             }
         });
 
@@ -465,7 +465,7 @@ describe('ChartTheme', () => {
             expect((chart.series[0] as PieSeries).properties.calloutLabel.color).toBe('yellow');
             expect((chart.series[0] as PieSeries).properties.calloutLabel.fontSize).toBe(18);
             expect((chart.series[0] as PieSeries).properties.tooltip.enabled).toBe(false);
-            expect((chart.series[0] as PieSeries).properties.tooltip.renderer).toBe(pieTooltipRenderer);
+            expect((chart.series[0] as PieSeries).properties.tooltip.renderer).toBeDefined();
         });
     });
 
