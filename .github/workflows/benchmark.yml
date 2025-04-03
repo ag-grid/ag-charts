@@ -60,9 +60,17 @@ jobs:
 
                   git fetch --unshallow origin latest || echo "Not a shallow ref?"
 
-                  # Debugging
-                   git log -n 1 --decorate
-                   git log -n 1 --decorate origin/latest
+                  # Preemptively fail if merge-base is not found.
+                  mergeBase=$(git merge-base HEAD origin/latest || echo "failed")
+
+                  if [[ ${mergeBase} == "failed" ]] ; then
+                    # Debugging
+                    git log -n 1 --decorate HEAD
+                    git log -n 20 --decorate origin/latest
+
+                    # Allow for a few minutes for debugging
+                    sleep 600
+                  fi
 
             - name: Notify Progress
               uses: actions/github-script@v7
