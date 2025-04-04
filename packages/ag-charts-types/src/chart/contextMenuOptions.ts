@@ -6,12 +6,6 @@ import type {
 } from './eventOptions';
 import type { AgChartLegendContextMenuEvent } from './legendOptions';
 
-type ShowOnActionEventMap = {
-    'series-area': AgSeriesAreaContextMenuActionEvent;
-    'series-node': AgNodeContextMenuActionEvent;
-    'legend-item': AgChartLegendContextMenuEvent;
-};
-
 type AgContextMenuItemLiteral =
     | 'defaults'
     | 'download'
@@ -21,17 +15,17 @@ type AgContextMenuItemLiteral =
     | 'toggle-other-series'
     | 'reset-zoom';
 
-type AgContextMenuItemShowOn = 'series-area' | 'series-node' | 'legend-item';
+type AgContextMenuItemShowOn = 'all' | 'series-area' | 'series-node' | 'legend-item';
 
 type AgContextMenuItemType = 'action' | 'submenu' | 'separator';
 
-type AgContextMenuItem = AgContextMenuItemLiteral | AgContextMenuItemEntry<AgContextMenuItemShowOn>;
+type AgChartsEvent = { type: string; event: Event };
 
-interface AgContextMenuItemEntry<TShowOn extends AgContextMenuItemShowOn> {
+interface AgContextMenuItemObject {
     /**  TODO: writeme. */
     type: AgContextMenuItemType;
     /**  TODO: writeme. */
-    showOn: readonly TShowOn[];
+    showOn: AgContextMenuItemShowOn;
     /**  TODO: writeme. */
     label: string;
     /**  TODO: writeme. */
@@ -39,16 +33,18 @@ interface AgContextMenuItemEntry<TShowOn extends AgContextMenuItemShowOn> {
     /**  TODO: writeme. */
     enable?: boolean;
     /**  TODO: writeme. */
-    action?: (event: ShowOnActionEventMap[TShowOn]) => void;
-    /**  TODO: writeme. */
     items?: AgContextMenuItem;
+    /**  TODO: writeme. */
+    action?: (event: AgChartsEvent) => void;
 }
+
+type AgContextMenuItem = AgContextMenuItemLiteral | AgContextMenuItemObject;
 
 export interface AgContextMenuOptions {
     /**  Whether to show the context menu. */
     enabled?: boolean;
     /**  TODO: writeme. */
-    items?: readonly AgContextMenuItem[];
+    items?: AgContextMenuItem[];
     /**
      * Custom actions displayed in the context menu when right-clicking anywhere on the chart.
      * @deprecated v11.3.0 use `items` instead.
