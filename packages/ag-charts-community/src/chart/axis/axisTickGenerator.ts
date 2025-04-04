@@ -414,7 +414,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     );
 
                     rawTicks = secondaryAxisTicks.ticks;
-                    niceDomain = secondaryAxisTicks.domain.map((d) => scale.toDomain(d)!);
+                    if (niceMode === NiceMode.TickAndDomain) {
+                        niceDomain = secondaryAxisTicks.domain.map((d) => scale.toDomain(d)!);
+                    }
                 } else {
                     // AG-10654 Just use normal ticks for categorical axes.
                     rawTicks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
