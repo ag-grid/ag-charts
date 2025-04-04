@@ -87,6 +87,8 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     },
 };
 
+test.describe.configure({ mode: 'parallel' });
+
 test.describe('docs examples', () => {
     const config = setupIntrinsicAssertions();
 
