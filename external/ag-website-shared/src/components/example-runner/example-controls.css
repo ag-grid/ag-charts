@@ -108,7 +108,7 @@ body > #highlighter {
 
 .example-controls pre,
 .example-controls code {
-    font-family: monospace;
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
 .example-controls input {
