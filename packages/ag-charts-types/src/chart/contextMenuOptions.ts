@@ -53,21 +53,25 @@ export interface AgContextMenuOptions {
      * Custom actions displayed in the context menu when right-clicking anywhere on the chart.
      * @deprecated v11.3.0 use `items` instead.
      */
+    // eslint-disable-next-line sonarjs/deprecation
     extraActions?: AgContextMenuAction<AgChartContextMenuEvent>[];
     /**
      * Custom actions displayed in the context menu when right-clicking anywhere on the series area.
      * @deprecated v11.3.0 use `items` instead.
      */
+    // eslint-disable-next-line sonarjs/deprecation
     extraSeriesAreaActions?: AgContextMenuAction<AgSeriesAreaContextMenuActionEvent>[];
     /**
      * Custom actions displayed in the context menu when right-clicking on a series node.
      * @deprecated v11.3.0 use `items` instead.
      */
+    // eslint-disable-next-line sonarjs/deprecation
     extraNodeActions?: AgContextMenuAction<AgNodeContextMenuActionEvent>[];
     /**
      * Custom actions displayed in the context menu when right-clicking on a legend item.
      * @deprecated v11.3.0 use `items` instead.
      */
+    // eslint-disable-next-line sonarjs/deprecation
     extraLegendItemActions?: AgContextMenuAction<AgChartLegendContextMenuEvent>[];
 }
 

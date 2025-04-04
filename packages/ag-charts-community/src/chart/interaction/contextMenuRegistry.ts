@@ -27,9 +27,13 @@ export type ContextMenuEvent<K extends ContextType = ContextType> = {
 
 // Extract the TEvent types from the AgContextMenuOptions contract:
 type ContextMenuActionEventMap = {
+    // eslint-disable-next-line sonarjs/deprecation
     all: Parameters<NonNullable<AgContextMenuOptions['extraActions']>[number]['action']>[0];
+    // eslint-disable-next-line sonarjs/deprecation
     legend: Parameters<NonNullable<AgContextMenuOptions['extraLegendItemActions']>[number]['action']>[0];
+    // eslint-disable-next-line sonarjs/deprecation
     'series-area': Parameters<NonNullable<AgContextMenuOptions['extraSeriesAreaActions']>[number]['action']>[0];
+    // eslint-disable-next-line sonarjs/deprecation
     node: Parameters<NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']>[0];
 };
 

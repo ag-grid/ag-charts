@@ -43,21 +43,25 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     /**
      * Extra menu actions with a label and callback.
      */
+    // eslint-disable-next-line sonarjs/deprecation
     public extraActions: NonNullable<AgContextMenuOptions['extraActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a node.
      */
+    // eslint-disable-next-line sonarjs/deprecation
     public extraNodeActions: NonNullable<AgContextMenuOptions['extraNodeActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a series.
      */
+    // eslint-disable-next-line sonarjs/deprecation
     public extraSeriesAreaActions: NonNullable<AgContextMenuOptions['extraSeriesAreaActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a legend item
      */
+    // eslint-disable-next-line sonarjs/deprecation
     public extraLegendItemActions: NonNullable<AgContextMenuOptions['extraLegendItemActions']> = [];
 
     // Module context
