@@ -1,12 +1,14 @@
-<div class="toolbar">
-    <button onclick="actionReset()">Reset</button>
-    <hr />
-    <button onclick="actionAddStartWeek()">Add Start Week</button>
-    <button onclick="actionAddEndWeek()">Add End Week</button>
-    <button onclick="actionAddWeek12and13()">Add Weeks 12+13</button>
-    <button onclick="actionAddWeek7and8()">Add Weeks 7+8</button>
-    <hr />
-    <button onclick="reorder()">Reorder</button>
-    <button onclick="rapidUpdate()">Rapid Update</button>
+<div class="example-controls">
+    <div class="controls-row">
+        <button onclick="actionAddStartWeek()">Add Start Week</button>
+        <button onclick="actionAddEndWeek()">Add End Week</button>
+        <button onclick="actionAddWeek12and13()">Add Weeks 12+13</button>
+        <button onclick="actionAddWeek7and8()">Add Weeks 7+8</button>
+    </div>
+    <div class="controls-row">
+        <button onclick="reorder()">Reorder</button>
+        <button onclick="rapidUpdate()">Rapid Update</button>
+        <button class="push-right" onclick="actionReset()">Reset</button>
+    </div>
 </div>
 <div id="myChart"></div>

@@ -1,17 +1,21 @@
-<div class="toolbar">
-    Rotation:
-    <button onclick="disableRotation()">No rotation</button>
-    <button onclick="fixedRotation()">Fixed rotation</button>
-    <button onclick="autoRotation()">Auto rotation (default)</button>
-    <hr />
-    Values:
-    <button onclick="shortLabels()">Short labels</button>
-    <button onclick="longLabels()">Long labels</button>
-    <hr />
-    Avoid Collisions:
-    <button onclick="noCollisionDetection()">Off</button>
-    <button onclick="autoCollisionDetection()">On (default)</button>
-    <button onclick="reset()" style="position: absolute; top: 0; right: 0">Reset</button>
+<div class="example-controls">
+    <div class="controls-row">
+        Rotation:
+        <button onclick="disableRotation()">No rotation</button>
+        <button onclick="fixedRotation()">Fixed rotation</button>
+        <button onclick="autoRotation()">Auto rotation (default)</button>
+    </div>
+    <div class="controls-row">
+        Values:
+        <button onclick="shortLabels()">Short labels</button>
+        <button onclick="longLabels()">Long labels</button>
+    </div>
+    <div class="controls-row">
+        Avoid Collisions:
+        <button onclick="noCollisionDetection()">Off</button>
+        <button onclick="autoCollisionDetection()">On (default)</button>
+        <button class="push-right" onclick="reset()">Reset</button>
+    </div>
 </div>
 <div class="resizable-container">
     <div id="myChart" class="resizable"></div>
