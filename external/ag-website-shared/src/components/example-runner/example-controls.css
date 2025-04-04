@@ -39,6 +39,12 @@
     --checkbox-tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a343e' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17L4 12'/%3E%3C/svg%3E");
 }
 
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 :root,
 body {
     height: 100%;
@@ -61,7 +67,6 @@ body > #highlighter {
 .example-controls *,
 .example-controls *::before,
 .example-controls *::after {
-    box-sizing: border-box;
     margin: 0;
     font-family: -apple-system, 'system-ui', sans-serif;
     font-size: 14px;
@@ -148,6 +153,7 @@ body > #highlighter {
 
 .example-controls input[type='range'] {
     appearance: none;
+    min-width: 160px;
     border-radius: 8px;
     cursor: pointer;
     overflow: hidden; /*  slider progress trick  */
@@ -206,6 +212,10 @@ body > #highlighter {
     gap: var(--row-gap);
 }
 
+.controls-row + .controls-row {
+    margin-top: var(--row-gap);
+}
+
 .controls-row.center {
     justify-content: center;
 }
@@ -219,9 +229,9 @@ body > #highlighter {
 }
 
 .controls-row .gap-right {
-    margin-right: calc(var(--row-gap) * 3);
+    margin-right: calc(var(--row-gap) * 6);
 }
 
 .controls-row .gap-left {
-    margin-left: calc(var(--row-gap) * 3);
+    margin-left: calc(var(--row-gap) * 6);
 }
