@@ -51,22 +51,27 @@ export interface AgContextMenuOptions {
     items?: readonly AgContextMenuItem[];
     /**
      * Custom actions displayed in the context menu when right-clicking anywhere on the chart.
+     * @deprecated v11.3.0 use `items` instead.
      */
     extraActions?: AgContextMenuAction<AgChartContextMenuEvent>[];
     /**
      * Custom actions displayed in the context menu when right-clicking anywhere on the series area.
+     * @deprecated v11.3.0 use `items` instead.
      */
     extraSeriesAreaActions?: AgContextMenuAction<AgSeriesAreaContextMenuActionEvent>[];
     /**
      * Custom actions displayed in the context menu when right-clicking on a series node.
+     * @deprecated v11.3.0 use `items` instead.
      */
     extraNodeActions?: AgContextMenuAction<AgNodeContextMenuActionEvent>[];
     /**
      * Custom actions displayed in the context menu when right-clicking on a legend item.
+     * @deprecated v11.3.0 use `items` instead.
      */
     extraLegendItemActions?: AgContextMenuAction<AgChartLegendContextMenuEvent>[];
 }
 
+/** @deprecated v11.3.0 use `AgContextMenuItem` instead. */
 export interface AgContextMenuAction<TEvent = AgNodeContextMenuActionEvent> {
     /** The text to display in the context menu for the custom action. */
     label: string;
