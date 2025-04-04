@@ -122,8 +122,8 @@ const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
 
 const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
     {
-        label: string,
-        action: callback,
+        label: required(string),
+        action: required(callback),
     },
     'a context menu actions array'
 );
