@@ -27,7 +27,7 @@ export function processFunction(code: string): string {
 
 function needsWrappingInFragment(bindings: any) {
     return (
-        bindings.template.includes('toolbar') ||
+        bindings.template.includes('example-controls') ||
         (Object.keys(bindings.placeholders).length > 1 && !bindings.template.includes('</'))
     );
 }

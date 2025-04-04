@@ -5,7 +5,7 @@ import path from 'path';
 import { ANGULAR_GENERATED_MAIN_FILE_NAME, SOURCE_ENTRY_FILE_NAME } from './constants';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
-import type { GeneratedContents, InternalFramework, Layout } from './types';
+import type { GeneratedContents, InternalFramework } from './types';
 import {
     getEntryFileName,
     getHasExampleConsoleLog,
@@ -117,11 +117,6 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     let indexHtml = await readFile(path.join(folderPath, 'index.html'));
     extractOptions ||= entryFile.includes('@ag-options-extract');
 
-    const hasToolbarClass = Array.from(indexHtml.matchAll(/class="([^"]*)"/g)).some(([_fullMatch, classList]) => {
-        return classList.split(/\s+/g).includes('toolbar');
-    });
-    let layout: Layout = hasToolbarClass ? 'toolbar' : 'grid';
-
     if (entryFile.includes('@ag-skip-fws')) {
         if (['vanilla'].includes(internalFramework)) {
             entryFile = entryFile.replace(/^\s*\/\/ @ag-skip-fws\s*\n*$/g, '');
@@ -136,11 +131,6 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     if (entryFile.includes('@ag-skip-container-check')) {
         entryFile = entryFile.replace(/^\s*\/\/ @ag-skip-container-check\s*\n*$/g, '');
         skipContainerCheck = true;
-    }
-
-    if (entryFile.includes('@ag-no-style')) {
-        entryFile = entryFile.replace(/^\s*\/\/ @ag-no-style\s*\n*$/g, '');
-        layout = 'none';
     }
 
     const transformEntryFile: TransformEntryFile = ({ entryFile, chartAPI }) => {
@@ -239,7 +229,6 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
 
     const result: GeneratedContents = {
         isEnterprise,
-        layout,
         hasLocale,
         hasExampleConsoleLog,
         exampleConfig,
