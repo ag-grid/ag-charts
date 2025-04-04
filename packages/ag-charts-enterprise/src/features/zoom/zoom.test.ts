@@ -470,4 +470,39 @@ describe('Zoom', () => {
             await compare();
         });
     });
+
+    describe('secondary axes', () => {
+        it('AG-14509', async () => {
+            const data = [
+                { x: 0, y1: 1, y2: 30 },
+                { x: 1, y1: 2, y2: 25 },
+                { x: 2, y1: 3, y2: 20 },
+                { x: 3, y1: 4, y2: 15 },
+                { x: 4, y1: 5, y2: 10 },
+            ];
+            const options: AgCartesianChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                animation: { enabled: false },
+                data,
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y1' },
+                    { type: 'line', xKey: 'x', yKey: 'y2' },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left', keys: ['y1'] },
+                    { type: 'number', position: 'right', keys: ['y2'] },
+                ],
+            };
+            await prepareChart(undefined, undefined, options);
+
+            const from = { x: 30, y: cy };
+            const to = { x: from.x, y: from.y - cy / 2 };
+
+            await hoverAction(from.x, from.y)(chart);
+            await dragAction(from, to)(chart);
+
+            await compare();
+        });
+    });
 });
