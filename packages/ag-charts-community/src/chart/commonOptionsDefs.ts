@@ -120,11 +120,24 @@ const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     renderer: callbackOf(or(string, htmlElement)),
 };
 
+const contextMenuItemLiteral = union(
+    'defaults',
+    'download',
+    'zoom-to-cursor',
+    'pan-to-cursor',
+    'toggle-series-visibility',
+    'toggle-other-series',
+    'reset-zoom'
+);
+const contextMenuItemShowOn = union('series-area', 'series-node', 'legend-item');
+const contextMenuItemType = union('action', 'submenu', 'separator');
+contextMenuItemLiteral || contextMenuItemShowOn || contextMenuItemType;
+
 // eslint-disable-next-line sonarjs/deprecation
 const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
     {
-        label: string,
-        action: callback,
+        label: and(defined, string),
+        action: and(defined, callback),
     },
     'a context menu actions array'
 );
