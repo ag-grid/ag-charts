@@ -42,7 +42,7 @@ export class Text<D = any> extends Shape<D> {
         this.lines = this.text?.split('\n').map((s) => s.trim()) ?? [];
     }
 
-    @SceneChangeDetection({ changeCb: (o: Text) => o.onTextChange() })
+    @SceneChangeDetection({ convertor: String, changeCb: (o: Text) => o.onTextChange() })
     text?: string = undefined;
 
     @SceneChangeDetection()
