@@ -6,12 +6,6 @@ import type {
 } from './eventOptions';
 import type { AgChartLegendContextMenuEvent } from './legendOptions';
 
-type ShowOnActionEventMap = {
-    'series-area': AgSeriesAreaContextMenuActionEvent;
-    'series-node': AgNodeContextMenuActionEvent;
-    'legend-item': AgChartLegendContextMenuEvent;
-};
-
 type AgContextMenuItemLiteral =
     | 'defaults'
     | 'download'
@@ -21,17 +15,15 @@ type AgContextMenuItemLiteral =
     | 'toggle-other-series'
     | 'reset-zoom';
 
-type AgContextMenuItemShowOn = 'series-area' | 'series-node' | 'legend-item';
+type AgContextMenuItemShowOn = 'all' | 'series-area' | 'series-node' | 'legend-item';
 
 type AgContextMenuItemType = 'action' | 'submenu' | 'separator';
 
-type AgContextMenuItem = AgContextMenuItemLiteral | AgContextMenuItemEntry<AgContextMenuItemShowOn>;
-
-interface AgContextMenuItemEntry<TShowOn extends AgContextMenuItemShowOn> {
+interface ItemMixin {
     /**  TODO: writeme. */
     type: AgContextMenuItemType;
     /**  TODO: writeme. */
-    showOn: readonly TShowOn[];
+    showOn: AgContextMenuItemShowOn;
     /**  TODO: writeme. */
     label: string;
     /**  TODO: writeme. */
@@ -39,16 +31,49 @@ interface AgContextMenuItemEntry<TShowOn extends AgContextMenuItemShowOn> {
     /**  TODO: writeme. */
     enable?: boolean;
     /**  TODO: writeme. */
-    action?: (event: ShowOnActionEventMap[TShowOn]) => void;
-    /**  TODO: writeme. */
     items?: AgContextMenuItem;
 }
+
+interface AgContextMenuItemAll extends ItemMixin {
+    /**  TODO: writeme. */
+    showOn: 'all';
+    /**  TODO: writeme. */
+    action?: (event: AgChartContextMenuEvent) => void;
+}
+
+interface AgContextMenuItemSeriesArea extends ItemMixin {
+    /**  TODO: writeme. */
+    showOn: 'series-area';
+    /**  TODO: writeme. */
+    action?: (event: AgSeriesAreaContextMenuActionEvent) => void;
+}
+
+interface AgContextMenuItemSeriesNode extends ItemMixin {
+    /**  TODO: writeme. */
+    showOn: 'series-node';
+    /**  TODO: writeme. */
+    action?: (event: AgNodeContextMenuActionEvent) => void;
+}
+
+interface AgContextMenuItemLegendItem extends ItemMixin {
+    /**  TODO: writeme. */
+    showOn: 'legend-item';
+    /**  TODO: writeme. */
+    action?: (event: AgChartLegendContextMenuEvent) => void;
+}
+
+type AgContextMenuItem =
+    | AgContextMenuItemLiteral
+    | AgContextMenuItemAll
+    | AgContextMenuItemSeriesArea
+    | AgContextMenuItemSeriesNode
+    | AgContextMenuItemLegendItem;
 
 export interface AgContextMenuOptions {
     /**  Whether to show the context menu. */
     enabled?: boolean;
     /**  TODO: writeme. */
-    items?: readonly AgContextMenuItem[];
+    items?: AgContextMenuItem[];
     /**
      * Custom actions displayed in the context menu when right-clicking anywhere on the chart.
      * @deprecated v11.3.0 use `items` instead.
