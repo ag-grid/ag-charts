@@ -158,7 +158,7 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
 };
 
 // @ts-expect-error undocumented option
-commonAxisOptionsDefs.context = defined;
+commonAxisOptionsDefs.context = () => true;
 
 // @ts-expect-error undocumented option
 commonAxisOptionsDefs.layoutConstraints = {
