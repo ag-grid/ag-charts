@@ -1,6 +1,6 @@
-import { Page } from '@playwright/test';
+import { BrowserContext, Page } from '@playwright/test';
 
-import { ExampleOverrides, convertPageUrls, createTestCase } from './examples-util';
+import { ExampleOverrides, cachedReusedPageContext, convertPageUrls, createTestCase } from './examples-util';
 import { expect, test } from './fixture';
 import { getExamples, setupIntrinsicAssertions } from './util';
 
@@ -36,21 +36,12 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     },
 };
 
-test.describe.configure({ mode: 'serial' });
-
 test.describe('gallery examples', () => {
     const config = setupIntrinsicAssertions();
 
     const examples = getExamples();
 
-    let page: Page;
-    test.beforeAll(async ({ browser }) => {
-        page = await browser.newPage();
-    });
-
-    test.afterAll(async () => {
-        await page.close();
-    });
+    const pageProvider = cachedReusedPageContext(test);
 
     for (const { path, affected } of examples) {
         for (const opts of convertPageUrls(path, exampleOptions)) {
@@ -64,17 +55,11 @@ test.describe('gallery examples', () => {
                 test.skip(!affected, 'unaffected example');
 
                 test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
-                    createTestCase(
-                        testFn as any,
-                        opts,
-                        config,
-                        () => page,
-                        async (galleryPage) => {
-                            if (opts.randomData) return;
+                    createTestCase(testFn as any, opts, config, pageProvider, async (galleryPage) => {
+                        if (opts.randomData) return;
 
-                            await expect(galleryPage).toHaveScreenshot(`gallery-${opts.example}.png`);
-                        }
-                    );
+                        await expect(galleryPage).toHaveScreenshot(`gallery-${opts.example}.png`);
+                    });
                 });
             });
         }

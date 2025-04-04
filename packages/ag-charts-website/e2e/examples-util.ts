@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { APIResponse, BrowserContext, Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls, toGalleryPageUrls } from './util';
@@ -66,6 +66,46 @@ export function convertPageUrls(path: string, exampleOptions: Record<string, Rec
                 randomData,
             })
         );
+}
+
+export function cachedReusedPageContext(testFn: typeof test) {
+    const requestCache = new Map<string, APIResponse>();
+    let cacheHits = 0;
+    let cacheMisses = 0;
+
+    let context: BrowserContext;
+    let page: Page;
+    testFn.beforeAll(async ({ browser }) => {
+        context = await browser.newContext();
+        await context.route('**/*', async (route, request) => {
+            const url = request.url();
+            if (url.includes('host.docker.internal')) {
+                return route.continue();
+            }
+
+            const cachedResponse = requestCache.get(url);
+            if (cachedResponse) {
+                cacheHits++;
+                return route.fulfill({ response: cachedResponse });
+            }
+
+            const response = await route.fetch();
+            requestCache.set(url, response);
+
+            cacheMisses++;
+            return route.fulfill({ response: response });
+        });
+        page = await context.newPage();
+    });
+
+    testFn.afterAll(async () => {
+        await context.close();
+
+        // eslint-disable-next-line no-console
+        console.log({ cacheHits, cacheMisses });
+    });
+
+    return () => page;
 }
 
 export function createTestCase(

@@ -1,6 +1,6 @@
-import { Page } from '@playwright/test';
+import { APIResponse, BrowserContext, Page } from '@playwright/test';
 
-import { ExampleOverrides, convertPageUrls, createTestCase } from './examples-util';
+import { ExampleOverrides, cachedReusedPageContext, convertPageUrls, createTestCase } from './examples-util';
 import { test } from './fixture';
 import { getExamples, setupIntrinsicAssertions } from './util';
 
@@ -89,21 +89,12 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     },
 };
 
-test.describe.configure({ mode: 'serial' });
-
-test.describe('examples', () => {
+test.describe('docs examples', () => {
     const config = setupIntrinsicAssertions();
 
     const examples = getExamples();
 
-    let page: Page;
-    test.beforeAll(async ({ browser }) => {
-        page = await browser.newPage();
-    });
-
-    test.afterAll(async () => {
-        await page.close();
-    });
+    const pageProvider = cachedReusedPageContext(test);
 
     for (const { path, affected } of examples) {
         for (const opts of convertPageUrls(path, exampleOptions)) {
@@ -117,7 +108,7 @@ test.describe('examples', () => {
                 test.skip(!affected, 'unaffected example');
 
                 test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
-                    createTestCase(testFn as any, opts, config, () => page);
+                    createTestCase(testFn as any, opts, config, pageProvider);
                 });
             });
         }
