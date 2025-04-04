@@ -2,6 +2,57 @@
 title: 'Example Controls'
 ---
 
-Test page to review examples controls. For internal use only.
+Example controls guidance and components demo. For internal use only.
+
+When creating examples, you may wish to add example controls. These can be used to show user interactions, code option changes, event code output, or for any other reason.
+
+Below is a very simple guide on how to add controls to your examples, some best practice tips, and a demo of all currently available controls.
+
+### Container elements
+
+To add controls to your example, add the appropriate elements to your example’s `index.html` file.
+
+All example controls should be wrapped in a `div` with an `example-controls` class. Each row of controls should be wrapped in a `div` with the `controls-row` class. Elements outside the `example-controls` will not receive any standard controls styling.
+
+The chart element should sit outside the `example-controls` `div`.
+
+```html
+<div class="style-guide example-controls">
+    <div class="controls-row">
+        <!-- Your example controls elements.. -->
+    </div>
+    <div class="controls-row">
+        <!-- A second row of example controls elements.. -->
+    </div>
+</div>
+
+<div id="myChart"></div>
+```
+
+### Controls layout
+
+The `controls-row` div is a flexbox container. All elements within the `controls-row` div will lay out horizontally with a gap, and be vertically centred. Elements will wrap vertically within the controls row container.
+
+There are four classes you can apply to elements within a controls row to manipulate the row layout. See below for examples of these classes in use.
+
+The classes `gap-left` and `gap-right` can be added to create a gap on either side of the element to group elements within a row. Prefer gap-right for better wrapping within the row.
+
+The classes `push-left` and `push-right` can be added to push an element to the far side of a row. For example, a “Reset” button can be pushed to the far right of the row to separate it from other controls.
+
+### Showing code
+
+If you want to show that a button or input is triggering a code change, you can wrap the relevant content with a `<code>` tag within the element.
+
+```html
+<button onclick="myFunction()">Apply <code>'{ myValue: 30 }'</code></button>
+```
+
+### Additional styles
+
+You should not need to apply any additional styles in an example’s `styles.css` file in order to style your example controls. CSS in `styles.css` should be reserved for code that is relevant to the function of the example.
+
+If you need to use an input or element that’s not covered below, please speak to the website team and we implement style new controls.
+
+## Example controls demo
 
 {% chartExampleRunner title="Examples Controls Tester" name="examples-controls-tester" type="generated"  options={ "exampleHeight": 1800 }/%}
