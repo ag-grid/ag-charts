@@ -21,12 +21,14 @@ fi
 scriptdir=$(dirname $0)
 workdir=$(mktemp -d)
 echo "Using workdir: ${workdir}"
+cd ${scriptdir}
 
-(
-    export REPO_URL="https://github.com/ag-grid/${repo}"
-    export RUNNER_NAME="${RUNNER_NAME:-$(hostname)}"
-    export LABELS="${RUNNER_LABELS:-ubuntu-debug,ubuntu-debug-${RUNNER_NAME}}"
-    export RUNNER_TOKEN
-    cd ${scriptdir} && \
-    docker compose up --build gha-runner gha-cache
-)
+export REPO_URL="https://github.com/ag-grid/${repo}"
+export RUNNER_NAME="${RUNNER_NAME:-$(hostname)}"
+export LABELS="${RUNNER_LABELS:-ubuntu-debug,ubuntu-debug-${RUNNER_NAME}}"
+export RUNNER_TOKEN
+trap "echo 'Stopping runner...'; docker compose down" EXIT SIGINT SIGTERM
+docker compose up --build -d gha-runner gha-cache
+docker compose logs --follow
+docker compose down
+wait
