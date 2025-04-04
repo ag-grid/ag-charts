@@ -99,6 +99,7 @@ export function cachedReusedPageContext(testFn: typeof test) {
     });
 
     testFn.afterAll(async () => {
+        await page.close();
         await context.close();
 
         // eslint-disable-next-line no-console

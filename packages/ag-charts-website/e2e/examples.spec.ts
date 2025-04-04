@@ -1,5 +1,3 @@
-import { APIResponse, BrowserContext, Page } from '@playwright/test';
-
 import { ExampleOverrides, cachedReusedPageContext, convertPageUrls, createTestCase } from './examples-util';
 import { test } from './fixture';
 import { getExamples, setupIntrinsicAssertions } from './util';
