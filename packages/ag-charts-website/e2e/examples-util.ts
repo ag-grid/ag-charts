@@ -72,13 +72,16 @@ export function createTestCase(
     testFn: typeof test,
     opts: ExampleOptions,
     config: ReturnType<typeof setupIntrinsicAssertions>,
+    pageProvider: () => Page,
     initialCallback?: (page: Page) => Promise<void>
 ) {
     const { url, status, framework, clickOrder, skipCanvasUpdateCheck, ignoreConsoleWarnings } = opts;
 
     if (status === 'ok') {
-        testFn(`should load ${url}`, async ({ page }) => {
+        testFn(`should load ${url}`, async () => {
             test.slow(framework === 'angular', 'allow more time for Angular load times');
+
+            const page = pageProvider();
 
             config.ignoreConsoleWarnings = ignoreConsoleWarnings;
 
