@@ -159,6 +159,8 @@ const fillGradientDefaults: RequiredInternalAgGradientColor = {
 const fillPatternDefaults: RequiredInternalAgPatternColor = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
+    repetition: 'repeat',
+    imageFit: 'stretch',
     width: 8,
     height: 8,
     padding: 1,
@@ -170,6 +172,7 @@ const fillPatternDefaults: RequiredInternalAgPatternColor = {
     strokeOpacity: 1,
     strokeWidth: 0,
     rotation: 0,
+    scale: 1,
 };
 
 export class Legend extends BaseProperties {

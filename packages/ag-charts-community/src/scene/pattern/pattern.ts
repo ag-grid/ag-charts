@@ -1,5 +1,5 @@
 import { type InternalAgPatternColor, type RequiredInternalAgPatternColor, createSvgElement } from 'ag-charts-core';
-import type { AgPatternName, CssColor } from 'ag-charts-types';
+import type { AgPatternImageFitType, AgPatternName, AgPatternRepetition, CssColor } from 'ag-charts-types';
 
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
@@ -8,7 +8,9 @@ import { PATTERNS } from './patterns';
 
 export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     pattern: AgPatternName;
+    repetition: AgPatternRepetition;
     path?: string;
+    image?: ImageBitmap;
     width: number;
     height: number;
     padding: number;
@@ -20,6 +22,8 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     strokeOpacity: number;
     strokeWidth: number;
     rotation: number;
+    scale: number;
+    imageFit: AgPatternImageFitType;
 
     constructor(patternOptions: InternalAgPatternColor) {
         this.width = Math.max(patternOptions?.width ?? 10, 1);
@@ -35,6 +39,10 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         this.pattern = patternOptions.pattern ?? 'forward-slanted-lines';
         this.rotation = patternOptions.rotation ?? 0;
         this.path = patternOptions.path;
+        this.repetition = patternOptions.repetition ?? 'repeat';
+        this.image = patternOptions.image;
+        this.scale = patternOptions.scale ?? 1;
+        this.imageFit = patternOptions.imageFit ?? 'stretch';
     }
 
     private getPath(pixelRatio: number) {
@@ -43,6 +51,43 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         const path = new ExtendedPath2D();
         PATTERNS[pattern](path, { width, height, pixelRatio, strokeWidth, padding, svgPath });
         return path;
+    }
+
+    private drawPath(offscreenCtx: OffscreenCanvasRenderingContext2D, pixelRatio: number) {
+        const path2d = this.getPath(pixelRatio).getPath2D();
+
+        this.renderFill(path2d, offscreenCtx);
+        this.renderStroke(path2d, offscreenCtx);
+    }
+
+    private drawImage(offscreenCtx: OffscreenCanvasRenderingContext2D) {
+        const { width, height, image, imageFit } = this;
+
+        if (!image) return;
+
+        if (imageFit === 'stretch') {
+            offscreenCtx.drawImage(image, 0, 0, width, height);
+            return;
+        }
+
+        const imageWidth = image.width;
+        const imageHeight = image.height;
+        const canvasAspectRatio = width / height;
+        const imageAspectRatio = imageWidth / imageHeight;
+
+        let scale = 1;
+        if (imageFit === 'contain') {
+            scale = imageAspectRatio > canvasAspectRatio ? width / imageWidth : height / imageHeight;
+        } else {
+            scale = imageAspectRatio > canvasAspectRatio ? height / imageHeight : width / imageWidth;
+        }
+
+        const dw = imageWidth * scale;
+        const dh = imageHeight * scale;
+        const dx = (width - dw) / 2;
+        const dy = (height - dh) / 2;
+
+        offscreenCtx.drawImage(image, dx, dy, dw, dh);
     }
 
     private renderStroke(path2d: Path2D, ctx: OffscreenCanvasRenderingContext2D) {
@@ -64,21 +109,20 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
 
     protected createCanvasPattern(ctx: CanvasRenderingContext2D, pixelRatio: number): CanvasPattern | null {
         const { width, height, backgroundFill, backgroundFillOpacity } = this;
-
         const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio });
-        const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
 
-        offscreenPatternCtx.fillStyle = backgroundFill;
-        offscreenPatternCtx.globalAlpha = backgroundFillOpacity;
-        offscreenPatternCtx.fillRect(0, 0, width, height);
+        const offscreenCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
+        offscreenCtx.fillStyle = backgroundFill;
+        offscreenCtx.globalAlpha = backgroundFillOpacity;
+        offscreenCtx.fillRect(0, 0, width, height);
 
-        const path2d = this.getPath(pixelRatio).getPath2D();
+        if (this.image) {
+            this.drawImage(offscreenCtx);
+        } else {
+            this.drawPath(offscreenCtx, pixelRatio);
+        }
 
-        this.renderFill(path2d, offscreenPatternCtx);
-        this.renderStroke(path2d, offscreenPatternCtx);
-
-        const pattern = ctx.createPattern(offscreenPattern.canvas, 'repeat');
-
+        const pattern = ctx.createPattern(offscreenPattern.canvas, this.repetition);
         this.setPatternTransform(pattern, pixelRatio);
 
         offscreenPattern.destroy();
@@ -87,10 +131,8 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     }
 
     setPatternTransform(pattern: CanvasPattern | null | undefined, pixelRatio: number, tx: number = 0, ty: number = 0) {
-        const { rotation } = this;
-
-        const angle = normalizeAngle360(toRadians(rotation));
-        const scale = 1 / pixelRatio;
+        const angle = normalizeAngle360(toRadians(this.rotation));
+        const scale = this.scale / pixelRatio;
         const cos = Math.cos(angle) * scale;
         const sin = Math.sin(angle) * scale;
 

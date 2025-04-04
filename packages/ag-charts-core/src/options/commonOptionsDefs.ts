@@ -74,11 +74,9 @@ export interface InternalAgGradientColor extends AgGradientColor {
 export interface InternalAgPatternColor extends AgPatternColor {
     /** Padding for the shape in the pattern unit. */
     padding?: number;
-    /** The rotation angle of the pattern. */
-    rotation?: number;
 }
-export type RequiredInternalAgPatternColor = Required<Omit<InternalAgPatternColor, 'path'>> &
-    Pick<InternalAgPatternColor, 'path'>;
+export type RequiredInternalAgPatternColor = Required<Omit<InternalAgPatternColor, 'path' | 'image'>> &
+    Pick<InternalAgPatternColor, 'path' | 'image'>;
 
 export type RequiredInternalAgGradientColor = Required<InternalAgGradientColor>;
 
@@ -100,6 +98,12 @@ export const fillGradientDefaults = optionsDefs<InternalAgGradientColor>({
     reverse: required(boolean),
 });
 
+export function isImage(value: unknown): value is ImageBitmap {
+    return value instanceof ImageBitmap;
+}
+
+export const image = attachDescription(isImage, 'a supported image source: ImageBitmap');
+
 export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
     type: required(constant('pattern')),
     pattern: required(
@@ -119,14 +123,18 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
         )
     ),
     path: string,
+    image,
+    imageFit: union('stretch', 'contain', 'cover'),
+    repetition: union('repeat', 'repeat-x', 'repeat-y', 'no-repeat'),
     width: required(positiveNumber),
     height: required(positiveNumber),
+    rotation: required(number),
+    scale: required(number),
     fill: required(color),
     fillOpacity: required(ratio),
     backgroundFill: required(color),
     backgroundFillOpacity: required(ratio),
     padding: required(positiveNumber),
-    rotation: required(number),
     stroke: required(color),
     strokeWidth: required(positiveNumber),
     strokeOpacity: required(ratio),
@@ -141,7 +149,6 @@ const gradientUndocumentedOpts: OptionsDefs<AgGradientColor> = {
 
 const patternUndocumentedOpts: OptionsDefs<AgPatternColor> = {
     // @ts-expect-error undocumented option
-    rotation: number,
     padding: positiveNumber,
 };
 
@@ -169,8 +176,13 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
                 'custom'
             ),
             path: string,
+            image,
+            imageFit: union('stretch', 'contain', 'cover'),
+            repetition: union('repeat', 'repeat-x', 'repeat-y', 'no-repeat'),
             width: positiveNumber,
             height: positiveNumber,
+            rotation: number,
+            scale: number,
             fill: color,
             fillOpacity: ratio,
             backgroundFill: color,

@@ -71,6 +71,8 @@ export const SAFE_RANGE2_OPERATION: any = {
 export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternColor> = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
+    repetition: 'repeat',
+    imageFit: 'stretch',
     width: 10,
     height: 10,
     padding: 2,
@@ -94,6 +96,7 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
     backgroundFill: 'transparent',
     backgroundFillOpacity: 1,
     rotation: 0,
+    scale: 1,
 };
 
 export function getSequentialColors(colors: { [key: string]: string }) {

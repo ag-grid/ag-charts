@@ -66,10 +66,20 @@ export interface AgPatternColor {
     pattern?: AgPatternName;
     /** The svg path for a custom pattern */
     path?: string;
+    /** The ImageBitmap to use as a source for the custom pattern */
+    image?: ImageBitmap;
+    /** The fit mode of the image in the pattern unit. */
+    imageFit?: AgPatternImageFitType;
+    /** A string indicating how to repeat the pattern's unit.*/
+    repetition?: AgPatternRepetition;
     /** Width of the pattern unit. */
     width?: number;
     /** Height of the pattern unit. */
     height?: number;
+    /** The scaling of the pattern. */
+    scale?: number;
+    /** The rotation angle of the pattern. */
+    rotation?: number;
     /** The colour for filling closed shapes in the pattern. */
     fill?: CssColor;
     /** The opacity of the shapes fill colour. */
@@ -100,6 +110,8 @@ export type AgPatternName =
     | 'crosses'
     | 'custom';
 
+export type AgPatternRepetition = 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat';
+export type AgPatternImageFitType = 'stretch' | 'cover' | 'contain';
 /**
  * Represents options for the strokes in a chart.
  */

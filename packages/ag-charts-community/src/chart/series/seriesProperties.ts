@@ -3,7 +3,9 @@ import type {
     AgGradientColorBounds,
     AgGradientColorStop,
     AgGradientType,
+    AgPatternImageFitType,
     AgPatternName,
+    AgPatternRepetition,
     CssColor,
     InteractionRange,
     Opacity,
@@ -101,10 +103,22 @@ export class FillPatternDefaults
     rotation: number = 0;
 
     @Property
+    scale: number = 1;
+
+    @Property
+    imageFit: AgPatternImageFitType = 'stretch';
+
+    @Property
     reverse: boolean = false;
 
     @Property
     path?: string;
+
+    @Property
+    image?: ImageBitmap;
+
+    @Property
+    repetition: AgPatternRepetition = 'repeat';
 
     @Property
     pattern: AgPatternName = 'forward-slanted-lines';

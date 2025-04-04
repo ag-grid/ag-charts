@@ -70,6 +70,8 @@ export function getShapeFill(
             width,
             height,
             path: fill.path,
+            image: fill.image,
+            repetition: fill.repetition ?? 'repeat',
             padding: fill.padding ?? defaultPattern.padding,
             fill: fill.fill ?? defaultPattern.fill,
             fillOpacity: fill.fillOpacity ?? defaultPattern.fillOpacity,
@@ -79,6 +81,8 @@ export function getShapeFill(
             strokeOpacity: fill.strokeOpacity ?? defaultPattern.strokeOpacity,
             strokeWidth,
             rotation: fill.rotation ?? defaultPattern.rotation,
+            scale: fill.scale ?? defaultPattern.scale,
+            imageFit: fill.imageFit ?? defaultPattern.imageFit,
         };
     }
 
