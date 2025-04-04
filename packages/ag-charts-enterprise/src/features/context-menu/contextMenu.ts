@@ -40,6 +40,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     @Property
     darkTheme = false;
 
+    @Property
+    items? = [];
+
     /**
      * Extra menu actions with a label and callback.
      */

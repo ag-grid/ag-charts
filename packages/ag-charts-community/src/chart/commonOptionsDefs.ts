@@ -39,6 +39,8 @@ import type {
     AgChartLabelOptions,
     AgChartOverlayOptions, // eslint-disable-next-line sonarjs/deprecation
     AgContextMenuAction,
+    AgContextMenuItem,
+    AgContextMenuItemLiteral,
     AgDropShadowOptions,
     AgErrorBarOptions,
     AgErrorBarThemeableOptions,
@@ -120,6 +122,31 @@ const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     text: string,
     renderer: callbackOf(or(string, htmlElement)),
 };
+
+const contextMenuItemKeyword = union(
+    'defaults',
+    'download',
+    'zoom-to-cursor',
+    'pan-to-cursor',
+    'toggle-series-visibility',
+    'toggle-other-series',
+    'reset-zoom'
+);
+
+const contextMenuItemDef: OptionsDefs<Exclude<AgContextMenuItem, AgContextMenuItemLiteral>> = {
+    type: union('action', 'submenu', 'separator'),
+    showOn: union('series-area', 'series-node', 'legend-item'),
+    label: required(string),
+    enable: boolean,
+    iconUrl: string,
+    action: callback,
+    items: (value, context) => contextMenuItemsArray(value, context),
+};
+
+const contextMenuItemsArray = arrayOf(
+    or(contextMenuItemKeyword, optionsDefs(contextMenuItemDef, 'a menu item object')),
+    'a menu items array'
+);
 
 // eslint-disable-next-line sonarjs/deprecation
 const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
@@ -334,7 +361,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     contextMenu: {
         enabled: boolean,
-        items: defined,
+        items: contextMenuItemsArray,
         extraActions: contextMenuActionsArray,
         extraSeriesAreaActions: contextMenuActionsArray,
         extraNodeActions: contextMenuActionsArray,
