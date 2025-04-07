@@ -10,10 +10,12 @@ import {
 } from 'ag-charts-core';
 import type {
     AgBaseAxisOptions,
+    AgCartesianAxisOptions,
     AgChartInstance,
     AgChartOptions,
     AgColorType,
     AgInitialStateLegendOptions,
+    AgPolarAxisOptions,
 } from 'ag-charts-types';
 
 import type { AxisOptionModule } from '../module/axisOptionModule';
@@ -1533,7 +1535,13 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
         skip = ['axes[].type', ...skip];
 
-        const { axes } = options;
+        // @todo(AG-14472) - Remove the .map
+        const axes: AgCartesianAxisOptions[] | AgPolarAxisOptions[] = options.axes.map((axis): any => {
+            if (axis.type === 'time' && (axis as any).unit != null) {
+                return { ...axis, type: 'unit-time' };
+            }
+            return axis;
+        });
         const forceRecreate = seriesStatus === 'replaced';
         const matchingTypes =
             !forceRecreate && chart.axes.length === axes.length && chart.axes.every((a, i) => a.type === axes[i].type);

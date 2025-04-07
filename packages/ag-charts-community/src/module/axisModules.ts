@@ -11,6 +11,7 @@ import {
     fontOptionsDef,
     greaterThan,
     instanceOf,
+    isPlainObject,
     lessThan,
     number,
     or,
@@ -132,6 +133,24 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     max: and(date, greaterThan('min')),
 };
 
+// @todo(AG-14472) - Remove
+const mergeOptionsDefs = (a: OptionsDefs<any>, b: OptionsDefs<any>) => {
+    const out: OptionsDefs<any> = {};
+    for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
+        const aDef = (a as any)[key];
+        const bDef = (b as any)[key];
+        if (isPlainObject(aDef) && isPlainObject(bDef)) {
+            out[key] = mergeOptionsDefs(aDef, bDef);
+        } else if (aDef != null && bDef != null && aDef !== bDef) {
+            out[key] = or(aDef, bDef);
+        } else {
+            out[key] = aDef ?? bDef;
+        }
+    }
+    return out;
+};
+const timeAxisOptionsCompatibilityDefs = mergeOptionsDefs(timeAxisOptionsDefs, unitTimeAxisOptionsDefs);
+
 export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions> = {
     type: 'axis',
     name: 'number',
@@ -157,7 +176,8 @@ export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
     name: 'time',
     chartType: 'cartesian',
 
-    options: timeAxisOptionsDefs,
+    // @todo(AG-14472) - Replace with timeAxisOptionsDefs,
+    options: timeAxisOptionsCompatibilityDefs as any,
 
     create: (ctx: ModuleContext) => new TimeAxis(ctx),
 };
