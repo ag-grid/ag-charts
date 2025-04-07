@@ -160,10 +160,11 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
     }
 
     private formatWithContext(value: any, index: number, domain: number[]): string | undefined {
+        let r: string | undefined = undefined;
         if (this.label.formatter) {
-            formatWithContext(this.ctx, this.label.formatter, { value, index, domain, boundSeries: undefined! });
+            r = formatWithContext(this.ctx, this.label.formatter, { value, index, domain, boundSeries: undefined! });
         }
-        return undefined;
+        return r;
     }
 
     inRange(): boolean {
