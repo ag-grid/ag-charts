@@ -196,4 +196,6 @@ jobs:
                   SLACK_USERNAME: ag-charts CI
                   SLACK_FOOTER: ''
                   SLACK_MESSAGE: >
+                      \`\`\`
                       ${{needs.benchmark.outputs.report}}
+                      \`\`\`
