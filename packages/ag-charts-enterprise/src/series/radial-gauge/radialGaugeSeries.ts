@@ -12,7 +12,7 @@ import { countFractionDigits } from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { DatumUnion } from '../gauge-util/datumUnion';
-import { fadeInFns, formatLabel, formatLabelWithContext, getLabelText } from '../gauge-util/label';
+import { fadeInFns, formatLabel, formatWithContext, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
@@ -357,7 +357,7 @@ export class RadialGaugeSeries
         const tickData = ticks.map((value, index): RadialGaugeTickDatum => {
             let text: string | undefined;
             if (label.formatter) {
-                text = formatLabelWithContext(this.ctx, label.formatter, {
+                text = formatWithContext(this.ctx, label.formatter, {
                     value,
                     index,
                     domain: scale.domain,
