@@ -21,7 +21,7 @@
             clone: 'npm:clone@2.1.2',
 
             ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
-            typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
+            typescript: 'npm:typescript@5.4.5/lib/typescript.min.js',
 
             app: appLocation,
             // systemJsMap comes from index.html
