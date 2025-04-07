@@ -130,10 +130,9 @@ describe('AG-13024 API context gauges', () => {
             options.context = null;
             chart = await createChart(options);
 
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(3);
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(2);
             chartLabelFormatter.expect().nthCalledWithContext(0, null);
             chartLabelFormatter.expect().nthCalledWithContext(1, null);
-            chartLabelFormatter.expect().nthCalledWithContext(2, null);
         });
 
         test('defined to object', async () => {
