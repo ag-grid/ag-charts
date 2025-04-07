@@ -524,22 +524,15 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected updateGridLines() {
-        const {
-            gridLine: { style, width },
-            gridLength,
-        } = this;
+        const { style, width } = this.gridLine;
 
-        if (gridLength === 0 || style.length === 0) {
-            return;
-        }
+        if (this.gridLength === 0 || style.length === 0) return;
 
         this.gridLineGroupSelection.each((line, _, index) => {
             const { stroke, lineDash } = style[index % style.length];
-            line.setProperties({
-                stroke,
-                strokeWidth: width,
-                lineDash,
-            });
+            line.stroke = stroke;
+            line.strokeWidth = width;
+            line.lineDash = lineDash;
         });
     }
 

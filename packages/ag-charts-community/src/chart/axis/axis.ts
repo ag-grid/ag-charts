@@ -362,7 +362,6 @@ export abstract class Axis<
      */
     update() {
         this.updatePosition();
-
         this.updateSelections();
 
         this.tickLineGroup.visible = this.tick.enabled;
