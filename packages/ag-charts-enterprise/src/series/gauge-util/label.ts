@@ -1,4 +1,5 @@
-import type { AgChartLabelFormatterParams, Formatter, _ModuleSupport } from 'ag-charts-community';
+import type { AgAxisLabelFormatterParams, AgChartLabelFormatterParams, Formatter } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 interface GaugeLabelDatum {
     value: number;
@@ -31,4 +32,12 @@ export function getLabelText(
     const value = valueOverride ?? datum.value;
     const labelFormat = datum?.formatter?.({ seriesId: series.id, datum: undefined, value });
     if (labelFormat != null) return String(labelFormat);
+}
+
+export function formatLabelWithContext(
+    ctx: { chartService: { context?: unknown } },
+    formatter: Formatter<AgAxisLabelFormatterParams>,
+    params: AgAxisLabelFormatterParams
+): string | undefined {
+    return _ModuleSupport.callWithContext(ctx.chartService, undefined, formatter, [params]);
 }
