@@ -55,10 +55,7 @@ describe('AG-13024 API context gauges', () => {
             expect(options).not.toHaveProperty('context');
             chart = await createChart(options);
 
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(3);
-            expect(chartLabelFormatter.mock.mock.calls[0][0]).not.toHaveProperty('context');
-            expect(chartLabelFormatter.mock.mock.calls[1][0]).not.toHaveProperty('context');
-            expect(chartLabelFormatter.mock.mock.calls[2][0]).not.toHaveProperty('context');
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withoutContext();
         });
 
         test('defined to undefined', async () => {
@@ -110,9 +107,7 @@ describe('AG-13024 API context gauges', () => {
             expect(options).not.toHaveProperty('context');
             chart = await createChart(options);
 
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(2);
-            expect(chartLabelFormatter.mock.mock.calls[0][0]).not.toHaveProperty('context');
-            expect(chartLabelFormatter.mock.mock.calls[1][0]).not.toHaveProperty('context');
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(2).withoutContext();;
         });
 
         test('defined to undefined', async () => {
