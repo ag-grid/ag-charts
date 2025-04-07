@@ -101,7 +101,7 @@ const options: AgChartOptions = {
             labelName: 'Name',
             label: { enabled: false },
             shape: 'pin',
-            size: 40,
+            size: 30,
             fill: '#EF5452',
             fillOpacity: 1,
             strokeWidth: 0,
