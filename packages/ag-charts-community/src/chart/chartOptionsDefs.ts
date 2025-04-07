@@ -1,9 +1,21 @@
-import { type OptionsDefs, array, defined, geoJson, htmlElement, undocumented, union } from 'ag-charts-core';
+import {
+    type OptionsDefs,
+    array,
+    arrayOfDefs,
+    boolean,
+    defined,
+    geoJson,
+    htmlElement,
+    string,
+    undocumented,
+    union,
+} from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgFlowProportionChartOptions,
     AgGaugeChartOptions,
     AgHierarchyChartOptions,
+    AgInitialStateLegendOptions,
     AgPolarChartOptions,
     AgStandaloneChartOptions,
     AgTopologyChartOptions,
@@ -19,7 +31,20 @@ const commonChartOptions = {
     series: array,
     annotations: defined,
     navigator: defined,
-    initialState: defined,
+    initialState: {
+        chartType: string,
+        annotations: defined,
+        legend: arrayOfDefs<AgInitialStateLegendOptions>(
+            {
+                visible: boolean,
+                seriesId: string,
+                itemId: string,
+                legendItemName: string,
+            },
+            'legend state array'
+        ),
+        zoom: defined,
+    },
 };
 
 export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
