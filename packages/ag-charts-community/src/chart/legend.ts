@@ -767,7 +767,7 @@ export class Legend extends BaseProperties {
     }
 
     private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
-        this.proxyLegendPagination.style.display = this.pagination.visible ? 'absolute' : 'none';
+        this.proxyLegendPagination.style.display = this.pagination.visible ? 'block' : 'none';
 
         const oldNeedsButtons = (oldPages?.length ?? this.pages.length) > 1;
         const newNeedsButtons = this.pages.length > 1;
