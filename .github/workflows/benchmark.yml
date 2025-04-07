@@ -195,6 +195,7 @@ jobs:
                   SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
                   SLACK_USERNAME: ag-charts CI
                   SLACK_FOOTER: ''
+                  SLACK_CHANNEL: '#charts-performance'
                   SLACK_MESSAGE: >
                       \`\`\`
                       ${{needs.benchmark.outputs.report}}
