@@ -107,7 +107,7 @@ describe('AG-13024 API context gauges', () => {
             expect(options).not.toHaveProperty('context');
             chart = await createChart(options);
 
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(2).withoutContext();;
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(2).withoutContext();
         });
 
         test('defined to undefined', async () => {
