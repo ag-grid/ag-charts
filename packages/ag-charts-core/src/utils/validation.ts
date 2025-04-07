@@ -135,8 +135,10 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 
         optionsKeys.delete(key);
         if (typeof value === 'undefined') {
-            unusedKeys.push(key);
-            if (!required) continue;
+            if (key !== 'context' || !('context' in options)) {
+                unusedKeys.push(key);
+                if (!required) continue;
+            }
         }
 
         const keyPath = extendPath(path, key);
