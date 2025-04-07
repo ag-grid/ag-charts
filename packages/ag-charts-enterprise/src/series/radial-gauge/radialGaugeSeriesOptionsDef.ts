@@ -20,6 +20,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
     union,
 } from 'ag-charts-core';
 
@@ -126,15 +127,15 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
 };
 
 // @ts-expect-error undocumented option
-radialGaugeSeriesOptionsDef.defaultColorRange = arrayOf(color);
+radialGaugeSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(color));
 // @ts-expect-error undocumented option
-radialGaugeSeriesOptionsDef.defaultTarget = {
+radialGaugeSeriesOptionsDef.defaultTarget = undocumented({
     ...radialGaugeTargetOptionsDef,
     value: number,
     label: {
         ...seriesLabelOptionsDefs,
         spacing: number,
     },
-};
+});
 // @ts-expect-error undocumented option
-radialGaugeSeriesOptionsDef.scale.defaultFill = color;
+radialGaugeSeriesOptionsDef.scale.defaultFill = undocumented(color);

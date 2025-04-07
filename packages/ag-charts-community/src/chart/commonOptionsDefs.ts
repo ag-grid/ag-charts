@@ -28,6 +28,7 @@ import {
     string,
     strokeOptionsDef,
     typeUnion,
+    undocumented,
     union,
 } from 'ag-charts-core';
 import type {
@@ -422,19 +423,19 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
 };
 
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.dataSource.requestThrottle = positiveNumber;
+commonChartOptionsDefs.dataSource.requestThrottle = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.dataSource.updateThrottle = positiveNumber;
+commonChartOptionsDefs.dataSource.updateThrottle = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.dataSource.updateDuringInteraction = boolean;
+commonChartOptionsDefs.dataSource.updateDuringInteraction = undocumented(boolean);
 
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.zoom.enableIndependentAxes = boolean;
+commonChartOptionsDefs.zoom.enableIndependentAxes = undocumented(boolean);
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.statusBar = defined;
+commonChartOptionsDefs.statusBar = undocumented(defined);
 
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.foreground = {
+commonChartOptionsDefs.foreground = undocumented({
     visible: boolean,
     text: string,
     image: {
@@ -448,12 +449,12 @@ commonChartOptionsDefs.foreground = {
         opacity: ratio,
     },
     ...fillOptionsDef,
-};
+});
 
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.context = defined;
+commonChartOptionsDefs.context = undocumented(defined);
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.overrideDevicePixelRatio = number;
+commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
 
 export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     id: string,
@@ -477,14 +478,12 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
 };
 
 // @ts-expect-error undocumented option
-commonSeriesOptionsDefs.context = defined;
+commonSeriesOptionsDefs.context = undocumented(defined);
 // @ts-expect-error undocumented option
-commonSeriesOptionsDefs.seriesGrouping = defined;
+commonSeriesOptionsDefs.seriesGrouping = undocumented(defined);
 
 // @ts-expect-error undocumented option
-commonSeriesOptionsDefs.highlight = {
-    enabled: boolean,
-};
+commonSeriesOptionsDefs.highlight = undocumented({ enabled: boolean });
 
 export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     enabled: boolean,
@@ -582,7 +581,7 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
 };
 
 // @ts-expect-error undocumented option
-tooltipOptionsDefs.position._seriesOverrideType = tooltipDeprecatedTypeValidator;
+tooltipOptionsDefs.position._seriesOverrideType = undocumented(tooltipDeprecatedTypeValidator);
 
 export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     enabled: boolean,

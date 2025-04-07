@@ -19,6 +19,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
     union,
 } from 'ag-charts-core';
 
@@ -64,10 +65,10 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-sankeySeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
+sankeySeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 // @ts-expect-error undocumented option
-sankeySeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
+sankeySeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 // @ts-expect-error undocumented option
-sankeySeriesOptionsDef.defaultColorRange = arrayOf(arrayOf(color));
+sankeySeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
 // @ts-expect-error undocumented option
-sankeySeriesOptionsDef.defaultPatternFills = arrayOf(color);
+sankeySeriesOptionsDef.defaultPatternFills = undocumented(arrayOf(color));

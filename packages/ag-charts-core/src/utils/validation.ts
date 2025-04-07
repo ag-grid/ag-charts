@@ -17,6 +17,7 @@ import {
 const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
 const markedSymbol = Symbol('marked');
+const undocumentedSymbol = Symbol('undocumented');
 
 type ObjectLikeDef<T> = T extends object ? (keyof T extends never ? never : OptionsDefs<T>) : never;
 
@@ -26,6 +27,7 @@ type Singular<T> = T extends any[] ? T[number] : T;
 export type OptionsDefs<T> = { [K in keyof Singular<T>]-?: Validator | ObjectLikeDef<Singular<T>[K]> } & {
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
+    [undocumentedSymbol]?: boolean;
 };
 
 export interface ValidationResult<T> {
@@ -54,6 +56,7 @@ export interface Validator extends Function {
     (value: unknown, context: ValidatorContext): ValidatorResult | boolean;
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
+    [undocumentedSymbol]?: boolean;
 }
 
 function extendPath(path: string, key: string | number) {
@@ -135,7 +138,9 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 
         optionsKeys.delete(key);
         if (typeof value === 'undefined') {
-            unusedKeys.push(key);
+            if (!validatorOrDefs[undocumentedSymbol]) {
+                unusedKeys.push(key);
+            }
             if (!required) continue;
         }
 
@@ -235,6 +240,17 @@ export function required<T extends Validator | OptionsDefs<any>>(validatorOrDefs
             ? (value: unknown, context: any) => validatorOrDefs(value, context)
             : optionsDefs(validatorOrDefs),
         { [requiredSymbol]: true, [descriptionSymbol]: validatorOrDefs[descriptionSymbol] }
+    ) as T;
+}
+
+export function undocumented(validatorOrDefs: Validator): Validator;
+export function undocumented<T extends OptionsDefs<any>>(validatorOrDefs: T): T;
+export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOrDefs: T) {
+    return Object.assign(
+        isFunction(validatorOrDefs)
+            ? (value: unknown, context: any) => validatorOrDefs(value, context)
+            : optionsDefs(validatorOrDefs),
+        { [undocumentedSymbol]: true, [descriptionSymbol]: validatorOrDefs[descriptionSymbol] }
     ) as T;
 }
 
