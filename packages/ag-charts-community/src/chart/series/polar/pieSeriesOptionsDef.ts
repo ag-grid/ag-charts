@@ -3,6 +3,7 @@ import {
     arrayOf,
     boolean,
     callback,
+    callbackDefs,
     color,
     colorUnion,
     constant,
@@ -15,8 +16,9 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
 } from 'ag-charts-core';
-import type { AgPieSeriesOptions } from 'ag-charts-types';
+import type { AgPieSeriesOptions, AgPieSeriesStyle } from 'ag-charts-types';
 
 import { without } from '../../../util/object';
 import { commonSeriesOptionsDefs, shadowOptionsDefs, tooltipOptionsDefs } from '../../commonOptionsDefs';
@@ -40,7 +42,12 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     hideZeroValueSectorsInLegend: boolean,
     sectorSpacing: positiveNumber,
     cornerRadius: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgPieSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cornerRadius: positiveNumber,
+    }),
     title: {
         enabled: boolean,
         text: string,
@@ -79,6 +86,6 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-pieSeriesOptionsDef.defaultColorRange = arrayOf(arrayOf(color));
+pieSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
 // @ts-expect-error undocumented option
-pieSeriesOptionsDef.defaultPatternFills = arrayOf(color);
+pieSeriesOptionsDef.defaultPatternFills = undocumented(arrayOf(color));

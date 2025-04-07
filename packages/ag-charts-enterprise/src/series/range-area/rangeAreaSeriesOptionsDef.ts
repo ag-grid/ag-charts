@@ -10,6 +10,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
     union,
 } from 'ag-charts-core';
 
@@ -49,6 +50,6 @@ export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = 
 };
 
 // @ts-expect-error undocumented option
-rangeAreaSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
+rangeAreaSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
-rangeAreaSeriesOptionsDef.focusPriority = number;
+rangeAreaSeriesOptionsDef.focusPriority = undocumented(number);

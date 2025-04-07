@@ -73,6 +73,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx build
               id: build
@@ -92,7 +93,7 @@ jobs:
                     count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test | wc -l)
                   fi
 
-                  matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --ratio 1 --zero ${count})
+                  matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 3 --ratio 1 --zero ${count})
                   echo "test_matrix=${matrix}" >> $GITHUB_OUTPUT
                   echo "test_count=${count}" >> $GITHUB_OUTPUT
                   echo "Test matrix determined to be: ${matrix}"
@@ -108,7 +109,7 @@ jobs:
                     e2e_count=0
                   fi
 
-                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 20 ${e2e_count})
+                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 8 ${e2e_count})
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix}"
@@ -159,6 +160,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx format:check
               id: format
@@ -217,6 +219,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx test
               if: matrix.shard != 0
@@ -272,6 +275,7 @@ jobs:
                   yarn_postinstall: no-install
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx test:e2e
               id: test
@@ -356,6 +360,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx package:test
               id: package-test
@@ -384,6 +389,7 @@ jobs:
 
             - name: Check for snapshot updates
               id: snapshot_check
+              if: needs.init.outputs.snapshot_branch != ''
               run: |
                   branch=${{ needs.init.outputs.snapshot_branch }}
 

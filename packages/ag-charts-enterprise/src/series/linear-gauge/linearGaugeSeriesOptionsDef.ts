@@ -1,4 +1,5 @@
 import {
+    type AgGaugeColorStop,
     type AgLinearGaugePreset,
     type AgLinearGaugeTarget,
     type FillsOptions,
@@ -7,25 +8,28 @@ import {
 import {
     type OptionsDefs,
     and,
+    arrayLength,
     arrayOf,
     arrayOfDefs,
     boolean,
     callback,
     color,
+    colorStopsOrderValidator,
     constant,
     fillOptionsDef,
     fontOptionsDef,
-    gradientColorStops,
     greaterThan,
     lessThan,
     lineDashOptionsDef,
     number,
+    optionsDefs,
     or,
     positiveNumber,
     ratio,
     required,
     string,
     strokeOptionsDef,
+    undocumented,
     union,
 } from 'ag-charts-core';
 
@@ -38,7 +42,11 @@ const {
 } = _ModuleSupport;
 
 export const fillsOptionsDef: OptionsDefs<FillsOptions> = {
-    fills: gradientColorStops,
+    fills: and(
+        arrayLength(2),
+        arrayOf(optionsDefs<AgGaugeColorStop>({ color: color, stop: number }, '')),
+        colorStopsOrderValidator
+    ),
     fillMode: union('continuous', 'discrete'),
 };
 
@@ -129,19 +137,19 @@ export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
 };
 
 // @ts-expect-error undocumented option
-linearGaugeSeriesOptionsDef.margin = number;
+linearGaugeSeriesOptionsDef.margin = undocumented(number);
 // @ts-expect-error undocumented option
-linearGaugeSeriesOptionsDef.defaultColorRange = arrayOf(color);
+linearGaugeSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(color));
 // @ts-expect-error undocumented option
-linearGaugeSeriesOptionsDef.defaultTarget = {
+linearGaugeSeriesOptionsDef.defaultTarget = undocumented({
     ...linearGaugeTargetOptionsDef,
     value: number,
     label: {
         ...seriesLabelOptionsDefs,
         spacing: number,
     },
-};
+});
 // @ts-expect-error undocumented option
-linearGaugeSeriesOptionsDef.defaultScale = linearGaugeSeriesOptionsDef.scale;
+linearGaugeSeriesOptionsDef.defaultScale = undocumented(linearGaugeSeriesOptionsDef.scale);
 // @ts-expect-error undocumented option
-linearGaugeSeriesOptionsDef.scale.defaultFill = color;
+linearGaugeSeriesOptionsDef.scale.defaultFill = undocumented(color);

@@ -1,8 +1,13 @@
-import { type AgMapShapeSeriesOptions, type AgSeriesHighlightStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgMapShapeSeriesOptions,
+    type AgMapShapeSeriesStyle,
+    type AgSeriesHighlightStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
-    callback,
+    callbackDefs,
     color,
     constant,
     fillOptionsDef,
@@ -29,7 +34,11 @@ export const mapShapeSeriesOptionsDef: OptionsDefs<AgMapShapeSeriesOptions> = {
     legendItemName: string,
     colorRange: arrayOf(color),
     padding: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgMapShapeSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
     title: string,
     label: autoSizedLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,

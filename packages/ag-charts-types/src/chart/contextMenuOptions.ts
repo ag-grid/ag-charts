@@ -1,3 +1,4 @@
+import type { Listener } from './callbackOptions';
 import type {
     AgChartContextMenuEvent,
     AgNodeContextMenuActionEvent,
@@ -22,5 +23,5 @@ export interface AgContextMenuAction<TEvent = AgNodeContextMenuActionEvent> {
     /** The text to display in the context menu for the custom action. */
     label: string;
     /** Callback function for the custom action. */
-    action: (event: TEvent) => void;
+    action: Listener<TEvent>;
 }

@@ -1,8 +1,13 @@
-import { type AgSankeySeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgSankeySeriesLinkStyle,
+    type AgSankeySeriesNodeStyle,
+    type AgSankeySeriesOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
-    callback,
+    callbackDefs,
     color,
     colorUnion,
     constant,
@@ -14,6 +19,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
     union,
 } from 'ag-charts-core';
 
@@ -32,7 +38,11 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
         spacing: positiveNumber,
     },
     link: {
-        itemStyler: callback,
+        itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        }),
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
@@ -41,7 +51,11 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
         width: positiveNumber,
         spacing: positiveNumber,
         alignment: union('left', 'center', 'right', 'justify'),
-        itemStyler: callback,
+        itemStyler: callbackDefs<AgSankeySeriesNodeStyle>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        }),
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
@@ -51,10 +65,10 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-sankeySeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
+sankeySeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 // @ts-expect-error undocumented option
-sankeySeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
+sankeySeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 // @ts-expect-error undocumented option
-sankeySeriesOptionsDef.defaultColorRange = arrayOf(arrayOf(color));
+sankeySeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
 // @ts-expect-error undocumented option
-sankeySeriesOptionsDef.defaultPatternFills = arrayOf(color);
+sankeySeriesOptionsDef.defaultPatternFills = undocumented(arrayOf(color));

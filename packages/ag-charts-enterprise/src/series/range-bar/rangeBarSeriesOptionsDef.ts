@@ -1,8 +1,8 @@
-import { type AgRangeBarSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgRangeBarSeriesOptions, type AgRangeBarSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
-    callback,
+    callbackDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
@@ -11,6 +11,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
     union,
 } from 'ag-charts-core';
 
@@ -28,7 +29,12 @@ export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgRangeBarSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cornerRadius: positiveNumber,
+    }),
     label: {
         ...seriesLabelOptionsDefs,
         padding: positiveNumber,
@@ -43,8 +49,8 @@ export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-rangeBarSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
+rangeBarSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
-rangeBarSeriesOptionsDef.fastDataProcessing = boolean;
+rangeBarSeriesOptionsDef.fastDataProcessing = undocumented(boolean);
 // @ts-expect-error undocumented option
-rangeBarSeriesOptionsDef.focusPriority = number;
+rangeBarSeriesOptionsDef.focusPriority = undocumented(number);

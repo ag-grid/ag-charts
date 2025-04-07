@@ -4,9 +4,19 @@ on:
     issue_comment:
         types: [created]
     workflow_dispatch:
-        {}
-        # schedule:
-        #     - cron: '0 20 * * *'
+        inputs:
+            compare-base:
+                description: 'Branch name to compare against'
+                type: string
+                default: b11.2.1
+                required: true
+            notify:
+                description: 'Notify Slack channel'
+                type: boolean
+                default: false
+                required: true
+    schedule:
+        - cron: '0 0 * * *' # Run daily at midnight UTC
 
 env:
     NX_NO_CLOUD: true
@@ -17,10 +27,13 @@ env:
 jobs:
     benchmark:
         runs-on: macos-benchmark
-        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/benchmarks')
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/benchmarks') || github.event_name == 'schedule'
         env:
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
             JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        outputs:
+            status: ${{ steps.benchmark.outputs.status }}
+            report: ${{ steps.benchmark.outputs.report }}
         steps:
             - name: Notify start
               id: notify-start
@@ -39,9 +52,21 @@ jobs:
                       return comment.id;
 
             - id: 'get-branch'
-              if: github.event_name == 'issue_comment'
               run: |
-                  echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
+                  if [[ "${{ github.event_name }}" == "issue_comment" ]] ; then
+                    # For PR comments, get the branch from the PR
+                    echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
+                    echo "base=$(gh pr view $PR_NO --repo $REPO --json baseRefName --jq '.baseRefName')" >> $GITHUB_OUTPUT
+                  elif [[ "${{ github.event_name }}" == "schedule" ]] ; then
+                    # For scheduled runs, get the most recent branch matching 'b' followed by semver (e.g. b1.2.3)
+                    release=$(git ls-remote --heads origin 'b[0-9]*\.[0-9]*\.[0-9]*' | sort -t '/' -k 2 -V | tail -n 1 | sed 's/.*refs\/heads\///')
+                    echo "branch=latest" >> $GITHUB_OUTPUT
+                    echo "base=$release" >> $GITHUB_OUTPUT
+                  else
+                    # For manual workflow dispatch, use the current branch
+                    echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+                    echo "base=${{ inputs.compare-base }}" >> $GITHUB_OUTPUT
+                  fi
               env:
                   REPO: ${{ github.repository }}
                   PR_NO: ${{ github.event.issue.number }}
@@ -54,26 +79,62 @@ jobs:
                   fetch-depth: 0
 
             - name: Fetch Refs
-              if: github.event_name == 'issue_comment'
               run: |
-                  if [[ -f '.git/shallow' ]]; then
-                      echo "Shallow clone detected, fetching all refs..."
-                      git fetch origin latest --unshallow
-                  else
-                      git fetch origin latest
+                  set -x
+
+                  git fetch --unshallow origin ${{ steps.get-branch.outputs.base }} || echo "Not a shallow ref?"
+
+                  # Preemptively fail if merge-base is not found.
+                  mergeBase=$(git merge-base HEAD origin/${{ steps.get-branch.outputs.base }} || echo "failed")
+
+                  if [[ ${mergeBase} == "failed" ]] ; then
+                    # Debugging
+                    git log -n 1 --decorate HEAD
+                    git log -n 20 --decorate origin/${{ steps.get-branch.outputs.base }}
+
+                    # Allow for a few minutes for debugging
+                    sleep 600
                   fi
+
+            - name: Notify Progress
+              uses: actions/github-script@v7
+              continue-on-error: true
+              if: github.event_name == 'issue_comment'
+              with:
+                  script: |
+                      github.rest.issues.updateComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        comment_id: ${{ steps.notify-start.outputs.result }},
+                        body: `⏱️ ${process.env.JOB_URL} (running setup...)`
+                      })
 
             - name: Setup
               id: setup
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: rw
+                  base_ref: ${{ steps.get-branch.outputs.base }}
+                  fetch_base: skip
+
+            - name: Notify Progress
+              uses: actions/github-script@v7
+              continue-on-error: true
+              if: github.event_name == 'issue_comment'
+              with:
+                  script: |
+                      github.rest.issues.updateComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        comment_id: ${{ steps.notify-start.outputs.result }},
+                        body: `⏱️ ${process.env.JOB_URL} (running benchmarks...)`
+                      })
 
             - name: nx benchmark
               id: benchmark
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  ./tools/benchmark/compare-latest.sh
+                  ./tools/benchmark/compare-latest.sh ${{ steps.get-branch.outputs.base }}
                   echo "report<<EOF" >> $GITHUB_OUTPUT
                   cat ./reports/benchmark.log >> $GITHUB_OUTPUT
                   echo "EOF" >> $GITHUB_OUTPUT
@@ -118,3 +179,23 @@ jobs:
                   name: benchmark-results
                   path: |
                       packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/*
+
+    notify:
+        runs-on: ubuntu-latest
+        needs: benchmark
+        if: always() && github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true)
+        steps:
+            - name: Slack Notification
+              uses: rtCamp/action-slack-notify@v2
+              if: always()
+              continue-on-error: true
+              env:
+                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+                  SLACK_COLOR: ${{ needs.benchmark.outputs.status != 'failure' && 'success' || 'failure' }}
+                  SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
+                  SLACK_USERNAME: ag-charts CI
+                  SLACK_FOOTER: ''
+                  SLACK_MESSAGE: >
+                      \`\`\`
+                      ${{needs.benchmark.outputs.report}}
+                      \`\`\`
