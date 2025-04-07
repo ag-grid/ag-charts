@@ -119,15 +119,19 @@
           "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
           "nx run ag-charts-website:dev"
         ]
-      },
-      "configurations": {
-        "windows": {
-          "commands": [
-            {
-              "command": "nx run ag-charts-website:dev --configuration watch"
-            }
-          ]
-        }
+      }
+    },
+    "dev:lite": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build:types", "^build:package", "generate"],
+      "inputs": [],
+      "outputs": [],
+      "options": {
+        "parallel": true,
+        "commands": [
+          "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
+          "./tools/dev-server/lite.sh"
+        ]
       }
     },
     "dev:quick": {
