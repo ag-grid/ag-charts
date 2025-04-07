@@ -343,8 +343,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.resolveThemeOperations(themeParameters, processedOptions);
         this.resolveThemeOperations(themeParameters, annotationThemes);
 
-        this.processMiniChartSeriesOptions(processedOptions);
-
         activeTheme.templateTheme(processedOptions, false);
 
         removeUnusedEnterpriseOptions(processedOptions);
@@ -355,6 +353,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.validateSeriesOptions(processedOptions);
         this.validateAxesOptions(processedOptions);
         this.validatePluginOptions(processedOptions);
+        this.processMiniChartSeriesOptions(processedOptions);
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 

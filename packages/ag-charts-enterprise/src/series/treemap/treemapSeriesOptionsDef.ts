@@ -14,6 +14,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
     union,
 } from 'ag-charts-core';
 
@@ -96,10 +97,10 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-treemapSeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
+treemapSeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 // @ts-expect-error undocumented option
-treemapSeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
+treemapSeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 // @ts-expect-error undocumented option
-treemapSeriesOptionsDef.undocumentedGroupFills = arrayOf(color);
+treemapSeriesOptionsDef.undocumentedGroupFills = undocumented(arrayOf(color));
 // @ts-expect-error undocumented option
-treemapSeriesOptionsDef.undocumentedGroupStrokes = arrayOf(color);
+treemapSeriesOptionsDef.undocumentedGroupStrokes = undocumented(arrayOf(color));

@@ -15,6 +15,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
 } from 'ag-charts-core';
 
 const { commonSeriesOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
@@ -63,6 +64,6 @@ export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions
 };
 
 // @ts-expect-error undocumented option
-candlestickSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
+candlestickSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
-candlestickSeriesOptionsDef.focusPriority = number;
+candlestickSeriesOptionsDef.focusPriority = undocumented(number);
