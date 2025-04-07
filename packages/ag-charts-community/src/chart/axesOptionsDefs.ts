@@ -11,6 +11,7 @@ import {
     callbackDefs,
     callbackOf,
     color,
+    contextPropertyValidator,
     defined,
     fontOptionsDef,
     greaterThan,
@@ -159,7 +160,7 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
 };
 
 // @ts-expect-error undocumented option
-commonAxisOptionsDefs.context = undocumented(() => true);
+commonAxisOptionsDefs.context = contextPropertyValidator;
 
 // @ts-expect-error undocumented option
 commonAxisOptionsDefs.layoutConstraints = undocumented({
