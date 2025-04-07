@@ -76,7 +76,7 @@ body > #highlighter {
     color: var(--main-fg);
 }
 
-.example-controls :where(button, input[type='submit'], input[type='text'], input[type='number'], textarea, select) {
+.example-controls :where(button, textarea, select, input[type='submit'], input[type='text'], input[type='number']) {
     appearance: none;
     display: inline-block;
     height: 36px;
@@ -91,6 +91,9 @@ body > #highlighter {
         background-color 0.25s ease-in-out,
         border-color 0.25s ease-in-out,
         box-shadow 0.25s ease-in-out;
+}
+
+.example-controls :where(button, select, input[type='submit']) {
     cursor: pointer;
 }
 
