@@ -1,11 +1,13 @@
 import { type AgMapMarkerSeriesOptions, type AgSeriesHighlightStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    and,
     arrayOf,
     color,
     constant,
     fillOptionsDef,
     geoJson,
+    lessThan,
     positiveNumber,
     required,
     string,
@@ -45,6 +47,7 @@ export const mapMarkerSeriesOptionsDef: OptionsDefs<AgMapMarkerSeriesOptions> = 
     tooltip: tooltipOptionsDefs,
     ...commonSeriesOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
+    size: and(positiveNumber, lessThan('maxSize', true)),
     highlightStyle: {
         ...(commonSeriesOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
         ...fillOptionsDef,

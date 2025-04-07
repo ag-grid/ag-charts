@@ -373,18 +373,24 @@ export const positiveNumberNonZero = numberMin(0, false);
 
 export const ratio = numberRange(0, 1);
 
-export const lessThan = (otherField: string) =>
+export const lessThan = (otherField: string, inclusive = false) =>
     attachDescription(
         (value, { options }) =>
-            !isComparable(value) || !isComparable(options[otherField]) || value < options[otherField],
-        `the value to be less than \`${otherField}\``
+            !isComparable(value) ||
+            !isComparable(options[otherField]) ||
+            value < options[otherField] ||
+            (inclusive && value === options[otherField]),
+        `the value to be less than ${inclusive ? 'or equal to ' : ''}\`${otherField}\``
     );
 
-export const greaterThan = (otherField: string) =>
+export const greaterThan = (otherField: string, inclusive = false) =>
     attachDescription(
         (value, { options }) =>
-            !isComparable(value) || !isComparable(options[otherField]) || value > options[otherField],
-        `the value to be greater than \`${otherField}\``
+            !isComparable(value) ||
+            !isComparable(options[otherField]) ||
+            value > options[otherField] ||
+            (inclusive && value === options[otherField]),
+        `the value to be greater than ${inclusive ? 'or equal to ' : ''}\`${otherField}\``
     );
 
 /**

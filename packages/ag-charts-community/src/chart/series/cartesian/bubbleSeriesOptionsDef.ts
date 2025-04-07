@@ -1,8 +1,10 @@
 import {
     type OptionsDefs,
+    and,
     arrayOf,
     boolean,
     constant,
+    lessThan,
     number,
     positiveNumber,
     required,
@@ -40,4 +42,5 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     tooltip: tooltipOptionsDefs,
     ...commonSeriesOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
+    size: and(positiveNumber, lessThan('maxSize', true)),
 };

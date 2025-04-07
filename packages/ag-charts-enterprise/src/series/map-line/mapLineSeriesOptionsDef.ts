@@ -13,6 +13,7 @@ import {
     color,
     constant,
     geoJson,
+    lessThan,
     lineDashOptionsDef,
     positiveNumber,
     required,
@@ -47,6 +48,7 @@ export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
     ...commonSeriesOptionsDefs,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    strokeWidth: and(positiveNumber, lessThan('maxStrokeWidth', true)),
     highlightStyle: {
         ...(commonSeriesOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
         ...strokeOptionsDef,
