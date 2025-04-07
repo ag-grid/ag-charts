@@ -1235,6 +1235,7 @@ export class RadialGaugeSeries
 
         formatRadialGaugeLabels(
             this,
+            this.ctx,
             labelSelection,
             { padding, textAlign, verticalAlign },
             radius * innerRadiusRatio,
@@ -1389,7 +1390,7 @@ export class RadialGaugeSeries
         description.push(this.formatLabel(value));
 
         this.labelSelection.each((_label, datum) => {
-            const text = getLabelText(this, datum);
+            const text = getLabelText(this.id, this.ctx, datum);
             if (text != null) {
                 description.push(text);
             }

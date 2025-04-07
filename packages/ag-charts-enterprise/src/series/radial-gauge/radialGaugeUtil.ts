@@ -32,6 +32,10 @@ type AnimatableNeedleDatum = {
     angle: number;
 };
 
+interface Ctx {
+    chartService: { context?: unknown };
+}
+
 function computeClipSector(datum: AnimatableSectorDatum) {
     const { startAngle, endAngle, clipStartAngle, clipEndAngle, innerRadius, outerRadius } = datum;
 
@@ -166,6 +170,7 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
 
 export function formatRadialGaugeLabels(
     series: _ModuleSupport.Series<unknown, any, any>,
+    ctx: Ctx,
     selection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeLabelDatum>,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
@@ -185,12 +190,12 @@ export function formatRadialGaugeLabels(
 
     if (labelDatum == null) return;
 
-    const labelText = getLabelText(series, labelDatum, datumOverrides?.label);
+    const labelText = getLabelText(series.id, ctx, labelDatum, datumOverrides?.label);
     if (labelText == null) return;
 
     const secondaryLabelText =
         secondaryLabelDatum != null
-            ? getLabelText(series, secondaryLabelDatum, datumOverrides?.secondaryLabel)
+            ? getLabelText(series.id, ctx, secondaryLabelDatum, datumOverrides?.secondaryLabel)
             : undefined;
 
     const params = { padding };

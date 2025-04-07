@@ -527,7 +527,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 maxTickCount: 6,
                 tickCount: 5,
             });
-        const linesOrTicks = lines ?? ticks.map((tick) => getLabelText(this, this.labelDatum(label, tick)) ?? '');
+        const linesOrTicks =
+            lines ?? ticks.map((tick) => getLabelText(this.id, this.ctx, this.labelDatum(label, tick)) ?? '');
 
         const labelSize = linesOrTicks.reduce((accum, text) => {
             const { width } = CachedTextMeasurerPool.measureText(text, { font });
@@ -1219,7 +1220,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         const { margin: padding } = this.properties;
 
-        formatLinearGaugeLabels(this, labelSelection, { padding, horizontal }, bboxes, datum);
+        formatLinearGaugeLabels(this, this.ctx, labelSelection, { padding, horizontal }, bboxes, datum);
     }
 
     protected resetAllAnimation() {

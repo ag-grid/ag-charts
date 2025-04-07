@@ -47,6 +47,10 @@ type RectAnimationParams = {
     verticalInset: number;
 };
 
+interface Ctx {
+    chartService: { context?: unknown };
+}
+
 function datumRect(datum: AnimatableRectDatum) {
     const { x0, y0, x1, y1, horizontalInset, verticalInset } = datum;
 
@@ -211,6 +215,7 @@ const verticalAlignFactors: Record<Align, number> = {
 
 export function formatLinearGaugeLabels(
     series: _ModuleSupport.Series<unknown, any, any>,
+    ctx: Ctx,
     selection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum>,
     opts: { padding: number; horizontal: boolean },
     bboxes: { seriesRect: _ModuleSupport.BBox; gaugeRect: _ModuleSupport.BBox; barRect: _ModuleSupport.BBox },
@@ -220,7 +225,7 @@ export function formatLinearGaugeLabels(
     const { padding, horizontal } = opts;
 
     selection.each((label, labelDatum) => {
-        const labelText = getLabelText(series, labelDatum, datumOverrides?.label);
+        const labelText = getLabelText(series.id, ctx, labelDatum, datumOverrides?.label);
 
         let boundingWidth: number | undefined;
         let boundingHeight: number | undefined;
