@@ -27,6 +27,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
     union,
 } from 'ag-charts-core';
 import type {
@@ -158,15 +159,15 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
 };
 
 // @ts-expect-error undocumented option
-commonAxisOptionsDefs.context = defined;
+commonAxisOptionsDefs.context = undocumented(defined);
 
 // @ts-expect-error undocumented option
-commonAxisOptionsDefs.layoutConstraints = {
+commonAxisOptionsDefs.layoutConstraints = undocumented({
     stacked: required(boolean),
     align: required(union('start', 'end')),
     unit: required(union('percent', 'px')),
     width: required(positiveNumber),
-};
+});
 
 export const cartesianAxisOptionsDefs: OptionsDefs<
     Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'crosshair'>

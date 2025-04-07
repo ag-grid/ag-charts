@@ -20,6 +20,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
 } from 'ag-charts-core';
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
@@ -66,6 +67,6 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-chordSeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
+chordSeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 // @ts-expect-error undocumented option
-chordSeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
+chordSeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);

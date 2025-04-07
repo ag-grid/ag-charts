@@ -30,6 +30,7 @@ import {
     required,
     string,
     typeUnion,
+    undocumented,
     union,
 } from '../utils/validation';
 
@@ -52,12 +53,12 @@ const gradientBounds = union('axis', 'item', 'series');
 export const gradientStrict = typeUnion<AgGradientColorStrict>(
     {
         gradient: {
-            // @ts-expect-error undocumented options
-            gradient: union('linear', 'radial', 'conic'),
-            bounds: gradientBounds,
             colorStops: required(gradientColorStops),
             rotation: number,
-            reverse: boolean,
+            // @ts-expect-error undocumented options
+            gradient: undocumented(union('linear', 'radial', 'conic')),
+            bounds: undocumented(gradientBounds),
+            reverse: undocumented(boolean),
         },
     },
     'a gradient object with color stops'
@@ -132,28 +133,17 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
     strokeOpacity: required(ratio),
 });
 
-const gradientUndocumentedOpts: OptionsDefs<AgGradientColor> = {
-    // @ts-expect-error undocumented option
-    gradient: union('linear', 'radial', 'conic'),
-    bounds: gradientBounds,
-    reverse: boolean,
-};
-
-const patternUndocumentedOpts: OptionsDefs<AgPatternColor> = {
-    // @ts-expect-error undocumented option
-    rotation: number,
-    padding: positiveNumber,
-};
-
 const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
     {
         gradient: {
-            ...gradientUndocumentedOpts,
             colorStops: gradientColorStops,
             rotation: number,
+            // @ts-expect-error undocumented option
+            gradient: undocumented(union('linear', 'radial', 'conic')),
+            bounds: undocumented(gradientBounds),
+            reverse: undocumented(boolean),
         },
         pattern: {
-            ...patternUndocumentedOpts,
             pattern: union(
                 'vertical-lines',
                 'horizontal-lines',
@@ -176,6 +166,9 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
             backgroundFill: color,
             backgroundFillOpacity: ratio,
             ...strokeOptionsDef,
+            // @ts-expect-error undocumented option
+            rotation: undocumented(number),
+            padding: undocumented(positiveNumber),
         },
     },
     'a color object'
@@ -189,9 +182,9 @@ export const fillOptionsDef: OptionsDefs<FillOptions> = {
 };
 
 // @ts-expect-error undocumented option
-fillOptionsDef.fillGradientDefaults = fillGradientDefaults;
+fillOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 // @ts-expect-error undocumented option
-fillOptionsDef.fillPatternDefaults = fillPatternDefaults;
+fillOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDash: arrayOf(positiveNumber),

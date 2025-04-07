@@ -9,6 +9,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
 } from 'ag-charts-core';
 
 const { commonSeriesOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
@@ -45,6 +46,6 @@ export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-ohlcSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
+ohlcSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
-ohlcSeriesOptionsDef.focusPriority = number;
+ohlcSeriesOptionsDef.focusPriority = undocumented(number);

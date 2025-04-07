@@ -7,6 +7,7 @@ import {
     geoJson,
     htmlElement,
     string,
+    undocumented,
     union,
 } from 'ag-charts-core';
 import type {
@@ -24,7 +25,7 @@ import { commonChartOptionsDefs } from './commonOptionsDefs';
 
 // These options are being validated by other modules
 const commonChartOptions = {
-    mode: union('integrated', 'standalone'),
+    mode: undocumented(union('integrated', 'standalone')),
     container: htmlElement,
     theme: defined,
     series: array,

@@ -16,6 +16,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
 } from 'ag-charts-core';
 import type { AgPieSeriesOptions, AgPieSeriesStyle } from 'ag-charts-types';
 
@@ -85,6 +86,6 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-pieSeriesOptionsDef.defaultColorRange = arrayOf(arrayOf(color));
+pieSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
 // @ts-expect-error undocumented option
-pieSeriesOptionsDef.defaultPatternFills = arrayOf(color);
+pieSeriesOptionsDef.defaultPatternFills = undocumented(arrayOf(color));

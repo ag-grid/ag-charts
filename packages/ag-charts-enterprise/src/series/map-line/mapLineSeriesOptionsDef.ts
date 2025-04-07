@@ -18,6 +18,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
 } from 'ag-charts-core';
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
@@ -54,4 +55,4 @@ export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-mapLineSeriesOptionsDef.colorRange = and(arrayOf(color), arrayLength(1));
+mapLineSeriesOptionsDef.colorRange = undocumented(and(arrayOf(color), arrayLength(1)));
