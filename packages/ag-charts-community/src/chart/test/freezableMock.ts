@@ -52,6 +52,14 @@ export function newFreezableMock<F extends APICallback>(mockImp?: F) {
                     }
                     return this;
                 },
+                withoutContext() {
+                    for (const args of mock.mock.calls) {
+                        expect(args).toBeDefined();
+                        expect(args[0]).toBeDefined();
+                        expect(args[0]).not.toHaveProperty('context');
+                    }
+                    return this;
+                },
             };
         },
     };
