@@ -1,0 +1,13 @@
+/* Reset full-screen page border rendering to avoid conflicting with chart rendering */
+body {
+    padding: 0 !important;
+}
+
+#myChart,
+#root > div:last-of-type,
+#app > div:last-of-type,
+ag-charts,
+ag-financial-charts {
+    border-radius: 0 !important;
+    border: none !important;
+}
