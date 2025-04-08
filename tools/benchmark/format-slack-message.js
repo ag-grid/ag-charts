@@ -14,6 +14,7 @@ if (!channel) throw new Error('SLACK_CHANNEL is not set');
 if (!username) throw new Error('SLACK_USERNAME is not set');
 if (!icon_url) throw new Error('SLACK_ICON is not set');
 
+// See https://api.slack.com/methods/chat.postMessage
 const slackMessage = {
     channel,
     username,
