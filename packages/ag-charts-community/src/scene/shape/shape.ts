@@ -1,5 +1,5 @@
 import { type InternalAgGradientColor, clamp } from 'ag-charts-core';
-import type { AgImageFill, AgPatternColor } from 'ag-charts-types';
+import type { AgImageColor, AgPatternColor } from 'ag-charts-types';
 
 import { BBoxValues } from '../../util/bboxinterface';
 import { generateUUID } from '../../util/id';
@@ -32,7 +32,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
 
 export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
 
-export type ShapeColor = string | ShapeGradientColor | AgPatternColor | AgImageFill;
+export type ShapeColor = string | ShapeGradientColor | AgPatternColor | AgImageColor;
 
 export interface DefaultStyles {
     fill?: ShapeColor;
@@ -119,7 +119,7 @@ export abstract class Shape<D = any> extends Node<D> {
         if (isImageFill(fill)) return this.createImage(fill);
     }
 
-    private createImage(fill: AgImageFill) {
+    private createImage(fill: AgImageColor) {
         return new Image(this.imageLoader, fill);
     }
 
@@ -133,13 +133,13 @@ export abstract class Shape<D = any> extends Node<D> {
 
         this.fillGradient = this.getGradient(this.fill);
         this.fillPattern = this.getPattern(this.fill);
-        this.imageFill = this.getImage(this.fill);
+        this.fillImage = this.getImage(this.fill);
         this._cachedFill = this.fill;
     }
 
     protected fillGradient: Gradient | undefined;
     protected fillPattern: Pattern | undefined;
-    protected imageFill: Image | undefined;
+    protected fillImage: Image | undefined;
 
     /**
      * Note that `strokeStyle = null` means invisible stroke,
@@ -235,7 +235,7 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyFill(ctx: CanvasContext) {
-        const { fill, fillGradient, fillPattern, imageFill } = this;
+        const { fill, fillGradient, fillPattern, fillImage: imageFill } = this;
         if (fillGradient) {
             const { fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
             ctx.fillStyle = fillGradient.createGradient(ctx as any, fillBBox, fillParams) ?? 'black';
@@ -246,7 +246,11 @@ export abstract class Shape<D = any> extends Node<D> {
             fillPattern.setPatternTransform(pattern, pixelRatio, x, y);
             ctx.fillStyle = pattern ?? 'black';
         } else if (imageFill) {
-            ctx.fillStyle = imageFill.createPattern(ctx as any);
+            const { x, y, width, height } = this.getBBox();
+            const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
+            const fillImage = imageFill.createPattern(ctx as any, pixelRatio, width, height);
+            imageFill.setImageTransform(fillImage, pixelRatio, x, y);
+            ctx.fillStyle = fillImage ?? 'black';
         } else {
             ctx.fillStyle = typeof fill === 'string' ? fill : 'black';
         }

@@ -5,7 +5,7 @@ import type {
     AgGradientColorStop,
     AgGradientColorStrict,
     AgGradientType,
-    AgImageFill,
+    AgImageColor,
     AgPatternColor,
     CssColor,
     FillOptions,
@@ -79,13 +79,13 @@ export interface InternalAgPatternColor extends AgPatternColor {
     /** The rotation angle of the pattern. */
     rotation?: number;
 }
-export interface InternalAgImageFill extends AgImageFill {}
+export interface InternalAgImageColor extends AgImageColor {}
 export type RequiredInternalAgPatternColor = Required<Omit<InternalAgPatternColor, 'path'>> &
     Pick<InternalAgPatternColor, 'path'>;
 
 export type RequiredInternalAgGradientColor = Required<InternalAgGradientColor>;
 
-export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageFill;
+export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageColor;
 export type RequiredInternalAgColorType = CssColor | RequiredInternalAgGradientColor | RequiredInternalAgPatternColor;
 
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
@@ -173,8 +173,14 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
             padding: undocumented(positiveNumber),
         },
         image: {
-            uri: required(string),
-            fallback: required(color),
+            url: required(string),
+            fallback: color,
+            width: positiveNumber,
+            height: positiveNumber,
+            fit: union('stretch', 'contain', 'cover'),
+            repetition: union('repeat', 'repeat-x', 'repeat-y', 'no-repeat'),
+            rotation: number,
+            scale: positiveNumber,
         },
     },
     'a color object'

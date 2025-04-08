@@ -88,9 +88,26 @@ export interface AgPatternColor {
 
 export interface AgImageFill {
     type: 'image';
-    uri: string;
+    /** URL of the image. */
+    url: string;
+    /** Temporary or backup colour to show while the image is loading or if it fails to load. */
     fallback?: string;
+    /** Height of the image. */
+    width?: number;
+    /** Width of the image */
+    height?: number;
+    /** A string indicating how to repeat the pattern's unit.*/
+    repetition?: AgFillRepetition;
+    /** The fit mode of the image. */
+    fit?: AgImageFillFit;
+    /** The rotation angle of the image. */
+    rotation?: number;
+    /** The scaling of the image. */
+    scale?: number;
 }
+
+export type AgFillRepetition = 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat';
+export type AgImageFillFit = 'stretch' | 'cover' | 'contain';
 
 export type AgPatternName =
     | 'vertical-lines'

@@ -62,7 +62,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         ctx.fill(path2d);
     }
 
-    protected createCanvasPattern(ctx: CanvasRenderingContext2D, pixelRatio: number): CanvasPattern | null {
+    private createCanvasPattern(ctx: CanvasRenderingContext2D, pixelRatio: number): CanvasPattern | null {
         const { width, height, backgroundFill, backgroundFillOpacity } = this;
 
         const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio });
