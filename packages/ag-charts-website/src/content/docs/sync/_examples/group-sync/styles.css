@@ -1,14 +1,7 @@
 .example-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    padding: 1rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
     height: 100%;
-    border-radius: 8px;
-    background-color: var(--chart-bg);
-    border: 1px solid var(--chart-border);
-}
-
-.example-wrapper > div {
-    width: 50%;
-    height: 50%;
 }
