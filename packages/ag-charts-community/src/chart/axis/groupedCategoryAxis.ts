@@ -6,13 +6,12 @@ import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { getAngleRatioRadians, normalizeAngle360 } from '../../util/angle';
+import { getAngleRatioRadians, normalizeAngle360, toRadians } from '../../util/angle';
 import { extent } from '../../util/extent';
 import { BaseProperties, PropertiesArray, Property } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
 import { createDatumId } from '../data/processors';
-import { calculateLabelRotation } from '../label';
 import type { LabelNodeDatum } from './axis';
 import type { TickDatum } from './axisTickGenerator';
 import { CategoryAxis } from './categoryAxis';
@@ -171,29 +170,13 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const { depth: maxDepth, nodes: treeLabels } = this.tickTreeLayout;
 
         const keepEvery = Math.ceil(label.fontSize / step);
-        const rotation = horizontal ? -0.5 * Math.PI : 0;
-        const sideFlag = label.getSideFlag();
+        const sideFlag = -label.getSideFlag();
 
         const tickLabelLayout: LabelNodeDatum[] = [];
         const labelBBoxes: Map<number, BBox> = new Map();
         const tempText = new TransformableText();
 
-        // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
-        // flip the labels to avoid upside-down text, when the axis is rotated
-        // such that it is in the right hemisphere, i.e. the angle of rotation
-        // is in the [0, π] interval.
-        // The rotation angle is normalized, so that we have an easier time checking
-        // if it's in the said interval. Since the axis is always rendered vertically
-        // and then rotated, zero rotation means 12 (not 3) o-clock.
-        // -1 = flip
-        //  1 = don't flip (default)
-        const { defaultRotation, configuredRotation } = calculateLabelRotation({
-            rotation: label.rotation,
-            parallel: label.parallel,
-            regularFlipRotation: normalizeAngle360(rotation - Math.PI / 2),
-            parallelFlipRotation: normalizeAngle360(rotation),
-        });
-        const labelRotation = defaultRotation + configuredRotation;
+        const labelRotation = label.rotation ? normalizeAngle360(toRadians(label.rotation)) : 0;
         const optionsMap = this.getDepthOptionsMap(maxDepth);
 
         const setLabelProps = (datum: TreeNode, index: number) => {
@@ -211,15 +194,15 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 text,
                 textAlign: 'center',
                 textBaseline: label.parallel ? 'hanging' : 'bottom',
-                rotation: 0,
                 x: datum.screenX,
                 y: 0,
+                rotation: 0,
             });
 
             return true;
         };
 
-        let maxLeafLabelWidth = 0;
+        let maxLeafLabelSize = 0;
         const depthLines: Record<number, number> = {};
         treeLabels.forEach((datum, index) => {
             const depth = maxDepth - datum.depth;
@@ -236,9 +219,10 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
             if (!datum.leafCount) {
                 tempText.rotation = labelRotation;
-                const { width } = tempText.getBBox();
-                if (maxLeafLabelWidth < width) {
-                    maxLeafLabelWidth = width;
+                const { width, height } = tempText.getBBox();
+                const labelSize = horizontal ? height : width;
+                if (maxLeafLabelSize < labelSize) {
+                    maxLeafLabelSize = labelSize;
                 }
             }
         });
@@ -247,7 +231,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const labelY = sideFlag * optionsMap[0].spacing;
         const separatorData: Map<number, SeparatorDatum> = new Map();
         const nestedPadding = (d: number) => {
-            let v = maxLeafLabelWidth;
+            let v = maxLeafLabelSize;
             for (let i = 1; i <= d; i++) {
                 v += optionsMap[i].spacing;
                 if (label.mirrored || i !== d) {
@@ -269,7 +253,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 const separatorX = isLeaf ? datum.x : datum.x - (datum.leafCount - 1) / 2;
                 if (!separatorData.has(separatorX)) {
                     const tickOptions = this.depthOptions[depth]?.tick;
-                    let v = maxLeafLabelWidth;
+                    let v = maxLeafLabelSize;
                     for (let i = 0; i <= depth; i++) {
                         v += optionsMap[i].spacing;
                         if (i !== 0) {
@@ -286,31 +270,35 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
             if (!visible) return;
 
-            tempText.x = 0;
             tempText.y = labelY;
 
             if (isLeaf) {
-                const { width } = labelBBoxes.get(index)!;
+                const { width, height } = labelBBoxes.get(index)!;
                 const angleRatio = getAngleRatioRadians(labelRotation);
+
+                tempText.x += width / 2;
+                tempText.y += (height / 2 + ((width - optionsMap[depth].spacing) / 2) * angleRatio) * sideFlag;
 
                 tempText.rotation = labelRotation;
                 tempText.textAlign = 'end';
                 tempText.textBaseline = 'middle';
-                tempText.rotationCenterY = labelY - width / 2;
-                tempText.x = ((optionsMap[depth].spacing - width) / 2) * angleRatio * sideFlag;
+                tempText.rotationCenterX = datum.screenX;
+                tempText.rotationCenterY = tempText.y;
 
-                if (label.mirrored) {
-                    tempText.x += width;
-                }
+                // if (label.mirrored) {
+                //     tempText.y += height;
+                // }
             } else {
-                tempText.rotation = horizontal ? defaultRotation : -Math.PI / 2;
+                // tempText.rotation = horizontal ? defaultRotation : -Math.PI / 2;
                 tempText.rotationCenterY = labelY;
-                tempText.x = sideFlag * nestedPadding(depth);
+                tempText.y += sideFlag * nestedPadding(depth);
             }
 
             if (optionsMap[depth].avoidCollisions) {
+                const { width, height } = tempText.getBBox();
+                const labelSize = horizontal ? width : height;
                 const availableRange = isLeaf ? step : datum.leafCount * step;
-                if (tempText.getBBox().height > availableRange) {
+                if (labelSize > availableRange) {
                     labelBBoxes.delete(index);
                     return;
                 }
@@ -419,11 +407,11 @@ export class GroupedCategoryAxis extends CategoryAxis {
         );
         this.tickLineGroupSelection.update(
             this.tick.enabled
-                ? ticksData.map(({ tickId, tickSize, translationY: offset }) => {
+                ? ticksData.map(({ tickId, tickSize, translationY: offset, tickStroke, tickWidth }) => {
                       const h = -direction * (tickSize ?? this.getTickSize());
                       return horizontal
-                          ? { tickId, offset, x1: offset, x2: offset, y1: 0, y2: h }
-                          : { tickId, offset, x1: 0, x2: h, y1: offset, y2: offset };
+                          ? { tickId, offset, x1: offset, x2: offset, y1: 0, y2: h, tickStroke, tickWidth }
+                          : { tickId, offset, x1: 0, x2: h, y1: offset, y2: offset, tickStroke, tickWidth };
                   })
                 : []
         );

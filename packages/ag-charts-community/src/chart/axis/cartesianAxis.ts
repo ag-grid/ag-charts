@@ -26,6 +26,7 @@ import { AxisTickGenerator, type TickDatum, type TickGenerationResult } from './
 import {
     type AxisLabelDatum,
     type AxisLineDatum,
+    type AxisTickDatum,
     NiceMode,
     prepareAxisAnimationContext,
     prepareAxisAnimationFunctions,
@@ -40,7 +41,7 @@ type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToD
 
 interface GeneratedTicks {
     ticks: TickDatum[];
-    tickLines: AxisLineDatum[];
+    tickLines: AxisTickDatum[];
     gridLines: AxisLineDatum[];
     labels: LabelNodeDatum[];
     spacing: number;
@@ -78,7 +79,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         })
     );
 
-    protected tickLineGroupSelection = Selection.select<Line, AxisLineDatum>(this.tickLineGroup, Line, false);
+    protected tickLineGroupSelection = Selection.select<Line, AxisTickDatum>(this.tickLineGroup, Line, false);
     protected gridLineGroupSelection = Selection.select<Line, AxisLineDatum>(this.gridLineGroup, Line, false);
 
     private readonly tempText = new TransformableText({ debugDirty: false });
@@ -539,7 +540,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     protected updateTickLines() {
         const { tick } = this;
 
-        this.tickLineGroupSelection.each((line, datum: any) => {
+        this.tickLineGroupSelection.each((line, datum: AxisTickDatum) => {
             line.strokeWidth = datum.tickWidth ?? tick.width;
             line.stroke = datum.tickStroke ?? tick.stroke;
         });
