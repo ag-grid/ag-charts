@@ -379,6 +379,13 @@ export class ChartTheme {
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
             crosshair: { enabled: true },
         }),
+        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults({
+            keys: [],
+            groupPaddingInner: 0.1,
+            label: { autoRotate: false },
+            gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+            crosshair: { enabled: true },
+        }),
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults(
             {
                 label: { spacing: 5 },

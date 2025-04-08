@@ -111,6 +111,22 @@ export interface AgGroupedCategoryAxisOptions
     tick?: AgGroupedCategoryAxisTickOptions;
 }
 
+export interface AgUnitTimeAxisOptions extends AgBaseCartesianAxisOptions {
+    type: 'unit-time';
+    /** The size of each band. */
+    unit?: TimeInterval;
+    /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
+    paddingInner?: Ratio;
+    /** The padding on the outside i.e. left and right of the first and last category. In association with `paddingInner`, this value can be between 0 and 1. */
+    paddingOuter?: Ratio;
+    /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */
+    groupPaddingInner?: Ratio;
+    /** User override for the automatically determined min value (based on series data). */
+    min?: Date;
+    /** User override for the automatically determined max value (based on series data). */
+    max?: Date;
+}
+
 export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'ordinal-time';
     /** Configuration for the axis ticks interval. */
@@ -141,7 +157,14 @@ export interface AgTimeAxisOptions
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
 
-export type AgCartesianAxisType = 'category' | 'grouped-category' | 'ordinal-time' | 'number' | 'log' | 'time';
+export type AgCartesianAxisType =
+    | 'category'
+    | 'grouped-category'
+    | 'ordinal-time'
+    | 'unit-time'
+    | 'number'
+    | 'log'
+    | 'time';
 
 export type AgCartesianAxisOptions =
     | AgNumberAxisOptions
@@ -149,7 +172,8 @@ export type AgCartesianAxisOptions =
     | AgCategoryAxisOptions
     | AgOrdinalTimeAxisOptions
     | AgGroupedCategoryAxisOptions
-    | AgTimeAxisOptions;
+    | AgTimeAxisOptions
+    | AgUnitTimeAxisOptions;
 
 type AgCartesianAxisThemeSpecialOptions = 'position' | 'type' | 'crossLines';
 /** This is the configuration shared by all types of axis. */
@@ -186,6 +210,8 @@ export interface AgCartesianAxesTheme {
     'ordinal-time'?: AgOrdinalTimeAxisThemeOptions;
     /** This extends the common axis configuration with options specific to grouped-category axes. */
     'grouped-category'?: AgGroupedCategoryAxisThemeOptions;
+    /** This extends the common axis configuration with options specific to unit-time axes. */
+    'unit-time'?: AgUnitTimeAxisOptions;
 }
 
 export interface AgNumberAxisThemeOptions
