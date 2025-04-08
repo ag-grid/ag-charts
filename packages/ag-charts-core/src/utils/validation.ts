@@ -44,7 +44,7 @@ export interface ValidatorContext {
     options: any;
 }
 
-enum ErrorType {
+export enum ErrorType {
     // Enterprise = 'enterprise',
     Invalid = 'invalid',
     Required = 'required',
