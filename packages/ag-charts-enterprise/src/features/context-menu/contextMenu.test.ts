@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, test } from '@jest/globals';
 
+// eslint-disable-next-line sonarjs/deprecation
 import { type AgChartOptions, AgCharts, AgContextMenuAction } from 'ag-charts-community';
 import {
     Chart,
@@ -113,6 +114,7 @@ describe('Extra Actions', () => {
     setupMockCanvas();
 
     type ActionCall = { label: string; args: unknown[] };
+    // eslint-disable-next-line sonarjs/deprecation
     type ActionTracker = { calls: ActionCall[]; makeAction<TEvent>(label: string): AgContextMenuAction<TEvent> };
     let actions: ActionTracker;
     let chart: Chart;
@@ -135,6 +137,7 @@ describe('Extra Actions', () => {
     beforeEach(async () => {
         actions = {
             calls: [],
+            // eslint-disable-next-line sonarjs/deprecation
             makeAction<TEvent>(label: string): AgContextMenuAction<TEvent> {
                 return { label, action: (...args: any[]) => actions.calls.push({ label, args }) };
             },

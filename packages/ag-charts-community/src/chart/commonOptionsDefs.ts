@@ -37,7 +37,7 @@ import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartCaptionOptions,
     AgChartLabelOptions,
-    AgChartOverlayOptions,
+    AgChartOverlayOptions, // eslint-disable-next-line sonarjs/deprecation
     AgContextMenuAction,
     AgDropShadowOptions,
     AgErrorBarOptions,
@@ -121,6 +121,7 @@ const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     renderer: callbackOf(or(string, htmlElement)),
 };
 
+// eslint-disable-next-line sonarjs/deprecation
 const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
     {
         label: required(string),
@@ -333,6 +334,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     contextMenu: {
         enabled: boolean,
+        items: defined,
         extraActions: contextMenuActionsArray,
         extraSeriesAreaActions: contextMenuActionsArray,
         extraNodeActions: contextMenuActionsArray,

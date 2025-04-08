@@ -15,6 +15,7 @@ interface ChartAxisLike {
 
 // Ensure that the created contextmenu event matches the API option contract:
 type NodeContextMenuActionEvent = Parameters<
+    // eslint-disable-next-line sonarjs/deprecation
     NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']
 >[0];
 
