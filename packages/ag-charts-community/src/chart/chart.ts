@@ -542,6 +542,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
     }
 
+    private apiUpdate = false;
     private _pendingFactoryUpdatesCount = 0;
     private _performUpdateSkipAnimations: boolean = false;
     private readonly _performUpdateNotify = new AsyncAwaitQueue();
@@ -572,8 +573,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
             skipAnimations,
             seriesToUpdate = this.series,
             newAnimationBatch,
+            apiUpdate = false,
         } = opts ?? {};
 
+        this.apiUpdate = apiUpdate;
         this.ctx.widgets.seriesWidget.setDragTouchEnabled(this.touch.dragAction !== 'none');
 
         if (forceNodeDataRefresh) {
@@ -718,7 +721,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
 
         if (!this.destroyed) {
-            ctx.updateService.dispatchUpdateComplete();
+            ctx.updateService.dispatchUpdateComplete(this.apiUpdate);
+            this.apiUpdate = false;
             this.ctx.domManager.setDataBoolean('updatePending', false);
             this.runningUpdateType = ChartUpdateType.NONE;
             this.syncStatus = 'ready';
@@ -1274,7 +1278,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
             seriesStatus,
             forceNodeDataRefresh,
         });
-        this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
+        this.update(updateType, { apiUpdate: true, forceNodeDataRefresh, newAnimationBatch: true });
 
         this.firstApply = false;
     }
