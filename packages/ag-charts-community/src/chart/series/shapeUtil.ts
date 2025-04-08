@@ -121,7 +121,7 @@ export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     defaultPattern: RequiredInternalAgPatternColor,
     defaultImage: RequiredInternalAgImageColor
 ): T | undefined {
-    if (!isGradientFill(style?.fill) && !isPatternFill(style?.fill)) return style;
+    if (!isGradientFill(style?.fill) && !isPatternFill(style?.fill) && !isImageFill(style?.fill)) return style;
     return {
         ...style,
         fill: getShapeFill(style.fill, defaultGradient, defaultPattern, defaultImage),
