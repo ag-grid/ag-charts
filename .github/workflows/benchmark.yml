@@ -196,7 +196,8 @@ jobs:
                   SLACK_USERNAME: ag-charts CI
                   SLACK_FOOTER: ''
                   SLACK_CHANNEL: '#charts-performance'
+                  ENABLE_ESCAPES: true
                   SLACK_MESSAGE: >
-                      ```
-                      ${{needs.benchmark.outputs.report}}
-                      ```
+                      ```\n
+                      ${{needs.benchmark.outputs.report}}\n
+                      ```\n
