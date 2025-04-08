@@ -18,7 +18,7 @@ const slackMessage = {
     channel,
     username,
     icon_url,
-    text: benchmarkLog,
+    text: `\`\`\`\n${benchmarkLog}\n\`\`\`\n`,
 };
 
 console.log(JSON.stringify(slackMessage, null, 2));
