@@ -29,6 +29,7 @@ export type UpdateOpts = {
     newAnimationBatch?: boolean;
     seriesToUpdate?: Iterable<ISeries<any, any, any>>;
     backOffMs?: number;
+    apiUpdate?: boolean;
 };
 
 interface EventMap {

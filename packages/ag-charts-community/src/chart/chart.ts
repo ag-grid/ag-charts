@@ -520,7 +520,6 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     requestFactoryUpdate(cb: (chart: Chart) => Promise<void> | void) {
         if (this.destroyed) return;
-        this.apiUpdate = true;
         this._pendingFactoryUpdatesCount++;
         this.updateMutex
             .acquire(async () => {
@@ -574,8 +573,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
             skipAnimations,
             seriesToUpdate = this.series,
             newAnimationBatch,
+            apiUpdate = false,
         } = opts ?? {};
 
+        this.apiUpdate = apiUpdate;
         this.ctx.widgets.seriesWidget.setDragTouchEnabled(this.touch.dragAction !== 'none');
 
         if (forceNodeDataRefresh) {
@@ -1277,7 +1278,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
             seriesStatus,
             forceNodeDataRefresh,
         });
-        this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
+        this.update(updateType, { apiUpdate: true, forceNodeDataRefresh, newAnimationBatch: true });
 
         this.firstApply = false;
     }
