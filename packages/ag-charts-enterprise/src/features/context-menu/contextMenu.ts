@@ -15,6 +15,9 @@ type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuAction<T extends AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuAction<T>;
 type ContextMenuCallback<T extends AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuCallback<T>;
 
+type DeprecatedOption = 'extraActions' | 'extraNodeActions' | 'extraSeriesAreaActions' | 'extraLegendItemActions';
+type DeprecatedAction<T extends DeprecatedOption> = NonNullable<AgContextMenuOptions[T]>;
+
 const { Property, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } = _ModuleSupport;
 
 const moduleId = 'context-menu';
@@ -42,29 +45,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     @Property
     items? = [];
 
-    /**
-     * Extra menu actions with a label and callback.
-     */
-    // eslint-disable-next-line sonarjs/deprecation
-    public extraActions: NonNullable<AgContextMenuOptions['extraActions']> = [];
-
-    /**
-     * Extra menu actions that only appear when clicking on a node.
-     */
-    // eslint-disable-next-line sonarjs/deprecation
-    public extraNodeActions: NonNullable<AgContextMenuOptions['extraNodeActions']> = [];
-
-    /**
-     * Extra menu actions that only appear when clicking on a series.
-     */
-    // eslint-disable-next-line sonarjs/deprecation
-    public extraSeriesAreaActions: NonNullable<AgContextMenuOptions['extraSeriesAreaActions']> = [];
-
-    /**
-     * Extra menu actions that only appear when clicking on a legend item
-     */
-    // eslint-disable-next-line sonarjs/deprecation
-    public extraLegendItemActions: NonNullable<AgContextMenuOptions['extraLegendItemActions']> = [];
+    public extraActions: readonly DeprecatedAction<'extraActions'>[] = [];
+    public extraNodeActions: readonly DeprecatedAction<'extraNodeActions'>[] = [];
+    public extraSeriesAreaActions: readonly DeprecatedAction<'extraSeriesAreaActions'>[] = [];
+    public extraLegendItemActions: readonly DeprecatedAction<'extraLegendItemActions'>[] = [];
 
     // Module context
     private readonly interactionManager: _ModuleSupport.InteractionManager;
