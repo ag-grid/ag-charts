@@ -156,7 +156,12 @@ const contextMenuItemValidator = attachDescription(
             } else {
                 result = { valid: false, invalid: [], cleared: {} } satisfies ValidatorResult;
                 result.invalid.push(
-                    new ValidationError(ErrorType.Invalid, 'a context menu item string alias', value, context.path)
+                    new ValidationError(
+                        ErrorType.Invalid,
+                        `a context menu item string alias: ["${contextMenuItemLiterals.join('", "')}"]`,
+                        value,
+                        context.path
+                    )
                 );
             }
         } else {
