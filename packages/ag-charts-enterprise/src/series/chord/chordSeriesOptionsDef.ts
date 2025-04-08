@@ -70,6 +70,6 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
 // @ts-expect-error undocumented option
 chordSeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 // @ts-expect-error undocumented option
-chordSeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
+chordSeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 // @ts-expect-error undocumented option
-chordSeriesOptionsDef.fillImageDefaults = fillImageDefaults;
+chordSeriesOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);

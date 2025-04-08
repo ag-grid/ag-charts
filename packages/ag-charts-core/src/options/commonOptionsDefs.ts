@@ -217,9 +217,9 @@ export const fillOptionsDef: OptionsDefs<FillOptions> = {
 // @ts-expect-error undocumented option
 fillOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 // @ts-expect-error undocumented option
-fillOptionsDef.fillPatternDefaults = fillPatternDefaults;
+fillOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 // @ts-expect-error undocumented option
-fillOptionsDef.fillImageDefaults = fillImageDefaults;
+fillOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
 
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDash: arrayOf(positiveNumber),

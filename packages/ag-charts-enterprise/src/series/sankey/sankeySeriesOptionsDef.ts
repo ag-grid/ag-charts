@@ -70,7 +70,7 @@ sankeySeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults)
 // @ts-expect-error undocumented option
 sankeySeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 // @ts-expect-error undocumented option
-sankeySeriesOptionsDef.fillImageDefaults = fillImageDefaults;
+sankeySeriesOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
 // @ts-expect-error undocumented option
 sankeySeriesOptionsDef.defaultColorRange = arrayOf(arrayOf(color));
 // @ts-expect-error undocumented option
