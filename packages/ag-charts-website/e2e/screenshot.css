@@ -1,13 +1,12 @@
 /* Reset full-screen page border rendering to avoid conflicting with chart rendering */
 body {
-    padding: 0 !important;
+    padding: unset !important;
 }
 
-#myChart,
-#root > div:last-of-type,
-#app > div:last-of-type,
+div:has(> .ag-charts-wrapper),
 ag-charts,
 ag-financial-charts {
-    border-radius: 0 !important;
-    border: none !important;
+    border-radius: unset !important;
+    background-color: unset !important;
+    border: unset !important;
 }
