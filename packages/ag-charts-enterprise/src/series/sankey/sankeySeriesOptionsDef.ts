@@ -12,6 +12,7 @@ import {
     colorUnion,
     constant,
     fillGradientDefaults,
+    fillImageDefaults,
     fillOptionsDef,
     fillPatternDefaults,
     lineDashOptionsDef,
@@ -69,6 +70,8 @@ sankeySeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults)
 // @ts-expect-error undocumented option
 sankeySeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 // @ts-expect-error undocumented option
-sankeySeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
+sankeySeriesOptionsDef.fillImageDefaults = fillImageDefaults;
+// @ts-expect-error undocumented option
+sankeySeriesOptionsDef.defaultColorRange = arrayOf(arrayOf(color));
 // @ts-expect-error undocumented option
 sankeySeriesOptionsDef.defaultPatternFills = undocumented(arrayOf(color));

@@ -383,7 +383,8 @@ export class ChordSeries extends FlowProportionSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
             },
             this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
         );
     }
 
@@ -444,7 +445,12 @@ export class ChordSeries extends FlowProportionSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
+        return getShapeStyle(
+            overrides,
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
+        );
     }
 
     protected updateNodeNodes(opts: {
@@ -506,7 +512,8 @@ export class ChordSeries extends FlowProportionSeries<
                 tension,
             },
             this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
         );
     }
 
@@ -565,7 +572,12 @@ export class ChordSeries extends FlowProportionSeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
+        return getShapeStyle(
+            overrides,
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
+        );
     }
 
     protected updateLinkNodes(opts: {

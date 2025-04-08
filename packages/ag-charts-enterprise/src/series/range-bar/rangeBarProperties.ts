@@ -14,6 +14,7 @@ const {
     AbstractBarSeriesProperties,
     FillGradientDefaults,
     FillPatternDefaults,
+    FillImageDefaults,
     SeriesTooltip,
     Property,
     DropShadow,
@@ -58,6 +59,9 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
 
     @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
+    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity: number = 1;

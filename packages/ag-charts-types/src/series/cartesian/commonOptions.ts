@@ -33,7 +33,7 @@ export interface FillOptions {
     fillOpacity?: Opacity;
 }
 
-export type AgColorType = CssColor | AgGradientColor | AgPatternColor | AgImageFill;
+export type AgColorType = CssColor | AgGradientColor | AgPatternColor | AgImageColor;
 export type AgColorTypeStrict = CssColor | AgGradientColorStrict;
 
 export type AgGradientColorMode = 'continuous' | 'discrete';
@@ -86,7 +86,7 @@ export interface AgPatternColor {
     strokeWidth?: PixelSize;
 }
 
-export interface AgImageFill {
+export interface AgImageColor {
     type: 'image';
     /** URL of the image. */
     url: string;
@@ -94,20 +94,20 @@ export interface AgImageFill {
     fallback?: string;
     /** Height of the image. */
     width?: number;
-    /** Width of the image */
+    /** Width of the image. */
     height?: number;
     /** A string indicating how to repeat the pattern's unit.*/
-    repetition?: AgFillRepetition;
+    repetition?: AgColorRepetition;
     /** The fit mode of the image. */
-    fit?: AgImageFillFit;
+    fit?: AgImageColorFit;
     /** The rotation angle of the image. */
     rotation?: number;
     /** The scaling of the image. */
     scale?: number;
 }
 
-export type AgFillRepetition = 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat';
-export type AgImageFillFit = 'stretch' | 'cover' | 'contain';
+export type AgColorRepetition = 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat';
+export type AgImageColorFit = 'stretch' | 'cover' | 'contain';
 
 export type AgPatternName =
     | 'vertical-lines'

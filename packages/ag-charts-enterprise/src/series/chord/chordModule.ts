@@ -29,6 +29,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
                 reverse: false,
             } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
+            fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,

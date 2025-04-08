@@ -56,6 +56,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
             lineDashOffset: 0,
             fillGradientDefaults: this.properties.fillGradientDefaults,
             fillPatternDefaults: this.properties.fillPatternDefaults,
+            fillImageDefaults: this.properties.fillImageDefaults,
         };
     }
 
@@ -68,6 +69,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
             lineDashOffset,
             fillGradientDefaults,
             fillPatternDefaults,
+            fillImageDefaults,
         } = this.properties;
         return {
             fillOpacity,
@@ -77,6 +79,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
             lineDashOffset,
             fillGradientDefaults,
             fillPatternDefaults,
+            fillImageDefaults,
         };
     }
 

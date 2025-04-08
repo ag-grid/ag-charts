@@ -30,6 +30,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 reverse: false,
             } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
+            fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             undocumentedGroupFills: { $palette: 'hierarchyColors' },
             undocumentedGroupStrokes: { $palette: 'secondHierarchyColors' },
             group: {

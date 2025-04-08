@@ -448,7 +448,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const seriesFill = getShapeFill(
             this.properties.fill,
             this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
         );
         const fillBBox = this.getShapeFillBBox();
 
@@ -690,7 +691,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 lineDashOffset: marker.lineDashOffset,
             },
             marker.fillGradientDefaults,
-            marker.fillPatternDefaults
+            marker.fillPatternDefaults,
+            marker.fillImageDefaults
         );
 
         return {

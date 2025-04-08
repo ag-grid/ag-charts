@@ -44,6 +44,7 @@ function itemTheme(
             reverse: false,
         } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
         fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
+        fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         stroke: { $palette: `${key}.stroke` },
         strokeWidth: 0,
         label: {

@@ -4,7 +4,7 @@ import type { AgBubbleSeriesOptions, AgTooltipPositionOptions, WithThemeParams }
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { FILL_PATTERN_DEFAULTS } from '../../themes/util';
+import { FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } from '../../themes/util';
 import { BubbleSeries } from './bubbleSeries';
 import { bubbleSeriesOptionsDef } from './bubbleSeriesOptionsDef';
 
@@ -44,6 +44,7 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
                 reverse: true,
             } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: FILL_PATTERN_DEFAULTS,
+            fillImageDefaults: FILL_IMAGE_DEFAULTS,
             fillOpacity: 0.8,
             tooltip: { position: { _seriesOverrideType: 'node' } as AgTooltipPositionOptions },
             label: {

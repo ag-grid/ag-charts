@@ -9,7 +9,15 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-const { SeriesProperties, FillGradientDefaults, FillPatternDefaults, SeriesTooltip, Property, Label } = _ModuleSupport;
+const {
+    SeriesProperties,
+    FillGradientDefaults,
+    FillPatternDefaults,
+    FillImageDefaults,
+    SeriesTooltip,
+    Property,
+    Label,
+} = _ModuleSupport;
 
 export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> extends SeriesProperties<T> {
     @Property
@@ -32,6 +40,9 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
 
     @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
+    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity: number = 1;

@@ -11,8 +11,16 @@ import {
 } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-const { FillGradientDefaults, FillPatternDefaults, BaseProperties, SeriesTooltip, SeriesProperties, Property, Label } =
-    _ModuleSupport;
+const {
+    FillGradientDefaults,
+    FillPatternDefaults,
+    FillImageDefaults,
+    BaseProperties,
+    SeriesTooltip,
+    SeriesProperties,
+    Property,
+    Label,
+} = _ModuleSupport;
 
 class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
     @Property
@@ -116,6 +124,9 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
 
     @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
+    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fills: InternalAgColorType[] = [];

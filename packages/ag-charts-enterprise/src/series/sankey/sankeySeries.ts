@@ -400,7 +400,8 @@ export class SankeySeries extends FlowProportionSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
             },
             properties.fillGradientDefaults,
-            properties.fillPatternDefaults
+            properties.fillPatternDefaults,
+            properties.fillImageDefaults
         );
     }
 
@@ -466,7 +467,8 @@ export class SankeySeries extends FlowProportionSeries<
         return getShapeStyle(
             overrides,
             { ...this.properties.fillGradientDefaults.toJson(), colorStops: defaultColorStops },
-            { ...this.properties.fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill }
+            { ...this.properties.fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
+            this.properties.fillImageDefaults
         );
     }
 
@@ -532,7 +534,8 @@ export class SankeySeries extends FlowProportionSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
             },
             properties.fillGradientDefaults,
-            properties.fillPatternDefaults
+            properties.fillPatternDefaults,
+            properties.fillImageDefaults
         );
     }
 
@@ -594,7 +597,8 @@ export class SankeySeries extends FlowProportionSeries<
         return getShapeStyle(
             overrides,
             { ...this.properties.fillGradientDefaults.toJson(), colorStops: defaultColorStops },
-            { ...this.properties.fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill }
+            { ...this.properties.fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
+            this.properties.fillImageDefaults
         );
     }
 

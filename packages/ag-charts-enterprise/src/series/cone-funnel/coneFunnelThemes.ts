@@ -32,6 +32,7 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
             reverse: false,
         } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
         fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
+        fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         strokeWidth: 0,
         label: {
             enabled: true,

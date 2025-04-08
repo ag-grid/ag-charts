@@ -2,7 +2,7 @@ import { type AgColorType, type AgRadarAreaSeriesOptions, _ModuleSupport } from 
 
 import { RadarSeriesProperties } from '../radar/radarSeriesProperties';
 
-const { FillGradientDefaults, FillPatternDefaults, Property } = _ModuleSupport;
+const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, Property } = _ModuleSupport;
 
 export class RadarAreaSeriesProperties extends RadarSeriesProperties<AgRadarAreaSeriesOptions> {
     @Property
@@ -13,6 +13,9 @@ export class RadarAreaSeriesProperties extends RadarSeriesProperties<AgRadarArea
 
     @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
+    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity = 1;

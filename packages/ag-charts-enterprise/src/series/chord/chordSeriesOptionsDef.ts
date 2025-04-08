@@ -12,6 +12,7 @@ import {
     colorUnion,
     constant,
     fillGradientDefaults,
+    fillImageDefaults,
     fillOptionsDef,
     fillPatternDefaults,
     lineDashOptionsDef,
@@ -69,4 +70,6 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
 // @ts-expect-error undocumented option
 chordSeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 // @ts-expect-error undocumented option
-chordSeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
+chordSeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
+// @ts-expect-error undocumented option
+chordSeriesOptionsDef.fillImageDefaults = fillImageDefaults;

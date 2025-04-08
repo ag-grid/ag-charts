@@ -341,7 +341,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
                 strokeOpacity: highlightStyle?.strokeOpacity ?? group.strokeOpacity,
             },
             properties.fillGradientDefaults,
-            properties.fillPatternDefaults
+            properties.fillPatternDefaults,
+            properties.fillImageDefaults
         );
     }
 
@@ -385,7 +386,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
+        return getShapeStyle(
+            overrides,
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
+        );
     }
 
     private getTileBaseStyle(highlighted: boolean): ItemStyle {
@@ -401,7 +407,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
                 strokeOpacity: highlightStyle?.strokeOpacity ?? tile.strokeOpacity,
             },
             properties.fillGradientDefaults,
-            properties.fillPatternDefaults
+            properties.fillPatternDefaults,
+            properties.fillImageDefaults
         );
     }
 
@@ -447,7 +454,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
+        return getShapeStyle(
+            overrides,
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
+        );
     }
 
     override updateSelections() {
@@ -846,7 +858,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
                 lineDashOffset: 0,
             },
             this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
         );
 
         if (_ModuleSupport.isGradientFill(markerStyle.fill)) {

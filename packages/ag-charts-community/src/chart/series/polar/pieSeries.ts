@@ -577,7 +577,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 strokeOpacity: 1,
                 strokeWidth: 4,
                 rotation: 0,
-            } as any
+            } as any,
+            {
+                type: 'image',
+                fallback: defaultPatternFill,
+                fit: 'stretch',
+                repetition: 'repeat',
+                rotation: 0,
+                scale: 1,
+            }
         );
     }
 

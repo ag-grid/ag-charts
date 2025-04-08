@@ -153,7 +153,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             },
             properties.fillGradientDefaults,
-            properties.fillPatternDefaults
+            properties.fillPatternDefaults,
+            properties.fillImageDefaults
         );
     }
 
@@ -199,7 +200,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
+        return getShapeStyle(
+            overrides,
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
+        );
     }
 
     updateNodes() {
@@ -585,7 +591,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 lineDashOffset: 0,
             },
             properties.fillGradientDefaults,
-            properties.fillPatternDefaults
+            properties.fillPatternDefaults,
+            properties.fillImageDefaults
         );
 
         if (_ModuleSupport.isGradientFill(markerStyle.fill)) {

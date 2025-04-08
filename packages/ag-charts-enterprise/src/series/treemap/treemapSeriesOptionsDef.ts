@@ -8,6 +8,7 @@ import {
     colorUnion,
     constant,
     fillGradientDefaults,
+    fillImageDefaults,
     fillOptionsDef,
     fillPatternDefaults,
     positiveNumber,
@@ -101,6 +102,8 @@ treemapSeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults
 // @ts-expect-error undocumented option
 treemapSeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 // @ts-expect-error undocumented option
-treemapSeriesOptionsDef.undocumentedGroupFills = undocumented(arrayOf(color));
+treemapSeriesOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
+// @ts-expect-error undocumented option
+treemapSeriesOptionsDef.undocumentedGroupFills = arrayOf(color);
 // @ts-expect-error undocumented option
 treemapSeriesOptionsDef.undocumentedGroupStrokes = undocumented(arrayOf(color));

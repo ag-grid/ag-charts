@@ -1,5 +1,9 @@
 import { type AnyFn, Logger, type RequireOptional } from 'ag-charts-core';
-import type { RequiredInternalAgGradientColor, RequiredInternalAgPatternColor } from 'ag-charts-core';
+import type {
+    RequiredInternalAgGradientColor,
+    RequiredInternalAgImageColor,
+    RequiredInternalAgPatternColor,
+} from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -813,6 +817,7 @@ export abstract class Series<
         marker: ISeriesMarker<TParams> & {
             fillGradientDefaults: RequiredInternalAgGradientColor;
             fillPatternDefaults: RequiredInternalAgPatternColor;
+            fillImageDefaults: RequiredInternalAgImageColor;
         },
         datum?: any,
         params?: TParams,
@@ -820,13 +825,14 @@ export abstract class Series<
         size = marker.size ?? 0,
         defaultStyle?: AgSeriesMarkerStyle
     ) {
-        const { itemStyler, fillGradientDefaults, fillPatternDefaults } = marker;
+        const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = marker;
         const defaultSize = { size };
 
         let markerStyle = getShapeStyle(
             mergeDefaults(defaultSize, defaultStyle, marker.getStyle()),
             fillGradientDefaults,
-            fillPatternDefaults
+            fillPatternDefaults,
+            fillImageDefaults
         );
 
         if (itemStyler && params) {
@@ -837,7 +843,12 @@ export abstract class Series<
                 highlighted,
                 datum,
             });
-            markerStyle = getShapeStyle(mergeDefaults(style, markerStyle), fillGradientDefaults, fillPatternDefaults);
+            markerStyle = getShapeStyle(
+                mergeDefaults(style, markerStyle),
+                fillGradientDefaults,
+                fillPatternDefaults,
+                fillImageDefaults
+            );
         }
 
         return markerStyle;
@@ -847,6 +858,7 @@ export abstract class Series<
         marker: ISeriesMarker<TParams> & {
             fillGradientDefaults: RequiredInternalAgGradientColor;
             fillPatternDefaults: RequiredInternalAgPatternColor;
+            fillImageDefaults: RequiredInternalAgImageColor;
         },
         markerNode: Marker,
         datum: any,

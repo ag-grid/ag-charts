@@ -80,13 +80,22 @@ export interface InternalAgPatternColor extends AgPatternColor {
     rotation?: number;
 }
 export interface InternalAgImageColor extends AgImageColor {}
+
+export type RequiredInternalAgImageColor = Required<Omit<InternalAgImageColor, 'url' | 'width' | 'height'>> &
+    Pick<Partial<InternalAgImageColor>, 'url'> &
+    Pick<InternalAgImageColor, 'width' | 'height'>;
+
 export type RequiredInternalAgPatternColor = Required<Omit<InternalAgPatternColor, 'path'>> &
     Pick<InternalAgPatternColor, 'path'>;
 
 export type RequiredInternalAgGradientColor = Required<InternalAgGradientColor>;
 
 export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageColor;
-export type RequiredInternalAgColorType = CssColor | RequiredInternalAgGradientColor | RequiredInternalAgPatternColor;
+export type RequiredInternalAgColorType =
+    | CssColor
+    | RequiredInternalAgGradientColor
+    | RequiredInternalAgPatternColor
+    | (RequiredInternalAgImageColor & Pick<InternalAgImageColor, 'url'>);
 
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
     stroke: color,
@@ -133,6 +142,18 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
     stroke: required(color),
     strokeWidth: required(positiveNumber),
     strokeOpacity: required(ratio),
+});
+
+export const fillImageDefaults = optionsDefs<InternalAgImageColor>({
+    type: required(constant('image')),
+    url: string,
+    width: positiveNumber,
+    height: positiveNumber,
+    rotation: required(number),
+    scale: required(positiveNumber),
+    fallback: required(color),
+    fit: required(union('stretch', 'contain', 'cover')),
+    repetition: required(union('repeat', 'repeat-x', 'repeat-y', 'no-repeat')),
 });
 
 const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
@@ -196,7 +217,9 @@ export const fillOptionsDef: OptionsDefs<FillOptions> = {
 // @ts-expect-error undocumented option
 fillOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 // @ts-expect-error undocumented option
-fillOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
+fillOptionsDef.fillPatternDefaults = fillPatternDefaults;
+// @ts-expect-error undocumented option
+fillOptionsDef.fillImageDefaults = fillImageDefaults;
 
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDash: arrayOf(positiveNumber),

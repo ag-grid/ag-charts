@@ -2,6 +2,7 @@ import { type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type {
     InternalAgColorType,
     RequiredInternalAgGradientColor,
+    RequiredInternalAgImageColor,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 
@@ -108,6 +109,7 @@ export interface FunnelSeriesShapeStyle {
     fill?: InternalAgColorType;
     fillGradientDefaults: RequiredInternalAgGradientColor;
     fillPatternDefaults: RequiredInternalAgPatternColor;
+    fillImageDefaults: RequiredInternalAgImageColor;
     fillOpacity: number;
     stroke?: string;
     strokeWidth: number;
@@ -486,7 +488,7 @@ export abstract class BaseFunnelSeries<
     private updateConnectorNodes(opts: {
         connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
-        const { fills, strokes, fillGradientDefaults, fillPatternDefaults } = this.properties;
+        const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = this.properties;
         const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
             this.connectorStyle();
 
@@ -499,7 +501,8 @@ export abstract class BaseFunnelSeries<
             const connectorFill = getShapeFill(
                 fill ?? fills[datumIndex % fills.length],
                 fillGradientDefaults,
-                fillPatternDefaults
+                fillPatternDefaults,
+                fillImageDefaults
             );
             connector.fill = connectorFill;
             applyShapeFillBBox(connector, connectorFill, fillBBox);
@@ -610,6 +613,7 @@ export abstract class BaseFunnelSeries<
             lineDashOffset,
             fillGradientDefaults,
             fillPatternDefaults,
+            fillImageDefaults,
         } = this.barStyle();
         const { fills, strokes } = this.properties;
         const fill = fills[datumIndex % fills.length] ?? 'black';
@@ -627,7 +631,8 @@ export abstract class BaseFunnelSeries<
                     lineDashOffset,
                 },
                 fillGradientDefaults,
-                fillPatternDefaults
+                fillPatternDefaults,
+                fillImageDefaults
             ),
         };
     }

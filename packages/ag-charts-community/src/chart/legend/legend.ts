@@ -1,5 +1,9 @@
 import { type AnyFn, Logger, clamp } from 'ag-charts-core';
-import type { RequiredInternalAgGradientColor, RequiredInternalAgPatternColor } from 'ag-charts-core';
+import type {
+    RequiredInternalAgGradientColor,
+    RequiredInternalAgImageColor,
+    RequiredInternalAgPatternColor,
+} from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -170,6 +174,15 @@ const fillPatternDefaults: RequiredInternalAgPatternColor = {
     strokeOpacity: 1,
     strokeWidth: 0,
     rotation: 0,
+};
+
+const fillImageDefaults: RequiredInternalAgImageColor = {
+    type: 'image',
+    fallback: 'black',
+    rotation: 0,
+    scale: 1,
+    repetition: 'repeat',
+    fit: 'cover',
 };
 
 export class Legend extends BaseProperties {
@@ -830,7 +843,8 @@ export class Legend extends BaseProperties {
                 lineDashOffset,
             },
             fillGradientDefaults,
-            fillPatternDefaults
+            fillPatternDefaults,
+            fillImageDefaults
         );
     }
 
