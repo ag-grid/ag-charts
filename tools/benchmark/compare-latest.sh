@@ -68,7 +68,7 @@ node ${tools_dir}/collate-reports.js "${branch}-${head}"
 
 output=${root}/reports/benchmark.log
 if [[ ${base} == "origin/${base_name}" ]] ; then
-    logStarBox "No merge-based found, comparing '${branch}' against '${base_name}' branch directly" >${output}
+    logStarBox "No merge-base found, comparing '${branch}' against '${base_name}' branch directly" >${output}
 elif [[ -f ${output} ]] ; then
     rm ${output}
 fi
