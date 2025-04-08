@@ -15,7 +15,7 @@ export type AgContextMenuItemLiteral =
     | 'toggle-other-series'
     | 'reset-zoom';
 
-type AgContextMenuItemShowOn = 'all' | 'series-area' | 'series-node' | 'legend-item';
+export type AgContextMenuItemShowOn = 'always' | 'series-area' | 'series-node' | 'legend-item';
 
 type AgContextMenuItemType = 'action' | 'submenu' | 'separator';
 
@@ -34,9 +34,9 @@ interface ItemMixin {
     items?: AgContextMenuItem;
 }
 
-export interface AgContextMenuItemAll extends ItemMixin {
+export interface AgContextMenuItemAlways extends ItemMixin {
     /**  TODO: writeme. */
-    showOn?: 'all';
+    showOn?: 'always';
     /**  TODO: writeme. */
     action?: (event: AgChartContextMenuEvent) => void;
 }
@@ -64,7 +64,7 @@ export interface AgContextMenuItemLegendItem extends ItemMixin {
 
 export type AgContextMenuItem =
     | AgContextMenuItemLiteral
-    | AgContextMenuItemAll
+    | AgContextMenuItemAlways
     | AgContextMenuItemSeriesArea
     | AgContextMenuItemSeriesNode
     | AgContextMenuItemLegendItem;
