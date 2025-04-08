@@ -2,7 +2,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { ZoomManager, ZoomState } from '../interaction/zoomManager';
-import type { UpdateService } from '../updateService';
+import type { UpdateCompleteEvent, UpdateService } from '../updateService';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 
 export class DataWindowProcessor<D extends object> implements UpdateProcessor {
@@ -23,7 +23,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
             this.dataService.addListener('data-source-change', () => this.onDataSourceChange()),
             this.dataService.addListener('data-load', () => this.onDataLoad()),
             this.dataService.addListener('data-error', () => this.onDataError()),
-            this.updateService.addListener('update-complete', () => this.onUpdateComplete()),
+            this.updateService.addListener('update-complete', (e) => this.onUpdateComplete(e)),
             this.zoomManager.addListener('zoom-change', () => this.onZoomChange())
         );
     }
@@ -45,16 +45,16 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         this.dirtyDataSource = true;
     }
 
-    private onUpdateComplete() {
-        if (!this.dirtyZoom && !this.dirtyDataSource) return;
-        this.updateWindow();
+    private onUpdateComplete(event: UpdateCompleteEvent) {
+        if (!event.apiUpdate && !this.dirtyZoom && !this.dirtyDataSource) return;
+        this.updateWindow(event);
     }
 
     private onZoomChange() {
         this.dirtyZoom = true;
     }
 
-    private updateWindow() {
+    private updateWindow(event: UpdateCompleteEvent) {
         if (!this.dataService.isLazy()) return;
 
         const axis = this.getValidAxis();
@@ -65,7 +65,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         if (axis) {
             const zoom = this.zoomManager.getAxisZoom(axis.id);
             window = this.getAxisWindow(axis, zoom);
-            shouldRefresh = this.shouldRefresh(axis, zoom);
+            shouldRefresh = this.shouldRefresh(event, axis, zoom);
         }
 
         this.dirtyZoom = false;
@@ -80,7 +80,8 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         return this.chart.axes.find((axis) => axis.type === 'time');
     }
 
-    private shouldRefresh(axis: AxisLike, zoom: ZoomState) {
+    private shouldRefresh(event: UpdateCompleteEvent, axis: AxisLike, zoom: ZoomState) {
+        if (event.apiUpdate) return true;
         if (this.dirtyDataSource) return true;
         if (!this.dirtyZoom) return false;
 

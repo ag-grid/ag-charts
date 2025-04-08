@@ -7,6 +7,7 @@ export type UpdateCallback = (type: ChartUpdateType, opts?: UpdateOpts) => void;
 
 export interface UpdateCompleteEvent {
     readonly type: 'update-complete';
+    readonly apiUpdate: boolean;
 }
 
 export interface PreDomUpdateEvent {
@@ -58,8 +59,8 @@ export class UpdateService {
         this.updateCallback(type, options);
     }
 
-    public dispatchUpdateComplete() {
-        this.events.emit('update-complete', { type: 'update-complete' });
+    public dispatchUpdateComplete(apiUpdate: boolean) {
+        this.events.emit('update-complete', { type: 'update-complete', apiUpdate });
     }
 
     public dispatchPreDomUpdate() {

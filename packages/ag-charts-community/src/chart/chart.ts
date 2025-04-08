@@ -520,6 +520,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     requestFactoryUpdate(cb: (chart: Chart) => Promise<void> | void) {
         if (this.destroyed) return;
+        this.apiUpdate = true;
         this._pendingFactoryUpdatesCount++;
         this.updateMutex
             .acquire(async () => {
@@ -542,6 +543,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
     }
 
+    private apiUpdate = false;
     private _pendingFactoryUpdatesCount = 0;
     private _performUpdateSkipAnimations: boolean = false;
     private readonly _performUpdateNotify = new AsyncAwaitQueue();
@@ -718,7 +720,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
 
         if (!this.destroyed) {
-            ctx.updateService.dispatchUpdateComplete();
+            ctx.updateService.dispatchUpdateComplete(this.apiUpdate);
+            this.apiUpdate = false;
             this.ctx.domManager.setDataBoolean('updatePending', false);
             this.runningUpdateType = ChartUpdateType.NONE;
             this.syncStatus = 'ready';
