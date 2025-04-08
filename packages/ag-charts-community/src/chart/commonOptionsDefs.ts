@@ -1,10 +1,12 @@
 import {
-    type OptionsDefs,
+    ErrorType,
+    ValidationError,
     and,
     array,
     arrayLength,
     arrayOf,
     arrayOfDefs,
+    attachDescription,
     boolean,
     callback,
     callbackDefs,
@@ -31,6 +33,7 @@ import {
     undocumented,
     union,
 } from 'ag-charts-core';
+import type { OptionsDefs, Validator, ValidatorContext, ValidatorResult } from 'ag-charts-core';
 import type {
     AgBaseSeriesOptions,
     AgBaseThemeableChartOptions,
@@ -39,6 +42,8 @@ import type {
     AgChartLabelOptions,
     AgChartOverlayOptions, // eslint-disable-next-line sonarjs/deprecation
     AgContextMenuAction,
+    AgContextMenuItem,
+    AgContextMenuItemLiteral,
     AgDropShadowOptions,
     AgErrorBarOptions,
     AgErrorBarThemeableOptions,
@@ -120,6 +125,54 @@ const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     text: string,
     renderer: callbackOf(or(string, htmlElement)),
 };
+
+const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [
+    'defaults',
+    'download',
+    'zoom-to-cursor',
+    'pan-to-cursor',
+    'toggle-series-visibility',
+    'toggle-other-series',
+    'reset-zoom',
+];
+
+const contextMenuItemObjectValidator: Validator = optionsDefs<Exclude<AgContextMenuItem, AgContextMenuItemLiteral>>({
+    type: union('action', 'submenu', 'separator'),
+    showOn: union('series-area', 'series-node', 'legend-item'),
+    label: required(string),
+    enable: boolean,
+    iconUrl: string,
+    action: callback,
+    items: (value, context) => contextMenuItemsArray(value, context),
+});
+
+const contextMenuItemValidator = attachDescription(
+    (value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
+        let result: ValidatorResult | boolean;
+        if (typeof value === 'string') {
+            const allowedValues: readonly string[] = contextMenuItemLiterals;
+            if (allowedValues.includes(value)) {
+                result = true;
+            } else {
+                result = { valid: false, invalid: [], cleared: {} } satisfies ValidatorResult;
+                result.invalid.push(
+                    new ValidationError(
+                        ErrorType.Invalid,
+                        `a context menu item string alias: ["${contextMenuItemLiterals.join('", "')}"]`,
+                        value,
+                        context.path
+                    )
+                );
+            }
+        } else {
+            result = contextMenuItemObjectValidator(value, context);
+        }
+        return result;
+    },
+    `a context menu item object or string alias: [${contextMenuItemLiterals.join(', ')}]`
+);
+
+const contextMenuItemsArray = arrayOf(contextMenuItemValidator, 'a menu items array', 'or');
 
 // eslint-disable-next-line sonarjs/deprecation
 const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
@@ -334,7 +387,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     contextMenu: {
         enabled: boolean,
-        items: defined,
+        items: contextMenuItemsArray,
         extraActions: contextMenuActionsArray,
         extraSeriesAreaActions: contextMenuActionsArray,
         extraNodeActions: contextMenuActionsArray,

@@ -6,7 +6,7 @@ import type {
 } from './eventOptions';
 import type { AgChartLegendContextMenuEvent } from './legendOptions';
 
-type AgContextMenuItemLiteral =
+export type AgContextMenuItemLiteral =
     | 'defaults'
     | 'download'
     | 'zoom-to-cursor'
@@ -21,9 +21,9 @@ type AgContextMenuItemType = 'action' | 'submenu' | 'separator';
 
 interface ItemMixin {
     /**  TODO: writeme. */
-    type: AgContextMenuItemType;
+    type?: AgContextMenuItemType;
     /**  TODO: writeme. */
-    showOn: AgContextMenuItemShowOn;
+    showOn?: AgContextMenuItemShowOn;
     /**  TODO: writeme. */
     label: string;
     /**  TODO: writeme. */
@@ -34,35 +34,35 @@ interface ItemMixin {
     items?: AgContextMenuItem;
 }
 
-interface AgContextMenuItemAll extends ItemMixin {
+export interface AgContextMenuItemAll extends ItemMixin {
     /**  TODO: writeme. */
-    showOn: 'all';
+    showOn?: 'all';
     /**  TODO: writeme. */
     action?: (event: AgChartContextMenuEvent) => void;
 }
 
-interface AgContextMenuItemSeriesArea extends ItemMixin {
+export interface AgContextMenuItemSeriesArea extends ItemMixin {
     /**  TODO: writeme. */
     showOn: 'series-area';
     /**  TODO: writeme. */
     action?: (event: AgSeriesAreaContextMenuActionEvent) => void;
 }
 
-interface AgContextMenuItemSeriesNode extends ItemMixin {
+export interface AgContextMenuItemSeriesNode extends ItemMixin {
     /**  TODO: writeme. */
     showOn: 'series-node';
     /**  TODO: writeme. */
     action?: (event: AgNodeContextMenuActionEvent) => void;
 }
 
-interface AgContextMenuItemLegendItem extends ItemMixin {
+export interface AgContextMenuItemLegendItem extends ItemMixin {
     /**  TODO: writeme. */
     showOn: 'legend-item';
     /**  TODO: writeme. */
     action?: (event: AgChartLegendContextMenuEvent) => void;
 }
 
-type AgContextMenuItem =
+export type AgContextMenuItem =
     | AgContextMenuItemLiteral
     | AgContextMenuItemAll
     | AgContextMenuItemSeriesArea

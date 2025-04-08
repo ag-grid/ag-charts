@@ -44,7 +44,7 @@ export interface ValidatorContext {
     options: any;
 }
 
-enum ErrorType {
+export enum ErrorType {
     // Enterprise = 'enterprise',
     Invalid = 'invalid',
     Required = 'required',
@@ -441,25 +441,32 @@ export const instanceOf = (instanceType: Function, description?: string) =>
  * @param description An optional description string.
  * @returns A validator function for arrays with elements validated by the specified validator.
  */
-export const arrayOf = (validator: Validator, description?: string) =>
+export const arrayOf = (validator: Validator, description?: string, validOperand?: 'or' | 'and') =>
     attachDescription(
         (value, context) => {
             if (!isArray(value)) return false;
 
-            let valid: boolean = true;
+            validOperand ??= 'and';
+            let valid: boolean = validOperand === 'and';
             const cleared: unknown[] = [];
             const invalid: ValidationError[] = [];
 
             for (let i = 0; i < value.length; i++) {
                 const options = value[i];
                 const result = validator(options, { options, path: `${context.path}[${i}]` });
+                let elemValid: boolean;
                 if (typeof result === 'object') {
                     invalid.push(...result.invalid);
                     cleared.push(result.cleared);
-                    valid &&= result.valid;
+                    elemValid = result.valid;
                 } else {
                     cleared.push(options);
-                    valid &&= result;
+                    elemValid = result;
+                }
+                if (validOperand === 'and') {
+                    valid &&= elemValid;
+                } else {
+                    valid ||= elemValid;
                 }
             }
 
