@@ -447,7 +447,7 @@ export const arrayOf = (validator: Validator, description?: string, validOperand
             if (!isArray(value)) return false;
 
             validOperand ??= 'and';
-            let valid: boolean = validOperand === 'and' ? true : false;
+            let valid: boolean = validOperand === 'and';
             const cleared: unknown[] = [];
             const invalid: ValidationError[] = [];
 
