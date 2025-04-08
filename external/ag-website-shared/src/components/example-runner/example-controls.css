@@ -2,7 +2,7 @@
     --main-fg: #101828;
     --main-bg: #fff;
 
-    --chart-bg: transparent;
+    --chart-bg: #fff;
     --chart-border: #d0d5dd;
 
     --button-fg: #212529;
@@ -28,6 +28,7 @@
     --chart-border: #344054;
 
     --button-fg: #f8f9fa;
+    --button-bg: transparent;
     --button-border: rgba(255, 255, 255, 0.2);
     --button-hover-bg: #2a343e;
 

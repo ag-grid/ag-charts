@@ -1,0 +1,14 @@
+.example-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 1rem;
+    height: 100%;
+    border-radius: 8px;
+    background-color: var(--chart-bg);
+    border: 1px solid var(--chart-border);
+}
+
+.example-wrapper > div {
+    height: 50%;
+}
