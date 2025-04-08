@@ -86,13 +86,12 @@ const extractTitle = (titleTag) => {
     }
 
     return title
-        ? title
-              .replace('Angular Charts', '')
-              .replace('React Charts', '')
-              .replace('Vue Charts', '')
-              .replace('Javascript Charts', '')
-              .replace('ReactAngularVueJavascript', '')
-        : title;
+        ?.replace('Angular Charts', '')
+        .replace('React Charts', '')
+        .replace('Vue Charts', '')
+        .replace('JavaScript Charts', '')
+        .replace('ReactAngularVueJavascript', '')
+        .trim();
 };
 
 const convertToFrameworkUrl = (url, framework) => `/${framework}/${url}/`;
@@ -151,8 +150,8 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
             objectID: hashPath,
             breadcrumb,
             title,
-            heading: heading ? heading.replaceAll('\n    ', '').replaceAll('\n', '') : undefined,
-            subHeading: subHeading ? subHeading.replaceAll('\n    ', '').replaceAll('\n', '') : undefined,
+            heading: heading?.trim(),
+            subHeading: subHeading?.trim(),
             path: hashPath,
             text: cleanText,
             rank,
