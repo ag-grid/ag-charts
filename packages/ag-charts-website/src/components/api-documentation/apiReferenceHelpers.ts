@@ -384,7 +384,12 @@ export function extractSearchData(
     if (interfaceRef?.kind === 'interface' || (interfaceRef?.kind === 'typeLiteral' && interfaceRef.name)) {
         const { genericsMap } = interfaceRef as any;
         return interfaceRef.members.flatMap((member) => {
-            const navPath = basePath.concat({ name: cleanupName(member.name), type: getMemberType(member) });
+            const newPath = { name: cleanupName(member.name), type: getMemberType(member) };
+            if (basePath.find((p) => p.name === newPath.name && p.type === newPath.type)) {
+                return [];
+            }
+
+            const navPath = basePath.concat(newPath);
             const results = [
                 {
                     label: labelPrefix + cleanupName(member.name),
