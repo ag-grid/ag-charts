@@ -370,7 +370,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected titleBBox(domain: D[], spacing: number) {
-        this.setTitleProps(this.tempCaption, { domain, spacing });
+        this.setTitleProps(this.tempCaption, domain, spacing);
         return this.tempCaption.node.getBBox();
     }
 
@@ -413,7 +413,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return { bbox, spacing };
     }
 
-    protected setTitleProps(caption: Caption, params: { domain: D[]; spacing: number }) {
+    protected setTitleProps(caption: Caption, domain: D[], spacing: number) {
         const { title } = this;
 
         if (!title.enabled) {
@@ -431,7 +431,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         caption.wrapping = title.wrapping;
 
         const titleNode = caption.node;
-        const padding = (title.spacing ?? 0) + params.spacing;
+        const padding = (title.spacing ?? 0) + spacing;
 
         const { range } = this;
         const midOffset = (range[0] + range[1]) / 2;
@@ -467,7 +467,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
 
         const { formatter = (p) => p.defaultValue } = title;
-        const text = this.callWithContext(formatter, this.getTitleFormatterParams(params.domain));
+        const text = this.callWithContext(formatter, this.getTitleFormatterParams(domain));
         caption.text = text;
 
         titleNode.setProperties({
@@ -547,9 +547,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected updateTitle(domain: D[], spacing: number): void {
-        const { title } = this;
-
-        this.setTitleProps(title.caption, { domain, spacing });
+        this.setTitleProps(this.title.caption, domain, spacing);
     }
 
     protected updateLabels() {
