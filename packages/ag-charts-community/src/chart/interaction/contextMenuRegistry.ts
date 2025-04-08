@@ -1,50 +1,64 @@
-import type { AgContextMenuOptions } from 'ag-charts-types';
+import type { AgContextMenuItem, AgContextMenuItemShowOn } from 'ag-charts-types';
 
 import { Listeners } from '../../util/listeners';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 
-type ContextTypeMap = {
-    all: object;
-    legend: { legendItem: CategoryLegendDatum | undefined };
-    'series-area': {
-        pickedSeries: ISeries<any, any, any> | undefined;
-        pickedNode: SeriesNodeDatum<unknown> | undefined;
+// Extract TEvent from `action?: (param: TEvent)` of the AgContextMenuItem contract:
+type InferTEvent<T extends AgContextMenuItemShowOn> =
+    Extract<AgContextMenuItem, { showOn?: T; action?: (...args: any[]) => any }> extends {
+        action?: (event: infer E) => any;
+    }
+        ? E
+        : never;
+type ContextShowOnMapRule = {
+    [K in AgContextMenuItemShowOn]: {
+        event: InferTEvent<K>;
+        callback: (param: InferTEvent<K>) => void;
     };
-    node: { pickedSeries: ISeries<any, any, any> | undefined; pickedNode: SeriesNodeDatum<unknown> | undefined };
 };
+export interface ContextShowOnMap extends ContextShowOnMapRule {
+    always: {
+        event: InferTEvent<'always'>;
+        callback: (param: InferTEvent<'always'>) => void;
+        context: undefined;
+    };
+    'legend-item': {
+        event: InferTEvent<'legend-item'>;
+        callback: (param: InferTEvent<'legend-item'>) => void;
+        context: { legendItem: CategoryLegendDatum | undefined };
+    };
+    'series-area': {
+        event: InferTEvent<'series-area'>;
+        callback: (param: InferTEvent<'series-area'>) => void;
+        context: {
+            pickedSeries: ISeries<any, any, any> | undefined;
+            pickedNode: SeriesNodeDatum<unknown> | undefined;
+        };
+    };
+    'series-node': {
+        event: InferTEvent<'series-node'>;
+        callback: (param: InferTEvent<'series-node'>) => void;
+        context: {
+            pickedSeries: ISeries<any, any, any> | undefined;
+            pickedNode: SeriesNodeDatum<unknown> | undefined;
+        };
+    };
+}
 
 export type MouseEventWithPointerType = MouseEvent & Partial<Pick<PointerEvent, 'pointerType'>>;
 
-export type ContextType = keyof ContextTypeMap;
-export type ContextMenuEvent<K extends ContextType = ContextType> = {
+export type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = {
     readonly type: K;
     readonly x: number;
     readonly y: number;
-    readonly context: Readonly<ContextTypeMap[K]>;
+    readonly context: Readonly<ContextShowOnMap[K]['context']>;
     readonly sourceEvent: MouseEventWithPointerType;
 };
 
-// Extract the TEvent types from the AgContextMenuOptions contract:
-type ContextMenuActionEventMap = {
-    // eslint-disable-next-line sonarjs/deprecation
-    all: Parameters<NonNullable<AgContextMenuOptions['extraActions']>[number]['action']>[0];
-    // eslint-disable-next-line sonarjs/deprecation
-    legend: Parameters<NonNullable<AgContextMenuOptions['extraLegendItemActions']>[number]['action']>[0];
-    // eslint-disable-next-line sonarjs/deprecation
-    'series-area': Parameters<NonNullable<AgContextMenuOptions['extraSeriesAreaActions']>[number]['action']>[0];
-    // eslint-disable-next-line sonarjs/deprecation
-    node: Parameters<NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']>[0];
-};
+export type ContextMenuCallback<K extends AgContextMenuItemShowOn> = ContextShowOnMap[K]['callback'];
 
-export type ContextMenuCallback<K extends ContextType> = {
-    all: (params: ContextMenuActionEventMap['all']) => void;
-    legend: (params: ContextMenuActionEventMap['legend']) => void;
-    'series-area': (params: ContextMenuActionEventMap['series-area']) => void;
-    node: (params: ContextMenuActionEventMap['node']) => void;
-}[K];
-
-export type ContextMenuAction<K extends ContextType> = {
+export type ContextMenuAction<K extends AgContextMenuItemShowOn> = {
     id?: string;
     label: string;
     type: K;
@@ -53,27 +67,30 @@ export type ContextMenuAction<K extends ContextType> = {
 };
 
 export class ContextMenuRegistry {
-    private readonly defaultActions: Array<ContextMenuAction<ContextType>> = [];
+    private readonly defaultActions: Array<ContextMenuAction<AgContextMenuItemShowOn>> = [];
     private readonly disabledActions: Set<string> = new Set();
     private readonly hiddenActions: Set<string> = new Set();
     private readonly listeners: Listeners<'', (e: ContextMenuEvent) => void> = new Listeners();
 
-    public static check<T extends ContextType>(type: T, event: ContextMenuEvent): event is ContextMenuEvent<T> {
+    public static check<T extends AgContextMenuItemShowOn>(
+        type: T,
+        event: ContextMenuEvent
+    ): event is ContextMenuEvent<T> {
         return event.type === type;
     }
 
-    public static checkCallback<T extends ContextType>(
+    public static checkCallback<T extends AgContextMenuItemShowOn>(
         desiredType: T,
-        type: ContextType,
-        _callback: ContextMenuCallback<ContextType>
+        type: AgContextMenuItemShowOn,
+        _callback: ContextMenuCallback<AgContextMenuItemShowOn>
     ): _callback is ContextMenuCallback<T> {
         return desiredType === type;
     }
 
-    public dispatchContext<T extends ContextType>(
+    public dispatchContext<T extends AgContextMenuItemShowOn>(
         type: T,
         pointerEvent: { sourceEvent: MouseEvent; canvasX: number; canvasY: number },
-        context: ContextTypeMap[T],
+        context: ContextShowOnMap[T]['context'],
         position?: { x: number; y: number }
     ) {
         const { sourceEvent } = pointerEvent;
@@ -91,13 +108,14 @@ export class ContextMenuRegistry {
         return this.listeners.addListener('', handler);
     }
 
-    public filterActions(type: ContextType): ContextMenuAction<ContextType>[] {
+    public filterActions(type: AgContextMenuItemShowOn): ContextMenuAction<AgContextMenuItemShowOn>[] {
         return this.defaultActions.filter((action) => {
-            return action.id != null && !this.hiddenActions.has(action.id) && ['all', type].includes(action.type);
+            return action.id != null && !this.hiddenActions.has(action.id) && ['always', type].includes(action.type);
         });
     }
 
-    public registerDefaultAction<T extends ContextType>(action: ContextMenuAction<T>): () => void {
+    public registerDefaultAction<T extends AgContextMenuItemShowOn>(action: ContextMenuAction<T>): () => void;
+    public registerDefaultAction(action: ContextMenuAction<AgContextMenuItemShowOn>): () => void {
         const didAdd = action.id != null && !this.defaultActions.some(({ id }) => id === action.id);
 
         if (didAdd) {
