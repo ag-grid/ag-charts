@@ -284,13 +284,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 tempText.textBaseline = 'middle';
                 tempText.rotationCenterX = datum.screenX;
                 tempText.rotationCenterY = tempText.y;
-
-                // if (label.mirrored) {
-                //     tempText.y += height;
-                // }
             } else {
                 // tempText.rotation = horizontal ? defaultRotation : -Math.PI / 2;
-                tempText.rotationCenterY = labelY;
+                // tempText.rotationCenterY = labelY;
                 tempText.y += sideFlag * nestedPadding(depth);
             }
 
@@ -343,7 +339,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         let spacing = 0;
         if (title.enabled) {
-            spacing = BBox.merge(bboxes).width;
+            const withoutTitle = BBox.merge(bboxes);
+            spacing = horizontal ? withoutTitle.height : withoutTitle.width;
             bboxes.push(this.titleBBox(this.scale.domain, spacing));
         }
 
