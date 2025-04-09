@@ -280,6 +280,7 @@ export class Scene extends EventEmitter<EventMap> {
         this.strip();
 
         this.canvas.destroy();
+        this.imageLoader.destroy();
         this.destroyFns.forEach((fn) => fn());
         Object.assign(this, { canvas: undefined });
     }
