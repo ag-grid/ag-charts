@@ -34,19 +34,19 @@ interface Anchor {
 const horizontalLineAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
     top: { rangeH: 0, rangeV: -1, labelH: 0, labelV: 1 },
     'inside-top': { rangeH: 0, rangeV: -1, labelH: 0, labelV: 1 },
-    'top-left': { rangeH: -1, rangeV: -1, labelH: 1, labelV: 1 },
+    'top-left': { rangeH: -1, rangeV: -1, labelH: -1, labelV: 1 },
     'inside-top-left': { rangeH: -1, rangeV: -1, labelH: -1, labelV: 1 },
     left: { rangeH: -1, rangeV: 0, labelH: 1, labelV: 0 },
     'inside-left': { rangeH: -1, rangeV: 0, labelH: -1, labelV: 0 },
-    'bottom-left': { rangeH: -1, rangeV: 1, labelH: 1, labelV: -1 },
+    'bottom-left': { rangeH: -1, rangeV: 1, labelH: -1, labelV: -1 },
     'inside-bottom-left': { rangeH: -1, rangeV: 1, labelH: -1, labelV: -1 },
     bottom: { rangeH: 0, rangeV: 1, labelH: 0, labelV: -1 },
     'inside-bottom': { rangeH: 0, rangeV: 1, labelH: 0, labelV: -1 },
-    'bottom-right': { rangeH: 1, rangeV: 1, labelH: -1, labelV: -1 },
+    'bottom-right': { rangeH: 1, rangeV: 1, labelH: 1, labelV: -1 },
     'inside-bottom-right': { rangeH: 1, rangeV: 1, labelH: 1, labelV: -1 },
     right: { rangeH: 1, rangeV: 0, labelH: -1, labelV: 0 },
     'inside-right': { rangeH: 1, rangeV: 0, labelH: 1, labelV: 0 },
-    'top-right': { rangeH: 1, rangeV: -1, labelH: -1, labelV: 1 },
+    'top-right': { rangeH: 1, rangeV: -1, labelH: 1, labelV: 1 },
     'inside-top-right': { rangeH: 1, rangeV: -1, labelH: 1, labelV: 1 },
     inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
 };
@@ -54,19 +54,19 @@ const horizontalLineAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
 const verticalLineAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
     top: { rangeH: 0, rangeV: -1, labelH: 0, labelV: 1 },
     'inside-top': { rangeH: 0, rangeV: -1, labelH: 0, labelV: -1 },
-    'top-left': { rangeH: -1, rangeV: -1, labelH: 1, labelV: 1 },
+    'top-left': { rangeH: -1, rangeV: -1, labelH: 1, labelV: -1 },
     'inside-top-left': { rangeH: -1, rangeV: -1, labelH: 1, labelV: -1 },
     left: { rangeH: -1, rangeV: 0, labelH: 1, labelV: 0 },
     'inside-left': { rangeH: -1, rangeV: 0, labelH: 1, labelV: 0 },
-    'bottom-left': { rangeH: -1, rangeV: 1, labelH: 1, labelV: -1 },
+    'bottom-left': { rangeH: -1, rangeV: 1, labelH: 1, labelV: 1 },
     'inside-bottom-left': { rangeH: -1, rangeV: 1, labelH: 1, labelV: 1 },
     bottom: { rangeH: 0, rangeV: 1, labelH: 0, labelV: -1 },
     'inside-bottom': { rangeH: 0, rangeV: 1, labelH: 0, labelV: 1 },
-    'bottom-right': { rangeH: 1, rangeV: 1, labelH: -1, labelV: -1 },
+    'bottom-right': { rangeH: 1, rangeV: 1, labelH: -1, labelV: 1 },
     'inside-bottom-right': { rangeH: 1, rangeV: 1, labelH: -1, labelV: 1 },
     right: { rangeH: 1, rangeV: 0, labelH: -1, labelV: 0 },
     'inside-right': { rangeH: 1, rangeV: 0, labelH: -1, labelV: 0 },
-    'top-right': { rangeH: 1, rangeV: -1, labelH: -1, labelV: 1 },
+    'top-right': { rangeH: 1, rangeV: -1, labelH: -1, labelV: -1 },
     'inside-top-right': { rangeH: -1, rangeV: -1, labelH: -1, labelV: -1 },
     inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
 };
@@ -180,18 +180,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     position: AgCartesianAxisPosition = 'top';
 
     get defaultLabelPosition(): AgCrossLineLabelPosition {
-        switch (this.position) {
-            case 'top':
-                return 'bottom';
-            case 'bottom':
-                return 'top';
-            case 'left':
-                return 'right';
-            case 'right':
-                return 'left';
-            default:
-                return 'top';
-        }
+        return 'top';
     }
 
     readonly rangeGroup = new Group({ name: this.id });
