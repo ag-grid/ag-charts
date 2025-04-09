@@ -79,15 +79,16 @@ jobs:
               run: |
                   set -x
 
-                  git fetch --unshallow origin ${{ steps.get-branch.outputs.base }} || echo "Not a shallow ref?"
+                  base=$(git rev-parse --abbrev-ref ${{ steps.get-branch.outputs.base }})
+                  git fetch --unshallow origin $base || echo "Not a shallow ref?"
 
                   # Preemptively fail if merge-base is not found.
-                  mergeBase=$(git merge-base HEAD origin/${{ steps.get-branch.outputs.base }} || echo "failed")
+                  mergeBase=$(git merge-base HEAD $base || echo "failed")
 
                   if [[ ${mergeBase} == "failed" ]] ; then
                     # Debugging
                     git log -n 1 --decorate HEAD
-                    git log -n 20 --decorate origin/${{ steps.get-branch.outputs.base }}
+                    git log -n 20 --decorate $base
 
                     # Allow for a few minutes for debugging
                     sleep 600
