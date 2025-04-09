@@ -141,12 +141,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const secondaryAxis = primaryTickCount !== undefined;
 
-        const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation({
-            rotation: label.rotation,
+        const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation(
+            label.rotation,
             parallel,
             regularFlipRotation,
-            parallelFlipRotation,
-        });
+            parallelFlipRotation
+        );
 
         const { maxTickCount } = this.estimateTickCount(visibleRange, minSpacing, maxSpacing);
 

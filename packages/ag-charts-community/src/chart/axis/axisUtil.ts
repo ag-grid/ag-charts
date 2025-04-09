@@ -20,6 +20,11 @@ export interface AxisLineDatum {
     y2: number;
 }
 
+export interface AxisTickDatum extends AxisLineDatum {
+    tickStroke?: string;
+    tickWidth?: number;
+}
+
 export interface AxisAnimationContext {
     visible: boolean;
     min: number;
@@ -68,7 +73,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
     const outOfBounds = (y: number) => {
         return y < min || y > max;
     };
-    const tick: FromToFns<Line, any, AxisLineDatum> = {
+    const tick: FromToFns<Line, any, AxisTickDatum> = {
         fromFn(node, datum, status) {
             // Default to starting at the same position that the node is currently in.
             let { x1, x2, y1, y2 } = node;
