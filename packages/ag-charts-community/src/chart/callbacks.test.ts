@@ -234,11 +234,11 @@ describe('AG-13024 API context', () => {
                 options.series![2].context = undefined;
                 options.axes![0].context = undefined;
                 chart = await createChart(options);
-                itemStyler.expect().toHaveBeenCalledTimes(12).withContext(undefined);
-                seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(undefined);
-                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(undefined);
+                itemStyler.expect().toHaveBeenCalledTimes(12).withoutContext();
+                seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withoutContext();
+                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withoutContext();
                 await oneTooltipCallback();
-                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withContext(undefined);
+                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withoutContext();
             });
             test('defined to null', async () => {
                 options.series![0].context = null;
@@ -263,11 +263,11 @@ describe('AG-13024 API context', () => {
                 options.series![2].context = undefined;
                 options.axes![0].context = undefined;
                 chart = await createChart(options);
-                itemStyler.expect().toHaveBeenCalledTimes(12).withContext(undefined);
-                seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(undefined);
-                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(undefined);
+                itemStyler.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
+                seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
+                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(rootContext);
                 await oneTooltipCallback();
-                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withContext(undefined);
+                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withContext(rootContext);
             });
             test('defined to null', async () => {
                 options.series![0].context = null;

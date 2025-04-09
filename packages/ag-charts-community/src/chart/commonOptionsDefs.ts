@@ -10,7 +10,6 @@ import {
     callbackDefs,
     callbackOf,
     color,
-    contextPropertyValidator,
     date,
     defined,
     fillOptionsDef,
@@ -453,7 +452,7 @@ commonChartOptionsDefs.foreground = undocumented({
 });
 
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.context = contextPropertyValidator;
+commonChartOptionsDefs.context = undocumented(() => true);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
 
@@ -479,7 +478,7 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
 };
 
 // @ts-expect-error undocumented option
-commonSeriesOptionsDefs.context = contextPropertyValidator;
+commonSeriesOptionsDefs.context = undocumented(() => true);
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.seriesGrouping = undocumented(defined);
 

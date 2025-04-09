@@ -54,7 +54,6 @@ describe('AG-13024 API context gauges', () => {
             const options = initOptions();
             expect(options).not.toHaveProperty('context');
             chart = await createChart(options);
-
             chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withoutContext();
         });
 
@@ -62,33 +61,21 @@ describe('AG-13024 API context gauges', () => {
             const options = initOptions();
             options.context = undefined;
             chart = await createChart(options);
-
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(3);
-            chartLabelFormatter.expect().nthCalledWithContext(0, undefined);
-            chartLabelFormatter.expect().nthCalledWithContext(1, undefined);
-            chartLabelFormatter.expect().nthCalledWithContext(2, undefined);
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withoutContext();
         });
 
         test('defined to null', async () => {
             const options = initOptions();
             options.context = null;
             chart = await createChart(options);
-
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(3);
-            chartLabelFormatter.expect().nthCalledWithContext(0, null);
-            chartLabelFormatter.expect().nthCalledWithContext(1, null);
-            chartLabelFormatter.expect().nthCalledWithContext(2, null);
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withContext(null);
         });
 
         test('defined to object', async () => {
             const options = initOptions();
             options.context = rootContext;
             chart = await createChart(options);
-
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(3);
-            chartLabelFormatter.expect().nthCalledWithContext(0, rootContext);
-            chartLabelFormatter.expect().nthCalledWithContext(1, rootContext);
-            chartLabelFormatter.expect().nthCalledWithContext(2, rootContext);
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withContext(rootContext);
         });
     });
 
@@ -106,7 +93,6 @@ describe('AG-13024 API context gauges', () => {
             const options = initOptions();
             expect(options).not.toHaveProperty('context');
             chart = await createChart(options);
-
             chartLabelFormatter.expect().toHaveBeenCalledTimes(2).withoutContext();
         });
 
@@ -114,30 +100,21 @@ describe('AG-13024 API context gauges', () => {
             const options = initOptions();
             options.context = undefined;
             chart = await createChart(options);
-
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(2);
-            chartLabelFormatter.expect().nthCalledWithContext(0, undefined);
-            chartLabelFormatter.expect().nthCalledWithContext(1, undefined);
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(2).withoutContext();
         });
 
         test('defined to null', async () => {
             const options = initOptions();
             options.context = null;
             chart = await createChart(options);
-
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(2);
-            chartLabelFormatter.expect().nthCalledWithContext(0, null);
-            chartLabelFormatter.expect().nthCalledWithContext(1, null);
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(2).withContext(null);
         });
 
         test('defined to object', async () => {
             const options = initOptions();
             options.context = rootContext;
             chart = await createChart(options);
-
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(2);
-            chartLabelFormatter.expect().nthCalledWithContext(0, rootContext);
-            chartLabelFormatter.expect().nthCalledWithContext(1, rootContext);
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(2).withContext(rootContext);
         });
     });
 });

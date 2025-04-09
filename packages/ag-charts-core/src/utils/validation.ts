@@ -18,7 +18,6 @@ const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
 const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
-const alwaysvalidSymbol = Symbol('alwaysvalid');
 
 type ObjectLikeDef<T> = T extends object ? (keyof T extends never ? never : OptionsDefs<T>) : never;
 
@@ -29,7 +28,6 @@ export type OptionsDefs<T> = { [K in keyof Singular<T>]-?: Validator | ObjectLik
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
     [undocumentedSymbol]?: boolean;
-    [alwaysvalidSymbol]?: boolean;
 };
 
 export interface ValidationResult<T> {
@@ -59,7 +57,6 @@ export interface Validator extends Function {
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
     [undocumentedSymbol]?: boolean;
-    [alwaysvalidSymbol]?: boolean;
 }
 
 function extendPath(path: string, key: string | number) {
@@ -144,9 +141,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
             if (!validatorOrDefs[undocumentedSymbol]) {
                 unusedKeys.push(key);
             }
-            if (!validatorOrDefs[alwaysvalidSymbol] || !(key in options)) {
-                if (!required) continue;
-            }
+            if (!required) continue;
         }
 
         const keyPath = extendPath(path, key);
@@ -258,10 +253,6 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
         { [undocumentedSymbol]: true, [descriptionSymbol]: validatorOrDefs[descriptionSymbol] }
     ) as T;
 }
-
-export const contextPropertyValidator: Validator = () => true;
-contextPropertyValidator[undocumentedSymbol] = true;
-contextPropertyValidator[alwaysvalidSymbol] = true;
 
 /**
  * Creates a validator for ensuring an object matches the provided option definitions.
