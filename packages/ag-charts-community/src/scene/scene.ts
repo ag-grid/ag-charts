@@ -1,4 +1,4 @@
-import { downloadUrl } from 'ag-charts-core';
+import { EventEmitter, downloadUrl } from 'ag-charts-core';
 
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
@@ -16,7 +16,11 @@ import {
     prepareSceneNodeHighlight,
 } from './sceneDebug';
 
-export class Scene {
+type EventMap = {
+    'scene-changed': object;
+};
+
+export class Scene extends EventEmitter<EventMap> {
     static readonly className = 'Scene';
 
     private readonly debug = Debug.create(true, DebugSelectors.SCENE);
@@ -33,14 +37,15 @@ export class Scene {
     private readonly destroyFns: (() => void)[] = [];
 
     constructor(canvasOptions: CanvasOptions) {
+        super();
+
         this.updateDebugFlags();
         this.canvas = new HdpiCanvas(canvasOptions);
         this.layersManager = new LayersManager(this.canvas);
 
         this.destroyFns.push(
-            this.imageLoader.on('request-redraw', () => {
-                this.root?.markDirty();
-                this.render();
+            this.imageLoader.on('image-loaded', () => {
+                this.emit('scene-changed', {});
             })
         );
     }
@@ -86,7 +91,7 @@ export class Scene {
         Debug.inDevelopmentMode(() => (Node._debugEnabled = true));
     }
 
-    clear() {
+    clearCanvas() {
         this.canvas.clear();
     }
 
@@ -268,6 +273,7 @@ export class Scene {
 
         this.setRoot(null);
         this.isDirty = false;
+        this.clear();
     }
 
     destroy() {

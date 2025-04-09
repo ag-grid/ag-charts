@@ -3,6 +3,7 @@ import type { AgColorRepetition, AgImageColorFit } from 'ag-charts-types';
 
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
+import type { Node } from '../node';
 import type { ImageLoader } from './imageLoader';
 
 export class Image implements Omit<InternalAgImageColor, 'type'> {
@@ -97,7 +98,8 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
         ctx: CanvasRenderingContext2D,
         pixelRatio: number,
         shapeWidth: number,
-        shapeHeight: number
+        shapeHeight: number,
+        parent: Node
     ): CanvasPattern | string | undefined {
         const width = this.width ?? shapeWidth;
         const height = this.height ?? shapeHeight;
@@ -107,7 +109,7 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
             return cache.pattern;
         }
 
-        const image = this.imageLoader?.loadImage(this.url);
+        const image = this.imageLoader?.loadImage(this.url, parent.getLayerParent() ?? parent);
         const pattern = this.createCanvasImage(ctx, image, width, height, pixelRatio);
 
         if (pattern == null) return this.fallback;

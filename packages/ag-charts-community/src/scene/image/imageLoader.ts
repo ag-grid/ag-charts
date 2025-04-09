@@ -1,26 +1,36 @@
 import { EventEmitter } from 'ag-charts-core';
 
-type CacheEntry = { image: HTMLImageElement | undefined };
+type NotifiableNode = { markDirty: () => void };
 
 type EventMap = {
-    'request-redraw': object;
+    'image-loaded': { uri: string };
+};
+
+type CacheEntry = {
+    image: HTMLImageElement | undefined;
+    nodes: Set<NotifiableNode>;
 };
 
 export class ImageLoader extends EventEmitter<EventMap> {
     private readonly cache = new Map<string, CacheEntry>();
 
-    public loadImage(uri: string): HTMLImageElement | undefined {
+    public loadImage(uri: string, node: NotifiableNode): HTMLImageElement | undefined {
         const entry = this.cache.get(uri);
-        if (entry != null) {
+        if (entry?.image) {
             return entry.image;
+        } else if (entry != null) {
+            entry.nodes.add(node);
+            return;
         }
 
-        const nextEntry: CacheEntry = { image: undefined };
+        const nextEntry: CacheEntry = { image: undefined, nodes: new Set([node]) };
         const image = new Image();
         image.src = uri;
         image.onload = () => {
             nextEntry.image = image;
-            this.emit('request-redraw', {});
+            nextEntry.nodes.forEach((n) => n.markDirty());
+            nextEntry.nodes.clear();
+            this.emit('image-loaded', { uri });
         };
         this.cache.set(uri, nextEntry);
     }

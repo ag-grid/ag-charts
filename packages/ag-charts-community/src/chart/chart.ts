@@ -472,7 +472,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     detachAndClear() {
         this.container = undefined;
-        this.ctx.scene.clear();
+        this.ctx.scene.clearCanvas();
     }
 
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {

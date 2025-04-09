@@ -248,7 +248,7 @@ export abstract class Shape<D = any> extends Node<D> {
         } else if (imageFill) {
             const { x, y, width, height } = this.getBBox();
             const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-            const fillImage = imageFill.createPattern(ctx as any, pixelRatio, width, height);
+            const fillImage = imageFill.createPattern(ctx as any, pixelRatio, width, height, this);
             imageFill.setImageTransform(fillImage, pixelRatio, x, y);
             ctx.fillStyle = fillImage ?? 'black';
         } else {

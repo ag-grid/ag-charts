@@ -16,6 +16,7 @@ import type { TypedEvent } from '../util/observable';
 import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
+import { ChartUpdateType } from './chartUpdateType';
 import { DataService } from './data/dataService';
 import type { ChartType } from './factory/chartTypes';
 import { AnimationManager } from './interaction/animationManager';
@@ -43,6 +44,7 @@ export class ChartContext implements ModuleContext {
     readonly seriesStateManager = new SeriesStateManager();
     readonly stateManager = new StateManager();
     readonly seriesLabelLayoutManager = new SeriesLabelLayoutManager();
+    readonly destroyFns: (() => void)[] = [];
 
     animationManager: AnimationManager;
     annotationManager: AnnotationManager;
@@ -107,6 +109,11 @@ export class ChartContext implements ModuleContext {
 
         this.scene = scene ?? new Scene({ canvasElement });
         this.scene.setRoot(root);
+        this.destroyFns.push(
+            this.scene.on('scene-changed', () => {
+                this.updateService.update(ChartUpdateType.SCENE_RENDER);
+            })
+        );
 
         this.axisManager = new AxisManager(root);
         this.legendManager = new LegendManager();
@@ -146,5 +153,6 @@ export class ChartContext implements ModuleContext {
         this.zoomManager.destroy();
         this.widgets.destroy();
         this.contextModules.forEach((m) => m.destroy());
+        this.destroyFns.forEach((fn) => fn());
     }
 }
