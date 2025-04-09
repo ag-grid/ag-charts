@@ -343,13 +343,20 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return horizontal ? { x1: c1, x2: c2, y1: 0, y2: 0 } : { x1: 0, x2: 0, y1: c1, y2: c2 };
     }
 
-    private getTickLineCoordinates(datum: TickDatum) {
-        const sideFlag = this.label.getSideFlag();
-        const x = sideFlag * this.getTickSize();
-        const x1 = Math.min(0, x);
-        const x2 = x1 + Math.abs(x);
-        const y = datum.translationY;
-        return { x1, x2, y };
+    private getTickLineBBox(datum: TickDatum) {
+        const { position } = this;
+        const tickSize = this.getTickSize();
+        const { translationY } = datum;
+        switch (position) {
+            case 'top':
+                return new BBox(translationY, -tickSize, translationY, tickSize);
+            case 'bottom':
+                return new BBox(translationY, 0, translationY, tickSize);
+            case 'left':
+                return new BBox(-tickSize, translationY, tickSize, translationY);
+            case 'right':
+                return new BBox(0, translationY, tickSize, translationY);
+        }
     }
 
     protected lineNodeBBox() {
@@ -381,9 +388,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         if (this.tick.enabled) {
             for (const datum of ticks) {
-                const { x1, x2, y } = this.getTickLineCoordinates(datum);
-                const tickLineBox = horizontal ? new BBox(y, x1, 0, x2 - x1) : new BBox(x1, y, x2 - x1, 0);
-                boxes.push(tickLineBox);
+                boxes.push(this.getTickLineBBox(datum));
             }
         }
 
