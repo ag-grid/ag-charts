@@ -1,23 +1,10 @@
-import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuItemType } from 'ag-charts-community';
+import type { AgContextMenuItemLiteral, AgContextMenuItemShowOn, AgContextMenuItemType } from 'ag-charts-community';
 
-/**
- * Merge a union of objects into one object with all the properties. This is just to check at compile-time that
- * ContextMenuItem implements all properties of AgContextMenuItem API contract.
- */
-type MergeUnion<T, CanBeUndefined extends keyof T> = {
-    [K in T extends any ? keyof T : never]: T extends { [P in K]?: infer V }
-        ? K extends CanBeUndefined
-            ? V | undefined
-            : V
-        : never;
-};
+import type { ContextMenuItemContract, ContextMenuItemContractNonRecursive } from './contextMenuItemContract';
 
-/**
- * The type of `contextMenu.items[]` recursively references its own type, but our compile-time check only needs a depth
- * of 1. Therefore, limit this depth to 1:
- */
-type ContextMenuItem_NonRecursive = Omit<MergeUnion<Extract<AgContextMenuItem, object>, 'iconUrl' | 'action'>, 'items'>;
-type ContextMenuItemContract = ContextMenuItem_NonRecursive & { items: ContextMenuItem_NonRecursive[] };
+function createItemFromLiteral(name: AgContextMenuItemLiteral): ContextMenuItem {}
+
+type Options = Partial<ContextMenuItemContractNonRecursive>;
 
 export class ContextMenuItem implements ContextMenuItemContract {
     type: AgContextMenuItemType = 'action';
@@ -27,4 +14,18 @@ export class ContextMenuItem implements ContextMenuItemContract {
     enable: boolean = true;
     items: ContextMenuItem[] = [];
     action: ContextMenuItemContract['action'] = undefined;
+
+    private setField<K extends keyof Options>(key: K, that: { [L in K]: Options[K] }, value: Options[K]): void {
+        that[key] = value;
+    }
+
+    setValues(values: Options) {
+        let key: keyof typeof values & keyof ContextMenuItem;
+        for (key in values) {
+            if (values[key] !== undefined) {
+                this.setField(key, this, values[key]);
+            }
+        }
+        this.iconUrl = values.iconUrl;
+    }
 }
