@@ -45,10 +45,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     @Property
     items? = [];
 
-    public extraActions: readonly DeprecatedAction<'extraActions'>[] = [];
-    public extraNodeActions: readonly DeprecatedAction<'extraNodeActions'>[] = [];
-    public extraSeriesAreaActions: readonly DeprecatedAction<'extraSeriesAreaActions'>[] = [];
-    public extraLegendItemActions: readonly DeprecatedAction<'extraLegendItemActions'>[] = [];
+    public extraActions: DeprecatedAction<'extraActions'> = [];
+    public extraNodeActions: DeprecatedAction<'extraNodeActions'> = [];
+    public extraSeriesAreaActions: DeprecatedAction<'extraSeriesAreaActions'> = [];
+    public extraLegendItemActions: DeprecatedAction<'extraLegendItemActions'> = [];
 
     // Module context
     private readonly interactionManager: _ModuleSupport.InteractionManager;
