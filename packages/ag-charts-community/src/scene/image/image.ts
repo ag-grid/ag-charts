@@ -1,4 +1,4 @@
-import { type InternalAgImageColor } from 'ag-charts-core';
+import { type InternalAgImageColor, createSvgElement } from 'ag-charts-core';
 import type { AgColorRepetition, AgImageColorFit } from 'ag-charts-types';
 
 import { normalizeAngle360, toRadians } from '../../util/angle';
@@ -39,18 +39,31 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
     ): CanvasPattern | null {
         if (!image) return null;
 
-        const { fit, repetition } = this;
-
         const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio });
         const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
 
-        if (fit === 'stretch') {
-            offscreenPatternCtx.drawImage(image, 0, 0, width, height);
-            return ctx.createPattern(offscreenPattern.canvas, repetition);
+        const { dx, dy, dw, dh } = this.getDimensions(image.width, image.height, width, height);
+
+        offscreenPatternCtx.drawImage(image, dx, dy, dw, dh);
+        return ctx.createPattern(offscreenPattern.canvas, this.repetition);
+    }
+
+    private getDimensions(
+        imageWidth: number,
+        imageHeight: number,
+        width: number,
+        height: number
+    ): { dx: number; dy: number; dw: number; dh: number } {
+        const { fit } = this;
+        if (fit === 'stretch' || imageWidth === 0 || imageHeight === 0) {
+            return {
+                dx: 0,
+                dy: 0,
+                dw: width,
+                dh: height,
+            };
         }
 
-        const imageWidth = image.width;
-        const imageHeight = image.height;
         const shapeAspectRatio = width / height;
         const imageAspectRatio = imageWidth / imageHeight;
 
@@ -61,13 +74,15 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
             scale = imageAspectRatio > shapeAspectRatio ? height / imageHeight : width / imageWidth;
         }
 
-        const dw = imageWidth * scale;
-        const dh = imageHeight * scale;
-        const dx = (width - dw) / 2;
-        const dy = (height - dh) / 2;
+        const scaledWidth = imageWidth * scale;
+        const scaledHeight = imageHeight * scale;
 
-        offscreenPatternCtx.drawImage(image, dx, dy, dw, dh);
-        return ctx.createPattern(offscreenPattern.canvas, repetition);
+        return {
+            dx: (width - scaledWidth) / 2,
+            dy: (height - scaledHeight) / 2,
+            dw: scaledWidth,
+            dh: scaledHeight,
+        };
     }
 
     setImageTransform(pattern: CanvasPattern | string | undefined, pixelRatio: number, tx: number = 0, ty: number = 0) {
@@ -119,6 +134,29 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
         return pattern;
     }
 
-    // toSvg(): SVGElement {
-    // }
+    toSvg(shapeWidth: number, shapeHeight: number, pixelRatio: number): SVGElement {
+        const { url, width = shapeWidth, height = shapeHeight, scale, rotation } = this;
+
+        const pattern = createSvgElement('pattern');
+        pattern.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        pattern.setAttribute('width', String(width));
+        pattern.setAttribute('height', String(height));
+        pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+        pattern.setAttribute(
+            'patternTransform',
+            `scale(${scale / pixelRatio}) rotate(${rotation}, ${width / 2}, ${height / 2})`
+        );
+
+        const image = createSvgElement('image');
+        image.setAttribute('href', url);
+        image.setAttribute('x', '0');
+        image.setAttribute('y', '0');
+        image.setAttribute('width', String(width));
+        image.setAttribute('height', String(height));
+        image.setAttribute('preserveAspectRatio', 'none');
+
+        pattern.appendChild(image);
+
+        return pattern;
+    }
 }

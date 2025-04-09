@@ -362,6 +362,19 @@ export abstract class Shape<D = any> extends Node<D> {
             defs.push(pattern);
 
             element.setAttribute('fill', `url(#${id})`);
+        } else if (isImageFill(fill) && this.fillImage) {
+            defs ??= [];
+
+            const { width, height } = this.getBBox();
+            const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
+            const pattern = this.fillImage.toSvg(width, height, pixelRatio);
+
+            const id = generateUUID();
+            pattern.setAttribute('id', id);
+
+            defs.push(pattern);
+
+            element.setAttribute('fill', `url(#${id})`);
         } else {
             element.setAttribute('fill', 'none');
         }
