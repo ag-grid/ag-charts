@@ -14,6 +14,7 @@ import { Line } from '../../scene/shape/line';
 import { TransformableText } from '../../scene/shape/text';
 import { normalizeAngle360 } from '../../util/angle';
 import { findMinMax } from '../../util/number';
+import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import { StateMachine } from '../../util/stateMachine';
 import { Caption } from '../caption';
@@ -178,9 +179,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
     }
 
-    override calculateLayout(primaryTickCount?: number) {
+    override calculateLayout(primaryTickCount?: number, chartPadding?: Padding) {
         this.updateDirection();
-        return super.calculateLayout(primaryTickCount);
+        return super.calculateLayout(primaryTickCount, chartPadding);
     }
 
     layoutCrossLines(): void {
@@ -243,7 +244,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             };
         }
 
-        const removeOverflowingLabels = this.horizontal && ContinuousScale.is(this.scale);
+        const removeOverflowLabels = this.horizontal && ContinuousScale.is(this.scale);
         const tickGenerationResult = this.tickGenerator.generateTicks({
             domain,
             niceMode,
@@ -253,7 +254,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             regularFlipRotation,
             labelX,
             sideFlag,
-            removeOverflowingLabels,
+            removeOverflowLabels,
+            removeOverflowThreshold: this.chartPadding?.right,
         });
 
         const { tickData, primaryTickCount = initialPrimaryTickCount } = tickGenerationResult;

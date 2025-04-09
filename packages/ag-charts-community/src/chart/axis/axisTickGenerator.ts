@@ -45,7 +45,8 @@ export interface TickGenerationParams<D = any> {
     regularFlipRotation: number;
     labelX: number;
     sideFlag: ChartAxisLabelFlipFlag;
-    removeOverflowingLabels: boolean;
+    removeOverflowLabels: boolean;
+    removeOverflowThreshold?: number;
 }
 
 export interface TickGenerationResult<D = any> {
@@ -130,7 +131,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         regularFlipRotation,
         labelX,
         sideFlag,
-        removeOverflowingLabels,
+        removeOverflowLabels,
+        removeOverflowThreshold = 0,
     }: TickGenerationParams<D>): TickGenerationResult<D> {
         const {
             scale,
@@ -228,14 +230,14 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             primaryTickCount = tickData.rawTicks.length;
         }
 
-        if (removeOverflowingLabels && tickData.ticks.length > 2) {
+        if (removeOverflowLabels && tickData.ticks.length > 2) {
             const labelData = getLabelData(tickData, autoRotation);
             const lastTick = tickData.ticks.at(-1);
             const lastLabel = labelData.at(-1);
             if (
                 lastTick != null &&
                 lastLabel != null &&
-                lastTick.translationY + lastLabel.label.width / 2 > this.axis.range[1]
+                lastTick.translationY + lastLabel.label.width / 2 > this.axis.range[1] + removeOverflowThreshold
             ) {
                 lastTick.tickLabel = undefined;
 

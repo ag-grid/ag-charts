@@ -170,7 +170,7 @@ export abstract class RadiusAxis<
             regularFlipRotation,
             labelX,
             sideFlag,
-            removeOverflowingLabels: false,
+            removeOverflowLabels: false,
         });
 
         const { tickData, primaryTickCount = initialPrimaryTickCount } = tickGenerationResult;

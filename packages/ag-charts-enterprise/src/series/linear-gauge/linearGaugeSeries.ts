@@ -593,7 +593,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             parallelFlipRotation,
             regularFlipRotation,
             sideFlag,
-            removeOverflowingLabels: false,
+            removeOverflowLabels: false,
         }).tickData;
 
         const isReversed = false; // Can this be removed?

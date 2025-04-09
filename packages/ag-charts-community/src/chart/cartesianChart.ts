@@ -241,7 +241,8 @@ export class CartesianChart extends Chart {
 
             const isVertical = direction === ChartAxisDirection.Y;
             const { primaryTickCount, bbox } = axis.calculateLayout(
-                axis.nice ? primaryTickCounts[direction] : undefined
+                axis.nice ? primaryTickCounts[direction] : undefined,
+                this.padding
             );
 
             primaryTickCounts[direction] ??= primaryTickCount;

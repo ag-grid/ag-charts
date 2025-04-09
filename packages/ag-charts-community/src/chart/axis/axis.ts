@@ -28,6 +28,7 @@ import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
+import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
@@ -436,15 +437,21 @@ export abstract class Axis<
         this.animatable = animatable;
     }
 
+    protected chartPadding?: Padding;
+
     _scaleNiceDomainInputDomain: D[] | undefined = undefined;
     _scaleNiceDomainRangeExtent: number = NaN;
-    calculateLayout(initialPrimaryTickCount?: number): {
+    calculateLayout(
+        initialPrimaryTickCount?: number,
+        chartPadding?: Padding
+    ): {
         primaryTickCount?: number;
         bbox?: BBox;
         niceDomain?: unknown[];
     } {
         const { scale, label, visibleRange, nice } = this;
 
+        this.chartPadding = chartPadding;
         this.updateScale();
 
         const rangeExtent = findRangeExtent(this.range);
