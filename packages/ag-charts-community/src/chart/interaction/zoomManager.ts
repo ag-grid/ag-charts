@@ -173,7 +173,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         const { invalid } = validate(blob, zoomMementoDefs);
         if (invalid.length > 0) {
-            messages.push(...invalid.map((e) => e.message));
+            messages.push(...invalid.map(String));
             return false;
         }
 

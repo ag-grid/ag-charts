@@ -7,6 +7,7 @@ import {
     ValidatorResult,
     and,
     array,
+    arrayLength,
     arrayOf,
     arrayOfDefs,
     attachDescription,
@@ -314,68 +315,65 @@ describe('Validation utils', () => {
 
         test('nested validations returns all levels of validation errors', () => {
             const complexOptionsDef = {
-                test: and(
-                    or(
-                        optionsDefs<any>(
-                            {
-                                name: required(string),
-                                age: positiveNumber,
-                            },
-                            'person details'
-                        ),
-                        optionsDefs<any>(
-                            {
-                                id: required(string),
-                                position: string,
-                            },
-                            'employee details'
-                        )
-                    ),
-                    optionsDefs<any>(
-                        {
-                            salaries: arrayOf(positiveNumber),
-                            employers: arrayOfDefs<any>(
+                employees: and(
+                    arrayOf(
+                        or(
+                            string,
+                            optionsDefs<any>(
                                 {
                                     name: required(string),
-                                    department: union('a', 'b', 'c'),
+                                    age: positiveNumber,
+                                    salaries: arrayOf(positiveNumber),
+                                    employers: arrayOfDefs<any>(
+                                        {
+                                            name: required(string),
+                                            department: union('a', 'b', 'c'),
+                                        },
+                                        'an employers array'
+                                    ),
                                 },
-                                'an employers array'
-                            ),
-                        },
-                        'position details'
-                    )
+                                'person details'
+                            )
+                        )
+                    ),
+                    arrayLength(1)
                 ),
             };
 
             const validOptions = {
-                name: 'John Doe',
-                age: 30,
-                position: 'NA',
-                salaries: [10_000, 22_000, 45_000],
-                employers: [
-                    { name: 'Dave', department: 'b' },
-                    { name: 'John', department: 'c' },
+                employees: [
+                    'John Doe',
+                    {
+                        name: 'John Doe',
+                        age: 30,
+                        position: 'NA',
+                        salaries: [10_000, 22_000, 45_000],
+                        employers: [
+                            { name: 'Dave', department: 'b' },
+                            { name: 'John', department: 'c' },
+                        ],
+                    },
                 ],
             };
 
             const invalidOptions = {
-                age: 30,
-                position: 'NA',
-                salaries: [10_000, 22_000, '45_000'],
-                employers: [
-                    { name: 'Dave', department: 'd' },
-                    { employeeId: 'John', department: 'c' },
+                employees: [
+                    1337,
+                    {
+                        age: 30,
+                        position: 'NA',
+                        salaries: [10_000, 22_000, '45_000'],
+                        employers: [
+                            { name: 'Dave', department: 'd' },
+                            { employeeId: 'John', department: 'c' },
+                        ],
+                    },
                 ],
             };
 
-            const validResult = validate({ test: validOptions }, complexOptionsDef);
-            const invalidResult = validate({ test: invalidOptions }, complexOptionsDef);
-
-            expect(validResult.cleared).not.toEqual({});
-            expect(invalidResult.cleared).toEqual({});
-
-            expect(validResult.invalid).toMatchSnapshot();
-            expect(invalidResult.invalid).toMatchSnapshot();
+            expect(validate(validOptions, complexOptionsDef)).toMatchSnapshot();
+            expect(validate(invalidOptions, complexOptionsDef)).toMatchSnapshot();
+            expect(validate({ employees: [] }, complexOptionsDef)).toMatchSnapshot();
         });
     });
 });

@@ -162,8 +162,13 @@ export function processMembers(
 export function formatTypeToCode(
     apiNode: ApiReferenceNode | MemberNode,
     member: MemberNode,
-    reference: ApiReferenceType
+    reference: ApiReferenceType,
+    relatedTypes = new Set<string>()
 ): string {
+    if (apiNode.kind === 'interface' || apiNode.kind === 'typeAlias') {
+        relatedTypes.add(apiNode.name);
+    }
+
     if (apiNode.kind === 'interface') {
         const additionalTypes = new Set<string>();
         const typesList = apiNode.members.map((nodeMember) => {
@@ -172,7 +177,7 @@ export function formatTypeToCode(
                 const memberType = normalizeType(
                     nodeMember.type.kind === 'array' ? nodeMember.type.type : nodeMember.type
                 );
-                if (!isInterfaceHidden(memberType)) {
+                if (!isInterfaceHidden(memberType) && !relatedTypes.has(memberType)) {
                     additionalTypes.add(memberType);
                 }
             }
@@ -188,7 +193,7 @@ export function formatTypeToCode(
         for (const type of additionalTypes) {
             const typeRef = reference.get(type);
             if (typeRef) {
-                result.push(formatTypeToCode(typeRef, member, reference));
+                result.push(formatTypeToCode(typeRef, member, reference, additionalTypes));
             }
         }
         return result.join('\n\n');
@@ -210,17 +215,17 @@ export function formatTypeToCode(
             nodeType = '\n    ' + nodeType.replaceAll('|', '\n  |');
 
             const result = [`type ${apiNode.name} = ${nodeType};`];
-            const additionalTypes = new Set(apiNode.type.type);
+            const additionalTypes = new Set(apiNode.type.type.map((type) => normalizeType(type)));
 
             for (const type of additionalTypes) {
                 if (
-                    typeof type === 'string' &&
                     reference.has(type) &&
-                    !hiddenInterfaces.includes(type) &&
+                    !relatedTypes.has(type) &&
+                    !isInterfaceHidden(type) &&
                     !('deprecated' in reference.get(type)!)
                 ) {
                     const subType = reference.get(type)!;
-                    const codeResult = formatTypeToCode(subType, member, reference);
+                    const codeResult = formatTypeToCode(subType, member, reference, additionalTypes);
                     if (codeResult) {
                         result.push(codeResult);
                     }
@@ -384,7 +389,12 @@ export function extractSearchData(
     if (interfaceRef?.kind === 'interface' || (interfaceRef?.kind === 'typeLiteral' && interfaceRef.name)) {
         const { genericsMap } = interfaceRef as any;
         return interfaceRef.members.flatMap((member) => {
-            const navPath = basePath.concat({ name: cleanupName(member.name), type: getMemberType(member) });
+            const newPath = { name: cleanupName(member.name), type: getMemberType(member) };
+            if (basePath.find((p) => p.name === newPath.name && p.type === newPath.type)) {
+                return [];
+            }
+
+            const navPath = basePath.concat(newPath);
             const results = [
                 {
                     label: labelPrefix + cleanupName(member.name),

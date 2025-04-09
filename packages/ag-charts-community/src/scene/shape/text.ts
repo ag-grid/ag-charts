@@ -1,4 +1,4 @@
-import { createSvgElement } from 'ag-charts-core';
+import { createSvgElement, isDefined } from 'ag-charts-core';
 import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
@@ -42,7 +42,10 @@ export class Text<D = any> extends Shape<D> {
         this.lines = this.text?.split('\n').map((s) => s.trim()) ?? [];
     }
 
-    @SceneChangeDetection({ changeCb: (o: Text) => o.onTextChange() })
+    @SceneChangeDetection({
+        convertor: (value) => (isDefined(value) ? String(value) : value),
+        changeCb: (o: Text) => o.onTextChange(),
+    })
     text?: string = undefined;
 
     @SceneChangeDetection()

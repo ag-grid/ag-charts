@@ -86,14 +86,27 @@ const extractTitle = (titleTag) => {
     }
 
     return title
-        ? title
-              .replace('Angular Charts', '')
-              .replace('React Charts', '')
-              .replace('Vue Charts', '')
-              .replace('Javascript Charts', '')
-              .replace('ReactAngularVueJavascript', '')
-        : title;
+        ?.replace('Angular Charts', '')
+        .replace('React Charts', '')
+        .replace('Vue Charts', '')
+        .replace('JavaScript Charts', '')
+        .replace('ReactAngularVueJavascript', '')
+        .trim();
 };
+
+function getHeadingContent(heading) {
+    const cleanHeading = heading.cloneNode(true);
+    for (const child of cleanHeading.children) {
+        if (
+            // Exclude `Copy` link in headings
+            child.textContent.trim() === 'Copy'
+        ) {
+            cleanHeading.removeChild(child);
+        }
+    }
+
+    return cleanHeading.textContent?.trim() || '';
+}
 
 const convertToFrameworkUrl = (url, framework) => `/${framework}/${url}/`;
 
@@ -151,8 +164,8 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
             objectID: hashPath,
             breadcrumb,
             title,
-            heading: heading ? heading.replaceAll('\n    ', '').replaceAll('\n', '') : undefined,
-            subHeading: subHeading ? subHeading.replaceAll('\n    ', '').replaceAll('\n', '') : undefined,
+            heading: heading?.trim(),
+            subHeading: subHeading?.trim(),
             path: hashPath,
             text: cleanText,
             rank,
@@ -190,7 +203,7 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
                         createRecord();
 
                         key = currentTag.id;
-                        heading = currentTag.textContent;
+                        heading = getHeadingContent(currentTag);
                         break;
                     }
 
@@ -198,7 +211,7 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
                         createRecord();
 
                         key = currentTag.id;
-                        subHeading = currentTag.textContent;
+                        subHeading = getHeadingContent(currentTag);
                         break;
                     }
 

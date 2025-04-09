@@ -1,9 +1,9 @@
-import { type AgTreemapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgTreemapSeriesOptions, type AgTreemapSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
     boolean,
-    callback,
+    callbackDefs,
     color,
     colorUnion,
     constant,
@@ -14,6 +14,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
     union,
 } from 'ag-charts-core';
 
@@ -31,7 +32,10 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
     colorRange: arrayOf(color),
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgTreemapSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+    }),
     group: {
         gap: positiveNumber,
         padding: positiveNumber,
@@ -93,10 +97,10 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-treemapSeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
+treemapSeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 // @ts-expect-error undocumented option
-treemapSeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
+treemapSeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 // @ts-expect-error undocumented option
-treemapSeriesOptionsDef.undocumentedGroupFills = arrayOf(color);
+treemapSeriesOptionsDef.undocumentedGroupFills = undocumented(arrayOf(color));
 // @ts-expect-error undocumented option
-treemapSeriesOptionsDef.undocumentedGroupStrokes = arrayOf(color);
+treemapSeriesOptionsDef.undocumentedGroupStrokes = undocumented(arrayOf(color));

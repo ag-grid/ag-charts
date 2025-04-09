@@ -271,7 +271,6 @@ describe('OrdinalTimeScale', () => {
 
                 scale.range = [0, 600];
                 scale.domain = domain;
-                scale.interval = interval;
 
                 const ticks = {
                     nice: true,
@@ -502,7 +501,6 @@ describe('OrdinalTimeScale', () => {
 
                 scale.range = [0, 600];
                 scale.domain = domain;
-                scale.interval = interval;
 
                 const ticks = {
                     nice: true,

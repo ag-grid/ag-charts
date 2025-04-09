@@ -281,13 +281,13 @@ export class Legend extends BaseProperties {
         this.destroyFns.push(
             ctx.contextMenuRegistry.registerDefaultAction({
                 id: ID_LEGEND_VISIBILITY,
-                type: 'legend',
+                type: 'legend-item',
                 label: 'contextMenuToggleSeriesVisibility',
                 action: (params) => this.contextToggleVisibility(params),
             }),
             ctx.contextMenuRegistry.registerDefaultAction({
                 id: ID_LEGEND_OTHER_SERIES,
-                type: 'legend',
+                type: 'legend-item',
                 label: 'contextMenuToggleOtherSeries',
                 action: (params) => this.contextToggleOtherSeries(params),
             }),
@@ -878,7 +878,7 @@ export class Legend extends BaseProperties {
 
         const { offsetX, offsetY } = sourceEvent;
         const { x: canvasX, y: canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
-        this.ctx.contextMenuRegistry.dispatchContext('legend', { sourceEvent, canvasX, canvasY }, { legendItem });
+        this.ctx.contextMenuRegistry.dispatchContext('legend-item', { sourceEvent, canvasX, canvasY }, { legendItem });
     }
 
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget) {

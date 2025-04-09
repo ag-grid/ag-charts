@@ -21,31 +21,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     abstract override toDomain(value: number): D;
 
     normalizeDomains(...domains: D[][]): NormalizedDomain<D> {
-        let min: D | undefined;
-        let minValue = Infinity;
-        let max: D | undefined;
-        let maxValue = -Infinity;
-
-        for (const domain of domains) {
-            for (const d of domain) {
-                const value = d.valueOf();
-                if (value < minValue) {
-                    minValue = value;
-                    min = d;
-                }
-                if (value > maxValue) {
-                    maxValue = value;
-                    max = d;
-                }
-            }
-        }
-
-        if (min != null && max != null) {
-            const domain = [min, max];
-            return { domain, animatable: true };
-        } else {
-            return { domain: [], animatable: false };
-        }
+        return normalizeContinuousDomains(...domains);
     }
 
     protected transform(x: D) {
@@ -126,5 +102,33 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     protected getPixelRange() {
         const [a, b] = this.range;
         return Math.abs(b - a);
+    }
+}
+
+export function normalizeContinuousDomains<D extends number | Date>(...domains: D[][]): NormalizedDomain<D> {
+    let min: D | undefined;
+    let minValue = Infinity;
+    let max: D | undefined;
+    let maxValue = -Infinity;
+
+    for (const domain of domains) {
+        for (const d of domain) {
+            const value = d.valueOf();
+            if (value < minValue) {
+                minValue = value;
+                min = d;
+            }
+            if (value > maxValue) {
+                maxValue = value;
+                max = d;
+            }
+        }
+    }
+
+    if (min != null && max != null) {
+        const domain = [min, max];
+        return { domain, animatable: true };
+    } else {
+        return { domain: [], animatable: false };
     }
 }

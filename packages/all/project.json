@@ -119,15 +119,19 @@
           "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
           "nx run ag-charts-website:dev"
         ]
-      },
-      "configurations": {
-        "windows": {
-          "commands": [
-            {
-              "command": "nx run ag-charts-website:dev --configuration watch"
-            }
-          ]
-        }
+      }
+    },
+    "dev:lite": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build:types", "^build:package", "generate"],
+      "inputs": [],
+      "outputs": [],
+      "options": {
+        "parallel": true,
+        "commands": [
+          "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
+          "./tools/dev-server/lite.sh"
+        ]
       }
     },
     "dev:quick": {
@@ -217,6 +221,15 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": ["nx run ag-charts-website-gallery_{args.example}_main.ts:generate-thumbnail --skip-nx-cache"]
+      }
+    },
+    "ci:debug": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "./external/ag-shared/scripts/gha-debug",
+        "command": "./runner.sh ag-charts",
+        "parallel": false,
+        "forwardAllArgs": true
       }
     }
   },

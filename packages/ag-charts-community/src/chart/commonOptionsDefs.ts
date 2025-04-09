@@ -1,45 +1,59 @@
 import {
-    type OptionsDefs,
+    ErrorType,
+    ValidationError,
     and,
     array,
     arrayLength,
     arrayOf,
     arrayOfDefs,
+    attachDescription,
     boolean,
     callback,
+    callbackDefs,
+    callbackOf,
     color,
     date,
     defined,
     fillOptionsDef,
     fontOptionsDef,
     greaterThan,
+    htmlElement,
     lessThan,
     lineDashOptionsDef,
     number,
     object,
+    optionsDefs,
     or,
     positiveNumber,
     ratio,
+    required,
     string,
     strokeOptionsDef,
     typeUnion,
+    undocumented,
     union,
-    unknown,
 } from 'ag-charts-core';
+import type { OptionsDefs, Validator, ValidatorContext, ValidatorResult } from 'ag-charts-core';
 import type {
     AgBaseSeriesOptions,
     AgBaseThemeableChartOptions,
     AgChartAutoSizedBaseLabelOptions,
     AgChartCaptionOptions,
     AgChartLabelOptions,
-    AgChartOverlayOptions,
+    AgChartOverlayOptions, // eslint-disable-next-line sonarjs/deprecation
     AgContextMenuAction,
+    AgContextMenuItem,
+    AgContextMenuItemLiteral,
     AgDropShadowOptions,
     AgErrorBarOptions,
+    AgErrorBarThemeableOptions,
     AgInterpolationType,
     AgRangesButton,
     AgSeriesMarkerOptions,
+    AgSeriesMarkerStyle,
     AgSeriesTooltip,
+    AgTooltipRendererDataRow,
+    AgTooltipRendererResult,
     AgZoomButton,
     ToolbarButton,
 } from 'ag-charts-types';
@@ -109,13 +123,62 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
 const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     enabled: boolean,
     text: string,
-    renderer: callback,
+    renderer: callbackOf(or(string, htmlElement)),
 };
 
+const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [
+    'defaults',
+    'download',
+    'zoom-to-cursor',
+    'pan-to-cursor',
+    'toggle-series-visibility',
+    'toggle-other-series',
+    'reset-zoom',
+];
+
+const contextMenuItemObjectValidator: Validator = optionsDefs<Exclude<AgContextMenuItem, AgContextMenuItemLiteral>>({
+    type: union('action', 'submenu', 'separator'),
+    showOn: union('always', 'series-area', 'series-node', 'legend-item'),
+    label: required(string),
+    enable: boolean,
+    iconUrl: string,
+    action: callback,
+    items: (value, context) => contextMenuItemsArray(value, context),
+});
+
+const contextMenuItemValidator = attachDescription(
+    (value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
+        let result: ValidatorResult | boolean;
+        if (typeof value === 'string') {
+            const allowedValues: readonly string[] = contextMenuItemLiterals;
+            if (allowedValues.includes(value)) {
+                result = true;
+            } else {
+                result = { valid: false, invalid: [], cleared: {} } satisfies ValidatorResult;
+                result.invalid.push(
+                    new ValidationError(
+                        ErrorType.Invalid,
+                        `a context menu item string alias: ["${contextMenuItemLiterals.join('", "')}"]`,
+                        value,
+                        context.path
+                    )
+                );
+            }
+        } else {
+            result = contextMenuItemObjectValidator(value, context);
+        }
+        return result;
+    },
+    `a context menu item object or string alias: [${contextMenuItemLiterals.join(', ')}]`
+);
+
+const contextMenuItemsArray = arrayOf(contextMenuItemValidator, 'a menu items array', 'or');
+
+// eslint-disable-next-line sonarjs/deprecation
 const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
     {
-        label: string,
-        action: callback,
+        label: required(string),
+        action: required(callback),
     },
     'a context menu actions array'
 );
@@ -324,6 +387,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     contextMenu: {
         enabled: boolean,
+        items: contextMenuItemsArray,
         extraActions: contextMenuActionsArray,
         extraSeriesAreaActions: contextMenuActionsArray,
         extraNodeActions: contextMenuActionsArray,
@@ -352,7 +416,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     // modules
     locale: {
         localeText: object,
-        getLocaleText: callback,
+        getLocaleText: callbackOf(string),
     },
     background: {
         visible: boolean,
@@ -414,19 +478,19 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
 };
 
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.dataSource.requestThrottle = positiveNumber;
+commonChartOptionsDefs.dataSource.requestThrottle = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.dataSource.updateThrottle = positiveNumber;
+commonChartOptionsDefs.dataSource.updateThrottle = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.dataSource.updateDuringInteraction = boolean;
+commonChartOptionsDefs.dataSource.updateDuringInteraction = undocumented(boolean);
 
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.zoom.enableIndependentAxes = boolean;
+commonChartOptionsDefs.zoom.enableIndependentAxes = undocumented(boolean);
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.statusBar = defined;
+commonChartOptionsDefs.statusBar = undocumented(defined);
 
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.foreground = {
+commonChartOptionsDefs.foreground = undocumented({
     visible: boolean,
     text: string,
     image: {
@@ -440,12 +504,12 @@ commonChartOptionsDefs.foreground = {
         opacity: ratio,
     },
     ...fillOptionsDef,
-};
+});
 
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.context = unknown;
+commonChartOptionsDefs.context = undocumented(defined);
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.overrideDevicePixelRatio = number;
+commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
 
 export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     id: string,
@@ -469,20 +533,24 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
 };
 
 // @ts-expect-error undocumented option
-commonSeriesOptionsDefs.context = unknown;
+commonSeriesOptionsDefs.context = undocumented(defined);
 // @ts-expect-error undocumented option
-commonSeriesOptionsDefs.seriesGrouping = defined;
+commonSeriesOptionsDefs.seriesGrouping = undocumented(defined);
 
 // @ts-expect-error undocumented option
-commonSeriesOptionsDefs.highlight = {
-    enabled: boolean,
-};
+commonSeriesOptionsDefs.highlight = undocumented({ enabled: boolean });
 
 export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     enabled: boolean,
     shape: shapeValidator,
     size: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgSeriesMarkerStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        shape: shapeValidator,
+        size: positiveNumber,
+    }),
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
@@ -512,7 +580,18 @@ export const errorBarOptionsDefs: OptionsDefs<AgErrorBarOptions<any>> = {
     xUpperName: string,
     yLowerName: string,
     yUpperName: string,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgErrorBarThemeableOptions>({
+        visible: boolean,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cap: {
+            visible: boolean,
+            length: positiveNumber,
+            lengthRatio: ratio,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        },
+    }),
     cap: {
         visible: boolean,
         length: positiveNumber,
@@ -528,7 +607,22 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
     enabled: boolean,
     showArrow: boolean,
     range: rangeValidator,
-    renderer: callback,
+    renderer: callbackOf(
+        or(
+            string,
+            optionsDefs<AgTooltipRendererResult>(
+                {
+                    heading: string,
+                    title: string,
+                    data: arrayOfDefs<AgTooltipRendererDataRow>({
+                        label: required(string),
+                        value: required(string),
+                    }),
+                },
+                'tooltip renderer result object'
+            )
+        )
+    ),
     position: {
         type: tooltipDeprecatedTypeValidator,
         anchorTo: union('node', 'pointer', 'chart'),
@@ -542,7 +636,7 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
 };
 
 // @ts-expect-error undocumented option
-tooltipOptionsDefs.position._seriesOverrideType = tooltipDeprecatedTypeValidator;
+tooltipOptionsDefs.position._seriesOverrideType = undocumented(tooltipDeprecatedTypeValidator);
 
 export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     enabled: boolean,

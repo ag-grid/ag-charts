@@ -12,6 +12,7 @@ services:
             LABELS: ${LABELS}
             ACTIONS_RESULTS_URL: http://gha-cache:3000/
             DISABLE_AUTOMATIC_DEREGISTRATION: 'true'
+            EPHEMERAL: 'true'
         restart: unless-stopped
         security_opt:
             # needed on SELinux systems to allow docker container to manage other docker containers

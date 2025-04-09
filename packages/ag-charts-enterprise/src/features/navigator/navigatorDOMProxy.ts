@@ -163,7 +163,7 @@ export class NavigatorDOMProxy {
         const { x: sliderX, y: sliderY } = slider.getBounds();
         const canvasX = offsetX + toolbarX + sliderX;
         const canvasY = offsetY + toolbarY + sliderY;
-        this.ctx.contextMenuRegistry.dispatchContext('all', { sourceEvent, canvasX, canvasY }, {});
+        this.ctx.contextMenuRegistry.dispatchContext('always', { sourceEvent, canvasX, canvasY }, undefined);
     }
 
     private onPanSliderChange() {

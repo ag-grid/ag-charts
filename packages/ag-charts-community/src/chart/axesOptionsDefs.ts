@@ -8,6 +8,8 @@ import {
     attachDescription,
     boolean,
     callback,
+    callbackDefs,
+    callbackOf,
     color,
     defined,
     fontOptionsDef,
@@ -17,6 +19,7 @@ import {
     lessThan,
     lineDashOptionsDef,
     number,
+    optionsDefs,
     or,
     positiveNumber,
     positiveNumberNonZero,
@@ -24,11 +27,13 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
     union,
 } from 'ag-charts-core';
 import type {
     AgAxisGridStyle,
     AgBaseAxisLabelOptions,
+    AgBaseAxisLabelStyleOptions,
     AgBaseAxisOptions,
     AgBaseCartesianAxisLabelOptions,
     AgBaseCartesianAxisOptions,
@@ -38,6 +43,7 @@ import type {
     AgCartesianCrossLineOptions,
     AgContinuousAxisOptions,
     AgCrosshairLabel,
+    AgCrosshairLabelRendererResult,
     AgCrosshairOptions,
 } from 'ag-charts-types';
 
@@ -108,7 +114,10 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     minSpacing: positiveNumber,
     spacing: positiveNumber,
     formatter: callback,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
+        ...fontOptionsDef,
+        spacing: number,
+    }),
     ...fontOptionsDef,
 };
 
@@ -150,15 +159,15 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
 };
 
 // @ts-expect-error undocumented option
-commonAxisOptionsDefs.context = defined;
+commonAxisOptionsDefs.context = undocumented(defined);
 
 // @ts-expect-error undocumented option
-commonAxisOptionsDefs.layoutConstraints = {
+commonAxisOptionsDefs.layoutConstraints = undocumented({
     stacked: required(boolean),
     align: required(union('start', 'end')),
     unit: required(union('percent', 'px')),
     width: required(positiveNumber),
-};
+});
 
 export const cartesianAxisOptionsDefs: OptionsDefs<
     Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'crosshair'>
@@ -182,7 +191,20 @@ export function cartesianAxisCrosshairOptions<T extends boolean>(canFormat?: T) 
         enabled: boolean,
         xOffset: number,
         yOffset: number,
-        renderer: callback,
+        renderer: callbackOf(
+            or(
+                string,
+                optionsDefs<AgCrosshairLabelRendererResult>(
+                    {
+                        text: string,
+                        color: color,
+                        backgroundColor: color,
+                        opacity: ratio,
+                    },
+                    'crosshair label renderer result object'
+                )
+            )
+        ),
     };
     if (canFormat) {
         (crosshairLabel as OptionsDefs<AgCrosshairLabel>).format = string;
@@ -205,9 +227,7 @@ export function continuousAxisOptions(
         max: and(validDatum, greaterThan('min')),
         nice: boolean,
         interval: {
-            step: supportTimeInterval
-                ? or(positiveNumberNonZero, or(positiveNumberNonZero, instanceOf(TimeInterval)))
-                : positiveNumberNonZero,
+            step: supportTimeInterval ? or(positiveNumberNonZero, instanceOf(TimeInterval)) : positiveNumberNonZero,
             values: arrayOf(validDatum),
             minSpacing: and(positiveNumber, lessThan('maxSpacing')),
             maxSpacing: and(positiveNumber, greaterThan('minSpacing')),

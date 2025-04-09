@@ -7,6 +7,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions } from 'ag-charts-types';
 
@@ -43,8 +44,8 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-lineSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
+lineSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
-lineSeriesOptionsDef.focusPriority = number;
+lineSeriesOptionsDef.focusPriority = undocumented(number);
 // @ts-expect-error undocumented option
-lineSeriesOptionsDef.sparklineMode = boolean;
+lineSeriesOptionsDef.sparklineMode = undocumented(boolean);

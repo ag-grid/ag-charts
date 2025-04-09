@@ -284,8 +284,7 @@
       },
       "configurations": {
         "ci": {
-          "ci": true,
-          "codeCoverage": true
+          "ci": true
         }
       }
     },

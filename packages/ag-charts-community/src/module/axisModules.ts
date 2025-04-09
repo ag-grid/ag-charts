@@ -9,6 +9,10 @@ import {
     constant,
     date,
     fontOptionsDef,
+    greaterThan,
+    instanceOf,
+    isPlainObject,
+    lessThan,
     number,
     or,
     positiveNumber,
@@ -23,6 +27,7 @@ import type {
     AgLogAxisOptions,
     AgNumberAxisOptions,
     AgTimeAxisOptions,
+    AgUnitTimeAxisOptions,
 } from 'ag-charts-types';
 
 import {
@@ -37,6 +42,8 @@ import { GroupedCategoryAxis } from '../chart/axis/groupedCategoryAxis';
 import { LogAxis } from '../chart/axis/logAxis';
 import { NumberAxis } from '../chart/axis/numberAxis';
 import { TimeAxis } from '../chart/axis/timeAxis';
+import { UnitTimeAxis } from '../chart/axis/unitTimeAxis';
+import { TimeInterval } from '../util/time';
 import type { ModuleContext } from './moduleContext';
 
 export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
@@ -110,6 +117,40 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
     ),
 };
 
+export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
+    ...cartesianAxisOptionsDefs,
+    type: required(constant('unit-time')),
+    unit: instanceOf(TimeInterval),
+    label: {
+        ...cartesianAxisLabelOptionsDefs,
+        format: string,
+    },
+    paddingInner: positiveNumber,
+    paddingOuter: positiveNumber,
+    groupPaddingInner: positiveNumber,
+    crosshair: cartesianAxisCrosshairOptions(true),
+    min: and(date, lessThan('max')),
+    max: and(date, greaterThan('min')),
+};
+
+// @todo(AG-14472) - Remove
+const mergeOptionsDefs = (a: OptionsDefs<any>, b: OptionsDefs<any>) => {
+    const out: OptionsDefs<any> = {};
+    for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
+        const aDef = (a as any)[key];
+        const bDef = (b as any)[key];
+        if (isPlainObject(aDef) && isPlainObject(bDef)) {
+            out[key] = mergeOptionsDefs(aDef, bDef);
+        } else if (aDef != null && bDef != null && aDef !== bDef) {
+            out[key] = or(aDef, bDef);
+        } else {
+            out[key] = aDef ?? bDef;
+        }
+    }
+    return out;
+};
+const timeAxisOptionsCompatibilityDefs = mergeOptionsDefs(timeAxisOptionsDefs, unitTimeAxisOptionsDefs);
+
 export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions> = {
     type: 'axis',
     name: 'number',
@@ -135,7 +176,8 @@ export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
     name: 'time',
     chartType: 'cartesian',
 
-    options: timeAxisOptionsDefs,
+    // @todo(AG-14472) - Replace with timeAxisOptionsDefs,
+    options: timeAxisOptionsCompatibilityDefs as any,
 
     create: (ctx: ModuleContext) => new TimeAxis(ctx),
 };
@@ -158,4 +200,14 @@ export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAx
     options: groupedCategoryAxisOptionsDefs,
 
     create: (ctx: ModuleContext) => new GroupedCategoryAxis(ctx),
+};
+
+export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions> = {
+    type: 'axis',
+    name: 'unit-time',
+    chartType: 'cartesian',
+
+    options: unitTimeAxisOptionsDefs,
+
+    create: (ctx: ModuleContext) => new UnitTimeAxis(ctx),
 };

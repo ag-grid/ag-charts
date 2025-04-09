@@ -3,10 +3,11 @@
 exports[`Validation utils Conditional Validators validates axis schema with optional min/max 1`] = `
 [
   ValidationError {
-    "message": "Option \`max\` cannot be set to \`"100"\`; expecting a number and the value to be greater than \`min\`, ignoring.",
+    "description": "a number and the value to be greater than \`min\`",
+    "key": "max",
     "path": "",
-    "required": undefined,
-    "unknown": undefined,
+    "type": "invalid",
+    "value": "100",
   },
 ]
 `;
@@ -14,58 +15,152 @@ exports[`Validation utils Conditional Validators validates axis schema with opti
 exports[`Validation utils Utility Functions attachDescription adds a description to a validator 1`] = `
 [
   ValidationError {
-    "message": "Option \`str\` cannot be set to \`""\`; expecting a non-empty string, ignoring.",
+    "description": "a non-empty string",
+    "key": "str",
     "path": "",
-    "required": undefined,
-    "unknown": undefined,
+    "type": "invalid",
+    "value": "",
   },
 ]
 `;
 
-exports[`Validation utils Validate Method nested validations returns all levels of validation errors 1`] = `[]`;
+exports[`Validation utils Validate Method nested validations returns all levels of validation errors 1`] = `
+{
+  "cleared": {
+    "employees": [
+      "John Doe",
+      {
+        "age": 30,
+        "employers": [
+          {
+            "department": "b",
+            "name": "Dave",
+          },
+          {
+            "department": "c",
+            "name": "John",
+          },
+        ],
+        "name": "John Doe",
+        "salaries": [
+          10000,
+          22000,
+          45000,
+        ],
+      },
+    ],
+  },
+  "invalid": [
+    UnknownError {
+      "description": undefined,
+      "key": "position",
+      "path": "employees[1]",
+      "suggestions": [],
+      "type": "unknown",
+      "value": "NA",
+    },
+  ],
+}
+`;
 
 exports[`Validation utils Validate Method nested validations returns all levels of validation errors 2`] = `
-[
-  ValidationError {
-    "message": "Option \`test\` cannot be set to \`{"age":30,"position":"NA","salaries":[10000,22000,... (+96 characters)\`; expecting person details or employee details and position details, ignoring.",
-    "path": "",
-    "required": undefined,
-    "unknown": undefined,
-  },
-]
+{
+  "cleared": {},
+  "invalid": [
+    ValidationError {
+      "description": "a string or person details array and an array of at least 1 items",
+      "key": "employees",
+      "path": "",
+      "type": "invalid",
+      "value": [
+        1337,
+        {
+          "age": 30,
+          "employers": [
+            {
+              "department": "d",
+              "name": "Dave",
+            },
+            {
+              "department": "c",
+              "employeeId": "John",
+            },
+          ],
+          "position": "NA",
+          "salaries": [
+            10000,
+            22000,
+            "45_000",
+          ],
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Validation utils Validate Method nested validations returns all levels of validation errors 3`] = `
+{
+  "cleared": {},
+  "invalid": [
+    ValidationError {
+      "description": "a string or person details array and an array of at least 1 items",
+      "key": "employees",
+      "path": "",
+      "type": "invalid",
+      "value": [],
+    },
+  ],
+}
 `;
 
 exports[`Validation utils Validate Method validate returns expected validated object and errors 1`] = `
 [
   ValidationError {
-    "message": "Option \`name\` is required and has not been provided; expecting a string, ignoring.",
+    "description": "a string",
+    "key": "name",
     "path": "",
-    "required": true,
-    "unknown": undefined,
+    "type": "required",
+    "value": undefined,
   },
   ValidationError {
-    "message": "Option \`age\` cannot be set to \`-5\`; expecting a number greater than or equal to 0, ignoring.",
+    "description": "a number greater than or equal to 0",
+    "key": "age",
     "path": "",
-    "required": undefined,
-    "unknown": undefined,
+    "type": "invalid",
+    "value": -5,
   },
   ValidationError {
-    "message": "Option \`hobbies\` cannot be set to \`["reading",123]\`; expecting a string array, ignoring.",
+    "description": "a string array",
+    "key": "hobbies",
     "path": "",
-    "required": undefined,
-    "unknown": undefined,
+    "type": "invalid",
+    "value": [
+      "reading",
+      123,
+    ],
   },
-  ValidationError {
-    "message": "Unknown option \`extraField\`, ignoring.",
+  UnknownError {
+    "description": undefined,
+    "key": "extraField",
     "path": "",
-    "required": undefined,
-    "unknown": true,
+    "suggestions": [
+      "name",
+      "type",
+    ],
+    "type": "unknown",
+    "value": "should be ignored",
   },
-  ValidationError {
-    "message": "Unknown option \`typo\`; Did you mean \`type\`? Ignoring.",
+  UnknownError {
+    "description": undefined,
+    "key": "typo",
     "path": "",
-    "required": undefined,
-    "unknown": true,
+    "suggestions": [
+      "name",
+      "type",
+    ],
+    "type": "unknown",
+    "value": "should suggest fuzzy match",
   },
 ]
 `;

@@ -1,20 +1,19 @@
-import type { AgContextMenuOptions } from 'ag-charts-community';
+import type { AgContextMenuItemShowOn, AgContextMenuOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger, clamp, createElement } from 'ag-charts-core';
 
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
 type ContextMenuGroups = {
-    default: Array<ContextMenuAction>;
-    extra: Array<ContextMenuAction<'all'>>;
+    default: Array<ContextMenuAction<AgContextMenuItemShowOn>>;
+    extra: Array<ContextMenuAction<'always'>>;
     extraSeriesArea: Array<ContextMenuAction<'series-area'>>;
-    extraNode: Array<ContextMenuAction<'node'>>;
-    extraLegendItem: Array<ContextMenuAction<'legend'>>;
+    extraNode: Array<ContextMenuAction<'series-node'>>;
+    extraLegendItem: Array<ContextMenuAction<'legend-item'>>;
 };
-type ContextType = _ModuleSupport.ContextType;
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
-type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
-type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
+type ContextMenuAction<T extends AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuAction<T>;
+type ContextMenuCallback<T extends AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuCallback<T>;
 
 const { Property, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } = _ModuleSupport;
 
@@ -40,24 +39,31 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     @Property
     darkTheme = false;
 
+    @Property
+    items? = [];
+
     /**
      * Extra menu actions with a label and callback.
      */
+    // eslint-disable-next-line sonarjs/deprecation
     public extraActions: NonNullable<AgContextMenuOptions['extraActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a node.
      */
+    // eslint-disable-next-line sonarjs/deprecation
     public extraNodeActions: NonNullable<AgContextMenuOptions['extraNodeActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a series.
      */
+    // eslint-disable-next-line sonarjs/deprecation
     public extraSeriesAreaActions: NonNullable<AgContextMenuOptions['extraSeriesAreaActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a legend item
      */
+    // eslint-disable-next-line sonarjs/deprecation
     public extraLegendItemActions: NonNullable<AgContextMenuOptions['extraLegendItemActions']> = [];
 
     // Module context
@@ -111,7 +117,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(
             this.registry.registerDefaultAction({
                 id: 'download',
-                type: 'all',
+                type: 'always',
                 label: 'contextMenuDownload',
                 action: () => {
                     const title = ctx.chartService.title;
@@ -152,7 +158,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.pickedLegendItem = undefined;
 
         this.groups.extra = this.extraActions.map(({ label, action }) => {
-            return { type: 'all', label, action };
+            return { type: 'always', label, action };
         });
 
         this.groups.extraSeriesArea = [];
@@ -166,17 +172,17 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
             if (this.pickedNode) {
                 this.groups.extraNode = this.extraNodeActions.map(({ label, action }) => {
-                    return { type: 'node', label, action };
+                    return { type: 'series-node', label, action };
                 });
             }
         }
 
         this.groups.extraLegendItem = [];
-        if (ContextMenuRegistry.check('legend', event)) {
+        if (ContextMenuRegistry.check('legend-item', event)) {
             this.pickedLegendItem = event.context.legendItem;
             if (this.pickedLegendItem) {
                 this.groups.extraLegendItem = this.extraLegendItemActions.map(({ label, action }) => {
-                    return { type: 'legend', label, action };
+                    return { type: 'legend-item', label, action };
                 });
             }
         }
@@ -263,7 +269,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         return menuElement;
     }
 
-    private appendMenuGroup(menuElement: HTMLElement, group: ContextMenuAction[], divider = true) {
+    private appendMenuGroup<T extends AgContextMenuItemShowOn>(
+        menuElement: HTMLElement,
+        group: ContextMenuAction<T>[],
+        divider = true
+    ) {
         if (group.length === 0) return;
         if (divider) menuElement.appendChild(this.createDividerElement());
         group.forEach((i) => {
@@ -272,7 +282,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         });
     }
 
-    private renderItem(item: ContextMenuAction): HTMLElement | void {
+    private renderItem<T extends AgContextMenuItemShowOn>(item: ContextMenuAction<T>): HTMLElement | void {
         if (item && typeof item === 'object' && item.constructor === Object) {
             return this.createActionElement(item);
         }
@@ -286,16 +296,21 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         return el;
     }
 
-    private createActionElement({ id, label, type, action }: ContextMenuAction): HTMLElement {
+    private createActionElement<T extends AgContextMenuItemShowOn>({
+        id,
+        label,
+        type,
+        action,
+    }: ContextMenuAction<T>): HTMLElement {
         const disabled = !!(id && this.registry.isDisabled(id));
         return this.createButtonElement(type, label, action, disabled);
     }
 
-    private createButtonOnClick<T extends ContextType>(
+    private createButtonOnClick<T extends AgContextMenuItemShowOn>(
         type: T,
-        callback: ContextMenuCallback<T>
+        callback: ContextMenuCallback<AgContextMenuItemShowOn>
     ): (event: MouseEvent) => void {
-        if (ContextMenuRegistry.checkCallback('legend', type, callback)) {
+        if (ContextMenuRegistry.checkCallback('legend-item', type, callback)) {
             return (event: Event) => {
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId } = this.pickedLegendItem;
@@ -308,7 +323,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 callback({ type: 'seriesContextMenuAction', event: this.showEvent! });
                 this.hide();
             };
-        } else if (ContextMenuRegistry.checkCallback('node', type, callback)) {
+        } else if (ContextMenuRegistry.checkCallback('series-node', type, callback)) {
             return () => {
                 const { pickedNode, showEvent } = this;
                 const event = pickedNode?.series.createNodeContextMenuActionEvent(showEvent!, pickedNode);
@@ -327,7 +342,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private createButtonElement<T extends ContextType>(
+    private createButtonElement<T extends AgContextMenuItemShowOn>(
         type: T,
         label: string,
         callback: ContextMenuCallback<T>,

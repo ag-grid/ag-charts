@@ -1,6 +1,7 @@
 import {
     type AgWaterfallSeriesItemOptions,
     type AgWaterfallSeriesOptions,
+    type AgWaterfallSeriesStyle,
     type WaterfallSeriesTotalMeta,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -8,7 +9,7 @@ import {
     type OptionsDefs,
     arrayOfDefs,
     boolean,
-    callback,
+    callbackDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
@@ -24,7 +25,12 @@ const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, shadowOptionsDefs, tool
 const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<any>> = {
     name: string,
     cornerRadius: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgWaterfallSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cornerRadius: positiveNumber,
+    }),
     label: {
         ...seriesLabelOptionsDefs,
         padding: positiveNumber,

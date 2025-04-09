@@ -113,12 +113,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         );
     }
 
-    private filterTicks(ticks: any, tickCount: number): any[] {
+    private filterTicks(ticks: any[], tickCount: number): any[] {
         const { minSpacing, maxSpacing } = this.axis.interval;
         const tickSpacing = minSpacing != null || maxSpacing != null;
         const keepEvery = tickSpacing ? Math.ceil(ticks.length / tickCount) : 2;
         const offset = ticks.length % keepEvery ? -1 : 0;
-        return ticks.filter((_: any, i: number) => (i + offset) % keepEvery === 0);
+        return ticks.filter((_, i) => (i + offset) % keepEvery === 0);
     }
 
     generateTicks({
@@ -446,7 +446,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     );
 
                     rawTicks = secondaryAxisTicks.ticks;
-                    niceDomain = secondaryAxisTicks.domain.map((d) => scale.toDomain(d)!);
+                    if (niceMode === NiceMode.TickAndDomain) {
+                        niceDomain = secondaryAxisTicks.domain.map((d) => scale.toDomain(d)!);
+                    }
                 } else {
                     // AG-10654 Just use normal ticks for categorical axes.
                     rawTicks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
