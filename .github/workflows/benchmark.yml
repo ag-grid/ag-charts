@@ -128,17 +128,23 @@ jobs:
                       })
 
             - name: nx benchmark
-              id: benchmark
-              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              id: benchmark-table
+              if: github.event_name == 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
               run: |
                   ./tools/benchmark/compare-latest.sh ${{ steps.get-branch.outputs.base }}
+
+            - name: nx benchmark
+              id: benchmark-json
+              if: github.event_name != 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
+              run: |
+                  ./tools/benchmark/compare-latest.sh -j ${{ steps.get-branch.outputs.base }}
 
             - name: Notify Success
               uses: actions/github-script@v7
               continue-on-error: true
               if: success() && github.event_name == 'issue_comment'
               env:
-                  CONTENT: ${{ steps.benchmark.outputs.report}}
+                  CONTENT: ${{ steps.benchmark-table.outputs.report }}
               with:
                   script: |
                       const body = `✅ ${process.env.JOB_URL}
@@ -174,10 +180,10 @@ jobs:
                   SLACK_ICON: 'https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png'
                   SLACK_USERNAME: 'ag-charts CI'
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-                  SLACK_COLOR: ${{ steps.benchmark.outputs.status != 'failure' && 'success' || 'failure' }}
+                  SLACK_COLOR: ${{ steps.benchmark-json.outputs.status != 'failure' && 'success' || 'failure' }}
               run: |
-                  node ./tools/benchmark/format-slack-message.js > ./reports/benchmark.json
-                  curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/benchmark.json
+                  node ./tools/benchmark/format-slack-message.js > ./reports/benchmark-slack.json
+                  curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/benchmark-slack.json
 
             - name: Perist benchmark results
               if: always()

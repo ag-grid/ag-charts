@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const { spawnSync } = require('child_process');
 const fs = require('fs');
 const yargs = require('yargs');
@@ -27,6 +29,12 @@ const argv = yargs(hideBin(process.argv))
         type: 'boolean',
         default: false,
         description: 'Only report the results, do not exit with a failure code.',
+    })
+    .option('format', {
+        type: 'choice',
+        choices: ['table', 'json'],
+        default: 'table',
+        description: 'Format to output the results in.',
     })
     .demandOption('base')
     .help()
@@ -114,7 +122,6 @@ function isCritical(result) {
     return false;
 }
 
-console.log(`Comparing ${argv.base} (baseline) vs. ${argv.compare}`);
 const result = [];
 for (const test of Object.keys(baseData.results)) {
     const base = baseData.results[test];
@@ -139,25 +146,42 @@ const rankedByTime = result.toSorted((a, b) => a.pctTimeChange - b.pctTimeChange
 const rankedByMemory = result.toSorted((a, b) => a.pctMemoryChange - b.pctMemoryChange);
 const critical = result.filter(isCritical);
 
-if (critical.length > 0) {
-    if (argv['report-only']) {
-        console.log('Critical Cases');
-        console.table(critical, ['test', 'beforeMs', 'afterMs', 'beforeMB', 'afterMB']);
-    } else {
-        console.error('Critical Cases');
-        console.table(critical, ['test', 'beforeMs', 'afterMs', 'beforeMB', 'afterMB']);
-        process.exitCode = 1;
+if (argv.format === 'table') {
+    console.log(`Comparing ${argv.base} (baseline) vs. ${argv.compare}`);
+    if (critical.length > 0) {
+        if (argv['report-only']) {
+            console.log('Critical Cases');
+            console.table(critical, ['test', 'beforeMs', 'afterMs', 'beforeMB', 'afterMB']);
+        } else {
+            console.error('Critical Cases');
+            console.table(critical, ['test', 'beforeMs', 'afterMs', 'beforeMB', 'afterMB']);
+            process.exitCode = 1;
+        }
     }
+
+    console.log('Time');
+    console.table(
+        [...rankedByTime.slice(0, 5), {}, ...rankedByTime.slice(-5)],
+        ['test', 'pctTimeChange', 'beforeMs', 'afterMs']
+    );
+
+    console.log('Memory');
+    console.table(
+        [...rankedByMemory.slice(0, 5), {}, ...rankedByMemory.slice(-5)],
+        ['test', 'pctMemoryChange', 'beforeMB', 'afterMB']
+    );
+} else if (argv.format === 'json') {
+    console.log(
+        JSON.stringify(
+            {
+                base: argv.base,
+                compare: argv.compare,
+                critical,
+                rankedByTime,
+                rankedByMemory,
+            },
+            null,
+            2
+        )
+    );
 }
-
-console.log('Time');
-console.table(
-    [...rankedByTime.slice(0, 5), {}, ...rankedByTime.slice(-5)],
-    ['test', 'pctTimeChange', 'beforeMs', 'afterMs']
-);
-
-console.log('Memory');
-console.table(
-    [...rankedByMemory.slice(0, 5), {}, ...rankedByMemory.slice(-5)],
-    ['test', 'pctMemoryChange', 'beforeMB', 'afterMB']
-);
