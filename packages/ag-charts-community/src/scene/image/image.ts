@@ -99,7 +99,7 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
         pixelRatio: number,
         shapeWidth: number,
         shapeHeight: number,
-        parent: Node
+        node: Node
     ): CanvasPattern | string | undefined {
         const width = this.width ?? shapeWidth;
         const height = this.height ?? shapeHeight;
@@ -109,7 +109,7 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
             return cache.pattern;
         }
 
-        const image = this.imageLoader?.loadImage(this.url, parent.getLayerParent() ?? parent);
+        const image = this.imageLoader?.loadImage(this.url, node);
         const pattern = this.createCanvasImage(ctx, image, width, height, pixelRatio);
 
         if (pattern == null) return this.fallback;

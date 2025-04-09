@@ -65,14 +65,6 @@ export class Group<D = any> extends Node<D> {
         return Group.computeChildrenBBox(this.children());
     }
 
-    override getLayerParent(): Node | undefined {
-        if (this.layer) {
-            return this;
-        }
-
-        return super.getLayerParent();
-    }
-
     private computeSafeClippingBBox(pixelRatio: number): BBox | undefined {
         const bbox = this.computeBBox();
         if (!bbox.isFinite()) return;

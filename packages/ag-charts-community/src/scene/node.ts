@@ -452,10 +452,6 @@ export abstract class Node<D = any> {
         }
     }
 
-    getLayerParent(): Node | undefined {
-        return this.parentNode?.getLayerParent() ?? this;
-    }
-
     private markDebugProperties(property: string) {
         const sources = this._debugDirtyProperties?.get(property) ?? [];
         const caller =
