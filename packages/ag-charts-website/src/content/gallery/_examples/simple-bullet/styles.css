@@ -1,0 +1,13 @@
+.example-wrapper {
+    display: grid;
+    height: 100%;
+    grid-auto-rows: minmax(0, 1fr);
+    grid-auto-columns: minmax(0, 1fr);
+    border-radius: 8px;
+    background-color: var(--chart-bg);
+    border: 1px solid var(--chart-border);
+}
+
+.example-wrapper > div {
+    --chart-border: transparent;
+}
