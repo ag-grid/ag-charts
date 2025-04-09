@@ -71,7 +71,7 @@ const verticalLineAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
     inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
 };
 
-const rangeAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
+const horizontalRangeAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
     top: { rangeH: 0, rangeV: -1, labelH: 0, labelV: 1 },
     'inside-top': { rangeH: 0, rangeV: -1, labelH: 0, labelV: -1 },
     'top-left': { rangeH: -1, rangeV: -1, labelH: -1, labelV: 1 },
@@ -87,6 +87,26 @@ const rangeAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
     right: { rangeH: 1, rangeV: 0, labelH: -1, labelV: 0 },
     'inside-right': { rangeH: 1, rangeV: 0, labelH: 1, labelV: 0 },
     'top-right': { rangeH: 1, rangeV: -1, labelH: 1, labelV: 1 },
+    'inside-top-right': { rangeH: 1, rangeV: -1, labelH: 1, labelV: -1 },
+    inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
+};
+
+const verticalRangeAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
+    top: { rangeH: 0, rangeV: -1, labelH: 0, labelV: 1 },
+    'inside-top': { rangeH: 0, rangeV: -1, labelH: 0, labelV: -1 },
+    'top-left': { rangeH: -1, rangeV: -1, labelH: 1, labelV: -1 },
+    'inside-top-left': { rangeH: -1, rangeV: -1, labelH: -1, labelV: -1 },
+    left: { rangeH: -1, rangeV: 0, labelH: 1, labelV: 0 },
+    'inside-left': { rangeH: -1, rangeV: 0, labelH: -1, labelV: 0 },
+    'bottom-left': { rangeH: -1, rangeV: 1, labelH: 1, labelV: 1 },
+    'inside-bottom-left': { rangeH: -1, rangeV: 1, labelH: -1, labelV: 1 },
+    bottom: { rangeH: 0, rangeV: 1, labelH: 0, labelV: -1 },
+    'inside-bottom': { rangeH: 0, rangeV: 1, labelH: 0, labelV: 1 },
+    'bottom-right': { rangeH: 1, rangeV: 1, labelH: -1, labelV: 1 },
+    'inside-bottom-right': { rangeH: 1, rangeV: 1, labelH: 1, labelV: 1 },
+    right: { rangeH: 1, rangeV: 0, labelH: -1, labelV: 0 },
+    'inside-right': { rangeH: 1, rangeV: 0, labelH: 1, labelV: 0 },
+    'top-right': { rangeH: 1, rangeV: -1, labelH: -1, labelV: -1 },
     'inside-top-right': { rangeH: 1, rangeV: -1, labelH: 1, labelV: -1 },
     inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
 };
@@ -365,11 +385,11 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const { position = this.defaultLabelPosition } = this.label;
 
         if (range) {
-            return rangeAnchors[position];
-        } else if (horizontal) {
-            return horizontalLineAnchors[position];
+            const anchors = horizontal ? horizontalRangeAnchors : verticalRangeAnchors;
+            return anchors[position];
         } else {
-            return verticalLineAnchors[position];
+            const anchors = horizontal ? horizontalLineAnchors : verticalLineAnchors;
+            return anchors[position];
         }
     }
 
@@ -426,16 +446,22 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         const xOffset = label.padding + width;
         const yOffset = label.padding + height;
+        const horizontal = this.position === 'left' || this.position === 'right';
 
-        if (anchor.rangeH === -1 && anchor.labelH === 1) {
-            into.left = Math.max(into.left ?? 0, xOffset);
-        } else if (anchor.rangeH === 1 && anchor.labelH === -1) {
-            into.right = Math.max(into.right ?? 0, xOffset);
+        if (horizontal) {
+            if (anchor.rangeH === -1 && anchor.labelH === 1) {
+                into.left = Math.max(into.left ?? 0, xOffset);
+            } else if (anchor.rangeH === 1 && anchor.labelH === -1) {
+                into.right = Math.max(into.right ?? 0, xOffset);
+            }
         }
-        if (anchor.rangeV === -1 && anchor.labelV === 1) {
-            into.top = Math.max(into.top ?? 0, yOffset);
-        } else if (anchor.rangeV === 1 && anchor.labelV === -1) {
-            into.bottom = Math.max(into.bottom ?? 0, yOffset);
+
+        if (!horizontal) {
+            if (anchor.rangeV === -1 && anchor.labelV === 1) {
+                into.top = Math.max(into.top ?? 0, yOffset);
+            } else if (anchor.rangeV === 1 && anchor.labelV === -1) {
+                into.bottom = Math.max(into.bottom ?? 0, yOffset);
+            }
         }
     }
 }
