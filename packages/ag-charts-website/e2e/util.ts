@@ -104,6 +104,12 @@ export function repeat(repCount: number, fn: () => unknown) {
 
 export async function gotoExample(page: Page, url: string) {
     await page.goto(url);
+
+    // Remove chart padding & border styles for cleaner screenshots
+    await page.addStyleTag({
+        path: './e2e/screenshot.css',
+    });
+
     await page.waitForLoadState('networkidle');
 
     expect(await page.title()).not.toMatch(/Page Not Found/);
@@ -122,11 +128,6 @@ export async function gotoExample(page: Page, url: string) {
             await waitForChartUpdate(elements.nth(i));
         }
     }
-
-    // Remove chart padding & border styles for cleaner screenshots
-    await page.addStyleTag({
-        path: './e2e/screenshot.css',
-    });
 }
 
 export async function waitForChartUpdate(wrapper: Locator) {
