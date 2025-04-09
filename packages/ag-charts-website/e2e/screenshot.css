@@ -6,6 +6,7 @@ body {
 div:has(> .ag-charts-wrapper),
 ag-charts,
 ag-financial-charts {
+    padding: 1rem !important;
     border-radius: unset !important;
     background-color: unset !important;
     border: unset !important;
