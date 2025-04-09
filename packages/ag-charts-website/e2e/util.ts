@@ -122,6 +122,11 @@ export async function gotoExample(page: Page, url: string) {
             await waitForChartUpdate(elements.nth(i));
         }
     }
+
+    // Remove chart padding & border styles for cleaner screenshots
+    await page.addStyleTag({
+        path: './e2e/screenshot.css',
+    });
 }
 
 export async function waitForChartUpdate(wrapper: Locator) {

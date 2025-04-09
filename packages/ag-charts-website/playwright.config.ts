@@ -51,7 +51,6 @@ export default defineConfig({
         toHaveScreenshot: {
             maxDiffPixels: 0,
             threshold: 0.01,
-            stylePath: './e2e/screenshot.css',
         },
     },
 
