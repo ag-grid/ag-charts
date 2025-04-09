@@ -132,6 +132,9 @@ jobs:
               if: github.event_name == 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
               run: |
                   ./tools/benchmark/compare-latest.sh ${{ steps.get-branch.outputs.base }}
+                  echo "report<<EOF" >> $GITHUB_OUTPUT
+                  cat ./reports/benchmark.log >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
 
             - name: nx benchmark
               id: benchmark-json
