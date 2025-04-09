@@ -229,6 +229,7 @@ export class ChartTheme {
                         fontWeight: { $ref: 'fontWeight' },
                         padding: 5,
                         color: { $ref: 'textColor' },
+                        position: 'top',
                     },
                 },
             }
