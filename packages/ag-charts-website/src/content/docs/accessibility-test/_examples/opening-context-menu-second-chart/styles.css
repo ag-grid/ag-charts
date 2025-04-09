@@ -3,7 +3,28 @@
     overflow: auto;
 }
 
+/* CSS hacks required for e2e tests */
 body {
     height: auto;
-    padding: 0px;
+    padding: 1rem !important;
+    margin: -1rem !important;
+    width: calc(100% + 2rem) !important;
+}
+
+/* Reset CSS to older example styles for e2e tests */
+body {
+    display: grid;
+    grid-auto-rows: minmax(0, 1fr);
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 0;
+}
+
+/* Reset CSS to older example styles for e2e tests */
+div:has(> .ag-charts-wrapper) {
+    padding: unset !important;
+    height: unset !important;
+    border-radius: unset !important;
+    background-color: unset !important;
+    border: unset !important;
+    overflow: unset !important;
 }
