@@ -12,7 +12,7 @@ import { countFractionDigits } from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { DatumUnion } from '../gauge-util/datumUnion';
-import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
+import { fadeInFns, formatLabel, formatWithContext, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
@@ -355,9 +355,18 @@ export class RadialGaugeSeries
 
         const font = label.getFont();
         const tickData = ticks.map((value, index): RadialGaugeTickDatum => {
-            const text =
-                label.formatter?.({ value, index, domain: scale.domain, boundSeries: undefined! }) ??
-                tickFormatter(value);
+            let text: string | undefined;
+            if (label.formatter) {
+                text = formatWithContext(this.ctx, label.formatter, {
+                    value,
+                    index,
+                    domain: scale.domain,
+                    boundSeries: undefined!,
+                });
+            }
+            if (text === undefined) {
+                text = tickFormatter(value);
+            }
             const { width, height } = CachedTextMeasurerPool.measureText(text, { font });
             return { index, value, text, width, height };
         });
@@ -1226,6 +1235,7 @@ export class RadialGaugeSeries
 
         formatRadialGaugeLabels(
             this,
+            this.ctx,
             labelSelection,
             { padding, textAlign, verticalAlign },
             radius * innerRadiusRatio,
@@ -1380,7 +1390,7 @@ export class RadialGaugeSeries
         description.push(this.formatLabel(value));
 
         this.labelSelection.each((_label, datum) => {
-            const text = getLabelText(this, datum);
+            const text = getLabelText(this.id, this.ctx, datum);
             if (text != null) {
                 description.push(text);
             }

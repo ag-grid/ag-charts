@@ -8,7 +8,7 @@ import {
 } from 'ag-charts-community';
 
 import { DatumUnion } from '../gauge-util/datumUnion';
-import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
+import { fadeInFns, formatLabel, formatWithContext, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { getLineHeight } from '../util/labelFormatter';
@@ -115,7 +115,10 @@ const verticalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, numb
 };
 
 class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSupport.LinearScale, number> {
-    constructor(private readonly gauge: LinearGaugeSeries) {}
+    constructor(
+        private readonly gauge: LinearGaugeSeries,
+        private readonly ctx: _ModuleSupport.ModuleContext
+    ) {}
 
     get defaultTickMinSpacing(): number {
         return 0;
@@ -150,10 +153,18 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
     ): string {
         const { label } = this;
         return (
-            label.formatter?.({ value, index, domain, boundSeries: undefined! }) ??
+            this.formatWithContext(value, index, domain) ??
             (label.format != null ? defaultFormatter?.(value) : undefined) ??
             this.gauge.formatLabel(value)
         );
+    }
+
+    private formatWithContext(value: any, index: number, domain: number[]): string | undefined {
+        let r: string | undefined = undefined;
+        if (this.label.formatter) {
+            r = formatWithContext(this.ctx, this.label.formatter, { value, index, domain, boundSeries: undefined! });
+        }
+        return r;
     }
 
     inRange(): boolean {
@@ -177,8 +188,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     private gaugeRect = BBox.NaN;
 
     public scale = new LinearScale();
-    private readonly axis = new LinearGaugeAxis(this);
-    private readonly tickGenerator = new AxisTickGenerator<_ModuleSupport.LinearScale, number>(this.axis);
+    private readonly axis: LinearGaugeAxis;
+    private readonly tickGenerator: _ModuleSupport.AxisTickGenerator<_ModuleSupport.LinearScale, number>;
 
     public get range(): [number, number] {
         return this.horizontal ? [0, this.gaugeRect.width] : [0, this.gaugeRect.height];
@@ -233,6 +244,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
+        this.axis = new LinearGaugeAxis(this, moduleCtx);
+        this.tickGenerator = new AxisTickGenerator<_ModuleSupport.LinearScale, number>(this.axis);
 
         this.animationState = new StateMachine<GaugeAnimationState, GaugeAnimationEvent>('empty', {
             empty: {
@@ -515,7 +528,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 maxTickCount: 6,
                 tickCount: 5,
             });
-        const linesOrTicks = lines ?? ticks.map((tick) => getLabelText(this, this.labelDatum(label, tick)) ?? '');
+        const linesOrTicks =
+            lines ?? ticks.map((tick) => getLabelText(this.id, this.ctx, this.labelDatum(label, tick)) ?? '');
 
         const labelSize = linesOrTicks.reduce((accum, text) => {
             const { width } = CachedTextMeasurerPool.measureText(text, { font });
@@ -1207,7 +1221,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         const { margin: padding } = this.properties;
 
-        formatLinearGaugeLabels(this, labelSelection, { padding, horizontal }, bboxes, datum);
+        formatLinearGaugeLabels(this, this.ctx, labelSelection, { padding, horizontal }, bboxes, datum);
     }
 
     protected resetAllAnimation() {
