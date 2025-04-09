@@ -1,12 +1,15 @@
 /* Reset full-screen page border rendering to avoid conflicting with chart rendering */
 body {
-    padding: unset !important;
+    --chart-bg: transparent !important;
+    --chart-border: transparent !important;
+
+    padding: 1rem !important;
 }
 
 div:has(> .ag-charts-wrapper),
 ag-charts,
 ag-financial-charts {
-    padding: 1rem !important;
+    padding: unset !important;
     border-radius: unset !important;
     background-color: unset !important;
     border: unset !important;
