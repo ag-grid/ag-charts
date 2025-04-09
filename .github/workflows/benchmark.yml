@@ -79,7 +79,11 @@ jobs:
               run: |
                   set -x
 
-                  base=$(git rev-parse --abbrev-ref ${{ steps.get-branch.outputs.base }})
+                  if [[ ${{ steps.get-branch.outputs.type }} =~ "^@" ]] ; then
+                    base=$(git rev-parse --abbrev-ref ${{ steps.get-branch.outputs.base }})
+                  else
+                    base=origin/${{ steps.get-branch.outputs.base }}
+                  fi
                   git fetch --unshallow origin $base || echo "Not a shallow ref?"
 
                   # Preemptively fail if merge-base is not found.
