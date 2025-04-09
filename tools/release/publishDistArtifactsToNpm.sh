@@ -11,7 +11,7 @@ publishModules()
     local modulePath="$directory/$moduleDirectory/package"
 
     echo "PUBLISHING TO NPM: $modulePath"
-    npm publish $modulePath --tag $TAG
+    npm publish --tag $TAG $modulePath
 
     if [ $? -ne 0 ]; then
         echo "Error publishing $modulePath"
