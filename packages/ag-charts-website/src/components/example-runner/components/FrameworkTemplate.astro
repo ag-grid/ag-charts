@@ -29,10 +29,6 @@ interface Props {
      * Whether to not include system js code
      */
     ignoreSystemJs?: boolean;
-    /**
-     * Extra styles to add to HTML
-     */
-    extraStyles?: string;
 }
 
 const {
@@ -44,7 +40,6 @@ const {
     relativePath,
     addInitMessageScript,
     ignoreSystemJs,
-    extraStyles,
 } = Astro.props as Props;
 
 const isDev = getIsDev();
@@ -85,7 +80,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             indexFragment={indexFragment}
             headFragment={headFragment}
             appLocation={appLocation}
-            extraStyles={extraStyles}
         />
     ) : internalFramework === 'typescript' ? (
         <TypescriptTemplate
@@ -99,7 +93,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             headFragment={headFragment}
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
-            extraStyles={extraStyles}
         />
     ) : ['reactFunctional', 'reactFunctionalTs'].includes(internalFramework) ? (
         <ReactTemplate
@@ -113,7 +106,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             ignoreSystemJs={ignoreSystemJs}
-            extraStyles={extraStyles}
             headFragment={headFragment}
         />
     ) : internalFramework === 'angular' ? (
@@ -127,7 +119,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             scriptFiles={scriptFiles}
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
-            extraStyles={extraStyles}
             headFragment={headFragment}
         />
     ) : internalFramework === 'vue3' ? (
@@ -141,7 +132,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             styleFiles={styleFiles}
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
-            extraStyles={extraStyles}
             headFragment={headFragment}
         />
     ) : null
@@ -163,3 +153,27 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
         display: none !important;
     }
 </style>
+
+<script>
+    if (window.location.hash.includes('e2e=true')) {
+        const e2eStyleEl = document.createElement('style');
+        e2eStyleEl.textContent = `
+            /* Reset full-screen page border rendering to avoid conflicting with chart rendering */
+            body {
+                --chart-bg: transparent !important;
+                --chart-border: transparent !important;
+
+                padding: 1rem !important;
+            }
+
+            div:has(> .ag-charts-wrapper),
+            ag-charts,
+            ag-financial-charts {
+                padding: unset !important;
+                border-radius: unset !important;
+                background-color: unset !important;
+                border: unset !important;
+            }`;
+        document.head.appendChild(e2eStyleEl);
+    }
+</script>

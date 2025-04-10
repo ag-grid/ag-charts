@@ -9,8 +9,6 @@ import { type FunctionComponent, type ReactElement, useState } from 'react';
 import { CodeViewer } from './CodeViewer';
 import { ExampleIFrame } from './ExampleIFrame';
 import styles from './ExampleRunner.module.scss';
-// Charts specific example runner styles
-import chartsStyles from './LegacyExampleRunner.module.scss';
 
 interface Props {
     id: string;
@@ -65,7 +63,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
         <div id={id} className={styles.exampleOuter}>
             <div className={styles.tabsContainer}>
                 <div
-                    className={classnames(chartsStyles.content, styles.content, {
+                    className={classnames(styles.content, {
                         [styles.hasExampleConsoleLog]: hasExampleConsoleLog,
                     })}
                     role="tabpanel"

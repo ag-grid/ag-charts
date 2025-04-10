@@ -46,7 +46,7 @@ test.describe('zoom', () => {
         await expect(page).toHaveScreenshot('zoom-2-before-navigator-drag-y-axis.png', { animations: 'disabled' });
 
         // Show navigator with minichart
-        await page.locator('.toolbar button').getByText('Toggle Navigator').click();
+        await page.locator('.example-controls button').getByText('Toggle Navigator').click();
         await updateCanvasSize();
 
         // 3. Drag the y-axis with the navigator visible to zoom in
@@ -58,7 +58,7 @@ test.describe('zoom', () => {
         await expect(page).toHaveScreenshot('zoom-4-with-navigator-drag-x-axis.png', { animations: 'disabled' });
 
         // Hide navigator
-        await page.locator('.toolbar button').getByText('Toggle Navigator').click();
+        await page.locator('.example-controls button').getByText('Toggle Navigator').click();
         await updateCanvasSize();
 
         // 5. Drag the y-axis twice with the navigator hidden again to zoom out

@@ -14,13 +14,13 @@ test.describe('state', () => {
         if (!bbox0) throw new Error('Legend item not found');
 
         await page.mouse.click(bbox0.x, bbox0.y);
-        await page.locator('.toolbar button').getByText('Save').click();
+        await page.locator('.example-controls button').getByText('Save').click();
         await expect(page).toHaveScreenshot('state-legend-zoom-1-saved.png', { animations: 'disabled' });
 
-        await page.locator('.toolbar button').getByText('Reload').click();
+        await page.locator('.example-controls button').getByText('Reload').click();
         await expect(page).toHaveScreenshot('state-legend-zoom-1-reloaded.png', { animations: 'disabled' });
 
-        await page.locator('.toolbar button').getByText('Restore').click();
+        await page.locator('.example-controls button').getByText('Restore').click();
         await expect(page).toHaveScreenshot('state-legend-zoom-1-restored.png', { animations: 'disabled' });
     });
 });

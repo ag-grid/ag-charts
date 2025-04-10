@@ -103,7 +103,8 @@ export function repeat(repCount: number, fn: () => unknown) {
 }
 
 export async function gotoExample(page: Page, url: string) {
-    await page.goto(url);
+    await page.goto(url + '#e2e=true');
+
     await page.waitForLoadState('networkidle');
 
     expect(await page.title()).not.toMatch(/Page Not Found/);

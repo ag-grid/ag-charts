@@ -1,6 +1,7 @@
 ---
+import CleanCSS from 'clean-css';
+
 import { MetaData } from './lib/MetaData';
-import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
 import { pathJoin } from '@utils/pathJoin';
@@ -15,13 +16,10 @@ interface Props {
     modifiedTimeMs: number;
     entryFileName: string;
 
-    layout: 'grid' | 'toolbar' | 'none';
-
     styleFiles?: string[];
     scriptFiles: string[];
     appLocation: string;
     boilerplatePath: string;
-    extraStyles?: string;
     children?: any;
     headFragment?: string;
 }
@@ -32,33 +30,47 @@ const {
     modifiedTimeMs,
     appLocation,
     entryFileName,
-    layout,
     styleFiles = [],
     scriptFiles,
     boilerplatePath,
     headFragment,
 } = Astro.props as Props;
 
-const extraStylesArray: string[] = [];
-extraStylesArray.push(css`
-    ag-charts {
-        display: block;
-    }
-`);
-
-if (Astro.props.extraStyles != null) {
-    extraStylesArray.push(Astro.props.extraStyles);
-}
-
-const extraStyles = extraStylesArray.join('\n\n');
-
 const startFile = pathJoin(appLocation, entryFileName);
+
+import exampleControlsStyles from '@ag-website-shared/components/example-runner/example-controls.css?raw';
+
+const frameworkStyles = `
+    my-app {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        gap: 8px;
+    }
+
+    ag-charts,
+    ag-financial-charts {
+        display: block;
+        padding: 1rem;
+        height: 100%;
+        border-radius: 8px;
+        background-color: var(--chart-bg);
+        border: 1px solid var(--chart-border);
+        overflow: hidden;
+    }
+`;
+
+const cssMinifier = new CleanCSS({ format: { wrapAt: 120 } });
+const minGenericExampleStyles = cssMinifier.minify(exampleControlsStyles.concat(frameworkStyles)).styles;
 ---
 
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Angular Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle rootSelector="my-app" layout={layout} extraStyles={extraStyles} />
+
+        <!-- Generic example styles must be first <style> tag in head, to skip prettier formatting in the middleware -->
+        <style set:html={minGenericExampleStyles}></style>
+
         <Styles
             baseUrl={appLocation}
             files={isDev ? styleFiles.map((file: string) => getCacheBustingUrl(file, modifiedTimeMs)) : styleFiles}

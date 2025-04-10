@@ -1,6 +1,6 @@
-<div class="toolbar">
-    <div class="sliders">
-        <label for="xPaddingLabel">item.paddingX</label>
+<div class="example-controls">
+    <div class="controls-row">
+        <label for="xPaddingLabel"><code>item.paddingX:</code></label>
         <input
             type="range"
             id="xPaddingLabel"
@@ -10,8 +10,8 @@
             oninput="updateLegendItemPaddingX(event)"
             onchange="updateLegendItemPaddingX(event)"
         />
-        <span id="xPaddingValue" class="slider-value">32</span>
-        <label for="yPaddingLabel">item.paddingY</label>
+        <span id="xPaddingValue" class="gap-right">32</span>
+        <label for="yPaddingLabel"><code>item.paddingY:</code></label>
         <input
             type="range"
             id="yPaddingLabel"
@@ -21,8 +21,10 @@
             oninput="updateLegendItemPaddingY(event)"
             onchange="updateLegendItemPaddingY(event)"
         />
-        <span id="yPaddingValue" class="slider-value">8</span>
-        <label for="markerPaddingLabel">item.marker.padding</label>
+        <span id="yPaddingValue">8</span>
+    </div>
+    <div class="controls-row">
+        <label for="markerPaddingLabel"><code>item.marker.padding:</code></label>
         <input
             type="range"
             id="markerPaddingLabel"
@@ -32,8 +34,10 @@
             oninput="updateLegendItemSpacing(event)"
             onchange="updateLegendItemSpacing(event)"
         />
-        <span id="markerPaddingValue" class="slider-value">8</span>
-        <label for="maxWidthLabel">item.maxWidth</label>
+        <span id="markerPaddingValue">8</span>
+    </div>
+    <div class="controls-row">
+        <label for="maxWidthLabel"><code>item.maxWidth:</code></label>
         <input
             type="range"
             id="maxWidthLabel"
@@ -43,7 +47,7 @@
             oninput="updateLegendItemMaxWidth(event)"
             onchange="updateLegendItemMaxWidth(event)"
         />
-        <span id="maxWidthValue" class="slider-value">130</span>
+        <span id="maxWidthValue">130</span>
     </div>
 </div>
 <div id="myChart" class="chart"></div>
