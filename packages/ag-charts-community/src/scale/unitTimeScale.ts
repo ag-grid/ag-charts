@@ -74,17 +74,13 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
         const d0 = domain[0].valueOf();
         const d1 = domain[1].valueOf();
 
-        const ticks: Date[] = [];
         if (interval instanceof TimeInterval) {
-            const intervalTicks = interval.range(domain[0], domain[1], { extend: true, visibleRange });
+            if (interpolate) return interval.range(domain[0], domain[1], { visibleRange });
 
+            const intervalTicks = interval.range(domain[0], domain[1], { extend: true, visibleRange });
+            const ticks: Date[] = [];
             let lastIndex: number | undefined;
             for (const intervalTick of intervalTicks) {
-                if (interpolate) {
-                    ticks.push(intervalTick);
-                    continue;
-                }
-
                 const intervalTickTime = intervalTick.valueOf();
                 if (intervalTickTime < d0 || intervalTickTime > d1) continue;
                 const bandIndex = findMinIndex(0, bands.length - 1, (index) => {
@@ -97,14 +93,17 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
             }
 
             // If there's a better candidate for the first tick, remove it
-            if (!interpolate && ticks.length !== 0) {
+            if (ticks.length !== 0) {
                 const index = this.findIndex(ticks[0]);
                 const previousTick = index != null && index > 0 ? bands[index - 1] : undefined;
                 if (previousTick != null && compareDates(previousTick, ticks[0]) >= 0) {
                     ticks.shift();
                 }
             }
+
+            return ticks;
         } else {
+            const ticks: Date[] = [];
             let lastIndex: number | undefined;
             for (let intervalTickTime = d0; intervalTickTime <= d1; intervalTickTime += interval) {
                 const intervalTick = new Date(intervalTickTime);
@@ -121,9 +120,9 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
 
                 if (tick != null && tick.valueOf() <= d1) ticks.push(tick);
             }
-        }
 
-        return ticks;
+            return ticks;
+        }
     }
 
     override invert(position: number, nearest = false): Date | undefined {
