@@ -103,12 +103,7 @@ export function repeat(repCount: number, fn: () => unknown) {
 }
 
 export async function gotoExample(page: Page, url: string) {
-    await page.goto(url);
-
-    // Remove chart padding & border styles for cleaner screenshots
-    await page.addStyleTag({
-        path: './e2e/screenshot.css',
-    });
+    await page.goto(url + '#e2e=true');
 
     await page.waitForLoadState('networkidle');
 
