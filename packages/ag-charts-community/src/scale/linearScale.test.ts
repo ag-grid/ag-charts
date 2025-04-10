@@ -24,13 +24,13 @@ describe('LinearScale', () => {
         scale.domain = [-100, 100];
         scale.range = [0, 100];
 
-        expect(scale.convert(0, true)).toBe(50);
+        expect(scale.convert(0, { clamp: true })).toBe(50);
 
-        expect(scale.convert(-100, true)).toBe(0);
-        expect(scale.convert(100, true)).toBe(100);
+        expect(scale.convert(-100, { clamp: true })).toBe(0);
+        expect(scale.convert(100, { clamp: true })).toBe(100);
 
-        expect(scale.convert(-100, false)).toBe(0);
-        expect(scale.convert(100, false)).toBe(100);
+        expect(scale.convert(-100, { clamp: false })).toBe(0);
+        expect(scale.convert(100, { clamp: false })).toBe(100);
     });
 
     test('convert linear clamp', () => {
@@ -39,11 +39,11 @@ describe('LinearScale', () => {
         scale.domain = [-100, 100];
         scale.range = [0, 100];
 
-        expect(scale.convert(-300, true)).toBe(0);
-        expect(scale.convert(300, true)).toBe(100);
+        expect(scale.convert(-300, { clamp: true })).toBe(0);
+        expect(scale.convert(300, { clamp: true })).toBe(100);
 
-        expect(scale.convert(-300, false)).toBe(-100);
-        expect(scale.convert(300, false)).toBe(200);
+        expect(scale.convert(-300, { clamp: false })).toBe(-100);
+        expect(scale.convert(300, { clamp: false })).toBe(200);
     });
 
     test('convert linear with zero width domain', () => {
@@ -52,7 +52,7 @@ describe('LinearScale', () => {
         scale.domain = [100, 100];
         scale.range = [0, 100];
 
-        expect(scale.convert(100, true)).toBe(50);
+        expect(scale.convert(100, { clamp: true })).toBe(50);
     });
 
     test('invert linear', () => {

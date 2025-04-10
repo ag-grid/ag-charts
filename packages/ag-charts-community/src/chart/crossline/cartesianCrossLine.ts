@@ -269,7 +269,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             const offset = bandwidth / 2;
             yStart = scale.convert(value as any) + offset;
             yEnd = NaN;
-            clampedYStart = scale.convert(value as any, true) + offset;
+            clampedYStart = scale.convert(value as any, { clamp: true }) + offset;
             clampedYEnd = NaN;
         } else if (range) {
             const [r0, r1] = range;
@@ -277,8 +277,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
                 r0?.valueOf() === r1?.valueOf() && OrdinalTimeScale.is(scale) ? bandwidth / 2 + rangePadding : 0;
             yStart = scale.convert(r0 as any) + ordinalTimeScalePadding;
             yEnd = scale.convert(r1 as any) + bandwidth;
-            clampedYStart = scale.convert(r0 as any, true) + ordinalTimeScalePadding - rangePadding;
-            clampedYEnd = scale.convert(r1 as any, true) + bandwidth + rangePadding;
+            clampedYStart = scale.convert(r0 as any, { clamp: true }) + ordinalTimeScalePadding - rangePadding;
+            clampedYEnd = scale.convert(r1 as any, { clamp: true }) + bandwidth + rangePadding;
         } else {
             return;
         }

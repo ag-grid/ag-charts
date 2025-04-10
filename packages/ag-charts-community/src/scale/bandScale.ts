@@ -92,7 +92,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         }
     }
 
-    convert(d: D, _clamp?: boolean): number {
+    convert(d: D, _options?: { clamp?: boolean; interpolate?: boolean }): number {
         this.refresh();
         const i = this.findIndex(d);
         if (i == null || i < 0 || i >= this.bands.length) {

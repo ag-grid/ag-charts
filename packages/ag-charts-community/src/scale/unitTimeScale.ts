@@ -1,6 +1,7 @@
 import { findMaxIndex, findMinIndex } from 'ag-charts-core';
 
 import { compareDates } from '../util/date';
+import { findMinMax } from '../util/number';
 import { TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
@@ -62,7 +63,9 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
     override ticks(
         { interval }: ScaleTickParams<TimeInterval | number>,
         domain: Date[] = this.domain,
-        visibleRange: [number, number] = [0, 1]
+        visibleRange: [number, number] = [0, 1],
+        // This parameter is only used for UnitTimeScale
+        interpolate = false
     ): Date[] {
         if (interval == null) return this.calculateBands(domain, this.interval, visibleRange);
 
@@ -71,10 +74,11 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
         const d0 = domain[0].valueOf();
         const d1 = domain[1].valueOf();
 
-        const ticks: Date[] = [];
         if (interval instanceof TimeInterval) {
-            const intervalTicks = interval.range(domain[0], domain[1], { extend: true, visibleRange });
+            if (interpolate) return interval.range(domain[0], domain[1], { visibleRange });
 
+            const intervalTicks = interval.range(domain[0], domain[1], { extend: true, visibleRange });
+            const ticks: Date[] = [];
             let lastIndex: number | undefined;
             for (const intervalTick of intervalTicks) {
                 const intervalTickTime = intervalTick.valueOf();
@@ -96,10 +100,18 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
                     ticks.shift();
                 }
             }
+
+            return ticks;
         } else {
+            const ticks: Date[] = [];
             let lastIndex: number | undefined;
             for (let intervalTickTime = d0; intervalTickTime <= d1; intervalTickTime += interval) {
                 const intervalTick = new Date(intervalTickTime);
+                if (interpolate) {
+                    ticks.push(intervalTick);
+                    continue;
+                }
+
                 const bandIndex = findMinIndex(0, bands.length - 1, (index) => {
                     return compareDates(bands[index], intervalTick) >= 0;
                 });
@@ -108,9 +120,9 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
 
                 if (tick != null && tick.valueOf() <= d1) ticks.push(tick);
             }
-        }
 
-        return ticks;
+            return ticks;
+        }
     }
 
     override invert(position: number, nearest = false): Date | undefined {
@@ -121,6 +133,22 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
         const matches = nearest || position === this.ordinalRange(index);
 
         return matches ? this.domain[index] : undefined;
+    }
+
+    override convert(d: Date, options?: { clamp?: boolean; interpolate?: boolean }): number {
+        const interpolate = options?.interpolate ?? false;
+        if (!interpolate) return super.convert(d, options);
+
+        const d0 = this.domain[0].getTime();
+        const d1 = this.domain[1].getTime();
+
+        const clamp = options?.clamp ?? false;
+        let v = d.getTime();
+        if (clamp) v = Math.min(Math.max(v, d0), d1);
+
+        const [r0, r1] = findMinMax(this.range);
+
+        return ((v - d0) / (d1 - d0)) * (r1 - r0) + r0;
     }
 
     override findIndex(value: Date): number | undefined {
