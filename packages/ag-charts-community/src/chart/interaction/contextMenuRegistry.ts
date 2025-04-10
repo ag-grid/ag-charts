@@ -74,6 +74,15 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         action: undefined,
         items: undefined,
     };
+    'separator': RequireOptional<AgContextMenuItemAlways> = {
+        type: 'separator',
+        showOn: 'always',
+        label: 'separator',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
+    };
 }
 
 class ContextMenuBuiltinItemLists implements ContextMenuBuiltinItemListsRules {

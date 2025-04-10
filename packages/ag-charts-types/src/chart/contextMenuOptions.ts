@@ -13,7 +13,8 @@ export type AgContextMenuItemLiteral =
     | 'pan-to-cursor'
     | 'toggle-series-visibility'
     | 'toggle-other-series'
-    | 'reset-zoom';
+    | 'reset-zoom'
+    | 'separator';
 
 export type AgContextMenuItemShowOn = 'always' | 'series-area' | 'series-node' | 'legend-item';
 
