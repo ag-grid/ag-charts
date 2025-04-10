@@ -292,11 +292,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const angleRange = group.aggregation[angleRangeIndex][isPositive ? 1 : 0];
             const reversed = isPositive === angleAxisReversed;
 
-            let startAngle = angleScale.convert(angleStartDatum, true);
-            let endAngle = angleScale.convert(angleEndDatum, true);
+            let startAngle = angleScale.convert(angleStartDatum, { clamp: true });
+            let endAngle = angleScale.convert(angleEndDatum, { clamp: true });
 
-            let rangeStartAngle = angleScale.convert(0, true);
-            let rangeEndAngle = angleScale.convert(angleRange, true);
+            let rangeStartAngle = angleScale.convert(0, { clamp: true });
+            let rangeEndAngle = angleScale.convert(angleRange, { clamp: true });
 
             if (reversed) {
                 [rangeStartAngle, rangeEndAngle] = [rangeEndAngle, rangeStartAngle];

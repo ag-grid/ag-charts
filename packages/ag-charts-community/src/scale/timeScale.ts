@@ -20,9 +20,9 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         return new Date(d);
     }
 
-    override convert(value: Date, clamp?: boolean): number {
+    override convert(value: Date, options?: { clamp: boolean }): number {
         if (!(value instanceof Date)) value = new Date(value as any);
-        return super.convert(value, clamp);
+        return super.convert(value, options);
     }
 
     override invert(value: number): Date {

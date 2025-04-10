@@ -393,7 +393,7 @@ export class MapLineSeries extends TopologySeries<
 
         if (sizeValue != null) {
             overrides ??= {};
-            overrides.strokeWidth = sizeScale.convert(sizeValue, true);
+            overrides.strokeWidth = sizeScale.convert(sizeValue, { clamp: true });
         }
 
         if (itemStyler != null) {
