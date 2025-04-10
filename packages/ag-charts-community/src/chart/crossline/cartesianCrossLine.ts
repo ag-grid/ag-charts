@@ -1,4 +1,5 @@
 import type {
+    AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
     AgCrossLineLabelPosition,
     FontStyle,
@@ -11,23 +12,104 @@ import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';
-import type { Point } from '../../scene/point';
 import { Range } from '../../scene/shape/range';
 import { TransformableText } from '../../scene/shape/text';
+import { toRadians } from '../../util/angle';
 import { createId } from '../../util/id';
 import { clampArray } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
-import { ChartAxisDirection } from '../chartAxisDirection';
-import { calculateLabelRotation } from '../label';
 import { type CrossLine, type CrossLineType, getCrossLineValue, validateCrossLineValue } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
-import {
-    POSITION_TOP_COORDINATES,
-    calculateLabelChartPadding,
-    calculateLabelTranslation,
-    labelDirectionHandling,
-} from './crossLineLabelPosition';
+
+type AnchorDirection = 1 | 0 | -1;
+
+interface Anchor {
+    rangeH: AnchorDirection;
+    rangeV: AnchorDirection;
+    labelH: AnchorDirection;
+    labelV: AnchorDirection;
+}
+
+const horizontalLineAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
+    top: { rangeH: 0, rangeV: -1, labelH: 0, labelV: 1 },
+    'inside-top': { rangeH: 0, rangeV: -1, labelH: 0, labelV: 1 },
+    'top-left': { rangeH: -1, rangeV: -1, labelH: -1, labelV: 1 },
+    'inside-top-left': { rangeH: -1, rangeV: -1, labelH: -1, labelV: 1 },
+    left: { rangeH: -1, rangeV: 0, labelH: 1, labelV: 0 },
+    'inside-left': { rangeH: -1, rangeV: 0, labelH: -1, labelV: 0 },
+    'bottom-left': { rangeH: -1, rangeV: 1, labelH: -1, labelV: -1 },
+    'inside-bottom-left': { rangeH: -1, rangeV: 1, labelH: -1, labelV: -1 },
+    bottom: { rangeH: 0, rangeV: 1, labelH: 0, labelV: -1 },
+    'inside-bottom': { rangeH: 0, rangeV: 1, labelH: 0, labelV: -1 },
+    'bottom-right': { rangeH: 1, rangeV: 1, labelH: 1, labelV: -1 },
+    'inside-bottom-right': { rangeH: 1, rangeV: 1, labelH: 1, labelV: -1 },
+    right: { rangeH: 1, rangeV: 0, labelH: -1, labelV: 0 },
+    'inside-right': { rangeH: 1, rangeV: 0, labelH: 1, labelV: 0 },
+    'top-right': { rangeH: 1, rangeV: -1, labelH: 1, labelV: 1 },
+    'inside-top-right': { rangeH: 1, rangeV: -1, labelH: 1, labelV: 1 },
+    inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
+};
+
+const verticalLineAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
+    top: { rangeH: 0, rangeV: -1, labelH: 0, labelV: 1 },
+    'inside-top': { rangeH: 0, rangeV: -1, labelH: 0, labelV: -1 },
+    'top-left': { rangeH: -1, rangeV: -1, labelH: 1, labelV: -1 },
+    'inside-top-left': { rangeH: -1, rangeV: -1, labelH: 1, labelV: -1 },
+    left: { rangeH: -1, rangeV: 0, labelH: 1, labelV: 0 },
+    'inside-left': { rangeH: -1, rangeV: 0, labelH: 1, labelV: 0 },
+    'bottom-left': { rangeH: -1, rangeV: 1, labelH: 1, labelV: 1 },
+    'inside-bottom-left': { rangeH: -1, rangeV: 1, labelH: 1, labelV: 1 },
+    bottom: { rangeH: 0, rangeV: 1, labelH: 0, labelV: -1 },
+    'inside-bottom': { rangeH: 0, rangeV: 1, labelH: 0, labelV: 1 },
+    'bottom-right': { rangeH: 1, rangeV: 1, labelH: -1, labelV: 1 },
+    'inside-bottom-right': { rangeH: 1, rangeV: 1, labelH: -1, labelV: 1 },
+    right: { rangeH: 1, rangeV: 0, labelH: -1, labelV: 0 },
+    'inside-right': { rangeH: 1, rangeV: 0, labelH: -1, labelV: 0 },
+    'top-right': { rangeH: 1, rangeV: -1, labelH: -1, labelV: -1 },
+    'inside-top-right': { rangeH: -1, rangeV: -1, labelH: -1, labelV: -1 },
+    inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
+};
+
+const horizontalRangeAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
+    top: { rangeH: 0, rangeV: -1, labelH: 0, labelV: 1 },
+    'inside-top': { rangeH: 0, rangeV: -1, labelH: 0, labelV: -1 },
+    'top-left': { rangeH: -1, rangeV: -1, labelH: -1, labelV: 1 },
+    'inside-top-left': { rangeH: -1, rangeV: -1, labelH: -1, labelV: -1 },
+    left: { rangeH: -1, rangeV: 0, labelH: 1, labelV: 0 },
+    'inside-left': { rangeH: -1, rangeV: 0, labelH: -1, labelV: 0 },
+    'bottom-left': { rangeH: -1, rangeV: 1, labelH: -1, labelV: -1 },
+    'inside-bottom-left': { rangeH: -1, rangeV: 1, labelH: -1, labelV: 1 },
+    bottom: { rangeH: 0, rangeV: 1, labelH: 0, labelV: -1 },
+    'inside-bottom': { rangeH: 0, rangeV: 1, labelH: 0, labelV: 1 },
+    'bottom-right': { rangeH: 1, rangeV: 1, labelH: 1, labelV: -1 },
+    'inside-bottom-right': { rangeH: 1, rangeV: 1, labelH: 1, labelV: 1 },
+    right: { rangeH: 1, rangeV: 0, labelH: -1, labelV: 0 },
+    'inside-right': { rangeH: 1, rangeV: 0, labelH: 1, labelV: 0 },
+    'top-right': { rangeH: 1, rangeV: -1, labelH: 1, labelV: 1 },
+    'inside-top-right': { rangeH: 1, rangeV: -1, labelH: 1, labelV: -1 },
+    inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
+};
+
+const verticalRangeAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
+    top: { rangeH: 0, rangeV: -1, labelH: 0, labelV: 1 },
+    'inside-top': { rangeH: 0, rangeV: -1, labelH: 0, labelV: -1 },
+    'top-left': { rangeH: -1, rangeV: -1, labelH: 1, labelV: -1 },
+    'inside-top-left': { rangeH: -1, rangeV: -1, labelH: -1, labelV: -1 },
+    left: { rangeH: -1, rangeV: 0, labelH: 1, labelV: 0 },
+    'inside-left': { rangeH: -1, rangeV: 0, labelH: -1, labelV: 0 },
+    'bottom-left': { rangeH: -1, rangeV: 1, labelH: 1, labelV: 1 },
+    'inside-bottom-left': { rangeH: -1, rangeV: 1, labelH: -1, labelV: 1 },
+    bottom: { rangeH: 0, rangeV: 1, labelH: 0, labelV: -1 },
+    'inside-bottom': { rangeH: 0, rangeV: 1, labelH: 0, labelV: 1 },
+    'bottom-right': { rangeH: 1, rangeV: 1, labelH: -1, labelV: 1 },
+    'inside-bottom-right': { rangeH: 1, rangeV: 1, labelH: 1, labelV: 1 },
+    right: { rangeH: 1, rangeV: 0, labelH: -1, labelV: 0 },
+    'inside-right': { rangeH: 1, rangeV: 0, labelH: 1, labelV: 0 },
+    'top-right': { rangeH: 1, rangeV: -1, labelH: -1, labelV: -1 },
+    'inside-top-right': { rangeH: 1, rangeV: -1, labelH: 1, labelV: -1 },
+    inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
+};
 
 class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCrossLineLabelOptions {
     @Property
@@ -115,17 +197,17 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     scale?: Scale<any, number> = undefined;
     clippedRange: [number, number] = [-Infinity, Infinity];
     gridLength: number = 0;
-    sideFlag: 1 | -1 = -1;
-    parallelFlipRotation: number = 0;
-    regularFlipRotation: number = 0;
-    direction: ChartAxisDirection = ChartAxisDirection.X;
+    position: AgCartesianAxisPosition = 'top';
+
+    get defaultLabelPosition(): AgCrossLineLabelPosition {
+        return 'top';
+    }
 
     readonly rangeGroup = new Group({ name: this.id });
     readonly lineGroup = new Group({ name: this.id });
     readonly labelGroup = new Group({ name: this.id });
     private readonly crossLineRange = new Range();
     private readonly crossLineLabel = new TransformableText();
-    private labelPoint?: Point = undefined;
 
     private data: NodeData | undefined = undefined;
     private startLine: boolean = false;
@@ -169,18 +251,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     calculateLayout(visible: boolean, reversedAxis?: boolean) {
         if (!visible) return;
 
-        const {
-            type,
-            range,
-            value,
-            scale,
-            gridLength,
-            sideFlag,
-            direction,
-            label: { position = 'top' },
-            clippedRange,
-            strokeWidth = 0,
-        } = this;
+        const { type, range, value, scale, clippedRange, strokeWidth = 0 } = this;
 
         this.data = undefined;
 
@@ -189,8 +260,6 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const bandwidth = scale.bandwidth ?? 0;
         const step = scale.step ?? 0;
         const rangePadding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
-
-        const [xStart, xEnd] = [0, sideFlag * gridLength];
 
         let yStart: number;
         let yEnd: number;
@@ -237,62 +306,63 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         this.data = [clampedYStart, clampedYEnd];
 
         if (this.label.enabled === false || !this.label.text) return;
-
-        const { c = POSITION_TOP_COORDINATES } = labelDirectionHandling[position] ?? {};
-        const { x: labelX, y: labelY } = c({
-            direction,
-            xStart,
-            xEnd,
-            yStart: clampedYStart,
-            yEnd: clampedYEnd,
-        });
-
-        this.labelPoint = {
-            x: labelX,
-            y: labelY,
-        };
     }
 
     private updateNodes() {
-        this.updateRangeNode();
+        const { position, data: [r0, r1] = [0, 0], gridLength } = this;
+
+        const dr = Number.isFinite(r1) ? r1 - r0 : 0;
+
+        let bounds: BBox;
+        switch (position) {
+            case 'top':
+            case 'bottom':
+                bounds = new BBox(r0, position === 'top' ? 0 : -gridLength, dr, gridLength);
+                break;
+            case 'left':
+            case 'right':
+                bounds = new BBox(position === 'left' ? 0 : -gridLength, r0, gridLength, dr);
+        }
+
+        this.updateRangeNode(bounds);
 
         const { label } = this;
         if (label.enabled !== false && label.text) {
             this.updateLabel();
-            this.positionLabel();
+            this.positionLabel(bounds);
         }
     }
 
-    private updateRangeNode() {
+    private updateRangeNode(bounds: BBox) {
         const {
             type,
+            position,
             crossLineRange,
-            sideFlag,
-            gridLength,
-            data,
             startLine,
             endLine,
             fill,
             fillOpacity,
             stroke,
             strokeWidth,
+            strokeOpacity,
             lineDash,
         } = this;
 
-        crossLineRange.x1 = 0;
-        crossLineRange.x2 = sideFlag * gridLength;
-        crossLineRange.y1 = data?.[0] ?? 0;
-        crossLineRange.y2 = data?.[1] ?? 0;
+        crossLineRange.x1 = bounds.x;
+        crossLineRange.x2 = bounds.x + bounds.width;
+        crossLineRange.y1 = bounds.y;
+        crossLineRange.y2 = bounds.y + bounds.height;
+        crossLineRange.horizontal = position === 'top' || position === 'bottom';
+
         crossLineRange.startLine = startLine;
         crossLineRange.endLine = endLine;
-        crossLineRange.isRange = type === 'range';
 
-        crossLineRange.fill = fill;
+        crossLineRange.fill = type === 'range' ? fill : undefined;
         crossLineRange.fillOpacity = fillOpacity ?? 1;
 
         crossLineRange.stroke = stroke;
         crossLineRange.strokeWidth = strokeWidth ?? 1;
-        crossLineRange.strokeOpacity = this.strokeOpacity ?? 1;
+        crossLineRange.strokeOpacity = strokeOpacity ?? 1;
         crossLineRange.lineDash = lineDash;
     }
 
@@ -309,47 +379,44 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         crossLineLabel.text = label.text;
     }
 
-    private positionLabel() {
-        const {
-            crossLineLabel,
-            labelPoint: { x = undefined, y = undefined } = {},
-            label: { parallel, rotation, position = 'top', padding = 0 },
-            direction,
-            parallelFlipRotation,
-            regularFlipRotation,
-        } = this;
+    private get anchor(): Anchor {
+        const horizontal = this.position === 'left' || this.position === 'right';
+        const range = this.type === 'range';
+        const { position = this.defaultLabelPosition } = this.label;
 
-        if (x === undefined || y === undefined) return;
+        if (range) {
+            const anchors = horizontal ? horizontalRangeAnchors : verticalRangeAnchors;
+            return anchors[position];
+        } else {
+            const anchors = horizontal ? horizontalLineAnchors : verticalLineAnchors;
+            return anchors[position];
+        }
+    }
 
-        const { defaultRotation, configuredRotation } = calculateLabelRotation({
-            rotation,
-            parallel,
-            regularFlipRotation,
-            parallelFlipRotation,
-        });
+    private positionLabel(bounds: BBox) {
+        const { crossLineLabel, label, anchor } = this;
 
-        crossLineLabel.rotation = defaultRotation + configuredRotation;
+        const bbox = crossLineLabel.getBBox();
+        if (!bbox) return;
+        const { width, height } = bbox;
 
+        crossLineLabel.rotation = toRadians(label.rotation ?? 0);
         crossLineLabel.textBaseline = 'middle';
         crossLineLabel.textAlign = 'center';
 
-        const bbox = crossLineLabel.getBBox();
+        const xOffset = label.padding + width / 2;
+        const yOffset = label.padding + height / 2;
 
-        if (!bbox) return;
+        const x = bounds.x + (bounds.width * (anchor.rangeH + 1)) / 2 - xOffset * anchor.labelH;
+        const y = bounds.y + (bounds.height * (anchor.rangeV + 1)) / 2 - yOffset * anchor.labelV;
 
-        const yDirection = direction === ChartAxisDirection.Y;
-        const { xTranslation, yTranslation } = calculateLabelTranslation({
-            yDirection,
-            padding,
-            position,
-            bbox,
-        });
-
-        crossLineLabel.translationX = x + xTranslation;
-        crossLineLabel.translationY = y + yTranslation;
+        crossLineLabel.x = x;
+        crossLineLabel.y = y;
+        crossLineLabel.rotationCenterX = x;
+        crossLineLabel.rotationCenterY = y;
     }
 
-    private computeLabelBBox(): BBox | undefined {
+    private computeLabelSize(): { width: number; height: number } | undefined {
         const { label } = this;
         if (label.enabled === false || !label.text) return;
         const tempText = new TransformableText();
@@ -358,67 +425,43 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         tempText.fontStyle = label.fontStyle;
         tempText.fontWeight = label.fontWeight;
         tempText.text = label.text;
-
-        const {
-            labelPoint: { x = undefined, y = undefined } = {},
-            label: { parallel, rotation, position = 'top', padding = 0 },
-            direction,
-            parallelFlipRotation,
-            regularFlipRotation,
-        } = this;
-
-        if (x === undefined || y === undefined) return;
-
-        const { configuredRotation } = calculateLabelRotation({
-            rotation,
-            parallel,
-            regularFlipRotation,
-            parallelFlipRotation,
-        });
-
-        tempText.rotation = configuredRotation;
+        tempText.rotation = toRadians(label.rotation ?? 0);
         tempText.textBaseline = 'middle';
         tempText.textAlign = 'center';
 
         const bbox = tempText.getBBox();
-
         if (!bbox) return;
 
-        const yDirection = direction === ChartAxisDirection.Y;
-        const { xTranslation, yTranslation } = calculateLabelTranslation({
-            yDirection,
-            padding,
-            position,
-            bbox,
-        });
-
-        tempText.x = x + xTranslation;
-        tempText.y = y + yTranslation;
-
-        return tempText.getBBox();
+        const { width, height } = bbox;
+        return { width, height };
     }
 
-    calculatePadding(padding: Partial<Record<AgCrossLineLabelPosition, number>>) {
-        const {
-            data,
-            direction,
-            label: { padding: labelPadding = 0, position = 'top' },
-        } = this;
+    calculatePadding(into: Partial<Record<AgCrossLineLabelPosition, number>>) {
+        const { data, label, anchor } = this;
         if (data == null) return;
 
-        const crossLineLabelBBox = this.computeLabelBBox();
-        if (crossLineLabelBBox?.x == null || crossLineLabelBBox?.y == null) return;
+        const size = this.computeLabelSize();
+        if (!size) return;
+        const { width, height } = size;
 
-        const chartPadding = calculateLabelChartPadding({
-            yDirection: direction === ChartAxisDirection.Y,
-            padding: labelPadding,
-            position,
-            bbox: crossLineLabelBBox,
-        });
+        const xOffset = label.padding + width;
+        const yOffset = label.padding + height;
+        const horizontal = this.position === 'left' || this.position === 'right';
 
-        padding.left = Math.max(padding.left ?? 0, chartPadding.left ?? 0);
-        padding.right = Math.max(padding.right ?? 0, chartPadding.right ?? 0);
-        padding.top = Math.max(padding.top ?? 0, chartPadding.top ?? 0);
-        padding.bottom = Math.max(padding.bottom ?? 0, chartPadding.bottom ?? 0);
+        if (horizontal) {
+            if (anchor.rangeH === -1 && anchor.labelH === 1) {
+                into.left = Math.max(into.left ?? 0, xOffset);
+            } else if (anchor.rangeH === 1 && anchor.labelH === -1) {
+                into.right = Math.max(into.right ?? 0, xOffset);
+            }
+        }
+
+        if (!horizontal) {
+            if (anchor.rangeV === -1 && anchor.labelV === 1) {
+                into.top = Math.max(into.top ?? 0, yOffset);
+            } else if (anchor.rangeV === 1 && anchor.labelV === -1) {
+                into.bottom = Math.max(into.bottom ?? 0, yOffset);
+            }
+        }
     }
 }

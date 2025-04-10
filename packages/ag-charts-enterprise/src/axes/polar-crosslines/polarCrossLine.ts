@@ -38,7 +38,7 @@ export class PolarCrossLineLabel extends BaseProperties implements AgBaseCrossLi
     parallel?: boolean;
 }
 
-export abstract class PolarCrossLine extends BaseProperties implements _ModuleSupport.CrossLine {
+export abstract class PolarCrossLine extends BaseProperties implements _ModuleSupport.PolarCrossLine {
     readonly id = createId(this);
 
     @Property

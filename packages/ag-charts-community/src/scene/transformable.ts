@@ -169,8 +169,8 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
 
 export type RotatableType<T> = MatrixTransformType<
     T & {
-        rotationCenterX: number | null;
-        rotationCenterY: number | null;
+        rotationCenterX: number;
+        rotationCenterY: number;
         rotation: number;
     }
 >;
@@ -183,9 +183,9 @@ export function Rotatable<N extends Node>(Parent: Constructor<N>): Constructor<R
         [ROTATABLE_MATRIX] = new Matrix();
 
         @SceneChangeDetection()
-        rotationCenterX: number | null = null;
+        rotationCenterX: number = 0;
         @SceneChangeDetection()
-        rotationCenterY: number | null = null;
+        rotationCenterY: number = 0;
         @SceneChangeDetection()
         rotation: number = 0;
 
@@ -227,9 +227,9 @@ export function Scalable<N extends Node>(Parent: Constructor<N>): Constructor<Sc
         @SceneChangeDetection()
         scalingY: number = 1;
         @SceneChangeDetection()
-        scalingCenterX: number | null = null;
+        scalingCenterX: number = 0;
         @SceneChangeDetection()
-        scalingCenterY: number | null = null;
+        scalingCenterY: number = 0;
 
         override updateMatrix(matrix: Matrix) {
             super.updateMatrix(matrix);

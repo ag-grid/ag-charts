@@ -46,26 +46,25 @@ export class Label<TParams = never, TDatum = any>
     }
 }
 
-export function calculateLabelRotation(opts: {
-    rotation?: number;
-    parallel?: boolean;
-    regularFlipRotation?: number;
-    parallelFlipRotation?: number;
-}): {
+export function calculateLabelRotation(
+    rotation?: number,
+    parallel?: boolean,
+    regularFlipRotation: number = 0,
+    parallelFlipRotation: number = 0
+): {
     configuredRotation: number;
     defaultRotation: number;
     parallelFlipFlag: ChartAxisLabelFlipFlag;
     regularFlipFlag: ChartAxisLabelFlipFlag;
 } {
-    const { parallelFlipRotation = 0, regularFlipRotation = 0 } = opts;
-    const configuredRotation = opts.rotation ? normalizeAngle360(toRadians(opts.rotation)) : 0;
+    const configuredRotation = rotation ? normalizeAngle360(toRadians(rotation)) : 0;
     const parallelFlipFlag =
         !configuredRotation && parallelFlipRotation >= 0 && parallelFlipRotation <= Math.PI ? -1 : 1;
     // Flip if the axis rotation angle is in the top hemisphere.
     const regularFlipFlag = !configuredRotation && regularFlipRotation >= 0 && regularFlipRotation <= Math.PI ? -1 : 1;
 
     let defaultRotation = 0;
-    if (opts.parallel) {
+    if (parallel) {
         defaultRotation = (parallelFlipFlag * Math.PI) / 2;
     } else if (regularFlipFlag === -1) {
         defaultRotation = Math.PI;
@@ -120,7 +119,7 @@ export function getTextAlign(
 }
 
 export function createLabelData(
-    tickData: { tickLabel: string; translationY: number }[],
+    tickData: { tickLabel: string | undefined; translationY: number }[],
     labelX: number,
     labelMatrix: Matrix,
     textMeasurer: TextMeasurer

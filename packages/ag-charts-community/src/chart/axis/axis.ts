@@ -24,15 +24,15 @@ import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable, Translatable } from '../../scene/transformable';
-import { normalizeAngle360, toRadians } from '../../util/angle';
 import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
+import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
-import type { AxisGroups, ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
+import type { AxisGroups, ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
@@ -55,15 +55,14 @@ export interface LabelNodeDatum {
     fontStyle?: FontStyle;
     fontWeight?: FontWeight;
     rotation: number;
-    rotationCenterX: number;
     text: string;
     textAlign?: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     visible: boolean;
     x: number;
     y: number;
-    translationX?: number;
-    translationY: number;
+    rotationCenterX: number;
+    rotationCenterY: number;
     range: number[];
 }
 
@@ -168,19 +167,9 @@ export abstract class Axis<
         zIndex: ZIndexMap.SERIES_LABEL,
     });
 
-    protected tickLineGroupSelection = Selection.select<TranslatableLine, TickDatum>(
-        this.tickLineGroup,
-        TranslatableLine,
-        false
-    );
     protected tickLabelGroupSelection = Selection.select<TransformableText, TickLabelDatum>(
         this.tickLabelGroup,
         TransformableText,
-        false
-    );
-    protected gridLineGroupSelection = Selection.select<TranslatableLine, TickDatum>(
-        this.gridLineGroup,
-        TranslatableLine,
         false
     );
 
@@ -214,7 +203,6 @@ export abstract class Axis<
     defaultTickMinSpacing: number = Axis.defaultTickMinSpacing;
 
     readonly translation = { x: 0, y: 0 };
-    rotation: number = 0; // axis rotation angle in degrees
 
     protected readonly layout: Pick<AxisLayout, 'label'> = {
         label: {
@@ -364,9 +352,7 @@ export abstract class Axis<
         this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
     }
 
-    protected onGridVisibilityChange() {
-        this.gridLineGroupSelection.clear();
-    }
+    protected onGridVisibilityChange() {}
 
     protected createLabel() {
         return new AxisLabel();
@@ -377,7 +363,6 @@ export abstract class Axis<
      */
     update() {
         this.updatePosition();
-
         this.updateSelections();
 
         this.tickLineGroup.visible = this.tick.enabled;
@@ -385,13 +370,11 @@ export abstract class Axis<
         this.tickLabelGroup.visible = this.label.enabled;
 
         this.updateLabels();
-        this.updateGridLines();
-        this.updateTickLines();
         this.updateCrossLines();
     }
 
     protected getLabelStyles(
-        params: { value: string; depth?: number },
+        params: { value: string | undefined; depth?: number },
         additionalStyles?: AgBaseAxisLabelStyleOptions
     ) {
         const { label } = this;
@@ -454,15 +437,21 @@ export abstract class Axis<
         this.animatable = animatable;
     }
 
+    protected chartPadding?: Padding;
+
     _scaleNiceDomainInputDomain: D[] | undefined = undefined;
     _scaleNiceDomainRangeExtent: number = NaN;
-    calculateLayout(initialPrimaryTickCount?: number): {
+    calculateLayout(
+        initialPrimaryTickCount?: number,
+        chartPadding?: Padding
+    ): {
         primaryTickCount?: number;
         bbox?: BBox;
         niceDomain?: unknown[];
     } {
         const { scale, label, visibleRange, nice } = this;
 
+        this.chartPadding = chartPadding;
         this.updateScale();
 
         const rangeExtent = findRangeExtent(this.range);
@@ -514,23 +503,12 @@ export abstract class Axis<
             format: this.label.format,
         };
 
-        const sideFlag = label.getSideFlag();
-        const anySeriesActive = this.isAnySeriesActive();
-        const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
-
-        this.crossLines.forEach((crossLine) => {
-            crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
-            crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
-            if (crossLine instanceof CartesianCrossLine) {
-                crossLine.label.parallel ??= label.parallel;
-            }
-            crossLine.parallelFlipRotation = parallelFlipRotation;
-            crossLine.regularFlipRotation = regularFlipRotation;
-            crossLine.calculateLayout?.(anySeriesActive, this.reverse);
-        });
+        this.layoutCrossLines();
 
         return { primaryTickCount, bbox };
     }
+
+    abstract layoutCrossLines(): void;
 
     abstract calculateTickLayout(
         domain: D[],
@@ -546,22 +524,6 @@ export abstract class Axis<
         bbox?: BBox;
     };
 
-    protected calculateRotations() {
-        const rotation = toRadians(this.rotation);
-        // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
-        // flip the labels to avoid upside-down text, when the axis is rotated
-        // such that it is in the right hemisphere, i.e. the angle of rotation
-        // is in the [0, π] interval.
-        // The rotation angle is normalized, so that we have an easier time checking
-        // if it's in the said interval. Since the axis is always rendered vertically
-        // and then rotated, zero rotation means 12 (not 3) o-clock.
-        // -1 = flip
-        //  1 = don't flip (default)
-        const parallelFlipRotation = normalizeAngle360(rotation);
-        const regularFlipRotation = normalizeAngle360(rotation - Math.PI / 2);
-        return { rotation, parallelFlipRotation, regularFlipRotation };
-    }
-
     protected updateCrossLines() {
         const anySeriesActive = this.isAnySeriesActive();
         this.crossLines.forEach((crossLine) => {
@@ -569,61 +531,18 @@ export abstract class Axis<
         });
     }
 
-    protected updateTickLines() {
-        const { tick, label } = this;
-        const sideFlag = label.getSideFlag();
-        this.tickLineGroupSelection.each((line, datum: any) => {
-            line.strokeWidth = datum.tickWidth ?? tick.width;
-            line.stroke = datum.tickStroke ?? tick.stroke;
-            line.x1 = sideFlag * (datum.tickSize ?? this.getTickSize());
-            line.x2 = 0;
-        });
-    }
-
-    protected getAxisTransform() {
-        return {
-            rotation: toRadians(this.rotation),
-            translationX: Math.floor(this.translation.x),
-            translationY: Math.floor(this.translation.y),
-        };
-    }
-
     protected updatePosition() {
         const { crossLineRangeGroup, crossLineLineGroup, crossLineLabelGroup, gridGroup, translation } = this;
-        const { rotation } = this.calculateRotations();
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
         gridGroup.setProperties({ translationX, translationY });
-        crossLineRangeGroup.setProperties({ rotation, translationX, translationY });
-        crossLineLineGroup.setProperties({ rotation, translationX, translationY });
-        crossLineLabelGroup.setProperties({ rotation, translationX, translationY });
+        crossLineRangeGroup.setProperties({ translationX, translationY });
+        crossLineLineGroup.setProperties({ translationX, translationY });
+        crossLineLabelGroup.setProperties({ translationX, translationY });
     }
 
     protected abstract updateSelections(): void;
-
-    protected updateGridLines() {
-        const sideFlag = this.label.getSideFlag();
-        const {
-            gridLine: { style, width },
-            gridPadding,
-            gridLength,
-        } = this;
-
-        if (gridLength === 0 || style.length === 0) {
-            return;
-        }
-        this.gridLineGroupSelection.each((line, _, index) => {
-            const { stroke, lineDash } = style[index % style.length];
-            line.setProperties({
-                x1: gridPadding,
-                x2: -sideFlag * gridLength + gridPadding,
-                stroke,
-                strokeWidth: width,
-                lineDash,
-            });
-        });
-    }
 
     protected abstract updateLabels(): void;
 
@@ -699,7 +618,7 @@ export abstract class Axis<
         crossLine.gridLength = this.gridLength;
     }
 
-    private isAnySeriesActive() {
+    protected isAnySeriesActive() {
         return this.boundSeries.some((s) => this.includeInvisibleDomains || s.isEnabled());
     }
 

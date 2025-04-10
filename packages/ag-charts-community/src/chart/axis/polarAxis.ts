@@ -1,31 +1,12 @@
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
-import type { Line } from '../../scene/shape/line';
 import { Property } from '../../util/properties';
+import type { ChartAxisLabelFlipFlag } from '../chartAxis';
+import { ChartAxisDirection } from '../chartAxisDirection';
+import type { PolarCrossLine } from '../crossline/crossLine';
 import { Axis } from './axis';
 import type { TickInterval } from './axisTick';
-import { type AxisAnimationContext, prepareAxisAnimationContext, resetAxisLabelSelectionFn } from './axisUtil';
-
-interface AxisNodeDatum {
-    translationY: number;
-    tickId: string;
-}
-
-function resetAxisSelectionFn(ctx: AxisAnimationContext) {
-    const { visible: rangeVisible, min, max } = ctx;
-
-    return (_node: Line, datum: AxisNodeDatum) => {
-        const y = datum.translationY;
-
-        const visible = rangeVisible && y >= min && y <= max;
-        return {
-            y,
-            translationY: 0,
-            opacity: 1,
-            visible,
-        };
-    };
-}
+import { resetAxisLabelSelectionFn } from './axisUtil';
 
 export interface PolarAxisPathPoint {
     x: number;
@@ -36,6 +17,7 @@ export interface PolarAxisPathPoint {
     endAngle?: number;
     arc?: boolean;
 }
+
 export abstract class PolarAxis<
     S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
     D = any,
@@ -52,6 +34,22 @@ export abstract class PolarAxis<
     innerRadiusRatio: number = 0;
 
     override defaultTickMinSpacing = 20;
+
+    abstract calculateRotations(): { rotation: number; parallelFlipRotation: number; regularFlipRotation: number };
+
+    layoutCrossLines() {
+        const sideFlag = this.label.getSideFlag();
+        const anySeriesActive = this.isAnySeriesActive();
+        const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
+
+        (this.crossLines as PolarCrossLine[]).forEach((crossLine) => {
+            crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
+            crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
+            crossLine.parallelFlipRotation = parallelFlipRotation;
+            crossLine.regularFlipRotation = regularFlipRotation;
+            crossLine.calculateLayout?.(anySeriesActive, this.reverse);
+        });
+    }
 
     override updatePosition(): void {
         super.updatePosition();
@@ -74,10 +72,6 @@ export abstract class PolarAxis<
         this.crossLineLabelGroup.translationX = translationX;
         this.crossLineLabelGroup.translationY = translationY;
 
-        const selectionCtx = prepareAxisAnimationContext(this);
-        const resetAxisFn = resetAxisSelectionFn(selectionCtx);
-        this.gridLineGroupSelection.each(resetAxisFn as any);
-        this.tickLineGroupSelection.each(resetAxisFn as any);
         this.tickLabelGroupSelection.each(resetAxisLabelSelectionFn() as any);
     }
 

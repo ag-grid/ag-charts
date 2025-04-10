@@ -16,8 +16,17 @@ import type { ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { calculateLabelRotation, createLabelData, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
-import type { TickDatum } from './axisUtil';
 import { NiceMode } from './axisUtil';
+
+export interface TickDatum {
+    tick: any;
+    tickId: string;
+    tickLabel: string | undefined;
+    translationY: number;
+    tickSize?: number;
+    tickStroke?: string;
+    tickWidth?: number;
+}
 
 export interface TickData<D = any> {
     tickDomain: D[];
@@ -36,12 +45,14 @@ export interface TickGenerationParams<D = any> {
     regularFlipRotation: number;
     labelX: number;
     sideFlag: ChartAxisLabelFlipFlag;
+    removeOverflowLabels: boolean;
+    removeOverflowThreshold?: number;
 }
 
 export interface TickGenerationResult<D = any> {
     tickData: TickData<D>;
     primaryTickCount?: number;
-    combinedRotation: number;
+    rotation: number;
     textBaseline: CanvasTextBaseline;
     textAlign: CanvasTextAlign;
 }
@@ -120,25 +131,24 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         regularFlipRotation,
         labelX,
         sideFlag,
+        removeOverflowLabels,
+        removeOverflowThreshold = 0,
     }: TickGenerationParams<D>): TickGenerationResult<D> {
         const {
             scale,
             label,
             interval: { minSpacing, maxSpacing },
         } = this.axis;
-        const { parallel, rotation, fontFamily, fontSize, fontStyle, fontWeight } = label;
+        const { parallel, fontFamily, fontSize, fontStyle, fontWeight } = label;
 
         const secondaryAxis = primaryTickCount !== undefined;
 
-        const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation({
-            rotation,
+        const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation(
+            label.rotation,
             parallel,
             regularFlipRotation,
-            parallelFlipRotation,
-        });
-
-        const initialRotation = configuredRotation + defaultRotation;
-        const labelMatrix = new Matrix();
+            parallelFlipRotation
+        );
 
         const { maxTickCount } = this.estimateTickCount(visibleRange, minSpacing, maxSpacing);
 
@@ -161,16 +171,22 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const checkLabelOverlap = label.enabled && label.avoidCollisions;
 
-        const getLabelOverlap = ({ ticks }: TickData, iterationRotation: number) => {
+        const initialRotation = configuredRotation + defaultRotation;
+        const labelMatrix = new Matrix();
+        const getLabelData = ({ ticks }: TickData, iterationRotation: number) => {
+            const labelRotation = initialRotation + iterationRotation;
+            Matrix.updateTransformMatrix(labelMatrix, 1, 1, labelRotation, 0, 0);
+            return createLabelData(ticks, labelX, labelMatrix, textMeasurer);
+        };
+
+        const getLabelOverlap = (tickData: TickData, iterationRotation: number) => {
             if (!checkLabelOverlap) return false;
 
+            const labelData = getLabelData(tickData, iterationRotation);
+
             const rotated = configuredRotation !== 0 || iterationRotation !== 0;
-            const labelRotation = initialRotation + iterationRotation;
             const labelSpacing = getLabelSpacing(label.minSpacing, rotated);
 
-            Matrix.updateTransformMatrix(labelMatrix, 1, 1, labelRotation, 0, 0);
-
-            const labelData = createLabelData(ticks, labelX, labelMatrix, textMeasurer);
             return axisLabelsOverlap(labelData, labelSpacing);
         };
 
@@ -208,13 +224,31 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         }
 
         textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
-        const combinedRotation = defaultRotation + configuredRotation + autoRotation;
+        const rotation = configuredRotation + autoRotation;
 
         if (!secondaryAxis && tickData.rawTicks.length > 0) {
             primaryTickCount = tickData.rawTicks.length;
         }
 
-        return { tickData, primaryTickCount, combinedRotation, textBaseline, textAlign };
+        if (removeOverflowLabels && tickData.ticks.length > 2) {
+            const labelData = getLabelData(tickData, autoRotation);
+            const lastTick = tickData.ticks.at(-1);
+            const lastLabel = labelData.at(-1);
+            if (
+                lastTick != null &&
+                lastLabel != null &&
+                lastTick.translationY + lastLabel.label.width / 2 > this.axis.range[1] + removeOverflowThreshold
+            ) {
+                lastTick.tickLabel = undefined;
+
+                const firstTick = tickData.ticks[0];
+                if (firstTick.translationY === 0 && visibleRange[0] === 0 && visibleRange[1] === 1) {
+                    firstTick.tickLabel = undefined;
+                }
+            }
+        }
+
+        return { tickData, primaryTickCount, rotation, textBaseline, textAlign };
     }
 
     private getTickStrategies({
@@ -460,7 +494,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             const tickLabel = label.enabled ? axis.formatTick(tick, i, niceDomain, fractionDigits, labelFormatter) : '';
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
-            ticks.push({ tick, tickId: idGenerator(tickLabel), tickLabel, translationY: Math.floor(translationY) });
+            ticks.push({
+                tick,
+                tickId: idGenerator(tickLabel),
+                tickLabel,
+                translationY: Math.floor(translationY),
+            });
         }
         scale.domain = scaleDomain;
 
