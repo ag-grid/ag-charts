@@ -1,4 +1,4 @@
-import { EventEmitter, downloadUrl } from 'ag-charts-core';
+import { EventEmitter, Logger, downloadUrl } from 'ag-charts-core';
 
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
@@ -46,8 +46,15 @@ export class Scene extends EventEmitter<EventMap> {
         this.destroyFns.push(
             this.imageLoader.on('image-loaded', () => {
                 this.emit('scene-changed', {});
+            }),
+            this.imageLoader.on('image-error', ({ uri }) => {
+                Logger.warnOnce(`Unable to load image ${uri}`);
             })
         );
+    }
+
+    waitingForUpdate(): boolean {
+        return this.imageLoader?.waitingToLoad() ?? false;
     }
 
     get width(): number {

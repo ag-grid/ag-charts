@@ -1149,7 +1149,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
         while (
             this._pendingFactoryUpdatesCount > 0 ||
             this.performUpdateType !== ChartUpdateType.NONE ||
-            this.runningUpdateType !== ChartUpdateType.NONE
+            this.runningUpdateType !== ChartUpdateType.NONE ||
+            this.ctx.scene.waitingForUpdate()
         ) {
             if (this.destroyed) break;
 
