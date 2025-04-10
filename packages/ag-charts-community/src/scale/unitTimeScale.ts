@@ -1,7 +1,6 @@
 import { findMaxIndex, findMinIndex } from 'ag-charts-core';
 
 import { compareDates } from '../util/date';
-import { findMinMax } from '../util/number';
 import { TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
@@ -139,14 +138,19 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
         const interpolate = options?.interpolate ?? false;
         if (!interpolate) return super.convert(d, options);
 
-        const d0 = this.domain[0].getTime();
-        const d1 = this.domain[1].getTime();
+        const { domain, bands } = this;
+
+        const r0 = this.ordinalRange(0);
+        if (bands.length === 0) return r0;
+
+        const r1 = this.ordinalRange(bands.length - 1);
+
+        const d0 = domain[0].getTime();
+        const d1 = domain[1].getTime();
 
         const clamp = options?.clamp ?? false;
         let v = d.getTime();
         if (clamp) v = Math.min(Math.max(v, d0), d1);
-
-        const [r0, r1] = findMinMax(this.range);
 
         return ((v - d0) / (d1 - d0)) * (r1 - r0) + r0;
     }
