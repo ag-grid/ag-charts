@@ -451,6 +451,7 @@ export class ChartTheme {
                 label: { autoRotate: false },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: true },
+                division: { enabled: true },
             },
             { title: true, time: 'modern' }
         ),

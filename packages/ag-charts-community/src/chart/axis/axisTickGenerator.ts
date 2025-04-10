@@ -9,6 +9,7 @@ import { Matrix } from '../../scene/matrix';
 import type { TextSizeProperties } from '../../scene/shape/text';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
+import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { createIdsGenerator } from '../../util/tempUtils';
@@ -585,7 +586,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             default: {
                 if (
                     niceDomain.length > 0 &&
-                    (UnitTimeScale.is(scale) || TimeScale.is(scale) || OrdinalTimeScale.is(scale))
+                    (UnitTimeScale.is(scale) ||
+                        (primaryLabel != null && (TimeScale.is(scale) || OrdinalTimeScale.is(scale))))
                 ) {
                     const dates = niceDomain as (Date | number)[];
                     timeInterval = getTickTimeInterval(
@@ -597,7 +599,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     );
                 }
 
-                tickParams.interval = domainParams.interval ?? (timeInterval as any);
                 if (primaryLabel != null) {
                     const maxPrimaryTickRatio = 0.66;
                     let firstLoop = true;
@@ -625,6 +626,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     }
                 }
 
+                tickParams.interval = domainParams.interval ?? (timeInterval as any);
                 rawTicks ??= scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
             }
         }
@@ -678,15 +680,17 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         scale.domain = niceDomain;
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
-        const primaryTickTimes =
-            primaryTicks != null ? new Set(primaryTicks?.map((tick) => tick.valueOf())) : undefined;
+        const exactPrimaryTicks = UnitTimeScale.is(scale);
+        let primaryTickIndex = 0;
         for (let i = 0; i < rawTicks.length; i++) {
             const tick = rawTicks[i];
             const translationY = scale.convert(tick) + halfBandwidth;
 
             let primary = false;
-            if (primaryTickTimes?.has(tick.valueOf())) {
-                primary = true;
+            if (primaryTicks != null && primaryTickIndex < primaryTicks.length) {
+                const diff = compareDates(primaryTicks[primaryTickIndex], tick);
+                primary = exactPrimaryTicks ? diff === 0 : diff <= 0;
+                if (primary) primaryTickIndex++;
             }
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
