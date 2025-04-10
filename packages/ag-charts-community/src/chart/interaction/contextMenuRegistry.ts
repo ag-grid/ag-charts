@@ -20,7 +20,7 @@ type ContextMenuBuiltinItemListsRules = {
     [K in BuiltinItemListKeys]: RequireOptional<AgContextMenuItem>[];
 };
 class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
-    download: RequireOptional<AgContextMenuItemAlways> = {
+    readonly download: RequireOptional<AgContextMenuItemAlways> = {
         type: 'action',
         showOn: 'always',
         label: 'contextMenuDownload',
@@ -29,7 +29,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         action: undefined,
         items: undefined,
     };
-    'zoom-to-cursor': RequireOptional<AgContextMenuItemSeriesArea> = {
+    readonly 'zoom-to-cursor': RequireOptional<AgContextMenuItemSeriesArea> = {
         type: 'action',
         showOn: 'series-area',
         label: 'contextMenuZoomToCursor',
@@ -38,7 +38,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         action: undefined,
         items: undefined,
     };
-    'pan-to-cursor': RequireOptional<AgContextMenuItemSeriesArea> = {
+    readonly 'pan-to-cursor': RequireOptional<AgContextMenuItemSeriesArea> = {
         type: 'action',
         showOn: 'series-area',
         label: 'contextMenuPanToCursor',
@@ -47,7 +47,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         action: undefined,
         items: undefined,
     };
-    'reset-zoom': RequireOptional<AgContextMenuItemSeriesArea> = {
+    readonly 'reset-zoom': RequireOptional<AgContextMenuItemSeriesArea> = {
         type: 'action',
         showOn: 'series-area',
         label: 'contextMenuResetZoom',
@@ -56,7 +56,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         action: undefined,
         items: undefined,
     };
-    'toggle-series-visibility': RequireOptional<AgContextMenuItemLegendItem> = {
+    readonly 'toggle-series-visibility': RequireOptional<AgContextMenuItemLegendItem> = {
         type: 'action',
         showOn: 'legend-item',
         label: 'contextMenuToggleSeriesVisibility',
@@ -65,7 +65,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         action: undefined,
         items: undefined,
     };
-    'toggle-other-series': RequireOptional<AgContextMenuItemLegendItem> = {
+    readonly 'toggle-other-series': RequireOptional<AgContextMenuItemLegendItem> = {
         type: 'action',
         showOn: 'legend-item',
         label: 'contextMenuToggleOtherSeries',
@@ -74,7 +74,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         action: undefined,
         items: undefined,
     };
-    'separator': RequireOptional<AgContextMenuItemAlways> = {
+    readonly 'separator': RequireOptional<AgContextMenuItemAlways> = {
         type: 'separator',
         showOn: 'always',
         label: 'separator',
@@ -86,7 +86,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
 }
 
 class ContextMenuBuiltinItemLists implements ContextMenuBuiltinItemListsRules {
-    defaults: RequireOptional<AgContextMenuItem>[] = [];
+    readonly defaults: RequireOptional<Extract<AgContextMenuItem, object>>[] = [];
     constructor(items: ContextMenuBuiltinItems) {
         this.defaults = [
             items['download'],
@@ -99,8 +99,8 @@ class ContextMenuBuiltinItemLists implements ContextMenuBuiltinItemListsRules {
 }
 
 class ContextMenuBuiltins {
-    items = new ContextMenuBuiltinItems();
-    lists = new ContextMenuBuiltinItemLists(this.items);
+    readonly items = new ContextMenuBuiltinItems();
+    readonly lists = new ContextMenuBuiltinItemLists(this.items);
 }
 
 export class ContextMenuRegistry {
