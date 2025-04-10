@@ -79,7 +79,7 @@ jobs:
               run: |
                   set -x
 
-                  if [[ ${{ steps.get-branch.outputs.type }} =~ "^@" ]] ; then
+                  if [[ "${{ steps.get-branch.outputs.base }}" =~ "^@" ]] ; then
                     base=$(git rev-parse --abbrev-ref ${{ steps.get-branch.outputs.base }})
                   else
                     base=origin/${{ steps.get-branch.outputs.base }}
