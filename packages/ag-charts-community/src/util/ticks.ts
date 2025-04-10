@@ -86,7 +86,7 @@ export function getTickTimeInterval(
     count: number,
     minCount?: number,
     maxCount?: number,
-    targetInterval?: number
+    { targetInterval }: { targetInterval?: number } = {}
 ): TimeInterval {
     const target = targetInterval ?? Math.abs(stop - start) / Math.max(count, 1);
 

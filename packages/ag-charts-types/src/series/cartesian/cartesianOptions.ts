@@ -8,7 +8,7 @@ import type {
     AgBaseAxisLabelStyleOptions,
     AgBaseAxisOptions,
     AgContinuousAxisOptions,
-    FormattableLabel,
+    AgNumericAxisFormattableLabelOptions,
     TimeInterval,
 } from '../../chart/axisOptions';
 import type { Styler } from '../../chart/callbackOptions';
@@ -42,7 +42,16 @@ export interface AgBaseCartesianAxisOptions<
     crosshair?: AgCrosshairOptions<CrosshairLabelType>;
 }
 
-export interface AgCartesianAxisLabelOptions extends AgBaseCartesianAxisLabelOptions, FormattableLabel {}
+export interface AgTimeAxisDivision {
+    /** Enabled division. */
+    enabled?: boolean;
+    /** Configuration for the axis labels, shown next to the ticks. */
+    label?: AgCartesianAxisLabelOptions;
+}
+
+export interface AgCartesianAxisLabelOptions
+    extends AgBaseCartesianAxisLabelOptions,
+        AgNumericAxisFormattableLabelOptions {}
 
 export interface AgBaseCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
     /** If specified and axis labels may collide, they are rotated so that they are positioned at the supplied angle. This is enabled by default for category. If the `rotation` property is specified, it takes precedence. */
@@ -113,6 +122,8 @@ export interface AgGroupedCategoryAxisOptions
 
 export interface AgUnitTimeAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'unit-time';
+    /** Axis division */
+    division?: AgTimeAxisDivision;
     /** The size of each band. */
     unit?: TimeInterval;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
@@ -129,6 +140,8 @@ export interface AgUnitTimeAxisOptions extends AgBaseCartesianAxisOptions {
 
 export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'ordinal-time';
+    /** Axis division */
+    division?: AgTimeAxisDivision;
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisContinuousIntervalOptions<TimeInterval | number>;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
@@ -153,6 +166,8 @@ export interface AgTimeAxisOptions
     extends Omit<AgBaseCartesianAxisOptions, 'interval'>,
         AgContinuousAxisOptions<Date | number, TimeInterval | number> {
     type: 'time';
+    /** Axis division */
+    division?: AgTimeAxisDivision;
 }
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';

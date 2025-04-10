@@ -79,7 +79,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         return this._paddingOuter;
     }
 
-    abstract readonly bandCount: number;
+    abstract readonly bands: readonly D[];
 
     protected refresh() {
         if (!this.invalid) return;
@@ -94,8 +94,8 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
 
     convert(d: D, _clamp?: boolean): number {
         this.refresh();
-        const i = this.getIndex(d);
-        if (i == null || i < 0 || i >= this.bandCount) {
+        const i = this.findIndex(d);
+        if (i == null || i < 0 || i >= this.bands.length) {
             return NaN;
         }
         return this.ordinalRange(i);
@@ -104,7 +104,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
     protected invertNearestIndex(position: number) {
         this.refresh();
 
-        const { bandCount } = this;
+        const bandCount = this.bands.length;
 
         if (bandCount === 0) return -1;
 
@@ -138,7 +138,8 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
     update() {
         const [r0, r1] = this.range;
         let { _paddingInner: paddingInner } = this;
-        const { _paddingOuter: paddingOuter, round, bandCount } = this;
+        const { _paddingOuter: paddingOuter, round, bands } = this;
+        const bandCount = bands.length;
         if (bandCount === 0) return;
 
         const rangeDistance = r1 - r0;
@@ -175,5 +176,5 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         return clamp(min, inset + step * i, max);
     }
 
-    protected abstract getIndex(value: D): number | undefined;
+    abstract findIndex(value: D): number | undefined;
 }

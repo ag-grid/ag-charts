@@ -31,7 +31,6 @@ import { RadiusCategoryAxis } from './radius-category/radiusCategoryAxis';
 import { RadiusNumberAxis } from './radius-number/radiusNumberAxis';
 
 const {
-    cartesianAxisLabelOptionsDefs,
     cartesianAxisOptionsDefs,
     cartesianAxisCrosshairOptions,
     continuousAxisOptions,
@@ -40,6 +39,8 @@ const {
     commonCrossLineOptionsDefs,
     commonCrossLineLabelOptionsDefs,
     numberFormatValidator,
+    cartesianTimeAxisLabel,
+    cartesianTimeAxisDivision,
 } = _ModuleSupport;
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
@@ -48,10 +49,8 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
     paddingInner: ratio,
     paddingOuter: ratio,
     groupPaddingInner: ratio,
-    label: {
-        ...cartesianAxisLabelOptionsDefs,
-        format: string,
-    },
+    label: cartesianTimeAxisLabel,
+    division: cartesianTimeAxisDivision,
     interval: continuousAxisOptions(or(number, date), true).interval,
     crosshair: cartesianAxisCrosshairOptions(true),
 };

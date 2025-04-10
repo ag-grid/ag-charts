@@ -1,4 +1,4 @@
-import type { FormattableLabel } from './axisOptions';
+import type { AgFormattableLabelOptions } from './axisOptions';
 import type { Renderer } from './callbackOptions';
 import type { CssColor, Opacity, PixelSize } from './types';
 
@@ -21,7 +21,7 @@ export interface AgCrosshairOptions<LabelType = AgCrosshairLabel> {
     label?: LabelType;
 }
 
-export interface AgCrosshairLabel extends AgBaseCrosshairLabel, FormattableLabel {}
+export interface AgCrosshairLabel extends AgBaseCrosshairLabel, AgFormattableLabelOptions {}
 
 export interface AgBaseCrosshairLabel {
     /** Whether to show label when the crosshair is visible. */

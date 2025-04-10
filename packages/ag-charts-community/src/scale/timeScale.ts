@@ -6,6 +6,10 @@ import { ContinuousScale } from './continuousScale';
 import type { ScaleFormatParams, ScaleTickParams } from './scale';
 
 export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
+    static override is(value: unknown): value is TimeScale {
+        return value instanceof TimeScale;
+    }
+
     readonly type = 'time';
 
     public constructor() {

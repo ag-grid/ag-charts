@@ -10,6 +10,7 @@ import type {
     AgPresetOverrides,
     AgThemeOverrides,
     CssColor,
+    TimeIntervalUnit,
     WithThemeParams,
 } from 'ag-charts-types';
 
@@ -108,6 +109,26 @@ function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverri
     return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
 }
 
+const timeLabelFormats: Record<TimeIntervalUnit, string> = {
+    millisecond: '%H:%M:%S.%Q',
+    second: '%H:%M:%S',
+    minute: '%H:%M',
+    hour: '%H:%M',
+    day: '%e %B',
+    month: '%B',
+    year: '%Y',
+};
+
+const timeDivisionLabelFormats: Record<TimeIntervalUnit, string> = {
+    millisecond: '%H:%M:%S.%Q',
+    second: '%H:%M:%S',
+    minute: '%H:%M',
+    hour: '%H:%M',
+    day: '%e',
+    month: '%b',
+    year: '%Y',
+};
+
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
     (keyof AgCommonThemeableChartOptions)[]
 >((r, { commonOptions }) => r.concat(commonOptions), []);
@@ -180,10 +201,13 @@ export class ChartTheme {
         };
     }
 
-    private static getAxisDefaults(overrideDefaults: object, withTitle = true) {
+    private static getAxisDefaults(
+        overrideDefaults: object,
+        { title, time }: { title: boolean; time: 'off' | 'legacy' | 'modern' }
+    ) {
         return mergeDefaults(
             overrideDefaults,
-            withTitle && {
+            title && {
                 title: {
                     enabled: false,
                     text: 'Axis Title',
@@ -192,6 +216,29 @@ export class ChartTheme {
                     fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM] },
                     fontFamily: { $ref: 'fontFamily' },
                     color: { $ref: 'textColor' },
+                },
+            },
+            time !== 'off' && {
+                label: {
+                    format: {
+                        $if: [
+                            { $path: '../division/enabled' },
+                            timeDivisionLabelFormats,
+                            time === 'modern' ? timeLabelFormats : undefined,
+                        ],
+                    },
+                },
+                division: {
+                    enabled: false,
+                    label: {
+                        fontSize: { $ref: 'fontSize' },
+                        fontFamily: { $ref: 'fontFamily' },
+                        fontWeight: 'bold',
+                        spacing: 11,
+                        color: { $ref: 'textColor' },
+                        avoidCollisions: true,
+                        format: timeDivisionLabelFormats,
+                    },
                 },
             },
             {
@@ -341,51 +388,72 @@ export class ChartTheme {
     }
 
     private static readonly axisDefault = {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({
-            keys: [],
-            line: { enabled: false },
-            crosshair: { enabled: true },
-        }),
-        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({
-            keys: [],
-            base: 10,
-            line: { enabled: false },
-            crosshair: { enabled: true },
-        }),
-        [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({
-            keys: [],
-            groupPaddingInner: 0.1,
-            label: { autoRotate: true },
-            gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            crosshair: { enabled: false },
-        }),
-        [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults({
-            keys: [],
-            tick: { enabled: true, stroke: DEFAULT_SEPARATION_LINES_COLOUR },
-            label: { spacing: 10, rotation: 270 },
-            paddingInner: 0.4,
-            groupPaddingInner: 0.2,
-            crosshair: { enabled: false },
-        }),
-        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({
-            keys: [],
-            gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            crosshair: { enabled: true },
-        }),
-        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({
-            keys: [],
-            groupPaddingInner: 0,
-            label: { autoRotate: false },
-            gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            crosshair: { enabled: true },
-        }),
-        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults({
-            keys: [],
-            groupPaddingInner: 0.1,
-            label: { autoRotate: false },
-            gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            crosshair: { enabled: true },
-        }),
+        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults(
+            {
+                keys: [],
+                line: { enabled: false },
+                crosshair: { enabled: true },
+            },
+            { title: true, time: 'off' }
+        ),
+        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults(
+            {
+                keys: [],
+                base: 10,
+                line: { enabled: false },
+                crosshair: { enabled: true },
+            },
+            { title: true, time: 'off' }
+        ),
+        [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults(
+            {
+                keys: [],
+                groupPaddingInner: 0.1,
+                label: { autoRotate: true },
+                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+                crosshair: { enabled: false },
+            },
+            { title: true, time: 'off' }
+        ),
+        [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults(
+            {
+                keys: [],
+                tick: { enabled: true, stroke: DEFAULT_SEPARATION_LINES_COLOUR },
+                label: { spacing: 10, rotation: 270 },
+                paddingInner: 0.4,
+                groupPaddingInner: 0.2,
+                crosshair: { enabled: false },
+            },
+            { title: true, time: 'off' }
+        ),
+        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults(
+            {
+                keys: [],
+                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+                crosshair: { enabled: true },
+            },
+            { title: true, time: 'legacy' }
+        ),
+        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults(
+            {
+                keys: [],
+                groupPaddingInner: 0,
+                label: { autoRotate: false },
+                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+                crosshair: { enabled: true },
+            },
+            { title: true, time: 'legacy' }
+        ),
+        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults(
+            {
+                keys: [],
+                groupPaddingInner: 0.1,
+                label: { autoRotate: false },
+                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+                crosshair: { enabled: true },
+            },
+            { title: true, time: 'modern' }
+        ),
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults(
             {
                 label: { spacing: 5 },
@@ -398,26 +466,36 @@ export class ChartTheme {
                     ],
                 },
             },
-            false
+            { title: false, time: 'off' }
         ),
         [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults(
             {
                 label: { spacing: 5 },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
             },
-            false
+            { title: false, time: 'off' }
         ),
-        [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({
-            positionAngle: 0,
-            line: { enabled: false },
-        }),
-        [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({
-            positionAngle: 0,
-            line: { enabled: false },
-            shape: {
-                $path: ['./shape', undefined, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],
+        [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults(
+            {
+                positionAngle: 0,
+                line: { enabled: false },
             },
-        }),
+            { title: true, time: 'off' }
+        ),
+        [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults(
+            {
+                positionAngle: 0,
+                line: { enabled: false },
+                shape: {
+                    $path: [
+                        './shape',
+                        undefined,
+                        { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] },
+                    ],
+                },
+            },
+            { title: true, time: 'off' }
+        ),
     };
 
     constructor(options: AgChartTheme = {}) {

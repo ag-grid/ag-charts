@@ -23,12 +23,14 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { AnimationManager } from '../interaction/animationManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
-import { AxisTickGenerator, type TickDatum, type TickGenerationResult } from './axisTickGenerator';
+import type { AxisLabel } from './axisLabel';
+import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
 import {
     type AxisLabelDatum,
     type AxisLineDatum,
     type AxisTickDatum,
     NiceMode,
+    type TickDatum,
     prepareAxisAnimationContext,
     prepareAxisAnimationFunctions,
     resetAxisGroupFn,
@@ -63,6 +65,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     @Property
     position!: AgCartesianAxisPosition;
+
+    protected get primaryLabel(): AxisLabel | undefined {
+        return undefined;
+    }
 
     protected animationManager: AnimationManager;
 
@@ -491,18 +497,19 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
         const { horizontal } = this;
+        const label = datum.primary ? this.primaryLabel ?? this.label : this.label;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = this.scale;
         const { tickId, tickLabel: text = '', translationY } = datum;
-        const sideFlag = this.label.getSideFlag();
-        const labelOffset = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
+        const sideFlag = label.getSideFlag();
+        const labelOffset = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
         const visible = text !== '';
 
         const x = horizontal ? translationY : labelOffset;
         const y = horizontal ? -labelOffset : translationY;
 
         return {
-            ...this.getLabelStyles({ value: text }),
+            ...this.getLabelStyles({ value: text }, undefined, label),
             tickId,
             rotation,
             text,

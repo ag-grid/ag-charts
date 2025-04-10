@@ -33,8 +33,8 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         return this._domain;
     }
 
-    get bandCount() {
-        return this._domain.length;
+    get bands() {
+        return this._domain;
     }
 
     override toDomain(value: number): Date {
@@ -204,7 +204,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         return closest ?? domain[0];
     }
 
-    protected override getIndex(value: Date): number | undefined {
+    findIndex(value: Date): number | undefined {
         const sortedTimestamps = this.getSortedTimestamps();
         const n = Number(value);
         if (n < sortedTimestamps[0]) {

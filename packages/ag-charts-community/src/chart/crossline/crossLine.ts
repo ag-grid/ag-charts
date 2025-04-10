@@ -4,6 +4,7 @@ import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from 'ag-c
 import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
+import { UnitTimeScale } from '../../scale/unitTimeScale';
 import type { Group } from '../../scene/group';
 import type { TimeInterval } from '../../util/time';
 import { checkDatum } from '../../util/value';
@@ -29,7 +30,7 @@ export function validateCrossLineValue(value: unknown, scale: Scale<any, number>
         return false;
     }
 
-    const isContinuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
+    const isContinuous = ContinuousScale.is(scale) || UnitTimeScale.is(scale) || OrdinalTimeScale.is(scale);
     const validValue = (val: unknown) => checkDatum(val, isContinuous) && !isNaN(scale.convert(val));
 
     if (isArray(value)) {

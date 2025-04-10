@@ -34,6 +34,10 @@ function pow(base: number, domain: number[], x: number) {
 }
 
 export class LogScale extends ContinuousScale<number> {
+    static override is(value: unknown): value is LogScale {
+        return value instanceof LogScale;
+    }
+
     readonly type = 'log';
 
     // Handling <1 and crossing 0 cases is tricky, easiest solution is to default to clamping.

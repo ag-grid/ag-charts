@@ -1,5 +1,6 @@
 import { durationMinute, durationWeek } from './duration';
 import { CountableTimeInterval } from './interval';
+import { month } from './month';
 
 // Set date to n-th day of the week.
 function weekday(weekStart: number): CountableTimeInterval {
@@ -20,7 +21,7 @@ function weekday(weekStart: number): CountableTimeInterval {
         return d;
     }
 
-    return new CountableTimeInterval(encode, decode);
+    return new CountableTimeInterval('day', 7 * 24 * 60 * 60 * 1000, month, encode, decode);
 }
 
 export const sunday = weekday(0);

@@ -4,6 +4,10 @@ import type { NormalizedDomain, ScaleTickParams } from './scale';
 import { filterVisibleTicks } from './scaleUtil';
 
 export class CategoryScale<D, I = number> extends BandScale<D, I> {
+    static override is(value: unknown): value is CategoryScale<any, any> {
+        return value instanceof CategoryScale;
+    }
+
     readonly type = 'band' as const;
 
     /**
@@ -28,8 +32,8 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
         return this._domain;
     }
 
-    get bandCount() {
-        return this._domain.length;
+    get bands() {
+        return this._domain;
     }
 
     override normalizeDomains(...domains: D[][]): NormalizedDomain<D> {
@@ -72,7 +76,7 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
         return filterVisibleTicks(domain, false, visibleRange);
     }
 
-    protected getIndex(value: D) {
+    findIndex(value: D) {
         let { index } = this;
         if (index == null) {
             const { domain } = this;

@@ -14,4 +14,4 @@ function decode(encoded: number) {
     return d;
 }
 
-export const utcYear = new CountableTimeInterval(encode, decode);
+export const utcYear = new CountableTimeInterval('year', undefined, undefined, encode, decode);

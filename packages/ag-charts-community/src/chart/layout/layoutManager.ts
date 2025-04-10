@@ -15,7 +15,7 @@ export interface AxisLayout {
     label: {
         fractionDigits: number;
         spacing: number;
-        format?: string;
+        format?: string | Record<string, string>;
     };
     direction: ChartAxisDirection;
     domain: any[];

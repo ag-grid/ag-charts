@@ -11,6 +11,17 @@ export enum NiceMode {
     Off,
 }
 
+export interface TickDatum {
+    tickLabel: string | undefined;
+    tick: any;
+    tickId: string;
+    translationY: number;
+    primary: boolean;
+    tickSize?: number;
+    tickStroke?: string;
+    tickWidth?: number;
+}
+
 export interface AxisLineDatum {
     tickId: string;
     offset: number;

@@ -33,6 +33,7 @@ const {
     visibleRangeIndices,
     ContinuousScale,
     OrdinalTimeScale,
+    UnitTimeScale,
     BandScale,
     getShapeStyle,
 } = _ModuleSupport;
@@ -155,7 +156,12 @@ export abstract class OhlcSeriesBase<
         processedData: _ModuleSupport.UngroupedData<any>
     ) {
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))) return;
+        if (
+            xAxis == null ||
+            !(ContinuousScale.is(xAxis.scale) || UnitTimeScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))
+        ) {
+            return;
+        }
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const highValues = dataModel.resolveColumnById(this, `highValue`, processedData);
