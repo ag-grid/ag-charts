@@ -241,10 +241,10 @@ export class Matrix {
         translationX: number,
         translationY: number,
         opts?: {
-            scalingCenterX?: number | null;
-            scalingCenterY?: number | null;
-            rotationCenterX?: number | null;
-            rotationCenterY?: number | null;
+            scalingCenterX?: number;
+            scalingCenterY?: number;
+            rotationCenterX?: number;
+            rotationCenterY?: number;
         }
     ) {
         const sx = scalingX;

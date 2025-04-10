@@ -56,7 +56,7 @@ runs:
                 echo "base=latest-success" >> $GITHUB_OUTPUT
                 echo "NX_BASE=latest-success" >> $GITHUB_ENV
                 echo "type=latest" >> $GITHUB_OUTPUT
-                git fetch origin --depth 1 tag latest-success
+                git fetch origin -f --depth 1 tag latest-success
               elif [[ ${branch} =~ 'b[0-9][0-9]\..+' ]] ; then
                 # Release
                 echo "base=${branch}" >> $GITHUB_OUTPUT
