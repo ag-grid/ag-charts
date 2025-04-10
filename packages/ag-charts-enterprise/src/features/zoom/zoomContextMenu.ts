@@ -14,9 +14,6 @@ import {
     unitZoomState,
 } from './zoomUtils';
 
-const CONTEXT_ZOOM_ACTION_ID = 'zoom-action';
-const CONTEXT_PAN_ACTION_ID = 'pan-action';
-
 export class ZoomContextMenu {
     constructor(
         private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry,
@@ -30,32 +27,21 @@ export class ZoomContextMenu {
     public registerActions(enabled: boolean | undefined) {
         if (!enabled) return;
 
-        const { contextMenuRegistry } = this;
+        const { contextMenuRegistry, zoomManager } = this;
 
-        const destroyZoomToCursor = contextMenuRegistry.registerDefaultAction({
-            id: CONTEXT_ZOOM_ACTION_ID,
-            type: 'series-area',
-            label: 'contextMenuZoomToCursor',
-            action: this.onZoomToHere.bind(this),
-            toggleEnabledOnShow: (event) => {
-                const rect = this.getRect();
-                if (!rect) return true;
-                const origin = pointToRatio(rect, event.x, event.y);
-                return this.iterateFindNextZoomAtPoint(origin) != null;
-            },
+        contextMenuRegistry.builtins.items['zoom-to-cursor'].action = this.onZoomToHere.bind(this);
+        contextMenuRegistry.builtins.items['pan-to-cursor'].action = this.onPanToHere.bind(this);
+        return zoomManager.addListener('zoom-change', () => {
+            const enablePanToCursor = !isZoomEqual(definedZoomState(this.zoomManager.getZoom()), unitZoomState());
+            contextMenuRegistry.builtins.items['pan-to-cursor'].enable = enablePanToCursor;
         });
-        const destroyPanToCursor = contextMenuRegistry.registerDefaultAction({
-            id: CONTEXT_PAN_ACTION_ID,
-            type: 'series-area',
-            label: 'contextMenuPanToCursor',
-            action: this.onPanToHere.bind(this),
-            toggleEnabledOnShow: () => !isZoomEqual(definedZoomState(this.zoomManager.getZoom()), unitZoomState()),
-        });
-
-        return () => {
-            destroyZoomToCursor();
-            destroyPanToCursor();
-        };
+        // toggleEnabledOnShow: (event) => {
+        //         const rect = this.getRect();
+        //         if (!rect) return true;
+        //         const origin = pointToRatio(rect, event.x, event.y);
+        //         return this.iterateFindNextZoomAtPoint(origin) != null;
+        //     },
+        // });
     }
 
     private computeOrigin(event: Event): { x: number; y: number } | undefined {

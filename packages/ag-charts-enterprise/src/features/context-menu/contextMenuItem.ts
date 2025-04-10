@@ -1,19 +1,15 @@
-import type { AgContextMenuItemLiteral, AgContextMenuItemShowOn, AgContextMenuItemType } from 'ag-charts-community';
+import type { AgContextMenuItemShowOn, AgContextMenuItemType, _ModuleSupport } from 'ag-charts-community';
 
-import type { ContextMenuItemContract, ContextMenuItemContractNonRecursive } from './contextMenuItemContract';
+type Options = Partial<_ModuleSupport.ContextMenuItemContractNonRecursive>;
 
-function createItemFromLiteral(name: AgContextMenuItemLiteral): ContextMenuItem {}
-
-type Options = Partial<ContextMenuItemContractNonRecursive>;
-
-export class ContextMenuItem implements ContextMenuItemContract {
+export class ContextMenuItem implements _ModuleSupport.ContextMenuItemContract {
     type: AgContextMenuItemType = 'action';
     showOn: AgContextMenuItemShowOn = 'always';
     label: string = '';
     iconUrl: string | undefined = undefined;
     enable: boolean = true;
     items: ContextMenuItem[] = [];
-    action: ContextMenuItemContract['action'] = undefined;
+    action: _ModuleSupport.ContextMenuItemContract['action'] = undefined;
 
     private setField<K extends keyof Options>(key: K, that: { [L in K]: Options[K] }, value: Options[K]): void {
         that[key] = value;

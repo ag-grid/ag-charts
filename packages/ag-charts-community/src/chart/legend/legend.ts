@@ -148,9 +148,6 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void;
 }
 
-const ID_LEGEND_VISIBILITY = 'legend-visibility';
-const ID_LEGEND_OTHER_SERIES = 'legend-other-series';
-
 const fillGradientDefaults: RequiredInternalAgGradientColor = {
     type: 'gradient',
     bounds: 'item',
@@ -291,21 +288,10 @@ export class Legend extends BaseProperties {
         );
         this.pagination.attachPagination(this.group);
 
-        this.destroyFns.push(
-            ctx.contextMenuRegistry.registerDefaultAction({
-                id: ID_LEGEND_VISIBILITY,
-                type: 'legend-item',
-                label: 'contextMenuToggleSeriesVisibility',
-                action: (params) => this.contextToggleVisibility(params),
-            }),
-            ctx.contextMenuRegistry.registerDefaultAction({
-                id: ID_LEGEND_OTHER_SERIES,
-                type: 'legend-item',
-                label: 'contextMenuToggleOtherSeries',
-                action: (params) => this.contextToggleOtherSeries(params),
-            }),
-            ctx.legendManager.addListener('legend-change', this.onLegendDataChange.bind(this))
-        );
+        const { items } = ctx.contextMenuRegistry.builtins;
+        items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
+        items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
+        this.destroyFns.push(ctx.legendManager.addListener('legend-change', this.onLegendDataChange.bind(this)));
 
         this.destroyFns.push(
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
@@ -795,18 +781,8 @@ export class Legend extends BaseProperties {
     }
 
     private updateContextMenu() {
-        const {
-            toggleSeries,
-            ctx: { contextMenuRegistry },
-        } = this;
-
-        if (toggleSeries) {
-            contextMenuRegistry.hideAction(ID_LEGEND_VISIBILITY);
-            contextMenuRegistry.hideAction(ID_LEGEND_OTHER_SERIES);
-        } else {
-            contextMenuRegistry.showAction(ID_LEGEND_VISIBILITY);
-            contextMenuRegistry.showAction(ID_LEGEND_OTHER_SERIES);
-        }
+        this.ctx.contextMenuRegistry.setVisible('toggle-series-visibility', this.toggleSeries);
+        this.ctx.contextMenuRegistry.setVisible('toggle-other-series', this.toggleSeries);
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
@@ -885,9 +861,9 @@ export class Legend extends BaseProperties {
     onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel) {
         const legendItem: CategoryLegendDatum = node.datum;
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
-            this.ctx.contextMenuRegistry.disableAction(ID_LEGEND_VISIBILITY);
+            this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enable = false;
         } else {
-            this.ctx.contextMenuRegistry.enableAction(ID_LEGEND_VISIBILITY);
+            this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enable = true;
         }
 
         const { offsetX, offsetY } = sourceEvent;

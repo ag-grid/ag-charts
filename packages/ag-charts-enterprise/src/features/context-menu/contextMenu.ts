@@ -98,23 +98,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.destroyFns.push(() => observer.disconnect());
         }
 
-        this.destroyFns.push(
-            this.registry.registerDefaultAction({
-                id: 'download',
-                type: 'always',
-                label: 'contextMenuDownload',
-                action: () => {
-                    const title = ctx.chartService.title;
-                    let fileName = 'image';
-                    if (title?.enabled && title?.text !== undefined) {
-                        fileName = title.text.replace(/\.+/, '');
-                    }
-                    this.ctx.chartService.publicApi?.download({ fileName }).catch((e) => {
-                        Logger.error('Unable to download chart', e);
-                    });
-                },
-            })
-        );
+        this.ctx.contextMenuRegistry.builtins.items['download'].action = () => {
+            const title = ctx.chartService.title;
+            let fileName = 'image';
+            if (title?.enabled && title?.text !== undefined) {
+                fileName = title.text.replace(/\.+/, '');
+            }
+            this.ctx.chartService.publicApi?.download({ fileName }).catch((e) => {
+                Logger.error('Unable to download chart', e);
+            });
+        };
 
         this.destroyFns.push(this.registry.addListener((e) => this.onContext(e)));
     }
@@ -128,15 +121,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.y = event.y;
 
         this.groups.default = this.registry.filterActions(event.type);
-
-        for (const action of this.groups.default) {
-            if (action.id == null || action.toggleEnabledOnShow == null) continue;
-            if (action.toggleEnabledOnShow(event)) {
-                this.registry.enableAction(action.id);
-            } else {
-                this.registry.disableAction(action.id);
-            }
-        }
 
         this.pickedNode = undefined;
         this.pickedLegendItem = undefined;
