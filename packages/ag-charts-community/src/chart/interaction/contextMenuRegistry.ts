@@ -1,75 +1,102 @@
-import type { AgContextMenuItem, AgContextMenuItemShowOn } from 'ag-charts-types';
+import type { RequireOptional } from 'ag-charts-core';
+import type {
+    AgContextMenuItem,
+    AgContextMenuItemAlways,
+    AgContextMenuItemLegendItem,
+    AgContextMenuItemSeriesArea,
+    AgContextMenuItemShowOn,
+} from 'ag-charts-types';
 
 import { Listeners } from '../../util/listeners';
-import type { CategoryLegendDatum } from '../legend/legendDatum';
-import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
+import type { ContextMenuCallback, ContextMenuEvent, ContextShowOnMap } from './contextMenuTypes';
 
-// Extract TEvent from `action?: (param: TEvent)` of the AgContextMenuItem contract:
-type InferTEvent<T extends AgContextMenuItemShowOn> =
-    Extract<AgContextMenuItem, { showOn?: T; action?: (...args: any[]) => any }> extends {
-        action?: (event: infer E) => any;
-    }
-        ? E
-        : never;
-type ContextShowOnMapRule = {
-    [K in AgContextMenuItemShowOn]: {
-        event: InferTEvent<K>;
-        callback: (param: InferTEvent<K>) => void;
-    };
+type BuiltinItemListKeys = 'defaults';
+type BuiltinHideableKeys = 'toggle-series-visibility' | 'toggle-other-series';
+
+type ContextMenuBuiltinItemsRules = {
+    [K in Exclude<AgContextMenuItem, object | BuiltinItemListKeys>]: RequireOptional<AgContextMenuItem>;
 };
-export interface ContextShowOnMap extends ContextShowOnMapRule {
-    always: {
-        event: InferTEvent<'always'>;
-        callback: (param: InferTEvent<'always'>) => void;
-        context: undefined;
+type ContextMenuBuiltinItemListsRules = {
+    [K in BuiltinItemListKeys]: RequireOptional<AgContextMenuItem>[];
+};
+class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
+    download: RequireOptional<AgContextMenuItemAlways> = {
+        type: 'action',
+        showOn: 'always',
+        label: 'contextMenuDownload',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
     };
-    'legend-item': {
-        event: InferTEvent<'legend-item'>;
-        callback: (param: InferTEvent<'legend-item'>) => void;
-        context: { legendItem: CategoryLegendDatum | undefined };
+    'zoom-to-cursor': RequireOptional<AgContextMenuItemSeriesArea> = {
+        type: 'action',
+        showOn: 'series-area',
+        label: 'contextMenuZoomToCursor',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
     };
-    'series-area': {
-        event: InferTEvent<'series-area'>;
-        callback: (param: InferTEvent<'series-area'>) => void;
-        context: {
-            pickedSeries: ISeries<any, any, any> | undefined;
-            pickedNode: SeriesNodeDatum<unknown> | undefined;
-        };
+    'pan-to-cursor': RequireOptional<AgContextMenuItemSeriesArea> = {
+        type: 'action',
+        showOn: 'series-area',
+        label: 'contextMenuPanToCursor',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
     };
-    'series-node': {
-        event: InferTEvent<'series-node'>;
-        callback: (param: InferTEvent<'series-node'>) => void;
-        context: {
-            pickedSeries: ISeries<any, any, any> | undefined;
-            pickedNode: SeriesNodeDatum<unknown> | undefined;
-        };
+    'reset-zoom': RequireOptional<AgContextMenuItemSeriesArea> = {
+        type: 'action',
+        showOn: 'series-area',
+        label: 'contextMenuResetZoom',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
+    };
+    'toggle-series-visibility': RequireOptional<AgContextMenuItemLegendItem> = {
+        type: 'action',
+        showOn: 'legend-item',
+        label: 'contextMenuToggleSeriesVisibility',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
+    };
+    'toggle-other-series': RequireOptional<AgContextMenuItemLegendItem> = {
+        type: 'action',
+        showOn: 'legend-item',
+        label: 'contextMenuToggleOtherSeries',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
     };
 }
 
-export type MouseEventWithPointerType = MouseEvent & Partial<Pick<PointerEvent, 'pointerType'>>;
+class ContextMenuBuiltinItemLists implements ContextMenuBuiltinItemListsRules {
+    defaults: RequireOptional<AgContextMenuItem>[] = [];
+    constructor(items: ContextMenuBuiltinItems) {
+        this.defaults = [
+            items['download'],
+            items['zoom-to-cursor'],
+            items['pan-to-cursor'],
+            items['toggle-series-visibility'],
+            items['toggle-other-series'],
+        ];
+    }
+}
 
-export type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = {
-    readonly type: K;
-    readonly x: number;
-    readonly y: number;
-    readonly context: Readonly<ContextShowOnMap[K]['context']>;
-    readonly sourceEvent: MouseEventWithPointerType;
-};
-
-export type ContextMenuCallback<K extends AgContextMenuItemShowOn> = ContextShowOnMap[K]['callback'];
-
-export type ContextMenuAction<K extends AgContextMenuItemShowOn> = {
-    id?: string;
-    label: string;
-    type: K;
-    action: ContextMenuCallback<K>;
-    toggleEnabledOnShow?: (event: ContextMenuEvent) => boolean;
-};
+class ContextMenuBuiltins {
+    items = new ContextMenuBuiltinItems();
+    lists = new ContextMenuBuiltinItemLists(this.items);
+}
 
 export class ContextMenuRegistry {
-    private readonly defaultActions: Array<ContextMenuAction<AgContextMenuItemShowOn>> = [];
-    private readonly disabledActions: Set<string> = new Set();
-    private readonly hiddenActions: Set<string> = new Set();
+    public readonly builtins = new ContextMenuBuiltins();
+    private readonly hiddenActions: Set<BuiltinHideableKeys> = new Set();
     private readonly listeners: Listeners<'', (e: ContextMenuEvent) => void> = new Listeners();
 
     public static check<T extends AgContextMenuItemShowOn>(
@@ -108,45 +135,17 @@ export class ContextMenuRegistry {
         return this.listeners.addListener('', handler);
     }
 
-    public filterActions(type: AgContextMenuItemShowOn): ContextMenuAction<AgContextMenuItemShowOn>[] {
-        return this.defaultActions.filter((action) => {
+    public filterActions(type: AgContextMenuItemShowOn) {
+        return Object.values(this.builtins.items).filter((action) => {
             return action.id != null && !this.hiddenActions.has(action.id) && ['always', type].includes(action.type);
         });
     }
 
-    public registerDefaultAction<T extends AgContextMenuItemShowOn>(action: ContextMenuAction<T>): () => void;
-    public registerDefaultAction(action: ContextMenuAction<AgContextMenuItemShowOn>): () => void {
-        const didAdd = action.id != null && !this.defaultActions.some(({ id }) => id === action.id);
-
-        if (didAdd) {
-            this.defaultActions.push(action);
+    public setVisible(id: BuiltinHideableKeys, visible: boolean) {
+        if (visible) {
+            this.hiddenActions.delete(id);
+        } else {
+            this.hiddenActions.add(id);
         }
-
-        return () => {
-            const index = didAdd ? this.defaultActions.findIndex(({ id }) => id === action.id) : -1;
-            if (index !== -1) {
-                this.defaultActions.splice(index, 1);
-            }
-        };
-    }
-
-    public enableAction(actionId: string) {
-        this.disabledActions.delete(actionId);
-    }
-
-    public disableAction(actionId: string) {
-        this.disabledActions.add(actionId);
-    }
-
-    public showAction(actionId: string) {
-        this.hiddenActions.add(actionId);
-    }
-
-    public hideAction(actionId: string) {
-        this.hiddenActions.delete(actionId);
-    }
-
-    public isDisabled(actionId: string): boolean {
-        return this.disabledActions.has(actionId);
     }
 }
