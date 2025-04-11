@@ -52,6 +52,10 @@ type GeneratedContents = {
     scriptFiles: string[];
 };
 
+const DEFAULT_SUBSTITUTIONS: Record<string, string> = {
+    '${baseWWWUrl}': `${process.env.PUBLIC_SITE_URL ?? 'https://www.ag-grid.com'}${process.env.PUBLIC_BASE_URL ?? '/charts'}`,
+};
+
 const cacheKeys: Record<string, object> = {};
 const cacheValues = new WeakMap<object, GeneratedContents>();
 
@@ -83,7 +87,7 @@ const readContentJson = async (params: GeneratedExampleParams): Promise<Generate
         cacheValues.set(cacheKey, result);
     }
 
-    return result;
+    return applySubstitutions(result, DEFAULT_SUBSTITUTIONS);
 };
 
 export const getGeneratedContentsFileList = async (params: GeneratedExampleParams) => {
@@ -96,3 +100,34 @@ export const getGeneratedContents = async (params: GeneratedExampleParams) => {
     // Generated from `plugins/ag-charts-generate-example-files`
     return readContentJson(params);
 };
+
+function applySubstitutions(content?: GeneratedContents, substitutions?: Record<string, string>) {
+    if (content == null || substitutions == null) {
+        return content;
+    }
+
+    Object.keys(substitutions).forEach((key) => {
+        const value = substitutions[key];
+        if (value == null) {
+            throw new Error(`Substitution value is null for key: ${key}`);
+        }
+
+        Object.keys(content.files).forEach((file) => {
+            let count = 0;
+            while (content.files[file].includes(key)) {
+                count++;
+                content.files[file] = content.files[file].replace(key, value);
+
+                if (count > 1000) {
+                    throw new Error('Substitution limit of 1000 reached, is this a bug?');
+                }
+            }
+            if (count > 0) {
+                // eslint-disable-next-line no-console
+                console.info(`[${file}] Applied ${count} substitutions for ${key} => ${value}`);
+            }
+        });
+    });
+
+    return content;
+}
