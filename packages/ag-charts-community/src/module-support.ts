@@ -159,6 +159,7 @@ export * from './scale/logScale';
 export * from './scale/bandScale';
 export * from './scale/categoryScale';
 export * from './scale/continuousScale';
+export * from './scale/discreteTimeScale';
 export * from './scale/ordinalTimeScale';
 export * from './scale/unitTimeScale';
 export * from './scale/colorScale';

@@ -13,6 +13,10 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         return this.division.enabled ? this.division.label : undefined;
     }
 
+    override get primaryTick(): _ModuleSupport.AxisTick | undefined {
+        return this.division.enabled ? this.division.tick : undefined;
+    }
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, new OrdinalTimeScale());
     }

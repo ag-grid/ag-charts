@@ -231,13 +231,19 @@ export class ChartTheme {
                 division: {
                     enabled: false,
                     label: {
-                        fontSize: { $ref: 'fontSize' },
-                        fontFamily: { $ref: 'fontFamily' },
+                        fontSize: { $ref: 'fontSize' }, // { $path: '../label/fontSize' },
+                        fontFamily: { $ref: 'fontFamily' }, // { $path: '../label/fontFamily' },
                         fontWeight: 'bold',
-                        spacing: 11,
-                        color: { $ref: 'textColor' },
-                        avoidCollisions: true,
-                        format: timeDivisionLabelFormats,
+                        spacing: 11, // { $path: '../label/spacing' },
+                        color: { $ref: 'textColor' }, // { $path: '../label/color' },
+                        avoidCollisions: true, // { $path: '../label/avoidCollisions' },
+                        format: timeDivisionLabelFormats, // { $path: '../label/format' },
+                    },
+                    tick: {
+                        enabled: false, // { $path: '../tick/enabled' },
+                        size: 6, // { $path: '../tick/size' },
+                        width: 1, // { $path: '../tick/width' },
+                        stroke: { $ref: 'axisColor' }, // { $path: '../tick/stroke' },
                     },
                 },
             },
@@ -257,6 +263,7 @@ export class ChartTheme {
                 },
                 tick: {
                     enabled: false,
+                    size: 6,
                     width: 1,
                     stroke: { $ref: 'axisColor' },
                 },

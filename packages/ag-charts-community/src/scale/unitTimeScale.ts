@@ -1,14 +1,12 @@
-import { findMaxIndex, findMinIndex } from 'ag-charts-core';
+import { findMinIndex } from 'ag-charts-core';
 
 import { compareDates } from '../util/date';
 import { TimeInterval } from '../util/time';
-import { buildFormatter } from '../util/timeFormat';
-import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
-import { BandScale } from './bandScale';
 import { normalizeContinuousDomains } from './continuousScale';
+import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams } from './scale';
 
-export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
+export class UnitTimeScale extends DiscreteTimeScale {
     static override is(value: unknown): value is UnitTimeScale {
         return value instanceof UnitTimeScale;
     }
@@ -45,10 +43,6 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
 
     override normalizeDomains(...domains: Date[][]): NormalizedDomain<Date> {
         return normalizeContinuousDomains(...domains);
-    }
-
-    override toDomain(value: number): Date {
-        return new Date(value);
     }
 
     private calculateBands(domain: Date[], interval: TimeInterval | undefined, visibleRange?: [number, number]) {
@@ -91,14 +85,7 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
                 if (tick != null && tick.valueOf() <= d1) ticks.push(tick);
             }
 
-            // If there's a better candidate for the first tick, remove it
-            if (ticks.length !== 0) {
-                const index = this.findIndex(ticks[0]);
-                const previousTick = index != null && index > 0 ? bands[index - 1] : undefined;
-                if (previousTick != null && compareDates(previousTick, ticks[0]) >= 0) {
-                    ticks.shift();
-                }
-            }
+            this.filterPrimaryTicks({ primaryTicks: intervalTicks, ticks });
 
             return ticks;
         } else {
@@ -124,63 +111,13 @@ export class UnitTimeScale extends BandScale<Date, TimeInterval | number> {
         }
     }
 
-    override invert(position: number, nearest = false): Date | undefined {
-        this.refresh();
-
-        const offset = nearest ? this.bandwidth / 2 : 0;
-        const index = this.invertNearestIndex(Math.max(0, position - offset));
-        const matches = nearest || position === this.ordinalRange(index);
-
-        return matches ? this.domain[index] : undefined;
-    }
-
-    override convert(d: Date, options?: { clamp?: boolean; interpolate?: boolean }): number {
-        const interpolate = options?.interpolate ?? false;
-        if (!interpolate) return super.convert(d, options);
-
-        const { domain, bands } = this;
-
-        const r0 = this.ordinalRange(0);
-        if (bands.length === 0) return r0;
-
-        const r1 = this.ordinalRange(bands.length - 1);
-
-        const d0 = domain[0].getTime();
-        const d1 = domain[1].getTime();
-
-        const clamp = options?.clamp ?? false;
-        let v = d.getTime();
-        if (clamp) v = Math.min(Math.max(v, d0), d1);
-
-        return ((v - d0) / (d1 - d0)) * (r1 - r0) + r0;
-    }
-
     override findIndex(value: Date): number | undefined {
         const { bands } = this;
         const target = value.valueOf();
-        return findMaxIndex(0, bands.length - 1, (index) => {
-            return bands[index].valueOf() <= target;
-        });
-    }
-
-    private _tickFormatter({ domain, ticks, specifier }: ScaleFormatParams<Date>, formatOffset?: number) {
-        return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(ticks, domain, formatOffset);
-    }
-
-    /**
-     * Returns a time format function suitable for displaying tick values.
-     *
-     * @param ticks Optional array of tick values for custom formatting.
-     * @param domain Optional array representing the [min, max] values of the time axis.
-     * @param specifier Optional format specifier string for custom date formatting (e.g., `%Y`, `%m`, `%d`).
-     * @param formatOffset Optional number for applying an offset to the format (e.g., timezone shifts).
-     * @returns A function that formats a `Date` object into a string based on the provided specifier or default format.
-     */
-    override tickFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
-        return this._tickFormatter(params);
+        return findMinIndex(0, bands.length - 1, (index) => bands[index].valueOf() >= target);
     }
 
     override datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
-        return this._tickFormatter(params, 1);
+        return this.tickFormatter(params, 1);
     }
 }

@@ -43,8 +43,7 @@ const {
     Group,
     BBox,
     ContinuousScale,
-    OrdinalTimeScale,
-    UnitTimeScale,
+    DiscreteTimeScale,
     findMinMax,
     getShapeStyle,
     getShapeFill,
@@ -146,10 +145,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (
-            xAxis == null ||
-            !(ContinuousScale.is(xAxis.scale) || UnitTimeScale.is(xAxis) || OrdinalTimeScale.is(xAxis.scale))
-        ) {
+        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || DiscreteTimeScale.is(xAxis.scale))) {
             return;
         }
 

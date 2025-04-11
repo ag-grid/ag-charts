@@ -24,6 +24,7 @@ import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { AnimationManager } from '../interaction/animationManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
 import type { AxisLabel } from './axisLabel';
+import type { AxisTick } from './axisTick';
 import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
 import {
     type AxisLabelDatum,
@@ -67,6 +68,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     position!: AgCartesianAxisPosition;
 
     protected get primaryLabel(): AxisLabel | undefined {
+        return undefined;
+    }
+
+    protected get primaryTick(): AxisTick | undefined {
         return undefined;
     }
 
@@ -280,8 +285,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                 : { tickId, offset: translationY, x1: p1, x2: p2, y1: translationY, y2: translationY };
         });
 
-        const tickLines = ticks.map(({ tickId, translationY, tickSize }) => {
-            const h = -direction * (tickSize ?? this.getTickSize());
+        const { tick } = this;
+        const primaryTick = this.primaryTick ?? tick;
+        const tickLines = ticks.map(({ primary, tickId, translationY, tickSize }) => {
+            const h = -direction * (tickSize ?? this.getTickSize(primary ? primaryTick : tick));
             return horizontal
                 ? { tickId, offset: translationY, x1: translationY, x2: translationY, y1: 0, y2: h }
                 : { tickId, offset: translationY, x1: 0, x2: h, y1: translationY, y2: translationY };
@@ -353,8 +360,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     private getTickLineBBox(datum: TickDatum) {
-        const { position } = this;
-        const tickSize = this.getTickSize();
+        const { position, primaryTick } = this;
+        const tickSize = Math.max(this.getTickSize(), primaryTick ? this.getTickSize(primaryTick) : 0);
         const { translationY } = datum;
         switch (position) {
             case 'top':
@@ -498,11 +505,12 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
         const { horizontal } = this;
         const label = datum.primary ? this.primaryLabel ?? this.label : this.label;
+        const tick = datum.primary ? this.primaryTick ?? this.tick : this.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = this.scale;
         const { tickId, tickLabel: text = '', translationY } = datum;
         const sideFlag = label.getSideFlag();
-        const labelOffset = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
+        const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + this.seriesAreaPadding);
         const visible = text !== '';
 
         const x = horizontal ? translationY : labelOffset;

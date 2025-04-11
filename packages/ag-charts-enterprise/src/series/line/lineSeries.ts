@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { aggregateLineData } from './lineAggregation';
 
-const { ChartAxisDirection, ContinuousScale, UnitTimeScale, OrdinalTimeScale } = _ModuleSupport;
+const { ChartAxisDirection, ContinuousScale, DiscreteTimeScale } = _ModuleSupport;
 
 export class LineSeries extends _ModuleSupport.LineSeries {
     protected override aggregateData(
@@ -10,10 +10,7 @@ export class LineSeries extends _ModuleSupport.LineSeries {
         processedData: _ModuleSupport.UngroupedData<any>
     ) {
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (
-            xAxis == null ||
-            !(ContinuousScale.is(xAxis.scale) || UnitTimeScale.is(xAxis) || OrdinalTimeScale.is(xAxis.scale))
-        ) {
+        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || DiscreteTimeScale.is(xAxis.scale))) {
             return;
         }
 

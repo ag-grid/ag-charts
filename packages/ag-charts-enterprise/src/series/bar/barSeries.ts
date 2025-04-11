@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { aggregateBarData } from './barAggregation';
 
-const { ChartAxisDirection, ContinuousScale, UnitTimeScale, OrdinalTimeScale } = _ModuleSupport;
+const { ChartAxisDirection, ContinuousScale, DiscreteTimeScale } = _ModuleSupport;
 
 export class BarSeries extends _ModuleSupport.BarSeries {
     protected override aggregateData(
@@ -12,10 +12,7 @@ export class BarSeries extends _ModuleSupport.BarSeries {
         if (processedData?.type !== 'ungrouped') return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (
-            xAxis == null ||
-            !(ContinuousScale.is(xAxis.scale) || UnitTimeScale.is(xAxis) || OrdinalTimeScale.is(xAxis.scale))
-        ) {
+        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || DiscreteTimeScale.is(xAxis.scale))) {
             return;
         }
 
