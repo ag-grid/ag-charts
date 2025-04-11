@@ -137,13 +137,12 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private expandItemsOptions() {
-        const { builtins } = this.ctx.contextMenuRegistry;
-        const { expandedItems, deprecationMap } = this;
+        const { ctx, expandedItems, deprecationMap } = this;
         expandedItems.length = 0;
 
         for (const item of this.items) {
             if (typeof item === 'string') {
-                expandBuiltin(builtins, item, expandedItems);
+                expandBuiltin(ctx.contextMenuRegistry, item, expandedItems);
             } else if (item.type !== 'submenu') {
                 expandedItems.push(new ContextMenuItem(item));
             } else {
@@ -157,7 +156,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 const type = 'action';
                 const iconUrl = undefined;
                 const enable = true;
-                expandBuiltin(builtins, 'separator', expandedItems);
+                expandBuiltin(ctx.contextMenuRegistry, 'separator', expandedItems);
                 for (const { action, label } of items) {
                     expandedItems.push(new ContextMenuItem({ type, showOn, iconUrl, enable, label, action }));
                 }

@@ -3,6 +3,7 @@ import type {
     AgContextMenuItem,
     AgContextMenuItemAlways,
     AgContextMenuItemLegendItem,
+    AgContextMenuItemLiteral,
     AgContextMenuItemSeriesArea,
     AgContextMenuItemShowOn,
 } from 'ag-charts-types';
@@ -11,14 +12,20 @@ import { Listeners } from '../../util/listeners';
 import type { ContextMenuCallback, ContextMenuEvent, ContextShowOnMap } from './contextMenuTypes';
 
 type BuiltinItemListKeys = 'defaults';
-type BuiltinHideableKeys = 'toggle-series-visibility' | 'toggle-other-series';
+type BuiltinHideableKeys =
+    | 'zoom-to-cursor'
+    | 'pan-to-cursor'
+    | 'reset-zoom'
+    | 'toggle-series-visibility'
+    | 'toggle-other-series';
 
 type ContextMenuBuiltinItemsRules = {
-    [K in Exclude<AgContextMenuItem, object | BuiltinItemListKeys>]: RequireOptional<AgContextMenuItem>;
+    readonly [K in Exclude<AgContextMenuItem, object | BuiltinItemListKeys>]: RequireOptional<AgContextMenuItem>;
 };
 type ContextMenuBuiltinItemListsRules = {
-    [K in BuiltinItemListKeys]: RequireOptional<AgContextMenuItem>[];
+    readonly [K in BuiltinItemListKeys]: readonly (keyof ContextMenuBuiltinItemsRules)[];
 };
+
 class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
     readonly download: RequireOptional<AgContextMenuItemAlways> = {
         type: 'action',
@@ -86,27 +93,30 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
 }
 
 class ContextMenuBuiltinItemLists implements ContextMenuBuiltinItemListsRules {
-    readonly defaults: RequireOptional<Extract<AgContextMenuItem, object>>[] = [];
-    constructor(items: ContextMenuBuiltinItems) {
-        this.defaults = [
-            items['download'],
-            items['zoom-to-cursor'],
-            items['pan-to-cursor'],
-            items['toggle-series-visibility'],
-            items['toggle-other-series'],
-        ];
-    }
+    readonly defaults: readonly (keyof ContextMenuBuiltinItemsRules)[] = [
+        'download',
+        'zoom-to-cursor',
+        'pan-to-cursor',
+        'toggle-series-visibility',
+        'toggle-other-series',
+    ];
 }
 
 class ContextMenuBuiltins {
     readonly items = new ContextMenuBuiltinItems();
-    readonly lists = new ContextMenuBuiltinItemLists(this.items);
+    readonly lists = new ContextMenuBuiltinItemLists();
 }
 
 export class ContextMenuRegistry {
     public readonly builtins = new ContextMenuBuiltins();
-    private readonly hiddenActions: Set<BuiltinHideableKeys> = new Set();
+    private readonly hiddenActions: Set<string> = new Set();
     private readonly listeners: Listeners<'', (e: ContextMenuEvent) => void> = new Listeners();
+
+    constructor() {
+        this.setVisible('zoom-to-cursor', false);
+        this.setVisible('pan-to-cursor', false);
+        this.setVisible('reset-zoom', false);
+    }
 
     public static check<T extends AgContextMenuItemShowOn>(
         showOn: T,
@@ -142,6 +152,10 @@ export class ContextMenuRegistry {
 
     public addListener(handler: (event: ContextMenuEvent) => void) {
         return this.listeners.addListener('', handler);
+    }
+
+    public isVisible(id: AgContextMenuItemLiteral): boolean {
+        return !this.hiddenActions.has(id);
     }
 
     public setVisible(id: BuiltinHideableKeys, visible: boolean) {

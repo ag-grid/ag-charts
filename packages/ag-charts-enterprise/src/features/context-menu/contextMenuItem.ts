@@ -8,17 +8,29 @@ import { isKeyOf } from 'ag-charts-core';
 
 type Options = Partial<_ModuleSupport.ContextMenuItemContractNonRecursive>;
 
+function appendBuiltinItem(
+    registry: _ModuleSupport.ContextMenuRegistry,
+    keyword: keyof _ModuleSupport.ContextMenuRegistry['builtins']['items'],
+    result: ContextMenuItem[]
+) {
+    if (registry.isVisible(keyword)) {
+        const builtinOpts = registry.builtins.items[keyword];
+        result.push(new ContextMenuItem(builtinOpts));
+    }
+}
+
 export function expandBuiltin(
-    builtins: _ModuleSupport.ContextMenuRegistry['builtins'],
+    registry: _ModuleSupport.ContextMenuRegistry,
     keyword: AgContextMenuItemLiteral,
     result: ContextMenuItem[]
 ) {
+    const { builtins } = registry;
     if (isKeyOf(keyword, builtins.lists)) {
-        for (const options of builtins.lists[keyword]) {
-            result.push(new ContextMenuItem(options));
+        for (const childKeyword of builtins.lists[keyword]) {
+            appendBuiltinItem(registry, childKeyword, result);
         }
     } else {
-        result.push(new ContextMenuItem(builtins.items[keyword]));
+        appendBuiltinItem(registry, keyword, result);
     }
 }
 

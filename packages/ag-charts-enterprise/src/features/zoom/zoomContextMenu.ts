@@ -25,9 +25,16 @@ export class ZoomContextMenu {
     ) {}
 
     public registerActions(enabled: boolean | undefined) {
-        if (!enabled) return;
-
         const { contextMenuRegistry, zoomManager } = this;
+
+        if (enabled) {
+            contextMenuRegistry.setVisible('zoom-to-cursor', true);
+            contextMenuRegistry.setVisible('pan-to-cursor', true);
+        } else {
+            contextMenuRegistry.setVisible('zoom-to-cursor', false);
+            contextMenuRegistry.setVisible('pan-to-cursor', false);
+            return;
+        }
 
         contextMenuRegistry.builtins.items['zoom-to-cursor'].action = this.onZoomToHere.bind(this);
         contextMenuRegistry.builtins.items['pan-to-cursor'].action = this.onPanToHere.bind(this);
