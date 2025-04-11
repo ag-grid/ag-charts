@@ -33,6 +33,23 @@ function getChildrenOfType<TElem extends Element>(parent: Element, ctor: new () 
     return result;
 }
 
+function cleanUpSeparators(items: ContextMenu['expandedItems']) {
+    let count = 0;
+    let dst = 0;
+    let src = 0;
+    for (src; src < items.length; src++) {
+        const it = items[src];
+        const isSep: boolean = it.type === 'separator';
+        if (count > 0 || !isSep) {
+            count++;
+            items[dst++] = it;
+        }
+        if (isSep) count = 0;
+    }
+    if (items[dst - 1].type === 'separator') dst--;
+    items.length = dst;
+}
+
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Property
     enabled = true;
@@ -137,6 +154,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 }
             }
         }
+
+        cleanUpSeparators(expandedItems);
     }
 
     private onContext(event: ContextMenuEvent) {
@@ -209,37 +228,23 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         menuElement.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         menuElement.role = 'menu';
 
-        // this.appendMenuGroup(menuElement, this.groups.default, false);
-
-        // this.appendMenuGroup(menuElement, this.groups.extra);
-
-        // this.appendMenuGroup(menuElement, this.groups.extraSeriesArea);
-
-        // if (this.pickedNode) {
-        //     this.appendMenuGroup(menuElement, this.groups.extraNode);
-        // }
-
-        // if (this.pickedLegendItem) {
-        //     this.appendMenuGroup(menuElement, this.groups.extraLegendItem);
-        // }
+        for (const item of this.expandedItems) {
+            switch (item.type) {
+                case 'separator':
+                    menuElement.append(this.createDividerElement());
+                    break;
+                case 'action':
+                    menuElement.append(this.createActionElement(item));
+                    break;
+                case 'submenu':
+                    break;
+                default:
+                    throw new Error('unhandled case');
+            }
+        }
 
         return menuElement;
     }
-
-    // private appendMenuGroup(menuElement: HTMLElement, group: ContextMenuItem[], divider = true) {
-    //     if (group.length === 0) return;
-    //     if (divider) menuElement.appendChild(this.createDividerElement());
-    //     group.forEach((i) => {
-    //         const item = this.renderItem(i);
-    //         if (item) menuElement.appendChild(item);
-    //     });
-    // }
-
-    // private renderItem(item: ContextMenuItem): HTMLElement | void {
-    //     if (item && typeof item === 'object' && item.constructor === Object) {
-    //         return this.createActionElement(item);
-    //     }
-    // }
 
     private createDividerElement(): HTMLElement {
         const el = createElement('div');
