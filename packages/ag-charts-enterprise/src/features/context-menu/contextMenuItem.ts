@@ -22,6 +22,27 @@ export function expandBuiltin(
     }
 }
 
+export function removeUnusedItems(
+    items: readonly ContextMenuItem[],
+    showOn: AgContextMenuItemShowOn
+): ContextMenuItem[] {
+    const result: ContextMenuItem[] = [];
+    let count = 0;
+    for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        const isSep: boolean = it.type === 'separator';
+        if (it.showsFor(showOn) && (count > 0 || !isSep)) {
+            count++;
+            result.push(it);
+        }
+        if (isSep) count = 0;
+    }
+    if (result[result.length - 1].type === 'separator') {
+        result.length = result.length - 1;
+    }
+    return result;
+}
+
 export class ContextMenuItem implements _ModuleSupport.ContextMenuItemContract {
     type: AgContextMenuItemType = 'action';
     showOn: AgContextMenuItemShowOn = 'always';
@@ -47,5 +68,11 @@ export class ContextMenuItem implements _ModuleSupport.ContextMenuItemContract {
             }
         }
         this.iconUrl = options.iconUrl;
+    }
+
+    showsFor(showOn: AgContextMenuItemShowOn): boolean {
+        if (this.showOn === 'always') return true;
+        if (this.showOn === 'series-area') return showOn === 'series-area' || showOn === 'series-node';
+        return this.showOn === showOn;
     }
 }

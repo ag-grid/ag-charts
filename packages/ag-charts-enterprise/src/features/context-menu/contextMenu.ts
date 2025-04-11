@@ -2,7 +2,7 @@ import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions }
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger, clamp, createElement } from 'ag-charts-core';
 
-import { ContextMenuItem, expandBuiltin } from './contextMenuItem';
+import { ContextMenuItem, expandBuiltin, removeUnusedItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
@@ -31,23 +31,6 @@ function getChildrenOfType<TElem extends Element>(parent: Element, ctor: new () 
         }
     }
     return result;
-}
-
-function cleanUpSeparators(items: ContextMenu['expandedItems']) {
-    let count = 0;
-    let dst = 0;
-    let src = 0;
-    for (src; src < items.length; src++) {
-        const it = items[src];
-        const isSep: boolean = it.type === 'separator';
-        if (count > 0 || !isSep) {
-            count++;
-            items[dst++] = it;
-        }
-        if (isSep) count = 0;
-    }
-    if (items[dst - 1].type === 'separator') dst--;
-    items.length = dst;
 }
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
@@ -154,8 +137,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 }
             }
         }
-
-        cleanUpSeparators(expandedItems);
     }
 
     private onContext(event: ContextMenuEvent) {
@@ -168,6 +149,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.pickedNode = undefined;
         this.pickedLegendItem = undefined;
         this.expandItemsOptions();
+        this.expandedItems = removeUnusedItems(this.expandedItems, event.showOn);
 
         if (this.expandedItems.length === 0) return;
         this.show(event.sourceEvent);
