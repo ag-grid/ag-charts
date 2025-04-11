@@ -112,8 +112,8 @@ function applySubstitutions(content?: GeneratedContents, substitutions?: Record<
             throw new Error(`Substitution value is null for key: ${key}`);
         }
 
-        let count = 0;
         Object.keys(content.files).forEach((file) => {
+            let count = 0;
             while (content.files[file].includes(key)) {
                 count++;
                 content.files[file] = content.files[file].replace(key, value);
