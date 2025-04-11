@@ -148,7 +148,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
 
     const testName = keys[keyY][keyX];
     const options: AgCartesianChartOptions = {
-        data: getData(),
+        data: getData().map((d) => ({ name: d.name, ...d.results[testName] })),
         title: {
             text: yName(testName),
         },
@@ -168,7 +168,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
             {
                 type: 'number',
                 position: 'left',
-                keys: [`results['${testName}'].timeMs`],
+                keys: [`timeMs`],
                 min: 0,
                 label: {
                     formatter: (params) => {
@@ -181,7 +181,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
             {
                 type: 'number',
                 position: 'right',
-                keys: [`results['${testName}'].heapUsed`, `results['${testName}'].canvasBytes`],
+                keys: [`heapUsed`, `canvasBytes`],
                 min: 0,
                 label: {
                     formatter: (params) => {
@@ -196,7 +196,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
             {
                 type: 'bar',
                 xKey: 'name',
-                yKey: `results['${testName}'].timeMs`,
+                yKey: `timeMs`,
                 yName: `Time`,
                 stackGroup: 'time',
                 tooltip: {
@@ -206,7 +206,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
             {
                 type: 'bar',
                 xKey: 'name',
-                yKey: `results['${testName}'].heapUsed`,
+                yKey: `heapUsed`,
                 yName: `Heap`,
                 stackGroup: 'memory',
                 tooltip: {
@@ -216,7 +216,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
             {
                 type: 'bar',
                 xKey: 'name',
-                yKey: `results['${testName}'].canvasBytes`,
+                yKey: `canvasBytes`,
                 yName: `Canvas`,
                 stackGroup: 'memory',
                 tooltip: {
