@@ -81,6 +81,9 @@ enum TickGenerationType {
     VALUES,
 }
 
+const TICK_REGENERATION_THRESHOLD = 5;
+const MAX_PRIMARY_TICK_RATIO = 0.66;
+
 export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>, D> {
     readonly range: [number, number];
     readonly reverse: boolean;
@@ -596,15 +599,14 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 }
 
                 if (primaryLabel != null) {
-                    const maxPrimaryTickRatio = 0.66;
                     let firstLoop = true;
                     while (
                         timeInterval?.hierarchy &&
-                        (rawTicks == null || rawTicks.length > 5) &&
-                        (primaryTicks == null || primaryTicks.length > 5) &&
+                        (rawTicks == null || rawTicks.length > TICK_REGENERATION_THRESHOLD) &&
+                        (primaryTicks == null || primaryTicks.length > TICK_REGENERATION_THRESHOLD) &&
                         (rawTicks == null ||
                             primaryTicks == null ||
-                            rawTicks.length < primaryTicks.length * (1 / maxPrimaryTickRatio))
+                            rawTicks.length < primaryTicks.length * (1 / MAX_PRIMARY_TICK_RATIO))
                     ) {
                         if (!firstLoop) {
                             timeInterval = timeInterval.hierarchy;
