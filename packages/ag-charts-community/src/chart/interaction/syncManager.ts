@@ -23,7 +23,7 @@ type AxisLike = {
 export type SyncStatus = 'init' | 'domains-calculated' | 'ready';
 
 /** Breaks circular dependencies which occur when importing Chart. */
-type ChartLike = {
+export type SyncChartLike = {
     id: string;
     axes: AxisLike[];
     series: ISeries<any, any, any>[];
@@ -53,7 +53,7 @@ export type SyncDerivedDomain = {
 };
 
 export type SyncGroupState = {
-    members: Set<ChartLike>;
+    members: Set<SyncChartLike>;
     domains?: { [key in 'x' | 'y']?: SyncDerivedDomain };
     domainsByKey?: { [key: string]: SyncDerivedDomain };
     domainsByPosition?: { [key: string]: SyncDerivedDomain };
@@ -63,7 +63,7 @@ export class SyncManager extends BaseManager {
     private static readonly chartsGroups = new Map<GroupId, SyncGroupState>();
     private static readonly DEFAULT_GROUP = Symbol('sync-group-default');
 
-    constructor(protected chart: ChartLike) {
+    constructor(protected chart: SyncChartLike) {
         super();
     }
 
@@ -100,6 +100,12 @@ export class SyncManager extends BaseManager {
 
     getGroupSiblings(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         return this.getGroupMembers(groupId).filter((chart) => chart !== this.chart);
+    }
+
+    getGroupSiblingAxes(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
+        return this.getGroupMembers(groupId)
+            .map((chart) => chart.axes.map((axis) => [chart, axis] as const))
+            .flat(1);
     }
 
     private get(groupId: GroupId) {

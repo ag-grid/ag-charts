@@ -12,34 +12,6 @@ const {
     findMinMax,
 } = _ModuleSupport;
 
-interface ZoomState {
-    min: number;
-    max: number;
-}
-
-interface AxisZoomState {
-    x?: ZoomState;
-    y?: ZoomState;
-    autoScaleYAxis?: boolean;
-}
-
-interface ChartLike {
-    id: string;
-    ctx: {
-        updateService: {
-            update(type: _ModuleSupport.ChartUpdateType): void;
-        };
-        zoomManager: {
-            getZoom(): AxisZoomState | undefined;
-        };
-    };
-    getTooltipContent(
-        series: _ModuleSupport.ISeries<unknown, unknown, unknown>,
-        datumIndex: unknown,
-        removeMeDatum: unknown
-    ): _ModuleSupport.TooltipContent[];
-}
-
 const debug = _ModuleSupport.Debug.create('sync');
 
 export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
@@ -83,11 +55,12 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         }
     }
 
-    private updateChart(chart: ChartLike, updateType = ChartUpdateType.PROCESS_DOMAIN) {
+    private updateChart(chart: _ModuleSupport.SyncChartLike, updateType = ChartUpdateType.PROCESS_DOMAIN) {
         debug('ChartSync.updateChart()', chart.id, updateType, chart);
         chart.ctx.updateService.update(updateType);
     }
 
+    private disableZoomSync?: () => void;
     private enabledZoomSync() {
         const { syncManager, zoomManager } = this.moduleContext;
         this.disableZoomSync = zoomManager.addListener('zoom-change', () => {
@@ -99,87 +72,122 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         });
     }
 
-    private disableZoomSync?: () => void;
-
+    private disableNodeInteractionSync?: () => void;
     private enabledNodeInteractionSync() {
-        const { highlightManager, syncManager } = this.moduleContext;
-        this.disableNodeInteractionSync = highlightManager.addListener('highlight-change', (event) => {
-            debug('ChartSync - highlight-change', event);
+        const { highlightManager } = this.moduleContext;
+        this.disableNodeInteractionSync = highlightManager.addListener(
+            'highlight-change',
+            this.onHighlightChange.bind(this)
+        );
+    }
 
+    private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
+        const { syncManager } = this.moduleContext;
+
+        debug('ChartSync - highlight-change', event);
+
+        const validDirection = this.axes === 'xy' ? 'x' : this.axes;
+        const eventValueKey = event.currentHighlight?.[`${validDirection}Key`];
+        let eventValue = eventValueKey ? event.currentHighlight?.datum[eventValueKey] : undefined;
+        const valueIsDate = isDate(eventValue);
+        if (valueIsDate) {
+            eventValue = eventValue.getTime();
+        }
+
+        if (!event.currentHighlight?.datum) {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
                 if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
 
-                if (!event.currentHighlight?.datum) {
-                    chart.ctx.highlightManager.updateHighlight(chart.id);
-                    chart.ctx.tooltipManager.removeTooltip(chart.id);
-                    continue;
-                }
-
-                for (const axis of chart.axes) {
-                    const validDirection = this.axes === 'xy' ? 'x' : this.axes;
-                    if (!CartesianAxis.is(axis) || axis.direction !== validDirection) continue;
-
-                    const matchingNodes = chart.series
-                        .map((series) => {
-                            const seriesKeys = series.getKeys(axis.direction);
-
-                            if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) return;
-
-                            const { nodeData } = (series as any).contextNodeData;
-
-                            if (!nodeData?.length) return;
-
-                            const valueKey = nodeData[0][`${axis.direction}Key`];
-                            let eventValue = event.currentHighlight!.datum[valueKey];
-                            const valueIsDate = isDate(eventValue);
-
-                            if (valueIsDate) {
-                                eventValue = eventValue.getTime();
-                            }
-
-                            const nodeDatum = nodeData.find((datum: any) => {
-                                const nodeValue = datum.datum[valueKey];
-                                return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
-                            });
-
-                            return nodeDatum ? { series, nodeDatum } : null;
-                        })
-                        .filter(isDefined);
-
-                    if (
-                        matchingNodes.length < 2 &&
-                        matchingNodes[0]?.nodeDatum !== chart.ctx.highlightManager.getActiveHighlight()
-                    ) {
-                        const { series, nodeDatum } = matchingNodes[0] ?? {};
-                        chart.ctx.highlightManager.updateHighlight(chart.id, nodeDatum);
-
-                        if (nodeDatum) {
-                            const canvasX = nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0;
-                            const canvasY = nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0;
-                            const tooltipMeta = TooltipManager.makeTooltipMeta(
-                                { type: 'pointermove', canvasX, canvasY },
-                                series,
-                                nodeDatum,
-                                undefined
-                            );
-
-                            chart.ctx.tooltipManager.updateTooltip(
-                                chart.id,
-                                tooltipMeta,
-                                chart.getTooltipContent(series, nodeDatum.datumIndex, nodeDatum)
-                            );
-                        } else {
-                            chart.ctx.tooltipManager.removeTooltip(chart.id);
-                        }
-
-                        this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
-                    }
-                }
+                chart.ctx.highlightManager.updateHighlight(chart.id);
+                chart.ctx.tooltipManager.removeTooltip(chart.id);
             }
-        });
+            return;
+        }
+
+        this.findMatchingHighlightNodes(validDirection, valueIsDate, eventValue, event);
     }
 
-    private disableNodeInteractionSync?: () => void;
+    private findMatchingHighlightNodes(
+        validDirection: 'x' | 'y',
+        valueIsDate: boolean,
+        eventValue: any,
+        event: _ModuleSupport.HighlightChangeEvent
+    ) {
+        const { syncManager } = this.moduleContext;
+
+        for (const [chart, axis] of syncManager.getGroupSiblingAxes(this.groupId)) {
+            if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
+            if (!CartesianAxis.is(axis) || axis.direction !== validDirection) continue;
+
+            const matchingNodes = chart.series
+                .map(this.findMatchingNodes(axis, validDirection, valueIsDate, eventValue))
+                .filter(isDefined);
+
+            if (
+                matchingNodes.length < 2 &&
+                matchingNodes[0]?.nodeDatum !== chart.ctx.highlightManager.getActiveHighlight()
+            ) {
+                const { series, nodeDatum } = matchingNodes[0] ?? {};
+                this.dispatchHighlightUpdate(chart, nodeDatum, series);
+            } else {
+                debug('ChartSync - no matching nodes', event);
+            }
+        }
+    }
+
+    private findMatchingNodes(
+        axis: _ModuleSupport.CartesianAxis<any, any>,
+        validDirection: string,
+        valueIsDate: boolean,
+        eventValue: any
+    ) {
+        return (series: _ModuleSupport.ISeries<any, any, any, any>) => {
+            const seriesKeys = series.getKeys(axis.direction);
+
+            if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) return;
+
+            const { nodeData } = (series as any).contextNodeData;
+
+            if (!nodeData?.length) return;
+
+            const valueKey = nodeData[0]?.[`${validDirection}Key`];
+            const nodeDatum = nodeData.find((datum: any) => {
+                const nodeValue = datum.datum[valueKey];
+                return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
+            });
+
+            return nodeDatum ? { series, nodeDatum } : null;
+        };
+    }
+
+    private dispatchHighlightUpdate(
+        chart: _ModuleSupport.SyncChartLike,
+        nodeDatum: any,
+        series: _ModuleSupport.ISeries<any, any, any, any>
+    ) {
+        chart.ctx.highlightManager.updateHighlight(chart.id, nodeDatum);
+
+        if (nodeDatum) {
+            const canvasX = nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0;
+            const canvasY = nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0;
+            const tooltipMeta = TooltipManager.makeTooltipMeta(
+                { type: 'pointermove', canvasX, canvasY },
+                series,
+                nodeDatum,
+                undefined
+            );
+
+            chart.ctx.tooltipManager.updateTooltip(
+                chart.id,
+                tooltipMeta,
+                chart.getTooltipContent(series, nodeDatum.datumIndex, nodeDatum)
+            );
+        } else {
+            chart.ctx.tooltipManager.removeTooltip(chart.id);
+        }
+
+        this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
+    }
 
     async getSyncedDomain(axis: unknown) {
         if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
@@ -357,7 +365,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         this.domainSync.notify();
     }
 
-    private mergeZoom(chart: ChartLike) {
+    private mergeZoom(chart: _ModuleSupport.SyncChartLike) {
         const { zoomManager } = this.moduleContext;
 
         if (this.axes === 'xy') {
