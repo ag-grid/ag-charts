@@ -144,12 +144,6 @@ export class ContextMenuRegistry {
         return this.listeners.addListener('', handler);
     }
 
-    public filterActions(type: AgContextMenuItemShowOn) {
-        return Object.values(this.builtins.items).filter((action) => {
-            return action.id != null && !this.hiddenActions.has(action.id) && ['always', type].includes(action.type);
-        });
-    }
-
     public setVisible(id: BuiltinHideableKeys, visible: boolean) {
         if (visible) {
             this.hiddenActions.delete(id);
