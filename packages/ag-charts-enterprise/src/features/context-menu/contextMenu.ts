@@ -144,6 +144,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         for (const item of this.items) {
             if (typeof item === 'string') {
                 expandBuiltin(builtins, item, expandedItems);
+            } else if (item.type !== 'submenu') {
+                expandedItems.push(new ContextMenuItem(item));
+            } else {
+                throw new Error('`type: "submenu" not yet implemented');
             }
         }
 
