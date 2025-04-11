@@ -34,3 +34,5 @@ export type RequireOptional<T> = {
 };
 
 export type Intersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
+
+export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
