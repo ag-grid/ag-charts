@@ -109,22 +109,22 @@ export class ContextMenuRegistry {
     private readonly listeners: Listeners<'', (e: ContextMenuEvent) => void> = new Listeners();
 
     public static check<T extends AgContextMenuItemShowOn>(
-        type: T,
+        showOn: T,
         event: ContextMenuEvent
     ): event is ContextMenuEvent<T> {
-        return event.type === type;
+        return event.showOn == showOn;
     }
 
     public static checkCallback<T extends AgContextMenuItemShowOn>(
-        desiredType: T,
-        type: AgContextMenuItemShowOn,
+        desiredShowOn: T,
+        showOn: AgContextMenuItemShowOn,
         _callback: ContextMenuCallback<AgContextMenuItemShowOn>
     ): _callback is ContextMenuCallback<T> {
-        return desiredType === type;
+        return desiredShowOn === showOn;
     }
 
     public dispatchContext<T extends AgContextMenuItemShowOn>(
-        type: T,
+        showOn: T,
         pointerEvent: { sourceEvent: MouseEvent; canvasX: number; canvasY: number },
         context: ContextShowOnMap[T]['context'],
         position?: { x: number; y: number }
@@ -136,7 +136,7 @@ export class ContextMenuRegistry {
         }
         const x = position?.x ?? pointerEvent.canvasX;
         const y = position?.y ?? pointerEvent.canvasY;
-        const event: ContextMenuEvent = { type, x, y, context, sourceEvent };
+        const event: ContextMenuEvent = { showOn, x, y, context, sourceEvent };
         this.listeners.dispatch('', event);
     }
 
