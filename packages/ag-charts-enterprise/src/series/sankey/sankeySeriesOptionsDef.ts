@@ -72,6 +72,6 @@ sankeySeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 // @ts-expect-error undocumented option
 sankeySeriesOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
 // @ts-expect-error undocumented option
-sankeySeriesOptionsDef.defaultColorRange = arrayOf(arrayOf(color));
+sankeySeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
 // @ts-expect-error undocumented option
 sankeySeriesOptionsDef.defaultPatternFills = undocumented(arrayOf(color));
