@@ -25,7 +25,7 @@ export class ZoomContextMenu {
     ) {}
 
     public registerActions(enabled: boolean | undefined) {
-        const { contextMenuRegistry, zoomManager } = this;
+        const { contextMenuRegistry } = this;
 
         if (enabled) {
             contextMenuRegistry.setVisible('zoom-to-cursor', true);
@@ -38,17 +38,20 @@ export class ZoomContextMenu {
 
         contextMenuRegistry.builtins.items['zoom-to-cursor'].action = this.onZoomToHere.bind(this);
         contextMenuRegistry.builtins.items['pan-to-cursor'].action = this.onPanToHere.bind(this);
-        return zoomManager.addListener('zoom-change', () => {
-            const enablePanToCursor = !isZoomEqual(definedZoomState(this.zoomManager.getZoom()), unitZoomState());
-            contextMenuRegistry.builtins.items['pan-to-cursor'].enable = enablePanToCursor;
+
+        const shouldEnableZoomToHere = (event: _ModuleSupport.ContextMenuEvent) => {
+            const rect = this.getRect();
+            if (!rect) return true;
+            const origin = pointToRatio(rect, event.x, event.y);
+            return this.iterateFindNextZoomAtPoint(origin) != null;
+        };
+        const shouldEnablePanToHere = () => {
+            return !isZoomEqual(definedZoomState(this.zoomManager.getZoom()), unitZoomState());
+        };
+        return contextMenuRegistry.addListener('context-setup', (event) => {
+            contextMenuRegistry.builtins.items['zoom-to-cursor'].enable = shouldEnableZoomToHere(event);
+            contextMenuRegistry.builtins.items['pan-to-cursor'].enable = shouldEnablePanToHere();
         });
-        // toggleEnabledOnShow: (event) => {
-        //         const rect = this.getRect();
-        //         if (!rect) return true;
-        //         const origin = pointToRatio(rect, event.x, event.y);
-        //         return this.iterateFindNextZoomAtPoint(origin) != null;
-        //     },
-        // });
     }
 
     private computeOrigin(event: Event): { x: number; y: number } | undefined {

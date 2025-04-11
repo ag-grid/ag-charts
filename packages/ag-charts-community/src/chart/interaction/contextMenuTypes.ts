@@ -49,7 +49,10 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
     };
 }
 
+export type ContextMenuEventType = 'context-setup' | 'context-complete';
+
 export type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = {
+    readonly type: ContextMenuEventType;
     readonly showOn: K;
     readonly x: number;
     readonly y: number;

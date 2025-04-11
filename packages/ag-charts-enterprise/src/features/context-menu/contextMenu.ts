@@ -133,7 +133,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             });
         };
 
-        this.destroyFns.push(this.registry.addListener((e) => this.onContext(e)));
+        this.destroyFns.push(this.registry.addListener('context-complete', (e) => this.onContext(e)));
     }
 
     private expandItemsOptions() {

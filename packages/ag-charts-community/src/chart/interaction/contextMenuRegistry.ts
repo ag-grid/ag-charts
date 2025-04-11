@@ -1,15 +1,16 @@
+import type { Writeable } from 'ag-charts-core';
 import type { AgContextMenuItemLiteral, AgContextMenuItemShowOn } from 'ag-charts-types';
 
-import { Listeners } from '../../util/listeners';
-import type { ContextMenuCallback, ContextMenuEvent, ContextShowOnMap } from './contextMenuTypes';
+import { BaseManager } from '../../util/baseManager';
+import type { ContextMenuCallback, ContextMenuEvent, ContextMenuEventType, ContextShowOnMap } from './contextMenuTypes';
 import { ContextMenuBuiltins } from './contextMenuTypes';
 
-export class ContextMenuRegistry {
+export class ContextMenuRegistry extends BaseManager<ContextMenuEventType, ContextMenuEvent> {
     public readonly builtins = new ContextMenuBuiltins();
     private readonly hiddenActions: Set<string> = new Set();
-    private readonly listeners: Listeners<'', (e: ContextMenuEvent) => void> = new Listeners();
 
     constructor() {
+        super();
         this.setVisible('zoom-to-cursor', false);
         this.setVisible('pan-to-cursor', false);
         this.setVisible('reset-zoom', false);
@@ -43,12 +44,12 @@ export class ContextMenuRegistry {
         }
         const x = position?.x ?? pointerEvent.canvasX;
         const y = position?.y ?? pointerEvent.canvasY;
-        const event: ContextMenuEvent = { showOn, x, y, context, sourceEvent };
-        this.listeners.dispatch('', event);
-    }
 
-    public addListener(handler: (event: ContextMenuEvent) => void) {
-        return this.listeners.addListener('', handler);
+        const event: Writeable<ContextMenuEvent> = { type: 'context-setup', showOn, x, y, context, sourceEvent };
+        this.listeners.dispatch('context-setup', event);
+
+        event.type = 'context-complete';
+        this.listeners.dispatch('context-complete', event);
     }
 
     public isVisible(id: AgContextMenuItemLiteral): boolean {
