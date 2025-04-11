@@ -186,7 +186,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.show(event.sourceEvent);
     }
 
-    private show(sourceEvent: _ModuleSupport.MouseEventWithPointerType) {
+    private show(sourceEvent: ContextMenuEvent['sourceEvent']) {
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 

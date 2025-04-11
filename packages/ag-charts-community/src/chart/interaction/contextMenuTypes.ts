@@ -49,14 +49,12 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
     };
 }
 
-export type MouseEventWithPointerType = MouseEvent & Partial<Pick<PointerEvent, 'pointerType'>>;
-
 export type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = {
     readonly showOn: K;
     readonly x: number;
     readonly y: number;
     readonly context: Readonly<ContextShowOnMap[K]['context']>;
-    readonly sourceEvent: MouseEventWithPointerType;
+    readonly sourceEvent: MouseEvent & Partial<Pick<PointerEvent, 'pointerType'>>;
 };
 
 export type ContextMenuCallback<K extends AgContextMenuItemShowOn> = ContextShowOnMap[K]['callback'];
