@@ -170,10 +170,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.y = event.y;
         this.pickedNode = undefined;
         this.pickedLegendItem = undefined;
+        if (ContextMenuRegistry.check('series-node', event)) {
+            this.pickedNode = event.context.pickedNode;
+        } else if (ContextMenuRegistry.check('legend-item', event)) {
+            this.pickedLegendItem = event.context.legendItem;
+        }
+
         this.expandItemsOptions();
         this.expandedItems = removeUnusedItems(this.expandedItems, event.showOn);
-
         if (this.expandedItems.length === 0) return;
+
         this.show(event.sourceEvent);
     }
 
@@ -273,6 +279,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     const { seriesId, itemId } = this.pickedLegendItem;
                     callback({ type: 'contextmenu', seriesId, itemId, event });
                     this.hide();
+                } else {
+                    Logger.error('legend item not found');
                 }
             };
         } else if (ContextMenuRegistry.checkCallback('series-area', showOn, callback)) {
