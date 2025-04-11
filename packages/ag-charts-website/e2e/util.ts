@@ -96,7 +96,7 @@ export function setupIntrinsicAssertions() {
     return config;
 }
 
-export function getConsoleLogs() {
+export function createConsoleLogs() {
     const ignoreMessageRegexes = [
         // Vite messages
         /^\[vite].*/,
@@ -104,6 +104,9 @@ export function getConsoleLogs() {
         /^\*.*/,
     ];
     const consoleLogs: string[] = [];
+    const clear = () => {
+        consoleLogs.length = 0;
+    };
 
     test.beforeEach(({ page }) => {
         page.on('console', (msg) => {
@@ -118,11 +121,13 @@ export function getConsoleLogs() {
     });
 
     test.afterEach(() => {
-        // Clear console logs
-        consoleLogs.length = 0;
+        clear();
     });
 
-    return consoleLogs;
+    return {
+        clear,
+        get: () => consoleLogs,
+    };
 }
 
 export function repeat(repCount: number, fn: () => unknown) {
