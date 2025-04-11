@@ -28,8 +28,7 @@ export function removeUnusedItems(
 ): ContextMenuItem[] {
     const result: ContextMenuItem[] = [];
     let count = 0;
-    for (let i = 0; i < items.length; i++) {
-        const it = items[i];
+    for (const it of items) {
         const isSep: boolean = it.type === 'separator';
         if (it.showsFor(showOn) && (count > 0 || !isSep)) {
             count++;
