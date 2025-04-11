@@ -350,7 +350,7 @@ export class RadialGaugeSeries
             domain: scale.domain,
             ticks,
             fractionDigits,
-            specifier: label.format,
+            specifier: typeof label.format === 'string' ? label.format : undefined,
         });
 
         const font = label.getFont();

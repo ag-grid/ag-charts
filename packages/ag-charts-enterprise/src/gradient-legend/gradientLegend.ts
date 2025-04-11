@@ -23,7 +23,7 @@ class GradientBar extends BaseProperties {
     preferredLength = 100;
 }
 
-class GradientLegendScale implements AgGradientLegendScaleOptions {
+class GradientLegendScale implements Omit<AgGradientLegendScaleOptions, 'label'> {
     constructor(protected axisTicks: _ModuleSupport.AxisTicks) {}
 
     @ProxyProperty('axisTicks.label')

@@ -1,4 +1,5 @@
 import { CountableTimeInterval } from './interval';
+import { utcYear } from './utcYear';
 
 function encode(date: Date) {
     return date.getUTCFullYear() * 12 + date.getUTCMonth();
@@ -10,4 +11,4 @@ function decode(encoded: number) {
     return new Date(Date.UTC(year, month, 1));
 }
 
-export const utcMonth = new CountableTimeInterval(encode, decode);
+export const utcMonth = new CountableTimeInterval('month', undefined, utcYear, encode, decode);

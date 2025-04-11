@@ -1,3 +1,4 @@
+import { day } from './day';
 import { durationMinute } from './duration';
 import { CountableTimeInterval } from './interval';
 
@@ -11,4 +12,4 @@ function decode(encoded: number) {
     return new Date(offset + encoded * durationMinute);
 }
 
-export const minute = new CountableTimeInterval(encode, decode);
+export const minute = new CountableTimeInterval('minute', 60 * 1000, day, encode, decode);

@@ -105,7 +105,7 @@ export interface ChartAxisLabel extends FontOptions {
     autoRotateAngle?: number;
     avoidCollisions: boolean;
     enabled: boolean;
-    format?: string;
+    format?: string | Record<string, string>;
     formatter?: Formatter<AgAxisLabelFormatterParams>;
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
     minSpacing?: number;

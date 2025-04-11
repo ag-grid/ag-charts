@@ -4,6 +4,26 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
 {
   "axes": [
     {
+      "division": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "format": {
+            "day": "%e",
+            "hour": "%H:%M",
+            "millisecond": "%H:%M:%S.%Q",
+            "minute": "%H:%M",
+            "month": "%b",
+            "second": "%H:%M:%S",
+            "year": "%Y",
+          },
+          "spacing": 11,
+        },
+      },
       "gridLine": {
         "enabled": true,
         "style": [
@@ -28,6 +48,9 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
+          "hierarchy": undefined,
+          "milliseconds": undefined,
+          "unit": "year",
         },
       },
       "keys": [],
@@ -2660,6 +2683,26 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
 {
   "axes": [
     {
+      "division": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "format": {
+            "day": "%e",
+            "hour": "%H:%M",
+            "millisecond": "%H:%M:%S.%Q",
+            "minute": "%H:%M",
+            "month": "%b",
+            "second": "%H:%M:%S",
+            "year": "%Y",
+          },
+          "spacing": 11,
+        },
+      },
       "gridLine": {
         "enabled": false,
         "style": [
@@ -10172,6 +10215,26 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
 {
   "axes": [
     {
+      "division": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "format": {
+            "day": "%e",
+            "hour": "%H:%M",
+            "millisecond": "%H:%M:%S.%Q",
+            "minute": "%H:%M",
+            "month": "%b",
+            "second": "%H:%M:%S",
+            "year": "%Y",
+          },
+          "spacing": 11,
+        },
+      },
       "gridLine": {
         "enabled": false,
         "style": [
@@ -10186,6 +10249,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
+          "hierarchy": undefined,
+          "milliseconds": undefined,
+          "unit": "year",
         },
       },
       "keys": [],
@@ -11332,6 +11398,26 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
 {
   "axes": [
     {
+      "division": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "format": {
+            "day": "%e",
+            "hour": "%H:%M",
+            "millisecond": "%H:%M:%S.%Q",
+            "minute": "%H:%M",
+            "month": "%b",
+            "second": "%H:%M:%S",
+            "year": "%Y",
+          },
+          "spacing": 11,
+        },
+      },
       "gridLine": {
         "enabled": false,
         "style": [
@@ -11346,6 +11432,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
+          "hierarchy": CountableTimeInterval {
+            "_decode": [Function],
+            "_encode": [Function],
+            "_rangeCallback": undefined,
+            "hierarchy": undefined,
+            "milliseconds": undefined,
+            "unit": "year",
+          },
+          "milliseconds": undefined,
+          "unit": "month",
         },
       },
       "keys": [],
@@ -12147,6 +12243,26 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
 {
   "axes": [
     {
+      "division": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "format": {
+            "day": "%e",
+            "hour": "%H:%M",
+            "millisecond": "%H:%M:%S.%Q",
+            "minute": "%H:%M",
+            "month": "%b",
+            "second": "%H:%M:%S",
+            "year": "%Y",
+          },
+          "spacing": 11,
+        },
+      },
       "gridLine": {
         "enabled": false,
         "style": [
@@ -12161,6 +12277,16 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": undefined,
+          "hierarchy": CountableTimeInterval {
+            "_decode": [Function],
+            "_encode": [Function],
+            "_rangeCallback": undefined,
+            "hierarchy": undefined,
+            "milliseconds": undefined,
+            "unit": "year",
+          },
+          "milliseconds": undefined,
+          "unit": "month",
         },
       },
       "keys": [],

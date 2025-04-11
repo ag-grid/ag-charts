@@ -44,6 +44,7 @@ const {
     BBox,
     ContinuousScale,
     OrdinalTimeScale,
+    UnitTimeScale,
     findMinMax,
     getShapeStyle,
     getShapeFill,
@@ -145,7 +146,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))) return;
+        if (
+            xAxis == null ||
+            !(ContinuousScale.is(xAxis.scale) || UnitTimeScale.is(xAxis) || OrdinalTimeScale.is(xAxis.scale))
+        ) {
+            return;
+        }
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);

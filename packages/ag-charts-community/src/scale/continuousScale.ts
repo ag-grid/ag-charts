@@ -49,12 +49,13 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         return rangeDistance / Math.max(1, bands);
     }
 
-    convert(value: D, clamp = this.defaultClamp) {
+    convert(value: D, options?: { clamp?: boolean }) {
         const { domain } = this;
         if (!domain || domain.length < 2) {
             return NaN;
         }
 
+        const clamp = options?.clamp ?? this.defaultClamp;
         const d0 = Number(this.transform(domain[0]));
         const d1 = Number(this.transform(domain[1]));
         const x = Number(this.transform(value));

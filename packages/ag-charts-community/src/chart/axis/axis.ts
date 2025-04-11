@@ -375,9 +375,9 @@ export abstract class Axis<
 
     protected getLabelStyles(
         params: { value: string | undefined; depth?: number },
-        additionalStyles?: AgBaseAxisLabelStyleOptions
+        additionalStyles?: AgBaseAxisLabelStyleOptions,
+        label: AxisLabel = this.label
     ) {
-        const { label } = this;
         const defaultStyle: AgBaseAxisLabelStyleOptions = {
             color: label.color,
             spacing: label.spacing,
@@ -488,7 +488,7 @@ export abstract class Axis<
         this._scaleNiceDomainInputDomain = nice ? domain : undefined;
         this._scaleNiceDomainRangeExtent = nice ? rangeExtent : NaN;
 
-        const specifier = label.format;
+        const specifier = typeof label.format === 'string' ? label.format : undefined;
         this.labelFormatter =
             scale.tickFormatter({ domain: tickDomain, specifier, ticks, fractionDigits }) ??
             ((value: unknown) => this.defaultLabelFormatter(value, fractionDigits));

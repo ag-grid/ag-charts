@@ -1,5 +1,6 @@
 import { durationDay, durationMinute } from './duration';
 import { CountableTimeInterval } from './interval';
+import { month } from './month';
 
 function encode(date: Date) {
     const tzOffsetMs = date.getTimezoneOffset() * durationMinute;
@@ -14,4 +15,4 @@ function decode(encoded: number) {
     return d;
 }
 
-export const day = new CountableTimeInterval(encode, decode);
+export const day = new CountableTimeInterval('day', 24 * 60 * 60 * 1000, month, encode, decode);

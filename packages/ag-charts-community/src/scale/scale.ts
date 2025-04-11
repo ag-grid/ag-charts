@@ -26,7 +26,7 @@ export interface Scale<D, R, I = number> {
     range: R[];
     normalizeDomains(...domains: D[][]): NormalizedDomain<D>;
     toDomain(value: number): D | undefined;
-    convert(value: D, clamp?: boolean): R;
+    convert(value: D, options?: { clamp?: boolean; interpolate?: boolean }): R;
     invert(value: R, exact?: boolean): D | undefined;
     ticks(ticks: ScaleTickParams<I>, domain?: D[], visibleRange?: [number, number]): D[] | undefined;
     niceDomain(ticks: ScaleTickParams<I>, domain?: D[]): D[];

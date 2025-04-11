@@ -1,15 +1,31 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import { extent } from '../../util/extent';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
+import { AxisLabel } from './axisLabel';
 import { CartesianAxis } from './cartesianAxis';
+
+export class TimeAxisDivision extends BaseProperties {
+    @Property
+    enabled = false;
+
+    @Property
+    readonly label = new AxisLabel();
+}
 
 export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     static readonly className = 'TimeAxis';
     static readonly type = 'time' as const;
 
+    @Property
+    readonly division = new TimeAxisDivision();
+
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new TimeScale());
+    }
+
+    override get primaryLabel(): AxisLabel | undefined {
+        return this.division.enabled ? this.division.label : undefined;
     }
 
     @Property

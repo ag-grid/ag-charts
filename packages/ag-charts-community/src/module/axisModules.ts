@@ -18,7 +18,6 @@ import {
     positiveNumber,
     positiveNumberNonZero,
     required,
-    string,
 } from 'ag-charts-core';
 import type {
     AgCategoryAxisOptions,
@@ -34,8 +33,10 @@ import {
     cartesianAxisCrosshairOptions,
     cartesianAxisLabelOptionsDefs,
     cartesianAxisOptionsDefs,
+    cartesianNumericAxisLabel,
+    cartesianTimeAxisDivision,
+    cartesianTimeAxisLabel,
     continuousAxisOptions,
-    numberFormatValidator,
 } from '../chart/axesOptionsDefs';
 import { CategoryAxis } from '../chart/axis/categoryAxis';
 import { GroupedCategoryAxis } from '../chart/axis/groupedCategoryAxis';
@@ -50,10 +51,7 @@ export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     ...continuousAxisOptions(number),
     type: required(constant('number')),
-    label: {
-        format: numberFormatValidator,
-        ...cartesianAxisLabelOptionsDefs,
-    },
+    label: cartesianNumericAxisLabel,
     crosshair: cartesianAxisCrosshairOptions(true),
 };
 
@@ -65,10 +63,7 @@ export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
         positiveNumberNonZero,
         attachDescription((value) => value !== 1, 'not equal to 1')
     ),
-    label: {
-        format: numberFormatValidator,
-        ...cartesianAxisLabelOptionsDefs,
-    },
+    label: cartesianNumericAxisLabel,
     crosshair: cartesianAxisCrosshairOptions(true),
 };
 
@@ -76,10 +71,8 @@ export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     ...continuousAxisOptions(or(number, date), true),
     type: required(constant('time')),
-    label: {
-        ...cartesianAxisLabelOptionsDefs,
-        format: string,
-    },
+    label: cartesianTimeAxisLabel,
+    division: cartesianTimeAxisDivision,
     crosshair: cartesianAxisCrosshairOptions(true),
 };
 
@@ -121,10 +114,8 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     type: required(constant('unit-time')),
     unit: instanceOf(TimeInterval),
-    label: {
-        ...cartesianAxisLabelOptionsDefs,
-        format: string,
-    },
+    label: cartesianTimeAxisLabel,
+    division: cartesianTimeAxisDivision,
     paddingInner: positiveNumber,
     paddingOuter: positiveNumber,
     groupPaddingInner: positiveNumber,

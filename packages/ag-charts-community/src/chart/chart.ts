@@ -43,6 +43,7 @@ import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { Widget } from '../widget/widget';
 import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
+import type { TimeAxis } from './axis/timeAxis';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -1408,6 +1409,12 @@ export abstract class Chart extends Observable implements ModuleInstance {
                         depthOptions[i].label.enabled = false;
                     }
                 }
+            } else if (
+                horizontalAxis.type === 'time' ||
+                horizontalAxis.type === 'unit-time' ||
+                horizontalAxis.type === 'ordinal-time'
+            ) {
+                (horizontalAxis as TimeAxis).division.enabled = false;
             }
 
             const step = intervalOptions?.step;

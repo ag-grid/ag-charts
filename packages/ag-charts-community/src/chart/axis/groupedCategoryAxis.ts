@@ -13,7 +13,7 @@ import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
 import { createDatumId } from '../data/processors';
 import type { LabelNodeDatum } from './axis';
-import type { TickDatum } from './axisTickGenerator';
+import type { TickDatum } from './axisUtil';
 import { CategoryAxis } from './categoryAxis';
 import { type TreeLayout, treeLayout } from './tree';
 
@@ -404,6 +404,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 tickId: createDatumId(tick, index),
                 tickLabel: tick.filter(Boolean).join(' - '),
                 translationY: Math.round(tickScale.convert(tick)),
+                primary: false,
             }));
 
         this.gridLineGroupSelection.update(

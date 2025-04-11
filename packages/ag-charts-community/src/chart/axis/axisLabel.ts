@@ -110,7 +110,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     formatter?: Formatter<AgAxisLabelFormatterParams>;
 
     @Property
-    format?: string;
+    format?: string | Record<string, string>;
 
     getFont(): string {
         return TextUtils.toFontString(this);

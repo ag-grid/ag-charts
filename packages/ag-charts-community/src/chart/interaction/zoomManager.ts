@@ -21,6 +21,7 @@ import type { MementoOriginator } from '../../api/state/memento';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
+import { UnitTimeScale } from '../../scale/unitTimeScale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import type { BBoxValues } from '../../util/bboxinterface';
@@ -92,7 +93,8 @@ class ZoomManagerAutoScaleAxis {
 
 const rangeValidator = (axis?: ChartAxisLike) =>
     attachDescription((value, { options }) => {
-        if (!ContinuousScale.is(axis?.scale) && !OrdinalTimeScale.is(axis?.scale)) return true;
+        if (!ContinuousScale.is(axis?.scale) && !UnitTimeScale.is(axis?.scale) && !OrdinalTimeScale.is(axis?.scale))
+            return true;
         if (value == null || options.end == null) return true;
         return value <= options.end;
     }, `to be less than end`);
@@ -576,7 +578,11 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
     private getRangeDirection(ratio: ZoomState, direction: ChartAxisDirection): AgZoomRange | undefined {
         const axis = this.getPrimaryAxis(direction);
-        if (!axis || (!ContinuousScale.is(axis.scale) && !OrdinalTimeScale.is(axis.scale))) return;
+        if (
+            !axis ||
+            (!ContinuousScale.is(axis.scale) && !UnitTimeScale.is(axis?.scale) && !OrdinalTimeScale.is(axis.scale))
+        )
+            return;
 
         const extents = this.getDomainPixelExtents(axis);
         if (!extents) return;

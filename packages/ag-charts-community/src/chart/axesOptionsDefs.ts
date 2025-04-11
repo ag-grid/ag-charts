@@ -19,6 +19,7 @@ import {
     lessThan,
     lineDashOptionsDef,
     number,
+    object,
     optionsDefs,
     or,
     positiveNumber,
@@ -40,11 +41,13 @@ import type {
     AgBaseCrossLineLabelOptions,
     AgBaseCrossLineOptions,
     AgBaseCrosshairLabel,
+    AgCartesianAxisLabelOptions,
     AgCartesianCrossLineOptions,
     AgContinuousAxisOptions,
     AgCrosshairLabel,
     AgCrosshairLabelRendererResult,
     AgCrosshairOptions,
+    AgTimeAxisDivision,
 } from 'ag-charts-types';
 
 import { TimeInterval } from '../util/time';
@@ -127,6 +130,21 @@ export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabel
     ...commonAxisLabelOptionsDefs,
 };
 
+export const cartesianNumericAxisLabel: OptionsDefs<AgCartesianAxisLabelOptions> = {
+    format: numberFormatValidator,
+    ...cartesianAxisLabelOptionsDefs,
+};
+
+export const cartesianTimeAxisLabel: OptionsDefs<AgCartesianAxisLabelOptions> = {
+    format: or(string, object),
+    ...cartesianAxisLabelOptionsDefs,
+};
+
+export const cartesianTimeAxisDivision: OptionsDefs<AgTimeAxisDivision> = {
+    enabled: boolean,
+    label: cartesianTimeAxisLabel,
+};
+
 export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>> = {
     reverse: boolean,
     gridLine: {
@@ -170,7 +188,7 @@ commonAxisOptionsDefs.layoutConstraints = undocumented({
 });
 
 export const cartesianAxisOptionsDefs: OptionsDefs<
-    Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'crosshair'>
+    Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'primaryLabel' | 'crosshair'>
 > = {
     ...commonAxisOptionsDefs,
     keys: arrayOf(string),
