@@ -1,4 +1,11 @@
-import type { AgContextMenuItem, AgContextMenuItemShowOn } from 'ag-charts-types';
+import type { RequireOptional } from 'ag-charts-core';
+import type {
+    AgContextMenuItem,
+    AgContextMenuItemAlways,
+    AgContextMenuItemLegendItem,
+    AgContextMenuItemSeriesArea,
+    AgContextMenuItemShowOn,
+} from 'ag-charts-types';
 
 import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
@@ -77,3 +84,93 @@ export type ContextMenuItemContractNonRecursive = Omit<
 export type ContextMenuItemContract = ContextMenuItemContractNonRecursive & {
     items: ContextMenuItemContractNonRecursive[];
 };
+
+type BuiltinItemListKeys = 'defaults';
+
+type ContextMenuBuiltinItemsRules = {
+    readonly [K in Exclude<AgContextMenuItem, object | BuiltinItemListKeys>]: RequireOptional<AgContextMenuItem>;
+};
+type ContextMenuBuiltinItemListsRules = {
+    readonly [K in BuiltinItemListKeys]: readonly (keyof ContextMenuBuiltinItemsRules)[];
+};
+
+class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
+    readonly download: RequireOptional<AgContextMenuItemAlways> = {
+        type: 'action',
+        showOn: 'always',
+        label: 'contextMenuDownload',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
+    };
+    readonly 'zoom-to-cursor': RequireOptional<AgContextMenuItemSeriesArea> = {
+        type: 'action',
+        showOn: 'series-area',
+        label: 'contextMenuZoomToCursor',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
+    };
+    readonly 'pan-to-cursor': RequireOptional<AgContextMenuItemSeriesArea> = {
+        type: 'action',
+        showOn: 'series-area',
+        label: 'contextMenuPanToCursor',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
+    };
+    readonly 'reset-zoom': RequireOptional<AgContextMenuItemSeriesArea> = {
+        type: 'action',
+        showOn: 'series-area',
+        label: 'contextMenuResetZoom',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
+    };
+    readonly 'toggle-series-visibility': RequireOptional<AgContextMenuItemLegendItem> = {
+        type: 'action',
+        showOn: 'legend-item',
+        label: 'contextMenuToggleSeriesVisibility',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
+    };
+    readonly 'toggle-other-series': RequireOptional<AgContextMenuItemLegendItem> = {
+        type: 'action',
+        showOn: 'legend-item',
+        label: 'contextMenuToggleOtherSeries',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
+    };
+    readonly 'separator': RequireOptional<AgContextMenuItemAlways> = {
+        type: 'separator',
+        showOn: 'always',
+        label: 'separator',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
+    };
+}
+
+class ContextMenuBuiltinItemLists implements ContextMenuBuiltinItemListsRules {
+    readonly defaults: readonly (keyof ContextMenuBuiltinItemsRules)[] = [
+        'download',
+        'zoom-to-cursor',
+        'pan-to-cursor',
+        'toggle-series-visibility',
+        'toggle-other-series',
+    ];
+}
+
+export class ContextMenuBuiltins {
+    readonly items = new ContextMenuBuiltinItems();
+    readonly lists = new ContextMenuBuiltinItemLists();
+}
