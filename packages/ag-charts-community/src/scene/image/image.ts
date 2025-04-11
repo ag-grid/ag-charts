@@ -86,13 +86,9 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
     }
 
     setImageTransform(pattern: CanvasPattern | string | undefined, pixelRatio: number, tx: number = 0, ty: number = 0) {
-        if (typeof pattern === 'string') {
-            return;
-        }
+        if (typeof pattern === 'string') return;
 
-        const { rotation } = this;
-
-        const angle = normalizeAngle360(toRadians(rotation));
+        const angle = normalizeAngle360(toRadians(this.rotation));
         const scale = this.scale / pixelRatio;
         const cos = Math.cos(angle) * scale;
         const sin = Math.sin(angle) * scale;

@@ -4,7 +4,47 @@ import { SELECTORS, getExamples, setupIntrinsicAssertions } from './util';
 
 const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     'image-fill-test': {
+        'image-contain': {
+            snapshot: true,
+            frameworks: ['vanilla'],
+        },
+        'image-contain-repeat-x': {
+            snapshot: true,
+            frameworks: ['vanilla'],
+        },
+        'image-contain-width-height': {
+            snapshot: true,
+            frameworks: ['vanilla'],
+        },
+        'image-cover': {
+            snapshot: true,
+            frameworks: ['vanilla'],
+        },
+        'image-cover-width-height': {
+            snapshot: true,
+            frameworks: ['vanilla'],
+        },
+        'image-data-url': {
+            snapshot: true,
+            frameworks: ['vanilla'],
+        },
+        'image-default': {
+            snapshot: true,
+            frameworks: ['vanilla'],
+        },
+        'image-rotate': {
+            snapshot: true,
+            frameworks: ['vanilla'],
+        },
+        'image-scale': {
+            snapshot: true,
+            frameworks: ['vanilla'],
+        },
         'image-url': {
+            snapshot: true,
+            frameworks: ['vanilla'],
+        },
+        'image-width-height': {
             snapshot: true,
             frameworks: ['vanilla'],
         },
