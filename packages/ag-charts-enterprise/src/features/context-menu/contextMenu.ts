@@ -1,22 +1,20 @@
-import type { AgContextMenuItemShowOn, AgContextMenuOptions } from 'ag-charts-community';
+import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger, clamp, createElement } from 'ag-charts-core';
 
+import { ContextMenuItem, expandBuiltin } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
-type ContextMenuGroups = {
-    default: Array<ContextMenuAction<AgContextMenuItemShowOn>>;
-    extra: Array<ContextMenuAction<'always'>>;
-    extraSeriesArea: Array<ContextMenuAction<'series-area'>>;
-    extraNode: Array<ContextMenuAction<'series-node'>>;
-    extraLegendItem: Array<ContextMenuAction<'legend-item'>>;
-};
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
-type ContextMenuAction<T extends AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuAction<T>;
-type ContextMenuCallback<T extends AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuCallback<T>;
-
+type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemShowOn>;
 type DeprecatedOption = 'extraActions' | 'extraNodeActions' | 'extraSeriesAreaActions' | 'extraLegendItemActions';
 type DeprecatedAction<T extends DeprecatedOption> = NonNullable<AgContextMenuOptions[T]>;
+type DeprecatedMap = {
+    readonly [K in DeprecatedOption]: {
+        readonly items: DeprecatedAction<K>;
+        readonly showOn: AgContextMenuItemShowOn;
+    };
+};
 
 const { Property, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } = _ModuleSupport;
 
@@ -43,19 +41,25 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     darkTheme = false;
 
     @Property
-    items? = [];
+    readonly items: readonly Readonly<AgContextMenuItem>[] = ['defaults'];
 
     public extraActions: DeprecatedAction<'extraActions'> = [];
     public extraNodeActions: DeprecatedAction<'extraNodeActions'> = [];
     public extraSeriesAreaActions: DeprecatedAction<'extraSeriesAreaActions'> = [];
     public extraLegendItemActions: DeprecatedAction<'extraLegendItemActions'> = [];
+    private readonly deprecationMap: DeprecatedMap = {
+        extraActions: { items: this.extraActions, showOn: 'always' },
+        extraSeriesAreaActions: { items: this.extraSeriesAreaActions, showOn: 'series-area' },
+        extraNodeActions: { items: this.extraNodeActions, showOn: 'series-node' },
+        extraLegendItemActions: { items: this.extraLegendItemActions, showOn: 'legend-item' },
+    };
 
     // Module context
     private readonly interactionManager: _ModuleSupport.InteractionManager;
     private readonly registry: _ModuleSupport.ContextMenuRegistry;
 
     // State
-    private readonly groups: ContextMenuGroups;
+    private expandedItems: ContextMenuItem[] = [];
     private pickedNode: _ModuleSupport.SeriesNodeDatum<unknown> | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private showEvent: MouseEvent | undefined = undefined;
@@ -76,8 +80,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.registry = ctx.contextMenuRegistry;
 
         // State
-        this.groups = { default: [], extra: [], extraSeriesArea: [], extraNode: [], extraLegendItem: [] };
-
         this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
         this.element.addEventListener('contextmenu', (event) => event.preventDefault()); // AG-10223
@@ -112,6 +114,31 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(this.registry.addListener((e) => this.onContext(e)));
     }
 
+    private expandItemsOptions() {
+        const { builtins } = this.ctx.contextMenuRegistry;
+        const { expandedItems, deprecationMap } = this;
+        expandedItems.length = 0;
+
+        for (const item of this.items) {
+            if (typeof item === 'string') {
+                expandBuiltin(builtins, item, expandedItems);
+            }
+        }
+
+        for (const deprecatedKey of Object.keys(deprecationMap) as (keyof typeof deprecationMap)[]) {
+            const { items, showOn } = deprecationMap[deprecatedKey];
+            if (items.length > 0) {
+                const type = 'action';
+                const iconUrl = undefined;
+                const enable = true;
+                expandBuiltin(builtins, 'separator', expandedItems);
+                for (const { action, label } of items) {
+                    expandedItems.push(new ContextMenuItem({ type, showOn, iconUrl, enable, label, action }));
+                }
+            }
+        }
+    }
+
     private onContext(event: ContextMenuEvent) {
         if (!this.enabled) return;
         event.sourceEvent.preventDefault();
@@ -119,49 +146,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.showEvent = event.sourceEvent as MouseEvent;
         this.x = event.x;
         this.y = event.y;
-
-        this.groups.default = this.registry.filterActions(event.type);
-
         this.pickedNode = undefined;
         this.pickedLegendItem = undefined;
+        this.expandItemsOptions();
 
-        this.groups.extra = this.extraActions.map(({ label, action }) => {
-            return { type: 'always', label, action };
-        });
-
-        this.groups.extraSeriesArea = [];
-        this.groups.extraNode = [];
-        if (ContextMenuRegistry.check('series-area', event)) {
-            this.pickedNode = event.context.pickedNode;
-
-            this.groups.extraSeriesArea = this.extraSeriesAreaActions.map(({ label, action }) => {
-                return { type: 'series-area', label, action };
-            });
-
-            if (this.pickedNode) {
-                this.groups.extraNode = this.extraNodeActions.map(({ label, action }) => {
-                    return { type: 'series-node', label, action };
-                });
-            }
-        }
-
-        this.groups.extraLegendItem = [];
-        if (ContextMenuRegistry.check('legend-item', event)) {
-            this.pickedLegendItem = event.context.legendItem;
-            if (this.pickedLegendItem) {
-                this.groups.extraLegendItem = this.extraLegendItemActions.map(({ label, action }) => {
-                    return { type: 'legend-item', label, action };
-                });
-            }
-        }
-
-        const { default: def, extra, extraSeriesArea, extraNode, extraLegendItem } = this.groups;
-        const groupCount = [def, extra, extraSeriesArea, extraNode, extraLegendItem].reduce((count, e) => {
-            return e.length + count;
-        }, 0);
-
-        if (groupCount === 0) return;
-
+        if (this.expandedItems.length === 0) return;
         this.show(event.sourceEvent);
     }
 
@@ -220,41 +209,37 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         menuElement.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         menuElement.role = 'menu';
 
-        this.appendMenuGroup(menuElement, this.groups.default, false);
+        // this.appendMenuGroup(menuElement, this.groups.default, false);
 
-        this.appendMenuGroup(menuElement, this.groups.extra);
+        // this.appendMenuGroup(menuElement, this.groups.extra);
 
-        this.appendMenuGroup(menuElement, this.groups.extraSeriesArea);
+        // this.appendMenuGroup(menuElement, this.groups.extraSeriesArea);
 
-        if (this.pickedNode) {
-            this.appendMenuGroup(menuElement, this.groups.extraNode);
-        }
+        // if (this.pickedNode) {
+        //     this.appendMenuGroup(menuElement, this.groups.extraNode);
+        // }
 
-        if (this.pickedLegendItem) {
-            this.appendMenuGroup(menuElement, this.groups.extraLegendItem);
-        }
+        // if (this.pickedLegendItem) {
+        //     this.appendMenuGroup(menuElement, this.groups.extraLegendItem);
+        // }
 
         return menuElement;
     }
 
-    private appendMenuGroup<T extends AgContextMenuItemShowOn>(
-        menuElement: HTMLElement,
-        group: ContextMenuAction<T>[],
-        divider = true
-    ) {
-        if (group.length === 0) return;
-        if (divider) menuElement.appendChild(this.createDividerElement());
-        group.forEach((i) => {
-            const item = this.renderItem(i);
-            if (item) menuElement.appendChild(item);
-        });
-    }
+    // private appendMenuGroup(menuElement: HTMLElement, group: ContextMenuItem[], divider = true) {
+    //     if (group.length === 0) return;
+    //     if (divider) menuElement.appendChild(this.createDividerElement());
+    //     group.forEach((i) => {
+    //         const item = this.renderItem(i);
+    //         if (item) menuElement.appendChild(item);
+    //     });
+    // }
 
-    private renderItem<T extends AgContextMenuItemShowOn>(item: ContextMenuAction<T>): HTMLElement | void {
-        if (item && typeof item === 'object' && item.constructor === Object) {
-            return this.createActionElement(item);
-        }
-    }
+    // private renderItem(item: ContextMenuItem): HTMLElement | void {
+    //     if (item && typeof item === 'object' && item.constructor === Object) {
+    //         return this.createActionElement(item);
+    //     }
+    // }
 
     private createDividerElement(): HTMLElement {
         const el = createElement('div');
@@ -264,21 +249,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         return el;
     }
 
-    private createActionElement<T extends AgContextMenuItemShowOn>({
-        id,
-        label,
-        type,
-        action,
-    }: ContextMenuAction<T>): HTMLElement {
-        const disabled = !!(id && this.registry.isDisabled(id));
-        return this.createButtonElement(type, label, action, disabled);
+    private createActionElement(item: ContextMenuItem): HTMLElement {
+        const { showOn, label, action, enable } = item;
+        return this.createButtonElement(showOn, label, action, !enable);
     }
 
-    private createButtonOnClick<T extends AgContextMenuItemShowOn>(
-        type: T,
-        callback: ContextMenuCallback<AgContextMenuItemShowOn>
+    private createButtonOnClick(
+        showOn: AgContextMenuItemShowOn,
+        callback: ContextMenuCallback
     ): (event: MouseEvent) => void {
-        if (ContextMenuRegistry.checkCallback('legend-item', type, callback)) {
+        if (ContextMenuRegistry.checkCallback('legend-item', showOn, callback)) {
             return (event: Event) => {
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId } = this.pickedLegendItem;
@@ -286,12 +266,12 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     this.hide();
                 }
             };
-        } else if (ContextMenuRegistry.checkCallback('series-area', type, callback)) {
+        } else if (ContextMenuRegistry.checkCallback('series-area', showOn, callback)) {
             return () => {
                 callback({ type: 'seriesContextMenuAction', event: this.showEvent! });
                 this.hide();
             };
-        } else if (ContextMenuRegistry.checkCallback('series-node', type, callback)) {
+        } else if (ContextMenuRegistry.checkCallback('series-node', showOn, callback)) {
             return () => {
                 const { pickedNode, showEvent } = this;
                 const event = pickedNode?.series.createNodeContextMenuActionEvent(showEvent!, pickedNode);
@@ -310,10 +290,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private createButtonElement<T extends AgContextMenuItemShowOn>(
-        type: T,
+    private createButtonElement(
+        showOn: AgContextMenuItemShowOn,
         label: string,
-        callback: ContextMenuCallback<T>,
+        callback: ContextMenuCallback | undefined,
         disabled: boolean
     ): HTMLElement {
         const el = createElement('button');
@@ -322,7 +302,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         el.ariaDisabled = disabled.toString();
         el.textContent = this.ctx.localeManager.t(label);
         el.role = 'menuitem';
-        el.onclick = makeAccessibleClickListener(el, this.createButtonOnClick(type, callback));
+        if (callback != null) {
+            el.onclick = makeAccessibleClickListener(el, this.createButtonOnClick(showOn, callback));
+        }
         el.addEventListener('mouseover', () => el.focus({ preventScroll: true }));
         return el;
     }
