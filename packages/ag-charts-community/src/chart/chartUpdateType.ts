@@ -3,6 +3,7 @@ export enum ChartUpdateType {
     FULL,
     UPDATE_DATA,
     PROCESS_DATA,
+    PROCESS_DOMAIN,
     PERFORM_LAYOUT,
     SERIES_UPDATE,
     PRE_SCENE_RENDER,

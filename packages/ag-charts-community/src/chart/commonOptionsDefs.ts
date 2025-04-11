@@ -511,6 +511,8 @@ commonChartOptionsDefs.foreground = undocumented({
 commonChartOptionsDefs.context = undocumented(() => true);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.sync.domainMode = undocumented(union('direction', 'position', 'key'));
 
 export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     id: string,

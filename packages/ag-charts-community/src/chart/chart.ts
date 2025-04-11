@@ -665,6 +665,13 @@ export abstract class Chart extends Observable implements ModuleInstance {
                 updateSplits('🏭');
             // fallthrough
 
+            case ChartUpdateType.PROCESS_DOMAIN:
+                if (this.checkUpdateShortcut(ChartUpdateType.PROCESS_DOMAIN)) break;
+
+                await this.processDomains();
+                updateSplits('⛰️');
+            // fallthrough
+
             case ChartUpdateType.PERFORM_LAYOUT:
                 await this.checkFirstAutoSize();
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
@@ -1008,11 +1015,14 @@ export abstract class Chart extends Observable implements ModuleInstance {
         this._cachedData = dataController.execute(this._cachedData);
         await Promise.all([...seriesPromises, ...modulePromises]);
 
+        this.updateLegends();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async processDomains() {
         for (const axis of this.axes) {
             axis.processData();
         }
-
-        this.updateLegends();
     }
 
     private updateLegends(initialStateLegend?: AgInitialStateLegendOptions[]) {

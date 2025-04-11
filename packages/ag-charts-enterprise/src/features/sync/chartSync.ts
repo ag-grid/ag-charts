@@ -67,7 +67,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     @Property
     @ObserveChanges<ChartSync>((target) => target.onAxesChange())
-    domainMode: 'direction' | 'position' | 'key' = 'position';
+    domainMode: 'direction' | 'position' | 'key' = 'key';
 
     private readonly domainSync = new AsyncAwaitQueue();
 
@@ -83,7 +83,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         }
     }
 
-    private updateChart(chart: ChartLike, updateType = ChartUpdateType.UPDATE_DATA) {
+    private updateChart(chart: ChartLike, updateType = ChartUpdateType.PROCESS_DOMAIN) {
         debug('ChartSync.updateChart()', chart.id, updateType, chart);
         chart.ctx.updateService.update(updateType);
     }
@@ -192,11 +192,11 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         await this.waitForDomainsToBeReady();
 
         if (this.domainMode === 'position') {
-            return this.calculateDirectionDerivedDomain(axis, positionDomains);
+            return this.calculateDerivedDomain(axis, positionDomains);
         }
 
         if (this.domainMode === 'direction' || axis.keys.length === 0) {
-            return this.calculateDirectionDerivedDomain(axis, directionDomains);
+            return this.calculateDerivedDomain(axis, directionDomains);
         }
 
         return this.calculateKeyDerivedDomain(axis, domainsByKey);
@@ -210,10 +210,10 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         if (!groupState) throw new Error('AG Charts - no GroupState for groupId: ' + this.groupId);
 
         // Update shared state of synced axis domain.
-        const domains = (groupState.domains ??= {});
-        const directionDomains = (domains[axis.direction] ??= { derived: [], sources: {}, dirty: true });
-        const chartDomains = (directionDomains.sources[chartId] ??= {});
-        chartDomains[axisId] = axis.dataDomain.domain;
+        const domainsByDirection = (groupState.domains ??= {});
+        const directionDomains = (domainsByDirection[axis.direction] ??= { derived: [], sources: {}, dirty: true });
+        const chartDirectionDomains = (directionDomains.sources[chartId] ??= {});
+        chartDirectionDomains[axisId] = axis.dataDomain.domain;
         directionDomains.dirty = true;
 
         const domainsByKey = (groupState.domainsByKey ??= {});
@@ -257,7 +257,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         }
     }
 
-    private calculateDirectionDerivedDomain(
+    private calculateDerivedDomain(
         axis: _ModuleSupport.CartesianAxis<any, any>,
         directionDomains: _ModuleSupport.SyncDerivedDomain
     ) {
@@ -276,6 +276,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         directionDomains.dirty = false;
 
         if (!arraysEqual(previousDerived, directionDomains.derived)) {
+            debug(axis.id, 'updated', previousDerived, directionDomains.derived);
             this.updateSiblings();
         }
 
@@ -319,6 +320,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         }
 
         if (updated && !arraysEqual(previousDerived, newDerived)) {
+            debug(axis.id, 'updated', previousDerived, newDerived);
             this.updateSiblings();
         }
 
@@ -343,9 +345,14 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     private async waitForDomainsToBeReady() {
         const { syncManager } = this.moduleContext;
+        let count = 0;
         while (syncManager.getGroupMembers(this.groupId).some((c) => c.syncStatus === 'init')) {
             debug('ChartSync.waitForDomainsToBeReady() - waiting for all domains to be calculated', this.groupId);
             await this.domainSync.await();
+            count++;
+        }
+        if (count > 0) {
+            debug('ChartSync.waitForDomainsToBeReady() - waited for', count, 'iterations');
         }
         this.domainSync.notify();
     }
