@@ -46,13 +46,21 @@ type ChartDomainState = {
     [id: string]: Record<string, unknown[]>;
 };
 
-type GroupState = {
+export type SyncDerivedDomain = {
+    derived: unknown[];
+    sources: ChartDomainState;
+    dirty: boolean;
+};
+
+export type SyncGroupState = {
     members: Set<ChartLike>;
-    domains?: { [key in 'x' | 'y']?: { derived: unknown[]; sources: ChartDomainState } };
+    domains?: { [key in 'x' | 'y']?: SyncDerivedDomain };
+    domainsByKey?: { [key: string]: SyncDerivedDomain };
+    domainsByPosition?: { [key: string]: SyncDerivedDomain };
 };
 
 export class SyncManager extends BaseManager {
-    private static readonly chartsGroups = new Map<GroupId, GroupState>();
+    private static readonly chartsGroups = new Map<GroupId, SyncGroupState>();
     private static readonly DEFAULT_GROUP = Symbol('sync-group-default');
 
     constructor(protected chart: ChartLike) {
