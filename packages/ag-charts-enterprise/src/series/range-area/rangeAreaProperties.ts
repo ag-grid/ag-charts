@@ -22,6 +22,7 @@ const {
     CartesianSeriesProperties,
     FillGradientDefaults,
     FillPatternDefaults,
+    FillImageDefaults,
     InterpolationProperties,
     SeriesMarker,
     SeriesTooltip,
@@ -68,6 +69,9 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
 
     @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
+    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity: number = 1;

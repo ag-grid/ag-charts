@@ -49,6 +49,7 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
                 fill: { $path: ['./1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
                 stroke: { $path: ['./1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
             },
+            fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         },
     },
 };

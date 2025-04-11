@@ -571,7 +571,8 @@ export class MapMarkerSeries
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
             this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
         );
     }
 
@@ -732,7 +733,8 @@ export class MapMarkerSeries
                     lineDashOffset,
                 },
                 this.properties.fillGradientDefaults,
-                this.properties.fillPatternDefaults
+                this.properties.fillPatternDefaults,
+                this.properties.fillImageDefaults
             ),
         };
     }

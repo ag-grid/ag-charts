@@ -5,7 +5,7 @@ import type { AgBarSeriesOptions, WithThemeParams } from 'ag-charts-types';
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { DIRECTION_SWAP_AXES, FILL_PATTERN_DEFAULTS } from '../../themes/util';
+import { DIRECTION_SWAP_AXES, FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } from '../../themes/util';
 import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
 
@@ -36,6 +36,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                 reverse: false,
             } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: FILL_PATTERN_DEFAULTS,
+            fillImageDefaults: FILL_IMAGE_DEFAULTS,
             fillOpacity: 1,
             strokeWidth: 0,
             lineDash: [0],

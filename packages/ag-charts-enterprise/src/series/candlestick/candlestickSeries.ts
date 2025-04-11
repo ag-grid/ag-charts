@@ -5,7 +5,7 @@ import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { createDatumId, isGradientFill, isPatternFill, applyShapeFillBBox, getShapeFill, getShapeStyle } =
+const { createDatumId, isGradientFill, isPatternFill, isImageFill, applyShapeFillBBox, getShapeFill, getShapeStyle } =
     _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, CandlestickSeriesProperties<any>> {
@@ -39,7 +39,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                 lineDashOffset: up.lineDashOffset,
             },
             up.fillGradientDefaults,
-            up.fillPatternDefaults
+            up.fillPatternDefaults,
+            up.fillImageDefaults
         );
         const downStyle = getShapeStyle(
             {
@@ -52,7 +53,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                 lineDashOffset: down.lineDashOffset,
             },
             down.fillGradientDefaults,
-            down.fillPatternDefaults
+            down.fillPatternDefaults,
+            down.fillImageDefaults
         );
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
 
@@ -88,7 +90,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                             })
                     ),
                     isRising ? up.fillGradientDefaults : down.fillGradientDefaults,
-                    isRising ? up.fillPatternDefaults : down.fillPatternDefaults
+                    isRising ? up.fillPatternDefaults : down.fillPatternDefaults,
+                    isRising ? up.fillImageDefaults : down.fillImageDefaults
                 );
             }
 
@@ -130,22 +133,27 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { up, down } = this.properties.item;
 
-        const upFill = getShapeFill(up.fill, up.fillGradientDefaults, up.fillPatternDefaults);
+        const upFill = getShapeFill(up.fill, up.fillGradientDefaults, up.fillPatternDefaults, up.fillImageDefaults);
         const upColorStops = isGradientFill(upFill)
             ? upFill.colorStops.map((c) =>
                   typeof c === 'string' ? c : { color: c.color, stop: c.stop != null ? c.stop * 0.5 : undefined }
               )
             : [
-                  { color: isPatternFill(upFill) ? up.stroke : upFill, stop: 0 },
-                  { color: isPatternFill(upFill) ? up.stroke : upFill, stop: 0.5 },
+                  { color: isPatternFill(upFill) || isImageFill(upFill) ? up.stroke : upFill, stop: 0 },
+                  { color: isPatternFill(upFill) || isImageFill(upFill) ? up.stroke : upFill, stop: 0.5 },
               ];
 
-        const downFill = getShapeFill(down.fill, down.fillGradientDefaults, down.fillPatternDefaults);
+        const downFill = getShapeFill(
+            down.fill,
+            down.fillGradientDefaults,
+            down.fillPatternDefaults,
+            down.fillImageDefaults
+        );
         const downColorStops = isGradientFill(downFill)
             ? downFill.colorStops.map((c) =>
                   typeof c === 'string' ? c : { color: c.color, stop: c.stop != null ? c.stop * 0.5 : undefined }
               )
-            : [{ color: isPatternFill(downFill) ? down.stroke : downFill, stop: 0.5 }];
+            : [{ color: isPatternFill(downFill) || isImageFill(downFill) ? down.stroke : downFill, stop: 0.5 }];
 
         const fill: InternalAgGradientColor = {
             type: 'gradient',

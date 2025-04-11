@@ -1,9 +1,10 @@
-import { downloadUrl } from 'ag-charts-core';
+import { EventEmitter, Logger, downloadUrl } from 'ag-charts-core';
 
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
+import { ImageLoader } from './image/imageLoader';
 import { LayersManager } from './layersManager';
 import { Node, type RenderContext } from './node';
 import {
@@ -15,7 +16,11 @@ import {
     prepareSceneNodeHighlight,
 } from './sceneDebug';
 
-export class Scene {
+type EventMap = {
+    'scene-changed': object;
+};
+
+export class Scene extends EventEmitter<EventMap> {
     static readonly className = 'Scene';
 
     private readonly debug = Debug.create(true, DebugSelectors.SCENE);
@@ -23,15 +28,33 @@ export class Scene {
     readonly id = createId(this);
     readonly canvas: HdpiCanvas;
     readonly layersManager: LayersManager;
+    readonly imageLoader = new ImageLoader();
 
     private root: Node | null = null;
     private pendingSize: [number, number, number] | null = null;
     private isDirty: boolean = false;
 
+    private readonly destroyFns: (() => void)[] = [];
+
     constructor(canvasOptions: CanvasOptions) {
+        super();
+
         this.updateDebugFlags();
         this.canvas = new HdpiCanvas(canvasOptions);
         this.layersManager = new LayersManager(this.canvas);
+
+        this.destroyFns.push(
+            this.imageLoader.on('image-loaded', () => {
+                this.emit('scene-changed', {});
+            }),
+            this.imageLoader.on('image-error', ({ uri }) => {
+                Logger.warnOnce(`Unable to load image ${uri}`);
+            })
+        );
+    }
+
+    waitingForUpdate(): boolean {
+        return this.imageLoader?.waitingToLoad() ?? false;
     }
 
     get width(): number {
@@ -60,12 +83,12 @@ export class Scene {
         }
 
         this.isDirty = true;
-        this.root?._setLayerManager();
+        this.root?.setScene();
         this.root = node;
 
         if (node) {
             node.visible = true;
-            node._setLayerManager(this.layersManager);
+            node.setScene(this);
         }
 
         return this;
@@ -75,7 +98,7 @@ export class Scene {
         Debug.inDevelopmentMode(() => (Node._debugEnabled = true));
     }
 
-    clear() {
+    clearCanvas() {
         this.canvas.clear();
     }
 
@@ -257,12 +280,15 @@ export class Scene {
 
         this.setRoot(null);
         this.isDirty = false;
+        this.clear();
     }
 
     destroy() {
         this.strip();
 
         this.canvas.destroy();
+        this.imageLoader.destroy();
+        this.destroyFns.forEach((fn) => fn());
         Object.assign(this, { canvas: undefined });
     }
 }

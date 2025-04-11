@@ -587,7 +587,8 @@ export class AreaSeries extends CartesianSeries<
         const seriesFill = getShapeFill(
             this.properties.fill,
             this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
         );
 
         applyShapeStyle(
@@ -803,12 +804,18 @@ export class AreaSeries extends CartesianSeries<
             marker,
             fillGradientDefaults,
             fillPatternDefaults,
+            fillImageDefaults,
         } = this.properties;
         const useAreaFill = !marker.enabled || marker.fill === undefined;
 
         const legendMarkerFill = useAreaFill
-            ? getShapeFill(fill, fillGradientDefaults, fillPatternDefaults)
-            : getShapeFill(marker.fill, marker.fillGradientDefaults, marker.fillPatternDefaults);
+            ? getShapeFill(fill, fillGradientDefaults, fillPatternDefaults, fillImageDefaults)
+            : getShapeFill(
+                  marker.fill,
+                  marker.fillGradientDefaults,
+                  marker.fillPatternDefaults,
+                  marker.fillImageDefaults
+              );
 
         const markerStyle = this.getMarkerStyle(marker, undefined, undefined, false, undefined, {
             fill: legendMarkerFill,

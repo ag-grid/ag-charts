@@ -2,7 +2,7 @@ import type { AgColorType } from 'ag-charts-types';
 
 import { Property } from '../../../util/properties';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
-import { FillGradientDefaults, FillPatternDefaults, SeriesProperties } from '../seriesProperties';
+import { FillGradientDefaults, FillImageDefaults, FillPatternDefaults, SeriesProperties } from '../seriesProperties';
 
 export abstract class HierarchySeriesProperties<T extends object> extends SeriesProperties<T> {
     @Property
@@ -25,6 +25,9 @@ export abstract class HierarchySeriesProperties<T extends object> extends Series
 
     @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
+    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     strokes: string[] = Object.values(DEFAULT_STROKES);

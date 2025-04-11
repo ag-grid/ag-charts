@@ -437,8 +437,8 @@ export abstract class OhlcSeriesBase<
             lineDash: highlightStyle?.lineDash ?? item.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
         };
-        return item.fillGradientDefaults && item.fillPatternDefaults
-            ? getShapeStyle(shapeStyle, item.fillGradientDefaults, item.fillPatternDefaults)
+        return item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults
+            ? getShapeStyle(shapeStyle, item.fillGradientDefaults, item.fillPatternDefaults, item.fillImageDefaults)
             : shapeStyle;
     }
 
@@ -472,8 +472,8 @@ export abstract class OhlcSeriesBase<
             });
         });
 
-        return item.fillGradientDefaults && item.fillPatternDefaults
-            ? getShapeStyle(overrides, item.fillGradientDefaults, item.fillPatternDefaults)
+        return item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults
+            ? getShapeStyle(overrides, item.fillGradientDefaults, item.fillPatternDefaults, item.fillImageDefaults)
             : overrides;
     }
 
@@ -523,8 +523,8 @@ export abstract class OhlcSeriesBase<
             lineDash: item.lineDash ?? [0],
             lineDashOffset: item.lineDashOffset ?? 0,
         };
-        if (item.fillGradientDefaults && item.fillPatternDefaults) {
-            marker = getShapeStyle(marker, item.fillGradientDefaults, item.fillPatternDefaults);
+        if (item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults) {
+            marker = getShapeStyle(marker, item.fillGradientDefaults, item.fillPatternDefaults, item.fillImageDefaults);
         }
 
         return this.formatTooltipWithContext(

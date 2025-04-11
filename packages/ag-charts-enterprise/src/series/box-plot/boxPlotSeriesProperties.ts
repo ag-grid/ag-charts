@@ -12,6 +12,7 @@ const {
     BaseProperties,
     FillGradientDefaults,
     FillPatternDefaults,
+    FillImageDefaults,
     AbstractBarSeriesProperties,
     SeriesTooltip,
     Property,
@@ -88,6 +89,9 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
 
     @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
+    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity = 1;

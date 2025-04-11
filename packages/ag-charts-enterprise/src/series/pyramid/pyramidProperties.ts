@@ -10,8 +10,16 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { SeriesProperties, FillGradientDefaults, FillPatternDefaults, SeriesTooltip, Property, Label, DropShadow } =
-    _ModuleSupport;
+const {
+    SeriesProperties,
+    FillGradientDefaults,
+    FillPatternDefaults,
+    FillImageDefaults,
+    SeriesTooltip,
+    Property,
+    Label,
+    DropShadow,
+} = _ModuleSupport;
 
 class PyramidSeriesLabel extends Label<AgPyramidSeriesLabelFormatterParams> {}
 
@@ -38,6 +46,9 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
 
     @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
+    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity: number = 1;

@@ -53,7 +53,7 @@ type GeneratedContents = {
 };
 
 const DEFAULT_SUBSTITUTIONS: Record<string, string> = {
-    '${baseWWWUrl}': `${process.env.PUBLIC_SITE_URL ?? 'https://www.ag-grid.com'}${process.env.PUBLIC_BASE_URL ?? '/charts'}`,
+    '${baseWWWUrl}': `${process.env.PUBLIC_SITE_URL ?? 'https://www.ag-grid.com'}${process.env.PUBLIC_BASE_URL ?? '/'}`,
 };
 
 const cacheKeys: Record<string, object> = {};

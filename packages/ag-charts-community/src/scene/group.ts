@@ -2,8 +2,7 @@ import { clamp } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
-import type { LayersManager } from './layersManager';
-import type { ChildNodeCounts, RenderContext } from './node';
+import type { ChildNodeCounts, IScene, RenderContext } from './node';
 import { Node, SceneChangeDetection } from './node';
 import { type CanvasContext, Shape } from './shape/shape';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
@@ -137,9 +136,9 @@ export class Group<D = any> extends Node<D> {
             counts.nonGroups > 0 &&
             this.getVisibility()
         ) {
-            this.layer ??= this._layerManager?.addLayer({ name: this.name });
+            this.layer ??= this.layerManager?.addLayer({ name: this.name });
         } else if (this.layer != null) {
-            this._layerManager?.removeLayer(this.layer);
+            this.layerManager?.removeLayer(this.layer);
             this.layer = undefined;
         }
 
@@ -299,12 +298,12 @@ export class Group<D = any> extends Node<D> {
         this.clipRect = bbox;
     }
 
-    override _setLayerManager(layersManager?: LayersManager) {
+    override setScene(scene?: IScene) {
         if (this.layer) {
-            this._layerManager?.removeLayer(this.layer);
+            this.scene?.layersManager.removeLayer(this.layer);
             this.layer = undefined;
         }
-        super._setLayerManager(layersManager);
+        super.setScene(scene);
     }
 
     private getVisibility() {

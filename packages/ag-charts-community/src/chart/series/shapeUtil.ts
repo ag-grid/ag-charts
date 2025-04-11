@@ -2,13 +2,14 @@ import type {
     InternalAgColorType,
     RequiredInternalAgColorType,
     RequiredInternalAgGradientColor,
+    RequiredInternalAgImageColor,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
 import { type GradientParams } from '../../scene/gradient/gradient';
 import type { Shape, ShapeColor } from '../../scene/shape/shape';
-import { isGradientFill, isPatternFill } from '../../scene/util/fill';
+import { isGradientFill, isImageFill, isPatternFill } from '../../scene/util/fill';
 
 export type ShapeStyle = Partial<
     Pick<Shape, 'fill' | 'fillOpacity' | 'stroke' | 'strokeOpacity' | 'strokeWidth' | 'lineDash' | 'lineDashOffset'>
@@ -22,17 +23,20 @@ export interface ShapeFillBBox {
 export function getShapeFill(
     fill: InternalAgColorType,
     defaultGradient: RequiredInternalAgGradientColor,
-    defaultPattern: RequiredInternalAgPatternColor
+    defaultPattern: RequiredInternalAgPatternColor,
+    defaultImage: RequiredInternalAgImageColor
 ): RequiredInternalAgColorType;
 export function getShapeFill(
     fill: InternalAgColorType | undefined,
     defaultGradient: RequiredInternalAgGradientColor,
-    defaultPattern: RequiredInternalAgPatternColor
+    defaultPattern: RequiredInternalAgPatternColor,
+    defaultImage: RequiredInternalAgImageColor
 ): RequiredInternalAgColorType | undefined;
 export function getShapeFill(
     fill: InternalAgColorType | undefined,
     defaultGradient: RequiredInternalAgGradientColor,
-    defaultPattern: RequiredInternalAgPatternColor
+    defaultPattern: RequiredInternalAgPatternColor,
+    defaultImage: RequiredInternalAgImageColor
 ): RequiredInternalAgColorType | undefined {
     if (isGradientFill(fill)) {
         return {
@@ -45,7 +49,7 @@ export function getShapeFill(
         };
     }
 
-    if (isPatternFill(fill) && defaultPattern) {
+    if (isPatternFill(fill)) {
         // TODO: move this logic to theme operations
         const pattern = fill.pattern ?? defaultPattern.pattern;
 
@@ -82,28 +86,45 @@ export function getShapeFill(
         };
     }
 
-    return fill as any;
+    if (isImageFill(fill)) {
+        return {
+            type: 'image',
+            url: fill.url,
+            width: fill.width,
+            height: fill.height,
+            fallback: fill.fallback ?? defaultImage.fallback,
+            scale: fill.scale ?? defaultImage.scale,
+            rotation: fill.rotation ?? defaultImage.rotation,
+            repetition: fill.repetition ?? defaultImage.repetition,
+            fit: fill.fit ?? defaultImage.fit,
+        };
+    }
+
+    return fill;
 }
 
 export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T,
     defaultGradient: RequiredInternalAgGradientColor,
-    defaultPattern: RequiredInternalAgPatternColor
+    defaultPattern: RequiredInternalAgPatternColor,
+    defaultImage: RequiredInternalAgImageColor
 ): T;
 export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T | undefined,
     defaultGradient: RequiredInternalAgGradientColor,
-    defaultPattern: RequiredInternalAgPatternColor
+    defaultPattern: RequiredInternalAgPatternColor,
+    defaultImage: RequiredInternalAgImageColor
 ): T | undefined;
 export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T | undefined,
     defaultGradient: RequiredInternalAgGradientColor,
-    defaultPattern: RequiredInternalAgPatternColor
+    defaultPattern: RequiredInternalAgPatternColor,
+    defaultImage: RequiredInternalAgImageColor
 ): T | undefined {
-    if (!isGradientFill(style?.fill) && !isPatternFill(style?.fill)) return style;
+    if (!isGradientFill(style?.fill) && !isPatternFill(style?.fill) && !isImageFill(style?.fill)) return style;
     return {
         ...style,
-        fill: getShapeFill(style.fill, defaultGradient, defaultPattern),
+        fill: getShapeFill(style.fill, defaultGradient, defaultPattern, defaultImage),
     };
 }
 

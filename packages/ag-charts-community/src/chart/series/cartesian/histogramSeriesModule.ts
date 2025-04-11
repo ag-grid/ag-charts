@@ -5,7 +5,7 @@ import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { FILL_PATTERN_DEFAULTS } from '../../themes/util';
+import { FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } from '../../themes/util';
 import { HistogramSeries } from './histogramSeries';
 import { histogramSeriesOptionsDef } from './histogramSeriesOptionsDef';
 
@@ -42,6 +42,7 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
                 reverse: false,
             } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: FILL_PATTERN_DEFAULTS,
+            fillImageDefaults: FILL_IMAGE_DEFAULTS,
             strokeWidth: 1,
             fillOpacity: 1,
             strokeOpacity: 1,

@@ -5,6 +5,7 @@ import type {
     AgGradientColorStop,
     AgGradientColorStrict,
     AgGradientType,
+    AgImageColor,
     AgPatternColor,
     CssColor,
     FillOptions,
@@ -78,13 +79,23 @@ export interface InternalAgPatternColor extends AgPatternColor {
     /** The rotation angle of the pattern. */
     rotation?: number;
 }
+export interface InternalAgImageColor extends AgImageColor {}
+
+export type RequiredInternalAgImageColor = Required<Omit<InternalAgImageColor, 'url' | 'width' | 'height'>> &
+    Pick<Partial<InternalAgImageColor>, 'url'> &
+    Pick<InternalAgImageColor, 'width' | 'height'>;
+
 export type RequiredInternalAgPatternColor = Required<Omit<InternalAgPatternColor, 'path'>> &
     Pick<InternalAgPatternColor, 'path'>;
 
 export type RequiredInternalAgGradientColor = Required<InternalAgGradientColor>;
 
-export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor;
-export type RequiredInternalAgColorType = CssColor | RequiredInternalAgGradientColor | RequiredInternalAgPatternColor;
+export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageColor;
+export type RequiredInternalAgColorType =
+    | CssColor
+    | RequiredInternalAgGradientColor
+    | RequiredInternalAgPatternColor
+    | (RequiredInternalAgImageColor & Pick<InternalAgImageColor, 'url'>);
 
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
     stroke: color,
@@ -133,6 +144,18 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
     strokeOpacity: required(ratio),
 });
 
+export const fillImageDefaults = optionsDefs<InternalAgImageColor>({
+    type: required(constant('image')),
+    url: string,
+    width: positiveNumber,
+    height: positiveNumber,
+    rotation: required(number),
+    scale: required(positiveNumber),
+    fallback: required(color),
+    fit: required(union('stretch', 'contain', 'cover')),
+    repetition: required(union('repeat', 'repeat-x', 'repeat-y', 'no-repeat')),
+});
+
 const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
     {
         gradient: {
@@ -170,6 +193,16 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
             rotation: undocumented(number),
             padding: undocumented(positiveNumber),
         },
+        image: {
+            url: required(string),
+            fallback: color,
+            width: positiveNumber,
+            height: positiveNumber,
+            fit: union('stretch', 'contain', 'cover'),
+            repetition: union('repeat', 'repeat-x', 'repeat-y', 'no-repeat'),
+            rotation: number,
+            scale: positiveNumber,
+        },
     },
     'a color object'
 );
@@ -185,6 +218,8 @@ export const fillOptionsDef: OptionsDefs<FillOptions> = {
 fillOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 // @ts-expect-error undocumented option
 fillOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
+// @ts-expect-error undocumented option
+fillOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
 
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDash: arrayOf(positiveNumber),

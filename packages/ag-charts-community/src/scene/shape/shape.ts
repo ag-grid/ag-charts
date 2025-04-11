@@ -1,5 +1,5 @@
 import { type InternalAgGradientColor, clamp } from 'ag-charts-core';
-import type { AgPatternColor } from 'ag-charts-types';
+import type { AgImageColor, AgPatternColor } from 'ag-charts-types';
 
 import { BBoxValues } from '../../util/bboxinterface';
 import { generateUUID } from '../../util/id';
@@ -12,9 +12,10 @@ import { type ColorSpace, Gradient, type GradientParams } from '../gradient/grad
 import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
+import { Image } from '../image/image';
 import { Node, type RenderContext, SceneChangeDetection } from '../node';
 import { Pattern } from '../pattern/pattern';
-import { isGradientFill, isPatternFill } from '../util/fill';
+import { isGradientFill, isImageFill, isPatternFill } from '../util/fill';
 import { align } from '../util/pixel';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
@@ -31,7 +32,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
 
 export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
 
-export type ShapeColor = string | ShapeGradientColor | AgPatternColor;
+export type ShapeColor = string | ShapeGradientColor | AgPatternColor | AgImageColor;
 
 export interface DefaultStyles {
     fill?: ShapeColor;
@@ -114,6 +115,14 @@ export abstract class Shape<D = any> extends Node<D> {
         return new Pattern(fill);
     }
 
+    private getImage(fill: ShapeColor | undefined) {
+        if (isImageFill(fill)) return this.createImage(fill);
+    }
+
+    private createImage(fill: AgImageColor) {
+        return new Image(this.imageLoader, fill);
+    }
+
     private _cachedFill?: ShapeColor;
     protected onFillChange() {
         if (typeof this.fill === 'object') {
@@ -124,11 +133,13 @@ export abstract class Shape<D = any> extends Node<D> {
 
         this.fillGradient = this.getGradient(this.fill);
         this.fillPattern = this.getPattern(this.fill);
+        this.fillImage = this.getImage(this.fill);
         this._cachedFill = this.fill;
     }
 
     protected fillGradient: Gradient | undefined;
     protected fillPattern: Pattern | undefined;
+    protected fillImage: Image | undefined;
 
     /**
      * Note that `strokeStyle = null` means invisible stroke,
@@ -224,7 +235,7 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyFill(ctx: CanvasContext) {
-        const { fill, fillGradient, fillPattern } = this;
+        const { fill, fillGradient, fillPattern, fillImage: imageFill } = this;
         if (fillGradient) {
             const { fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
             ctx.fillStyle = fillGradient.createGradient(ctx as any, fillBBox, fillParams) ?? 'black';
@@ -234,6 +245,12 @@ export abstract class Shape<D = any> extends Node<D> {
             const pattern = fillPattern.createPattern(ctx as any, pixelRatio);
             fillPattern.setPatternTransform(pattern, pixelRatio, x, y);
             ctx.fillStyle = pattern ?? 'black';
+        } else if (imageFill) {
+            const { x, y, width, height } = this.getBBox();
+            const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
+            const fillImage = imageFill.createPattern(ctx as any, pixelRatio, width, height, this);
+            imageFill.setImageTransform(fillImage, pixelRatio, x, y);
+            ctx.fillStyle = fillImage ?? 'black';
         } else {
             ctx.fillStyle = typeof fill === 'string' ? fill : 'black';
         }
@@ -338,6 +355,19 @@ export abstract class Shape<D = any> extends Node<D> {
             defs ??= [];
 
             const pattern = this.fillPattern.toSvg();
+
+            const id = generateUUID();
+            pattern.setAttribute('id', id);
+
+            defs.push(pattern);
+
+            element.setAttribute('fill', `url(#${id})`);
+        } else if (isImageFill(fill) && this.fillImage) {
+            defs ??= [];
+
+            const { width, height } = this.getBBox();
+            const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
+            const pattern = this.fillImage.toSvg(width, height, pixelRatio);
 
             const id = generateUUID();
             pattern.setAttribute('id', id);

@@ -48,7 +48,8 @@ export class RadarAreaSeries extends RadarSeries {
         const style = getShapeStyle(
             { fill, fillOpacity },
             this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
         );
 
         applyShapeStyle(areaNode, style, undefined, this.getShapeFillBBox());
@@ -94,7 +95,8 @@ export class RadarAreaSeries extends RadarSeries {
             areaNode.fill = getShapeFill(
                 this.properties.fill,
                 this.properties.fillGradientDefaults,
-                this.properties.fillPatternDefaults
+                this.properties.fillPatternDefaults,
+                this.properties.fillImageDefaults
             );
             areaNode.fillOpacity = this.properties.fillOpacity;
             areaNode.stroke = undefined;

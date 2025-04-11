@@ -472,7 +472,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     detachAndClear() {
         this.container = undefined;
-        this.ctx.scene.clear();
+        this.ctx.scene.clearCanvas();
     }
 
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
@@ -1149,7 +1149,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
         while (
             this._pendingFactoryUpdatesCount > 0 ||
             this.performUpdateType !== ChartUpdateType.NONE ||
-            this.runningUpdateType !== ChartUpdateType.NONE
+            this.runningUpdateType !== ChartUpdateType.NONE ||
+            this.ctx.scene.waitingForUpdate()
         ) {
             if (this.destroyed) break;
 
@@ -1173,6 +1174,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
             if (isInputPending()) {
                 await pause();
+            }
+
+            if (this.ctx.scene.waitingForUpdate()) {
+                await pause(50);
             }
         }
     }
