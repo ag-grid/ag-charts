@@ -37,6 +37,7 @@ export class ImageLoader extends EventEmitter<EventMap> {
         };
         image.onerror = () => {
             this.imageLoadingCount--;
+            nextEntry.nodes.clear();
             this.emit('image-error', { uri });
         };
         image.src = uri;

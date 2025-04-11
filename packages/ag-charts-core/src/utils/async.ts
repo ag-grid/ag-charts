@@ -29,8 +29,8 @@ export class AsyncAwaitQueue {
     }
 }
 
-export function pause() {
+export function pause(delayMilliseconds = 0) {
     return new Promise((resolve) => {
-        setTimeout(resolve, 0);
+        setTimeout(resolve, delayMilliseconds);
     });
 }

@@ -1175,6 +1175,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
             if (isInputPending()) {
                 await pause();
             }
+
+            if (this.ctx.scene.waitingForUpdate()) {
+                await pause(50);
+            }
         }
     }
 
