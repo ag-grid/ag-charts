@@ -19,15 +19,19 @@ export type ExampleOptions = {
     url: string;
     example: string;
     framework: string;
+    snapshot: boolean;
 } & ExampleCommonOptions;
 
 export type ExampleOverrides = {
     frameworks?: string[];
-    skipFrameworks?: boolean;
+    snapshot?: boolean;
 } & Partial<ExampleCommonOptions>;
 
-const ignorePages = ['benchmarks', /.*-test/];
-export function convertPageUrls(path: string, exampleOptions: Record<string, Record<string, ExampleOverrides>>) {
+export function convertPageUrls(
+    path: string,
+    exampleOptions: Record<string, Record<string, ExampleOverrides>>,
+    ignorePages = ['benchmarks', /.*-test/]
+) {
     const astroPath = path.split('content/').at(1)!;
     const [pagePath, examplePath] = astroPath.split('/_examples/');
     const example = examplePath.replace(/\/[a-zA-Z-]+\.ts$/, '');
@@ -46,6 +50,7 @@ export function convertPageUrls(path: string, exampleOptions: Record<string, Rec
         skipCanvasUpdateCheck = false,
         ignoreConsoleWarnings = false,
         randomData = false,
+        snapshot = false,
     } = {
         ...exampleOptions[page]?.['*'],
         ...exampleOptions[page]?.[example],
@@ -64,6 +69,7 @@ export function convertPageUrls(path: string, exampleOptions: Record<string, Rec
                 skipCanvasUpdateCheck,
                 ignoreConsoleWarnings,
                 randomData,
+                snapshot,
             })
         );
 }
@@ -72,7 +78,8 @@ export function createTestCase(
     testFn: typeof test,
     opts: ExampleOptions,
     config: ReturnType<typeof setupIntrinsicAssertions>,
-    initialCallback?: (page: Page) => Promise<void>
+    initialCallback?: (page: Page) => Promise<void>,
+    finalCallback?: (page: Page) => Promise<void>
 ) {
     const { url, status, framework, clickOrder, skipCanvasUpdateCheck, ignoreConsoleWarnings } = opts;
 
@@ -116,6 +123,8 @@ export function createTestCase(
                         .toBeGreaterThan(sceneRenderCount);
                 }
             }
+
+            await finalCallback?.(page);
         });
     }
 
