@@ -1,7 +1,6 @@
 import { findMinIndex } from 'ag-charts-core';
 import type { TimeInterval } from 'ag-charts-types';
 
-import { compareDates } from '../util/date';
 import { buildFormatter } from '../util/timeFormat';
 import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
@@ -14,18 +13,6 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | n
 
     override toDomain(value: number): Date {
         return new Date(value);
-    }
-
-    filterPrimaryTicks({ primaryTicks, ticks }: { primaryTicks: Date[]; ticks: Date[] }) {
-        while (primaryTicks.length !== 0 && ticks.length !== 0) {
-            const index = this.findIndex(ticks[0]);
-            const previousTick = index != null && index > 0 ? this.bands[index - 1] : undefined;
-            if (previousTick != null && compareDates(previousTick, primaryTicks[0]) >= 0) {
-                primaryTicks.shift();
-            } else {
-                break;
-            }
-        }
     }
 
     override convert(d: Date, options?: { clamp?: boolean; interpolate?: boolean }): number {
@@ -55,18 +42,18 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | n
     override invert(position: number, nearest = false): Date | undefined {
         this.refresh();
 
-        const { domain } = this;
+        const { bands } = this;
 
         if (nearest) {
             const index = this.invertNearestIndex(position - this.bandwidth / 2);
-            return index != null ? domain[index] : undefined;
+            return index != null ? bands[index] : undefined;
         }
 
-        const closestIndex = findMinIndex(0, domain.length - 1, (i) => {
+        const closestIndex = findMinIndex(0, bands.length - 1, (i) => {
             const p = this.ordinalRange(i);
             return p >= position;
         });
-        return domain[closestIndex ?? 0];
+        return bands[closestIndex ?? 0];
     }
 
     /**

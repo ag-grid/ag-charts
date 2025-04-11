@@ -62,30 +62,31 @@ export class UnitTimeScale extends DiscreteTimeScale {
     ): Date[] {
         if (interval == null) return this.calculateBands(domain, this.interval, visibleRange);
 
-        const { bands } = this;
+        const bands = interpolate ? undefined : this.calculateBands(domain, this.interval, visibleRange);
 
         const d0 = domain[0].valueOf();
         const d1 = domain[1].valueOf();
 
         if (interval instanceof TimeInterval) {
-            if (interpolate) return interval.range(domain[0], domain[1], { visibleRange });
+            if (bands == null) {
+                return interval.range(domain[0], domain[1], { visibleRange }).filter((intervalTick) => {
+                    const intervalTickTime = intervalTick.valueOf();
+                    return intervalTickTime >= d0 && intervalTickTime <= d1;
+                });
+            }
 
             const intervalTicks = interval.range(domain[0], domain[1], { extend: true, visibleRange });
             const ticks: Date[] = [];
             let lastIndex: number | undefined;
             for (const intervalTick of intervalTicks) {
-                const intervalTickTime = intervalTick.valueOf();
-                if (intervalTickTime < d0 || intervalTickTime > d1) continue;
                 const bandIndex = findMinIndex(0, bands.length - 1, (index) => {
                     return compareDates(bands[index], intervalTick) >= 0;
                 });
                 const tick = bandIndex != null && bandIndex != lastIndex ? bands[bandIndex] : undefined;
                 lastIndex = bandIndex;
 
-                if (tick != null && tick.valueOf() <= d1) ticks.push(tick);
+                if (tick != null && tick.valueOf() >= d0 && tick.valueOf() <= d1) ticks.push(tick);
             }
-
-            this.filterPrimaryTicks({ primaryTicks: intervalTicks, ticks });
 
             return ticks;
         } else {
@@ -93,7 +94,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
             let lastIndex: number | undefined;
             for (let intervalTickTime = d0; intervalTickTime <= d1; intervalTickTime += interval) {
                 const intervalTick = new Date(intervalTickTime);
-                if (interpolate) {
+                if (bands == null) {
                     ticks.push(intervalTick);
                     continue;
                 }
@@ -104,7 +105,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
                 const tick = bandIndex != null && bandIndex != lastIndex ? bands[bandIndex] : undefined;
                 lastIndex = bandIndex;
 
-                if (tick != null && tick.valueOf() <= d1) ticks.push(tick);
+                if (tick != null && tick.valueOf() >= d0 && tick.valueOf() <= d1) ticks.push(tick);
             }
 
             return ticks;

@@ -478,11 +478,46 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
                 ticks.push(...intervalTicks);
             }
+
+            ticks = ticks.filter((t) => compareDates(t, d0) >= 0 && compareDates(t, d1) <= 0);
         } else if (OrdinalTimeScale.is(scale)) {
             ticks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
-            scale.filterPrimaryTicks({ primaryTicks, ticks });
         } else {
             ticks = [];
+        }
+
+        // If the first primary tick has a better position than the first tick, remove it from the primary ticks.
+        if (
+            ticks.length > 0 &&
+            primaryTicks.length > 0 &&
+            compareDates(ticks[0], primaryTicks[0]) >= 0 &&
+            DiscreteTimeScale.is(scale)
+        ) {
+            let previousTickValue: number | undefined;
+            if (UnitTimeScale.is(scale) && scale.interval?.milliseconds != null) {
+                previousTickValue = ticks[0].valueOf() - scale.interval.milliseconds;
+                if (previousTickValue < niceDomain[0].valueOf()) previousTickValue = undefined;
+            } else {
+                let bands: readonly Date[];
+                if (UnitTimeScale.is(scale)) {
+                    // Note this is slow as it has to regenerate the bands
+                    const scaleDomain = scale.domain;
+                    (scale as UnitTimeScale).domain = niceDomain;
+                    bands = scale.bands;
+                    scale.domain = scaleDomain;
+                } else {
+                    bands = scale.bands;
+                }
+                const index = scale.findIndex(ticks[0]) ?? -1;
+                const previousBand = index > 1 ? bands[index - 1] : undefined;
+                previousTickValue = previousBand?.valueOf();
+            }
+
+            if (previousTickValue != null) {
+                while (primaryTicks.length > 0 && previousTickValue > primaryTicks[0].valueOf()) {
+                    primaryTicks.shift();
+                }
+            }
         }
 
         return { primaryTicks, ticks, interpolate };
@@ -679,10 +714,14 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             const translationY = scale.convert(tick, { interpolate }) + halfBandwidth;
 
             let primary = false;
-            if (primaryTicks != null && primaryTickIndex < primaryTicks.length) {
+            while (primaryTicks != null && primaryTickIndex < primaryTicks.length) {
                 const diff = compareDates(primaryTicks[primaryTickIndex], tick);
-                primary = exactPrimaryTicks ? diff === 0 : diff <= 0;
-                if (primary) primaryTickIndex++;
+                if (exactPrimaryTicks ? diff === 0 : diff <= 0) {
+                    primary = true;
+                    primaryTickIndex++;
+                } else {
+                    break;
+                }
             }
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
