@@ -52,6 +52,10 @@ type GeneratedContents = {
     scriptFiles: string[];
 };
 
+const DEFAULT_SUBSTITUTIONS: Record<string, string> = {
+    '${baseWWWUrl}': `${process.env.PUBLIC_SITE_URL ?? 'https://www.ag-grid.com'}${process.env.PUBLIC_BASE_URL ?? '/charts'}`,
+};
+
 const cacheKeys: Record<string, object> = {};
 const cacheValues = new WeakMap<object, GeneratedContents>();
 
@@ -83,7 +87,7 @@ const readContentJson = async (params: GeneratedExampleParams): Promise<Generate
         cacheValues.set(cacheKey, result);
     }
 
-    return result;
+    return applySubstitutions(result, DEFAULT_SUBSTITUTIONS);
 };
 
 export const getGeneratedContentsFileList = async (params: GeneratedExampleParams) => {
@@ -92,13 +96,9 @@ export const getGeneratedContentsFileList = async (params: GeneratedExampleParam
     return contents != null ? Object.keys(contents.files) : [];
 };
 
-const DEFAULT_SUBSTITUTIONS: Record<string, string> = {
-    '${baseWWWUrl}': `${process.env.PUBLIC_SITE_URL ?? 'https://www.ag-grid.com'}${process.env.PUBLIC_BASE_URL ?? '/charts'}`,
-};
-
 export const getGeneratedContents = async (params: GeneratedExampleParams) => {
     // Generated from `plugins/ag-charts-generate-example-files`
-    return applySubstitutions(await readContentJson(params), DEFAULT_SUBSTITUTIONS);
+    return readContentJson(params);
 };
 
 function applySubstitutions(content?: GeneratedContents, substitutions?: Record<string, string>) {
