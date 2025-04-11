@@ -10,6 +10,7 @@ const {
     TooltipManager,
     Property,
     findMinMax,
+    isObjectWithStringProperty,
 } = _ModuleSupport;
 
 const debug = _ModuleSupport.Debug.create('sync');
@@ -86,8 +87,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
         debug('ChartSync - highlight-change', event);
 
-        const validDirection = this.axes === 'xy' ? 'x' : this.axes;
-        const eventValueKey = event.currentHighlight?.[`${validDirection}Key`];
+        const mainDirection = this.axes === 'xy' ? 'x' : this.axes;
+        const secondaryDirection = mainDirection === 'x' ? 'y' : 'x';
+        const eventValueKey = event.currentHighlight?.[`${mainDirection}Key`];
         let eventValue = eventValueKey ? event.currentHighlight?.datum[eventValueKey] : undefined;
         const valueIsDate = isDate(eventValue);
         if (valueIsDate) {
@@ -104,11 +106,12 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             return;
         }
 
-        this.findMatchingHighlightNodes(validDirection, valueIsDate, eventValue, event);
+        this.findMatchingHighlightNodes(mainDirection, secondaryDirection, valueIsDate, eventValue, event);
     }
 
     private findMatchingHighlightNodes(
-        validDirection: 'x' | 'y',
+        mainDirection: 'x' | 'y',
+        secondaryDirection: 'x' | 'y',
         valueIsDate: boolean,
         eventValue: any,
         event: _ModuleSupport.HighlightChangeEvent
@@ -117,11 +120,26 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
         for (const [chart, axis] of syncManager.getGroupSiblingAxes(this.groupId)) {
             if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
-            if (!CartesianAxis.is(axis) || axis.direction !== validDirection) continue;
+            if (!CartesianAxis.is(axis) || axis.direction !== mainDirection) continue;
 
-            const matchingNodes = chart.series
-                .map(this.findMatchingNodes(axis, validDirection, valueIsDate, eventValue))
+            // Find matching nodes for the main direction.
+            let matchingNodes = chart.series
+                .map(this.findMatchingNodes(axis, mainDirection, valueIsDate, eventValue))
                 .filter(isDefined);
+
+            if (matchingNodes.length > 1) {
+                const secondaryKey = `${secondaryDirection}Key` as const;
+                const secondaryValue = _ModuleSupport.isObjectWithProperty(event.currentHighlight, secondaryKey)
+                    ? event.currentHighlight?.[secondaryKey]
+                    : undefined;
+                // Narrow matches by matching the secondary direction key.
+                matchingNodes = matchingNodes.filter(({ nodeDatum }) => {
+                    return (
+                        isObjectWithStringProperty(nodeDatum, secondaryKey) &&
+                        nodeDatum[secondaryKey] === secondaryValue
+                    );
+                });
+            }
 
             if (
                 matchingNodes.length < 2 &&
@@ -137,7 +155,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     private findMatchingNodes(
         axis: _ModuleSupport.CartesianAxis<any, any>,
-        validDirection: string,
+        mainDirection: string,
         valueIsDate: boolean,
         eventValue: any
     ) {
@@ -146,11 +164,14 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
             if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) return;
 
-            const { nodeData } = (series as any).contextNodeData;
-
+            const nodeData: _ModuleSupport.SeriesNodeDatum<unknown>[] = (series as any).contextNodeData?.nodeData ?? [];
             if (!nodeData?.length) return;
 
-            const valueKey = nodeData[0]?.[`${validDirection}Key`];
+            const firstNode = nodeData[0];
+            const mainDirectionKey = `${mainDirection}Key` as const;
+            if (!isObjectWithStringProperty(firstNode, mainDirectionKey)) return;
+
+            const valueKey = firstNode[mainDirectionKey];
             const nodeDatum = nodeData.find((datum: any) => {
                 const nodeValue = datum.datum[valueKey];
                 return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
