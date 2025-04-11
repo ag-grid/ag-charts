@@ -83,4 +83,14 @@ test.describe('context-menu', () => {
         await page.locator(SELECTORS.wrapper).nth(1).click({ button: 'right' });
         await expect(page).toHaveScreenshot('AG-13359-context-menu-chart2-series-area.png', { animations: 'disabled' });
     });
+
+    test('no context menu items for waterfall legend', async ({ page }) => {
+        const { url } = toExamplePageUrl('waterfall-series', 'simple-waterfall', 'vanilla');
+        await gotoExample(page, url);
+
+        await page.mouse.click(360, 570, { button: 'right' });
+        await expect(page).toHaveScreenshot('no-context-menu-items-for-waterfall-legend.png', {
+            animations: 'disabled',
+        });
+    });
 });
