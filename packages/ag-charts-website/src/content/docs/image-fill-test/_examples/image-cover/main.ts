@@ -20,7 +20,7 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             fill: {
                 type: 'image',
-                url: 'https://warehouse1.indicia.org.uk/upload/16/32/23/o_1fg4ef1kejkhqbcul11tkt9nnb.jpg',
+                url: '${baseWWWUrl}/example-assets/e2e-test-images/parakeet-side-eye.jpg',
                 fit: 'cover',
             },
         },

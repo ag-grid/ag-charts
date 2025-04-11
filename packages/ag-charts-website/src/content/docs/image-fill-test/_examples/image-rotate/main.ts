@@ -20,8 +20,8 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             fill: {
                 type: 'image',
-                url: 'https://cdn.images.express.co.uk/img/dynamic/128/590x/1333971_1.jpg',
-                width: 200,
+                url: '${baseWWWUrl}/example-assets/e2e-test-images/parakeet-drinking-water.jpg',
+                width: 100,
                 height: 150,
                 rotation: 90,
             },

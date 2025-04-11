@@ -20,7 +20,7 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             fill: {
                 type: 'image',
-                url: 'https://i.guim.co.uk/img/media/8c170a68bfcbf549c6ff476c21bc4f4e3e7241c4/1240_211_4760_2856/master/4760.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=4068949020f4c628fb12d8ddb0c2c947',
+                url: '${baseWWWUrl}/example-assets/e2e-test-images/parakeet-close-up.jpg',
                 width: 300,
                 height: 300,
             },

@@ -20,7 +20,7 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             fill: {
                 type: 'image',
-                url: 'https://upload.wikimedia.org/wikipedia/commons/8/88/Psittacula_krameri_-Kew_Gardens_-London-6.jpg',
+                url: '${baseWWWUrl}/example-assets/e2e-test-images/parakeet-side-eye.jpg',
                 fit: 'contain',
                 width: 125,
                 height: 150,
