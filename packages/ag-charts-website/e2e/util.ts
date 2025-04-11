@@ -96,6 +96,35 @@ export function setupIntrinsicAssertions() {
     return config;
 }
 
+export function getConsoleLogs() {
+    const ignoreMessageRegexes = [
+        // Vite messages
+        /^\[vite].*/,
+        // AG Charts license error message
+        /^\*.*/,
+    ];
+    const consoleLogs: string[] = [];
+
+    test.beforeEach(({ page }) => {
+        page.on('console', (msg) => {
+            const text = msg.text();
+            const ignore = ignoreMessageRegexes.some((regex) => regex.test(text));
+            if (ignore) {
+                return;
+            }
+
+            consoleLogs.push(text);
+        });
+    });
+
+    test.afterEach(() => {
+        // Clear console logs
+        consoleLogs.length = 0;
+    });
+
+    return consoleLogs;
+}
+
 export function repeat(repCount: number, fn: () => unknown) {
     for (let i = 0; i < repCount; i++) {
         fn();
