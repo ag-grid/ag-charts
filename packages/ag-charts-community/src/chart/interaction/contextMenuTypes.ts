@@ -30,10 +30,7 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
     'series-area': {
         event: InferTEvent<'series-area'>;
         callback: (param: InferTEvent<'series-area'>) => void;
-        context: {
-            pickedSeries: ISeries<any, any, any> | undefined;
-            pickedNode: SeriesNodeDatum<unknown> | undefined;
-        };
+        context: undefined;
     };
     'series-node': {
         event: InferTEvent<'series-node'>;

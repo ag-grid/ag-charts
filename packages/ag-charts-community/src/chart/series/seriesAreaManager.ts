@@ -338,12 +338,21 @@ export class SeriesAreaManager extends BaseManager {
         this.clearAll();
         const canvasX = event.currentX + current.cssLeft();
         const canvasY = event.currentY + current.cssTop();
-        this.chart.ctx.contextMenuRegistry.dispatchContext(
-            'series-area',
-            { sourceEvent, canvasX, canvasY },
-            { pickedSeries, pickedNode },
-            position
-        );
+        if (pickedSeries && pickedNode) {
+            this.chart.ctx.contextMenuRegistry.dispatchContext(
+                'series-node',
+                { sourceEvent, canvasX, canvasY },
+                { pickedSeries, pickedNode },
+                position
+            );
+        } else {
+            this.chart.ctx.contextMenuRegistry.dispatchContext(
+                'series-area',
+                { sourceEvent, canvasX, canvasY },
+                undefined,
+                position
+            );
+        }
     }
 
     private onLeave(event: MouseWidgetEvent<'mouseleave'>): void {
