@@ -47,12 +47,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     public extraNodeActions: DeprecatedAction<'extraNodeActions'> = [];
     public extraSeriesAreaActions: DeprecatedAction<'extraSeriesAreaActions'> = [];
     public extraLegendItemActions: DeprecatedAction<'extraLegendItemActions'> = [];
-    private readonly deprecationMap: DeprecatedMap = {
-        extraActions: { items: this.extraActions, showOn: 'always' },
-        extraSeriesAreaActions: { items: this.extraSeriesAreaActions, showOn: 'series-area' },
-        extraNodeActions: { items: this.extraNodeActions, showOn: 'series-node' },
-        extraLegendItemActions: { items: this.extraLegendItemActions, showOn: 'legend-item' },
-    };
+    private readonly deprecationMap: DeprecatedMap;
 
     // Module context
     private readonly interactionManager: _ModuleSupport.InteractionManager;
@@ -74,6 +69,33 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
+        const that = this;
+        this.deprecationMap = {
+            extraActions: {
+                get items() {
+                    return that.extraActions;
+                },
+                showOn: 'always',
+            },
+            extraSeriesAreaActions: {
+                get items() {
+                    return that.extraSeriesAreaActions;
+                },
+                showOn: 'series-area',
+            },
+            extraNodeActions: {
+                get items() {
+                    return that.extraNodeActions;
+                },
+                showOn: 'series-node',
+            },
+            extraLegendItemActions: {
+                get items() {
+                    return that.extraLegendItemActions;
+                },
+                showOn: 'legend-item',
+            },
+        };
 
         // Module context
         this.interactionManager = ctx.interactionManager;
