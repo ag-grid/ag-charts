@@ -134,6 +134,7 @@ const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [
     'toggle-series-visibility',
     'toggle-other-series',
     'reset-zoom',
+    'separator',
 ];
 
 const contextMenuItemObjectValidator: Validator = optionsDefs<Extract<AgContextMenuItem, object>>({
