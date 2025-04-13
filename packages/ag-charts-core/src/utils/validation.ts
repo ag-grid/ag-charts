@@ -90,7 +90,7 @@ export class ValidationError {
     }
 }
 
-class UnknownError extends ValidationError {
+export class UnknownError extends ValidationError {
     constructor(
         public suggestions: string[],
         value: unknown,
