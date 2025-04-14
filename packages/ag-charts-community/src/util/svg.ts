@@ -1,3 +1,5 @@
+import { Logger } from 'ag-charts-core';
+
 export type SVGCommand = 'z' | 'h' | 'v' | 'm' | 'l' | 't' | 's' | 'q' | 'c' | 'a';
 export type SVGPathSegment = { command: SVGCommand; params: number[] };
 
@@ -18,7 +20,9 @@ const pathParams: Record<SVGCommand, RegExp[]> = {
     a: [coordinateEx, coordinateEx, coordinateEx, flagEx, flagEx, coordinateEx, coordinateEx],
 };
 
-export function parseSvg(d: string): SVGPathSegment[] {
+export function parseSvg(d?: string): SVGPathSegment[] | undefined {
+    if (!d) return;
+
     const segments: SVGPathSegment[] = [];
     let i = 0;
     let currentCommand: SVGCommand | undefined;
@@ -28,7 +32,8 @@ export function parseSvg(d: string): SVGPathSegment[] {
 
         if (commandMatch == null) {
             if (!currentCommand) {
-                throw new Error(`Invalid SVG path, error at index ${i}: Missing command.`);
+                Logger.warnOnce(`Invalid SVG path, error at index ${i}: Missing command.`);
+                return;
             }
             command = currentCommand;
         } else {
@@ -36,17 +41,19 @@ export function parseSvg(d: string): SVGPathSegment[] {
             i += commandMatch[0].length;
         }
 
-        const [index, pathSeg] = parseSegment(command, d, i);
+        const segment = parseSegment(command, d, i);
 
-        i = index;
+        if (!segment) return;
+
+        i = segment[0];
         currentCommand = command;
-        segments.push(pathSeg);
+        segments.push(segment[1]);
     }
 
     return segments;
 }
 
-export function parseSegment(command: SVGCommand, d: string, index: number): [number, SVGPathSegment] {
+export function parseSegment(command: SVGCommand, d: string, index: number): [number, SVGPathSegment] | undefined {
     const params = pathParams[command.toLocaleLowerCase() as SVGCommand];
     const pathSeg: SVGPathSegment = { command, params: [] };
 
@@ -64,9 +71,10 @@ export function parseSegment(command: SVGCommand, d: string, index: number): [nu
         } else if (pathSeg.params.length === 1) {
             return [index, pathSeg];
         } else {
-            throw new Error(
+            Logger.warnOnce(
                 `Invalid SVG path, error at index ${index}: No path segment parameters for command [${command}]`
             );
+            return;
         }
     }
 

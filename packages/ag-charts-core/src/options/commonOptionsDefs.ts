@@ -30,6 +30,7 @@ import {
     ratio,
     required,
     string,
+    stringLength,
     typeUnion,
     undocumented,
     union,
@@ -126,11 +127,10 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
             'diamonds',
             'stars',
             'hearts',
-            'crosses',
-            'custom'
+            'crosses'
         )
     ),
-    path: string,
+    path: stringLength(2),
     width: required(positiveNumber),
     height: required(positiveNumber),
     fill: required(color),
@@ -178,10 +178,9 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
                 'diamonds',
                 'stars',
                 'hearts',
-                'crosses',
-                'custom'
+                'crosses'
             ),
-            path: string,
+            path: stringLength(2),
             width: positiveNumber,
             height: positiveNumber,
             fill: color,

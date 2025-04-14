@@ -120,8 +120,7 @@ export type AgPatternName =
     | 'diamonds'
     | 'stars'
     | 'hearts'
-    | 'crosses'
-    | 'custom';
+    | 'crosses';
 
 /**
  * Represents options for the strokes in a chart.
