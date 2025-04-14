@@ -1023,6 +1023,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
         for (const axis of this.axes) {
             axis.processData();
         }
+
+        for (const series of this.series) {
+            series.updatedDomains();
+        }
     }
 
     private updateLegends(initialStateLegend?: AgInitialStateLegendOptions[]) {

@@ -58,7 +58,11 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     private updateChart(chart: _ModuleSupport.SyncChartLike, updateType = ChartUpdateType.PROCESS_DOMAIN) {
         debug('ChartSync.updateChart()', chart.id, updateType, chart);
-        chart.ctx.updateService.update(updateType);
+        if (updateType === ChartUpdateType.PROCESS_DOMAIN) {
+            chart.ctx.updateService.update(updateType, { forceNodeDataRefresh: true });
+        } else {
+            chart.ctx.updateService.update(updateType);
+        }
     }
 
     private disableZoomSync?: () => void;
