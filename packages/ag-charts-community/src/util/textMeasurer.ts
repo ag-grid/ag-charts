@@ -183,7 +183,6 @@ export class TextUtils {
             case 'bottom':
             case 'ideographic':
             case undefined:
-                textBaseline;
                 return 1;
             default:
                 isNever(textBaseline);
