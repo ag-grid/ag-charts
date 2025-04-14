@@ -1,10 +1,11 @@
 import { expect, test } from '@jest/globals';
 
-import { LinearScale } from '../scale/linearScale';
 import { calculateNiceSecondaryAxis } from './secondaryAxisTicks';
 
 function ticks(a: number, b: number, count: number): number[] {
-    const scale = new LinearScale();
+    const scale = {
+        toDomain: (d: any) => d,
+    };
     const { ticks: result } = calculateNiceSecondaryAxis(scale, [a, b], count);
     return result;
 }
