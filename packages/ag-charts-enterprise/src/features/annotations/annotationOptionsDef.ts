@@ -34,6 +34,7 @@ import {
     string,
     strokeOptionsDef,
     typeUnion,
+    undocumented,
     union,
 } from 'ag-charts-core';
 import type {
@@ -86,20 +87,22 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
             or(
                 optionsDefs<AgAnnotationOptionsToolbarButton>({
                     ...toolbarButtonOptionsDefs,
-                    value: union(
-                        'line-stroke-width',
-                        'line-style-type',
-                        'line-color',
-                        'fill-color',
-                        'text-color',
-                        'text-size',
-                        'delete',
-                        'settings'
+                    value: required(
+                        union(
+                            'line-stroke-width',
+                            'line-style-type',
+                            'line-color',
+                            'fill-color',
+                            'text-color',
+                            'text-size',
+                            'delete',
+                            'settings'
+                        )
                     ),
                 }),
                 optionsDefs<AgAnnotationOptionsToolbarSwitch>({
                     ...toolbarButtonOptionsDefs,
-                    value: union('lock'),
+                    value: required(union('lock')),
                     checkedOverrides: toolbarButtonOptionsDefs,
                 })
             )
@@ -108,13 +111,13 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
 };
 
 // @ts-expect-error undocumented option
-annotationOptionsDef.data = array;
+annotationOptionsDef.data = undocumented(array);
 // @ts-expect-error undocumented option
-annotationOptionsDef.xKey = string;
+annotationOptionsDef.xKey = undocumented(string);
 // @ts-expect-error undocumented option
-annotationOptionsDef.volumeKey = string;
+annotationOptionsDef.volumeKey = undocumented(string);
 // @ts-expect-error undocumented option
-annotationOptionsDef.snap = boolean;
+annotationOptionsDef.snap = undocumented(boolean);
 
 const serializableDate = optionsDefs<AgStateSerializableDate>(
     {

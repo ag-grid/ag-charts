@@ -1,29 +1,36 @@
-import { arraysEqual, countFractionDigits } from 'ag-charts-core';
+import { arraysEqual, countFractionDigits, isPlainObject } from 'ag-charts-core';
 
 import { ContinuousScale } from '../../scale/continuousScale';
+import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale, ScaleFormatParams, ScaleTickParams } from '../../scale/scale';
+import { TimeScale } from '../../scale/timeScale';
+import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { Matrix } from '../../scene/matrix';
 import type { TextSizeProperties } from '../../scene/shape/text';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
+import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
-import { estimateTickCount } from '../../util/ticks';
-import type { ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
+import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
+import { TimeInterval } from '../../util/time';
+import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { calculateLabelRotation, createLabelData, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
-import type { TickDatum } from './axisUtil';
-import { NiceMode } from './axisUtil';
+import { NiceMode, type TickDatum } from './axisUtil';
 
 export interface TickData<D = any> {
     tickDomain: D[];
     rawTicks: D[];
     fractionDigits: number;
     ticks: TickDatum[];
+    primaryTicks: TickDatum[] | undefined;
+    interpolate: boolean;
+    timeInterval: TimeInterval | undefined;
     niceDomain?: D[];
 }
 
@@ -36,12 +43,14 @@ export interface TickGenerationParams<D = any> {
     regularFlipRotation: number;
     labelX: number;
     sideFlag: ChartAxisLabelFlipFlag;
+    removeOverflowLabels: boolean;
+    removeOverflowThreshold?: number;
 }
 
 export interface TickGenerationResult<D = any> {
     tickData: TickData<D>;
     primaryTickCount?: number;
-    combinedRotation: number;
+    rotation: number;
     textBaseline: CanvasTextBaseline;
     textAlign: CanvasTextAlign;
 }
@@ -69,14 +78,19 @@ enum TickGenerationType {
     CREATE,
     CREATE_SECONDARY,
     FILTER,
+    DROP_FIRST,
     VALUES,
 }
+
+const TICK_REGENERATION_THRESHOLD = 5;
+const MAX_PRIMARY_TICK_RATIO = 0.66;
 
 export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>, D> {
     readonly range: [number, number];
     readonly reverse: boolean;
     readonly scale: S;
     readonly label: ChartAxis['label'];
+    readonly primaryLabel?: ChartAxis['label'];
     readonly interval: AxisInterval<S>;
     readonly defaultTickMinSpacing: number;
     readonly inRange: ChartAxis['inRange'];
@@ -92,23 +106,28 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
 export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     constructor(private readonly axis: TickGenerationAxis<S, D>) {}
 
-    private estimateTickCount(visibleRange: [number, number], minSpacing?: number, maxSpacing?: number) {
+    private estimateTickCount(domain: D[], visibleRange: [number, number], minSpacing?: number, maxSpacing?: number) {
+        const { axis } = this;
+        // @todo(AG-14471) - this probably wants to be BandScale.is
+        const defaultTickCount = UnitTimeScale.is(axis.scale)
+            ? axis.scale.calculateBandCount(domain as Date[])
+            : ContinuousScale.defaultTickCount;
         return estimateTickCount(
-            findRangeExtent(this.axis.range),
+            findRangeExtent(axis.range),
             findRangeExtent(visibleRange),
             minSpacing,
             maxSpacing,
-            ContinuousScale.defaultTickCount,
-            this.axis.defaultTickMinSpacing
+            defaultTickCount,
+            axis.defaultTickMinSpacing
         );
     }
 
-    private filterTicks(ticks: any, tickCount: number): any[] {
+    private filterTicks(ticks: any[], tickCount: number): any[] {
         const { minSpacing, maxSpacing } = this.axis.interval;
         const tickSpacing = minSpacing != null || maxSpacing != null;
         const keepEvery = tickSpacing ? Math.ceil(ticks.length / tickCount) : 2;
         const offset = ticks.length % keepEvery ? -1 : 0;
-        return ticks.filter((_: any, i: number) => (i + offset) % keepEvery === 0);
+        return ticks.filter((_, i) => (i + offset) % keepEvery === 0);
     }
 
     generateTicks({
@@ -120,29 +139,28 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         regularFlipRotation,
         labelX,
         sideFlag,
+        removeOverflowLabels,
+        removeOverflowThreshold = 0,
     }: TickGenerationParams<D>): TickGenerationResult<D> {
         const {
             scale,
             label,
             interval: { minSpacing, maxSpacing },
         } = this.axis;
-        const { parallel, rotation, fontFamily, fontSize, fontStyle, fontWeight } = label;
+        const { parallel, fontFamily, fontSize, fontStyle, fontWeight } = label;
 
         const secondaryAxis = primaryTickCount !== undefined;
 
-        const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation({
-            rotation,
+        const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation(
+            label.rotation,
             parallel,
             regularFlipRotation,
-            parallelFlipRotation,
-        });
+            parallelFlipRotation
+        );
 
-        const initialRotation = configuredRotation + defaultRotation;
-        const labelMatrix = new Matrix();
+        const { maxTickCount } = this.estimateTickCount(domain, visibleRange, minSpacing, maxSpacing);
 
-        const { maxTickCount } = this.estimateTickCount(visibleRange, minSpacing, maxSpacing);
-
-        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
+        const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
 
         let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
@@ -161,16 +179,22 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const checkLabelOverlap = label.enabled && label.avoidCollisions;
 
-        const getLabelOverlap = ({ ticks }: TickData, iterationRotation: number) => {
+        const initialRotation = configuredRotation + defaultRotation;
+        const labelMatrix = new Matrix();
+        const getLabelData = ({ ticks }: TickData, iterationRotation: number) => {
+            const labelRotation = initialRotation + iterationRotation;
+            Matrix.updateTransformMatrix(labelMatrix, 1, 1, labelRotation, 0, 0);
+            return createLabelData(ticks, labelX, labelMatrix, textMeasurer);
+        };
+
+        const getLabelOverlap = (tickData: TickData, iterationRotation: number) => {
             if (!checkLabelOverlap) return false;
 
+            const labelData = getLabelData(tickData, iterationRotation);
+
             const rotated = configuredRotation !== 0 || iterationRotation !== 0;
-            const labelRotation = initialRotation + iterationRotation;
             const labelSpacing = getLabelSpacing(label.minSpacing, rotated);
 
-            Matrix.updateTransformMatrix(labelMatrix, 1, 1, labelRotation, 0, 0);
-
-            const labelData = createLabelData(ticks, labelX, labelMatrix, textMeasurer);
             return axisLabelsOverlap(labelData, labelSpacing);
         };
 
@@ -178,6 +202,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             tickDomain: [],
             ticks: [],
             rawTicks: [],
+            primaryTicks: undefined,
+            interpolate: false,
+            timeInterval: undefined,
             fractionDigits: 0,
             niceDomain: undefined,
         };
@@ -208,13 +235,31 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         }
 
         textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
-        const combinedRotation = defaultRotation + configuredRotation + autoRotation;
+        const rotation = configuredRotation + autoRotation;
 
         if (!secondaryAxis && tickData.rawTicks.length > 0) {
             primaryTickCount = tickData.rawTicks.length;
         }
 
-        return { tickData, primaryTickCount, combinedRotation, textBaseline, textAlign };
+        if (removeOverflowLabels && tickData.ticks.length > 2) {
+            const labelData = getLabelData(tickData, autoRotation);
+            const lastTick = tickData.ticks.at(-1);
+            const lastLabel = labelData.at(-1);
+            if (
+                lastTick != null &&
+                lastLabel != null &&
+                lastTick.translationY + lastLabel.label.width / 2 > this.axis.range[1] + removeOverflowThreshold
+            ) {
+                lastTick.tickLabel = undefined;
+
+                const firstTick = tickData.ticks[0];
+                if (firstTick.translationY === 0 && visibleRange[0] === 0 && visibleRange[1] === 1) {
+                    firstTick.tickLabel = undefined;
+                }
+            }
+        }
+
+        return { tickData, primaryTickCount, rotation, textBaseline, textAlign };
     }
 
     private getTickStrategies({
@@ -230,7 +275,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     }): TickStrategy[] {
         const { scale, label, interval } = this.axis;
         const { minSpacing } = interval;
-        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
+        const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
         const avoidLabelCollisions = label.enabled && label.avoidCollisions;
         const filterTicks = !continuous && iteration !== 0 && avoidLabelCollisions;
         const autoRotate = label.autoRotate === true && label.rotation === undefined;
@@ -288,6 +333,31 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             strategies.push(tickFilterStrategy);
         }
 
+        if (UnitTimeScale.is(scale)) {
+            const dropFirstIfNeededStrategy = ({
+                index,
+                tickData,
+                labelOverlap,
+                primaryTickCount,
+                visibleRange,
+                terminate,
+            }: TickStrategyParams) => {
+                if (!labelOverlap) return { index, tickData, autoRotation: 0, terminate };
+
+                return this.createTickData(
+                    domain,
+                    niceMode,
+                    visibleRange,
+                    primaryTickCount,
+                    TickGenerationType.DROP_FIRST,
+                    index,
+                    tickData,
+                    terminate
+                );
+            };
+            strategies.push(dropFirstIfNeededStrategy);
+        }
+
         if (avoidLabelCollisions && autoRotate) {
             const autoRotateStrategy = ({ index, tickData, labelOverlap, terminate }: TickStrategyParams) => ({
                 index,
@@ -313,9 +383,14 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     ): TickStrategyResult {
         const { scale, interval } = this.axis;
         const { step, values, minSpacing, maxSpacing } = interval;
-        const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(visibleRange, minSpacing, maxSpacing);
+        const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(
+            domain,
+            visibleRange,
+            minSpacing,
+            maxSpacing
+        );
 
-        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
+        const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
 
         const countTicks = (i: number) => (continuous ? Math.max(tickCount - i, minTickCount) : maxTickCount);
@@ -328,6 +403,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         while (index <= maxIterations) {
             const previousTicks = tickData.rawTicks;
+            const previousPrimaryTicks = tickData.primaryTicks;
+            const previousInterpolate = tickData.interpolate;
+            const previousTimeInterval = tickData.timeInterval;
 
             tickData = this.getTicks({
                 domain,
@@ -335,6 +413,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 visibleRange,
                 tickGenerationType,
                 previousTicks,
+                previousPrimaryTicks,
+                previousInterpolate,
+                previousTimeInterval,
                 minTickCount,
                 maxTickCount,
                 primaryTickCount,
@@ -351,12 +432,125 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         return { tickData, index, autoRotation: 0, terminate };
     }
 
+    private getIntervalTicks(
+        visibleRange: [number, number],
+        tickParams: ScaleTickParams<any>,
+        timeInterval: TimeInterval
+    ) {
+        if (timeInterval.hierarchy == null) return;
+
+        const { scale } = this.axis;
+        if (!TimeScale.is(scale) && !DiscreteTimeScale.is(scale)) return;
+
+        const d0 = new Date(scale.domain[0]);
+        const d1 = new Date(scale.domain[scale.domain.length - 1]);
+        const primaryTicks = timeInterval.hierarchy.range(d0, d1, { extend: true, visibleRange });
+
+        const interpolate =
+            UnitTimeScale.is(scale) && (scale.interval?.milliseconds ?? 0) < (timeInterval.milliseconds ?? Infinity);
+
+        let ticks: Date[];
+        if (TimeScale.is(scale) || UnitTimeScale.is(scale)) {
+            ticks = [];
+            const { milliseconds } = timeInterval;
+            const intervalTickParams = {
+                ...tickParams,
+                interval: (milliseconds ?? timeInterval) as any,
+            };
+            for (let i = 0; i < primaryTicks.length - 1; i += 1) {
+                const p0 = primaryTicks[i];
+                const p1 = primaryTicks[i + 1];
+                const intervalTicks =
+                    UnitTimeScale.is(scale) && !interpolate
+                        ? (scale as UnitTimeScale).ticks(intervalTickParams, [p0, p1])
+                        : this.timeScaleTicks(intervalTickParams, [p0, p1]);
+                if (intervalTicks.length === 0) continue;
+
+                const lastTick = ticks.at(-1);
+                if (lastTick != null) {
+                    let containsOverlap: boolean;
+                    if (milliseconds) {
+                        containsOverlap = intervalTicks[0].valueOf() - lastTick.valueOf() < milliseconds;
+                    } else {
+                        containsOverlap = lastTick.valueOf() === intervalTicks[0].valueOf();
+                    }
+
+                    if (containsOverlap) {
+                        ticks.pop();
+                    }
+                }
+
+                ticks.push(...intervalTicks);
+            }
+
+            ticks = ticks.filter((t) => compareDates(t, d0) >= 0 && compareDates(t, d1) <= 0);
+        } else if (OrdinalTimeScale.is(scale)) {
+            ticks = (scale as OrdinalTimeScale).ticks(tickParams, undefined, visibleRange) ?? [];
+        } else {
+            ticks = [];
+        }
+
+        // Remove primary ticks that have better candidates outside of the generated ticks
+        if (DiscreteTimeScale.is(scale) && ticks.length !== 0) {
+            const firstTick = ticks[0];
+            while (
+                primaryTicks.length !== 0 &&
+                compareDates(primaryTicks[0], firstTick) < 0 &&
+                !scale.tickIsFirstAfter(primaryTicks[0], firstTick)
+            ) {
+                primaryTicks.shift();
+            }
+        }
+
+        return { primaryTicks, ticks, interpolate };
+    }
+
+    private timeSpecifier(
+        label: ChartAxisLabel | undefined,
+        timeInterval: TimeInterval | undefined
+    ): string | undefined {
+        if (label == null || timeInterval == null) return;
+
+        const { format } = label;
+        if (isPlainObject(format)) {
+            return format[timeInterval.unit];
+        } else {
+            return format;
+        }
+    }
+
+    private timeScaleTicks(params: ScaleTickParams<TimeInterval | number>, domain: [Date, Date]) {
+        const { interval } = params;
+        if (interval == null) return domain;
+
+        const d0 = domain[0].valueOf();
+        const d1 = domain[1].valueOf();
+
+        if (interval instanceof TimeInterval) {
+            return interval.range(domain[0], domain[1]).filter((intervalTick) => {
+                const intervalTickTime = intervalTick.valueOf();
+                return intervalTickTime >= d0 && intervalTickTime <= d1;
+            });
+        }
+
+        const ticks: Date[] = [];
+        for (let intervalTickTime = d0; intervalTickTime <= d1; intervalTickTime += interval) {
+            const intervalTick = new Date(intervalTickTime);
+            ticks.push(intervalTick);
+        }
+
+        return ticks;
+    }
+
     private getTicks({
         domain,
         niceMode,
         visibleRange,
         tickGenerationType,
         previousTicks,
+        previousPrimaryTicks,
+        previousInterpolate,
+        previousTimeInterval,
         tickCount,
         minTickCount,
         maxTickCount,
@@ -367,13 +561,16 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         visibleRange: [number, number];
         tickGenerationType: TickGenerationType;
         previousTicks: TickDatum[];
+        previousPrimaryTicks: TickDatum[] | undefined;
+        previousInterpolate: boolean;
+        previousTimeInterval: TimeInterval | undefined;
         tickCount: number;
         minTickCount: number;
         maxTickCount: number;
         primaryTickCount?: number;
     }): TickData {
         const { axis } = this;
-        const { label, range, scale, interval } = axis;
+        const { label, primaryLabel, range, scale, interval } = axis;
         const idGenerator = createIdsGenerator();
 
         const domainParams: ScaleTickParams<any> = {
@@ -389,9 +586,25 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             nice: niceMode === NiceMode.TickAndDomain || niceMode === NiceMode.TicksOnly,
         };
 
-        let niceDomain = niceMode === NiceMode.TickAndDomain ? scale.niceDomain(domainParams, domain) : domain;
+        let secondaryAxisTicks: { domain: D[]; ticks: number[] } | undefined;
+        if (tickGenerationType === TickGenerationType.CREATE_SECONDARY && ContinuousScale.is(scale)) {
+            // AG-10654 Just use normal ticks for categorical axes.
+            secondaryAxisTicks = calculateNiceSecondaryAxis(scale, domain, primaryTickCount ?? 0, axis.reverse);
+        }
+
+        const niceDomain =
+            niceMode === NiceMode.TickAndDomain
+                ? secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain)
+                : domain;
         let tickDomain: D[] = niceDomain;
-        let rawTicks: any[];
+        let rawTicks: any[] | undefined;
+        let timeInterval: TimeInterval | undefined;
+        let primaryTicks: any[] | undefined;
+        let interpolate = false;
+
+        // @todo(AG-13604) - the scale domain isn't updated yet. We need a better way to work out if something is in range.
+        const scaleDomain = scale.domain;
+        scale.domain = niceDomain; // Reset at end of function
 
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
@@ -406,27 +619,80 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 break;
 
             case TickGenerationType.CREATE_SECONDARY:
-                if (ContinuousScale.is(scale)) {
-                    const secondaryAxisTicks = calculateNiceSecondaryAxis(
-                        domain.map(Number),
-                        primaryTickCount ?? 0,
-                        axis.reverse
-                    );
-
-                    rawTicks = secondaryAxisTicks.ticks;
-                    niceDomain = secondaryAxisTicks.domain.map((d) => scale.toDomain(d)!);
-                } else {
-                    // AG-10654 Just use normal ticks for categorical axes.
-                    rawTicks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
-                }
+                rawTicks = secondaryAxisTicks?.ticks ?? scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
                 break;
 
             case TickGenerationType.FILTER:
                 rawTicks = this.filterTicks(previousTicks, tickCount);
                 break;
 
-            default:
-                rawTicks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
+            case TickGenerationType.DROP_FIRST:
+                rawTicks = previousTicks.slice(1);
+                if (
+                    previousTicks.length > 2 &&
+                    previousPrimaryTicks != null &&
+                    previousTicks[0].valueOf() >= previousPrimaryTicks[0].valueOf() &&
+                    previousTicks[0].valueOf() < previousPrimaryTicks[1].valueOf()
+                ) {
+                    // Drop first primary tick if the raw tick was a primary tick
+                    primaryTicks = previousPrimaryTicks.slice(1);
+                } else {
+                    primaryTicks = previousPrimaryTicks;
+                }
+                interpolate = previousInterpolate;
+                timeInterval = previousTimeInterval;
+                break;
+
+            default: {
+                if (
+                    niceDomain.length > 0 &&
+                    (UnitTimeScale.is(scale) ||
+                        (primaryLabel != null && (TimeScale.is(scale) || OrdinalTimeScale.is(scale))))
+                ) {
+                    const dates = niceDomain as (Date | number)[];
+                    timeInterval = getTickTimeInterval(
+                        dates[0].valueOf(),
+                        dates[dates.length - 1].valueOf(),
+                        tickCount,
+                        minTickCount,
+                        maxTickCount
+                    );
+                }
+
+                const minTimeInterval = UnitTimeScale.is(scale) ? scale.interval : undefined;
+                if (
+                    minTimeInterval?.milliseconds != null &&
+                    timeInterval?.milliseconds != null &&
+                    minTimeInterval.milliseconds > timeInterval.milliseconds
+                ) {
+                    timeInterval = minTimeInterval;
+                }
+
+                let firstLoop = true;
+                while (
+                    timeInterval?.hierarchy &&
+                    (rawTicks == null || rawTicks.length > TICK_REGENERATION_THRESHOLD) &&
+                    (primaryTicks == null || primaryTicks.length > TICK_REGENERATION_THRESHOLD) &&
+                    (rawTicks == null ||
+                        primaryTicks == null ||
+                        rawTicks.length < primaryTicks.length * (1 / MAX_PRIMARY_TICK_RATIO))
+                ) {
+                    if (!firstLoop) {
+                        timeInterval = timeInterval.hierarchy;
+                    }
+
+                    const intervalTicks = this.getIntervalTicks(visibleRange, tickParams, timeInterval);
+                    primaryTicks = intervalTicks?.primaryTicks;
+                    rawTicks = intervalTicks?.ticks;
+                    interpolate = intervalTicks?.interpolate ?? false;
+
+                    firstLoop = false;
+                }
+
+                const defaultInterval = TimeScale.is(scale) || UnitTimeScale.is(scale) ? timeInterval : undefined;
+                tickParams.interval = domainParams.interval ?? defaultInterval;
+                rawTicks ??= scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
+            }
         }
 
         const fractionDigits = rawTicks.reduce(
@@ -434,32 +700,69 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             0
         );
 
+        const specifier =
+            this.timeSpecifier(label, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
+
         const formatParams: ScaleFormatParams<D> = {
             domain: tickDomain,
             ticks: rawTicks,
             fractionDigits,
-            specifier: label.format,
+            specifier,
         };
         const labelFormatter = scale.tickFormatter(formatParams);
 
-        // @todo(AG-13604) - the scale domain isn't updated yet. We need a better way to work out if something is in range.
-        const scaleDomain = scale.domain;
-        scale.domain = niceDomain;
+        const primarySpecifier = this.timeSpecifier(primaryLabel, timeInterval?.hierarchy);
+        const primaryLabelFormatter = primarySpecifier
+            ? scale.tickFormatter({
+                  ...formatParams,
+                  specifier: primarySpecifier,
+              })
+            : labelFormatter;
+
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
+        const exactPrimaryTicks = interpolate;
+        let primaryTickIndex = 0;
         for (let i = 0; i < rawTicks.length; i++) {
             const tick = rawTicks[i];
-            const translationY = scale.convert(tick) + halfBandwidth;
+            const translationY = scale.convert(tick, { interpolate }) + halfBandwidth;
+
+            let primary = false;
+            if (primaryTicks != null) {
+                while (primaryTickIndex < primaryTicks.length) {
+                    const primaryTick = primaryTicks[primaryTickIndex];
+                    const diff = compareDates(primaryTick, tick);
+                    if (diff > 0) break;
+
+                    if (exactPrimaryTicks) {
+                        primary ||= diff == 0;
+                    } else {
+                        primary ||= diff <= 0;
+                    }
+
+                    primaryTickIndex++;
+                }
+            }
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
             // instead hide ticks based on their translation.
             if (range.length > 0 && !axis.inRange(translationY, 0.001)) continue;
 
-            const tickLabel = label.enabled ? axis.formatTick(tick, i, niceDomain, fractionDigits, labelFormatter) : '';
+            const tickLabelFormatter = primary ? primaryLabelFormatter : labelFormatter;
+            const tickLabel = label.enabled
+                ? axis.formatTick(tick, i, niceDomain, fractionDigits, tickLabelFormatter)
+                : '';
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
-            ticks.push({ tick, tickId: idGenerator(tickLabel), tickLabel, translationY: Math.floor(translationY) });
+            ticks.push({
+                tick,
+                tickId: idGenerator(tickLabel),
+                tickLabel,
+                translationY: Math.floor(translationY),
+                primary,
+            });
         }
+
         scale.domain = scaleDomain;
 
         return {
@@ -467,6 +770,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             rawTicks,
             fractionDigits,
             ticks,
+            primaryTicks,
+            interpolate,
+            timeInterval,
             niceDomain,
         };
     }

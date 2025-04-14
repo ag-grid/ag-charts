@@ -7,6 +7,7 @@ import {
     getDocument,
     getWindow,
     groupBy,
+    hasRequiredInPath,
     isArray,
     isEnumValue,
     isFiniteNumber,
@@ -342,8 +343,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.resolveThemeOperations(themeParameters, processedOptions);
         this.resolveThemeOperations(themeParameters, annotationThemes);
 
-        this.processMiniChartSeriesOptions(processedOptions);
-
         activeTheme.templateTheme(processedOptions, false);
 
         removeUnusedEnterpriseOptions(processedOptions);
@@ -354,6 +353,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.validateSeriesOptions(processedOptions);
         this.validateAxesOptions(processedOptions);
         this.validatePluginOptions(processedOptions);
+        this.processMiniChartSeriesOptions(processedOptions);
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
@@ -406,7 +406,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             invalid.forEach((error) => Logger.warn(error));
 
-            if (!invalid.some((e) => e.required && e.path === keyPath)) {
+            if (!hasRequiredInPath(invalid, keyPath)) {
                 validatedSeriesOptions.push(cleared);
             }
         }
@@ -422,7 +422,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         let validAxesTypes: string | undefined;
         for (let index = 0; index < axesCount; index++) {
             const keyPath = `axes[${index}]`;
-            const axisOptions = options.axes[index];
+            let axisOptions = options.axes[index];
+            if (axisOptions.type === 'time' && (axisOptions as any).unit != null) {
+                axisOptions = { ...axisOptions, type: 'unit-time' } as any;
+            }
             const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
@@ -450,7 +453,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             invalid.forEach((error) => Logger.warn(error));
 
-            if (!invalid.some((e) => e.required && e.path === keyPath)) {
+            if (!hasRequiredInPath(invalid, keyPath)) {
                 validatedAxesOptions.push(cleared);
             }
         }
@@ -577,9 +580,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         const { cleared, invalid } = validate(options.theme.params, themeOptionsDef.params);
-        for (const { message } of invalid) {
-            Logger.warnOnce(message);
-        }
+
+        invalid.forEach((error) => Logger.warn(error));
 
         return mergeDefaults(cleared, defaultParameters);
     }

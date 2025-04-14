@@ -1,12 +1,18 @@
-import { type AgChordSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgChordSeriesLinkStyle,
+    type AgChordSeriesNodeStyle,
+    type AgChordSeriesOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
-    callback,
+    callbackDefs,
     color,
     colorUnion,
     constant,
     fillGradientDefaults,
+    fillImageDefaults,
     fillOptionsDef,
     fillPatternDefaults,
     lineDashOptionsDef,
@@ -15,6 +21,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
 } from 'ag-charts-core';
 
 const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
@@ -34,7 +41,12 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     },
     link: {
         tension: ratio,
-        itemStyler: callback,
+        itemStyler: callbackDefs<AgChordSeriesLinkStyle>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+            tension: ratio,
+        }),
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
@@ -42,7 +54,11 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     node: {
         width: positiveNumber,
         spacing: positiveNumber,
-        itemStyler: callback,
+        itemStyler: callbackDefs<AgChordSeriesNodeStyle>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        }),
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
@@ -52,6 +68,8 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-chordSeriesOptionsDef.fillGradientDefaults = fillGradientDefaults;
+chordSeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 // @ts-expect-error undocumented option
-chordSeriesOptionsDef.fillPatternDefaults = fillPatternDefaults;
+chordSeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
+// @ts-expect-error undocumented option
+chordSeriesOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);

@@ -639,7 +639,7 @@ export class BarSeries extends AbstractBarSeries<
 
     private getItemBaseStyle(highlighted: boolean): Required<AgBarSeriesStyle> {
         const { properties } = this;
-        const { cornerRadius, fillGradientDefaults, fillPatternDefaults } = properties;
+        const { cornerRadius, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return getShapeStyle(
@@ -654,7 +654,8 @@ export class BarSeries extends AbstractBarSeries<
                 cornerRadius,
             },
             fillGradientDefaults,
-            fillPatternDefaults
+            fillPatternDefaults,
+            fillImageDefaults
         );
     }
 
@@ -668,7 +669,7 @@ export class BarSeries extends AbstractBarSeries<
     ) {
         const { id: seriesId, properties } = this;
 
-        const { xKey, yKey, itemStyler, fillGradientDefaults, fillPatternDefaults } = properties;
+        const { xKey, yKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
 
         if (itemStyler == null) return;
 
@@ -688,7 +689,7 @@ export class BarSeries extends AbstractBarSeries<
             });
         });
 
-        return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults);
+        return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
     }
 
     protected override updateDatumNodes(opts: { datumSelection: Selection<Rect, BarNodeDatum>; isHighlight: boolean }) {
@@ -795,6 +796,7 @@ export class BarSeries extends AbstractBarSeries<
             lineDashOffset,
             fillGradientDefaults,
             fillPatternDefaults,
+            fillImageDefaults,
         } = this.properties;
 
         return {
@@ -809,7 +811,8 @@ export class BarSeries extends AbstractBarSeries<
                     lineDashOffset,
                 },
                 fillGradientDefaults,
-                fillPatternDefaults
+                fillPatternDefaults,
+                fillImageDefaults
             ),
         };
     }

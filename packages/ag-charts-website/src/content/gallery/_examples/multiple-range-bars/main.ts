@@ -55,6 +55,7 @@ const options: AgChartOptions = {
                     strokeOpacity: 0.5,
                     label: {
                         text: '42 ℃',
+                        position: 'top',
                     },
                 },
                 {

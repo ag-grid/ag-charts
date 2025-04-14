@@ -43,7 +43,7 @@ const {
     Group,
     BBox,
     ContinuousScale,
-    OrdinalTimeScale,
+    DiscreteTimeScale,
     findMinMax,
     getShapeStyle,
     getShapeFill,
@@ -145,7 +145,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))) return;
+        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || DiscreteTimeScale.is(xAxis.scale))) {
+            return;
+        }
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
@@ -442,7 +444,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const seriesFill = getShapeFill(
             this.properties.fill,
             this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
         );
         const fillBBox = this.getShapeFillBBox();
 
@@ -684,7 +687,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 lineDashOffset: marker.lineDashOffset,
             },
             marker.fillGradientDefaults,
-            marker.fillPatternDefaults
+            marker.fillPatternDefaults,
+            marker.fillImageDefaults
         );
 
         return {

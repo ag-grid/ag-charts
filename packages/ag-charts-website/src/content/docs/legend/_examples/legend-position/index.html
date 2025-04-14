@@ -1,11 +1,12 @@
-<div class="toolbar">
-    <button onclick="setLegendEnabled(true)">Show Legend</button>
-    <button onclick="setLegendEnabled(false)">Hide Legend</button>
-    <hr />
-    Legend Position:
-    <button class="button--code" onclick="updateLegendPosition('right')">'right'</button>
-    <button class="button--code" onclick="updateLegendPosition('bottom')">'bottom'</button>
-    <button class="button--code" onclick="updateLegendPosition('left')">'left'</button>
-    <button class="button--code" onclick="updateLegendPosition('top')">'top'</button>
+<div class="example-controls">
+    <div class="controls-row">
+        <button onclick="setLegendEnabled(true)">Show Legend</button>
+        <button class="gap-right" onclick="setLegendEnabled(false)">Hide Legend</button>
+        <span>Legend Position:</span>
+        <button onclick="updateLegendPosition('right')"><code>'right'</code></button>
+        <button onclick="updateLegendPosition('bottom')"><code>'bottom'</code></button>
+        <button onclick="updateLegendPosition('left')"><code>'left'</code></button>
+        <button onclick="updateLegendPosition('top')"><code>'top'</code></button>
+    </div>
 </div>
 <div id="myChart"></div>

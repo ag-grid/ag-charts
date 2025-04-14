@@ -157,12 +157,17 @@ export interface AgBaseAxisLabelOptions extends AgBaseAxisLabelStyleOptions {
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
 }
 
-export interface FormattableLabel {
+export interface AgNumericAxisFormattableLabelOptions extends AgBaseAxisLabelOptions {
     /** Format string used when rendering labels. */
     format?: string;
 }
 
-export interface AgBaseAxisFormattableLabelOptions extends AgBaseAxisLabelOptions, FormattableLabel {}
+export interface AgTimeAxisFormattableLabelOptions extends AgBaseAxisLabelOptions {
+    /** Format string used when rendering labels. */
+    format?: string | Partial<Record<TimeIntervalUnit, string>>;
+}
+
+export type AgFormattableLabelOptions = AgNumericAxisFormattableLabelOptions & AgTimeAxisFormattableLabelOptions;
 
 export interface AgAxisGridStyle {
     /** The colour of the grid line. */
@@ -193,3 +198,5 @@ export interface TimeInterval {
      */
     range(start: Date, stop: Date, params?: { extend?: boolean }): Date[];
 }
+
+export type TimeIntervalUnit = 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'month' | 'year';

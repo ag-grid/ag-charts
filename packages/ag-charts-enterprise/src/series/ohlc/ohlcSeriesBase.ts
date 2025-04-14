@@ -32,7 +32,7 @@ const {
     computeBarFocusBounds,
     visibleRangeIndices,
     ContinuousScale,
-    OrdinalTimeScale,
+    DiscreteTimeScale,
     BandScale,
     getShapeStyle,
 } = _ModuleSupport;
@@ -155,7 +155,9 @@ export abstract class OhlcSeriesBase<
         processedData: _ModuleSupport.UngroupedData<any>
     ) {
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))) return;
+        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || DiscreteTimeScale.is(xAxis.scale))) {
+            return;
+        }
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const highValues = dataModel.resolveColumnById(this, `highValue`, processedData);
@@ -431,8 +433,8 @@ export abstract class OhlcSeriesBase<
             lineDash: highlightStyle?.lineDash ?? item.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
         };
-        return item.fillGradientDefaults && item.fillPatternDefaults
-            ? getShapeStyle(shapeStyle, item.fillGradientDefaults, item.fillPatternDefaults)
+        return item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults
+            ? getShapeStyle(shapeStyle, item.fillGradientDefaults, item.fillPatternDefaults, item.fillImageDefaults)
             : shapeStyle;
     }
 
@@ -466,8 +468,8 @@ export abstract class OhlcSeriesBase<
             });
         });
 
-        return item.fillGradientDefaults && item.fillPatternDefaults
-            ? getShapeStyle(overrides, item.fillGradientDefaults, item.fillPatternDefaults)
+        return item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults
+            ? getShapeStyle(overrides, item.fillGradientDefaults, item.fillPatternDefaults, item.fillImageDefaults)
             : overrides;
     }
 
@@ -517,8 +519,8 @@ export abstract class OhlcSeriesBase<
             lineDash: item.lineDash ?? [0],
             lineDashOffset: item.lineDashOffset ?? 0,
         };
-        if (item.fillGradientDefaults && item.fillPatternDefaults) {
-            marker = getShapeStyle(marker, item.fillGradientDefaults, item.fillPatternDefaults);
+        if (item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults) {
+            marker = getShapeStyle(marker, item.fillGradientDefaults, item.fillPatternDefaults, item.fillImageDefaults);
         }
 
         return this.formatTooltipWithContext(

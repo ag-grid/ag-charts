@@ -42,6 +42,12 @@ export abstract class RadiusAxis<
     @Property
     positionAngle: number = 0;
 
+    protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line, _ModuleSupport.TickDatum>(
+        this.gridLineGroup,
+        Line,
+        false
+    );
+
     private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);
     private generatedTicks: GeneratedTicks | undefined = undefined;
 
@@ -79,7 +85,7 @@ export abstract class RadiusAxis<
         this.destroyFns.push(this.title.caption.registerInteraction(this.moduleCtx, 'afterend'));
     }
 
-    protected override getAxisTransform() {
+    private getAxisTransform() {
         const maxRadius = this.scale.range[0];
         const { translation, positionAngle, innerRadiusRatio } = this;
         const innerRadius = maxRadius * innerRadiusRatio;
@@ -97,6 +103,7 @@ export abstract class RadiusAxis<
         super.update();
 
         this.updateTitle();
+        this.updateGridLines();
 
         const { enabled, stroke, width } = this.line;
         this.lineNode.setProperties({
@@ -119,6 +126,22 @@ export abstract class RadiusAxis<
         this.headingLabelGroup.setProperties(axisTransform);
     }
 
+    calculateRotations() {
+        const rotation = 0;
+        // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
+        // flip the labels to avoid upside-down text, when the axis is rotated
+        // such that it is in the right hemisphere, i.e. the angle of rotation
+        // is in the [0, π] interval.
+        // The rotation angle is normalized, so that we have an easier time checking
+        // if it's in the said interval. Since the axis is always rendered vertically
+        // and then rotated, zero rotation means 12 (not 3) o-clock.
+        // -1 = flip
+        //  1 = don't flip (default)
+        const parallelFlipRotation = 0;
+        const regularFlipRotation = -Math.PI / 2;
+        return { rotation, parallelFlipRotation, regularFlipRotation };
+    }
+
     override calculateTickLayout(
         domain: D[],
         niceMode: _ModuleSupport.NiceMode,
@@ -131,7 +154,8 @@ export abstract class RadiusAxis<
         ticks: D[];
         fractionDigits: number;
     } {
-        const { parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
+        const parallelFlipRotation = 0;
+        const regularFlipRotation = -Math.PI / 2;
 
         const visibleRange: [number, number] = [0, 1];
         const sideFlag = this.label.getSideFlag();
@@ -146,6 +170,7 @@ export abstract class RadiusAxis<
             regularFlipRotation,
             labelX,
             sideFlag,
+            removeOverflowLabels: false,
         });
 
         const { tickData, primaryTickCount = initialPrimaryTickCount } = tickGenerationResult;
@@ -168,12 +193,10 @@ export abstract class RadiusAxis<
         const { ticks, labels } = generatedTicks;
 
         this.gridLineGroupSelection.update(this.gridLength ? ticks : []);
-        this.tickLineGroupSelection.update(ticks);
         this.tickLabelGroupSelection.update(labels);
         this.gridPathSelection.update(this.gridLine.enabled ? this.prepareGridPathTickData(ticks) : []);
 
         this.gridLineGroupSelection.cleanup();
-        this.tickLineGroupSelection.cleanup();
         this.tickLabelGroupSelection.cleanup();
         this.gridPathSelection.cleanup();
     }
@@ -199,9 +222,7 @@ export abstract class RadiusAxis<
         });
     }
 
-    protected override updateGridLines(): void {
-        super.updateGridLines();
-
+    private updateGridLines(): void {
         const {
             gridLine: { style, width },
             shape,
@@ -332,25 +353,27 @@ export abstract class RadiusAxis<
         tickGenerationResult: _ModuleSupport.TickGenerationResult
     ): _ModuleSupport.LabelNodeDatum {
         const { label } = this;
-        const { combinedRotation, textBaseline, textAlign } = tickGenerationResult;
+        const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const range = this.scale.range;
-        const text = datum.tickLabel;
+        const text = datum.tickLabel ?? '';
         const sideFlag = label.getSideFlag();
         const labelX = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
         const visible = text !== '' && text != null;
+
+        const combinedRotation = rotation;
 
         return {
             ...this.getLabelStyles({ value: datum.tickLabel }),
             tickId: datum.tickId,
             rotation: combinedRotation,
-            rotationCenterX: labelX,
-            translationY: datum.translationY,
             text,
             textAlign,
             textBaseline,
             visible,
             x: labelX,
-            y: 0,
+            y: datum.translationY,
+            rotationCenterX: labelX,
+            rotationCenterY: datum.translationY,
             range,
         };
     }

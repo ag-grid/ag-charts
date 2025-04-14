@@ -19,7 +19,7 @@ import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag
 
 import type { MementoOriginator } from '../../api/state/memento';
 import { ContinuousScale } from '../../scale/continuousScale';
-import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
+import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
@@ -92,7 +92,7 @@ class ZoomManagerAutoScaleAxis {
 
 const rangeValidator = (axis?: ChartAxisLike) =>
     attachDescription((value, { options }) => {
-        if (!ContinuousScale.is(axis?.scale) && !OrdinalTimeScale.is(axis?.scale)) return true;
+        if (!ContinuousScale.is(axis?.scale) && !DiscreteTimeScale.is(axis?.scale)) return true;
         if (value == null || options.end == null) return true;
         return value <= options.end;
     }, `to be less than end`);
@@ -173,7 +173,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         const { invalid } = validate(blob, zoomMementoDefs);
         if (invalid.length > 0) {
-            messages.push(...invalid.map((e) => e.message));
+            messages.push(...invalid.map(String));
             return false;
         }
 
@@ -576,7 +576,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
     private getRangeDirection(ratio: ZoomState, direction: ChartAxisDirection): AgZoomRange | undefined {
         const axis = this.getPrimaryAxis(direction);
-        if (!axis || (!ContinuousScale.is(axis.scale) && !OrdinalTimeScale.is(axis.scale))) return;
+        if (!axis || (!ContinuousScale.is(axis.scale) && !DiscreteTimeScale.is(axis.scale))) return;
 
         const extents = this.getDomainPixelExtents(axis);
         if (!extents) return;

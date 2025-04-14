@@ -10,10 +10,12 @@ import {
 } from 'ag-charts-core';
 import type {
     AgBaseAxisOptions,
+    AgCartesianAxisOptions,
     AgChartInstance,
     AgChartOptions,
     AgColorType,
     AgInitialStateLegendOptions,
+    AgPolarAxisOptions,
 } from 'ag-charts-types';
 
 import type { AxisOptionModule } from '../module/axisOptionModule';
@@ -41,6 +43,7 @@ import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { Widget } from '../widget/widget';
 import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
+import type { TimeAxis } from './axis/timeAxis';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -469,7 +472,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     detachAndClear() {
         this.container = undefined;
-        this.ctx.scene.clear();
+        this.ctx.scene.clearCanvas();
     }
 
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
@@ -540,6 +543,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
     }
 
+    private apiUpdate = false;
     private _pendingFactoryUpdatesCount = 0;
     private _performUpdateSkipAnimations: boolean = false;
     private readonly _performUpdateNotify = new AsyncAwaitQueue();
@@ -570,8 +574,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
             skipAnimations,
             seriesToUpdate = this.series,
             newAnimationBatch,
+            apiUpdate = false,
         } = opts ?? {};
 
+        this.apiUpdate = apiUpdate;
         this.ctx.widgets.seriesWidget.setDragTouchEnabled(this.touch.dragAction !== 'none');
 
         if (forceNodeDataRefresh) {
@@ -716,7 +722,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
         }
 
         if (!this.destroyed) {
-            ctx.updateService.dispatchUpdateComplete();
+            ctx.updateService.dispatchUpdateComplete(this.apiUpdate);
+            this.apiUpdate = false;
             this.ctx.domManager.setDataBoolean('updatePending', false);
             this.runningUpdateType = ChartUpdateType.NONE;
             this.syncStatus = 'ready';
@@ -1142,7 +1149,8 @@ export abstract class Chart extends Observable implements ModuleInstance {
         while (
             this._pendingFactoryUpdatesCount > 0 ||
             this.performUpdateType !== ChartUpdateType.NONE ||
-            this.runningUpdateType !== ChartUpdateType.NONE
+            this.runningUpdateType !== ChartUpdateType.NONE ||
+            this.ctx.scene.waitingForUpdate()
         ) {
             if (this.destroyed) break;
 
@@ -1166,6 +1174,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
             if (isInputPending()) {
                 await pause();
+            }
+
+            if (this.ctx.scene.waitingForUpdate()) {
+                await pause(50);
             }
         }
     }
@@ -1272,7 +1284,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
             seriesStatus,
             forceNodeDataRefresh,
         });
-        this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
+        this.update(updateType, { apiUpdate: true, forceNodeDataRefresh, newAnimationBatch: true });
 
         this.firstApply = false;
     }
@@ -1402,6 +1414,12 @@ export abstract class Chart extends Observable implements ModuleInstance {
                         depthOptions[i].label.enabled = false;
                     }
                 }
+            } else if (
+                horizontalAxis.type === 'time' ||
+                horizontalAxis.type === 'unit-time' ||
+                horizontalAxis.type === 'ordinal-time'
+            ) {
+                (horizontalAxis as TimeAxis).division.enabled = false;
             }
 
             const step = intervalOptions?.step;
@@ -1533,7 +1551,13 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
         skip = ['axes[].type', ...skip];
 
-        const { axes } = options;
+        // @todo(AG-14472) - Remove the .map
+        const axes: AgCartesianAxisOptions[] | AgPolarAxisOptions[] = options.axes.map((axis): any => {
+            if (axis.type === 'time' && (axis as any).unit != null) {
+                return { ...axis, type: 'unit-time' };
+            }
+            return axis;
+        });
         const forceRecreate = seriesStatus === 'replaced';
         const matchingTypes =
             !forceRecreate && chart.axes.length === axes.length && chart.axes.every((a, i) => a.type === axes[i].type);

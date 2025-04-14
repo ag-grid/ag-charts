@@ -1,9 +1,12 @@
-<div class="toolbar">
-    <button onclick="missingYValues()">Missing Y Values</button>
-    <button onclick="missingXValues()">Missing X Values</button>
-    <button onclick="reset()">Reset</button>
-    <hr />
-    <button onclick="stack()">Stack</button>
-    <button onclick="group()">Group</button>
+<div class="example-controls">
+    <div class="controls-row">
+        <button onclick="missingYValues()">Missing Y Values</button>
+        <button onclick="missingXValues()">Missing X Values</button>
+    </div>
+    <div class="controls-row">
+        <button onclick="stack()">Stack</button>
+        <button onclick="group()">Group</button>
+        <button class="push-right" onclick="reset()">Reset</button>
+    </div>
 </div>
 <div id="myChart"></div>

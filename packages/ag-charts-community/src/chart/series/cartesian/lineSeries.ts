@@ -475,7 +475,8 @@ export class LineSeries extends CartesianSeries<
                 lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
             },
             marker.fillGradientDefaults,
-            marker.fillPatternDefaults
+            marker.fillPatternDefaults,
+            marker.fillImageDefaults
         );
     }
 

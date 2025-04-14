@@ -9,8 +9,6 @@ export interface ExampleSettings {
 
 export type FileContents = Record<string, string>;
 
-export type Layout = 'grid' | 'toolbar' | 'none';
-
 export interface ExampleConfig {
     /**
      * Shadow DOM selector that the chart is inserted into
@@ -32,7 +30,6 @@ export interface GeneratedContents {
     isEnterprise: boolean;
     hasLocale: boolean;
     hasExampleConsoleLog: boolean;
-    layout: Layout;
     sourceFileList: string[];
     boilerPlateFiles: FileContents;
     providedExamples: FileContents;

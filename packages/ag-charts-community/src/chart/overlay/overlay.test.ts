@@ -120,6 +120,47 @@ describe('Overlay', () => {
             expect(overlayEl?.innerText).toEqual('TEST CUSTOM NO DATA TEXT');
         });
 
+        test('custom no data text with html', async () => {
+            chart = await createChart({
+                data: [],
+                series: [{ xKey: 'x', yKey: 'y1' }],
+                overlays: {
+                    noData: { renderer: () => '<div>TEST CUSTOM NO DATA TEXT</div>' },
+                },
+            });
+            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.children;
+            expect(overlayEl).toMatchInlineSnapshot(`
+HTMLCollection [
+  <div>
+    TEST CUSTOM NO DATA TEXT
+  </div>,
+]
+`);
+        });
+
+        test('custom no data text with multiple html elements', async () => {
+            chart = await createChart({
+                data: [],
+                series: [{ xKey: 'x', yKey: 'y1' }],
+                overlays: {
+                    noData: { renderer: () => '<div>TEST CUSTOM NO DATA TEXT</div><div>CUSTOM NO DATA TEXT 2</div>' },
+                },
+            });
+            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.children;
+            expect(overlayEl).toMatchInlineSnapshot(`
+HTMLCollection [
+  <div>
+    <div>
+      TEST CUSTOM NO DATA TEXT
+    </div>
+    <div>
+      CUSTOM NO DATA TEXT 2
+    </div>
+  </div>,
+]
+`);
+        });
+
         test('custom no visible series text', async () => {
             chart = await createChart({
                 data: [

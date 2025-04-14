@@ -1,8 +1,8 @@
-import { type AgRadialColumnSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadialColumnSeriesOptions, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
-    callback,
+    callbackDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
@@ -29,7 +29,12 @@ export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptio
     cornerRadius: positiveNumber,
     columnWidthRatio: ratio,
     maxColumnWidthRatio: ratio,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgRadialSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cornerRadius: positiveNumber,
+    }),
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesOptionsDefs,

@@ -21,6 +21,7 @@ export { NewHistogramSeriesModule } from './chart/series/cartesian/histogramSeri
 export { NewScatterSeriesModule } from './chart/series/cartesian/scatterSeriesModule';
 
 export * from './util/angle';
+export * from './util/callbackCache';
 export * from './util/date';
 export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties } from './util/decorator';
 export * from './util/dom';
@@ -122,6 +123,7 @@ export * from './chart/axis/polarAxis';
 export * from './chart/axis/categoryAxis';
 export * from './chart/axis/groupedCategoryAxis';
 export * from './chart/axis/cartesianAxis';
+export { TimeAxisDivision } from './chart/axis/timeAxis';
 export { AxisTicks } from './chart/axis/axisTicks';
 export * from './chart/chartAxis';
 export * from './chart/crossline/crossLine';
@@ -148,7 +150,7 @@ export { setAttribute, setAttributes, setElementStyle } from './util/attributeUt
 export { Debug } from './util/debug';
 export { isContinuous } from './util/value';
 export type { PlacedLabel, PointLabelDatum, LabelPlacement } from './scene/util/labelPlacement';
-export { isGradientFill, isPatternFill, isGradientOrPatternFill } from './scene/util/fill';
+export { isGradientFill, isPatternFill, isImageFill, isGradientOrPatternFill } from './scene/util/fill';
 export * from './util/bboxinterface';
 export { Padding } from './util/padding';
 export { lineDistanceSquared } from './util/distance';
@@ -157,7 +159,9 @@ export * from './scale/logScale';
 export * from './scale/bandScale';
 export * from './scale/categoryScale';
 export * from './scale/continuousScale';
+export * from './scale/discreteTimeScale';
 export * from './scale/ordinalTimeScale';
+export * from './scale/unitTimeScale';
 export * from './scale/colorScale';
 export * from './scale/linearScale';
 export * from './scale/scale';

@@ -15,6 +15,7 @@ import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { TransformableText } from '../scene/shape/text';
+import type { Padding } from '../util/padding';
 import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
 import type { AxisTick, TickInterval } from './axis/axisTick';
@@ -51,7 +52,7 @@ export interface AxisGroups {
 
 export interface ChartAxis {
     attachAxis(opts: AxisGroups): void;
-    calculateLayout(primaryTickCount?: number): { primaryTickCount?: number; bbox?: BBox };
+    calculateLayout(primaryTickCount?: number, chartPadding?: Padding): { primaryTickCount?: number; bbox?: BBox };
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
     createAxisContext(): AxisContext;
@@ -87,7 +88,6 @@ export interface ChartAxis {
     position?: AgCartesianAxisPosition;
     range: [number, number];
     reverse: boolean;
-    rotation: number;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
     thickness?: number;
@@ -105,7 +105,7 @@ export interface ChartAxisLabel extends FontOptions {
     autoRotateAngle?: number;
     avoidCollisions: boolean;
     enabled: boolean;
-    format?: string;
+    format?: string | Record<string, string>;
     formatter?: Formatter<AgAxisLabelFormatterParams>;
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
     minSpacing?: number;

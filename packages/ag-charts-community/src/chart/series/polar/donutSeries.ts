@@ -248,6 +248,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                     id: 'radiusValue',
                     min: this.properties.radiusMin ?? 0,
                     max: this.properties.radiusMax,
+                    missingValue: this.properties.radiusMax ?? 1,
                     processor,
                 }),
                 valueProperty(radiusKey, radiusScaleType, { id: `radiusRaw`, processor }), // Raw value pass-through.
@@ -588,7 +589,15 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 strokeOpacity: 1,
                 strokeWidth: 4,
                 rotation: 0,
-            } as any
+            } as any,
+            {
+                type: 'image',
+                fallback: defaultPatternFill,
+                fit: 'stretch',
+                repetition: 'repeat',
+                rotation: 0,
+                scale: 1,
+            }
         );
     }
 

@@ -30,6 +30,7 @@ function getValidationFn(scaleType?: ScaleType) {
         case 'number':
         case 'log':
         case 'ordinal-time':
+        case 'unit-time':
         case 'time':
         case 'color':
             return basicContinuousCheckDatumValidation;
@@ -334,16 +335,16 @@ export function normalisePropertyTo(
 
 const ANIMATION_VALIDATION_UNIQUE_KEYS = 0b01;
 const ANIMATION_VALIDATION_ORDERED_KEYS = 0b10;
-const animationValidationProcessKey = (
+function animationValidationProcessKey(
     count: number,
     def: DatumPropertyDefinition<unknown>,
     keyValues: any[],
     column: any[]
-) => {
+) {
     let validation = ANIMATION_VALIDATION_UNIQUE_KEYS | ANIMATION_VALIDATION_ORDERED_KEYS;
 
     if (def.valueType === 'category') {
-        if (keyValues.length !== count) validation &= ~ANIMATION_VALIDATION_UNIQUE_KEYS;
+        if (keyValues.length < count) validation &= ~ANIMATION_VALIDATION_UNIQUE_KEYS;
 
         return validation;
     }
@@ -357,7 +358,7 @@ const animationValidationProcessKey = (
     }
 
     return validation;
-};
+}
 
 export function animationValidation(valueKeyIds?: string[]): ProcessorOutputPropertyDefinition {
     return {

@@ -26,8 +26,7 @@ class Dimensions {
 }
 
 class TreeNode {
-    x: number = 0;
-    y: number = 0;
+    position: number = 0;
     subtreeLeft: number = NaN;
     subtreeRight: number = NaN;
     children: TreeNode[] = [];
@@ -39,8 +38,8 @@ class TreeNode {
     change: number = 0;
     shift: number = 0;
     index: number = 0;
-    // screenX is meant to be recomputed from (layout) x when the tree is resized (without performing another layout)
-    screenX: number = 0;
+    // screen is meant to be recomputed from (layout) when the tree is resized (without performing another layout)
+    screen: number = 0;
 
     constructor(
         public label: string = '',
@@ -211,8 +210,7 @@ function firstWalk(node: TreeNode) {
 }
 
 function secondWalk(v: TreeNode, m: number, layout: TreeLayout) {
-    v.x = v.prelim + m;
-    v.y = v.depth;
+    v.position = v.prelim + m;
     layout.insertNode(v);
     for (const w of v.children) {
         secondWalk(w, m + v.mod, layout);
@@ -237,10 +235,10 @@ function thirdWalk(v: TreeNode) {
     if (children.length) {
         v.subtreeLeft = children[0].subtreeLeft;
         v.subtreeRight = children[children.length - 1].subtreeRight;
-        v.x = (v.subtreeLeft + v.subtreeRight) / 2;
+        v.position = (v.subtreeLeft + v.subtreeRight) / 2;
     } else {
-        v.subtreeLeft = v.x;
-        v.subtreeRight = v.x;
+        v.subtreeLeft = v.position;
+        v.subtreeRight = v.position;
     }
 }
 
@@ -265,19 +263,21 @@ export class TreeLayout {
         if (this.depth < node.depth) {
             this.depth = node.depth;
         }
-        this.dimensions.update(node.x, node.y);
+        this.dimensions.update(node.position, node.depth);
         this.nodes.push(node);
     }
 
-    scalingX(width: number, flip?: boolean) {
-        let scalingX = 1;
-        if (width > 0) {
+    scaling(extent: number, flip?: boolean) {
+        let scaling = 1;
+        if (extent > 0) {
             const { left, right } = this.dimensions;
-            scalingX = width / (right - left);
+            if (right !== left) {
+                scaling = extent / (right - left);
+            }
         }
         if (flip) {
-            scalingX *= -1;
+            scaling *= -1;
         }
-        return scalingX;
+        return scaling;
     }
 }

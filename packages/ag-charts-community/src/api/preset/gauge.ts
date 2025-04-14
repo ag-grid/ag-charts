@@ -148,6 +148,9 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         ...rest,
     });
 
+    if ('context' in opts) {
+        chartOpts['context'] = opts.context;
+    }
     return {
         ...chartOpts,
         series: [seriesOpts],
@@ -231,6 +234,9 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         ...rest,
     });
 
+    if ('context' in opts) {
+        chartOpts['context'] = opts.context;
+    }
     return {
         ...chartOpts,
         series: [seriesOpts],

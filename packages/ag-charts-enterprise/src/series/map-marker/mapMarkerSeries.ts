@@ -388,7 +388,7 @@ export class MapMarkerSeries
             const sizeValue = sizeValues?.[datumIndex];
             const labelValue = labelValues?.[datumIndex];
 
-            const size = sizeValue != null ? sizeScale.convert(sizeValue, true) : properties.size;
+            const size = sizeValue != null ? sizeScale.convert(sizeValue, { clamp: true }) : properties.size;
 
             const projectedGeometry = idValue != null ? projectedGeometries?.get(idValue) : undefined;
             if (idValue != null && projectGeometry == null) {
@@ -571,7 +571,8 @@ export class MapMarkerSeries
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
             this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
         );
     }
 
@@ -596,7 +597,7 @@ export class MapMarkerSeries
         }
 
         if (sizeValue != null) {
-            overrides.size = sizeScale.convert(sizeValue, true);
+            overrides.size = sizeScale.convert(sizeValue, { clamp: true });
         }
 
         if (itemStyler != null) {
@@ -732,7 +733,8 @@ export class MapMarkerSeries
                     lineDashOffset,
                 },
                 this.properties.fillGradientDefaults,
-                this.properties.fillPatternDefaults
+                this.properties.fillPatternDefaults,
+                this.properties.fillImageDefaults
             ),
         };
     }

@@ -44,7 +44,12 @@ export class Overlay extends BaseProperties {
             } else {
                 const tempDiv = createElement('div');
                 tempDiv.innerHTML = htmlContent;
-                this.content = tempDiv.firstElementChild! as HTMLElement;
+                const { firstElementChild } = tempDiv;
+                if (firstElementChild instanceof HTMLElement && tempDiv.childElementCount === 1) {
+                    this.content = firstElementChild;
+                } else {
+                    this.content = tempDiv;
+                }
             }
         } else {
             const content = createElement('div', {

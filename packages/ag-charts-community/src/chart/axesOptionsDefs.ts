@@ -8,6 +8,8 @@ import {
     attachDescription,
     boolean,
     callback,
+    callbackDefs,
+    callbackOf,
     color,
     defined,
     fontOptionsDef,
@@ -17,6 +19,8 @@ import {
     lessThan,
     lineDashOptionsDef,
     number,
+    object,
+    optionsDefs,
     or,
     positiveNumber,
     positiveNumberNonZero,
@@ -24,21 +28,26 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
     union,
 } from 'ag-charts-core';
 import type {
     AgAxisGridStyle,
     AgBaseAxisLabelOptions,
+    AgBaseAxisLabelStyleOptions,
     AgBaseAxisOptions,
     AgBaseCartesianAxisLabelOptions,
     AgBaseCartesianAxisOptions,
     AgBaseCrossLineLabelOptions,
     AgBaseCrossLineOptions,
     AgBaseCrosshairLabel,
+    AgCartesianAxisLabelOptions,
     AgCartesianCrossLineOptions,
     AgContinuousAxisOptions,
     AgCrosshairLabel,
+    AgCrosshairLabelRendererResult,
     AgCrosshairOptions,
+    AgTimeAxisDivision,
 } from 'ag-charts-types';
 
 import { TimeInterval } from '../util/time';
@@ -108,7 +117,10 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     minSpacing: positiveNumber,
     spacing: positiveNumber,
     formatter: callback,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
+        ...fontOptionsDef,
+        spacing: number,
+    }),
     ...fontOptionsDef,
 };
 
@@ -116,6 +128,29 @@ export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabel
     autoRotate: boolean,
     autoRotateAngle: number,
     ...commonAxisLabelOptionsDefs,
+};
+
+export const cartesianNumericAxisLabel: OptionsDefs<AgCartesianAxisLabelOptions> = {
+    format: numberFormatValidator,
+    ...cartesianAxisLabelOptionsDefs,
+};
+
+export const cartesianTimeAxisLabel: OptionsDefs<AgCartesianAxisLabelOptions> = {
+    format: or(string, object),
+    ...cartesianAxisLabelOptionsDefs,
+};
+
+const cartesianAxisTick = {
+    enabled: boolean,
+    width: positiveNumber,
+    size: positiveNumber,
+    stroke: color,
+};
+
+export const cartesianTimeAxisDivision: OptionsDefs<AgTimeAxisDivision> = {
+    enabled: boolean,
+    label: cartesianTimeAxisLabel,
+    tick: cartesianAxisTick,
 };
 
 export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>> = {
@@ -141,27 +176,22 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
         width: positiveNumber,
         stroke: color,
     },
-    tick: {
-        enabled: boolean,
-        width: positiveNumber,
-        size: positiveNumber,
-        stroke: color,
-    },
+    tick: cartesianAxisTick,
 };
 
 // @ts-expect-error undocumented option
-commonAxisOptionsDefs.context = defined;
+commonAxisOptionsDefs.context = undocumented(() => true);
 
 // @ts-expect-error undocumented option
-commonAxisOptionsDefs.layoutConstraints = {
+commonAxisOptionsDefs.layoutConstraints = undocumented({
     stacked: required(boolean),
     align: required(union('start', 'end')),
     unit: required(union('percent', 'px')),
     width: required(positiveNumber),
-};
+});
 
 export const cartesianAxisOptionsDefs: OptionsDefs<
-    Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'crosshair'>
+    Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'primaryLabel' | 'crosshair'>
 > = {
     ...commonAxisOptionsDefs,
     keys: arrayOf(string),
@@ -182,7 +212,20 @@ export function cartesianAxisCrosshairOptions<T extends boolean>(canFormat?: T) 
         enabled: boolean,
         xOffset: number,
         yOffset: number,
-        renderer: callback,
+        renderer: callbackOf(
+            or(
+                string,
+                optionsDefs<AgCrosshairLabelRendererResult>(
+                    {
+                        text: string,
+                        color: color,
+                        backgroundColor: color,
+                        opacity: ratio,
+                    },
+                    'crosshair label renderer result object'
+                )
+            )
+        ),
     };
     if (canFormat) {
         (crosshairLabel as OptionsDefs<AgCrosshairLabel>).format = string;
@@ -205,9 +248,7 @@ export function continuousAxisOptions(
         max: and(validDatum, greaterThan('min')),
         nice: boolean,
         interval: {
-            step: supportTimeInterval
-                ? or(positiveNumberNonZero, or(positiveNumberNonZero, instanceOf(TimeInterval)))
-                : positiveNumberNonZero,
+            step: supportTimeInterval ? or(positiveNumberNonZero, instanceOf(TimeInterval)) : positiveNumberNonZero,
             values: arrayOf(validDatum),
             minSpacing: and(positiveNumber, lessThan('maxSpacing')),
             maxSpacing: and(positiveNumber, greaterThan('minSpacing')),

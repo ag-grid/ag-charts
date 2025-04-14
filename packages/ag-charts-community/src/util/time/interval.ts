@@ -1,4 +1,5 @@
 import { Logger } from 'ag-charts-core';
+import type { TimeIntervalUnit } from 'ag-charts-types';
 
 /**
  * Converts the specified Date into a count of years,
@@ -16,11 +17,19 @@ type DecodeFn = (encoded: number) => Date;
  */
 type RangeFn = (start: Date, end: Date) => () => void;
 
+interface RangeParams {
+    extend?: boolean;
+    visibleRange?: [number, number];
+}
+
 /**
  * The interval methods don't mutate Date parameters.
  */
 export class TimeInterval {
     constructor(
+        public readonly unit: TimeIntervalUnit,
+        public readonly milliseconds: number | undefined,
+        public readonly hierarchy: TimeInterval | undefined,
         protected readonly _encode: EncodeFn,
         protected readonly _decode: DecodeFn,
         protected readonly _rangeCallback?: RangeFn
@@ -47,44 +56,46 @@ export class TimeInterval {
         return this._decode(e + 1);
     }
 
+    private rangeIndices(
+        start: Date,
+        stop: Date,
+        { extend = false, visibleRange = [0, 1] }: RangeParams
+    ): [number, number] {
+        if (start.getTime() > stop.getTime()) {
+            [start, stop] = [stop, start];
+        }
+
+        if (visibleRange != null) {
+            const delta = stop.getTime() - start.getTime();
+            const t0 = start.getTime();
+
+            start = new Date(t0 + visibleRange[0] * delta);
+            stop = new Date(t0 + visibleRange[1] * delta);
+        }
+
+        const e0 = this._encode(extend ? this.floor(start) : this.ceil(start));
+        const e1 = this._encode(extend ? this.ceil(stop) : this.floor(stop));
+
+        return [e0, e1];
+    }
+
     /**
      * Returns an array of dates representing every interval boundary after or equal to start (inclusive) and before stop (exclusive).
      * @param start Range start.
      * @param stop Range end.
      * @param extend If specified, the requested range will be extended to the closest "nice" values.
      */
-    range(
-        start: Date,
-        stop: Date,
-        { extend = false, visibleRange = [0, 1] }: { extend?: boolean; visibleRange?: [number, number] } = {}
-    ): Date[] {
-        let reversed = false;
+    range(start: Date, stop: Date, params: RangeParams = {}): Date[] {
         if (start.getTime() > stop.getTime()) {
             [start, stop] = [stop, start];
-            reversed = true;
         }
 
         const rangeCallback = this._rangeCallback?.(start, stop);
 
-        const e0 = this._encode(extend ? this.floor(start) : this.ceil(start));
-        const e1 = this._encode(extend ? this.ceil(stop) : this.floor(stop));
-        if (e1 < e0) {
-            return [];
-        }
-
-        const de = e1 - e0;
-        let startIndex: number;
-        let endIndex: number;
-        if (reversed) {
-            startIndex = Math.ceil(e0 + (1 - visibleRange[1]) * de);
-            endIndex = Math.floor(e0 + (1 - visibleRange[0]) * de);
-        } else {
-            startIndex = Math.floor(e0 + visibleRange[0] * de);
-            endIndex = Math.ceil(e0 + visibleRange[1] * de);
-        }
+        const [e0, e1] = this.rangeIndices(start, stop, params);
 
         const range: Date[] = [];
-        for (let e = startIndex; e <= endIndex; e += 1) {
+        for (let e = e0; e <= e1; e++) {
             const d = this._decode(e);
             range.push(d);
         }
@@ -92,6 +103,11 @@ export class TimeInterval {
         rangeCallback?.();
 
         return range;
+    }
+
+    rangeCount(start: Date, stop: Date, params: RangeParams = {}) {
+        const [e0, e1] = this.rangeIndices(start, stop, params);
+        return e1 - e0;
     }
 }
 
@@ -111,6 +127,10 @@ export class CountableTimeInterval extends TimeInterval {
      * @param step
      */
     every(step: number, options?: CountableTimeIntervalOptions): TimeInterval {
+        if (step === 1) return this;
+
+        const { unit, milliseconds, hierarchy } = this;
+
         let offset = 0;
         let rangeCallback: RangeFn | undefined;
 
@@ -137,6 +157,13 @@ export class CountableTimeInterval extends TimeInterval {
         const encode = (date: Date) => Math.floor((this._encode(date) - offset) / step);
         const decode = (encoded: number) => this._decode(encoded * step + offset);
 
-        return new TimeInterval(encode, decode, rangeCallback);
+        return new TimeInterval(
+            unit,
+            milliseconds != null ? milliseconds * step : undefined,
+            hierarchy,
+            encode,
+            decode,
+            rangeCallback
+        );
     }
 }

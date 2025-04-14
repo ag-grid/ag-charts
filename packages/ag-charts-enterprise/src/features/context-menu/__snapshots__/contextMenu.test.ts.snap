@@ -116,3 +116,84 @@ HTMLCollection [
   </div>,
 ]
 `;
+
+exports[`Extra Actions callbacks 1`] = `
+[
+  {
+    "args": [
+      {
+        "event": "<Event>",
+        "type": "contextMenuEvent",
+      },
+    ],
+    "label": "myExtraAction",
+  },
+  {
+    "args": [
+      {
+        "event": "<Event>",
+        "type": "seriesContextMenuAction",
+      },
+    ],
+    "label": "myExtraSeriesAreaAction",
+  },
+  {
+    "args": [
+      CartesianSeriesNodeEvent {
+        "datum": {
+          "hats": 50,
+          "month": "Jul",
+          "sweaters": 70,
+        },
+        "defaultPrevented": false,
+        "event": "<Event>",
+        "seriesId": "BarSeries-1",
+        "type": "nodeContextMenuAction",
+        "xKey": "month",
+        "yKey": "sweaters",
+      },
+    ],
+    "label": "myExtraNodeAction",
+  },
+  {
+    "args": [
+      CartesianSeriesNodeEvent {
+        "datum": {
+          "hats": 30,
+          "month": "Aug",
+          "sweaters": 60,
+        },
+        "defaultPrevented": false,
+        "event": "<Event>",
+        "seriesId": "BarSeries-2",
+        "type": "nodeContextMenuAction",
+        "xKey": "month",
+        "yKey": "hats",
+      },
+    ],
+    "label": "myExtraNodeAction",
+  },
+  {
+    "args": [
+      {
+        "event": "<Event>",
+        "itemId": "sweaters",
+        "seriesId": "BarSeries-1",
+        "type": "contextmenu",
+      },
+    ],
+    "label": "myExtraLegendItemAction",
+  },
+  {
+    "args": [
+      {
+        "event": "<Event>",
+        "itemId": "hats",
+        "seriesId": "BarSeries-2",
+        "type": "contextmenu",
+      },
+    ],
+    "label": "myExtraLegendItemAction",
+  },
+]
+`;

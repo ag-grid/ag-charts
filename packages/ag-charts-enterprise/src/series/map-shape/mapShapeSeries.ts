@@ -446,7 +446,8 @@ export class MapShapeSeries
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
             },
             this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
         );
     }
 
@@ -487,7 +488,12 @@ export class MapShapeSeries
             Object.assign(overrides, itemStyle);
         }
 
-        return getShapeStyle(overrides, this.properties.fillGradientDefaults, this.properties.fillPatternDefaults);
+        return getShapeStyle(
+            overrides,
+            this.properties.fillGradientDefaults,
+            this.properties.fillPatternDefaults,
+            this.properties.fillImageDefaults
+        );
     }
 
     private updateDatumNodes(opts: {
@@ -607,7 +613,8 @@ export class MapShapeSeries
                     lineDashOffset,
                 },
                 this.properties.fillGradientDefaults,
-                this.properties.fillPatternDefaults
+                this.properties.fillPatternDefaults,
+                this.properties.fillImageDefaults
             ),
         };
     }

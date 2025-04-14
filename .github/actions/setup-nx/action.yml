@@ -9,10 +9,22 @@ inputs:
             - 'true'
             - 'false'
             - 'no-install'
+    fetch_base:
+        description: 'Shallow fetch latest branch.'
+        required: false
+        default: 'shallow'
+        options:
+            - 'shallow'
+            - 'full'
+            - 'skip'
     nx_restore:
         description: 'Restore Nx Cache.'
         required: false
         default: 'true'
+    base_ref:
+        description: 'Base branch/SHA for diff detection'
+        default: 'origin/latest'
+        required: false
     cache_mode:
         description: 'Read/write mode for caches'
         require: false
@@ -36,13 +48,15 @@ runs:
           id: nx_config
           shell: bash
           run: |
+              set -x
+
               branch=$(git branch --show-current)
               if [[ ${branch} == 'latest' ]] ; then
                 # Latest
                 echo "base=latest-success" >> $GITHUB_OUTPUT
                 echo "NX_BASE=latest-success" >> $GITHUB_ENV
                 echo "type=latest" >> $GITHUB_OUTPUT
-                git fetch origin --depth 1 tag latest-success
+                git fetch origin -f --depth 1 tag latest-success
               elif [[ ${branch} =~ 'b[0-9][0-9]\..+' ]] ; then
                 # Release
                 echo "base=${branch}" >> $GITHUB_OUTPUT
@@ -50,11 +64,18 @@ runs:
                 echo "type=release" >> $GITHUB_OUTPUT
               else
                 # PR
-                echo "base=origin/latest" >> $GITHUB_OUTPUT
-                echo "NX_BASE=origin/latest" >> $GITHUB_ENV
+                echo "base=origin/${{ inputs.base_ref }}" >> $GITHUB_OUTPUT
+                echo "NX_BASE=origin/${{ inputs.base_ref }}" >> $GITHUB_ENV
                 echo "type=pr" >> $GITHUB_OUTPUT
-                git fetch origin --depth 1 latest
+                if [[ ${{ inputs.fetch_base }} == 'shallow' ]] ; then
+                  git fetch origin --depth 1 ${{ inputs.base_ref }}
+                elif [[ ${{ inputs.fetch_base }} == 'full' ]] ; then
+                  git fetch origin ${{ inputs.base_ref }}
+                fi
               fi
+
+              cat $GITHUB_OUTPUT
+              cat $GITHUB_ENV
 
         - name: Restore node_modules
           if: inputs.cache_mode == 'ro'

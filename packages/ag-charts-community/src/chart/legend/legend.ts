@@ -1,5 +1,9 @@
 import { type AnyFn, Logger, clamp } from 'ag-charts-core';
-import type { RequiredInternalAgGradientColor, RequiredInternalAgPatternColor } from 'ag-charts-core';
+import type {
+    RequiredInternalAgGradientColor,
+    RequiredInternalAgImageColor,
+    RequiredInternalAgPatternColor,
+} from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -172,6 +176,15 @@ const fillPatternDefaults: RequiredInternalAgPatternColor = {
     rotation: 0,
 };
 
+const fillImageDefaults: RequiredInternalAgImageColor = {
+    type: 'image',
+    fallback: 'black',
+    rotation: 0,
+    scale: 1,
+    repetition: 'repeat',
+    fit: 'cover',
+};
+
 export class Legend extends BaseProperties {
     static readonly className = 'Legend';
 
@@ -281,13 +294,13 @@ export class Legend extends BaseProperties {
         this.destroyFns.push(
             ctx.contextMenuRegistry.registerDefaultAction({
                 id: ID_LEGEND_VISIBILITY,
-                type: 'legend',
+                type: 'legend-item',
                 label: 'contextMenuToggleSeriesVisibility',
                 action: (params) => this.contextToggleVisibility(params),
             }),
             ctx.contextMenuRegistry.registerDefaultAction({
                 id: ID_LEGEND_OTHER_SERIES,
-                type: 'legend',
+                type: 'legend-item',
                 label: 'contextMenuToggleOtherSeries',
                 action: (params) => this.contextToggleOtherSeries(params),
             }),
@@ -830,7 +843,8 @@ export class Legend extends BaseProperties {
                 lineDashOffset,
             },
             fillGradientDefaults,
-            fillPatternDefaults
+            fillPatternDefaults,
+            fillImageDefaults
         );
     }
 
@@ -878,7 +892,7 @@ export class Legend extends BaseProperties {
 
         const { offsetX, offsetY } = sourceEvent;
         const { x: canvasX, y: canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
-        this.ctx.contextMenuRegistry.dispatchContext('legend', { sourceEvent, canvasX, canvasY }, { legendItem });
+        this.ctx.contextMenuRegistry.dispatchContext('legend-item', { sourceEvent, canvasX, canvasY }, { legendItem });
     }
 
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget) {

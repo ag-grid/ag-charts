@@ -2,7 +2,7 @@ import { isArray } from 'ag-charts-core';
 import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
-import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
+import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { Group } from '../../scene/group';
 import type { TimeInterval } from '../../util/time';
@@ -29,7 +29,7 @@ export function validateCrossLineValue(value: unknown, scale: Scale<any, number>
         return false;
     }
 
-    const isContinuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
+    const isContinuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
     const validValue = (val: unknown) => checkDatum(val, isContinuous) && !isNaN(scale.convert(val));
 
     if (isArray(value)) {
@@ -44,7 +44,6 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     calculateLayout?(visible: boolean, reversedAxis?: boolean): void;
     calculatePadding?(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
     clippedRange: [number, number];
-    direction: ChartAxisDirection;
     enabled?: boolean;
     defaultColorRange: string[];
     fill?: string;
@@ -56,11 +55,8 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     label: LabelType;
     labelGroup: Group;
     lineDash?: number[];
-    parallelFlipRotation: number;
     range?: [any, any];
-    regularFlipRotation: number;
     scale?: Scale<any, number, number | TimeInterval>;
-    sideFlag: 1 | -1;
     stroke?: string;
     strokeOpacity?: number;
     strokeWidth?: number;
@@ -68,4 +64,11 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     update(visible: boolean): void;
     value?: any;
     set(properties: object): void;
+}
+
+export interface PolarCrossLine<LabelType = AgBaseCrossLineLabelOptions> extends CrossLine<LabelType> {
+    direction: ChartAxisDirection;
+    parallelFlipRotation: number;
+    regularFlipRotation: number;
+    sideFlag: 1 | -1;
 }

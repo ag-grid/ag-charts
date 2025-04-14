@@ -4,6 +4,32 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
 {
   "axes": [
     {
+      "division": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "format": {
+            "day": "%e",
+            "hour": "%H:%M",
+            "millisecond": "%H:%M:%S.%Q",
+            "minute": "%H:%M",
+            "month": "%b",
+            "second": "%H:%M:%S",
+            "year": "%Y",
+          },
+          "spacing": 11,
+        },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
+      },
       "gridLine": {
         "enabled": true,
         "style": [
@@ -28,6 +54,9 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
+          "hierarchy": undefined,
+          "milliseconds": undefined,
+          "unit": "year",
         },
       },
       "keys": [],
@@ -49,6 +78,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "position": "top",
       "tick": {
         "enabled": true,
+        "size": 6,
         "stroke": "#3f7cbf",
         "width": 3,
       },
@@ -216,6 +246,14 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#5090dc",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -281,6 +319,14 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#ffa03a",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -345,6 +391,14 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#459d55",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -479,6 +533,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -524,6 +579,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -568,6 +624,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "position": "right",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -675,6 +732,14 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -742,6 +807,14 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -825,6 +898,14 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#459d55",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -965,6 +1046,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -1007,6 +1089,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -1132,6 +1215,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#5090dc",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -1201,6 +1292,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#ffa03a",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -1272,6 +1371,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#459d55",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -1341,6 +1448,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#34bfe1",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -1412,6 +1527,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#e1cc00",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -1482,6 +1605,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#9669cb",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -1551,6 +1682,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#b5b5b5",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -1697,6 +1836,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -1739,6 +1879,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -1844,6 +1985,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -1912,6 +2061,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -1982,6 +2139,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#459d55",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -2050,6 +2215,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#34bfe1",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -2120,6 +2293,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#e1cc00",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -2188,6 +2369,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#9669cb",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -2258,6 +2447,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#b5b5b5",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -2326,6 +2523,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#bd5aa7",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -2465,6 +2670,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -2506,6 +2712,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -2568,6 +2775,14 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "reverse": true,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.7,
       "fillPatternDefaults": {
@@ -2660,6 +2875,32 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
 {
   "axes": [
     {
+      "division": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "format": {
+            "day": "%e",
+            "hour": "%H:%M",
+            "millisecond": "%H:%M:%S.%Q",
+            "minute": "%H:%M",
+            "month": "%b",
+            "second": "%H:%M:%S",
+            "year": "%Y",
+          },
+          "spacing": 11,
+        },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
+      },
       "gridLine": {
         "enabled": false,
         "style": [
@@ -2687,6 +2928,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -2728,6 +2970,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -2848,6 +3091,14 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#5090dc",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -2912,6 +3163,14 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#ffa03a",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -2978,6 +3237,14 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#459d55",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -3042,6 +3309,14 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#34bfe1",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -3182,6 +3457,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -3223,6 +3499,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -3326,6 +3603,14 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.6,
       "fillPatternDefaults": {
@@ -3435,6 +3720,14 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 0.6,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -3542,6 +3835,14 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#459d55",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.6,
       "fillPatternDefaults": {
@@ -3651,6 +3952,14 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#34bfe1",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 0.6,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -3758,6 +4067,14 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#e1cc00",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.6,
       "fillPatternDefaults": {
@@ -3958,6 +4275,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -3999,6 +4317,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4062,6 +4381,14 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -4199,6 +4526,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4240,6 +4568,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4303,6 +4632,14 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -4443,6 +4780,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "position": "bottom",
       "tick": {
         "enabled": true,
+        "size": 6,
         "stroke": "black",
         "width": 1,
       },
@@ -4483,6 +4821,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "position": "left",
       "tick": {
         "enabled": true,
+        "size": 6,
         "stroke": "black",
         "width": 1,
       },
@@ -4545,6 +4884,14 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "reverse": true,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.85,
       "fillPatternDefaults": {
@@ -4665,6 +5012,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4709,6 +5057,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4771,6 +5120,14 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "reverse": true,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.5,
       "fillPatternDefaults": {
@@ -4892,6 +5249,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4933,6 +5291,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -5038,6 +5397,14 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -5110,6 +5477,14 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -5266,6 +5641,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -5307,6 +5683,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -5412,6 +5789,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -5485,6 +5870,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -5644,6 +6037,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -5686,6 +6080,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -5791,6 +6186,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -5866,6 +6269,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -5943,6 +6354,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#459d55",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -6018,6 +6437,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#34bfe1",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -6095,6 +6522,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#e1cc00",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -6171,6 +6606,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#9669cb",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -6246,6 +6689,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#b5b5b5",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -6401,6 +6852,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -6445,6 +6897,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -6571,6 +7024,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#5090dc",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -6641,6 +7102,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#ffa03a",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -6713,6 +7182,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#459d55",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -6783,6 +7260,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#34bfe1",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -6855,6 +7340,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#e1cc00",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -6925,6 +7418,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#9669cb",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -6997,6 +7498,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#b5b5b5",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -7067,6 +7576,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#bd5aa7",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -7139,6 +7656,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#8a6224",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -7209,6 +7734,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#ef5452",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -7281,6 +7814,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#5090dc",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -7351,6 +7892,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#ffa03a",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -7423,6 +7972,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#459d55",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -7493,6 +8050,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#34bfe1",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -7565,6 +8130,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#e1cc00",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -7635,6 +8208,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#9669cb",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -7800,6 +8381,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -7841,6 +8423,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -7918,6 +8501,14 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#5090dc",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -8027,6 +8618,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -8069,6 +8661,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -8172,6 +8765,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
@@ -8289,6 +8890,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -8404,6 +9013,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#459d55",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
@@ -8521,6 +9138,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#34bfe1",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -8636,6 +9261,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#e1cc00",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
@@ -8753,6 +9386,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#9669cb",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -8868,6 +9509,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#b5b5b5",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
@@ -9060,6 +9709,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -9102,6 +9752,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -9207,6 +9858,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -9282,6 +9941,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -9356,6 +10023,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#459d55",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -9518,6 +10193,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -9560,6 +10236,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -9665,6 +10342,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -9738,6 +10423,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -9813,6 +10506,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#459d55",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -9886,6 +10587,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#34bfe1",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -9961,6 +10670,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#e1cc00",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -10034,6 +10751,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#9669cb",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -10172,6 +10897,32 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
 {
   "axes": [
     {
+      "division": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "format": {
+            "day": "%e",
+            "hour": "%H:%M",
+            "millisecond": "%H:%M:%S.%Q",
+            "minute": "%H:%M",
+            "month": "%b",
+            "second": "%H:%M:%S",
+            "year": "%Y",
+          },
+          "spacing": 11,
+        },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
+      },
       "gridLine": {
         "enabled": false,
         "style": [
@@ -10186,6 +10937,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
+          "hierarchy": undefined,
+          "milliseconds": undefined,
+          "unit": "year",
         },
       },
       "keys": [],
@@ -10205,6 +10959,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -10247,6 +11002,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -10351,6 +11107,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -10452,6 +11216,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
@@ -10555,6 +11327,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#459d55",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -10656,6 +11436,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#34bfe1",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
@@ -10828,6 +11616,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -10870,6 +11659,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -10933,6 +11723,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -11332,6 +12130,32 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
 {
   "axes": [
     {
+      "division": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "format": {
+            "day": "%e",
+            "hour": "%H:%M",
+            "millisecond": "%H:%M:%S.%Q",
+            "minute": "%H:%M",
+            "month": "%b",
+            "second": "%H:%M:%S",
+            "year": "%Y",
+          },
+          "spacing": 11,
+        },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
+      },
       "gridLine": {
         "enabled": false,
         "style": [
@@ -11346,6 +12170,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
+          "hierarchy": CountableTimeInterval {
+            "_decode": [Function],
+            "_encode": [Function],
+            "_rangeCallback": undefined,
+            "hierarchy": undefined,
+            "milliseconds": undefined,
+            "unit": "year",
+          },
+          "milliseconds": undefined,
+          "unit": "month",
         },
       },
       "keys": [],
@@ -11366,6 +12200,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -11408,6 +12243,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -11533,6 +12369,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "rotation": 0,
           "type": "gradient",
         },
+        "fillImageDefaults": {
+          "fallback": "#5090dc",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
+        },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
           "backgroundFillOpacity": 1,
@@ -11601,6 +12445,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "reverse": true,
           "rotation": 0,
           "type": "gradient",
+        },
+        "fillImageDefaults": {
+          "fallback": "#ffa03a",
+          "fit": "stretch",
+          "repetition": "repeat",
+          "rotation": 0,
+          "scale": 1,
+          "type": "image",
         },
         "fillPatternDefaults": {
           "backgroundFill": "transparent",
@@ -11959,6 +12811,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -12000,6 +12853,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -12062,6 +12916,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "reverse": true,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.5,
       "fillPatternDefaults": {
@@ -12147,6 +13009,32 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
 {
   "axes": [
     {
+      "division": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "format": {
+            "day": "%e",
+            "hour": "%H:%M",
+            "millisecond": "%H:%M:%S.%Q",
+            "minute": "%H:%M",
+            "month": "%b",
+            "second": "%H:%M:%S",
+            "year": "%Y",
+          },
+          "spacing": 11,
+        },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
+      },
       "gridLine": {
         "enabled": false,
         "style": [
@@ -12161,6 +13049,16 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": undefined,
+          "hierarchy": CountableTimeInterval {
+            "_decode": [Function],
+            "_encode": [Function],
+            "_rangeCallback": undefined,
+            "hierarchy": undefined,
+            "milliseconds": undefined,
+            "unit": "year",
+          },
+          "milliseconds": undefined,
+          "unit": "month",
         },
       },
       "keys": [],
@@ -12182,6 +13080,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -12224,6 +13123,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -12327,6 +13227,14 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
@@ -12442,6 +13350,14 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -12555,6 +13471,14 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#459d55",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
@@ -12670,6 +13594,14 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#34bfe1",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -12784,6 +13716,14 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#e1cc00",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -12897,6 +13837,14 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#9669cb",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
@@ -13106,6 +14054,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -13148,6 +14097,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "position": "top",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -13253,6 +14203,14 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -13326,6 +14284,14 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -13401,6 +14367,14 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#459d55",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -13474,6 +14448,14 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#34bfe1",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -13623,6 +14605,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -13665,6 +14648,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -13770,6 +14754,14 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#5090dc",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -13843,6 +14835,14 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#ffa03a",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
@@ -13918,6 +14918,14 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#459d55",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -13992,6 +15000,14 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "rotation": 0,
         "type": "gradient",
       },
+      "fillImageDefaults": {
+        "fallback": "#34bfe1",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
+      },
       "fillOpacity": 1,
       "fillPatternDefaults": {
         "backgroundFill": "transparent",
@@ -14065,6 +15081,14 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "reverse": false,
         "rotation": 0,
         "type": "gradient",
+      },
+      "fillImageDefaults": {
+        "fallback": "#e1cc00",
+        "fit": "stretch",
+        "repetition": "repeat",
+        "rotation": 0,
+        "scale": 1,
+        "type": "image",
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {

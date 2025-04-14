@@ -16,6 +16,7 @@ const {
     BaseProperties,
     FillGradientDefaults,
     FillPatternDefaults,
+    FillImageDefaults,
     PropertiesArray,
     SeriesTooltip,
     Property,
@@ -59,6 +60,9 @@ export class WaterfallSeriesItem extends BaseProperties {
 
     @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
+    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     stroke: string = '#c16068';

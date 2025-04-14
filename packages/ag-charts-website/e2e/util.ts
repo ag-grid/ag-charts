@@ -96,6 +96,40 @@ export function setupIntrinsicAssertions() {
     return config;
 }
 
+export function createConsoleLogs() {
+    const ignoreMessageRegexes = [
+        // Vite messages
+        /^\[vite].*/,
+        // AG Charts license error message
+        /^\*.*/,
+    ];
+    const consoleLogs: string[] = [];
+    const clear = () => {
+        consoleLogs.length = 0;
+    };
+
+    test.beforeEach(({ page }) => {
+        page.on('console', (msg) => {
+            const text = msg.text();
+            const ignore = ignoreMessageRegexes.some((regex) => regex.test(text));
+            if (ignore) {
+                return;
+            }
+
+            consoleLogs.push(text);
+        });
+    });
+
+    test.afterEach(() => {
+        clear();
+    });
+
+    return {
+        clear,
+        get: () => consoleLogs,
+    };
+}
+
 export function repeat(repCount: number, fn: () => unknown) {
     for (let i = 0; i < repCount; i++) {
         fn();
@@ -103,7 +137,8 @@ export function repeat(repCount: number, fn: () => unknown) {
 }
 
 export async function gotoExample(page: Page, url: string) {
-    await page.goto(url);
+    await page.goto(url + '#e2e=true');
+
     await page.waitForLoadState('networkidle');
 
     expect(await page.title()).not.toMatch(/Page Not Found/);

@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
-import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import { createConsoleLogs, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 async function openExample(
     page: Page,
@@ -11,6 +11,8 @@ async function openExample(
 }
 
 test.describe('api-events', () => {
+    const consoleLogs = createConsoleLogs();
+
     setupIntrinsicAssertions();
 
     test.describe('chart clicks', () => {
@@ -24,49 +26,53 @@ test.describe('api-events', () => {
         test.describe('mouse', () => {
             test('click', async ({ page }) => {
                 await page.mouse.click(node.x, node.y);
-                await expect(page).toHaveScreenshot('miss-click.png');
+                expect(consoleLogs.get()).toEqual([]);
 
                 await page.mouse.click(west.x, west.y);
-                await expect(page).toHaveScreenshot('click.png');
+                expect(consoleLogs.get()).toEqual(['[click]']);
+                consoleLogs.clear();
 
                 await page.mouse.click(east.x, east.y);
-                await expect(page).toHaveScreenshot('click.png');
+                expect(consoleLogs.get()).toEqual(['[click]']);
             });
             test('doubleClick', async ({ page }) => {
                 await page.mouse.dblclick(node.x, node.y);
-                await expect(page).toHaveScreenshot('miss-click.png');
+                expect(consoleLogs.get()).toEqual([]);
 
                 await page.mouse.click(west.x, west.y);
                 await page.mouse.click(east.x, east.y);
-                await expect(page).toHaveScreenshot('click.png');
+                expect(consoleLogs.get()).toEqual(['[click]', '[click]']);
+                consoleLogs.clear();
 
                 await page.mouse.dblclick(west.x, west.y);
-                await expect(page).toHaveScreenshot('doubleClick.png');
+                expect(consoleLogs.get()).toEqual(['[click]', '[click]', '[double click]']);
             });
         });
         test.describe('touch', () => {
             test('click', async ({ page }) => {
                 await page.touchscreen.tap(node.x, node.y);
-                await expect(page).toHaveScreenshot('miss-click.png');
+                expect(consoleLogs.get()).toEqual([]);
 
                 await page.touchscreen.tap(west.x, west.y);
-                await expect(page).toHaveScreenshot('click.png');
+                expect(consoleLogs.get()).toEqual(['[click]']);
+                consoleLogs.clear();
 
                 await page.touchscreen.tap(east.x, east.y);
-                await expect(page).toHaveScreenshot('click.png');
+                expect(consoleLogs.get()).toEqual(['[click]']);
             });
             test('doubleClick', async ({ page }) => {
                 await page.touchscreen.tap(node.x, node.y);
                 await page.touchscreen.tap(node.x, node.y);
-                await expect(page).toHaveScreenshot('miss-click.png');
+                expect(consoleLogs.get()).toEqual([]);
 
                 await page.touchscreen.tap(west.x, west.y);
                 await page.touchscreen.tap(east.x, east.y);
-                await expect(page).toHaveScreenshot('click.png');
+                expect(consoleLogs.get()).toEqual(['[click]', '[click]']);
+                consoleLogs.clear();
 
                 await page.touchscreen.tap(west.x, west.y);
                 await page.touchscreen.tap(west.x, west.y);
-                await expect(page).toHaveScreenshot('doubleClick.png');
+                expect(consoleLogs.get()).toEqual(['[click]', '[click]', '[double click]']);
             });
         });
     });
@@ -83,72 +89,108 @@ test.describe('api-events', () => {
         test.describe('mouse', () => {
             test('seriesNodeClick', async ({ page }) => {
                 await page.mouse.click(center.x, center.y);
-                await expect(page).toHaveScreenshot('miss-seriesNodeClick.png');
+                expect(consoleLogs.get()).toEqual([]);
 
                 await page.mouse.click(aprMarker.x, aprMarker.y);
-                await expect(page).toHaveScreenshot('seriesNodeClick-marker.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1']);
+                consoleLogs.clear();
 
                 await page.mouse.click(mayBarTop.x, mayBarTop.y);
-                await expect(page).toHaveScreenshot('seriesNodeClick-bar-top.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
+                consoleLogs.clear();
 
                 await page.mouse.click(mayBarBot.x, mayBarBot.y);
-                await expect(page).toHaveScreenshot('seriesNodeClick-bar-bot.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
             });
             test('seriesNodeDoubleClick', async ({ page }) => {
                 await page.mouse.dblclick(center.x, center.y);
-                await expect(page).toHaveScreenshot('miss-seriesNodeClick.png');
+                expect(consoleLogs.get()).toEqual([]);
 
                 await page.mouse.dblclick(aprMarker.x, aprMarker.y);
-                await expect(page).toHaveScreenshot('seriesNodeDoubleClick-marker.png');
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1',
+                    '[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1',
+                    '[double click]\nTemperature in April: 57.56°F\nSeries: LineSeries-1',
+                ]);
+                consoleLogs.clear();
 
                 await page.mouse.dblclick(mayBarTop.x, mayBarTop.y);
-                await expect(page).toHaveScreenshot('seriesNodeDoubleClick-bar-top.png');
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
+                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
+                    '[double click]\nTemperature in May: 47.66°F\nSeries: BarSeries-1',
+                ]);
+                consoleLogs.clear();
 
                 await page.mouse.dblclick(mayBarBot.x, mayBarBot.y);
-                await expect(page).toHaveScreenshot('seriesNodeDoubleClick-bar-bot.png');
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
+                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
+                    '[double click]\nTemperature in May: 47.66°F\nSeries: BarSeries-1',
+                ]);
             });
         });
         test.describe('touch', () => {
             test('seriesNodeClick', async ({ page }) => {
                 await page.touchscreen.tap(center.x, center.y);
-                await expect(page).toHaveScreenshot('miss-seriesNodeClick.png');
+                expect(consoleLogs.get()).toEqual([]);
 
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
-                await expect(page).toHaveScreenshot('seriesNodeClick-marker.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1']);
+                consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
-                await expect(page).toHaveScreenshot('seriesNodeClick-bar-top.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
+                consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
-                await expect(page).toHaveScreenshot('seriesNodeClick-bar-bot.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
             });
             test('seriesNodeDoubleClick', async ({ page }) => {
                 await page.touchscreen.tap(center.x, center.y);
                 await page.touchscreen.tap(center.x, center.y);
-                await expect(page).toHaveScreenshot('miss-seriesNodeClick.png');
+                expect(consoleLogs.get()).toEqual([]);
 
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
-                await expect(page).toHaveScreenshot('seriesNodeDoubleClick-marker.png');
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1',
+                    '[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1',
+                    '[double click]\nTemperature in April: 57.56°F\nSeries: LineSeries-1',
+                ]);
+                consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
                 await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
-                await expect(page).toHaveScreenshot('seriesNodeDoubleClick-bar-top.png');
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
+                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
+                    '[double click]\nTemperature in May: 47.66°F\nSeries: BarSeries-1',
+                ]);
+                consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
                 await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
-                await expect(page).toHaveScreenshot('seriesNodeDoubleClick-bar-bot.png');
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
+                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
+                    '[double click]\nTemperature in May: 47.66°F\nSeries: BarSeries-1',
+                ]);
+                consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
-                await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
-                await expect(page).toHaveScreenshot('seriesNodeClick-bar-bot.png');
+                await page.touchscreen.tap(mayBarBot.x, mayBarBot.y); // Not a double click
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
+                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
+                ]);
             });
         });
         test.describe('keyboard', () => {
             test('seriesNodeClick', async ({ page }) => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Enter');
-                await expect(page).toHaveScreenshot('seriesNodeClick-keyboard.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nTemperature in March: 11.3°C\nSeries: LineSeries-1']);
             });
         });
     });
@@ -165,72 +207,108 @@ test.describe('api-events', () => {
         test.describe('mouse', () => {
             test('nodeClick', async ({ page }) => {
                 await page.mouse.click(noClick.x, noClick.y);
-                await expect(page).toHaveScreenshot('miss-nodeClick.png');
+                expect(consoleLogs.get()).toEqual([]);
 
                 await page.mouse.click(march.x, march.y);
-                await expect(page).toHaveScreenshot('nodeClick-march.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n']);
+                consoleLogs.clear();
 
                 await page.mouse.click(mayTop.x, mayTop.y);
-                await expect(page).toHaveScreenshot('nodeClick-may-top.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n']);
+                consoleLogs.clear();
 
                 await page.mouse.click(mayBot.x, mayBot.y);
-                await expect(page).toHaveScreenshot('nodeClick-may-bot.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n']);
             });
             test('nodeDoubleClick', async ({ page }) => {
                 await page.mouse.dblclick(noClick.x, noClick.y);
-                await expect(page).toHaveScreenshot('miss-nodeClick.png');
+                expect(consoleLogs.get()).toEqual([]);
 
                 await page.mouse.dblclick(march.x, march.y);
-                await expect(page).toHaveScreenshot('nodeDoubleClick-march.png');
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n',
+                    '[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n',
+                    '[double click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n',
+                ]);
+                consoleLogs.clear();
 
                 await page.mouse.dblclick(mayTop.x, mayTop.y);
-                await expect(page).toHaveScreenshot('nodeDoubleClick-may-top.png');
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                    '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                    '[double click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                ]);
+                consoleLogs.clear();
 
                 await page.mouse.dblclick(mayBot.x, mayBot.y);
-                await expect(page).toHaveScreenshot('nodeDoubleClick-may-bot.png');
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                    '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                    '[double click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                ]);
             });
         });
         test.describe('touch', () => {
             test('nodeClick', async ({ page }) => {
                 await page.touchscreen.tap(noClick.x, noClick.y);
-                await expect(page).toHaveScreenshot('miss-nodeClick.png');
+                expect(consoleLogs.get()).toEqual([]);
 
                 await page.touchscreen.tap(march.x, march.y);
-                await expect(page).toHaveScreenshot('nodeClick-march.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n']);
+                consoleLogs.clear();
 
                 await page.touchscreen.tap(mayTop.x, mayTop.y);
-                await expect(page).toHaveScreenshot('nodeClick-may-top.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n']);
+                consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBot.x, mayBot.y);
-                await expect(page).toHaveScreenshot('nodeClick-may-bot.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n']);
             });
             test('nodeDoubleClick', async ({ page }) => {
                 await page.touchscreen.tap(noClick.x, noClick.y);
                 await page.touchscreen.tap(noClick.x, noClick.y);
-                await expect(page).toHaveScreenshot('miss-nodeClick.png');
+                expect(consoleLogs.get()).toEqual([]);
 
                 await page.touchscreen.tap(march.x, march.y);
                 await page.touchscreen.tap(march.x, march.y);
-                await expect(page).toHaveScreenshot('nodeDoubleClick-march.png');
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n',
+                    '[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n',
+                    '[double click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n',
+                ]);
+                consoleLogs.clear();
 
                 await page.touchscreen.tap(mayTop.x, mayTop.y);
                 await page.touchscreen.tap(mayTop.x, mayTop.y);
-                await expect(page).toHaveScreenshot('nodeDoubleClick-may-top.png');
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                    '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                    '[double click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                ]);
+                consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBot.x, mayBot.y);
                 await page.touchscreen.tap(mayBot.x, mayBot.y);
-                await expect(page).toHaveScreenshot('nodeDoubleClick-may-bot.png');
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                    '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                    '[double click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                ]);
+                consoleLogs.clear();
 
                 await page.touchscreen.tap(mayTop.x, mayTop.y);
-                await page.touchscreen.tap(mayBot.x, mayBot.y);
-                await expect(page).toHaveScreenshot('nodeClick-may-bot.png');
+                await page.touchscreen.tap(mayBot.x, mayBot.y); // Not a double click
+                expect(consoleLogs.get()).toEqual([
+                    '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                    '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
+                ]);
             });
         });
         test.describe('keyboard', () => {
             test('nodeClick', async ({ page }) => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Enter');
-                await expect(page).toHaveScreenshot('nodeClick-keyboard.png');
+                expect(consoleLogs.get()).toEqual(['[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n']);
             });
         });
     });

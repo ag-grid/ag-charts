@@ -1,9 +1,8 @@
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
 import type { FromToFns } from '../../motion/fromToMotion';
-import type { Group, TransformableGroup } from '../../scene/group';
+import type { Group, TranslatableGroup } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
 import type { RotatableText, TransformableText } from '../../scene/shape/text';
-import type { TranslatableType } from '../../scene/transformable';
 import { findMinMax } from '../../util/number';
 
 export enum NiceMode {
@@ -13,19 +12,28 @@ export enum NiceMode {
 }
 
 export interface TickDatum {
-    tickLabel: string;
+    tickLabel: string | undefined;
     tick: any;
     tickId: string;
     translationY: number;
+    primary: boolean;
     tickSize?: number;
     tickStroke?: string;
     tickWidth?: number;
 }
 
 export interface AxisLineDatum {
-    x: number;
+    tickId: string;
+    offset: number;
+    x1: number;
+    x2: number;
     y1: number;
     y2: number;
+}
+
+export interface AxisTickDatum extends AxisLineDatum {
+    tickStroke?: string;
+    tickWidth?: number;
 }
 
 export interface AxisAnimationContext {
@@ -42,18 +50,13 @@ interface AxisGroupDatum {
     translationY: number;
 }
 
-interface AxisNodeDatum {
-    translationY: number;
-    tickId: string;
-}
-
 export interface AxisLabelDatum {
     tickId: string;
     x: number;
     y: number;
-    rotation: number;
     rotationCenterX: number;
-    translationY: number;
+    rotationCenterY: number;
+    rotation: number;
     range: number[];
 }
 
@@ -76,39 +79,34 @@ function normaliseEndRotation(start: number, end: number) {
     return end - fullCircle;
 }
 
-export function axisLinePosition(horizontal: boolean, p1: number, p2: number = p1) {
-    if (horizontal) {
-        return { x1: p1, x2: p2 };
-    } else {
-        return { y1: p1, y2: p2 };
-    }
-}
-
-export function prepareAxisAnimationFunctions(horizontal: boolean, ctx: AxisAnimationContext) {
-    const outOfBounds = (y: number, range?: number[]) => {
-        const [min = ctx.min, max = ctx.max] = findMinMax(range ?? []);
+export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
+    const { min, max } = ctx;
+    const outOfBounds = (y: number) => {
         return y < min || y > max;
     };
-    const tick: FromToFns<TranslatableType<Line>, any, AxisNodeDatum> = {
+    const tick: FromToFns<Line, any, AxisTickDatum> = {
         fromFn(node, datum, status) {
-            const { translationY } = datum;
             // Default to starting at the same position that the node is currently in.
-            let p = horizontal ? node.x1 : node.y1;
+            let { x1, x2, y1, y2 } = node;
             let opacity = node.opacity;
 
-            if (status === 'added' || outOfBounds(translationY, node.datum.range)) {
-                p = translationY;
+            if (status === 'added' || outOfBounds(datum.offset)) {
+                ({ x1, x2, y1, y2 } = datum);
                 opacity = 0;
             }
 
             // Animate translationY so we don't constantly regenerate the line path data
             return {
-                ...axisLinePosition(horizontal, p),
+                x1,
+                x2,
+                y1,
+                y2,
                 opacity,
                 phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status],
             };
         },
         toFn(_node, datum, status) {
+            const { x1, x2, y1, y2 } = datum;
             let opacity = 1;
 
             if (status === 'removed') {
@@ -116,7 +114,10 @@ export function prepareAxisAnimationFunctions(horizontal: boolean, ctx: AxisAnim
             }
 
             return {
-                ...axisLinePosition(horizontal, datum.translationY),
+                x1,
+                x2,
+                y1,
+                y2,
                 opacity,
             };
         },
@@ -131,36 +132,28 @@ export function prepareAxisAnimationFunctions(horizontal: boolean, ctx: AxisAnim
             const datum: AxisLabelDatum = node.previousDatum ?? newDatum;
 
             // Default to starting at the same position that the node is currently in.
-            const x = datum.x;
-            const y = datum.y;
-            const rotationCenterX = datum.rotationCenterX;
-            let translationY = Math.round(node.translationY);
-            let rotation = datum.rotation;
+            let { x, y, rotationCenterX, rotationCenterY, rotation } = datum;
             let opacity = node.opacity;
 
-            if (status === 'removed' || outOfBounds(datum.y, datum.range)) {
+            if (status === 'removed' || outOfBounds(datum.y)) {
                 rotation = newDatum.rotation;
-            } else if (status === 'added' || outOfBounds(node.datum.y, node.datum.range)) {
-                translationY = Math.round(datum.translationY);
+            } else if (status === 'added' || outOfBounds(node.datum.y)) {
+                ({ x, y, rotationCenterX, rotationCenterY, rotation } = newDatum);
                 opacity = 0;
-                rotation = newDatum.rotation;
             }
 
             return {
                 x,
                 y,
                 rotationCenterX,
-                translationY,
+                rotationCenterY,
                 rotation,
                 opacity,
                 phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status],
             };
         },
         toFn(node, datum, status) {
-            const x = datum.x;
-            const y = datum.y;
-            const rotationCenterX = datum.rotationCenterX;
-            const translationY = Math.round(datum.translationY);
+            const { x, y, rotationCenterX, rotationCenterY } = datum;
             let rotation = 0;
             let opacity = 1;
 
@@ -173,42 +166,35 @@ export function prepareAxisAnimationFunctions(horizontal: boolean, ctx: AxisAnim
                 rotation = normaliseEndRotation(node.previousDatum?.rotation ?? datum.rotation, datum.rotation);
             }
 
-            return { x, y, rotationCenterX, translationY, rotation, opacity, finish: { rotation: datum.rotation } };
+            return {
+                x,
+                y,
+                rotationCenterX,
+                rotationCenterY,
+                rotation,
+                opacity,
+                finish: { rotation: datum.rotation },
+            };
         },
     };
     const line: FromToFns<Line, any, AxisLineDatum> = {
         fromFn(node, datum) {
             // Default to starting at the same position that the node is currently in.
-            const { x } = node.previousDatum ?? datum;
+            const { x1, x2, y1, y2 } = node.previousDatum ?? datum;
             return {
-                ...axisLinePosition(!horizontal, x),
+                x1,
+                x2,
+                y1,
+                y2,
                 phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING['updated'],
             };
         },
         toFn(_node, datum) {
-            return axisLinePosition(!horizontal, datum.x);
+            const { x1, x2, y1, y2 } = datum;
+            return { x1, x2, y1, y2 };
         },
     };
-    const group: FromToFns<TransformableGroup, any, AxisGroupDatum> = {
-        fromFn(node, _datum) {
-            const { rotation, translationX, translationY } = node;
-            return {
-                rotation,
-                translationX,
-                translationY,
-                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING['updated'],
-            };
-        },
-        toFn(_node, datum) {
-            const { rotation, translationX, translationY } = datum;
-            return {
-                rotation,
-                translationX,
-                translationY,
-            };
-        },
-    };
-    const groupNoRotation: FromToFns<TransformableGroup, any, AxisGroupDatum> = {
+    const group: FromToFns<TranslatableGroup, any, AxisGroupDatum> = {
         fromFn(node, _datum) {
             const { translationX, translationY } = node;
             return {
@@ -226,39 +212,14 @@ export function prepareAxisAnimationFunctions(horizontal: boolean, ctx: AxisAnim
         },
     };
 
-    return { tick, line, label, group, groupNoRotation };
+    return { tick, line, label, group };
 }
 
 export function resetAxisGroupFn() {
     return (_node: Group, datum: AxisGroupDatum) => {
         return {
-            rotation: datum.rotation,
-            rotationCenterX: datum.rotationCenterX,
-            rotationCenterY: datum.rotationCenterY,
             translationX: datum.translationX,
             translationY: datum.translationY,
-        };
-    };
-}
-
-export function resetAxisGroupFnNoRotation() {
-    return (_node: Group, datum: AxisGroupDatum) => {
-        return {
-            translationX: datum.translationX,
-            translationY: datum.translationY,
-        };
-    };
-}
-
-export function resetAxisSelectionFn(horizontal: boolean, ctx: AxisAnimationContext) {
-    const { visible: rangeVisible, min, max } = ctx;
-
-    return (_node: Line, datum: AxisNodeDatum) => {
-        const visible = rangeVisible && datum.translationY >= min && datum.translationY <= max;
-        return {
-            ...axisLinePosition(horizontal, datum.translationY),
-            opacity: 1,
-            visible,
         };
     };
 }
@@ -268,19 +229,16 @@ export function resetAxisLabelSelectionFn() {
         return {
             x: datum.x,
             y: datum.y,
-            translationY: datum.translationY,
-            rotation: datum.rotation,
             rotationCenterX: datum.rotationCenterX,
+            rotationCenterY: datum.rotationCenterY,
+            rotation: datum.rotation,
         };
     };
 }
 
-export function resetAxisLineSelectionFn(horizontal: boolean) {
+export function resetAxisLineSelectionFn() {
     return (_node: Line, datum: AxisLineDatum) => {
-        const { x, y1, y2 } = datum;
-        return {
-            ...axisLinePosition(!horizontal, x),
-            ...axisLinePosition(horizontal, y1, y2),
-        };
+        const { x1, x2, y1, y2 } = datum;
+        return { x1, x2, y1, y2 };
     };
 }

@@ -11,6 +11,7 @@ import type { BaseFunnelProperties } from '../funnel/baseFunnelSeriesProperties'
 const {
     FillGradientDefaults,
     FillPatternDefaults,
+    FillImageDefaults,
     Label,
     AbstractBarSeriesProperties,
     SeriesTooltip,
@@ -49,6 +50,9 @@ export class ConeFunnelProperties
 
     @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
+    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity: number = 1;

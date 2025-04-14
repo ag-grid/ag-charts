@@ -236,6 +236,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                     id: 'radiusValue',
                     min: this.properties.radiusMin ?? 0,
                     max: this.properties.radiusMax,
+                    missingValue: this.properties.radiusMax ?? 1,
                     processor,
                 }),
                 valueProperty(radiusKey, radiusScaleType, { id: `radiusRaw`, processor }), // Raw value pass-through.
@@ -577,7 +578,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 strokeOpacity: 1,
                 strokeWidth: 4,
                 rotation: 0,
-            } as any
+            } as any,
+            {
+                type: 'image',
+                fallback: defaultPatternFill,
+                fit: 'stretch',
+                repetition: 'repeat',
+                rotation: 0,
+                scale: 1,
+            }
         );
     }
 

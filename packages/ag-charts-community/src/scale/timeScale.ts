@@ -6,6 +6,10 @@ import { ContinuousScale } from './continuousScale';
 import type { ScaleFormatParams, ScaleTickParams } from './scale';
 
 export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
+    static override is(value: unknown): value is TimeScale {
+        return value instanceof TimeScale;
+    }
+
     readonly type = 'time';
 
     public constructor() {
@@ -16,9 +20,9 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         return new Date(d);
     }
 
-    override convert(value: Date, clamp?: boolean): number {
+    override convert(value: Date, options?: { clamp: boolean }): number {
         if (!(value instanceof Date)) value = new Date(value as any);
-        return super.convert(value, clamp);
+        return super.convert(value, options);
     }
 
     override invert(value: number): Date {

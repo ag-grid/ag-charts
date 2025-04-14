@@ -5,7 +5,6 @@ interface Props {
 
     modifiedTimeMs: number;
     isEnterprise: boolean;
-    layout: 'grid' | 'toolbar' | 'none';
     hasLocale: boolean;
 
     /**
@@ -16,7 +15,6 @@ interface Props {
     indexFragment: string;
     headFragment?: string;
     appLocation: string;
-    extraStyles?: string;
     children?: any;
 }
 
@@ -26,17 +24,16 @@ const {
     modifiedTimeMs,
     isEnterprise,
     hasLocale,
-    layout,
     styleFiles = [],
     scriptFiles = [],
     indexFragment,
     appLocation,
-    extraStyles,
     headFragment,
 } = Astro.props as Props;
 
+import CleanCSS from 'clean-css';
+
 import { MetaData } from './lib/MetaData';
-import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
 import { Scripts } from './lib/Scripts';
 import { SITE_BASE_URL } from '@constants';
@@ -48,23 +45,50 @@ import {
     getChartScriptPath,
 } from '@utils/chartLibraryPaths';
 
+import exampleControlsStyles from '@ag-website-shared/components/example-runner/example-controls.css?raw';
+
 const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
 
 const chartScriptPath = getCacheBustingUrl(getChartScriptPath(siteUrl), modifiedTimeMs);
 const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPath(siteUrl), modifiedTimeMs);
 const chartScriptLocalePath = getCacheBustingUrl(getChartLocaleScriptPath(siteUrl), modifiedTimeMs);
+
+const frameworkStyles = `
+    body {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        gap: 8px;
+    }
+
+    div:has(> .ag-charts-wrapper) {
+        padding: 1rem;
+        height: 100%;
+        border-radius: 8px;
+        background-color: var(--chart-bg);
+        border: 1px solid var(--chart-border);
+        overflow: hidden;
+    }
+`;
+
+const cssMinifier = new CleanCSS({ format: { wrapAt: 120 } });
+const minGenericExampleStyles = cssMinifier.minify(exampleControlsStyles.concat(frameworkStyles)).styles;
 ---
 
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`JavaScript Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle layout={layout} extraStyles={extraStyles} />
+
+        <!-- Generic example styles must be first <style> tag in head, to skip prettier formatting in the middleware -->
+        <style set:html={minGenericExampleStyles}></style>
+
         <Styles
             baseUrl={appLocation}
             files={isDev ? styleFiles.map((file: string) => getCacheBustingUrl(file, modifiedTimeMs)) : styleFiles}
         />
         <Fragment set:html={headFragment} />
     </head>
+
     <body>
         <Fragment set:html={indexFragment} />
         <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath}></script>

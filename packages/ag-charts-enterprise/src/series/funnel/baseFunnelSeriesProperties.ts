@@ -9,6 +9,7 @@ import type {
 import type {
     InternalAgColorType,
     RequiredInternalAgGradientColor,
+    RequiredInternalAgImageColor,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 
@@ -23,6 +24,7 @@ export interface BaseFunnelProperties<SeriesOptions extends object>
     strokes: string[];
     fillGradientDefaults: RequiredInternalAgGradientColor;
     fillPatternDefaults: RequiredInternalAgPatternColor;
+    fillImageDefaults: RequiredInternalAgImageColor;
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;
     label: FunnelSeriesLabel;
     tooltip: _ModuleSupport.SeriesTooltip<AgFunnelSeriesTooltipRendererParams<unknown>>;

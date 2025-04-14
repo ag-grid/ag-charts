@@ -43,6 +43,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 reverse: true,
             } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
+            fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             fillOpacity: 0.5,
             label: {
                 color: { $ref: 'textColor' },
@@ -70,7 +71,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
         if (cleared?.idKey == null && (cleared?.latitudeKey == null || cleared?.longitudeKey == null)) {
             const extendPath = (key: string) => (path ? `${path}.${key}` : key);
             const message = `Either \`${extendPath('idKey')}\` or both \`${extendPath('latitudeKey')}\` and \`${extendPath('longitudeKey')}\` are required.`;
-            invalid.push(new ValidationError(message, path, true));
+            invalid.push(new ValidationError('required', message, null, path));
         }
 
         return result;

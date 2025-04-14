@@ -33,10 +33,24 @@ describe('AG-13024 API context', () => {
     let seriesContext2: object;
     let axisContext: object;
     let rootContext: object;
-    const itemStyler = newFreezableMock<MockItemStyler>((_params) => undefined);
-    const axisLabelFormatter = newFreezableMock<MockAxisLabelFormatter>((_params: any) => undefined);
-    const seriesLabelFormatter = newFreezableMock<MockSeriesLabelFormatter>((_params) => undefined);
-    const tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
+    let itemStyler: ReturnType<typeof newFreezableMock<MockItemStyler>>;
+    let axisLabelFormatter: ReturnType<typeof newFreezableMock<MockAxisLabelFormatter>>;
+    let seriesLabelFormatter: ReturnType<typeof newFreezableMock<MockSeriesLabelFormatter>>;
+    let tooltipRenderer: ReturnType<typeof newFreezableMock<MockTooltipRenderer>>;
+
+    async function oneTooltipCallback() {
+        await hoverAction(130, 363)(chart); // datum 1, series 1
+        await waitForChartStability(chart);
+    }
+
+    async function threeTooltipCallback() {
+        await hoverAction(130, 363)(chart); // datum 1, series 1
+        await waitForChartStability(chart);
+        await hoverAction(163, 369)(chart); // datum 2, series 1
+        await waitForChartStability(chart);
+        await hoverAction(205, 370)(chart); // datum 3, series 1
+        await waitForChartStability(chart);
+    }
 
     beforeEach(() => {
         seriesContext0 = { name: '[0]: toyota' };
@@ -44,10 +58,10 @@ describe('AG-13024 API context', () => {
         seriesContext2 = { name: '[2]: bmw' };
         axisContext = { name: 'X axis context' };
         rootContext = { name: 'root context' };
-        itemStyler.mock.mockClear();
-        axisLabelFormatter.mock.mockClear();
-        seriesLabelFormatter.mock.mockClear();
-        tooltipRenderer.mock.mockClear();
+        itemStyler = newFreezableMock<MockItemStyler>((_params) => undefined);
+        axisLabelFormatter = newFreezableMock<MockAxisLabelFormatter>((_params: any) => undefined);
+        seriesLabelFormatter = newFreezableMock<MockSeriesLabelFormatter>((_params) => undefined);
+        tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
         options = {
             theme: {
                 overrides: {
@@ -134,14 +148,7 @@ describe('AG-13024 API context', () => {
         });
         test('tooltipRenderer', async () => {
             tooltipRenderer.expect().toHaveBeenCalledTimes(0);
-
-            await hoverAction(130, 363)(chart); // datum 1, series 1
-            await waitForChartStability(chart);
-            await hoverAction(163, 369)(chart); // datum 2, series 1
-            await waitForChartStability(chart);
-            await hoverAction(205, 370)(chart); // datum 3, series 1
-            await waitForChartStability(chart);
-
+            await threeTooltipCallback();
             tooltipRenderer.expect().toHaveBeenCalledTimes(6);
             tooltipRenderer.expect().nthCalledWithContext(0, seriesContext0);
             tooltipRenderer.expect().nthCalledWithContext(1, seriesContext0);
@@ -185,9 +192,7 @@ describe('AG-13024 API context', () => {
             seriesLabelFormatter.expect().nthCalledWithContext(10, seriesContext2);
             seriesLabelFormatter.expect().nthCalledWithContext(11, seriesContext2);
             axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(axisContext);
-
-            await hoverAction(130, 363)(chart); // datum 1, series 1
-            await waitForChartStability(chart);
+            await oneTooltipCallback();
             tooltipRenderer.expect().toHaveBeenCalledTimes(2);
             tooltipRenderer.expect().nthCalledWithContext(0, seriesContext0);
             tooltipRenderer.expect().nthCalledWithContext(1, seriesContext0);
@@ -201,10 +206,81 @@ describe('AG-13024 API context', () => {
             itemStyler.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
             seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
             axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(rootContext);
-
-            await hoverAction(130, 363)(chart); // datum 1, series 1
-            await waitForChartStability(chart);
+            await oneTooltipCallback();
             tooltipRenderer.expect().toHaveBeenCalledTimes(2).withContext(rootContext);
+        });
+    });
+
+    describe('nullish', () => {
+        describe('without root context', () => {
+            beforeEach(() => {
+                delete options.context;
+            });
+            test('undefined', async () => {
+                delete options.series![0].context;
+                delete options.series![1].context;
+                delete options.series![2].context;
+                delete options.axes![0].context;
+                chart = await createChart(options);
+                itemStyler.expect().toHaveBeenCalledTimes(12).withoutContext();
+                seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withoutContext();
+                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withoutContext();
+                await oneTooltipCallback();
+                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withoutContext();
+            });
+            test('defined to undefined', async () => {
+                options.series![0].context = undefined;
+                options.series![1].context = undefined;
+                options.series![2].context = undefined;
+                options.axes![0].context = undefined;
+                chart = await createChart(options);
+                itemStyler.expect().toHaveBeenCalledTimes(12).withoutContext();
+                seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withoutContext();
+                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withoutContext();
+                await oneTooltipCallback();
+                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withoutContext();
+            });
+            test('defined to null', async () => {
+                options.series![0].context = null;
+                options.series![1].context = null;
+                options.series![2].context = null;
+                options.axes![0].context = null;
+                chart = await createChart(options);
+                itemStyler.expect().toHaveBeenCalledTimes(12).withContext(null);
+                seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(null);
+                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(null);
+                await oneTooltipCallback();
+                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withContext(null);
+            });
+        });
+        describe('with root context', () => {
+            beforeEach(() => {
+                options.context = rootContext;
+            });
+            test('defined to undefined', async () => {
+                options.series![0].context = undefined;
+                options.series![1].context = undefined;
+                options.series![2].context = undefined;
+                options.axes![0].context = undefined;
+                chart = await createChart(options);
+                itemStyler.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
+                seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
+                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(rootContext);
+                await oneTooltipCallback();
+                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withContext(rootContext);
+            });
+            test('defined to null', async () => {
+                options.series![0].context = null;
+                options.series![1].context = null;
+                options.series![2].context = null;
+                options.axes![0].context = null;
+                chart = await createChart(options);
+                itemStyler.expect().toHaveBeenCalledTimes(12).withContext(null);
+                seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(null);
+                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(null);
+                await oneTooltipCallback();
+                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withContext(null);
+            });
         });
     });
 });

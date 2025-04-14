@@ -1,7 +1,7 @@
 import {
     type OptionsDefs,
     boolean,
-    callback,
+    callbackDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
@@ -10,9 +10,10 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
     union,
 } from 'ag-charts-core';
-import type { AgBarSeriesOptions } from 'ag-charts-types';
+import type { AgBarSeriesOptions, AgBarSeriesStyle } from 'ag-charts-types';
 
 import {
     commonSeriesOptionsDefs,
@@ -36,7 +37,12 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     legendItemName: string,
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgBarSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cornerRadius: positiveNumber,
+    }),
     crisp: boolean,
     label: {
         ...seriesLabelOptionsDefs,
@@ -53,10 +59,10 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-barSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
+barSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
-barSeriesOptionsDef.fastDataProcessing = boolean;
+barSeriesOptionsDef.fastDataProcessing = undocumented(boolean);
 // @ts-expect-error undocumented option
-barSeriesOptionsDef.focusPriority = number;
+barSeriesOptionsDef.focusPriority = undocumented(number);
 // @ts-expect-error undocumented option
-barSeriesOptionsDef.sparklineMode = boolean;
+barSeriesOptionsDef.sparklineMode = undocumented(boolean);

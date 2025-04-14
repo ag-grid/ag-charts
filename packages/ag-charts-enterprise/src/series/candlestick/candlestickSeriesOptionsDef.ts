@@ -6,7 +6,7 @@ import {
 import {
     type OptionsDefs,
     boolean,
-    callback,
+    callbackDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
@@ -15,6 +15,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    undocumented,
 } from 'ag-charts-core';
 
 const { commonSeriesOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
@@ -47,13 +48,22 @@ export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions
         up: candlestickSeriesItemOptionsDef,
         down: candlestickSeriesItemOptionsDef,
     },
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgCandlestickSeriesItemOptions>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cornerRadius: positiveNumber,
+        wick: {
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        },
+    }),
     showInMiniChart: boolean,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesOptionsDefs,
 };
 
 // @ts-expect-error undocumented option
-candlestickSeriesOptionsDef.pickOutsideVisibleMinorAxis = boolean;
+candlestickSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
-candlestickSeriesOptionsDef.focusPriority = number;
+candlestickSeriesOptionsDef.focusPriority = undocumented(number);

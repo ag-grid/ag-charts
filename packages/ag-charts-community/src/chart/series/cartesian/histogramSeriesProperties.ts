@@ -9,7 +9,7 @@ import type { BBox } from '../../../scene/bbox';
 import { DropShadow } from '../../../scene/dropShadow';
 import { Property } from '../../../util/properties';
 import { Label } from '../../label';
-import { FillGradientDefaults, FillPatternDefaults } from '../seriesProperties';
+import { FillGradientDefaults, FillImageDefaults, FillPatternDefaults } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
@@ -57,6 +57,9 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
 
     @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
+    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity = 1;

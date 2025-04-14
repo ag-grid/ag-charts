@@ -189,14 +189,15 @@ export class AxisTicks {
         const boundSeries: never[] = [];
         const idGenerator = createIdsGenerator();
 
-        const labelFormatter = this.label.format
-            ? this.scale.tickFormatter({
-                  domain: niceDomain,
-                  ticks: rawTicks,
-                  fractionDigits,
-                  specifier: this.label.format,
-              })
-            : (x: unknown) => formatValue(x, fractionDigits);
+        const labelFormatter =
+            typeof this.label.format === 'string'
+                ? this.scale.tickFormatter({
+                      domain: niceDomain,
+                      ticks: rawTicks,
+                      fractionDigits,
+                      specifier: this.label.format,
+                  })
+                : (x: unknown) => formatValue(x, fractionDigits);
         for (let index = 0; index < rawTicks.length; index++) {
             const tick = rawTicks[index];
             const translate = this.scale.convert(tick);

@@ -14,4 +14,4 @@ function decode(encoded: number) {
     return d;
 }
 
-export const year = new CountableTimeInterval(encode, decode);
+export const year = new CountableTimeInterval('year', undefined, undefined, encode, decode);

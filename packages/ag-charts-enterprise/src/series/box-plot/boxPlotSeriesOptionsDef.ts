@@ -1,8 +1,8 @@
-import { type AgBoxPlotSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgBoxPlotSeriesOptions, type AgBoxPlotSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
-    callback,
+    callbackDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
@@ -36,7 +36,19 @@ export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
     legendItemName: string,
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
-    itemStyler: callback,
+    itemStyler: callbackDefs<AgBoxPlotSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cornerRadius: positiveNumber,
+        whisker: {
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        },
+        cap: {
+            lengthRatio: ratio,
+        },
+    }),
     whisker: {
         ...strokeOptionsDef,
         ...lineDashOptionsDef,

@@ -6,7 +6,6 @@ import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
 const {
     ChartAxisDirection,
-    ProxyOnWrite,
     TextWrapper,
     TextUtils,
     Property,
@@ -17,6 +16,8 @@ const {
     RotatableText,
     Transformable,
     BBox,
+    Selection,
+    Line,
 } = _ModuleSupport;
 
 export interface AngleAxisLabelDatum {
@@ -46,12 +47,22 @@ export abstract class AngleAxis<
 > extends _ModuleSupport.PolarAxis<TScale> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
 
-    @ProxyOnWrite('rotation')
     @Property
     startAngle: number = 0;
 
     @Property
     endAngle: number | undefined = undefined;
+
+    protected tickLineGroupSelection = Selection.select<_ModuleSupport.Line, AngleAxisTickDatum<TDomain>>(
+        this.tickLineGroup,
+        Line,
+        false
+    );
+    protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line, AngleAxisTickDatum<TDomain>>(
+        this.gridLineGroup,
+        Line,
+        false
+    );
 
     protected labelData: AngleAxisLabelDatum[] = [];
     protected tickData: AngleAxisTickDatum<TDomain>[] = [];
@@ -70,6 +81,22 @@ export abstract class AngleAxis<
 
     protected override createLabel() {
         return new AngleAxisLabel();
+    }
+
+    calculateRotations() {
+        const rotation = toRadians(this.startAngle);
+        // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
+        // flip the labels to avoid upside-down text, when the axis is rotated
+        // such that it is in the right hemisphere, i.e. the angle of rotation
+        // is in the [0, π] interval.
+        // The rotation angle is normalized, so that we have an easier time checking
+        // if it's in the said interval. Since the axis is always rendered vertically
+        // and then rotated, zero rotation means 12 (not 3) o-clock.
+        // -1 = flip
+        //  1 = don't flip (default)
+        const parallelFlipRotation = normalizeAngle360(rotation);
+        const regularFlipRotation = normalizeAngle360(rotation - Math.PI / 2);
+        return { rotation, parallelFlipRotation, regularFlipRotation };
     }
 
     override calculateTickLayout(domain: TDomain[]): {
@@ -115,6 +142,8 @@ export abstract class AngleAxis<
     override update() {
         super.update();
         this.updateRadiusLine();
+        this.updateGridLines();
+        this.updateTickLines();
     }
 
     private normalizedAngles(): [number, number] {
@@ -245,7 +274,7 @@ export abstract class AngleAxis<
         return { points, closePath: isFullCircle };
     }
 
-    protected override updateGridLines() {
+    private updateGridLines() {
         const {
             scale,
             gridLength: radius,
@@ -302,7 +331,7 @@ export abstract class AngleAxis<
         });
     }
 
-    protected override updateTickLines() {
+    private updateTickLines() {
         const { scale, gridLength: radius, tick, tickLineGroupSelection } = this;
 
         tickLineGroupSelection.each((line, datum) => {

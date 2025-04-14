@@ -1,10 +1,11 @@
-<div class="toolbar">
-    <button onclick="changeSeriesBar()">Bar</button>
-    <button onclick="changeSeriesLine()">Line</button>
-    <button onclick="changeSeriesArea()">Area</button>
-    <button onclick="changeSeriesDonut()">Pie &amp; Donut</button>
-    <hr />
-    <button onclick="changeDuration(500)">Duration: 500ms</button>
-    <button onclick="changeDuration(2000)">Duration: 2000ms</button>
+<div class="example-controls">
+    <div class="controls-row">
+        <button onclick="changeSeriesBar()">Bar</button>
+        <button onclick="changeSeriesLine()">Line</button>
+        <button onclick="changeSeriesArea()">Area</button>
+        <button class="gap-right" onclick="changeSeriesDonut()">Pie &amp; Donut</button>
+        <button onclick="changeDuration(500)">Duration: 500ms</button>
+        <button onclick="changeDuration(2000)">Duration: 2000ms</button>
+    </div>
 </div>
 <div id="myChart"></div>

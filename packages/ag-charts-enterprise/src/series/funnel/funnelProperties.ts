@@ -15,6 +15,7 @@ import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 const {
     FillGradientDefaults,
     FillPatternDefaults,
+    FillImageDefaults,
     Label,
     DropShadow,
     AbstractBarSeriesProperties,
@@ -75,6 +76,9 @@ export class FunnelProperties
 
     @Property
     readonly fillPatternDefaults = new FillPatternDefaults();
+
+    @Property
+    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity: number = 1;

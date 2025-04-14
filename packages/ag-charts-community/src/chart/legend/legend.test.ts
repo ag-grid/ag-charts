@@ -503,9 +503,7 @@ describe('Legend', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            (window as any).doTheThing = true;
             await clickAction(400, 570)(chart);
-            delete (window as any).doTheThing;
             expect(legendItemClick).toBeCalledTimes(1);
         });
     });

@@ -413,7 +413,8 @@ export class HistogramSeries extends CartesianSeries<
                 cornerRadius: properties.cornerRadius,
             },
             properties.fillGradientDefaults,
-            properties.fillPatternDefaults
+            properties.fillPatternDefaults,
+            properties.fillImageDefaults
         );
     }
 
@@ -577,6 +578,7 @@ export class HistogramSeries extends CartesianSeries<
             lineDashOffset,
             fillGradientDefaults,
             fillPatternDefaults,
+            fillImageDefaults,
         } = this.properties;
 
         return {
@@ -591,7 +593,8 @@ export class HistogramSeries extends CartesianSeries<
                     lineDashOffset,
                 },
                 fillGradientDefaults,
-                fillPatternDefaults
+                fillPatternDefaults,
+                fillImageDefaults
             ),
         };
     }

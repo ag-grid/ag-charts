@@ -7,6 +7,10 @@ import type { ScaleFormatParams, ScaleTickParams } from './scale';
  * Maps continuous domain to a continuous range.
  */
 export class LinearScale extends ContinuousScale<number> {
+    static override is(value: unknown): value is LinearScale {
+        return value instanceof LinearScale;
+    }
+
     protected static getTickStep(start: number, stop: number, ticks: ScaleTickParams<number>) {
         const { interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount } = ticks;
         return interval ?? tickStep(start, stop, tickCount, minTickCount, maxTickCount);

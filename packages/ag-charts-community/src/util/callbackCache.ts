@@ -16,11 +16,15 @@ function maybeSetContext<I>(caller: Caller, params: I[]): boolean {
 }
 export function callWithContext<F extends AnyFn>(
     caller1: Caller,
-    caller2: Caller,
+    caller2: Caller | undefined,
     fn: F,
     params: Parameters<F>
 ): ReturnType<F> {
-    if (!maybeSetContext(caller1, params)) maybeSetContext(caller2, params);
+    if (!maybeSetContext(caller1, params)) {
+        if (caller2) {
+            maybeSetContext(caller2, params);
+        }
+    }
     return fn(...params);
 }
 
