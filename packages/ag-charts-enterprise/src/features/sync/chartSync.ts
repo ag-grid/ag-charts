@@ -370,6 +370,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         for (const key of axis.keys ?? []) {
             delete syncGroup?.domainsByKey?.[key]?.sources?.[chartId]?.[axisId];
         }
+        delete syncGroup?.domainsByPosition?.[axis.position]?.sources?.[chartId]?.[axisId];
     }
 
     private async waitForDomainsToBeReady() {
