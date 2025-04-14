@@ -180,24 +180,22 @@ function updateNiceDomainIteration(
     if (interval instanceof TimeInterval) {
         i = interval;
     } else {
-        let tickCount: number | null;
+        let tickCount: number | undefined;
         if (typeof interval === 'number') {
             tickCount = (stop - start) / Math.max(interval, 1);
             if (isDenseInterval(tickCount, availableRange)) {
-                tickCount = null;
+                tickCount = undefined;
             }
         }
         tickCount ??= ticks.tickCount ?? ContinuousScale.defaultTickCount;
         i = getTickTimeInterval(start, stop, tickCount, ticks.minTickCount, ticks.maxTickCount);
     }
 
-    if (i) {
-        const domain = i.range(new Date(start), new Date(stop), { extend: true });
-        if (d0 > d1) {
-            domain.reverse();
-        }
-        return [domain[0], domain.at(-1)!];
-    } else {
-        return [d0, d1];
-    }
+    const domain = i?.range(new Date(start), new Date(stop), { extend: true });
+
+    if (domain == null || domain.length < 2) return [d0, d1];
+
+    const r0 = domain[0];
+    const r1 = domain[domain.length - 1];
+    return d0 <= d1 ? [r0, r1] : [r1, r0];
 }
