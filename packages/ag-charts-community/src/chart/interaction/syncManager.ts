@@ -1,3 +1,4 @@
+import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ISeries } from '../series/seriesTypes';
@@ -29,6 +30,7 @@ export type SyncChartLike = {
     series: ISeries<any, any, any>[];
     syncStatus: SyncStatus;
     modulesManager: { getModule<R>(module: string): R | undefined };
+    seriesAreaBoundingBox: BBox;
     ctx: {
         highlightManager: HighlightManager;
         tooltipManager: TooltipManager;

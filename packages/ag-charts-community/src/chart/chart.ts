@@ -215,6 +215,9 @@ export abstract class Chart extends Observable implements ModuleInstance {
 
     @Property
     readonly seriesArea = new SeriesArea();
+    get seriesAreaBoundingBox() {
+        return this.seriesAreaManager.bbox;
+    }
 
     @Property
     readonly keyboard = new Keyboard();
