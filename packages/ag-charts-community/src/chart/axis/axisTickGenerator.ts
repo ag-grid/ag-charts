@@ -659,7 +659,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     );
                 }
 
-                if (primaryLabel != null) {
+                if (timeInterval != null) {
                     let firstLoop = true;
                     while (
                         timeInterval?.hierarchy &&
