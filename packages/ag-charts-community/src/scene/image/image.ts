@@ -116,7 +116,7 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
         const height = this.height ?? shapeHeight;
 
         const cache = this._cache;
-        if (cache != null && cache.ctx === ctx) {
+        if (cache != null && cache.ctx === ctx && cache.width === width && cache.height === height) {
             return cache.pattern;
         }
 
