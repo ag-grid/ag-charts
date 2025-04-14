@@ -706,7 +706,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             dataDiff
         );
 
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+        if (dataDiff?.changed) {
+            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+        }
     }
 
     private getDatumId(datum: RangeBarNodeDatum) {

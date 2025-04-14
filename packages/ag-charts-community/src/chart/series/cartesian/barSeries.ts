@@ -881,8 +881,7 @@ export class BarSeries extends AbstractBarSeries<
             dataDiff
         );
 
-        const hasMotion = dataDiff?.changed ?? false;
-        if (hasMotion) {
+        if (dataDiff?.changed) {
             seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
         }

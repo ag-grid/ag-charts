@@ -658,7 +658,9 @@ export class HistogramSeries extends CartesianSeries<
             dataDiff
         );
 
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelection);
+        if (dataDiff?.changed) {
+            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelection);
+        }
     }
 
     protected isLabelEnabled() {

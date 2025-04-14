@@ -10,9 +10,12 @@ export function calculateDataDiff<N extends CartesianSeriesNodeDatum>(
     previousContextNodeData?: CartesianSeriesNodeDataContext<N, any>,
     processedData?: ProcessedData<unknown>
 ) {
-    const scalingChanged = hasScalingChanged(contextNodeData, previousContextNodeData);
-
     let dataDiff = processedData?.reduced?.diff?.[seriesId];
+    if (dataDiff?.changed) {
+        return dataDiff;
+    }
+
+    const scalingChanged = hasScalingChanged(contextNodeData, previousContextNodeData);
     if (dataDiff == null && processedData?.reduced?.diff != null) {
         dataDiff = {
             changed: true,
@@ -26,7 +29,7 @@ export function calculateDataDiff<N extends CartesianSeriesNodeDatum>(
         } else {
             dataDiff.added = new Set(Array.from(datumSelection, ({ datum }) => getDatumId(datum)));
         }
-    } else if (!dataDiff?.changed && scalingChanged) {
+    } else if (scalingChanged) {
         dataDiff = {
             changed: true,
             added: new Set(),
