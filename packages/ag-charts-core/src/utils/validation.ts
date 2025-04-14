@@ -19,6 +19,20 @@ const requiredSymbol = Symbol('required');
 const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
 
+const similarOptionsMap = [
+    ['placement', 'position'],
+    ['padding', 'spacing', 'gap'],
+    ['color', 'fill', 'stroke'],
+    ['whisker', 'wick'],
+    ['nodeClick', 'seriesNodeClick'],
+    ['nodeDoubleClick', 'seriesNodeDoubleClick'],
+].reduce((map, words) => {
+    for (const word of words) {
+        map.set(word.toLowerCase(), new Set(words.filter((w) => w !== word)));
+    }
+    return map;
+}, new Map<string, Set<string>>());
+
 type ObjectLikeDef<T> = T extends object ? (keyof T extends never ? never : OptionsDefs<T>) : never;
 
 type Singular<T> = T extends any[] ? T[number] : T;
@@ -105,8 +119,8 @@ export class UnknownError extends ValidationError {
     }
 
     getPostfix() {
-        const match = findSuggestion(this.key, this.suggestions);
-        return match ? `; Did you mean \`${match}\`? Ignoring.` : ', ignoring.';
+        const suggestions = joinFormatted(findSuggestions(this.key, this.suggestions), 'or', (val) => `\`${val}\``);
+        return suggestions ? `; Did you mean ${suggestions}? Ignoring.` : ', ignoring.';
     }
 
     override toString() {
@@ -196,17 +210,21 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
  * @param maxDistance The maximum allowed Levenshtein distance for a match.
  * @returns The closest matching suggestion within the allowed distance, or null if none are found.
  */
-function findSuggestion(value: string, suggestions: string[], maxDistance: number = 2): string | null {
-    let smallestDistance = Infinity;
+function findSuggestions(value: string, suggestions: string[], maxDistance: number = 2): string[] {
+    const result: string[] = [];
     const lowerCaseValue = value.toLowerCase();
-    return suggestions.reduce<string | null>((res, item) => {
-        const d = levenshteinDistance(lowerCaseValue, item.toLowerCase());
-        if (smallestDistance > d && d <= maxDistance) {
-            smallestDistance = d;
-            return item;
+    const similarValues = similarOptionsMap.get(lowerCaseValue);
+    for (const key of suggestions) {
+        const lowerCaseKey = key.toLowerCase();
+        if (
+            similarValues?.has(key) ||
+            lowerCaseKey.includes(lowerCaseValue) ||
+            levenshteinDistance(lowerCaseValue, lowerCaseKey) <= maxDistance
+        ) {
+            result.push(key);
         }
-        return res;
-    }, null);
+    }
+    return result;
 }
 
 /**
