@@ -1,4 +1,4 @@
-import { Logger, first, isNegative, isObject, iterate } from 'ag-charts-core';
+import { Logger, first, isNegative, isNever, isObject, iterate } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
@@ -395,6 +395,9 @@ export class DataModel<
                 case 'processor':
                     this.processors.push({ ...def, index: this.processors.length });
                     break;
+
+                default:
+                    isNever(def);
             }
         }
 

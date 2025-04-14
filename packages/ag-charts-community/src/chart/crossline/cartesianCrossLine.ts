@@ -1,3 +1,4 @@
+import { isNever } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
@@ -322,6 +323,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             case 'left':
             case 'right':
                 bounds = new BBox(position === 'left' ? 0 : -gridLength, r0, gridLength, dr);
+                break;
+            default:
+                isNever(position);
         }
 
         this.updateRangeNode(bounds);

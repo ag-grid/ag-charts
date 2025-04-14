@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNever } from 'ag-charts-core';
 
 import { lineStringDistance } from './lineStringUtil';
 import { polygonDistance } from './polygonUtil';
@@ -98,8 +99,9 @@ export class GeoGeometry<D = any> extends Path<D> implements _ModuleSupport.Dist
                     : Infinity;
             case 'MultiPoint':
             case 'Point':
-            default:
                 return Infinity;
+            default:
+                isNever(geometry);
         }
     }
 
@@ -144,6 +146,8 @@ export class GeoGeometry<D = any> extends Path<D> implements _ModuleSupport.Dist
             case 'Point':
             case 'MultiPoint':
                 break;
+            default:
+                isNever(geometry);
         }
 
         return bbox;

@@ -1,5 +1,5 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
-import { Logger, isObject } from 'ag-charts-core';
+import { Logger, isNever, isObject } from 'ag-charts-core';
 
 import {
     Annotation,
@@ -61,6 +61,8 @@ export class DisjointChannelProperties extends Annotation(
                 return this.stroke;
             case 'text-color':
                 return this.text.color;
+            default:
+                return isNever(colorPickerType);
         }
     }
 

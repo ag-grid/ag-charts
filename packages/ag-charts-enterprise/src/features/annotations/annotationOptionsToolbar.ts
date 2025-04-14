@@ -1,4 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
+import { isNever } from 'ag-charts-core';
 
 import { ColorPicker } from '../../components/color-picker/colorPicker';
 import {
@@ -361,6 +362,9 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
                 this.dispatch('pressed-settings', event);
                 break;
             }
+
+            default:
+                isNever(button.value);
         }
     }
 

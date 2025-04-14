@@ -6,6 +6,7 @@ import {
     groupBy,
     isFiniteNumber,
     isFunction,
+    isNever,
     pause,
 } from 'ag-charts-core';
 import type {
@@ -1514,14 +1515,16 @@ export abstract class Chart extends Observable implements ModuleInstance {
                     break;
 
                 case 'series-grouping':
-                case 'update':
-                default: {
+                case 'update': {
                     const { series, diff, idx } = change;
                     debug(`Chart.applySeries() - applying series diff previous idx ${idx}`, diff, series);
                     this.applySeriesValues(series, diff);
                     series.markNodeDataDirty();
                     seriesInstances.push(series);
+                    break;
                 }
+                default:
+                    isNever(change);
             }
         }
         this.initSeriesDeclarationOrder(seriesInstances);

@@ -6,6 +6,7 @@ import {
     type TextAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
+import { isNever } from 'ag-charts-core';
 
 import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel, getLineHeight } from '../util/labelFormatter';
@@ -351,6 +352,8 @@ export function formatLinearGaugeLabels(
                 s = bar1;
                 align = Align.Center;
                 break;
+            default:
+                isNever(labelDatum.placement);
         }
 
         const x = horizontal ? s : gaugeRect.x + gaugeRect.width / 2;

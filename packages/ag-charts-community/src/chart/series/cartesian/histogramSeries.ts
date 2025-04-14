@@ -1,4 +1,4 @@
-import { isDate, isNumber } from 'ag-charts-core';
+import { isDate, isNever, isNumber } from 'ag-charts-core';
 import type { AgHistogramBinDatum } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -541,6 +541,8 @@ export class HistogramSeries extends CartesianSeries<
                 case 'count':
                     label = localeManager.t('seriesHistogramTooltipCount', { yName: yName ?? yKey });
                     break;
+                default:
+                    isNever(properties.aggregation);
             }
 
             data.push({ label, value: yAxis.formatDatum(aggregatedValue) });

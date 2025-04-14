@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { isNever } from 'ag-charts-core';
 import type {
     AgBaseChartOptions,
     AgCartesianAxisPosition,
@@ -43,8 +44,10 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
                 return 'top';
             case 'right':
                 return 'left';
-            default:
+            case undefined:
                 return position;
+            default:
+                isNever(position);
         }
     };
 

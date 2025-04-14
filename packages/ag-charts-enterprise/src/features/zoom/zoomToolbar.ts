@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { createElement, entries } from 'ag-charts-core';
+import { createElement, entries, isNever } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -214,6 +214,8 @@ export class ZoomToolbar extends BaseProperties {
                 case 'reset':
                     enabled = !isZoomEqual(zoom, this.getResetZoom());
                     break;
+                default:
+                    isNever(button.value);
             }
 
             this.toolbar.toggleButtonEnabledByIndex(index, enabled);
@@ -253,6 +255,9 @@ export class ZoomToolbar extends BaseProperties {
         const delta = zoom.max - zoom.min;
 
         switch (event.value) {
+            case 'reset':
+                break;
+
             case 'pan-start':
                 newZoom.max = delta;
                 newZoom.min = 0;
@@ -286,6 +291,8 @@ export class ZoomToolbar extends BaseProperties {
                 newZoom = scaleZoomAxisWithAnchor(newZoom, zoom, placement);
                 break;
             }
+            default:
+                isNever(event.value);
         }
 
         this.updateAxisZoom(axisId, direction, constrainAxis(newZoom));
@@ -325,6 +332,8 @@ export class ZoomToolbar extends BaseProperties {
                 zoom = this.getNextZoomStateUnified(event.value, oldZoom, props);
                 break;
             }
+            default:
+                isNever(event.value);
         }
 
         this.updateZoom(constrainZoom(zoom));

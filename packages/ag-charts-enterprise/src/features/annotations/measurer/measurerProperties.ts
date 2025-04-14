@@ -1,5 +1,5 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
-import { isObject } from 'ag-charts-core';
+import { isNever, isObject } from 'ag-charts-core';
 
 import {
     Background,
@@ -56,6 +56,8 @@ export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineSt
                 return this.stroke;
             case `text-color`:
                 return this.text.color;
+            default:
+                return isNever(colorPickerType);
         }
     }
 

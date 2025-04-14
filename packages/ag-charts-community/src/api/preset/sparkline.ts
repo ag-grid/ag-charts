@@ -1,3 +1,4 @@
+import { isNever } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgAreaSeriesTooltipRendererParams,
@@ -247,9 +248,12 @@ function axisPreset(
                 paddingOuter,
             });
         }
-    }
 
-    return { type: defaultType };
+        case undefined:
+            return { type: defaultType };
+        default:
+            isNever(opts);
+    }
 }
 
 function gridLinePreset(

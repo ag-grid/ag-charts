@@ -1,4 +1,5 @@
 import { type AgAnnotationLineStyleType, type PixelSize, _ModuleSupport } from 'ag-charts-community';
+import { isNever } from 'ag-charts-core';
 
 const { Vec2 } = _ModuleSupport;
 
@@ -14,6 +15,8 @@ export function getComputedLineDash(strokeWidth: number, styleType: AgAnnotation
             return [strokeWidth * 4, strokeWidth * 2];
         case 'dotted':
             return [0, strokeWidth * 2];
+        default:
+            return isNever(styleType);
     }
 }
 

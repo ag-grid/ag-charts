@@ -1,4 +1,4 @@
-import { type AnyFn, Logger, type RequireOptional } from 'ag-charts-core';
+import { type AnyFn, Logger, type RequireOptional, isNever } from 'ag-charts-core';
 import type {
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageColor,
@@ -543,13 +543,15 @@ export abstract class Series<
             return defaultOpacity;
         }
 
-        switch (this.isItemIdHighlighted()) {
+        const id = this.isItemIdHighlighted();
+        switch (id) {
             case SeriesHighlight.None:
             case SeriesHighlight.This:
                 return defaultOpacity;
             case SeriesHighlight.Other:
-            default:
                 return dimOpacity;
+            default:
+                isNever(id);
         }
     }
 
@@ -561,12 +563,15 @@ export abstract class Series<
             return defaultStrokeWidth;
         }
 
-        switch (this.isItemIdHighlighted()) {
+        const id = this.isItemIdHighlighted();
+        switch (id) {
             case SeriesHighlight.This:
                 return strokeWidth;
             case SeriesHighlight.None:
             case SeriesHighlight.Other:
                 return defaultStrokeWidth;
+            default:
+                isNever(id);
         }
     }
 
@@ -655,6 +660,9 @@ export abstract class Series<
                     result = closest != null ? { datums: [closest.datum], distance: closest.distance } : undefined;
                     break;
                 }
+
+                default:
+                    isNever(pickMode);
             }
 
             if (result && result.distance <= maxDistance) {

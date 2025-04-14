@@ -1,3 +1,5 @@
+import { isNever } from 'ag-charts-core';
+
 import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
 import { type Span, clipSpanX, collapseSpanToPoint, rescaleSpan, spanRange } from './lineInterpolation';
@@ -254,6 +256,8 @@ function collapseSpan(
                 return axisZeroSpan(span, data);
             case CollapseMode.Split:
                 return collapseSpanToMidpoint(span);
+            default:
+                return isNever(collapseMode);
         }
     }
 
@@ -493,6 +497,8 @@ function resetSpan(data: SpanContext, spanDatum: SpanDatum, collapseMode: Collap
             return zeroDataSpan(spanDatum, data.zeroData) ?? axisZeroSpan(span, data);
         case CollapseMode.Split:
             return collapseSpanToMidpoint(span);
+        default:
+            return isNever(collapseMode);
     }
 }
 

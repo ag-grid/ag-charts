@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType } from 'ag-charts-core';
+import { type InternalAgColorType, isNever } from 'ag-charts-core';
 import type { AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -392,6 +392,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                         labelRadius = (innerRadius + outerRadius) * 0.5;
                     }
                     break;
+                default:
+                    isNever(labelPlacement);
             }
 
             if (label != null) {
@@ -543,6 +545,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     text.rotation = rightHalf ? theta : theta + Math.PI;
                     break;
                 }
+                default:
+                    isNever(labelPlacement);
             }
             text.visible = true;
         };

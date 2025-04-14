@@ -1,4 +1,5 @@
 import type { Writeable } from 'ag-charts-core';
+import { isNever } from 'ag-charts-core';
 import type { FontFamily, FontSize, FontStyle, FontWeight, Ratio } from 'ag-charts-types';
 
 import { createCanvasContext } from './canvas.util';
@@ -181,8 +182,11 @@ export class TextUtils {
             case 'alphabetic':
             case 'bottom':
             case 'ideographic':
-            default:
+            case undefined:
+                textBaseline;
                 return 1;
+            default:
+                isNever(textBaseline);
         }
     }
 }

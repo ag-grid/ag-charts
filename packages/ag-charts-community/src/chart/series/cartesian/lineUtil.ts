@@ -1,3 +1,5 @@
+import { isNever } from 'ag-charts-core';
+
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Point } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
@@ -64,6 +66,8 @@ export function interpolatePoints(
         case 'step':
             spans = stepPoints(pointsIter, interpolation.position);
             break;
+        default:
+            isNever(interpolation.type);
     }
     return spans.map((span, i) => ({
         span,

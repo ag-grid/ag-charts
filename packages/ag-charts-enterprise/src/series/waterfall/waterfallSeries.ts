@@ -1,5 +1,6 @@
 import type { AgWaterfallSeriesItemType } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNever } from 'ag-charts-core';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -495,6 +496,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             case 'total': {
                 return this.properties.item.total;
             }
+            default:
+                isNever(seriesItemType);
         }
     }
 

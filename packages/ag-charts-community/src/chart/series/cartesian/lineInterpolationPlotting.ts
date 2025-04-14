@@ -1,3 +1,5 @@
+import { isNever } from 'ag-charts-core';
+
 import type { ExtendedPath2D } from '../../../scene/extendedPath2D';
 import { solveBezier, splitBezier } from '../../../scene/util/bezier';
 import { type CubicSpan, type LinearSpan, type Span, SpanJoin, type StepSpan, spanRange } from './lineInterpolation';
@@ -110,6 +112,8 @@ function plotStart(
                 path.lineTo(x0, y0);
             }
             break;
+        default:
+            isNever(moveTo);
     }
 }
 
@@ -186,6 +190,8 @@ export function plotSpan(path: ExtendedPath2D, span: Span, moveTo: SpanJoin, rev
         case 'step':
             plotStep(path, span.x0, span.y0, span.x1, span.y1, span.stepX, reversed);
             break;
+        default:
+            isNever(span);
     }
 }
 

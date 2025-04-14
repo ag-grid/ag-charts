@@ -1,4 +1,4 @@
-import { clamp } from 'ag-charts-core';
+import { clamp, isNever } from 'ag-charts-core';
 import type { AgChartLegendOrientation, AgMarkerShape, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { TranslatableGroup } from '../../scene/group';
@@ -157,11 +157,13 @@ export class Pagination extends BaseProperties {
                 this.nextButton.rotation = Math.PI / 2;
                 break;
             }
-            case 'vertical':
-            default: {
+            case 'vertical': {
                 this.previousButton.rotation = 0;
                 this.nextButton.rotation = Math.PI;
+                break;
             }
+            default:
+                isNever(value);
         }
     }
     get orientation() {

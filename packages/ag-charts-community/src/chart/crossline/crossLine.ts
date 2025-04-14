@@ -1,4 +1,4 @@
-import { isArray } from 'ag-charts-core';
+import { isArray, isNever } from 'ag-charts-core';
 import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
@@ -21,6 +21,8 @@ export function getCrossLineValue(crossLine: {
             return crossLine.value;
         case 'range':
             return crossLine.range;
+        default:
+            return isNever(crossLine.type);
     }
 }
 

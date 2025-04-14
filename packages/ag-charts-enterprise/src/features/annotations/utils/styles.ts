@@ -1,3 +1,5 @@
+import { isNever } from 'ag-charts-core';
+
 import type { AnnotationLineStyle, AnnotationOptionsColorPickerType } from '../annotationTypes';
 import type {
     AnnotationProperties,
@@ -76,5 +78,8 @@ export function setColor(
             if (hasLineText(datum)) datum.text.color = color;
             break;
         }
+
+        default:
+            isNever(colorPickerType);
     }
 }

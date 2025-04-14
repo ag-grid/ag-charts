@@ -17,6 +17,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import type { ChartOrProxy } from 'ag-charts-community-test';
+import { isNever } from 'ag-charts-core';
 
 import { createEnterpriseChart } from '../../test/utils';
 
@@ -444,8 +445,10 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
                 return 'top';
             case 'right':
                 return 'left';
-            default:
+            case undefined:
                 return position;
+            default:
+                isNever(position);
         }
     };
 

@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNever } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -78,6 +79,8 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
                 offset.y -= UnivariantHandle.HANDLE_SIZE / 2;
                 allowSnapping = false;
                 break;
+            default:
+                isNever(activeHandle);
         }
 
         const top = convertLine(datum, context);

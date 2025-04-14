@@ -1,4 +1,4 @@
-import { arraysEqual, diffArrays } from 'ag-charts-core';
+import { arraysEqual, diffArrays, isNever } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
@@ -182,6 +182,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                 this.label.mirrored = false;
                 this.label.parallel = false;
                 break;
+            default:
+                isNever(this.position);
         }
 
         if (this.axisContext) {
@@ -372,6 +374,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                 return new BBox(-tickSize, translationY, tickSize, translationY);
             case 'right':
                 return new BBox(0, translationY, tickSize, translationY);
+            default:
+                return isNever(position);
         }
     }
 
@@ -388,6 +392,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                 return new BBox(-seriesAreaPadding, y1, seriesAreaPadding, dy);
             case 'right':
                 return new BBox(0, y1, seriesAreaPadding, dy);
+            default:
+                return isNever(position);
         }
     }
 
@@ -484,6 +490,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                 rotation = 0.5 * Math.PI;
                 textBaseline = 'bottom';
                 break;
+            default:
+                isNever(this.position);
         }
 
         const { formatter = (p) => p.defaultValue } = title;

@@ -1,4 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+import { isNever } from 'ag-charts-core';
 
 import { extendBbox } from './bboxUtil';
 import { lineStringLength } from './lineStringUtil';
@@ -51,6 +52,8 @@ export function geometryBbox(
             into = extendBbox(into, lon, lat, lon, lat);
             break;
         }
+        default:
+            isNever(geometry);
     }
 
     return into;
@@ -98,6 +101,8 @@ export function largestPolygon(geometry: _ModuleSupport.Geometry): _ModuleSuppor
         case 'MultiPoint':
         case 'Point':
             return;
+        default:
+            isNever(geometry);
     }
 }
 
@@ -140,6 +145,8 @@ export function largestLineString(geometry: _ModuleSupport.Geometry): _ModuleSup
         case 'MultiPoint':
         case 'Point':
             return;
+        default:
+            isNever(geometry);
     }
 }
 
@@ -164,6 +171,8 @@ export function containsType(geometry: _ModuleSupport.Geometry | null, type: Geo
         case 'MultiPoint':
         case 'Point':
             return (type & GeometryType.Point) !== 0;
+        default:
+            isNever(geometry);
     }
 }
 
@@ -207,6 +216,8 @@ export function projectGeometry(
                 type: 'Point',
                 coordinates: scale.convert(geometry.coordinates),
             };
+        default:
+            isNever(geometry);
     }
 }
 

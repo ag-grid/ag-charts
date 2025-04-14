@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNever } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType, type Bounds } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -284,11 +285,12 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                 }
                 break;
             }
-            case 'side':
-            default: {
+            case 'side': {
                 path.lineTo(x1, y1);
                 break;
             }
+            default:
+                isNever(type);
         }
     }
 

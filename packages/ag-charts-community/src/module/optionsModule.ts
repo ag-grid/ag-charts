@@ -11,6 +11,7 @@ import {
     isArray,
     isEnumValue,
     isFiniteNumber,
+    isNever,
     isObject,
     isPlainObject,
     isString,
@@ -662,6 +663,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                                 },
                             })
                         );
+
+                    case GroupingType.DEFAULT:
+                        break;
+
+                    default:
+                        isNever(seriesGroup.groupType);
                 }
 
                 return seriesGroup.series;

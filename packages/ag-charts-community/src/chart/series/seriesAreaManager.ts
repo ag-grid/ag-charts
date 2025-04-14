@@ -1,4 +1,4 @@
-import { clamp } from 'ag-charts-core';
+import { clamp, isNever } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
 import { FocusIndicator } from '../../dom/focusIndicator';
@@ -482,7 +482,9 @@ export class SeriesAreaManager extends BaseManager {
             this.focusIndicator?.overrideFocusVisible(this.previousInputDevice === 'keyboard');
         }
 
-        switch (action?.name) {
+        if (action === undefined) return;
+
+        switch (action.name) {
             case 'redo':
                 return this.chart.ctx.chartEventManager.seriesEvent('series-redo');
             case 'undo':
@@ -501,6 +503,10 @@ export class SeriesAreaManager extends BaseManager {
                 return this.onArrow(0, 1, widgetEvent);
             case 'submit':
                 return this.onSubmit(widgetEvent);
+            case 'delete':
+                return; // handled internally by Annotations module.
+            default:
+                isNever(action.name);
         }
     }
 

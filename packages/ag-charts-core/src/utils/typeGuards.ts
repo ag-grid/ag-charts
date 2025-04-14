@@ -78,3 +78,25 @@ export function isColor(value: unknown): value is CssColor {
 export function isKeyOf<T extends object>(value: keyof any, container: T): value is keyof T {
     return value in container;
 }
+
+/**
+ * Unreachable code enforcement. This is very useful for enforcing exhaustive switch (or nested-if) statements.
+ * Example:
+ *
+ *   const myValue: 'a' | 'b' | 'c' = init();
+ *
+ *   switch (myValue) {
+ *     case 'a': break;
+ *     case 'b': break;
+ *     default: isNever(myValue); // ERROR: 'c' is not assignable to `never` (because case 'c' is missing).
+ *   }
+ *
+ *   if (myValue === 'a' || myValue === 'b') {}
+ *   else {
+ *     isNever(myValue); // ERROR: 'c' is not assignable to `never` (because `if (myValue === 'c')` is missing).
+ *   }
+ *
+ */
+export function isNever(_value: never): never {
+    throw new Error(); // isNever is never called.
+}

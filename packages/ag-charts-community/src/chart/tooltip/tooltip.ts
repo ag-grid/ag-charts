@@ -1,4 +1,4 @@
-import { clamp, getWindow } from 'ag-charts-core';
+import { clamp, getWindow, isNever } from 'ag-charts-core';
 import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
 
 import type { DOMManager } from '../../dom/domManager';
@@ -399,6 +399,9 @@ export class Tooltip extends BaseProperties {
                 break;
             case 'chart':
                 this.springAnimation.reset();
+                break;
+            default:
+                isNever(anchorTo);
         }
 
         if (meta.enableInteraction) {
@@ -543,8 +546,11 @@ export class Tooltip extends BaseProperties {
                 bounds.left = xOffset;
                 return bounds;
             }
+            case 'center': {
+                return bounds;
+            }
+            default:
+                return isNever(placement);
         }
-
-        return bounds;
     }
 }

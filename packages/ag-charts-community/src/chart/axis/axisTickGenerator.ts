@@ -1,4 +1,4 @@
-import { arraysEqual, countFractionDigits, isPlainObject } from 'ag-charts-core';
+import { arraysEqual, countFractionDigits, isNever, isPlainObject } from 'ag-charts-core';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -643,7 +643,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 timeInterval = previousTimeInterval;
                 break;
 
-            default: {
+            case TickGenerationType.CREATE: {
                 if (
                     niceDomain.length > 0 &&
                     (UnitTimeScale.is(scale) ||
@@ -692,7 +692,11 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 const defaultInterval = TimeScale.is(scale) || UnitTimeScale.is(scale) ? timeInterval : undefined;
                 tickParams.interval = domainParams.interval ?? defaultInterval;
                 rawTicks ??= scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
+                break;
             }
+
+            default:
+                isNever(tickGenerationType);
         }
 
         const fractionDigits = rawTicks.reduce(

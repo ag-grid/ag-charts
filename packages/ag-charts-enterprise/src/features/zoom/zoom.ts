@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { debounce, entries, roundTo } from 'ag-charts-core';
+import { debounce, entries, isNever, roundTo } from 'ag-charts-core';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
@@ -376,7 +376,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 break;
 
             case DragState.None:
+            case DragState.TwoFingers:
                 return;
+
+            default:
+                isNever(dragState);
         }
 
         tooltipManager.updateTooltip(TOOLTIP_ID);
@@ -415,6 +419,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 this.updateZoom(newZoom);
                 break;
             }
+
+            case DragState.TwoFingers:
+                break;
+
+            default:
+                isNever(dragState);
         }
 
         this.dragState = DragState.None;
@@ -602,6 +612,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 return event.shiftKey;
             case 'meta':
                 return event.metaKey;
+            default:
+                isNever(this.panKey);
         }
     }
 

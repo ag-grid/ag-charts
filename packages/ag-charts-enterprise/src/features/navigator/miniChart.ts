@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, isNever } from 'ag-charts-core';
 
 import { MiniChartGroup } from './shapes/miniChartGroup';
 
@@ -279,6 +279,8 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
                     axis.gridLength = seriesRect.width;
                     break;
                 }
+                default:
+                    isNever(position);
             }
 
             axis.gridPadding = 0;

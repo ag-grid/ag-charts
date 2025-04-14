@@ -6,6 +6,7 @@ import {
     type FontWeight,
     _ModuleSupport,
 } from 'ag-charts-community';
+import { isNever } from 'ag-charts-core';
 
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, formatWithContext, getLabelText } from '../gauge-util/label';
@@ -407,9 +408,11 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             case 'after':
                 crossOffset = thickness + spacing + size / 2;
                 break;
-            default:
+            case 'middle':
                 crossOffset = thickness / 2;
                 break;
+            default:
+                isNever(placement);
         }
 
         return {

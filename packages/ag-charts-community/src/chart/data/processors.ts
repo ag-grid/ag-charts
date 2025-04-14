@@ -1,4 +1,4 @@
-import { clamp, isArray, isFiniteNumber, isNegative } from 'ag-charts-core';
+import { clamp, isArray, isFiniteNumber, isNegative, isNever } from 'ag-charts-core';
 
 import type { ScaleType } from '../../scale/scale';
 import { memo } from '../../util/memo';
@@ -34,8 +34,12 @@ function getValidationFn(scaleType?: ScaleType) {
         case 'time':
         case 'color':
             return basicContinuousCheckDatumValidation;
-        default:
+        case 'band':
+        case 'mercator':
+        case undefined:
             return basicDiscreteCheckDatumValidation;
+        default:
+            return isNever(scaleType);
     }
 }
 

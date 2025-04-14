@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isNever } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 import { type AnnotationType } from './annotationTypes';
@@ -122,6 +123,12 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
                 case 'measurer-menu':
                     this.updateButtonByIndex(index, { icon: 'measurer-drawing', value: 'measurer-menu' });
                     break;
+
+                case 'clear':
+                    break;
+
+                default:
+                    isNever(button.value);
             }
         }
     }
@@ -212,6 +219,9 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
                     MEASURER_ANNOTATION_ITEMS
                 );
                 break;
+
+            default:
+                isNever(button.value);
         }
     }
 

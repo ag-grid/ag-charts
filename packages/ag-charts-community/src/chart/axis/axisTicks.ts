@@ -1,4 +1,4 @@
-import { countFractionDigits } from 'ag-charts-core';
+import { countFractionDigits, isNever } from 'ag-charts-core';
 import type { AgChartLegendPosition, CssColor, FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { LinearScale } from '../../scale/linearScale';
@@ -115,6 +115,8 @@ export class AxisTicks {
                     textAlign: 'start',
                     textBaseline: 'middle',
                 };
+            default:
+                return isNever(this.position);
         }
     }
 

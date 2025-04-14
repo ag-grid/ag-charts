@@ -1,4 +1,4 @@
-import { Logger, entries, groupBy } from 'ag-charts-core';
+import { Logger, entries, groupBy, isNever } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { LayoutContext, ModuleInstance } from '../module/baseModule';
@@ -493,6 +493,10 @@ export class CartesianChart extends Chart {
                     layoutBBox.height + gridLinePadding
                 );
                 break;
+            case undefined:
+                break;
+            default:
+                isNever(axis.position);
         }
     }
 }

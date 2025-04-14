@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
-import { clamp, isNumberEqual, roundTo } from 'ag-charts-core';
+import { clamp, isNever, isNumberEqual, roundTo } from 'ag-charts-core';
 
 import type { DefinedZoomState } from './zoomTypes';
 
@@ -120,7 +120,7 @@ export function scaleZoomAxisWithAnchor(
         case 'pointer':
             return scaleZoomAxisWithPoint(newState, oldState, origin ?? center);
         default:
-            return { min, max };
+            isNever(anchor);
     }
 }
 

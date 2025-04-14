@@ -1,4 +1,4 @@
-import { type InternalAgGradientColor, clamp } from 'ag-charts-core';
+import { type InternalAgGradientColor, clamp, isNever } from 'ag-charts-core';
 import type { AgImageColor, AgPatternColor } from 'ag-charts-types';
 
 import { BBoxValues } from '../../util/bboxinterface';
@@ -104,6 +104,8 @@ export abstract class Shape<D = any> extends Node<D> {
                 return new RadialGradient(colorSpace, stops);
             case 'conic':
                 return new ConicGradient(colorSpace, stops, rotation);
+            default:
+                return isNever(gradient);
         }
     }
 

@@ -8,7 +8,7 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { countFractionDigits } from 'ag-charts-core';
+import { countFractionDigits, isNever } from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -498,8 +498,10 @@ export class RadialGaugeSeries
                 return Math.max(innerRadius - spacing - size / 2, 0);
             case 'outside':
                 return outerRadius + spacing + size / 2;
-            default:
+            case 'middle':
                 return (innerRadius + outerRadius) / 2;
+            default:
+                return isNever(placement);
         }
     }
 
@@ -530,12 +532,14 @@ export class RadialGaugeSeries
                 offsetX = -offset * Math.cos(angle);
                 offsetY = -offset * Math.sin(angle);
                 break;
-            default:
+            case 'middle':
                 textAlign = 'center';
                 textBaseline = 'bottom';
                 offsetX = 0;
                 offsetY = -offset;
                 break;
+            default:
+                isNever(placement);
         }
 
         return {

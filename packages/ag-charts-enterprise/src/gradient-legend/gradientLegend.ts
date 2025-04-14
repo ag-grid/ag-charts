@@ -1,4 +1,5 @@
 import { type AgChartLegendPosition, type AgGradientLegendScaleOptions, _ModuleSupport } from 'ag-charts-community';
+import { isNever } from 'ag-charts-core';
 
 const {
     BaseProperties,
@@ -257,6 +258,10 @@ export class GradientLegend {
                 left += shrinkRect.width / 2 - width / 2;
                 top += shrinkRect.height - height;
                 shrinkRect.shrink(height + this.spacing, 'bottom');
+                break;
+
+            default:
+                isNever(this.position);
         }
 
         return { top, left };

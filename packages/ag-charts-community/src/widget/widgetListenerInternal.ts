@@ -1,3 +1,5 @@
+import { isNever } from 'ag-charts-core';
+
 import { BBoxValues } from '../util/bboxinterface';
 import { partialAssign } from '../util/object';
 import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mouseDragger';
@@ -122,6 +124,8 @@ export class WidgetListenerInternal {
                 this.registerDragTrigger(target);
                 break;
             }
+            default:
+                isNever(type);
         }
     }
 
@@ -134,6 +138,8 @@ export class WidgetListenerInternal {
                 return this.removeHandler(this.dragMoveListeners, handler);
             case 'drag-end':
                 return this.removeHandler(this.dragEndListeners, handler);
+            default:
+                isNever(type);
         }
     }
 
@@ -233,6 +239,8 @@ export class WidgetListenerInternal {
             case 'drag-end':
                 this.dragEndListeners?.forEach((handler) => handler(event, current));
                 break;
+            default:
+                isNever(type);
         }
 
         this.dispatchCallback(type, event);

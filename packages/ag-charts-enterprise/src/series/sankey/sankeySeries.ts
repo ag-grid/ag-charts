@@ -1,5 +1,5 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, isNever } from 'ag-charts-core';
 
 import {
     FlowProportionDatumType,
@@ -161,6 +161,8 @@ export class SankeySeries extends FlowProportionSeries<
                     column = linksAfter.length === 0 ? columns[maxPathLength - 1] : columns[maxPathLengthBefore];
                     break;
                 }
+                default:
+                    isNever(alignment);
             }
 
             node.x = column.x;

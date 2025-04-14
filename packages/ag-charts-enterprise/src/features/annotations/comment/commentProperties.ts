@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isObject } from 'ag-charts-core';
+import { isNever, isObject } from 'ag-charts-core';
 
 import { Fill, Stroke } from '../annotationProperties';
 import {
@@ -37,8 +37,9 @@ export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
             case `line-color`:
                 return this.stroke;
             case `text-color`:
-            default:
                 return this.color;
+            default:
+                return isNever(colorPickerType);
         }
     }
 
@@ -49,8 +50,9 @@ export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
             case `line-color`:
                 return this.strokeOpacity;
             case `text-color`:
-            default:
                 return undefined;
+            default:
+                return isNever(colorPickerType);
         }
     }
 

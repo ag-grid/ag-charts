@@ -1,4 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+import { isNever } from 'ag-charts-core';
 
 import { largestLineString, largestPolygon } from './geometryUtil';
 import { lineStringCenter } from './lineStringUtil';
@@ -49,6 +50,8 @@ export function markerPositions(geometry: _ModuleSupport.Geometry, precision: nu
             center = lineStringCenter(lineString)?.point;
             break;
         }
+        default:
+            isNever(geometry);
     }
 
     return center != null ? [center] : [];

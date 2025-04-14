@@ -1,3 +1,4 @@
+import { isNever } from 'ag-charts-core';
 import type { AgTooltipMode } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
@@ -153,6 +154,9 @@ function tooltipContentHtml(
             break;
         case 'shared':
             compact = false;
+            break;
+        default:
+            isNever(mode);
     }
 
     let html = '';

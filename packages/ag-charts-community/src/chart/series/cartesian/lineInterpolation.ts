@@ -1,3 +1,5 @@
+import { isNever } from 'ag-charts-core';
+
 import type { Point } from '../../../scene/point';
 import { solveBezier, splitBezier } from '../../../scene/util/bezier';
 
@@ -48,6 +50,8 @@ export function spanRange(span: Span): [Point, Point] {
                 { x: span.cp0x, y: span.cp0y },
                 { x: span.cp3x, y: span.cp3y },
             ];
+        default:
+            isNever(span);
     }
 }
 
@@ -94,6 +98,8 @@ export function collapseSpanToPoint(span: Span, point: Point): Span {
                 cp3x: x,
                 cp3y: y,
             };
+        default:
+            isNever(span);
     }
 }
 
@@ -135,6 +141,8 @@ export function rescaleSpan(span: Span, nextStart: Point, nextEnd: Point): Span 
                 y1: nextEnd.y,
                 stepX: nextEnd.x - (span.stepX - prevStart.x) * widthScale,
             };
+        default:
+            isNever(span);
     }
 }
 
@@ -206,6 +214,8 @@ export function clipSpanX(span: Span, x0: number, x1: number): Span {
                 cp3y: bezier[3].y,
             };
         }
+        default:
+            isNever(span);
     }
 }
 

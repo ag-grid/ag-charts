@@ -1,4 +1,4 @@
-import { type AnyFn, Logger, clamp } from 'ag-charts-core';
+import { type AnyFn, Logger, clamp, isNever } from 'ag-charts-core';
 import type {
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageColor,
@@ -1088,8 +1088,9 @@ export class Legend extends BaseProperties {
                 case 'bottom':
                     return height - legendBBox.height;
                 case 'right':
-                default:
                     return width - legendBBox.width;
+                default:
+                    isNever(this.position);
             }
         };
 
@@ -1109,10 +1110,12 @@ export class Legend extends BaseProperties {
 
                 case 'left':
                 case 'right':
-                default:
                     translationX = calculateTranslationPerpendicularDimension();
                     translationY = (height - legendBBox.height) / 2;
                     layoutBox.shrink(legendBBox.width + legendPadding, this.position);
+                    break;
+                default:
+                    isNever(this.position);
             }
 
             // Round off for pixel grid alignment to work properly.
@@ -1174,15 +1177,18 @@ export class Legend extends BaseProperties {
             }
 
             case 'left':
-            case 'right':
-            default: {
+            case 'right': {
                 // A vertical legend should take maximum between 25 and 50 percent of the chart width if width is larger than height
                 // and maximum 25 percent of the chart width if width is smaller than height.
                 const widthCoefficient =
                     aspectRatio > 1 ? Math.min(maxCoefficient, minWidthCoefficient * aspectRatio) : minWidthCoefficient;
                 legendWidth = this.maxWidth ? Math.min(this.maxWidth, width) : Math.round(width * widthCoefficient);
                 legendHeight = this.maxHeight ? Math.min(this.maxHeight, height) : height;
+                break;
             }
+
+            default:
+                isNever(this.position);
         }
 
         return [legendWidth, legendHeight];
