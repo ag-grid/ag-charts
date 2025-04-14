@@ -680,11 +680,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     firstLoop = false;
                 }
 
-                if (TimeScale.is(scale) || UnitTimeScale.is(scale)) {
-                    tickParams.interval = domainParams.interval ?? (timeInterval as any);
-                } else {
-                    tickParams.interval = domainParams.interval;
-                }
+                const defaultInterval = TimeScale.is(scale) || UnitTimeScale.is(scale) ? timeInterval : undefined;
+                tickParams.interval = domainParams.interval ?? defaultInterval;
                 rawTicks ??= scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
             }
         }
