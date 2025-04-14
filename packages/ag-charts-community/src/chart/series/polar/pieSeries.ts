@@ -236,6 +236,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                     id: 'radiusValue',
                     min: this.properties.radiusMin ?? 0,
                     max: this.properties.radiusMax,
+                    missingValue: this.properties.radiusMax ?? 1,
                     processor,
                 }),
                 valueProperty(radiusKey, radiusScaleType, { id: `radiusRaw`, processor }), // Raw value pass-through.
