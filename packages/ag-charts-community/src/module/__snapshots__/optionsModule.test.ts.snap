@@ -23,6 +23,12 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           },
           "spacing": 11,
         },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
       },
       "gridLine": {
         "enabled": true,
@@ -72,6 +78,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "position": "top",
       "tick": {
         "enabled": true,
+        "size": 6,
         "stroke": "#3f7cbf",
         "width": 3,
       },
@@ -502,6 +509,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -547,6 +555,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -591,6 +600,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "position": "right",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -988,6 +998,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -1030,6 +1041,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -1720,6 +1732,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -1762,6 +1775,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -2488,6 +2502,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -2529,6 +2544,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -2702,6 +2718,12 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           },
           "spacing": 11,
         },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
       },
       "gridLine": {
         "enabled": false,
@@ -2730,6 +2752,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -2771,6 +2794,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -3225,6 +3249,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -3266,6 +3291,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4001,6 +4027,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4042,6 +4069,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4242,6 +4270,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4283,6 +4312,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4486,6 +4516,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "position": "bottom",
       "tick": {
         "enabled": true,
+        "size": 6,
         "stroke": "black",
         "width": 1,
       },
@@ -4526,6 +4557,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "position": "left",
       "tick": {
         "enabled": true,
+        "size": 6,
         "stroke": "black",
         "width": 1,
       },
@@ -4708,6 +4740,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4752,6 +4785,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4935,6 +4969,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -4976,6 +5011,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -5309,6 +5345,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -5350,6 +5387,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -5687,6 +5725,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -5729,6 +5768,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -6444,6 +6484,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -6488,6 +6529,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -7843,6 +7885,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -7884,6 +7927,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -8070,6 +8114,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -8112,6 +8157,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -9103,6 +9149,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -9145,6 +9192,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -9561,6 +9609,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -9603,6 +9652,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -10234,6 +10284,12 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           },
           "spacing": 11,
         },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
       },
       "gridLine": {
         "enabled": false,
@@ -10271,6 +10327,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -10313,6 +10370,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -10894,6 +10952,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -10936,6 +10995,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -11417,6 +11477,12 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           },
           "spacing": 11,
         },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
       },
       "gridLine": {
         "enabled": false,
@@ -11462,6 +11528,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -11504,6 +11571,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -12055,6 +12123,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -12096,6 +12165,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -12262,6 +12332,12 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           },
           "spacing": 11,
         },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
       },
       "gridLine": {
         "enabled": false,
@@ -12308,6 +12384,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -12350,6 +12427,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -13232,6 +13310,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -13274,6 +13353,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "position": "top",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -13749,6 +13829,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "position": "bottom",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },
@@ -13791,6 +13872,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "position": "left",
       "tick": {
         "enabled": false,
+        "size": 6,
         "stroke": "#c3c3c3",
         "width": 1,
       },

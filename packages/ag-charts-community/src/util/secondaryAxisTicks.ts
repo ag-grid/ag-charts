@@ -1,14 +1,19 @@
 import { findMinMax } from './number';
 
-export function calculateNiceSecondaryAxis(
-    domain: number[],
+interface SecondaryTickScale<D> {
+    toDomain(d: number): D;
+}
+
+export function calculateNiceSecondaryAxis<D extends number>(
+    scale: SecondaryTickScale<D>,
+    domain: D[],
     primaryTickCount: number,
     reverse?: boolean
-): { domain: [number, number]; ticks: number[] } {
+): { domain: [D, D]; ticks: number[] } {
     // Make secondary axis domain nice using strict tick count, matching the tick count from the primary axis.
     // This is to make the secondary axis grid lines/ tick positions align with the ones from the primary axis.
 
-    let [start, stop] = findMinMax(domain);
+    let [start, stop] = findMinMax(domain.map(Number));
 
     start = calculateNiceStart(Math.floor(start), stop, primaryTickCount);
     const step = getTickStep(start, stop, primaryTickCount);
@@ -16,7 +21,9 @@ export function calculateNiceSecondaryAxis(
     const segments = primaryTickCount - 1;
     stop = start + segments * step;
 
-    const d: [number, number] = reverse ? [stop, start] : [start, stop];
+    const d0 = scale.toDomain(start);
+    const d1 = scale.toDomain(stop);
+    const d: [D, D] = reverse ? [d1, d0] : [d0, d1];
     const ticks = getTicks(start, step, primaryTickCount);
 
     return { domain: d, ticks };

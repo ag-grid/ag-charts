@@ -1,6 +1,7 @@
 import { findMinIndex } from 'ag-charts-core';
-import type { TimeInterval } from 'ag-charts-types';
 
+import { compareDates } from '../util/date';
+import type { TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
@@ -67,5 +68,16 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | n
         formatOffset?: number
     ): (date: Date) => string {
         return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(ticks, domain, formatOffset);
+    }
+
+    tickIsFirstAfter(tick: Date, reference: Date) {
+        if (compareDates(tick, reference) < 0) return false;
+
+        const index = this.findIndex(tick);
+        if (index == null) return false;
+        if (index === 0) return true;
+
+        const previousTick = this.bands[index - 1];
+        return compareDates(previousTick, reference) < 0;
     }
 }

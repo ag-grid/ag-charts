@@ -121,4 +121,11 @@ export class UnitTimeScale extends DiscreteTimeScale {
     override datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
         return this.tickFormatter(params, 1);
     }
+
+    override tickIsFirstAfter(tick: Date, reference: Date) {
+        const milliseconds = this.interval?.milliseconds;
+        if (milliseconds == null) return super.tickIsFirstAfter(tick, reference);
+
+        return tick.getTime() - milliseconds <= reference.getTime();
+    }
 }
