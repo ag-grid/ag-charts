@@ -50,8 +50,9 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import { calculateDataDiff } from './diffUtil';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
-import { type Scaling, areScalingEqual } from './scaling';
+import { type Scaling } from './scaling';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -858,18 +859,15 @@ export class BarSeries extends AbstractBarSeries<
         const { datumSelection, labelSelection, annotationSelections, previousContextData } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
+        const dataDiff = calculateDataDiff(
+            this.id,
+            datumSelection,
+            this.getDatumId.bind(this),
+            data.contextData,
+            previousContextData,
+            this.processedData
+        );
 
-        let dataDiff = this.processedData?.reduced?.diff?.[this.id];
-        // @todo(CRT-598) - this is required to get the correct status, but it was not safe enough to do this for all series
-        if (dataDiff == null && this.processedData?.reduced?.diff != null) {
-            dataDiff = {
-                changed: true,
-                added: new Set(Array.from(datumSelection, ({ datum }) => this.getDatumId(datum))),
-                updated: new Set(),
-                removed: new Set(),
-                moved: new Set(),
-            };
-        }
         const mode = previousContextData == null ? 'fade' : 'normal';
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
 
@@ -883,16 +881,7 @@ export class BarSeries extends AbstractBarSeries<
             dataDiff
         );
 
-        const scalingChanged =
-            previousContextData != null &&
-            (!areScalingEqual(data.contextData.scales.x, previousContextData.scales.x) ||
-                !areScalingEqual(data.contextData.scales.y, previousContextData.scales.y) ||
-                !areScalingEqual(
-                    (data.contextData as BarSeriesNodeDataContext).groupScale,
-                    (data.previousContextData as BarSeriesNodeDataContext).groupScale
-                ));
-
-        const hasMotion = (dataDiff?.changed ?? false) || scalingChanged;
+        const hasMotion = dataDiff?.changed ?? false;
         if (hasMotion) {
             seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);

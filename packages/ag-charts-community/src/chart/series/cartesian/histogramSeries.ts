@@ -43,6 +43,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import { calculateDataDiff } from './diffUtil';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
@@ -636,8 +637,16 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
-        const dataDiff = this.processedData?.reduced?.diff?.[this.id];
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
+
+        const dataDiff = calculateDataDiff(
+            this.id,
+            data.datumSelection,
+            (datum) => createDatumId(datum.domain),
+            data.contextData,
+            data.previousContextData,
+            this.processedData
+        );
 
         fromToMotion(
             this.id,
