@@ -3,6 +3,7 @@ import {
     type AgPyramidSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { Writeable } from 'ag-charts-core';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
@@ -25,8 +26,6 @@ const {
     seriesLabelFadeInAnimation,
     getShapeStyle,
 } = _ModuleSupport;
-
-type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 type PyramidNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     readonly text: string;

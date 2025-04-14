@@ -1,10 +1,8 @@
+import type { Writeable } from 'ag-charts-core';
 import type { FontFamily, FontSize, FontStyle, FontWeight, Ratio } from 'ag-charts-types';
 
 import { createCanvasContext } from './canvas.util';
 import { LRUCache } from './lruCache';
-
-// Allows for mutation of a readonly type by making all properties writable.
-export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 // Configuration options create a font string.
 export interface FontOptions {

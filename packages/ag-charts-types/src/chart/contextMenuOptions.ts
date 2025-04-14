@@ -13,11 +13,12 @@ export type AgContextMenuItemLiteral =
     | 'pan-to-cursor'
     | 'toggle-series-visibility'
     | 'toggle-other-series'
-    | 'reset-zoom';
+    | 'reset-zoom'
+    | 'separator';
 
 export type AgContextMenuItemShowOn = 'always' | 'series-area' | 'series-node' | 'legend-item';
 
-type AgContextMenuItemType = 'action' | 'submenu' | 'separator';
+export type AgContextMenuItemType = 'action' | 'submenu' | 'separator';
 
 interface ItemMixin {
     /**  TODO: writeme. */
@@ -31,7 +32,7 @@ interface ItemMixin {
     /**  TODO: writeme. */
     enable?: boolean;
     /**  TODO: writeme. */
-    items?: AgContextMenuItem;
+    items?: AgContextMenuItem[];
 }
 
 export interface AgContextMenuItemAlways extends ItemMixin {
