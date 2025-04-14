@@ -9,7 +9,7 @@ const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'a
 
 export const SELECTORS = {
     wrapper: '.ag-charts-wrapper',
-    canvas: '.ag-charts-canvas',
+    canvas: 'canvas',
     canvasProxy: '.ag-charts-canvas-proxy',
     canvasCenter: '.ag-charts-canvas-center',
     legendItems: 'button[role="switch"][class="ag-charts-proxy-elem"]',
