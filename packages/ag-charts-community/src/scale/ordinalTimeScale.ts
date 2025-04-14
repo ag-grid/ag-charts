@@ -1,14 +1,11 @@
-import { findMinValue } from 'ag-charts-core';
-
 import { datesSortOrder, sortAndUniqueDates } from '../util/date';
 import type { TimeInterval } from '../util/time';
-import { buildFormatter } from '../util/timeFormat';
-import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
-import { BandScale } from './bandScale';
+import { dateToNumber } from '../util/timeFormatDefaults';
+import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams } from './scale';
 import { getDateTicksForInterval } from './timeScale';
 
-export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
+export class OrdinalTimeScale extends DiscreteTimeScale {
     readonly type = 'ordinal-time';
 
     static override is(value: unknown): value is OrdinalTimeScale {
@@ -35,10 +32,6 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
 
     get bands() {
         return this._domain;
-    }
-
-    override toDomain(value: number): Date {
-        return new Date(value);
     }
 
     override normalizeDomains(...domains: Date[][]): NormalizedDomain<Date> {
@@ -173,35 +166,8 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         return this.findIntervalInRange(target, low, high);
     }
 
-    /**
-     * Returns a time format function suitable for displaying tick values.
-     * @param specifier If the specifier string is provided, this method is equivalent to
-     * the {@link TimeLocaleObject.format} method.
-     * If no specifier is provided, this method returns the default time format function.
-     */
-    override tickFormatter({ domain, ticks, specifier }: ScaleFormatParams<Date>): (date: Date) => string {
-        return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(ticks, domain);
-    }
-
-    override datumFormatter(params: ScaleFormatParams<Date>) {
+    override datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
         return this.tickFormatter(params);
-    }
-
-    override invert(position: number, nearest = false): Date | undefined {
-        this.refresh();
-
-        const { domain } = this;
-
-        if (nearest) {
-            const index = this.invertNearestIndex(position - this.bandwidth / 2);
-            return index != null ? domain[index] : undefined;
-        }
-
-        const closest = findMinValue(0, domain.length - 1, (i) => {
-            const p = this.ordinalRange(i);
-            return p >= position ? domain[i] : undefined;
-        });
-        return closest ?? domain[0];
     }
 
     findIndex(value: Date): number | undefined {

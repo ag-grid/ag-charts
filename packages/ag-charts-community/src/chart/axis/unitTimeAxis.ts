@@ -3,6 +3,7 @@ import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { Property } from '../../util/properties';
 import type { TimeInterval } from '../../util/time';
 import type { AxisLabel } from './axisLabel';
+import type { AxisTick } from './axisTick';
 import { CategoryAxis } from './categoryAxis';
 import { TimeAxisDivision, normaliseTimeDataDomain } from './timeAxis';
 
@@ -24,6 +25,10 @@ export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
 
     override get primaryLabel(): AxisLabel | undefined {
         return this.division.enabled ? this.division.label : undefined;
+    }
+
+    override get primaryTick(): AxisTick | undefined {
+        return this.division.enabled ? this.division.tick : undefined;
     }
 
     constructor(moduleCtx: ModuleContext) {

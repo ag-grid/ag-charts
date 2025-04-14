@@ -32,8 +32,7 @@ const {
     computeBarFocusBounds,
     visibleRangeIndices,
     ContinuousScale,
-    OrdinalTimeScale,
-    UnitTimeScale,
+    DiscreteTimeScale,
     BandScale,
     getShapeStyle,
 } = _ModuleSupport;
@@ -156,10 +155,7 @@ export abstract class OhlcSeriesBase<
         processedData: _ModuleSupport.UngroupedData<any>
     ) {
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (
-            xAxis == null ||
-            !(ContinuousScale.is(xAxis.scale) || UnitTimeScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))
-        ) {
+        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || DiscreteTimeScale.is(xAxis.scale))) {
             return;
         }
 

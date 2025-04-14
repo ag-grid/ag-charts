@@ -25,8 +25,7 @@ const {
     visibleRangeIndices,
     createDatumId,
     ContinuousScale,
-    OrdinalTimeScale,
-    UnitTimeScale,
+    DiscreteTimeScale,
     Rect,
     PointerEvents,
     motion,
@@ -175,10 +174,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         if (processedData.type !== 'grouped') return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (
-            xAxis == null ||
-            !(ContinuousScale.is(xAxis.scale) || UnitTimeScale.is(xAxis) || OrdinalTimeScale.is(xAxis.scale))
-        ) {
+        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || DiscreteTimeScale.is(xAxis.scale))) {
             return;
         }
 

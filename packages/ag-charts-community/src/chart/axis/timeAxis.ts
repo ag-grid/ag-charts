@@ -3,6 +3,7 @@ import { TimeScale } from '../../scale/timeScale';
 import { extent } from '../../util/extent';
 import { BaseProperties, Property } from '../../util/properties';
 import { AxisLabel } from './axisLabel';
+import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
 
 export class TimeAxisDivision extends BaseProperties {
@@ -11,6 +12,9 @@ export class TimeAxisDivision extends BaseProperties {
 
     @Property
     readonly label = new AxisLabel();
+
+    @Property
+    readonly tick = new AxisTick();
 }
 
 export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
@@ -20,6 +24,12 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     @Property
     readonly division = new TimeAxisDivision();
 
+    @Property
+    min?: Date | number = undefined;
+
+    @Property
+    max?: Date | number = undefined;
+
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new TimeScale());
     }
@@ -28,11 +38,9 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         return this.division.enabled ? this.division.label : undefined;
     }
 
-    @Property
-    min?: Date | number = undefined;
-
-    @Property
-    max?: Date | number = undefined;
+    override get primaryTick(): AxisTick | undefined {
+        return this.division.enabled ? this.division.tick : undefined;
+    }
 
     override normaliseDataDomain(d: Date[]) {
         return normaliseTimeDataDomain(d, this.min, this.max);

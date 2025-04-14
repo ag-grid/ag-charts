@@ -15,7 +15,7 @@ import type { ModuleInstance } from '../../module/baseModule';
 import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import { ContinuousScale } from '../../scale/continuousScale';
-import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
+import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale, ScaleFormatParams } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
@@ -404,8 +404,8 @@ export abstract class Axis<
         return { fill, fontFamily, fontSize, fontStyle, fontWeight, spacing };
     }
 
-    protected getTickSize() {
-        return this.tick.enabled ? this.tick.size : 0;
+    protected getTickSize(tick: AxisTick = this.tick) {
+        return tick.enabled ? tick.size : 0;
     }
 
     processData() {
@@ -684,7 +684,7 @@ export abstract class Axis<
             axisId: this.id,
             scale: this.scale,
             direction: this.direction,
-            continuous: ContinuousScale.is(scale) || OrdinalTimeScale.is(scale),
+            continuous: ContinuousScale.is(scale) || DiscreteTimeScale.is(scale),
             getCanvasBounds: () => {
                 return Transformable.toCanvas(this.axisGroup);
             },

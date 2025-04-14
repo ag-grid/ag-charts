@@ -17,6 +17,11 @@ type DecodeFn = (encoded: number) => Date;
  */
 type RangeFn = (start: Date, end: Date) => () => void;
 
+interface RangeParams {
+    extend?: boolean;
+    visibleRange?: [number, number];
+}
+
 /**
  * The interval methods don't mutate Date parameters.
  */
@@ -51,22 +56,14 @@ export class TimeInterval {
         return this._decode(e + 1);
     }
 
-    /**
-     * Returns an array of dates representing every interval boundary after or equal to start (inclusive) and before stop (exclusive).
-     * @param start Range start.
-     * @param stop Range end.
-     * @param extend If specified, the requested range will be extended to the closest "nice" values.
-     */
-    range(
+    private rangeIndices(
         start: Date,
         stop: Date,
-        { extend = false, visibleRange = [0, 1] }: { extend?: boolean; visibleRange?: [number, number] } = {}
-    ): Date[] {
+        { extend = false, visibleRange = [0, 1] }: RangeParams
+    ): [number, number] {
         if (start.getTime() > stop.getTime()) {
             [start, stop] = [stop, start];
         }
-
-        const rangeCallback = this._rangeCallback?.(start, stop);
 
         if (visibleRange != null) {
             const delta = stop.getTime() - start.getTime();
@@ -78,9 +75,24 @@ export class TimeInterval {
 
         const e0 = this._encode(extend ? this.floor(start) : this.ceil(start));
         const e1 = this._encode(extend ? this.ceil(stop) : this.floor(stop));
-        if (e1 < e0) {
-            return [];
+
+        return [e0, e1];
+    }
+
+    /**
+     * Returns an array of dates representing every interval boundary after or equal to start (inclusive) and before stop (exclusive).
+     * @param start Range start.
+     * @param stop Range end.
+     * @param extend If specified, the requested range will be extended to the closest "nice" values.
+     */
+    range(start: Date, stop: Date, params: RangeParams = {}): Date[] {
+        if (start.getTime() > stop.getTime()) {
+            [start, stop] = [stop, start];
         }
+
+        const rangeCallback = this._rangeCallback?.(start, stop);
+
+        const [e0, e1] = this.rangeIndices(start, stop, params);
 
         const range: Date[] = [];
         for (let e = e0; e <= e1; e++) {
@@ -91,6 +103,11 @@ export class TimeInterval {
         rangeCallback?.();
 
         return range;
+    }
+
+    rangeCount(start: Date, stop: Date, params: RangeParams = {}) {
+        const [e0, e1] = this.rangeIndices(start, stop, params);
+        return e1 - e0;
     }
 }
 

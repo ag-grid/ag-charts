@@ -140,9 +140,17 @@ export const cartesianTimeAxisLabel: OptionsDefs<AgCartesianAxisLabelOptions> = 
     ...cartesianAxisLabelOptionsDefs,
 };
 
+const cartesianAxisTick = {
+    enabled: boolean,
+    width: positiveNumber,
+    size: positiveNumber,
+    stroke: color,
+};
+
 export const cartesianTimeAxisDivision: OptionsDefs<AgTimeAxisDivision> = {
     enabled: boolean,
     label: cartesianTimeAxisLabel,
+    tick: cartesianAxisTick,
 };
 
 export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>> = {
@@ -168,12 +176,7 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
         width: positiveNumber,
         stroke: color,
     },
-    tick: {
-        enabled: boolean,
-        width: positiveNumber,
-        size: positiveNumber,
-        stroke: color,
-    },
+    tick: cartesianAxisTick,
 };
 
 // @ts-expect-error undocumented option
