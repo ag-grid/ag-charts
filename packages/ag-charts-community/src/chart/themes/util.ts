@@ -94,6 +94,7 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
     backgroundFill: 'transparent',
     backgroundFillOpacity: 1,
     rotation: 0,
+    scale: 1,
 };
 
 export const FILL_IMAGE_DEFAULTS: WithThemeParams<RequiredInternalAgImageColor> = {

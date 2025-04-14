@@ -174,6 +174,7 @@ const fillPatternDefaults: RequiredInternalAgPatternColor = {
     strokeOpacity: 1,
     strokeWidth: 0,
     rotation: 0,
+    scale: 1,
 };
 
 const fillImageDefaults: RequiredInternalAgImageColor = {

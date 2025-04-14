@@ -107,6 +107,9 @@ export class FillPatternDefaults
     rotation: number = 0;
 
     @Property
+    scale: number = 1;
+
+    @Property
     reverse: boolean = false;
 
     @Property

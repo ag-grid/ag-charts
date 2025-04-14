@@ -21,6 +21,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     strokeOpacity: number;
     strokeWidth: number;
     rotation: number;
+    scale: number;
 
     constructor(patternOptions: InternalAgPatternColor) {
         this.width = Math.max(patternOptions?.width ?? 10, 1);
@@ -35,6 +36,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         this.padding = patternOptions.padding ?? 1;
         this.pattern = patternOptions.pattern ?? 'forward-slanted-lines';
         this.rotation = patternOptions.rotation ?? 0;
+        this.scale = patternOptions.scale ?? 1;
         this.path = patternOptions.path;
     }
 
@@ -74,7 +76,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     private createCanvasPattern(ctx: CanvasRenderingContext2D, pixelRatio: number): CanvasPattern | null {
         const { width, height, backgroundFill, backgroundFillOpacity } = this;
 
-        const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio });
+        const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio: pixelRatio * this.scale });
         const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
 
         offscreenPatternCtx.fillStyle = backgroundFill;
@@ -96,9 +98,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     }
 
     setPatternTransform(pattern: CanvasPattern | null | undefined, pixelRatio: number, tx: number = 0, ty: number = 0) {
-        const { rotation } = this;
-
-        const angle = normalizeAngle360(toRadians(rotation));
+        const angle = normalizeAngle360(toRadians(this.rotation));
         const scale = 1 / pixelRatio;
         const cos = Math.cos(angle) * scale;
         const sin = Math.sin(angle) * scale;

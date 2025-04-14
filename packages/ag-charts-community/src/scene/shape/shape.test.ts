@@ -286,7 +286,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: 0,
                     },
                 },
@@ -295,7 +294,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: 45,
                     },
                 },
@@ -304,7 +302,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: 90,
                     },
                 },
@@ -313,7 +310,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: 135,
                     },
                 },
@@ -324,7 +320,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: 180,
                     },
                 },
@@ -333,7 +328,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: 225,
                     },
                 },
@@ -342,7 +336,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: 270,
                     },
                 },
@@ -351,7 +344,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: 315,
                     },
                 },
@@ -362,7 +354,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: 360,
                     },
                 },
@@ -371,7 +362,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: -45,
                     },
                 },
@@ -380,7 +370,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: -90,
                     },
                 },
@@ -389,7 +378,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: -180,
                     },
                 },
@@ -400,7 +388,6 @@ describe('Shape', () => {
                         ...patternDefaults,
                         type: 'pattern',
                         pattern: 'hearts',
-                        // @ts-expect-error undocumented option
                         rotation: -270,
                     },
                 },
