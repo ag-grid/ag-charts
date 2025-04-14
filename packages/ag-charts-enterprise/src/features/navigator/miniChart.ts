@@ -149,7 +149,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     protected assignAxesToSeries() {
         // This method has to run before `assignSeriesToAxes`.
-        const directionToAxesMap: { [key in _ModuleSupport.ChartAxisDirection]?: _ModuleSupport.ChartAxis[] } = {};
+        const directionToAxesMap: { [K in _ModuleSupport.ChartAxisDirection]?: _ModuleSupport.ChartAxis[] } = {};
 
         this.axes.forEach((axis) => {
             const direction = axis.direction;

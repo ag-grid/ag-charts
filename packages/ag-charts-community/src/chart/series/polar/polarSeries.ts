@@ -45,6 +45,8 @@ export abstract class PolarSeries<
     TProps extends SeriesProperties<any> & PolarSeriesProperties,
     TNode extends Node,
 > extends DataModelSeries<TDatum, TProps> {
+    override directions: ChartAxisDirection[] = [ChartAxisDirection.Angle, ChartAxisDirection.Radius];
+
     protected itemGroup = this.contentGroup.appendChild(new Group());
     public getItemNodes(): TNode[] {
         return [...this.itemGroup.children()] as TNode[];

@@ -173,7 +173,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.processedData = event.processedData;
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    getDomain(direction: _ModuleSupport.ChartAxisDirection.X | _ModuleSupport.ChartAxisDirection.Y): any[] {
         const { xLowerKey, xUpperKey, xErrorsID, yLowerKey, yUpperKey, yErrorsID } = this.getMaybeFlippedKeys();
         const hasAxisErrors =
             direction === ChartAxisDirection.X

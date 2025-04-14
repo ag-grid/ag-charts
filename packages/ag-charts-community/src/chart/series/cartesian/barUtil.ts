@@ -42,7 +42,7 @@ export type InitialPosition<T> = {
 };
 export function collapsedStartingBarPosition(
     isVertical: boolean,
-    axes: Record<ChartAxisDirection, ChartAxis | undefined>,
+    axes: { [K in ChartAxisDirection]?: ChartAxis },
     mode: 'normal' | 'fade'
 ): InitialPosition<AnimatableBarDatum> {
     const { startingX, startingY } = getStartingValues(isVertical, axes);
@@ -172,7 +172,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
     return { toFn, fromFn, applyFn };
 }
 
-function getStartingValues(isVertical: boolean, axes: Record<ChartAxisDirection, ChartAxis | undefined>) {
+function getStartingValues(isVertical: boolean, axes: { [K in ChartAxisDirection]?: ChartAxis }) {
     const axis = axes[isVertical ? ChartAxisDirection.Y : ChartAxisDirection.X];
 
     let startingX = Infinity;

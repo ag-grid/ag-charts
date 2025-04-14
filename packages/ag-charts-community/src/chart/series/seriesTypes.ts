@@ -21,7 +21,7 @@ type NodeContextMenuActionEvent = Parameters<
 
 export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     id: string;
-    axes: Record<ChartAxisDirection, ChartAxisLike | undefined>;
+    axes: { [K in ChartAxisDirection]?: ChartAxisLike };
     contentGroup: Group;
     properties: TProps;
     hasEventListener(type: string): boolean;

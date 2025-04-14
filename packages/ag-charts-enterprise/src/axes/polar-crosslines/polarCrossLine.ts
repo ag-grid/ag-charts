@@ -86,7 +86,7 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     sideFlag: 1 | -1 = -1;
     parallelFlipRotation: number = 0;
     regularFlipRotation: number = 0;
-    direction: _ModuleSupport.ChartAxisDirection = ChartAxisDirection.X;
+    direction = ChartAxisDirection.Angle;
 
     axisInnerRadius: number = 0;
     axisOuterRadius: number = 0;

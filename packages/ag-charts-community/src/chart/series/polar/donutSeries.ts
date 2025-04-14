@@ -202,7 +202,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        if (direction === ChartAxisDirection.X) {
+        if (direction === ChartAxisDirection.Angle) {
             return this.angleScale.domain;
         } else {
             return this.radiusScale.domain;

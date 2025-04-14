@@ -252,7 +252,7 @@ export abstract class Series<
         seriesRect?: BBox;
     };
 
-    axes: Record<ChartAxisDirection, ChartAxis | undefined> = {
+    axes: { [K in ChartAxisDirection]?: ChartAxis } = {
         [ChartAxisDirection.X]: undefined,
         [ChartAxisDirection.Y]: undefined,
     };
