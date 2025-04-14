@@ -659,6 +659,15 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     );
                 }
 
+                const minTimeInterval = UnitTimeScale.is(scale) ? scale.interval : undefined;
+                if (
+                    minTimeInterval?.milliseconds != null &&
+                    timeInterval?.milliseconds != null &&
+                    minTimeInterval.milliseconds > timeInterval.milliseconds
+                ) {
+                    timeInterval = minTimeInterval;
+                }
+
                 let firstLoop = true;
                 while (
                     timeInterval?.hierarchy &&
