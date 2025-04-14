@@ -66,60 +66,39 @@ export class UnitTimeScale extends DiscreteTimeScale {
     override ticks(
         { interval }: ScaleTickParams<TimeInterval | number>,
         domain: Date[] = this.domain,
-        visibleRange: [number, number] = [0, 1],
-        // This parameter is only used for UnitTimeScale
-        interpolate = false
+        visibleRange: [number, number] = [0, 1]
     ): Date[] {
-        if (interval == null) return this.calculateBands(domain, visibleRange);
+        const bands = this.calculateBands(domain, visibleRange);
 
-        const bands = interpolate ? undefined : this.calculateBands(domain, visibleRange);
+        if (interval == null) return bands;
 
         const d0 = domain[0].valueOf();
         const d1 = domain[1].valueOf();
+        const ticks: Date[] = [];
 
+        let intervalTicks: Date[];
         if (interval instanceof TimeInterval) {
-            if (bands == null) {
-                return interval.range(domain[0], domain[1], { visibleRange }).filter((intervalTick) => {
-                    const intervalTickTime = intervalTick.valueOf();
-                    return intervalTickTime >= d0 && intervalTickTime <= d1;
-                });
-            }
-
-            const intervalTicks = interval.range(domain[0], domain[1], { extend: true, visibleRange });
-            const ticks: Date[] = [];
-            let lastIndex: number | undefined;
-            for (const intervalTick of intervalTicks) {
-                const bandIndex = findMinIndex(0, bands.length - 1, (index) => {
-                    return compareDates(bands[index], intervalTick) >= 0;
-                });
-                const tick = bandIndex != null && bandIndex != lastIndex ? bands[bandIndex] : undefined;
-                lastIndex = bandIndex;
-
-                if (tick != null && tick.valueOf() >= d0 && tick.valueOf() <= d1) ticks.push(tick);
-            }
-
-            return ticks;
+            intervalTicks = interval.range(domain[0], domain[1], { extend: true, visibleRange });
         } else {
-            const ticks: Date[] = [];
-            let lastIndex: number | undefined;
+            intervalTicks = [];
             for (let intervalTickTime = d0; intervalTickTime <= d1; intervalTickTime += interval) {
                 const intervalTick = new Date(intervalTickTime);
-                if (bands == null) {
-                    ticks.push(intervalTick);
-                    continue;
-                }
-
-                const bandIndex = findMinIndex(0, bands.length - 1, (index) => {
-                    return compareDates(bands[index], intervalTick) >= 0;
-                });
-                const tick = bandIndex != null && bandIndex != lastIndex ? bands[bandIndex] : undefined;
-                lastIndex = bandIndex;
-
-                if (tick != null && tick.valueOf() >= d0 && tick.valueOf() <= d1) ticks.push(tick);
+                intervalTicks.push(intervalTick);
             }
-
-            return ticks;
         }
+
+        let lastIndex: number | undefined;
+        for (const intervalTick of intervalTicks) {
+            const bandIndex = findMinIndex(0, bands.length - 1, (index) => {
+                return compareDates(bands[index], intervalTick) >= 0;
+            });
+            const tick = bandIndex != null && bandIndex != lastIndex ? bands[bandIndex] : undefined;
+            lastIndex = bandIndex;
+
+            if (tick != null && tick.valueOf() >= d0 && tick.valueOf() <= d1) ticks.push(tick);
+        }
+
+        return ticks;
     }
 
     override findIndex(value: Date): number | undefined {
