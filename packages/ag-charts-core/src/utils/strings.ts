@@ -13,7 +13,9 @@ export function joinFormatted(
     format: (value: any) => string = String,
     maxItems = Infinity
 ): string {
-    if (values.length === 1) {
+    if (values.length === 0) {
+        return '';
+    } else if (values.length === 1) {
         return format(values[0]);
     }
     values = values.map(format);
