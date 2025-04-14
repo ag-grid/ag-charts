@@ -345,7 +345,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             newDerived.push(...keyDomains.derived);
 
             keyDomains.dirty = false;
-            updated ||= arraysEqual(previousDerivedForKey, keyDomains.derived);
+            updated ||= !arraysEqual(previousDerivedForKey, keyDomains.derived);
         }
 
         if (ContinuousScale.is(axis.scale)) {
