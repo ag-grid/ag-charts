@@ -659,27 +659,25 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     );
                 }
 
-                if (timeInterval != null) {
-                    let firstLoop = true;
-                    while (
-                        timeInterval?.hierarchy &&
-                        (rawTicks == null || rawTicks.length > TICK_REGENERATION_THRESHOLD) &&
-                        (primaryTicks == null || primaryTicks.length > TICK_REGENERATION_THRESHOLD) &&
-                        (rawTicks == null ||
-                            primaryTicks == null ||
-                            rawTicks.length < primaryTicks.length * (1 / MAX_PRIMARY_TICK_RATIO))
-                    ) {
-                        if (!firstLoop) {
-                            timeInterval = timeInterval.hierarchy;
-                        }
-
-                        const intervalTicks = this.getIntervalTicks(visibleRange, tickParams, timeInterval);
-                        primaryTicks = intervalTicks?.primaryTicks;
-                        rawTicks = intervalTicks?.ticks;
-                        interpolate = intervalTicks?.interpolate ?? false;
-
-                        firstLoop = false;
+                let firstLoop = true;
+                while (
+                    timeInterval?.hierarchy &&
+                    (rawTicks == null || rawTicks.length > TICK_REGENERATION_THRESHOLD) &&
+                    (primaryTicks == null || primaryTicks.length > TICK_REGENERATION_THRESHOLD) &&
+                    (rawTicks == null ||
+                        primaryTicks == null ||
+                        rawTicks.length < primaryTicks.length * (1 / MAX_PRIMARY_TICK_RATIO))
+                ) {
+                    if (!firstLoop) {
+                        timeInterval = timeInterval.hierarchy;
                     }
+
+                    const intervalTicks = this.getIntervalTicks(visibleRange, tickParams, timeInterval);
+                    primaryTicks = intervalTicks?.primaryTicks;
+                    rawTicks = intervalTicks?.ticks;
+                    interpolate = intervalTicks?.interpolate ?? false;
+
+                    firstLoop = false;
                 }
 
                 if (TimeScale.is(scale) || UnitTimeScale.is(scale)) {
