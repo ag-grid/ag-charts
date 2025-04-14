@@ -37,7 +37,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
     private _bands: Date[] | undefined = undefined;
     get bands(): readonly Date[] {
-        this._bands ??= this.calculateBands(this._domain, this._interval);
+        this._bands ??= this.calculateBands(this._domain, [0, 1]);
         return this._bands;
     }
 
@@ -45,11 +45,21 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return normalizeContinuousDomains(...domains);
     }
 
-    private calculateBands(domain: Date[], interval: TimeInterval | undefined, visibleRange?: [number, number]) {
-        if (!domain.length || interval == null) return [];
-
+    private calculateBandRange(domain: Date[], interval: TimeInterval) {
         const start = interval.floor(domain[0]);
         const stop = interval.floor(domain[1]);
+        return [start, stop] as const;
+    }
+
+    private calculateBands(domain: Date[], visibleRange: [number, number]) {
+        if (domain === this.domain && visibleRange[0] === 0 && visibleRange[1] === 1 && this._bands != null) {
+            return this._bands;
+        }
+
+        const { interval } = this;
+        if (interval == null) return [];
+
+        const [start, stop] = this.calculateBandRange(domain, interval);
         return interval.range(start, stop, { visibleRange });
     }
 
@@ -60,9 +70,9 @@ export class UnitTimeScale extends DiscreteTimeScale {
         // This parameter is only used for UnitTimeScale
         interpolate = false
     ): Date[] {
-        if (interval == null) return this.calculateBands(domain, this.interval, visibleRange);
+        if (interval == null) return this.calculateBands(domain, visibleRange);
 
-        const bands = interpolate ? undefined : this.calculateBands(domain, this.interval, visibleRange);
+        const bands = interpolate ? undefined : this.calculateBands(domain, visibleRange);
 
         const d0 = domain[0].valueOf();
         const d1 = domain[1].valueOf();
@@ -127,5 +137,12 @@ export class UnitTimeScale extends DiscreteTimeScale {
         if (milliseconds == null) return super.tickIsFirstAfter(tick, reference);
 
         return tick.getTime() - milliseconds <= reference.getTime();
+    }
+
+    calculateBandCount(domain: Date[]) {
+        const { interval } = this;
+        if (interval == null) return 0;
+        const [start, stop] = this.calculateBandRange(domain, interval);
+        return interval.rangeCount(start, stop);
     }
 }

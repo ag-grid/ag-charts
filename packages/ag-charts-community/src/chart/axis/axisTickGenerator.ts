@@ -106,11 +106,11 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
 export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     constructor(private readonly axis: TickGenerationAxis<S, D>) {}
 
-    private estimateTickCount(visibleRange: [number, number], minSpacing?: number, maxSpacing?: number) {
+    private estimateTickCount(domain: D[], visibleRange: [number, number], minSpacing?: number, maxSpacing?: number) {
         const { axis } = this;
         // @todo(AG-14471) - this probably wants to be BandScale.is
         const defaultTickCount = UnitTimeScale.is(axis.scale)
-            ? axis.scale.bands.length
+            ? axis.scale.calculateBandCount(domain as Date[])
             : ContinuousScale.defaultTickCount;
         return estimateTickCount(
             findRangeExtent(axis.range),
@@ -158,7 +158,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             parallelFlipRotation
         );
 
-        const { maxTickCount } = this.estimateTickCount(visibleRange, minSpacing, maxSpacing);
+        const { maxTickCount } = this.estimateTickCount(domain, visibleRange, minSpacing, maxSpacing);
 
         const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
@@ -383,7 +383,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     ): TickStrategyResult {
         const { scale, interval } = this.axis;
         const { step, values, minSpacing, maxSpacing } = interval;
-        const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(visibleRange, minSpacing, maxSpacing);
+        const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(
+            domain,
+            visibleRange,
+            minSpacing,
+            maxSpacing
+        );
 
         const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
