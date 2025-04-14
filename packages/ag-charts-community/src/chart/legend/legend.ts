@@ -294,6 +294,8 @@ export class Legend extends BaseProperties {
         this.destroyFns.push(ctx.legendManager.addListener('legend-change', this.onLegendDataChange.bind(this)));
 
         this.destroyFns.push(
+            () => delete items['toggle-series-visibility'].action,
+            () => delete items['toggle-other-series'].action,
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
             ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
             () => this.group.remove()
