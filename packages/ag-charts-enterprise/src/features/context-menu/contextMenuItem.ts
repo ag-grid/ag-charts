@@ -8,18 +8,38 @@ import { isKeyOf } from 'ag-charts-core';
 
 type Options = Partial<_ModuleSupport.ContextMenuItemContractNonRecursive>;
 
+function showsFor(showOn: AgContextMenuItemShowOn, showing: AgContextMenuItemShowOn): boolean {
+    if (showOn === 'always') return true;
+    if (showOn === 'series-area') return showing === 'series-area' || showing === 'series-node';
+    return showOn === showing;
+}
+
+export function appendItem(showing: AgContextMenuItemShowOn, item: Options, result: ContextMenuItem[]) {
+    let mustShow: boolean = true;
+    if (item.type === 'separator') {
+        const last: ContextMenuItem | undefined = result[result.length - 1];
+        mustShow = last !== undefined && last.type !== 'separator';
+    }
+
+    mustShow &&= showsFor(item.showOn ?? 'always', showing);
+    if (mustShow) {
+        result.push(new ContextMenuItem(item));
+    }
+}
+
 function appendBuiltinItem(
+    showing: AgContextMenuItemShowOn,
     registry: _ModuleSupport.ContextMenuRegistry,
     keyword: keyof _ModuleSupport.ContextMenuRegistry['builtins']['items'],
     result: ContextMenuItem[]
 ) {
     if (registry.isVisible(keyword)) {
-        const builtinOpts = registry.builtins.items[keyword];
-        result.push(new ContextMenuItem(builtinOpts));
+        appendItem(showing, registry.builtins.items[keyword], result);
     }
 }
 
 export function expandBuiltin(
+    showing: AgContextMenuItemShowOn,
     registry: _ModuleSupport.ContextMenuRegistry,
     keyword: AgContextMenuItemLiteral,
     result: ContextMenuItem[]
@@ -27,31 +47,11 @@ export function expandBuiltin(
     const { builtins } = registry;
     if (isKeyOf(keyword, builtins.lists)) {
         for (const childKeyword of builtins.lists[keyword]) {
-            appendBuiltinItem(registry, childKeyword, result);
+            appendBuiltinItem(showing, registry, childKeyword, result);
         }
     } else {
-        appendBuiltinItem(registry, keyword, result);
+        appendBuiltinItem(showing, registry, keyword, result);
     }
-}
-
-export function removeUnusedItems(
-    items: readonly ContextMenuItem[],
-    showOn: AgContextMenuItemShowOn
-): ContextMenuItem[] {
-    const result: ContextMenuItem[] = [];
-    let count = 0;
-    for (const it of items) {
-        const isSep: boolean = it.type === 'separator';
-        if (it.showsFor(showOn) && (count > 0 || !isSep)) {
-            count++;
-            result.push(it);
-        }
-        if (isSep) count = 0;
-    }
-    if (result[result.length - 1].type === 'separator') {
-        result.length = result.length - 1;
-    }
-    return result;
 }
 
 export class ContextMenuItem implements _ModuleSupport.ContextMenuItemContract {
@@ -79,11 +79,5 @@ export class ContextMenuItem implements _ModuleSupport.ContextMenuItemContract {
             }
         }
         this.iconUrl = options.iconUrl;
-    }
-
-    showsFor(showOn: AgContextMenuItemShowOn): boolean {
-        if (this.showOn === 'always') return true;
-        if (this.showOn === 'series-area') return showOn === 'series-area' || showOn === 'series-node';
-        return this.showOn === showOn;
     }
 }
