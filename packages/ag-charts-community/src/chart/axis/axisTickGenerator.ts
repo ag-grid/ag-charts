@@ -463,7 +463,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 const intervalTicks =
                     UnitTimeScale.is(scale) && !interpolate
                         ? (scale as UnitTimeScale).ticks(intervalTickParams, [p0, p1])
-                        : timeScaleTicks(intervalTickParams, [p0, p1]);
+                        : this.timeScaleTicks(intervalTickParams, [p0, p1]);
                 if (intervalTicks.length === 0) continue;
 
                 const lastTick = ticks.at(-1);
@@ -503,6 +503,43 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         }
 
         return { primaryTicks, ticks, interpolate };
+    }
+
+    private timeSpecifier(
+        label: ChartAxisLabel | undefined,
+        timeInterval: TimeInterval | undefined
+    ): string | undefined {
+        if (label == null || timeInterval == null) return;
+
+        const { format } = label;
+        if (isPlainObject(format)) {
+            return format[timeInterval.unit];
+        } else {
+            return format;
+        }
+    }
+
+    private timeScaleTicks(params: ScaleTickParams<TimeInterval | number>, domain: [Date, Date]) {
+        const { interval } = params;
+        if (interval == null) return domain;
+
+        const d0 = domain[0].valueOf();
+        const d1 = domain[1].valueOf();
+
+        if (interval instanceof TimeInterval) {
+            return interval.range(domain[0], domain[1]).filter((intervalTick) => {
+                const intervalTickTime = intervalTick.valueOf();
+                return intervalTickTime >= d0 && intervalTickTime <= d1;
+            });
+        }
+
+        const ticks: Date[] = [];
+        for (let intervalTickTime = d0; intervalTickTime <= d1; intervalTickTime += interval) {
+            const intervalTick = new Date(intervalTickTime);
+            ticks.push(intervalTick);
+        }
+
+        return ticks;
     }
 
     private getTicks({
@@ -660,7 +697,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         );
 
         const specifier =
-            timeSpecifier(label, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
+            this.timeSpecifier(label, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
 
         const formatParams: ScaleFormatParams<D> = {
             domain: tickDomain,
@@ -670,7 +707,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         };
         const labelFormatter = scale.tickFormatter(formatParams);
 
-        const primarySpecifier = timeSpecifier(primaryLabel, timeInterval?.hierarchy);
+        const primarySpecifier = this.timeSpecifier(primaryLabel, timeInterval?.hierarchy);
         const primaryLabelFormatter = primarySpecifier
             ? scale.tickFormatter({
                   ...formatParams,
@@ -735,38 +772,4 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             niceDomain,
         };
     }
-}
-
-function timeSpecifier(label: ChartAxisLabel | undefined, timeInterval: TimeInterval | undefined): string | undefined {
-    if (label == null || timeInterval == null) return;
-
-    const { format } = label;
-    if (isPlainObject(format)) {
-        return format[timeInterval.unit];
-    } else {
-        return format;
-    }
-}
-
-function timeScaleTicks(params: ScaleTickParams<TimeInterval | number>, domain: [Date, Date]) {
-    const { interval } = params;
-    if (interval == null) return domain;
-
-    const d0 = domain[0].valueOf();
-    const d1 = domain[1].valueOf();
-
-    if (interval instanceof TimeInterval) {
-        return interval.range(domain[0], domain[1]).filter((intervalTick) => {
-            const intervalTickTime = intervalTick.valueOf();
-            return intervalTickTime >= d0 && intervalTickTime <= d1;
-        });
-    }
-
-    const ticks: Date[] = [];
-    for (let intervalTickTime = d0; intervalTickTime <= d1; intervalTickTime += interval) {
-        const intervalTick = new Date(intervalTickTime);
-        ticks.push(intervalTick);
-    }
-
-    return ticks;
 }
