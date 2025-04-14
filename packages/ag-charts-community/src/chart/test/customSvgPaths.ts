@@ -54,3 +54,22 @@ export const CUSTOM_SVG_PATHS = [
         height: 64,
     },
 ];
+
+export const INVALID_CUSTOM_SVG_PATHS = [
+    {
+        patternName: 'Empty',
+        path: '',
+        warningMessage:
+            'AG Charts - Option `series[0].fill.path` cannot be set to `""`; expecting a string of at least 2 characters (type="pattern"), ignoring.',
+    },
+    {
+        patternName: 'No Commands',
+        path: '01 Mana',
+        warningMessage: 'AG Charts - Invalid SVG path, error at index 0: Missing command.',
+    },
+    {
+        patternName: 'No Param',
+        path: 'M random',
+        warningMessage: 'AG Charts - Invalid SVG path, error at index 2: No path segment parameters for command [M]',
+    },
+];
