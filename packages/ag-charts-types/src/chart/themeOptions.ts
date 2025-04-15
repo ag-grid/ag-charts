@@ -6,7 +6,11 @@ import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions
 import type { AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
 import type { AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleOptions';
 import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/candlestickOptions';
-import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
+import type {
+    AgBaseCartesianThemeOptions,
+    AgCartesianAxesTheme,
+    AgContinuousCartesianAxesTheme,
+} from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgColorType, AgColorTypeStrict } from '../series/cartesian/commonOptions';
 import type { AgConeFunnelSeriesThemeableOptions } from '../series/cartesian/coneFunnelOptions';
@@ -127,6 +131,7 @@ export interface AgOhlcSeriesThemeOverrides extends AgBaseCartesianThemeOptions 
     series?: AgOhlcSeriesThemeableOptions;
 }
 export interface AgHistogramSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+    axes?: AgContinuousCartesianAxesTheme;
     series?: AgHistogramSeriesThemeableOptions;
 }
 export interface AgHeatmapSeriesThemeOverrides extends AgBaseCartesianThemeOptions {

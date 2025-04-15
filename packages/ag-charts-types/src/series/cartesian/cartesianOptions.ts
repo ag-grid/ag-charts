@@ -231,6 +231,8 @@ export interface AgCartesianAxesTheme {
     'unit-time'?: AgUnitTimeAxisOptions;
 }
 
+export type AgContinuousCartesianAxesTheme = Pick<AgCartesianAxesTheme, 'number' | 'log' | 'time'>;
+
 export interface AgNumberAxisThemeOptions
     extends Omit<AgNumberAxisOptions, 'type' | 'crossLines'>,
         AgCartesianAxisThemeOptions<AgNumberAxisOptions>,
