@@ -1,4 +1,4 @@
-import { clamp, isNever } from 'ag-charts-core';
+import { clamp } from 'ag-charts-core';
 
 import type { BBoxContainsTester } from '../util/bboxinterface';
 import { BBoxValues } from '../util/bboxinterface';
@@ -210,9 +210,6 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
                 this.width -= value * 2;
                 this.height -= value * 2;
                 break;
-
-            default:
-                isNever(position);
         }
     }
 
