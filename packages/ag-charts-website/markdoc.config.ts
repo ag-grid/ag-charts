@@ -18,6 +18,7 @@ import { majorTable } from '@ag-website-shared/markdoc/tags/majorTable';
 import { note } from '@ag-website-shared/markdoc/tags/note';
 import { oneTrustCookies } from '@ag-website-shared/markdoc/tags/oneTrustCookies';
 import { tabItem, tabs } from '@ag-website-shared/markdoc/tags/tabs';
+import { touchDevice } from '@ag-website-shared/markdoc/tags/touchdevice';
 import { trialLicenceForm } from '@ag-website-shared/markdoc/tags/trialLicenceForm';
 import { video } from '@ag-website-shared/markdoc/tags/video';
 import { videoSection } from '@ag-website-shared/markdoc/tags/videoSection';
@@ -57,6 +58,7 @@ export default defineMarkdocConfig({
         tabs,
         tabItem,
         videoSection,
+        touchDevice,
         br,
         note,
         warning,

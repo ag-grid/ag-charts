@@ -1,0 +1,26 @@
+---
+import { Icon } from '@ag-website-shared/components/icon/Icon';
+import styles from './touchDevice.module.scss';
+
+/**
+ * Show a YouTube thumbnail that links to the video
+ */
+interface Props {
+    id: string;
+    title: string;
+    playlist?: string;
+    showHeader?: boolean;
+}
+
+const { id, title = 'Video', playlist, showHeader } = Astro.props as Props;
+const link = `https://www.youtube.com/watch?v=${id}${playlist ? `&list=${playlist}` : ''}`;
+---
+
+<div class={styles.videoSection}>
+    <div href={link} target="_blank">
+        <div class={styles.ytContainer}>
+            <div class:list={{ [styles.videoContent]: showHeader }}><slot /></div>
+            <img src="/charts/images/ipad-pro-clay.png" alt={`${title} thumbnail`} class={styles.ytThumbnail} />
+        </div>
+    </div>
+</div>

@@ -1,0 +1,56 @@
+@use 'design-system' as *;
+
+.header p:first-child {
+    font-size: var(--text-fs-lg);
+}
+
+.videoSection {
+    position: relative;
+    width: 100%;
+}
+
+.ytContainer {
+    position: relative;
+    width: 100%;
+
+    div:first-child {
+        position: absolute;
+        width: 94%;
+        top: 10%;
+        left: 32px;
+        height: 773px;
+
+        button {
+            display: none;
+        }
+    }
+
+    img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+}
+
+// // This will position the video content (from slot) inside the iPad frame
+// .ytContainer video {
+//     position: absolute;
+//     top: 3.8%; // Adjust these values to fit the iPad Pro clay image exactly
+//     left: 6.2%;
+//     width: 87.6%; // Width of the screen area in the iPad image
+//     height: 91.4%; // Height of the screen area in the iPad image
+//     overflow: hidden;
+//     border-radius: 3px; // Slight rounding to match iPad screen corners
+
+//     video {
+//         width: 100%;
+//         height: 100%;
+//         object-fit: cover;
+//     }
+// }
+
+.ytThumbnail {
+    width: 100%;
+    height: auto;
+    padding-bottom: $spacing-size-2;
+}
