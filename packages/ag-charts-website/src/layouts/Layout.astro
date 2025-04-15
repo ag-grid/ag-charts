@@ -154,12 +154,17 @@ const isHomepage = Astro.url.pathname.replaceAll('/', '') === SITE_BASE_URL.repl
                 window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
             ).toString();
 
+            if (localDarkmode === undefined) {
+                localStorage.setItem('documentation:darkmode', isOSDarkmode);
+            }
+
             htmlEl.classList.add('no-transitions');
             htmlEl.dataset.darkMode = localDarkmode !== undefined ? localDarkmode : isOSDarkmode;
-            htmlEl.offsetHeight; // Trigger a reflow, flushing the CSS changes
-            htmlEl.classList.remove('no-transitions');
 
             const getDarkmode = () => htmlEl.dataset.darkMode === 'true';
+            htmlEl.dataset.agThemeMode = getDarkmode() ? 'dark-blue' : 'light';
+            htmlEl.offsetHeight; // Trigger a reflow, flushing the CSS changes
+            htmlEl.classList.remove('no-transitions');
 
             // Set up dark mode on change listeners
             const darkModeListeners = [];

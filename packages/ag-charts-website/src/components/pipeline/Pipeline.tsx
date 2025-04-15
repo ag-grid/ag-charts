@@ -6,7 +6,6 @@ import { Grid } from '@components/grid/Grid';
 import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
 import styles from '@pages-styles/pipelineChangelog.module.scss';
-import { useDarkmode } from '@utils/hooks/useDarkmode';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -147,8 +146,6 @@ export const Pipeline = ({ location }: { location: string }) => {
     const URLFilterSearchQuery = useState(extractFilterTerm(location))[0];
     const searchBarEl = useRef(null);
 
-    const [darkMode] = useDarkmode();
-
     useEffect(() => {
         void fetch(urlWithBaseUrl('/pipeline/pipeline.json'))
             .then((response) => response.json())
@@ -217,7 +214,6 @@ export const Pipeline = ({ location }: { location: string }) => {
                         masterDetail={true}
                         rowData={rowData}
                         onGridReady={gridReady}
-                        theme={darkMode ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'}
                     />
                 </div>
             )}
