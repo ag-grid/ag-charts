@@ -7,7 +7,6 @@ import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
 import ReleaseVersionNotes from '@components/release-notes/ReleaseVersionNotes';
 import styles from '@pages-styles/pipelineChangelog.module.scss';
-import { useDarkmode } from '@utils/hooks/useDarkmode';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { createBrowserHistory } from 'history';
@@ -74,8 +73,6 @@ export const Changelog = () => {
             });
         }
     }, [gridApi, fixVersion, versions]);
-
-    const [darkMode] = useDarkmode();
 
     useEffect(() => {
         void fetch(urlWithBaseUrl(`/changelog/changelog.json`))
@@ -424,7 +421,6 @@ export const Changelog = () => {
                         onFirstDataRendered={() => {
                             applyFixVersionFilter();
                         }}
-                        theme={darkMode ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'}
                         doesExternalFilterPass={doesExternalFilterPass}
                         isExternalFilterPresent={isExternalFilterPresent}
                     />

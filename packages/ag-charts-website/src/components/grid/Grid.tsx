@@ -1,24 +1,39 @@
-import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import { AgGridReact } from '@ag-grid-community/react';
-import '@ag-grid-community/styles/ag-grid.css';
-import '@ag-grid-community/styles/ag-theme-quartz.css';
-import { ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel';
-import { MasterDetailModule } from '@ag-grid-enterprise/master-detail';
-import { SetFilterModule } from '@ag-grid-enterprise/set-filter';
-import { StatusBarModule } from '@ag-grid-enterprise/status-bar';
-import React, { forwardRef } from 'react';
+import {
+    CellStyleModule,
+    ClientSideRowModelModule,
+    ColumnAutoSizeModule,
+    QuickFilterModule,
+    RowApiModule,
+    RowAutoHeightModule,
+    TextFilterModule,
+    TooltipModule,
+} from 'ag-grid-community';
+import {
+    AdvancedFilterModule,
+    ColumnsToolPanelModule,
+    MasterDetailModule,
+    SetFilterModule,
+    StatusBarModule,
+} from 'ag-grid-enterprise';
+import { AgGridReact } from 'ag-grid-react';
+import { forwardRef } from 'react';
 
 export const Grid = forwardRef((props, ref) => {
     return (
-        <div
-            className={props.theme ? props.theme : 'ag-theme-quartz'}
-            style={{ width: '100%', height: props.gridHeight }}
-        >
+        <div style={{ width: '100%', height: props.gridHeight }}>
             <AgGridReact
                 ref={ref}
                 {...props}
                 modules={[
+                    RowAutoHeightModule,
+                    RowApiModule,
+                    TextFilterModule,
+                    CellStyleModule,
+                    ColumnAutoSizeModule,
+                    QuickFilterModule,
                     ClientSideRowModelModule,
+                    TooltipModule,
+                    AdvancedFilterModule,
                     MasterDetailModule,
                     SetFilterModule,
                     ColumnsToolPanelModule,
