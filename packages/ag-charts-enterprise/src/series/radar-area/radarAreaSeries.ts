@@ -92,17 +92,28 @@ export class RadarAreaSeries extends RadarSeries {
             const { path: areaPath } = areaNode;
             const areaPoints = this.getAreaPoints();
 
-            areaNode.fill = getShapeFill(
+            const fill = getShapeFill(
                 this.properties.fill,
                 this.properties.fillGradientDefaults,
                 this.properties.fillPatternDefaults,
                 this.properties.fillImageDefaults
             );
-            areaNode.fillOpacity = this.properties.fillOpacity;
-            areaNode.stroke = undefined;
 
-            areaNode.lineDash = this.properties.lineDash;
-            areaNode.lineDashOffset = this.properties.lineDashOffset;
+            const fillBBox = this.getShapeFillBBox();
+
+            applyShapeStyle(
+                areaNode,
+                {
+                    fill,
+                    stroke: undefined,
+                    fillOpacity: this.properties.fillOpacity,
+                    lineDash: this.properties.lineDash,
+                    lineDashOffset: this.properties.lineDashOffset,
+                },
+                undefined,
+                fillBBox
+            );
+
             areaNode.lineJoin = areaNode.lineCap = 'round';
 
             areaPath.clear(true);
