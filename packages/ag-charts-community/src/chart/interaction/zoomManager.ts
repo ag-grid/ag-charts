@@ -28,7 +28,7 @@ import { deepClone } from '../../util/json';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
-import { ChartAxisDirection } from '../chartAxisDirection';
+import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
 import type { LayoutManager } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
 
@@ -822,8 +822,8 @@ class AxisZoomManager {
         this.currentZoom = this.state.stateValue()!;
     }
 
-    getDirection(): ChartAxisDirection.X | ChartAxisDirection.Y {
-        return this.axis.direction as any;
+    getDirection() {
+        return this.axis.direction as CartesianAxisDirection;
     }
 
     public updateZoom(callerId: string, newZoom?: ZoomState) {
