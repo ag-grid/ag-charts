@@ -22,7 +22,7 @@ export abstract class RovingTabContainerWidget extends Widget<HTMLDivElement, Ro
         setAttribute(this.elem, 'aria-orientation', orientation !== 'both' ? orientation : undefined);
     }
 
-    constructor(initialOrientation: RovingDirection, role: 'toolbar' | 'list') {
+    constructor(initialOrientation: RovingDirection, role: 'toolbar' | 'list' | 'menu') {
         super(createElement('div'));
         this.orientation = initialOrientation;
         setAttribute(this.elem, 'role', role);
@@ -32,15 +32,32 @@ export abstract class RovingTabContainerWidget extends Widget<HTMLDivElement, Ro
         this.children[this.focusedChildIndex]?.focus();
     }
 
-    protected override onChildAdded(child: RovingChildWidgets): void {
+    public clear() {
+        this.focusedChildIndex = 0;
+        for (const child of this.children) {
+            this.removeChildListeners(child);
+            child.parent = undefined;
+        }
+        this.children.length = 0;
+    }
+
+    private addChildListeners(child: RovingChildWidgets): void {
         child.addListener('focus', this.onChildFocus);
         child.addListener('keydown', this.onChildKeyDown);
+    }
+
+    private removeChildListeners(child: RovingChildWidgets): void {
+        child.removeListener('focus', this.onChildFocus);
+        child.removeListener('keydown', this.onChildKeyDown);
+    }
+
+    protected override onChildAdded(child: RovingChildWidgets): void {
+        this.addChildListeners(child);
         child.setTabIndex(this.children.length === 1 ? 0 : -1);
     }
 
     protected override onChildRemoved(removedChild: RovingChildWidgets): void {
-        removedChild.removeListener('focus', this.onChildFocus);
-        removedChild.removeListener('keydown', this.onChildKeyDown);
+        this.removeChildListeners(removedChild);
 
         // Repair `this.focusedChildIndex` and `this.children[].index`
         const { focusedChildIndex, children } = this;

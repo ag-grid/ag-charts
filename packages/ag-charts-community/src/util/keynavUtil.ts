@@ -1,7 +1,9 @@
 import { getAttribute, setAttribute } from './attributeUtil';
 
+type DestroyFns = { push(...args: (() => void)[]): void };
+
 function addRemovableEventListener<K extends keyof WindowEventMap>(
-    destroyFns: (() => void)[],
+    destroyFns: DestroyFns,
     elem: Window,
     type: K,
     listener: (this: Window, ev: WindowEventMap[K]) => any,
@@ -9,7 +11,7 @@ function addRemovableEventListener<K extends keyof WindowEventMap>(
 ): () => void;
 
 function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
-    destroyFns: (() => void)[],
+    destroyFns: DestroyFns,
     elem: HTMLElement,
     type: K,
     listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
@@ -17,7 +19,7 @@ function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
 ): () => void;
 
 function addRemovableEventListener<K extends keyof (HTMLElementEventMap | WindowEventMap)>(
-    destroyFns: (() => void)[],
+    destroyFns: DestroyFns,
     elem: HTMLElement | Window,
     type: K,
     listener: (this: unknown, ev: unknown) => unknown,
@@ -29,8 +31,8 @@ function addRemovableEventListener<K extends keyof (HTMLElementEventMap | Window
     return remover;
 }
 
-function addEscapeEventListener(
-    destroyFns: (() => void)[],
+export function addEscapeEventListener(
+    destroyFns: DestroyFns,
     elem: HTMLElement,
     onEscape: (event: KeyboardEvent) => void
 ) {
@@ -41,7 +43,7 @@ function addEscapeEventListener(
     });
 }
 
-function addMouseCloseListener(destroyFns: (() => void)[], menu: HTMLElement, hideCallback: () => void): () => void {
+export function addMouseCloseListener(destroyFns: DestroyFns, menu: HTMLElement, hideCallback: () => void): () => void {
     const self = addRemovableEventListener(destroyFns, window, 'mousedown', (event: MouseEvent) => {
         if ([0, 2].includes(event.button) && !containsPoint(menu, event)) {
             hideCallback();
@@ -51,7 +53,7 @@ function addMouseCloseListener(destroyFns: (() => void)[], menu: HTMLElement, hi
     return self;
 }
 
-function addTouchCloseListener(destroyFns: (() => void)[], menu: HTMLElement, hideCallback: () => void): () => void {
+export function addTouchCloseListener(destroyFns: DestroyFns, menu: HTMLElement, hideCallback: () => void): () => void {
     const self = addRemovableEventListener(destroyFns, window, 'touchstart', (event: TouchEvent) => {
         const touches = Array.from(event.targetTouches);
         if (touches.some((touch) => !containsPoint(menu, touch))) {
@@ -69,6 +71,32 @@ function containsPoint(container: Element, event: Pick<MouseEvent & TouchEvent, 
         return ex >= x && ey >= y && ex <= x + width && ey <= y + height;
     }
     return false;
+}
+
+export function addAutoCloseOnBlurEventListener(destroyFns: DestroyFns, buttons: HTMLElement[], hideCb: () => void) {
+    const handler = (ev: FocusEvent) => {
+        const buttonArray: (EventTarget | null)[] = buttons;
+        const isLeavingMenu = !buttonArray.includes(ev.relatedTarget);
+        if (isLeavingMenu) {
+            hideCb();
+        }
+    };
+    for (const button of buttons) {
+        addRemovableEventListener(destroyFns, button, 'blur', handler);
+    }
+}
+
+export function addOverrideFocusVisibleEventListener(
+    destroyFns: DestroyFns,
+    menu: HTMLElement,
+    buttons: HTMLElement[],
+    overrideFocusVisible: boolean
+) {
+    buttons.forEach((b) => b.setAttribute('data-focus-visible-override', overrideFocusVisible.toString()));
+    const keydownTrueOverrider = () => {
+        buttons.forEach((b) => b.setAttribute('data-focus-visible-override', 'true'));
+    };
+    addRemovableEventListener(destroyFns, menu, 'keydown', keydownTrueOverrider, { once: true });
 }
 
 export function hasNoModifiers(event: KeyboardEvent | MouseEvent): boolean {
@@ -234,26 +262,13 @@ export function initMenuKeyNav(opts: {
     });
 
     if (autoCloseOnBlur) {
-        const handler = (ev: FocusEvent) => {
-            const buttonArray: (EventTarget | null)[] = buttons;
-            const isLeavingMenu = !buttonArray.includes(ev.relatedTarget);
-            if (isLeavingMenu) {
-                onEscape();
-            }
-        };
-        for (const button of buttons) {
-            addRemovableEventListener(destroyFns, button, 'blur', handler);
-        }
+        addAutoCloseOnBlurEventListener(destroyFns, buttons, onEscape);
     }
 
     buttons[0]?.focus({ preventScroll: true });
 
     if (overrideFocusVisible !== undefined) {
-        buttons.forEach((b) => b.setAttribute('data-focus-visible-override', overrideFocusVisible.toString()));
-        const keydownTrueOverrider = () => {
-            buttons.forEach((b) => b.setAttribute('data-focus-visible-override', 'true'));
-        };
-        addRemovableEventListener(destroyFns, menu, 'keydown', keydownTrueOverrider, { once: true });
+        addOverrideFocusVisibleEventListener(destroyFns, menu, buttons, overrideFocusVisible);
     }
     return menuCloser;
 }

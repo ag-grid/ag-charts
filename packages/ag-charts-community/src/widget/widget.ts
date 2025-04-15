@@ -157,8 +157,8 @@ export abstract class Widget<
         return this.parseFloat(this.elem.style.height);
     }
 
-    focus(): void {
-        this.elem.focus();
+    focus(opts?: Parameters<HTMLElement['focus']>[0]): void {
+        this.elem.focus(opts);
     }
 
     setPreventsDefault(preventDefault: boolean) {
@@ -260,7 +260,7 @@ export abstract class Widget<
 
     private onDispatch<K extends keyof WidgetEventMap_Internal>(type: K, event: WidgetEventMap_Internal[K]) {
         // Handle event bubbling for drag events.
-        if (!event.sourceEvent.bubbles) return;
+        if (!event.sourceEvent?.bubbles) return;
         let { parent } = this;
         while (parent != null) {
             const { internalListener } = parent;
