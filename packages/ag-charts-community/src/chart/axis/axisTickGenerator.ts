@@ -1,4 +1,4 @@
-import { countFractionDigits, isPlainObject } from 'ag-charts-core';
+import { countFractionDigits } from 'ag-charts-core';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -14,10 +14,10 @@ import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { createIdsGenerator } from '../../util/tempUtils';
-import { CachedTextMeasurerPool, type TextMeasurer, TextUtils } from '../../util/textMeasurer';
+import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
 import { TimeInterval } from '../../util/time';
-import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
+import type { ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
 import {
     calculateLabelRotation,
     createFixedLabelData,
@@ -25,6 +25,8 @@ import {
     getLabelSpacing,
     getTextAlign,
     getTextBaseline,
+    labelSpecifier,
+    timeIntervalMaxLabelSize,
 } from '../label';
 import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
@@ -164,6 +166,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const {
             scale,
             label,
+            primaryLabel,
             interval: { minSpacing, maxSpacing },
         } = this.axis;
         const { parallel, fontFamily, fontSize, fontStyle, fontWeight } = label;
@@ -217,7 +220,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             updateLabelMatrix(iterationRotation);
 
             const spacing = ticksSpacing(ticks);
-            const { width, height } = this.timeIntervalMaxLabelSize(
+            const { width, height } = timeIntervalMaxLabelSize(
+                scale as any,
+                label,
+                primaryLabel,
                 niceDomain ?? domain,
                 rawTicks,
                 timeInterval,
@@ -540,20 +546,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         return { primaryTicks, ticks, interpolate };
     }
 
-    private timeSpecifier(
-        label: ChartAxisLabel | undefined,
-        timeInterval: TimeInterval | undefined
-    ): string | undefined {
-        if (label == null || timeInterval == null) return;
-
-        const { format } = label;
-        if (isPlainObject(format)) {
-            return format[timeInterval.unit];
-        } else {
-            return format;
-        }
-    }
-
     private timeScaleTicks(params: ScaleTickParams<TimeInterval | number>, domain: [Date, Date]) {
         const { interval } = params;
         if (interval == null) return domain;
@@ -575,78 +567,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         }
 
         return ticks;
-    }
-
-    private timeIntervalMaxLabelSize(
-        domain: Date[],
-        ticks: Date[],
-        timeInterval: TimeInterval,
-        textMeasurer: TextMeasurer
-    ) {
-        const { label, primaryLabel, scale } = this.axis;
-
-        const specifier =
-            this.timeSpecifier(label, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
-
-        const formatParams: ScaleFormatParams<Date> = {
-            domain,
-            ticks,
-            fractionDigits: 0,
-            specifier,
-        };
-        const labelFormatter = scale.tickFormatter(formatParams as ScaleFormatParams<any>);
-
-        const primarySpecifier = this.timeSpecifier(primaryLabel, timeInterval?.hierarchy);
-        const primaryLabelFormatter = primarySpecifier
-            ? scale.tickFormatter({
-                  ...formatParams,
-                  specifier: primarySpecifier,
-              } as ScaleFormatParams<any>)
-            : labelFormatter;
-
-        const d0 = new Date(scale.domain[0] as any);
-        const d1 = new Date(scale.domain[scale.domain.length - 1] as any);
-
-        const hierarchyRange = timeInterval.hierarchy?.range(
-            new Date(scale.domain[0] as any),
-            new Date(scale.domain[scale.domain.length - 1] as any),
-            { extend: true }
-        );
-
-        let maxWidth = 0;
-        let maxHeight = 0;
-        if (labelFormatter != null) {
-            let l0: Date;
-            let l1: Date;
-            if (hierarchyRange != null && hierarchyRange.length > 1) {
-                l0 = hierarchyRange[0];
-                l1 = hierarchyRange[1];
-            } else {
-                l0 = d0;
-                l1 = d1;
-            }
-            const labelRange = timeInterval.range(l0, l1);
-            for (const date of labelRange) {
-                const text = labelFormatter(date);
-                const { width, height } = textMeasurer.measureLines(text);
-                maxWidth = Math.max(maxWidth, width);
-                maxHeight = Math.max(maxHeight, height);
-            }
-        }
-
-        if (primaryLabelFormatter != null && hierarchyRange != null) {
-            for (const date of hierarchyRange) {
-                const text = primaryLabelFormatter(date);
-                const { width, height } = textMeasurer.measureLines(text);
-                maxWidth = Math.max(maxWidth, width);
-                maxHeight = Math.max(maxHeight, height);
-            }
-        }
-
-        return {
-            width: Math.ceil(maxWidth),
-            height: Math.ceil(maxHeight),
-        };
     }
 
     private getTicks({
@@ -808,7 +728,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         );
 
         const specifier =
-            this.timeSpecifier(label, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
+            labelSpecifier(label, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
 
         const formatParams: ScaleFormatParams<D> = {
             domain: tickDomain,
@@ -818,7 +738,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         };
         const labelFormatter = scale.tickFormatter(formatParams);
 
-        const primarySpecifier = this.timeSpecifier(primaryLabel, timeInterval?.hierarchy);
+        const primarySpecifier = labelSpecifier(primaryLabel, timeInterval?.hierarchy);
         const primaryLabelFormatter = primarySpecifier
             ? scale.tickFormatter({
                   ...formatParams,
