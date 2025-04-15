@@ -172,9 +172,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onContext(event: ContextMenuEvent) {
         if (!this.enabled) return;
-        event.sourceEvent.preventDefault();
+        const sourceEvent = event.widgetEvent.sourceEvent;
+        sourceEvent.preventDefault();
 
-        this.showEvent = event.sourceEvent as MouseEvent;
+        this.showEvent = sourceEvent;
         this.x = event.x;
         this.y = event.y;
         this.pickedNode = undefined;
@@ -188,10 +189,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const expandedItems = this.expandItemsOptions(event.showOn);
         if (expandedItems.length === 0) return;
 
-        this.show(event.sourceEvent, expandedItems);
+        this.show(sourceEvent, expandedItems);
     }
 
-    private show(sourceEvent: ContextMenuEvent['sourceEvent'], expandedItems: ContextMenuItem[]) {
+    private show(sourceEvent: ContextMenuEvent['widgetEvent']['sourceEvent'], expandedItems: ContextMenuItem[]) {
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 

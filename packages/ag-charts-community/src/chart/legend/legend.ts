@@ -35,6 +35,7 @@ import { ObserveChanges } from '../../util/proxy';
 import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
 import type { SwitchWidget } from '../../widget/switchWidget';
+import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
@@ -860,7 +861,8 @@ export class Legend extends BaseProperties {
         this.doDoubleClick(params.event, this.findNode(params).datum);
     }
 
-    onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel) {
+    onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
+        const { sourceEvent } = widgetEvent;
         const legendItem: CategoryLegendDatum = node.datum;
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enable = false;
@@ -870,7 +872,7 @@ export class Legend extends BaseProperties {
 
         const { offsetX, offsetY } = sourceEvent;
         const { x: canvasX, y: canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
-        this.ctx.contextMenuRegistry.dispatchContext('legend-item', { sourceEvent, canvasX, canvasY }, { legendItem });
+        this.ctx.contextMenuRegistry.dispatchContext('legend-item', { widgetEvent, canvasX, canvasY }, { legendItem });
     }
 
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget) {

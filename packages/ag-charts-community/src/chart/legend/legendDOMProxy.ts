@@ -25,7 +25,7 @@ interface ButtonListener {
     onDoubleClick(event: MouseEvent, datum: CategoryLegendDatum): void;
     onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): void;
     onLeave(): void;
-    onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel): void;
+    onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel): void;
 }
 
 type LegendDOMProxyUpdateParams = {
@@ -110,7 +110,7 @@ export class LegendDOMProxy {
             button.addListener('dblclick', (ev) => itemListener.onDoubleClick(ev.sourceEvent, markerLabel.datum));
             button.addListener('mouseenter', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
             button.addListener('mouseleave', () => itemListener.onLeave());
-            button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev.sourceEvent, markerLabel));
+            button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));
             button.addListener('blur', () => itemListener.onLeave());
             button.addListener('focus', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
             // Enable touch long-tap context menus:
