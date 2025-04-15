@@ -90,6 +90,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
         this.element.addEventListener('contextmenu', (event) => event.preventDefault()); // AG-10223
+        this.element.appendChild(this.menuWidget.getElement());
         this.destroyFns.push(
             () => this.element.parentNode?.removeChild(this.element),
             () => this.menuWidget.destroy(),
@@ -199,7 +200,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onClose() {
         this.interactionManager.popState(_ModuleSupport.InteractionState.ContextMenu);
-        this.element.removeChild(this.menuWidget.getElement());
         this.element.style.display = 'none';
     }
 

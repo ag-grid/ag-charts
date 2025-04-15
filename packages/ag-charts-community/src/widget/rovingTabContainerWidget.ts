@@ -38,6 +38,7 @@ export abstract class RovingTabContainerWidget extends Widget<HTMLDivElement, Ro
             this.removeChildListeners(child);
             child.parent = undefined;
         }
+        this.elem.textContent = '';
         this.children.length = 0;
     }
 
