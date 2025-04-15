@@ -1,3 +1,5 @@
+import { type AnyFn } from 'ag-charts-core';
+
 import { BBoxValues } from '../util/bboxinterface';
 import { partialAssign } from '../util/object';
 import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mouseDragger';
@@ -83,9 +85,7 @@ const GlobalCallbacks: {
 export class WidgetListenerInternal {
     public dragTouchEnabled = true;
     private dragTriggerRemover?: () => void;
-    private dragStartListeners?: EventHandler<Targetable>[];
-    private dragMoveListeners?: EventHandler<Targetable>[];
-    private dragEndListeners?: EventHandler<Targetable>[];
+    private listeners?: Map<EventType, Set<AnyFn>>;
     public mouseDragger?: MouseDragger;
     public touchDragger?: TouchDragger;
 
@@ -94,31 +94,27 @@ export class WidgetListenerInternal {
     destroy(): void {
         this.dragTriggerRemover?.();
         this.dragTriggerRemover = undefined;
-        this.dragStartListeners = undefined;
-        this.dragMoveListeners = undefined;
-        this.dragEndListeners = undefined;
+        this.listeners?.clear();
         this.mouseDragger?.destroy();
         this.touchDragger?.destroy();
     }
 
+    private getListenerSet<T extends Targetable, K extends EventType>(type: K): Set<EventHandler<T, K>> {
+        this.listeners ??= new Map();
+        let result: Set<EventHandler<T, K>> | undefined = this.listeners.get(type);
+        if (result === undefined) {
+            this.listeners.set(type, (result = new Set()));
+        }
+        return result;
+    }
+
     add<T extends Targetable, K extends EventType>(type: K, target: T, handler: EventHandler<T, K>): void;
     add<T extends Targetable, K extends EventType>(type: K, target: T, handler: EventHandler<unknown>): void {
+        this.getListenerSet(type).add(handler);
         switch (type) {
-            case 'drag-start': {
-                this.dragStartListeners ??= [];
-                this.dragStartListeners.push(handler);
-                this.registerDragTrigger(target);
-                break;
-            }
-            case 'drag-move': {
-                this.dragMoveListeners ??= [];
-                this.dragMoveListeners.push(handler);
-                this.registerDragTrigger(target);
-                break;
-            }
+            case 'drag-start':
+            case 'drag-move':
             case 'drag-end': {
-                this.dragEndListeners ??= [];
-                this.dragEndListeners.push(handler);
                 this.registerDragTrigger(target);
                 break;
             }
@@ -127,19 +123,7 @@ export class WidgetListenerInternal {
 
     remove<T extends Targetable, K extends EventType>(type: K, _target: T, handler: EventHandler<T, K>): void;
     remove<T extends Targetable, K extends EventType>(type: K, _target: T, handler: EventHandler<unknown>): void {
-        switch (type) {
-            case 'drag-start':
-                return this.removeHandler(this.dragStartListeners, handler);
-            case 'drag-move':
-                return this.removeHandler(this.dragMoveListeners, handler);
-            case 'drag-end':
-                return this.removeHandler(this.dragEndListeners, handler);
-        }
-    }
-
-    private removeHandler<T extends Targetable>(array: EventHandler<T>[] | undefined, handler: EventHandler<T>): void {
-        const index = array?.indexOf(handler);
-        if (index !== undefined) array?.splice(index, 1);
+        this.getListenerSet(type).delete(handler);
     }
 
     private registerDragTrigger<T extends Targetable>(target: T) {
@@ -223,18 +207,9 @@ export class WidgetListenerInternal {
     }
 
     public dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
-        switch (type) {
-            case 'drag-start':
-                this.dragStartListeners?.forEach((handler) => handler(event, current));
-                break;
-            case 'drag-move':
-                this.dragMoveListeners?.forEach((handler) => handler(event, current));
-                break;
-            case 'drag-end':
-                this.dragEndListeners?.forEach((handler) => handler(event, current));
-                break;
+        for (const handler of this.getListenerSet(type)) {
+            handler(event, current);
         }
-
         this.dispatchCallback(type, event);
     }
 }
