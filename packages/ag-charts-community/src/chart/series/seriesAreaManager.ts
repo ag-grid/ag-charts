@@ -421,6 +421,11 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onClick(event: ClickLikeEvent, current: Widget) {
+        // Skip any playing animations
+        if (this.chart.ctx.animationManager.isActive()) {
+            this.chart.ctx.animationManager.skipCurrentBatch();
+        }
+
         if (event.device === 'touch' && current === this.chart.ctx.widgets.seriesWidget) {
             this.swapChain.focus({ preventScroll: true });
         }
