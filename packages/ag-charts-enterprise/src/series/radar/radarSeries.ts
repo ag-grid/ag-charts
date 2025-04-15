@@ -92,7 +92,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
-        if (direction === ChartAxisDirection.X) {
+        if (direction === ChartAxisDirection.Angle) {
             return dataModel.getDomain(this, `angleValue`, 'value', processedData);
         } else {
             const domain = dataModel.getDomain(this, `radiusValue`, 'value', processedData);
@@ -109,8 +109,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             extraProps.push(animationValidation());
         }
 
-        const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
-        const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
+        const radiusScaleType = this.axes[ChartAxisDirection.Radius]?.scale.type;
+        const angleScaleType = this.axes[ChartAxisDirection.Angle]?.scale.type;
 
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
@@ -138,7 +138,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected getAxisInnerRadius() {
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const radiusAxis = this.axes[ChartAxisDirection.Radius];
         return radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
     }
 
@@ -156,8 +156,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         if (!processedData || !dataModel) return;
 
         const { angleKey, radiusKey, angleName, radiusName, marker, label } = this.properties;
-        const angleScale = this.axes[ChartAxisDirection.X]?.scale;
-        const radiusScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const angleScale = this.axes[ChartAxisDirection.Angle]?.scale;
+        const radiusScale = this.axes[ChartAxisDirection.Radius]?.scale;
 
         if (!angleScale || !radiusScale) {
             return;
@@ -364,8 +364,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { angleKey, angleName, radiusKey, radiusName, tooltip, marker } = properties;
-        const angleAxis = axes[ChartAxisDirection.X];
-        const radiusAxis = axes[ChartAxisDirection.Y];
+        const angleAxis = axes[ChartAxisDirection.Angle];
+        const radiusAxis = axes[ChartAxisDirection.Radius];
 
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
@@ -544,8 +544,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             return [];
         }
 
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
-        const angleAxis = this.axes[ChartAxisDirection.X];
+        const radiusAxis = this.axes[ChartAxisDirection.Radius];
+        const angleAxis = this.axes[ChartAxisDirection.Angle];
         const reversedAngleAxis = angleAxis?.isReversed();
         const reversedRadiusAxis = radiusAxis?.isReversed();
 
@@ -591,7 +591,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         path.clear(true);
 
         const axisInnerRadius = this.getAxisInnerRadius();
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const radiusAxis = this.axes[ChartAxisDirection.Radius];
         const reversedRadiusAxis = radiusAxis?.isReversed();
         const radiusZero = reversedRadiusAxis
             ? this.radius + axisInnerRadius - radiusAxis?.scale.convert(0)

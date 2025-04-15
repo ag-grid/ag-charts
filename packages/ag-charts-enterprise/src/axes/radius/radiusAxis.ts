@@ -74,7 +74,7 @@ export abstract class RadiusAxis<
     protected gridPathSelection = Selection.select(this.gridPathGroup, Path);
 
     get direction() {
-        return ChartAxisDirection.Y;
+        return ChartAxisDirection.Radius;
     }
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: S) {

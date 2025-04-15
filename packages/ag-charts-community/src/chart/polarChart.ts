@@ -47,8 +47,8 @@ export class PolarChart extends Chart {
     }
 
     protected updateAxes(seriesBox: BBox, cx: number, cy: number, radius: number) {
-        const angleAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
-        const radiusAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Y);
+        const angleAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Angle);
+        const radiusAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Radius);
         if (!(angleAxis instanceof PolarAxis) || !(radiusAxis instanceof PolarAxis)) return;
 
         const angleScale: Scale<number, number> = angleAxis.scale;

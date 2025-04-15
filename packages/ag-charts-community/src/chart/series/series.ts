@@ -252,12 +252,9 @@ export abstract class Series<
         seriesRect?: BBox;
     };
 
-    axes: { [K in ChartAxisDirection]?: ChartAxis } = {
-        [ChartAxisDirection.X]: undefined,
-        [ChartAxisDirection.Y]: undefined,
-    };
-
+    axes: { [K in ChartAxisDirection]?: ChartAxis } = {};
     directions: ChartAxisDirection[] = [ChartAxisDirection.X, ChartAxisDirection.Y];
+
     private readonly directionKeys: SeriesDirectionKeysMapping<TProps>;
     private readonly directionNames: SeriesDirectionKeysMapping<TProps>;
 
