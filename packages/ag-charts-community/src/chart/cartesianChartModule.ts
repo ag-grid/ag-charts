@@ -28,7 +28,7 @@ export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions
                 additionalErrors.push(
                     new ValidationError(
                         'invalid',
-                        'only numeric axis types when histogram series is used',
+                        'only continuous axis types when histogram series is used',
                         options.axes,
                         path,
                         'axes'
