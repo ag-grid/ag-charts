@@ -205,8 +205,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)
             : undefined;
 
-        console.log(colorValues);
-
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
