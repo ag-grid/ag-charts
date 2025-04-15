@@ -1,21 +1,26 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
+import { type FunctionComponent } from 'react';
 import { useMemo, useState } from 'react';
-import type { FunctionComponent } from 'react';
 
+import { AllCommunityModule } from 'ag-grid-community';
 import type { ColDef } from 'ag-grid-community';
+import {
+    ColumnsToolPanelModule,
+    FiltersToolPanelModule,
+    RowGroupingModule,
+    SideBarModule,
+    StatusBarModule,
+} from 'ag-grid-enterprise';
+import { AgGridReact } from 'ag-grid-react';
 
 import styles from './DocsExamples.module.scss';
 import { ExampleCountComponent } from './cell-renderers/ExampleCountComponent';
 import { LinkCellRenderer } from './cell-renderers/LinkCellRenderer';
 import { PageCountComponent } from './cell-renderers/PageCountComponent';
 
-export interface DocsExamplesProps {
-    exampleContents: Record<string, any>;
+export interface Props {
+    exampleContents: any[];
 }
-
-type Props = DocsExamplesProps & {
-    AgGrid: any;
-};
 
 const EnterpriseIcon = () => (
     <span title="Enterprise">
@@ -29,7 +34,7 @@ const ChartsIcon = () => (
     </span>
 );
 
-export const DocsExamples: FunctionComponent<Props> = ({ exampleContents, AgGrid }) => {
+export const DocsExamples: FunctionComponent<Props> = ({ exampleContents }) => {
     const [colDefs] = useState([
         {
             field: 'pageName',
@@ -131,7 +136,15 @@ export const DocsExamples: FunctionComponent<Props> = ({ exampleContents, AgGrid
 
     return (
         <div className={styles.container}>
-            <AgGrid
+            <AgGridReact
+                modules={[
+                    AllCommunityModule,
+                    StatusBarModule,
+                    RowGroupingModule,
+                    SideBarModule,
+                    FiltersToolPanelModule,
+                    ColumnsToolPanelModule,
+                ]}
                 rowData={exampleContents}
                 columnDefs={colDefs}
                 defaultColDef={defaultColDef}

@@ -60,7 +60,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     const hideFooter = !hideCode && !hideExternalLinks && !footerChildren;
 
     return (
-        <div id={id} className={styles.exampleOuter}>
+        <div className={styles.exampleOuter}>
             <div className={styles.tabsContainer}>
                 <div
                     className={classnames(styles.content, {

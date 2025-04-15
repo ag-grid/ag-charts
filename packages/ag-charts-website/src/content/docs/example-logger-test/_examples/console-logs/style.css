@@ -1,0 +1,21 @@
+body {
+    overflow: auto;
+}
+
+.controls-row {
+    flex-wrap: nowrap;
+}
+
+.example-controls div {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+.example-controls pre {
+    white-space: pre-wrap;
+}
+
+#myChart {
+    display: none;
+}

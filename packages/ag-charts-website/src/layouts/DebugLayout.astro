@@ -1,0 +1,28 @@
+---
+import Layout from '@layouts/Layout.astro';
+
+const { title } = Astro.props;
+---
+
+<Layout title={title}>
+    <main id="debug-main" class="layout-page-max-width container">
+        <slot />
+    </main>
+</Layout>
+
+<style lang="scss">
+    @use 'design-system' as *;
+
+    .container {
+        display: block;
+        margin-top: $spacing-size-12;
+        margin-bottom: calc($spacing-size-12 * 4);
+    }
+
+    #debug-main {
+        :global(th),
+        :global(td) {
+            padding: $spacing-size-2;
+        }
+    }
+</style>
