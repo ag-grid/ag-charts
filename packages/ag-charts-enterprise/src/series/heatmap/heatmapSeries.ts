@@ -348,10 +348,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
-        const { xKey, yKey, colorRange, itemStyler } = properties;
+        const { xKey, yKey, itemStyler } = properties;
 
         const fill =
-            this.isColorScaleValid() && colorValue != null ? this.colorScale.convert(colorValue) : colorRange[0];
+            this.isColorScaleValid() && colorValue != null ? this.colorScale.convert(colorValue) : 'transparent';
         let overrides: Partial<ItemStyle> | undefined = format.fill == null ? { fill } : undefined;
 
         if (itemStyler != null) {
