@@ -15,7 +15,7 @@ import type { DeepPartial, PlainObject } from 'ag-charts-core';
 import type { AgGradientColor, AgPatternColor } from 'ag-charts-types';
 
 import { Color } from './color';
-import { SKIP_JS_BUILTINS, getPath, partialAssign, without } from './object';
+import { SKIP_JS_BUILTINS, partialAssign, without } from './object';
 import { isProperties } from './properties';
 
 type StringSet = { has(value: string): boolean };
@@ -181,7 +181,8 @@ export function jsonWalk<T, C, R>(
         }
     } else if (isPlainObject(json)) {
         acc = visit(json, parallelJson, ctx, acc);
-        for (const key of Object.keys(json)) {
+        // for (const key of Object.keys(json)) {
+        for (const key in json) {
             if (skip?.has(key)) {
                 continue;
             }
@@ -310,7 +311,7 @@ function classify(value: any): Classification | null {
 }
 
 /**
- * Resolve logical operations within a json object.
+ * Merge JSON objects while resolving logical operations.
  *
  * @param source[] JSON objects to walk in parallel and resolve in priority from first to last.
  * @param params An object of parameters to use with the `$ref` operation.
@@ -324,20 +325,70 @@ export function jsonResolveOperations<S extends object = object, P extends objec
     skip?: Set<string>
 ) {
     const resolved = {} as S;
-    const meta: OperationMeta = { root: resolved, params, path: [], skip, extendPath: true, sources };
+    const meta: OperationMeta = {
+        root: resolved,
+        params,
+        id: '',
+        path: [],
+        skip,
+        extendPath: true,
+        sources,
+    };
+
+    resolvedIds.clear();
+    unresolvedIds.clear();
+    missingPaths.clear();
+    missingPathsWithDefaults.clear();
 
     for (const source of sources) {
-        const resolvedSource = jsonResolveSource(source, meta);
+        const resolvedSource = jsonResolveSourceWithoutTarget(source, meta);
         if (!isObject(resolvedSource)) continue;
         for (const key of Object.keys(resolvedSource)) {
             jsonResolveSourceWithTarget(resolved, resolvedSource, { ...meta, key, path: [key] });
         }
     }
 
+    // Increase if required by internal code, but could impact performance.
+    const maxAttempts = 2;
+
+    let attempt = 0;
+    let unresolvedIdsSize = unresolvedIds.size;
+    while (unresolvedIds.size > 0 && attempt < maxAttempts) {
+        unresolvedIds.clear();
+        for (const source of sources) {
+            const resolvedSource = jsonResolveSourceWithoutTarget(source, meta);
+            if (!isObject(resolvedSource)) continue;
+            for (const key in resolvedSource) {
+                jsonResolveSourceWithTarget(resolved, resolvedSource, { ...meta, key, path: [key] });
+            }
+        }
+
+        // TODO: this could fail, should test a union
+        if (unresolvedIdsSize === unresolvedIds.size) {
+            // Until operations are made public, this error should not occur, if it does that is a library bug.
+            Logger.warnOnce(`Could not resolve operations at:\n- ${Array.from(unresolvedIds.values()).join('\n- ')}`);
+            break;
+        }
+
+        unresolvedIdsSize = unresolvedIds.size;
+        attempt++;
+    }
+
+    // Catch paths that could never be resolved, indicating they are missing from the target and all of the sources
+    for (const [path, defaultValue] of missingPathsWithDefaults) {
+        setPath(resolved, path.split('.'), defaultValue);
+    }
+    for (const [path, value] of missingPaths) {
+        Logger.warnOnce(
+            `\`$path\` json operation failed on [${value}] at [${path}] resolved to [${resolvePath(path.split('.'), value).join('.')}], could not find path in object.`
+        );
+    }
+
     return resolved;
 }
 
 type OperationMeta = {
+    id: string;
     path: string[];
     params: PlainObject;
     root: PlainObject;
@@ -347,115 +398,141 @@ type OperationMeta = {
     key?: string;
     matchIndex?: number;
     matches?: Array<unknown>;
-    target?: any;
     sources: Array<object>;
     referencedParams?: Set<string>;
 };
 
-/**
- * Resolve the `source` object if it is an operation, with deferred resolution for operation values.
- */
-function jsonResolveSource(source: unknown, meta: OperationMeta) {
-    const operation = getOperation(source);
-    if (!operation) return source;
+const resolvedIds = new Set<string>();
+const unresolvedIds = new Set<string>();
+const missingPaths = new Map<string, string>();
+const missingPathsWithDefaults = new Map<string, any>();
+const unresolvedOperation = Symbol('unresolved-operation');
 
-    const innerTarget: PlainObject = {};
-    jsonResolveSourceWithTarget(innerTarget, operation, {
-        ...meta,
-        key: 'values',
-        extendPath: false,
-    });
-    return resolveOperation(operation.operation, innerTarget.values, meta);
+function hasUnresolvedChildren(id: string) {
+    for (const unresolvedId of unresolvedIds) {
+        if (unresolvedId.startsWith(id)) return true;
+    }
+    return false;
 }
 
 /**
- * Merge the key `meta.key` on `target` with the value on `source, first processing any operations with deferred
- * resolution.
+ * Resolve the `source` object if it is an operation, otherwise just return it.
+ */
+function jsonResolveSourceWithoutTarget(source: unknown, meta: OperationMeta) {
+    const operation = getOperation(source);
+    if (!operation) return source;
+
+    const id = `${meta.id}/source`;
+    const target: PlainObject = {};
+    jsonResolveOperationWithTarget(target, id, operation, { ...meta, id, key: 'source' });
+
+    if (hasUnresolvedChildren(id)) {
+        unresolvedIds.add(id);
+        return source;
+    }
+
+    return target.source;
+}
+
+/**
+ * Merge the key `meta.key` on `target` with the value on `source while processing any operations.
  */
 function jsonResolveSourceWithTarget(target: PlainObject, source: PlainObject, meta: OperationMeta) {
     const { delay, key, skip } = meta;
-
     if (key == null || skip?.has(key)) return;
+
+    const id = `${meta.id}/${key}`;
+
+    // TODO: Can this be optimised by skipping already resolved ids? Without also skipping unresolved children.
+    // if (resolvedIds.has(id)) return;
+
+    // Delay processing the source value, assuming it will instead be processed by an operation.
+    if (delay?.has(key)) {
+        target[key] = source[key];
+        return;
+    }
 
     const operation = getOperation(source[key]);
 
-    if (operation && (target[key] == null || parallelOperations.has(operation.operation))) {
-        if (operation.operation === TransformOperation.Unresolved) {
-            target[key] = { [operation.operation]: operation.values };
-            return;
-        }
+    if (operation) {
+        jsonResolveOperationWithTarget(target, id, operation, meta);
+        return;
+    }
 
-        if (delay?.has(key)) {
-            delay.delete(key);
-            target[key] = { [operation.operation]: operation.values };
-            return;
-        }
-
-        const targetValue = target[key];
-        const resolverFn = () => {
-            // Defer resolving the operation's values until they are accessed
-            const innerTarget: PlainObject = {};
-            jsonResolveSourceWithTarget(innerTarget, operation, {
-                ...meta,
-                key: 'values',
-
-                // Do not resolve these values the first time they are accessed, i.e. leave their resolution for
-                // the operator to handle
-                delay: delayFirstValueOperations.has(operation.operation) ? new Set(['0']) : undefined,
-
-                // Do not extend the path since this is an array of operation values
-                extendPath: false,
-
-                // The `$apply` operator updates `$value: '$target'`
-                target: operation.operation === TransformOperation.Apply ? targetValue : meta.target,
-            });
-
-            return resolveOperation(operation.operation, innerTarget.values, meta);
-        };
-
-        // Defer resolving this operator until it is accessed
-        const resolver = createResolver(target, key, resolverFn);
-        Object.defineProperty(target, key, { get: resolver, configurable: true, enumerable: true });
-    } else if (isPlainObject(source[key])) {
+    if (isPlainObject(source[key])) {
         if (isPlainObject(target[key])) {
-            target[key] = jsonResolveObjects([target[key], source[key]], meta);
-        } else {
-            target[key] ??= jsonResolveObjects([source[key]], meta);
+            jsonResolveObjects(target[key], [target[key], source[key]], { ...meta, id: id });
+        } else if (target[key] == null) {
+            target[key] = {};
+            jsonResolveObjects(target[key], [source[key]], { ...meta, id: id });
         }
     } else if (isArray(source[key])) {
         if (isArray(target[key])) {
-            target[key] = jsonResolveArrays([target[key], source[key]], meta);
-        } else {
-            target[key] ??= jsonResolveArrays([source[key]], meta);
+            jsonResolveArrays(target[key], [target[key], source[key]], { ...meta, id: id });
+        } else if (target[key] == null) {
+            target[key] = [];
+            jsonResolveArrays(target[key], [source[key]], { ...meta, id: id });
         }
     } else {
         target[key] ??= source[key];
     }
+
+    if (hasUnresolvedChildren(id)) {
+        unresolvedIds.add(id);
+    } else {
+        resolvedIds.add(id);
+    }
 }
 
-function createResolver(object: PlainObject, key: string | number, fn: () => any) {
-    return () => {
-        let value = fn();
+function jsonResolveOperationWithTarget(
+    target: PlainObject,
+    id: string,
+    operation: { operation: Operation; values: any },
+    meta: OperationMeta
+) {
+    if (meta.key == null) return;
+    if (target[meta.key] != null && !parallelOperations.has(operation.operation)) return;
 
-        // Remove operations that resolve to undefined to avoid polluting object
-        if (value === undefined) {
-            delete object[key];
-            return;
-        }
-
-        Object.defineProperty(object, key, { value, configurable: true, enumerable: true });
-        return value;
+    const operationValuesMeta = {
+        ...meta,
+        id,
+        key: operation.operation,
+        skip: operation.operation === TransformOperation.Skip ? new Set<string>(operation.values[0]) : meta.skip,
+        delay: operationDelaySets.get(operation.operation),
+        // Do not extend the path since this is an array of operation values
+        extendPath: false,
     };
+
+    const operationValuesTarget: PlainObject = {};
+    jsonResolveSourceWithTarget(
+        operationValuesTarget,
+        { [operationValuesMeta.key]: operation.values },
+        operationValuesMeta
+    );
+
+    if (hasUnresolvedChildren(id)) {
+        unresolvedIds.add(id);
+        return;
+    }
+
+    const result = resolveOperation(operation.operation, operationValuesTarget[operationValuesMeta.key], {
+        ...meta,
+        id,
+    });
+    if (result === unresolvedOperation) {
+        unresolvedIds.add(id);
+    } else {
+        target[meta.key] = result;
+        resolvedIds.add(id);
+    }
 }
 
-function jsonResolveObjects(sources: Array<unknown>, meta: OperationMeta) {
-    const resolved: PlainObject = {};
-
+function jsonResolveObjects(target: PlainObject, sources: Array<unknown>, meta: OperationMeta) {
     for (const source of sources) {
-        const resolvedSource = jsonResolveSource(source, meta);
+        const resolvedSource = jsonResolveSourceWithoutTarget(source, meta);
         if (!isObject(resolvedSource)) continue;
         for (const key of Object.keys(resolvedSource)) {
-            jsonResolveSourceWithTarget(resolved, resolvedSource, {
+            jsonResolveSourceWithTarget(target, resolvedSource, {
                 ...meta,
                 extendPath: true,
                 key,
@@ -463,18 +540,14 @@ function jsonResolveObjects(sources: Array<unknown>, meta: OperationMeta) {
             });
         }
     }
-
-    return resolved;
 }
 
-function jsonResolveArrays(sources: Array<unknown>, meta: OperationMeta) {
-    const resolved: Array<unknown> = [];
-
+function jsonResolveArrays(target: Array<unknown>, sources: Array<unknown>, meta: OperationMeta) {
     for (const source of sources) {
         if (!isArray(source)) continue;
         for (let index = 0; index < source.length; index++) {
             const path = meta.extendPath ? [...meta.path, `${index}`] : meta.path;
-            jsonResolveSourceWithTarget(resolved, source, {
+            jsonResolveSourceWithTarget(target, source, {
                 ...meta,
                 extendPath: true,
                 key: `${index}`,
@@ -482,8 +555,6 @@ function jsonResolveArrays(sources: Array<unknown>, meta: OperationMeta) {
             });
         }
     }
-
-    return resolved;
 }
 
 enum LocationOperation {
@@ -516,8 +587,7 @@ enum TransformOperation {
     Pick = '$pick',
     Omit = '$omit',
     Clone = '$clone',
-    Unresolved = '$unresolved',
-    Resolved = '$resolved',
+    Skip = '$skip',
 }
 
 enum FontOperation {
@@ -542,13 +612,17 @@ type Operation =
     | ColorOperation;
 
 const parallelOperations: Set<Operation> = new Set([TransformOperation.Apply]);
-const delayFirstValueOperations: Set<Operation> = new Set([TransformOperation.Find, TransformOperation.Map]);
+const operationDelaySets: Map<Operation, Set<string>> = new Map([
+    [TransformOperation.Find, new Set(['0'])],
+    [TransformOperation.Map, new Set(['0'])],
+    [TransformOperation.Apply, new Set(['0', '1', '2'])],
+]);
 
 function getOperation(value: unknown) {
     if (!isPlainObject(value)) return;
     const [operation] = Object.keys(value) as Array<Operation>;
     if (!operationKeys.has(operation)) return;
-    return { operation, values: value[operation] };
+    return { operation: operation as Operation, values: value[operation] };
 }
 
 function resolveOperation(operation: Operation, value: string | Array<unknown>, meta: OperationMeta): any {
@@ -558,7 +632,6 @@ function resolveOperation(operation: Operation, value: string | Array<unknown>, 
 }
 
 function isKey<T extends object>(key: unknown, obj: T): key is keyof T & string {
-    // return isString(key) && (isObject(obj) || isArray(obj)) && key in obj;
     return typeof key === 'string' && obj !== null && (typeof obj === 'object' || Array.isArray(obj)) && key in obj;
 }
 
@@ -576,6 +649,27 @@ function isPatternFill(fill: any): fill is AgPatternColor {
     return fill !== null && isObject(fill) && fill.type == 'pattern';
 }
 
+// Safely get the value at a path in an object (see `./object.ts`)
+function getPath(object: PlainObject, path: string[]) {
+    let result = object;
+    for (const part of path) {
+        if (!isPlainObject(result) || !isKey(part, result)) break;
+        result = result[part];
+    }
+    return result as unknown;
+}
+
+// Safely set the value at a path in an object
+function setPath(object: PlainObject, path: string[], value: any) {
+    let result = object;
+    while (path.length > 1) {
+        const part = path.shift();
+        if (!isPlainObject(result) || !isKey(part, result)) return;
+        result = result[part];
+    }
+    result[path[0]] = value;
+}
+
 function resolvePath(currentPath: string[], path: string, index?: string, variables?: PlainObject) {
     const relativePathParts = path.split('/');
     let resolvedPath = [...currentPath];
@@ -585,12 +679,13 @@ function resolvePath(currentPath: string[], path: string, index?: string, variab
     }
 
     let prevPartWasTwoDots = false;
+    let i = 0;
     for (const part of relativePathParts) {
         if (part === '..') {
             resolvedPath.pop();
             if (!prevPartWasTwoDots) resolvedPath.pop();
         } else if (part === '.') {
-            resolvedPath.pop();
+            if (i < relativePathParts.length - 1) resolvedPath.pop();
         } else if (part === '$index') {
             if (index != null) resolvedPath.push(index);
         } else if (part === '$prevIndex') {
@@ -602,6 +697,7 @@ function resolvePath(currentPath: string[], path: string, index?: string, variab
         }
 
         prevPartWasTwoDots = part === '..';
+        i++;
     }
 
     return resolvedPath;
@@ -639,19 +735,7 @@ const transformOperations: Record<TransformOperation, OperationFn> = {
     $omit: omit,
     $value: valueOperation,
     $clone: clone,
-    $unresolved: ([value]) => {
-        return { $unresolved: [value] };
-    },
-    $resolved: ([value], meta) => {
-        if (!isPlainObject(value) || !('$unresolved' in value)) return;
-
-        const target = {};
-        for (const key of Object.keys(value.$unresolved[0])) {
-            jsonResolveSourceWithTarget(target, value.$unresolved[0], { ...meta, key });
-        }
-
-        return target;
-    },
+    $skip: ([_keys, value]) => value,
 };
 
 const fontOperations: Record<FontOperation, OperationFn> = {
@@ -724,7 +808,7 @@ function palette(value: string | Array<unknown>, { key, matchIndex, path, params
         } else {
             const seriesPath = path.slice(0, indexIndex);
             const ignoreIndexSeries = ['map-shape-background', 'map-line-background'];
-            const ignoreIndexOffset = (getPath(root, seriesPath) ?? [])
+            const ignoreIndexOffset = (getPath(root, seriesPath) as Array<string>) // TODO?
                 .slice(0, index)
                 .filter((s: any) => ignoreIndexSeries.includes(s.type)).length;
             index -= ignoreIndexOffset;
@@ -750,10 +834,11 @@ function palette(value: string | Array<unknown>, { key, matchIndex, path, params
         return p.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
     }
 
-    return getPath(p, value);
+    return getPath(p, value.split('.'));
 }
 
-function pathOperation(value: string | Array<unknown>, { path, root, key }: OperationMeta) {
+function pathOperation(value: string | Array<unknown>, meta: OperationMeta) {
+    const { path, root, key } = meta;
     let hasDefaultValue = false;
     let defaultValue;
     let usingCustomBranch = false;
@@ -775,22 +860,27 @@ function pathOperation(value: string | Array<unknown>, { path, root, key }: Oper
     }
 
     // Apply the relative path to the current path
-    const resolvedPath = resolvePath(usingCustomBranch ? [] : path, value, key, variables);
+    let currentPath = path;
+    if (usingCustomBranch) currentPath = [];
+    const resolvedPath = resolvePath(currentPath, value, key, variables);
 
-    // const isCircular =
-    //     !usingCustomBranch &&
-    //     path.length > 0 &&
-    //     path.every((part, index) => part === resolvedPath[index] || index >= resolvedPath.length);
-    // if (isCircular) {
-    //     Logger.warnOnce(
-    //         `\`$path\` json operation failed on [${String(value)}] at [${path.join('.')}] resolved to [${resolvedPath.join('.')}], path is circular.`
-    //     );
-    //     return;
-    // }
+    // Track and update missing paths on the root object being resolved
+    if (!usingCustomBranch && !resolvedIds.has(`/${resolvedPath.join('/')}`)) {
+        if (hasDefaultValue) {
+            missingPathsWithDefaults.set(meta.path.join('.'), defaultValue);
+        } else {
+            missingPaths.set(meta.path.join('.'), String(value));
+        }
+        return unresolvedOperation;
+    }
+
+    missingPathsWithDefaults.delete(meta.path.join('.'));
+    missingPaths.delete(meta.path.join('.'));
 
     let resolvedValue: any = branch;
     for (const part of resolvedPath) {
         if (!isKey(part, resolvedValue)) {
+            // TODO: this probably shouldn't be feasible to reach now, due to the resolvedIds check above
             if (!hasDefaultValue) {
                 Logger.warnOnce(
                     `\`$path\` json operation failed on [${String(value)}] at [${path.join('.')}] resolved to [${resolvedPath.join('.')}], could not find path in object.`
@@ -803,7 +893,7 @@ function pathOperation(value: string | Array<unknown>, { path, root, key }: Oper
         resolvedValue = resolvedValue[part];
     }
 
-    return Object.isFrozen(resolvedValue) ? deepClone(resolvedValue) : resolvedValue;
+    return resolvedValue;
 }
 
 function isOperationOperator(value: string | Array<unknown>, { path, sources }: OperationMeta) {
@@ -852,6 +942,7 @@ function map([mapOperation, mapValues]: string | Array<unknown>, meta: Operation
         jsonResolveSourceWithTarget(target, source, {
             ...meta,
             key: `${index}`,
+            path: [...meta.path, `${index}`],
             matchIndex: index,
             matches: mapValues,
         });
@@ -895,12 +986,70 @@ function find([findCondition, findValues]: string | Array<unknown>, meta: Operat
 
 function merge(values: string | Array<unknown>, meta: OperationMeta) {
     if (!isArray(values)) return;
-    return jsonResolveObjects(values, meta);
+    const merged = {};
+    jsonResolveObjects(merged, values, meta);
+    return merged;
 }
 
-function apply(values: string | Array<unknown>) {
-    if (!isArray(values)) return;
-    return values[0];
+function apply([object, fromPath, variables, skip]: string | Array<unknown>, meta: OperationMeta) {
+    if (!isPlainObject(object)) return;
+
+    const branch = getPath(meta.root, meta.path);
+
+    if (isArray(branch)) {
+        let index = 0;
+        for (const item of branch) {
+            if (!isPlainObject(item)) continue;
+
+            let source: unknown = object;
+            if (isString(fromPath)) {
+                const variablesTarget: PlainObject = {};
+                if (isPlainObject(variables)) {
+                    jsonResolveObjects(variablesTarget, [variables], {
+                        ...meta,
+                        id: `${meta.id}/$apply/$variables/${index}`,
+                        matches: [item],
+                        matchIndex: 0,
+                    });
+                }
+                const resolvedFromPath = resolvePath([], fromPath, undefined, variablesTarget);
+                source = getPath(object, resolvedFromPath);
+            }
+
+            jsonResolveObjects(item, [source], {
+                ...meta,
+                skip: isArray(skip) ? new Set(skip as string[]) : undefined,
+                id: `${meta.id}/$apply/$items/${index}`,
+                key: `${index}`,
+                path: [...meta.path, `${index}`],
+            });
+            index++;
+        }
+
+        return branch;
+    } else if (isPlainObject(branch)) {
+        let source: unknown = object;
+        if (isString(fromPath)) {
+            const variablesTarget: PlainObject = {};
+            if (isPlainObject(variables)) {
+                jsonResolveObjects(variablesTarget, [variables], {
+                    ...meta,
+                    id: `${meta.id}/$apply/$variables/`,
+                });
+            }
+            const resolvedFromPath = resolvePath([], fromPath, undefined, variablesTarget);
+            source = getPath(object, resolvedFromPath);
+        }
+
+        const target: PlainObject = {};
+        jsonResolveObjects(target, [branch, source], {
+            ...meta,
+            id: `${meta.id}/$apply/$item`,
+            skip: isArray(skip) ? new Set(skip as string[]) : undefined,
+        });
+
+        return target;
+    }
 }
 
 function pick([keys, object]: string | Array<unknown>) {
@@ -918,13 +1067,9 @@ function clone([value]: string | Array<unknown>) {
     return value;
 }
 
-function valueOperation(value: string | Array<unknown>, { path, key, matchIndex, matches, target }: OperationMeta) {
+function valueOperation(value: string | Array<unknown>, { path, key, matchIndex, matches }: OperationMeta) {
     if (value === '$path') {
         return path.join('.');
-    }
-
-    if (value === '$target') {
-        return target;
     }
 
     if (value === '$index') {

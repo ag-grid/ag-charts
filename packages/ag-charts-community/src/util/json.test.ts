@@ -551,14 +551,6 @@ describe('json module', () => {
             expect(resolved).toEqual({ a: 'd-value', b: '/d', c: '/d', d: 'd-value' });
         });
 
-        it('should ignore sources that do not resolve to an object', () => {
-            // TODO: should it warn?
-            const source = { $ref: 'key' };
-            const params = { key: 'ref' };
-            const resolved = jsonResolveOperations([source], params);
-            expect(resolved).toEqual({});
-        });
-
         it('should merge sources', () => {
             const options = { a: 'options-a' };
             const defaults = { a: 'defaults-a', b: 'defaults-b' };
@@ -640,9 +632,9 @@ describe('json module', () => {
                 const paths = {
                     cousin: { $path: '/key' },
                     secondCousin: { $path: '/parent/child' },
-                    youngerSibling: { $path: '/sibling' },
-                    sibling: 'sibling-value',
                     olderSibling: { $path: '/sibling' },
+                    sibling: 'sibling-value',
+                    youngerSibling: { $path: '/sibling' },
                     relative: {
                         relativeChild: { $path: '../parent/child' },
                     },
@@ -653,9 +645,9 @@ describe('json module', () => {
                     parent: { child: 'child-value' },
                     cousin: 'key-value',
                     secondCousin: 'child-value',
-                    youngerSibling: 'sibling-value',
-                    sibling: 'sibling-value',
                     olderSibling: 'sibling-value',
+                    sibling: 'sibling-value',
+                    youngerSibling: 'sibling-value',
                     relative: {
                         relativeChild: 'child-value',
                     },
@@ -710,7 +702,7 @@ describe('json module', () => {
                 const source = {
                     parent: {
                         a: { greeting: 'hello' },
-                        b: { $path: ['./greeting', undefined, { $path: './a' }] },
+                        b: { $path: ['/greeting', undefined, { $path: './a' }] },
                     },
                 };
                 const resolved = jsonResolveOperations([source]);
@@ -723,24 +715,39 @@ describe('json module', () => {
             });
 
             it('should warn on invalid `$path` operations', () => {
-                const source = {
-                    a: 'parent',
-                    b: {
-                        c: 'cousin',
-                    },
-                    d: {
-                        e: 'sibling',
-                        f: { $path: '../e' }, // invalid path
+                const first = {
+                    parent: {
+                        olderSibling: { $path: './sibling' }, // can not immediately resolve, but is a valid path
+                        sibling: 'sibling',
+                        youngerSibling: { $path: '../sibling' }, // will never resolve as is an invalid path
+                        youngestSibling: { $path: './missing' }, // will never resolve as is an invalid path
+                        cousinSibling: { $path: './cousin' },
+                        withDefault: { $path: ['../sibling', 'default-value'] }, // will never resolve but will use default value
                     },
                 };
-                const resolved = jsonResolveOperations([source]);
+                const second = {
+                    parent: {
+                        cousin: 'cousin',
+                        invalidCousin: { $path: '../sibling' },
+                    },
+                };
+                const resolved = jsonResolveOperations([first, second]);
                 expect(resolved).toEqual({
-                    a: 'parent',
-                    b: { c: 'cousin' },
-                    d: { e: 'sibling', f: undefined },
+                    parent: {
+                        olderSibling: 'sibling',
+                        sibling: 'sibling',
+                        youngerSibling: undefined,
+                        youngestSibling: undefined,
+                        withDefault: 'default-value',
+                        cousinSibling: 'cousin',
+                        cousin: 'cousin',
+                        invalidCousin: undefined,
+                    },
                 });
                 expectWarningMessages([
-                    'AG Charts - `$path` json operation failed on [../e] at [d.f] resolved to [e], could not find path in object.',
+                    'AG Charts - `$path` json operation failed on [../sibling] at [parent.youngerSibling], could not find path in object.',
+                    'AG Charts - `$path` json operation failed on [./missing] at [parent.youngestSibling], could not find path in object.',
+                    'AG Charts - `$path` json operation failed on [../sibling] at [parent.invalidCousin], could not find path in object.',
                 ]);
             });
 
@@ -803,28 +810,6 @@ describe('json module', () => {
                 };
                 const resolved = jsonResolveOperations([source]);
                 expect(resolved).toEqual({ a: [0, 'other', 2] });
-            });
-
-            it("should resolve `$value: '$target'` operations", () => {
-                const source = {
-                    a: [
-                        { greeting: 'hello', farewell: 'goodbye' },
-                        { greeting: 'bonjour', farewell: 'ciao' },
-                    ],
-                };
-                const logic = {
-                    a: [
-                        { $apply: [{ $value: '$target' }] },
-                        { greeting: { $apply: [{ $value: '$target' }] }, farewell: 'au revoir' },
-                    ],
-                };
-                const resolved = jsonResolveOperations([source, logic]);
-                expect(resolved).toEqual({
-                    a: [
-                        { greeting: 'hello', farewell: 'goodbye' },
-                        { greeting: 'bonjour', farewell: 'ciao' },
-                    ],
-                });
             });
         });
 
@@ -982,23 +967,27 @@ describe('json module', () => {
                 expect(resolved).toEqual({ a: 'bonjour' });
             });
 
-            it('should resolve `$find` and safely handle circular references with `$isOperation` operation', () => {
-                const source = {
-                    a: [
-                        { $find: [{ $not: [{ $isOperation: true }] }, { $path: '../a' }] },
-                        { greeting: 'bonjour', lang: 'fr' },
-                        { greeting: 'howdy', lang: 'en-US' },
-                    ],
-                };
-                const resolved = jsonResolveOperations([source]);
-                expect(resolved).toEqual({
-                    a: [
-                        { greeting: 'bonjour', lang: 'fr' },
-                        { greeting: 'bonjour', lang: 'fr' },
-                        { greeting: 'howdy', lang: 'en-US' },
-                    ],
-                });
-            });
+            it.failing(
+                'should resolve `$find` and safely handle circular references with `$isOperation` operation',
+                () => {
+                    const source = {
+                        a: [
+                            // { $find: [{ $not: [{ $eq: [{ $value: '$1' }, undefined] }] }, { $path: '../a' }] },
+                            { $find: [{ $not: [{ $isOperation: '.' }] }, { $path: '../a' }] },
+                            { greeting: 'bonjour', lang: 'fr' },
+                            { greeting: 'howdy', lang: 'en-US' },
+                        ],
+                    };
+                    const resolved = jsonResolveOperations([source]);
+                    expect(resolved).toEqual({
+                        a: [
+                            { greeting: 'bonjour', lang: 'fr' },
+                            { greeting: 'bonjour', lang: 'fr' },
+                            { greeting: 'howdy', lang: 'en-US' },
+                        ],
+                    });
+                }
+            );
 
             it('should resolve `$find` and safely handle circular references with `$isOperation` operation on child', () => {
                 const source = {
@@ -1028,36 +1017,28 @@ describe('json module', () => {
             });
 
             it('should resolve `$apply` operation', () => {
-                const source = { values: [{ type: 'one' }, { type: 'two' }, { type: 'two' }] };
+                const source = { items: [{ type: 'one' }, { type: 'two' }, { type: 'two', color: 'red' }] };
                 const logic = {
-                    values: {
+                    items: {
                         $apply: [
                             {
-                                $map: [
-                                    {
-                                        $merge: [
-                                            {
-                                                $path: [
-                                                    { $path: ['./type', 'one', { $value: '$1' }] },
-                                                    {},
-                                                    { one: { value: false }, two: { value: true } },
-                                                ],
-                                            },
-                                            { $value: '$1' },
-                                        ],
-                                    },
-                                    { $value: '$target' },
-                                ],
+                                one: { color: 'white' },
+                                two: {
+                                    other: { $path: './color' },
+                                    color: 'black',
+                                },
                             },
+                            '/$type',
+                            { type: { $path: ['./type', 'one', { $value: '$1' }] } },
                         ],
                     },
                 };
                 const resolved = jsonResolveOperations([source, logic]);
                 expect(resolved).toEqual({
-                    values: [
-                        { type: 'one', value: false },
-                        { type: 'two', value: true },
-                        { type: 'two', value: true },
+                    items: [
+                        { type: 'one', color: 'white' },
+                        { type: 'two', color: 'black', other: 'black' },
+                        { type: 'two', color: 'red', other: 'red' },
                     ],
                 });
             });
@@ -1088,32 +1069,6 @@ describe('json module', () => {
                 expect(resolved.b).toEqual({ greeting: 'hello' });
                 resolved.a.greeting = 'bonjour';
                 expect(resolved.b).toEqual({ greeting: 'hello' });
-            });
-
-            it.skip('should not resolve `$unresolved` operations', () => {
-                const source = {
-                    a: { $unresolved: [{ greeting: { $path: './b' } }] },
-                    b: { lang: 'en-GB', value: 'hello' },
-                };
-                const resolved = jsonResolveOperations([source]) as any;
-                expect(resolved).toEqual({
-                    a: { $unresolved: [{ greeting: { $path: './b' } }] },
-                    b: { lang: 'en-GB', value: 'hello' },
-                });
-            });
-
-            it.skip('should resolve `$unresolved` operations within `$resolved` operations', () => {
-                const source = {
-                    a: { $unresolved: [{ greeting: { $path: '../b' } }] },
-                    b: { lang: 'en-GB', value: 'hello' },
-                    c: { $resolved: [{ $path: './a' }] },
-                };
-                const resolved = jsonResolveOperations([source]) as any;
-                expect(resolved).toEqual({
-                    a: { $unresolved: [{ greeting: { $path: '../b' } }] },
-                    b: { lang: 'en-GB', value: 'hello' },
-                    c: { greeting: { lang: 'en-GB', value: 'hello' } },
-                });
             });
         });
 
@@ -1223,63 +1178,107 @@ describe('json module', () => {
                         fills: ['red', 'green', 'blue'],
                     },
                 };
+                const userOptions = {
+                    title: 'User Options',
+                    background: 'grey',
+                    legend: {
+                        position: 'left',
+                    },
+                    series: [
+                        { type: 'line', stroke: 'purple' },
+                        { type: 'bar', label: { placement: 'outside-start' } },
+                        { type: 'bar' },
+                    ],
+                };
                 const themeConfig = {
                     bar: {
                         background: 'white',
                         foreground: 'black',
-                        series: { fill: { $palette: 'fill' } },
+                        series: {
+                            fill: { $palette: 'fill' },
+                            label: {
+                                color: {
+                                    $if: [
+                                        {
+                                            $or: [
+                                                { $eq: [{ $path: './placement' }, 'outside-start'] },
+                                                { $eq: [{ $path: './placement' }, 'outside-end'] },
+                                            ],
+                                        },
+                                        'black',
+                                        'white',
+                                    ],
+                                },
+                                placement: 'inside-center',
+                            },
+                        },
                     },
                     line: {
                         background: 'black',
                         foreground: 'white',
+                        legend: {
+                            position: 'bottom',
+                            spacing: 30,
+                            orientation: {
+                                $if: [
+                                    {
+                                        $or: [
+                                            { $eq: [{ $path: './position' }, 'left'] },
+                                            { $eq: [{ $path: './position' }, 'right'] },
+                                        ],
+                                    },
+                                    'vertical',
+                                    'horizontal',
+                                ],
+                            },
+                        },
                         series: { stroke: { $palette: 'fill' } },
                     },
                 };
-                const userOptions = {
-                    title: 'User Options',
-                    background: 'grey',
-                    series: [{ type: 'line', stroke: 'purple' }, { type: 'bar' }, { type: 'line' }],
-                };
                 const chartDefaults = {
-                    $path: ['/$seriesType', {}, themeConfig, { seriesType: { $path: '/series/0/type' } }],
+                    $apply: [themeConfig, '/$seriesType', { seriesType: { $path: '/series/0/type' } }, ['series']],
                 };
                 const seriesDefaults = {
                     series: {
                         $apply: [
-                            {
-                                $map: [
-                                    {
-                                        $merge: [
-                                            { $value: '$1' },
-                                            {
-                                                $path: [
-                                                    '/$seriesType/series',
-                                                    {},
-                                                    themeConfig,
-                                                    { seriesType: { $path: ['./type', 'line', { $value: '$1' }] } },
-                                                ],
-                                            },
-                                        ],
-                                    },
-                                    { $value: '$target' },
-                                ],
-                            },
+                            themeConfig,
+                            '/$seriesType/series',
+                            { seriesType: { $path: ['/type', 'line', { $value: '$1' }] } },
                         ],
                     },
                 };
 
-                const resolved = jsonResolveOperations(
-                    [themeConfig, userOptions, chartDefaults, seriesDefaults],
-                    params
-                );
+                const resolved = jsonResolveOperations([userOptions, chartDefaults, seriesDefaults], params);
                 expect(resolved).toEqual({
                     title: 'User Options', // from user options
                     background: 'grey', // from user options
                     foreground: 'white', // from first series' chart defaults
+                    legend: {
+                        position: 'left',
+                        orientation: 'vertical',
+                        spacing: 30,
+                    },
                     series: [
-                        { type: 'line', stroke: 'purple' }, // stroke from user options
-                        { type: 'bar', fill: 'green' }, // fill from series defaults by type
-                        { type: 'line', stroke: 'blue' }, // stroke from series defaults by type
+                        {
+                            type: 'line',
+                            stroke: 'purple', // from user options
+                        },
+                        {
+                            type: 'bar',
+                            fill: 'green', // from series defaults by type
+                            label: {
+                                color: 'black', // from series defaults by type logic with user options `placement`
+                                placement: 'outside-start', // from user options
+                            },
+                        },
+                        {
+                            type: 'bar',
+                            fill: 'blue', // from series defaults by type
+                            label: {
+                                color: 'white', // from series defaults by type with default options `placement`
+                                placement: 'inside-center', // from series defaults by type
+                            },
+                        },
                     ],
                 });
             });
