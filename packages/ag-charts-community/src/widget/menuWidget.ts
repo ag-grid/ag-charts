@@ -25,7 +25,7 @@ type OpenScope = {
 export class MenuWidget extends RovingTabContainerWidget {
     private openScope?: OpenScope;
 
-    constructor(orientation: Direction = 'horizontal') {
+    constructor(orientation: Direction = 'vertical') {
         super(orientation, 'menu');
     }
 
