@@ -1,4 +1,4 @@
-import { arraysEqual, countFractionDigits, isPlainObject } from 'ag-charts-core';
+import { countFractionDigits, isPlainObject } from 'ag-charts-core';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -106,19 +106,18 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
 export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     constructor(private readonly axis: TickGenerationAxis<S, D>) {}
 
-    private estimateTickCount(domain: D[], visibleRange: [number, number], minSpacing?: number, maxSpacing?: number) {
-        const { axis } = this;
-        // @todo(AG-14471) - this probably wants to be BandScale.is
-        const defaultTickCount = UnitTimeScale.is(axis.scale)
-            ? axis.scale.calculateBandCount(domain as Date[])
+    private estimateTickCount(visibleRange: [number, number], minSpacing?: number, maxSpacing?: number) {
+        const { scale, range, defaultTickMinSpacing } = this.axis;
+        const defaultTickCount = UnitTimeScale.is(scale)
+            ? UnitTimeScale.defaultTickCount
             : ContinuousScale.defaultTickCount;
         return estimateTickCount(
-            findRangeExtent(axis.range),
+            findRangeExtent(range),
             findRangeExtent(visibleRange),
             minSpacing,
             maxSpacing,
             defaultTickCount,
-            axis.defaultTickMinSpacing
+            defaultTickMinSpacing
         );
     }
 
@@ -158,7 +157,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             parallelFlipRotation
         );
 
-        const { maxTickCount } = this.estimateTickCount(domain, visibleRange, minSpacing, maxSpacing);
+        const { maxTickCount } = this.estimateTickCount(visibleRange, minSpacing, maxSpacing);
 
         const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
@@ -371,6 +370,16 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         return strategies;
     }
 
+    private ticksEqual(a: any[], b: any[]) {
+        if (a.length !== b.length) return false;
+
+        for (let i = 0; i < a.length; i += 1) {
+            if (a[i]?.valueOf() !== b[i]?.valueOf()) return false;
+        }
+
+        return true;
+    }
+
     private createTickData(
         domain: D[],
         niceMode: NiceMode,
@@ -383,12 +392,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     ): TickStrategyResult {
         const { scale, interval } = this.axis;
         const { step, values, minSpacing, maxSpacing } = interval;
-        const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(
-            domain,
-            visibleRange,
-            minSpacing,
-            maxSpacing
-        );
+        const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(visibleRange, minSpacing, maxSpacing);
 
         const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
@@ -424,7 +428,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
             index++;
 
-            if (!regenerateTicks || !arraysEqual(tickData.rawTicks, previousTicks)) break;
+            if (!regenerateTicks || !this.ticksEqual(tickData.rawTicks, previousTicks)) break;
         }
 
         terminate ||= step != null || values != null;

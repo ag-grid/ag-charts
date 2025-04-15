@@ -7,6 +7,8 @@ import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams } from './scale';
 
 export class UnitTimeScale extends DiscreteTimeScale {
+    static readonly defaultTickCount = 12;
+
     static override is(value: unknown): value is UnitTimeScale {
         return value instanceof UnitTimeScale;
     }
