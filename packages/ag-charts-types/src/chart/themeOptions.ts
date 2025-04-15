@@ -9,7 +9,7 @@ import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/ca
 import type {
     AgBaseCartesianThemeOptions,
     AgCartesianAxesTheme,
-    AgNumericCartesianAxesTheme,
+    AgContinuousCartesianAxesTheme,
 } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgColorType, AgColorTypeStrict } from '../series/cartesian/commonOptions';
@@ -131,7 +131,7 @@ export interface AgOhlcSeriesThemeOverrides extends AgBaseCartesianThemeOptions 
     series?: AgOhlcSeriesThemeableOptions;
 }
 export interface AgHistogramSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
-    axes?: AgNumericCartesianAxesTheme;
+    axes?: AgContinuousCartesianAxesTheme;
     series?: AgHistogramSeriesThemeableOptions;
 }
 export interface AgHeatmapSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
