@@ -107,12 +107,12 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
-        const dataValues: Record<ChartAxisDirection, string> = {
+        const dataValues: { [K in ChartAxisDirection]?: string } = {
             [ChartAxisDirection.X]: 'xValue',
             [ChartAxisDirection.Y]: 'yValue',
         };
 
-        const id = dataValues[direction];
+        const id = dataValues[direction]!;
         const dataDef = dataModel.resolveProcessedDataDefById(this, id);
         const domain = dataModel.getDomain(this, id, 'value', processedData);
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
@@ -120,7 +120,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         }
 
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
-        const crossId = dataValues[crossDirection];
+        const crossId = dataValues[crossDirection]!;
 
         const ext = this.domainForClippedRange(direction, [id], crossId, false);
         return fixNumericExtent(extent(ext));

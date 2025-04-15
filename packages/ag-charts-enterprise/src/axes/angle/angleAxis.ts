@@ -76,7 +76,7 @@ export abstract class AngleAxis<
     }
 
     get direction() {
-        return ChartAxisDirection.X;
+        return ChartAxisDirection.Angle;
     }
 
     protected override createLabel() {

@@ -70,8 +70,8 @@ export class RadarAreaSeries extends RadarSeries {
             return axis instanceof _ModuleSupport.PolarAxis ? axis : undefined;
         };
 
-        const radiusAxis = getPolarAxis(ChartAxisDirection.Y);
-        const angleAxis = getPolarAxis(ChartAxisDirection.X);
+        const radiusAxis = getPolarAxis(ChartAxisDirection.Radius);
+        const angleAxis = getPolarAxis(ChartAxisDirection.Angle);
 
         const reversedRadiusAxis = radiusAxis?.isReversed();
 

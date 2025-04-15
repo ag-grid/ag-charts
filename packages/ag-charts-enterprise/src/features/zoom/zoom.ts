@@ -363,7 +363,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 const axisZoom = zoomManager.getAxisZoom(axisId);
                 const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
                 zoomManager.setAxisManuallyAdjusted('zoom', axisId);
-                this.updateAxisZoom(axisId, direction, newZoom);
+                this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, newZoom);
                 break;
             }
 
@@ -461,7 +461,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
         for (const [axisId, { direction, zoom }] of entries(newZooms)) {
-            this.updateAxisZoom(axisId, direction, zoom);
+            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, zoom);
         }
     }
 
@@ -497,7 +497,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
             for (const [axisId, { direction, zoom: axisZoom }] of entries(newZooms)) {
                 if (isAxisScrolling && hoveredAxis.id !== axisId) continue;
-                updated &&= this.updateAxisZoom(axisId, direction, axisZoom);
+                updated &&= this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, axisZoom);
             }
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
@@ -586,7 +586,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
 
         for (const [axisId, { direction, zoom }] of entries(newZooms)) {
-            this.updateAxisZoom(axisId, direction, zoom);
+            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, zoom);
         }
 
         tooltipManager.updateTooltip(TOOLTIP_ID);
@@ -656,7 +656,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         return zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems);
     }
 
-    private isAxisZoomValid(direction: _ModuleSupport.ChartAxisDirection, axisZoom: _ModuleSupport.ZoomState) {
+    private isAxisZoomValid(direction: _ModuleSupport.CartesianAxisDirection, axisZoom: _ModuleSupport.ZoomState) {
         const {
             minVisibleItems,
             minVisibleItemsX,
@@ -706,7 +706,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updatePrimaryAxisZoom(zoom, ChartAxisDirection.Y);
     }
 
-    private updatePrimaryAxisZoom(zoom: DefinedZoomState, direction: _ModuleSupport.ChartAxisDirection) {
+    private updatePrimaryAxisZoom(zoom: DefinedZoomState, direction: _ModuleSupport.CartesianAxisDirection) {
         const axisId = this.ctx.zoomManager.getPrimaryAxisId(direction);
         if (axisId == null) return;
         this.updateAxisZoom(axisId, direction, zoom[direction]);
@@ -714,7 +714,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private updateAxisZoom(
         axisId: string,
-        direction: _ModuleSupport.ChartAxisDirection,
+        direction: _ModuleSupport.CartesianAxisDirection,
         axisZoom: _ModuleSupport.ZoomState | undefined
     ) {
         const {

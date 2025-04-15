@@ -80,7 +80,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     private readonly groupScale = new CategoryScale<string>();
 
     protected get defaultShapeStyle(): RequiredInternalAgGradientColor {
-        const angleScale = this.axes[ChartAxisDirection.X]?.scale;
+        const angleScale = this.axes[ChartAxisDirection.Angle]?.scale;
         return {
             ...this.properties.fillGradientDefaults.toJson(),
             rotation: _ModuleSupport.toDegrees(angleScale!.range[0]) + 90,
@@ -108,7 +108,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
-        if (direction === ChartAxisDirection.X) {
+        if (direction === ChartAxisDirection.Angle) {
             const xExtent = dataModel.getDomain(this, 'angleValue-end', 'value', processedData);
             const fixedXExtent = [xExtent[0] > 0 ? 0 : xExtent[0], xExtent[1] < 0 ? 0 : xExtent[1]];
             return fixNumericExtent(fixedXExtent);
@@ -138,8 +138,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
 
-        const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
-        const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
+        const radiusScaleType = this.axes[ChartAxisDirection.Radius]?.scale.type;
+        const angleScaleType = this.axes[ChartAxisDirection.Angle]?.scale.type;
 
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
@@ -208,7 +208,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected getAxisInnerRadius() {
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const radiusAxis = this.axes[ChartAxisDirection.Radius];
         return radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
     }
 
@@ -217,8 +217,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         if (!dataModel || !processedData || processedData.type !== 'grouped') return;
 
-        const angleAxis = this.axes[ChartAxisDirection.X];
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const angleAxis = this.axes[ChartAxisDirection.Angle];
+        const radiusAxis = this.axes[ChartAxisDirection.Radius];
         const angleScale = angleAxis?.scale;
         const radiusScale = radiusAxis?.scale;
 
@@ -485,7 +485,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     private getBarTransitionFunctions() {
-        const angleScale = this.axes[ChartAxisDirection.X]?.scale;
+        const angleScale = this.axes[ChartAxisDirection.Angle]?.scale;
         let axisZeroAngle = 0;
         if (!angleScale) {
             return prepareRadialBarSeriesAnimationFunctions(axisZeroAngle);
@@ -521,8 +521,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
-        const angleAxis = axes[ChartAxisDirection.X];
-        const radiusAxis = axes[ChartAxisDirection.Y];
+        const angleAxis = axes[ChartAxisDirection.Angle];
+        const radiusAxis = axes[ChartAxisDirection.Radius];
 
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 

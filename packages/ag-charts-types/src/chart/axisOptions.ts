@@ -12,7 +12,7 @@ export interface AgAxisCaptionFormatterParams {
     /** Default value to be used for the axis title (as specified in chart options or theme). */
     defaultValue?: string;
     /** Direction of the axis the title belongs to. */
-    direction: 'x' | 'y';
+    direction: 'x' | 'y' | 'angle' | 'radius';
     /** Metadata about series bound to the axis the title belongs to. */
     boundSeries: AgAxisBoundSeries[];
     /** Computed domain of the axis */

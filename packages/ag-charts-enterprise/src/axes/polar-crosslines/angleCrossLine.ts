@@ -18,7 +18,7 @@ const {
 export class AngleCrossLine extends PolarCrossLine {
     static readonly className = 'AngleCrossLine';
 
-    override direction: _ModuleSupport.ChartAxisDirection = ChartAxisDirection.X;
+    override direction = ChartAxisDirection.Angle;
 
     private readonly polygonNode = new Path();
     private readonly sectorNode = new Sector();

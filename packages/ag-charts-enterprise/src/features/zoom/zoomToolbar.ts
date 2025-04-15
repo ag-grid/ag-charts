@@ -86,7 +86,7 @@ export class ZoomToolbar extends BaseProperties {
         private readonly updateZoom: (zoom: DefinedZoomState) => void,
         private readonly updateAxisZoom: (
             axisId: string,
-            direction: _ModuleSupport.ChartAxisDirection,
+            direction: _ModuleSupport.CartesianAxisDirection,
             partialZoom: _ModuleSupport.ZoomState | undefined
         ) => void,
         private readonly resetZoom: () => void,
@@ -229,7 +229,7 @@ export class ZoomToolbar extends BaseProperties {
             const axisZooms = this.ctx.zoomManager.getAxisZooms();
             for (const [axisId, { direction, zoom }] of entries(axisZooms)) {
                 if (zoom == null) continue;
-                this.onButtonPressAxis(button, props, axisId, direction, zoom);
+                this.onButtonPressAxis(button, props, axisId, direction as _ModuleSupport.CartesianAxisDirection, zoom);
             }
         } else {
             this.onButtonPressUnified(button, props);
@@ -244,7 +244,7 @@ export class ZoomToolbar extends BaseProperties {
         event: { value: AgZoomButtonValue },
         props: ZoomProperties,
         axisId: string,
-        direction: _ModuleSupport.ChartAxisDirection,
+        direction: _ModuleSupport.CartesianAxisDirection,
         zoom: _ModuleSupport.ZoomState
     ) {
         const { isScalingX, isScalingY, scrollingStep } = props;

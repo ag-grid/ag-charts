@@ -45,6 +45,8 @@ export abstract class PolarSeries<
     TProps extends SeriesProperties<any> & PolarSeriesProperties,
     TNode extends Node,
 > extends DataModelSeries<TDatum, TProps> {
+    override directions = [ChartAxisDirection.Angle, ChartAxisDirection.Radius];
+
     protected itemGroup = this.contentGroup.appendChild(new Group());
     public getItemNodes(): TNode[] {
         return [...this.itemGroup.children()] as TNode[];
@@ -119,12 +121,12 @@ export abstract class PolarSeries<
             useLabelLayer,
             pickModes,
             directionKeys: {
-                [ChartAxisDirection.X]: ['angleKey'],
-                [ChartAxisDirection.Y]: ['radiusKey'],
+                [ChartAxisDirection.Angle]: ['angleKey'],
+                [ChartAxisDirection.Radius]: ['radiusKey'],
             },
             directionNames: {
-                [ChartAxisDirection.X]: ['angleName'],
-                [ChartAxisDirection.Y]: ['radiusName'],
+                [ChartAxisDirection.Angle]: ['angleName'],
+                [ChartAxisDirection.Radius]: ['radiusName'],
             },
             canHaveAxes,
         });

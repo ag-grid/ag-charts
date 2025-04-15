@@ -36,7 +36,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.Ra
     }
 
     protected isRadiusAxisCircle() {
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const radiusAxis = this.axes[ChartAxisDirection.Radius];
         return radiusAxis instanceof PolarAxis ? radiusAxis.shape === 'circle' : false;
     }
 

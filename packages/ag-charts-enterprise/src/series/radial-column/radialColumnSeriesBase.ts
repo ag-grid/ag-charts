@@ -105,7 +105,7 @@ export abstract class RadialColumnSeriesBase<
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
-        if (direction === ChartAxisDirection.X) {
+        if (direction === ChartAxisDirection.Angle) {
             return dataModel.getDomain(this, 'angleValue', 'key', processedData);
         } else {
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData);
@@ -138,8 +138,8 @@ export abstract class RadialColumnSeriesBase<
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
 
-        const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
-        const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
+        const radiusScaleType = this.axes[ChartAxisDirection.Radius]?.scale.type;
+        const angleScaleType = this.axes[ChartAxisDirection.Angle]?.scale.type;
 
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
@@ -200,7 +200,7 @@ export abstract class RadialColumnSeriesBase<
     }
 
     protected isRadiusAxisReversed() {
-        return this.axes[ChartAxisDirection.Y]?.isReversed();
+        return this.axes[ChartAxisDirection.Radius]?.isReversed();
     }
 
     maybeRefreshNodeData() {
@@ -212,7 +212,7 @@ export abstract class RadialColumnSeriesBase<
     }
 
     protected getAxisInnerRadius() {
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const radiusAxis = this.axes[ChartAxisDirection.Radius];
         return radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
     }
 
@@ -221,8 +221,8 @@ export abstract class RadialColumnSeriesBase<
 
         if (!dataModel || !processedData || processedData.type !== 'grouped') return;
 
-        const angleAxis = this.axes[ChartAxisDirection.X];
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const angleAxis = this.axes[ChartAxisDirection.Angle];
+        const radiusAxis = this.axes[ChartAxisDirection.Radius];
         const angleScale = angleAxis?.scale;
         const radiusScale = radiusAxis?.scale;
 
@@ -517,8 +517,8 @@ export abstract class RadialColumnSeriesBase<
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
-        const angleAxis = axes[ChartAxisDirection.X];
-        const radiusAxis = axes[ChartAxisDirection.Y];
+        const angleAxis = axes[ChartAxisDirection.Angle];
+        const radiusAxis = axes[ChartAxisDirection.Radius];
 
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 

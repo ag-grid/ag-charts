@@ -190,7 +190,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        if (direction === ChartAxisDirection.X) {
+        if (direction === ChartAxisDirection.Angle) {
             return this.angleScale.domain;
         } else {
             return this.radiusScale.domain;

@@ -169,7 +169,7 @@ export class ZoomPanner {
             let zoom = definedZoomState({ [direction]: currentZoom });
             zoom = constrainZoom(translateZoom(zoom, offsetX * dx(zoom), offsetY * dy(zoom)));
 
-            newZooms[axisId] = { direction, zoom: zoom[direction] };
+            newZooms[axisId] = { direction, zoom: zoom[direction as _ModuleSupport.CartesianAxisDirection] };
         }
 
         return newZooms;
