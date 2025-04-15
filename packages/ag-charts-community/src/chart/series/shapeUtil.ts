@@ -83,6 +83,7 @@ export function getShapeFill(
             strokeOpacity: fill.strokeOpacity ?? defaultPattern.strokeOpacity,
             strokeWidth,
             rotation: fill.rotation ?? defaultPattern.rotation,
+            scale: fill.scale ?? defaultPattern.scale,
         };
     }
 

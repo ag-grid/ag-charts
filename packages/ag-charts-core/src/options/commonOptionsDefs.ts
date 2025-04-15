@@ -30,6 +30,7 @@ import {
     ratio,
     required,
     string,
+    stringLength,
     typeUnion,
     undocumented,
     union,
@@ -76,8 +77,6 @@ export interface InternalAgGradientColor extends AgGradientColor {
 export interface InternalAgPatternColor extends AgPatternColor {
     /** Padding for the shape in the pattern unit. */
     padding?: number;
-    /** The rotation angle of the pattern. */
-    rotation?: number;
 }
 export interface InternalAgImageColor extends AgImageColor {}
 
@@ -126,11 +125,10 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
             'diamonds',
             'stars',
             'hearts',
-            'crosses',
-            'custom'
+            'crosses'
         )
     ),
-    path: string,
+    path: stringLength(2),
     width: required(positiveNumber),
     height: required(positiveNumber),
     fill: required(color),
@@ -139,6 +137,7 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
     backgroundFillOpacity: required(ratio),
     padding: required(positiveNumber),
     rotation: required(number),
+    scale: required(positiveNumber),
     stroke: required(color),
     strokeWidth: required(positiveNumber),
     strokeOpacity: required(ratio),
@@ -178,19 +177,19 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
                 'diamonds',
                 'stars',
                 'hearts',
-                'crosses',
-                'custom'
+                'crosses'
             ),
-            path: string,
+            path: stringLength(2),
             width: positiveNumber,
             height: positiveNumber,
+            rotation: number,
+            scale: positiveNumber,
             fill: color,
             fillOpacity: ratio,
             backgroundFill: color,
             backgroundFillOpacity: ratio,
             ...strokeOptionsDef,
             // @ts-expect-error undocumented option
-            rotation: undocumented(number),
             padding: undocumented(positiveNumber),
         },
         image: {

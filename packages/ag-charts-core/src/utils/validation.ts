@@ -389,6 +389,23 @@ export const arrayLength = (minLength: number, maxLength = Infinity) => {
     );
 };
 
+export const stringLength = (minLength: number, maxLength = Infinity) => {
+    let message: string;
+    if (maxLength === Infinity) {
+        message = `a string of at least ${minLength} characters`;
+    } else if (minLength === maxLength) {
+        message = `an string of exactly ${minLength} characters`;
+    } else if (minLength === 0) {
+        message = `an string of no more than ${maxLength} characters`;
+    } else {
+        message = `an string of at least ${minLength} and no more than ${maxLength} characters`;
+    }
+    return attachDescription(
+        (value) => isString(value) && value.length >= minLength && value.length <= maxLength,
+        message
+    );
+};
+
 // Numeric type validators with specific conditions.
 export const numberMin = (min: number, inclusive = true) =>
     attachDescription(

@@ -180,7 +180,6 @@ describe('PieSeries', () => {
                             },
                             {
                                 type: 'pattern',
-                                pattern: 'custom',
                                 fill: 'cyan',
                                 stroke: 'blue',
                                 backgroundFill: 'yellow',

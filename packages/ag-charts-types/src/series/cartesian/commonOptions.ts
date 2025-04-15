@@ -70,6 +70,10 @@ export interface AgPatternColor {
     width?: number;
     /** Height of the pattern unit. */
     height?: number;
+    /** The rotation angle of the pattern. */
+    rotation?: number;
+    /** The scaling of the pattern. */
+    scale?: number;
     /** The colour for filling closed shapes in the pattern. */
     fill?: CssColor;
     /** The opacity of the shapes fill colour. */
@@ -120,8 +124,7 @@ export type AgPatternName =
     | 'diamonds'
     | 'stars'
     | 'hearts'
-    | 'crosses'
-    | 'custom';
+    | 'crosses';
 
 /**
  * Represents options for the strokes in a chart.

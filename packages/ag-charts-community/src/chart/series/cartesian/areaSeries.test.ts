@@ -13,7 +13,7 @@ import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
 import { deepClone } from '../../../util/json';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
-import { CUSTOM_SVG_PATHS } from '../../test/customSvgPaths';
+import { CUSTOM_SVG_PATHS, INVALID_CUSTOM_SVG_PATHS } from '../../test/customSvgPaths';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,
@@ -770,10 +770,10 @@ describe('AreaSeries', () => {
                                 ...s,
                                 fill: {
                                     type: 'pattern',
-                                    pattern: 'custom',
                                     path,
                                     width,
                                     height,
+                                    strokeWidth: 0,
                                 },
                             }) as AgAreaSeriesOptions
                     ),
@@ -784,6 +784,35 @@ describe('AreaSeries', () => {
 
                 await waitForChartStability(chart);
                 await compare();
+            }
+        );
+
+        it.each(INVALID_CUSTOM_SVG_PATHS)(
+            'it should create a chart with custom svg pattern',
+            async ({ path, warningMessage }) => {
+                const series = EXAMPLE.series as AgAreaSeriesOptions[];
+
+                const options: AgChartOptions = {
+                    ...EXAMPLE,
+                    series: series.map(
+                        (s) =>
+                            ({
+                                ...s,
+                                fill: {
+                                    type: 'pattern',
+                                    path,
+                                },
+                            }) as AgAreaSeriesOptions
+                    ),
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+
+                await waitForChartStability(chart);
+                await compare();
+
+                expect(console.warn).toHaveBeenCalledWith(warningMessage);
             }
         );
     });

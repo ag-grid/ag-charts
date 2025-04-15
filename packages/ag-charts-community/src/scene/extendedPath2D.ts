@@ -2,7 +2,7 @@ import { Logger } from 'ag-charts-core';
 
 import { normalizeAngle360 } from '../util/angle';
 import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
-import { parseSvg } from '../util/svg';
+import { type SVGPathSegment } from '../util/svg';
 import { BBox } from './bbox';
 import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
 import { calculateDerivativeExtremaXY, evaluateBezier } from './util/bezier';
@@ -74,9 +74,7 @@ export class ExtendedPath2D {
         this.closePath();
     }
 
-    appendSvg(d: string) {
-        const parts = parseSvg(d);
-
+    appendSvg(parts: SVGPathSegment[]) {
         let cx: number; // current point x
         let cy: number; // current point y
 
