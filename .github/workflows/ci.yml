@@ -301,8 +301,11 @@ jobs:
               id: push
               run: |
                   set -x
-                  git fetch origin ${{github.head_ref || github.ref}}
-                  git switch ${{github.head_ref || github.ref}}
+                  if [[ "${{github.head_ref || github.ref}}" == "refs/heads/latest" ]] ; then
+                      git fetch origin ${{github.head_ref || github.ref}}
+                      git switch ${{github.head_ref || github.ref}}
+                  fi
+
                   git checkout -b ${{needs.init.outputs.snapshot_branch}}
 
                   git stash pop
