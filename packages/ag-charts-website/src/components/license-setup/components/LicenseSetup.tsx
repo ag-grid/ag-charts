@@ -60,7 +60,7 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                 isIntegratedCharts,
                 importType,
             }),
-        [framework, isIntegratedCharts, importType]
+        [library, framework, isIntegratedCharts, importType]
     );
     const bootstrapSnippet = useMemo(
         () =>
