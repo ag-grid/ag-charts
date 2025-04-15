@@ -52,7 +52,8 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     override ticks(
         params: ScaleTickParams<TimeInterval | number>,
         domain: Date[] = this.domain,
-        visibleRange: [number, number] = [0, 1]
+        visibleRange: [number, number] = [0, 1],
+        extend = false
     ): Date[] {
         const { nice, interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount } = params;
         if (domain.length < 2) return [];
@@ -64,15 +65,15 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         if (interval != null) {
             const availableRange = this.getPixelRange();
             return (
-                getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange }) ??
-                getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange })
+                getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
+                getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend })
             );
         } else if (nice && tickCount === 2) {
             return domain;
         } else if (nice && tickCount === 1) {
             return domain.slice(0, 1);
         }
-        return getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange });
+        return getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend });
     }
 
     private _tickFormatter({ domain, ticks, specifier }: ScaleFormatParams<Date>, formatOffset?: number) {
@@ -104,6 +105,7 @@ function getDefaultDateTicks({
     minTickCount,
     maxTickCount,
     visibleRange,
+    extend,
 }: {
     start: number;
     stop: number;
@@ -111,9 +113,10 @@ function getDefaultDateTicks({
     minTickCount: number;
     maxTickCount: number;
     visibleRange: [number, number];
+    extend: boolean;
 }) {
     const t = getTickTimeInterval(start, stop, tickCount, minTickCount, maxTickCount);
-    return t ? t.range(new Date(start), new Date(stop), { visibleRange }) : []; // inclusive stop
+    return t ? t.range(new Date(start), new Date(stop), { visibleRange, extend }) : []; // inclusive stop
 }
 
 export function getDateTicksForInterval({
@@ -122,19 +125,21 @@ export function getDateTicksForInterval({
     interval,
     availableRange,
     visibleRange,
+    extend,
 }: {
     start: number;
     stop: number;
     interval: number | TimeInterval;
     availableRange: number;
     visibleRange: [number, number] | undefined;
+    extend: boolean;
 }): Date[] | undefined {
     if (!interval) {
         return [];
     }
 
     if (interval instanceof TimeInterval) {
-        const ticks = interval.range(new Date(start), new Date(stop), { visibleRange });
+        const ticks = interval.range(new Date(start), new Date(stop), { visibleRange, extend });
         if (isDenseInterval(ticks.length, availableRange)) {
             return;
         }
@@ -150,7 +155,7 @@ export function getDateTicksForInterval({
 
     if (timeInterval) {
         const i = timeInterval.timeInterval.every(absInterval / (timeInterval.duration / timeInterval.step));
-        return i.range(new Date(start), new Date(stop), { visibleRange });
+        return i.range(new Date(start), new Date(stop), { visibleRange, extend });
     }
 
     let date = new Date(Math.min(start, stop));

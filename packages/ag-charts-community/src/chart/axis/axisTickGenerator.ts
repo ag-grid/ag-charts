@@ -14,11 +14,18 @@ import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { createIdsGenerator } from '../../util/tempUtils';
-import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
+import { CachedTextMeasurerPool, type TextMeasurer, TextUtils } from '../../util/textMeasurer';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
 import { TimeInterval } from '../../util/time';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
-import { calculateLabelRotation, createLabelData, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
+import {
+    calculateLabelRotation,
+    createFixedLabelData,
+    createLabelData,
+    getLabelSpacing,
+    getTextAlign,
+    getTextBaseline,
+} from '../label';
 import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
@@ -99,8 +106,21 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
         index: number,
         domain: D[],
         fractionDigits?: number,
+        timeInterval?: TimeInterval,
         formatter?: (datum: any) => string
     ): string;
+}
+
+function ticksSpacing(ticks: TickDatum[]) {
+    let spacing = 0;
+    let y0 = ticks[0].translationY;
+    for (let i = 1; i < ticks.length; i++) {
+        const y1 = ticks[i].translationY;
+        const delta = Math.abs(y1 - y0);
+        spacing = Math.max(spacing, delta);
+        y0 = y1;
+    }
+    return spacing;
 }
 
 export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
@@ -180,21 +200,44 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const initialRotation = configuredRotation + defaultRotation;
         const labelMatrix = new Matrix();
-        const getLabelData = ({ ticks }: TickData, iterationRotation: number) => {
+        const updateLabelMatrix = (iterationRotation: number) => {
             const labelRotation = initialRotation + iterationRotation;
             Matrix.updateTransformMatrix(labelMatrix, 1, 1, labelRotation, 0, 0);
+        };
+
+        const getLabelData = ({ ticks }: TickData, iterationRotation: number) => {
+            updateLabelMatrix(iterationRotation);
             return createLabelData(ticks, labelX, labelMatrix, textMeasurer);
+        };
+
+        const getTimeLabelData = (tickData: TickData, iterationRotation: number) => {
+            const { niceDomain, ticks, rawTicks, timeInterval } = tickData;
+            if (timeInterval == null) return [];
+
+            updateLabelMatrix(iterationRotation);
+
+            const spacing = ticksSpacing(ticks);
+            const { width, height } = this.timeIntervalMaxLabelSize(
+                niceDomain ?? domain,
+                rawTicks,
+                timeInterval,
+                textMeasurer
+            );
+
+            return createFixedLabelData({ width, height, spacing }, labelX, labelMatrix);
         };
 
         const getLabelOverlap = (tickData: TickData, iterationRotation: number) => {
             if (!checkLabelOverlap) return false;
 
-            const labelData = getLabelData(tickData, iterationRotation);
-
             const rotated = configuredRotation !== 0 || iterationRotation !== 0;
             const labelSpacing = getLabelSpacing(label.minSpacing, rotated);
 
-            return axisLabelsOverlap(labelData, labelSpacing);
+            const overlap =
+                axisLabelsOverlap(getTimeLabelData(tickData, iterationRotation), labelSpacing) ||
+                axisLabelsOverlap(getLabelData(tickData, iterationRotation), labelSpacing);
+
+            return overlap;
         };
 
         let tickData: TickData = {
@@ -415,6 +458,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 domain,
                 niceMode,
                 visibleRange,
+                primaryTickCount,
                 tickGenerationType,
                 previousTicks,
                 previousPrimaryTicks,
@@ -422,7 +466,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 previousTimeInterval,
                 minTickCount,
                 maxTickCount,
-                primaryTickCount,
                 tickCount: countTicks(index),
             });
 
@@ -487,23 +530,11 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 ticks.push(...intervalTicks);
             }
 
-            ticks = ticks.filter((t) => compareDates(t, d0) >= 0 && compareDates(t, d1) <= 0);
+            // ticks = ticks.filter((t) => compareDates(t, d0) >= 0 && compareDates(t, d1) <= 0);
         } else if (OrdinalTimeScale.is(scale)) {
-            ticks = (scale as OrdinalTimeScale).ticks(tickParams, undefined, visibleRange) ?? [];
+            ticks = (scale as OrdinalTimeScale).ticks(tickParams, undefined, visibleRange, true) ?? [];
         } else {
             ticks = [];
-        }
-
-        // Remove primary ticks that have better candidates outside of the generated ticks
-        if (DiscreteTimeScale.is(scale) && ticks.length !== 0) {
-            const firstTick = ticks[0];
-            while (
-                primaryTicks.length !== 0 &&
-                compareDates(primaryTicks[0], firstTick) < 0 &&
-                !scale.tickIsFirstAfter(primaryTicks[0], firstTick)
-            ) {
-                primaryTicks.shift();
-            }
         }
 
         return { primaryTicks, ticks, interpolate };
@@ -546,6 +577,78 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         return ticks;
     }
 
+    private timeIntervalMaxLabelSize(
+        domain: Date[],
+        ticks: Date[],
+        timeInterval: TimeInterval,
+        textMeasurer: TextMeasurer
+    ) {
+        const { label, primaryLabel, scale } = this.axis;
+
+        const specifier =
+            this.timeSpecifier(label, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
+
+        const formatParams: ScaleFormatParams<Date> = {
+            domain,
+            ticks,
+            fractionDigits: 0,
+            specifier,
+        };
+        const labelFormatter = scale.tickFormatter(formatParams as ScaleFormatParams<any>);
+
+        const primarySpecifier = this.timeSpecifier(primaryLabel, timeInterval?.hierarchy);
+        const primaryLabelFormatter = primarySpecifier
+            ? scale.tickFormatter({
+                  ...formatParams,
+                  specifier: primarySpecifier,
+              } as ScaleFormatParams<any>)
+            : labelFormatter;
+
+        const d0 = new Date(scale.domain[0] as any);
+        const d1 = new Date(scale.domain[scale.domain.length - 1] as any);
+
+        const hierarchyRange = timeInterval.hierarchy?.range(
+            new Date(scale.domain[0] as any),
+            new Date(scale.domain[scale.domain.length - 1] as any),
+            { extend: true }
+        );
+
+        let maxWidth = 0;
+        let maxHeight = 0;
+        if (labelFormatter != null) {
+            let l0: Date;
+            let l1: Date;
+            if (hierarchyRange != null && hierarchyRange.length > 1) {
+                l0 = hierarchyRange[0];
+                l1 = hierarchyRange[1];
+            } else {
+                l0 = d0;
+                l1 = d1;
+            }
+            const labelRange = timeInterval.range(l0, l1);
+            for (const date of labelRange) {
+                const text = labelFormatter(date);
+                const { width, height } = textMeasurer.measureLines(text);
+                maxWidth = Math.max(maxWidth, width);
+                maxHeight = Math.max(maxHeight, height);
+            }
+        }
+
+        if (primaryLabelFormatter != null && hierarchyRange != null) {
+            for (const date of hierarchyRange) {
+                const text = primaryLabelFormatter(date);
+                const { width, height } = textMeasurer.measureLines(text);
+                maxWidth = Math.max(maxWidth, width);
+                maxHeight = Math.max(maxHeight, height);
+            }
+        }
+
+        return {
+            width: Math.ceil(maxWidth),
+            height: Math.ceil(maxHeight),
+        };
+    }
+
     private getTicks({
         domain,
         niceMode,
@@ -564,6 +667,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         niceMode: NiceMode;
         visibleRange: [number, number];
         tickGenerationType: TickGenerationType;
+        primaryTickCount: number | undefined;
         previousTicks: TickDatum[];
         previousPrimaryTicks: TickDatum[] | undefined;
         previousInterpolate: boolean;
@@ -571,7 +675,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         tickCount: number;
         minTickCount: number;
         maxTickCount: number;
-        primaryTickCount?: number;
     }): TickData {
         const { axis } = this;
         const { label, primaryLabel, range, scale, interval } = axis;
@@ -754,7 +857,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
             const tickLabelFormatter = primary ? primaryLabelFormatter : labelFormatter;
             const tickLabel = label.enabled
-                ? axis.formatTick(tick, i, niceDomain, fractionDigits, tickLabelFormatter)
+                ? axis.formatTick(tick, i, niceDomain, fractionDigits, timeInterval, tickLabelFormatter)
                 : '';
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank

@@ -59,7 +59,9 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
     override ticks(
         { interval, maxTickCount }: ScaleTickParams<TimeInterval | number>,
         domain: Date[] = this.domain,
-        visibleRange: [number, number] = [0, 1]
+        visibleRange: [number, number] = [0, 1],
+        // Only used for OrdinalTimeScale
+        extend = false
     ): Date[] {
         if (!domain.length) {
             return [];
@@ -69,7 +71,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
         const { isReversed } = this;
         if (interval == null) {
-            return getDefaultTicks(domain, maxTickCount, isReversed, visibleRange);
+            return getDefaultTicks(domain, maxTickCount, isReversed, visibleRange, extend);
         }
 
         const [t0, t1] = [domain[0].valueOf(), domain.at(-1)!.valueOf()];
@@ -80,8 +82,8 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         const availableRange = Math.abs(r1 - r0);
 
         const ticks =
-            getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange }) ??
-            getDefaultTicks(domain, maxTickCount, isReversed, visibleRange);
+            getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
+            getDefaultTicks(domain, maxTickCount, isReversed, visibleRange, extend);
 
         let lastIndex = -1;
         return ticks.filter((tick) => {
@@ -184,13 +186,24 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
     }
 }
 
-function getDefaultTicks(domain: Date[], maxTickCount: number, isReversed: boolean, visibleRange: [number, number]) {
+function getDefaultTicks(
+    domain: Date[],
+    maxTickCount: number,
+    isReversed: boolean,
+    visibleRange: [number, number],
+    extend: boolean
+) {
     const ticks: Date[] = [];
     const tickEvery = Math.ceil(domain.length / maxTickCount);
     const tickOffset = Math.floor(tickEvery / 2);
 
-    const startIndex = Math.floor(visibleRange[0] * domain.length);
-    const endIndex = Math.ceil(visibleRange[1] * domain.length);
+    let startIndex = Math.floor(visibleRange[0] * domain.length);
+    let endIndex = Math.ceil(visibleRange[1] * domain.length);
+
+    if (extend) {
+        if (startIndex > tickEvery) startIndex -= tickEvery;
+        if (endIndex < domain.length - tickEvery) endIndex += tickEvery;
+    }
 
     for (let index = startIndex; index < endIndex; index += 1) {
         const tickIndex = isReversed ? domain.length - 1 - index : index;

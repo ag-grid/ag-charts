@@ -31,6 +31,7 @@ import { mergeDefaults } from '../../util/object';
 import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
+import type { TimeInterval } from '../../util/time';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -552,6 +553,7 @@ export abstract class Axis<
         index: number,
         domain: D[],
         fractionDigits?: number,
+        timeInterval?: TimeInterval,
         defaultFormatter?: (datum: unknown) => string
     ): string {
         const {
@@ -562,7 +564,14 @@ export abstract class Axis<
         let result: string | undefined;
         if (formatter) {
             const boundSeries = this.getFormatterBoundSeries();
-            result = this.callWithContext(formatter, { value, index, domain, fractionDigits, boundSeries });
+            result = this.callWithContext(formatter, {
+                value,
+                index,
+                domain,
+                fractionDigits,
+                timeInterval,
+                boundSeries,
+            });
         } else if (defaultFormatter) {
             result = defaultFormatter(value);
         } else if (labelFormatter) {

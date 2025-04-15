@@ -68,7 +68,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
     override ticks(
         { interval }: ScaleTickParams<TimeInterval | number>,
         domain: Date[] = this.domain,
-        visibleRange: [number, number] = [0, 1]
+        visibleRange: [number, number] = [0, 1],
+        extend = false
     ): Date[] {
         const bands = this.calculateBands(domain, visibleRange);
 
@@ -97,10 +98,18 @@ export class UnitTimeScale extends DiscreteTimeScale {
             const tick = bandIndex != null && bandIndex != lastIndex ? bands[bandIndex] : undefined;
             lastIndex = bandIndex;
 
-            if (tick != null && tick.valueOf() >= d0 && tick.valueOf() <= d1) ticks.push(tick);
+            if (tick != null) ticks.push(tick);
         }
 
-        return ticks;
+        let firstTickIndex = ticks.findIndex((tick) => tick.valueOf() >= d0);
+        let lastTickIndex = ticks.findLastIndex((tick) => tick.valueOf() <= d1);
+
+        if (extend) {
+            firstTickIndex = Math.max(firstTickIndex - 1, 0);
+            lastTickIndex = Math.min(lastTickIndex - 1, ticks.length - 1);
+        }
+
+        return ticks.slice(firstTickIndex, lastTickIndex + 1);
     }
 
     override findIndex(value: Date): number | undefined {
@@ -111,13 +120,6 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
     override datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
         return this.tickFormatter(params, 1);
-    }
-
-    override tickIsFirstAfter(tick: Date, reference: Date) {
-        const milliseconds = this.interval?.milliseconds;
-        if (milliseconds == null) return super.tickIsFirstAfter(tick, reference);
-
-        return tick.getTime() - milliseconds <= reference.getTime();
     }
 
     calculateBandCount(domain: Date[]) {

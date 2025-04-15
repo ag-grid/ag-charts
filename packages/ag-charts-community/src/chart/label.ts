@@ -145,3 +145,23 @@ export function createLabelData(
 
     return labelData;
 }
+
+export function createFixedLabelData(
+    { width, height, spacing }: { width: number; height: number; spacing: number },
+    labelX: number,
+    labelMatrix: Matrix
+): PlacedLabelDatum[] {
+    const bbox1 = labelMatrix.transformBBox(new BBox(labelX, 0, 0, 0), new BBox(labelX, 0, width, height));
+    const bbox2 = labelMatrix.transformBBox(new BBox(labelX, spacing, 0, 0), new BBox(labelX, spacing, width, height));
+
+    return [
+        {
+            point: { x: bbox1.x, y: bbox1.y },
+            label: { text: undefined!, width, height },
+        },
+        {
+            point: { x: bbox2.x, y: bbox2.y },
+            label: { text: undefined!, width, height },
+        },
+    ];
+}
