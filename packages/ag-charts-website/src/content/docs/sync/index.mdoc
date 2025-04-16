@@ -61,7 +61,8 @@ sync: {
 ```
 
 {% note %}
-Synchronization of node interaction requires that only a single series is shown in each chart, with unique values along the synchronised axis.
+Synchronization of node interaction requires that only a single matching node is shown in each chart, with unique values along the synchronised axis.
+For multi-series charts, series with matching key configurations will be matched together.
 {% /note %}
 
 ### Zoom
@@ -99,6 +100,15 @@ In the above example:
 {% note %}
 Charts without a `groupId` will be allocated to a default group.
 {% /note %}
+
+## Multi-Series Synchronization with Secondary Axes
+
+{% chartExampleRunner title="Multi-Series Synchronization with Secondary Axes" name="multi-series-sync" type="generated" /%}
+
+In the above example:
+
+-   The charts are synchronized with each other by using the keys of the axes.
+-   Hovering on a node in one chart will highlight the corresponding node in the other chart based upon X-axis value and series keys.
 
 ## API Reference
 
