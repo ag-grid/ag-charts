@@ -20,6 +20,21 @@ svg.icon {
     border-radius: 4px;
 }
 
+.exampleNameContainer {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: $spacing-size-3;
+}
+
+.frameworkLinks {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: $spacing-size-1;
+}
+
 .iconContainer {
     margin-top: 9px;
 }

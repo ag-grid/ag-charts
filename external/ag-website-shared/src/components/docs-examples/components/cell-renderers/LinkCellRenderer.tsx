@@ -24,28 +24,6 @@ export function LinkCellRenderer({ colDef, data }) {
     return (
         <div>
             <a
-                href={urlWithPrefix({
-                    framework: getFrameworkFromInternalFramework(internalFramework),
-                    url: `./${pageName}`,
-                })}
-                target="_blank"
-                title={`${pageName} ${internalFramework} page`}
-            >
-                Page
-            </a>{' '}
-            |{' '}
-            <a
-                href={urlWithPrefix({
-                    framework: getFrameworkFromInternalFramework(internalFramework),
-                    url: `./${pageName}#example-${exampleName}`,
-                })}
-                target="_blank"
-                title={`${titlePrefix} example on page`}
-            >
-                Page Ex
-            </a>{' '}
-            |{' '}
-            <a
                 href={getExampleUrl({
                     internalFramework,
                     pageName,
@@ -54,7 +32,7 @@ export function LinkCellRenderer({ colDef, data }) {
                 target="_blank"
                 title={`${titlePrefix} example`}
             >
-                Ex
+                Example
             </a>{' '}
             |{' '}
             <a

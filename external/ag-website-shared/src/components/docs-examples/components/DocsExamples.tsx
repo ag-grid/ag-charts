@@ -18,6 +18,7 @@ import { ChartsHeaderComponent } from './cell-renderers/ChartsHeaderComponent';
 import { EnterpriseCellRenderer } from './cell-renderers/EnterpriseCellRenderer';
 import { EnterpriseHeaderComponent } from './cell-renderers/EnterpriseHeaderComponent';
 import { ExampleCountComponent } from './cell-renderers/ExampleCountComponent';
+import { ExampleNameCellRenderer } from './cell-renderers/ExampleNameCellRenderer';
 import { FrameworkLogoCellRenderer } from './cell-renderers/FrameworkLogoCellRenderer';
 import { LinkCellRenderer } from './cell-renderers/LinkCellRenderer';
 import { PageCountComponent } from './cell-renderers/PageCountComponent';
@@ -93,12 +94,14 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             },
             children: [
                 {
+                    colId: 'react',
                     headerName: 'React',
                     cellRenderer: LinkCellRenderer,
                     filter: false,
                     minWidth: 200,
                 },
                 {
+                    colId: 'reactTs',
                     headerName: 'React TS',
                     cellRenderer: LinkCellRenderer,
                     filter: false,
@@ -107,6 +110,7 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             ],
         },
         {
+            colId: 'angular',
             headerName: 'Angular',
             headerComponentParams: {
                 innerHeaderComponent: FrameworkLogoCellRenderer,
@@ -119,6 +123,7 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             minWidth: 200,
         },
         {
+            colId: 'vue',
             headerName: 'Vue',
             headerComponentParams: {
                 innerHeaderComponent: FrameworkLogoCellRenderer,
@@ -140,12 +145,14 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             },
             children: [
                 {
+                    colId: 'vanilla',
                     headerName: 'Vanilla JS',
                     cellRenderer: LinkCellRenderer,
                     filter: false,
                     minWidth: 200,
                 },
                 {
+                    colId: 'typescript',
                     headerName: 'Typescript',
                     cellRenderer: LinkCellRenderer,
                     filter: false,
@@ -165,7 +172,11 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
         return {
             headerName: 'Page Examples',
             field: 'exampleName',
-            minWidth: 300,
+            cellRendererParams: {
+                suppressPadding: true,
+                innerRenderer: ExampleNameCellRenderer,
+            },
+            minWidth: 400,
             pinned: 'left',
         };
     }, []);
