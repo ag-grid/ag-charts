@@ -32,12 +32,14 @@
       }
     },
     "dev": {
+      "executor": "nx:run-commands",
       "dependsOn": ["^build", "^docs-resolved-interfaces"],
       "inputs": [],
       "outputs": [],
-      "command": "astro dev --port=${PORT} --host",
       "options": {
-        "cwd": "packages/ag-charts-website"
+        "cwd": "packages/ag-charts-website",
+        "parallel": false,
+        "commands": ["rm -rf node_modules/.vite/", "astro dev --port=${PORT} --host"]
       },
       "configurations": {
         "watch": {}
