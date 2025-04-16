@@ -1,6 +1,5 @@
 import { findMinIndex } from 'ag-charts-core';
 
-import { compareDates } from '../util/date';
 import { type TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
@@ -17,13 +16,10 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | n
     }
 
     override convert(d: Date, options?: { interpolate?: boolean }): number {
-        if (compareDates(d, this.domain[0]) < 0) return NaN;
-        if (compareDates(d, this.domain[this.domain.length - 1]) > 0) return NaN;
+        const { domain, bands } = this;
 
         const interpolate = options?.interpolate ?? false;
         if (!interpolate) return super.convert(d, options);
-
-        const { domain, bands } = this;
 
         const r0 = this.ordinalRange(0);
         if (domain.length <= 1 || bands.length === 0) return r0;

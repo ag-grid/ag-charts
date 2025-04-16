@@ -12,4 +12,10 @@ function decode(encoded: number) {
     return new Date(offset + encoded * durationMinute);
 }
 
-export const minute = new CountableTimeInterval('minute', 60 * 1000, day, encode, decode);
+export const minute = new CountableTimeInterval(
+    'minute',
+    { milliseconds: 60 * 1000, exact: true },
+    day,
+    encode,
+    decode
+);

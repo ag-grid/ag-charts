@@ -1,6 +1,5 @@
-import { findMinIndex } from 'ag-charts-core';
+import { findMaxIndex } from 'ag-charts-core';
 
-import { compareDates } from '../util/date';
 import { TimeInterval } from '../util/time';
 import { normalizeContinuousDomains } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
@@ -47,6 +46,16 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return normalizeContinuousDomains(...domains);
     }
 
+    override convert(d: Date, options?: { interpolate?: boolean }): number {
+        const { domain, interval } = this;
+        if (interval != null) {
+            const t = d.valueOf();
+            const [start, stop] = this.calculateBandRange(domain, interval);
+            if (t < start.valueOf() || t >= stop.valueOf() + interval.duration.milliseconds) return NaN;
+        }
+        return super.convert(d, options);
+    }
+
     private calculateBandRange(domain: Date[], interval: TimeInterval) {
         const start = interval.floor(domain[0]);
         const stop = interval.floor(domain[1]);
@@ -83,18 +92,16 @@ export class UnitTimeScale extends DiscreteTimeScale {
         if (interval instanceof TimeInterval) {
             intervalTicks = interval.range(domain[0], domain[1], { extend: true, visibleRange });
         } else {
-            intervalTicks = [];
-            for (let intervalTickTime = d0; intervalTickTime <= d1; intervalTickTime += interval) {
-                const intervalTick = new Date(intervalTickTime);
-                intervalTicks.push(intervalTick);
-            }
+            const i0Index = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0);
+            const i1Index = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1);
+            if (i0Index == null || i1Index == null) return [];
+            intervalTicks = bands.slice(i0Index, i1Index + 1);
         }
 
         let lastIndex: number | undefined;
         for (const intervalTick of intervalTicks) {
-            const bandIndex = findMinIndex(0, bands.length - 1, (index) => {
-                return compareDates(bands[index], intervalTick) >= 0;
-            });
+            const intervalTickValue = intervalTick.valueOf();
+            const bandIndex = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= intervalTickValue);
             const tick = bandIndex != null && bandIndex != lastIndex ? bands[bandIndex] : undefined;
             lastIndex = bandIndex;
 
@@ -115,7 +122,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
     override findIndex(value: Date): number | undefined {
         const { bands } = this;
         const target = value.valueOf();
-        return findMinIndex(0, bands.length - 1, (index) => bands[index].valueOf() >= target);
+        return findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= target);
     }
 
     override datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {

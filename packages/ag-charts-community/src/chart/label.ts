@@ -121,12 +121,11 @@ export function getTextAlign(
 }
 
 export function labelSpecifier(
-    label: ChartAxisLabel | undefined,
+    format: ChartAxisLabel['format'] | undefined,
     timeInterval: TimeInterval | undefined
 ): string | undefined {
-    if (label == null) return;
+    if (format == null) return;
 
-    const { format } = label;
     if (typeof format === 'string') {
         return format;
     } else if (isPlainObject(format) && timeInterval != null) {
@@ -144,7 +143,7 @@ export function timeIntervalMaxLabelSize(
     textMeasurer: TextMeasurer
 ) {
     const specifier =
-        labelSpecifier(label, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
+        labelSpecifier(label.format, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
 
     const formatParams: ScaleFormatParams<Date> = {
         domain,
@@ -154,7 +153,7 @@ export function timeIntervalMaxLabelSize(
     };
     const labelFormatter = scale.tickFormatter(formatParams as ScaleFormatParams<any>);
 
-    const primarySpecifier = labelSpecifier(primaryLabel, timeInterval?.hierarchy);
+    const primarySpecifier = labelSpecifier(primaryLabel?.format, timeInterval?.hierarchy);
     const primaryLabelFormatter = primarySpecifier
         ? scale.tickFormatter({
               ...formatParams,

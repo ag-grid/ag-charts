@@ -1,4 +1,5 @@
 import { CountableTimeInterval } from './interval';
+import { year } from './year';
 
 function encode(date: Date) {
     return date.getUTCFullYear();
@@ -14,4 +15,4 @@ function decode(encoded: number) {
     return d;
 }
 
-export const utcYear = new CountableTimeInterval('year', undefined, undefined, encode, decode);
+export const utcYear = new CountableTimeInterval('year', year.duration, undefined, encode, decode);

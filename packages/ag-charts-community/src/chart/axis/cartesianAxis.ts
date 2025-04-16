@@ -17,6 +17,7 @@ import { findMinMax } from '../../util/number';
 import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import { StateMachine } from '../../util/stateMachine';
+import type { TimeInterval } from '../../util/time';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -218,6 +219,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         tickDomain: D[];
         ticks: D[];
         fractionDigits: number;
+        timeInterval: TimeInterval | undefined;
         bbox: BBox;
     } {
         const sideFlag = this.label.getSideFlag();
@@ -251,6 +253,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                 niceDomain: domain,
                 primaryTickCount: initialPrimaryTickCount,
                 fractionDigits: 0,
+                timeInterval: undefined,
                 bbox,
             };
         }
@@ -270,7 +273,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         });
 
         const { tickData, primaryTickCount = initialPrimaryTickCount } = tickGenerationResult;
-        const { ticks, tickDomain, rawTicks, fractionDigits, niceDomain = domain } = tickData;
+        const { ticks, tickDomain, rawTicks, fractionDigits, timeInterval, niceDomain = domain } = tickData;
 
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult));
 
@@ -298,7 +301,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         this.generatedTicks = { ticks, gridLines, tickLines, labels, spacing };
 
-        return { ticks: rawTicks, tickDomain, niceDomain, primaryTickCount, fractionDigits, bbox };
+        return { ticks: rawTicks, tickDomain, niceDomain, primaryTickCount, fractionDigits, timeInterval, bbox };
     }
 
     override update() {

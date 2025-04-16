@@ -7,6 +7,7 @@ import type {
     FontSize,
     FontStyle,
     FontWeight,
+    TimeIntervalUnit,
 } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
@@ -17,6 +18,7 @@ import { ModuleMap } from '../../module/moduleMap';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale, ScaleFormatParams } from '../../scale/scale';
+import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
@@ -37,6 +39,7 @@ import type { AxisGroups, ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
+import { labelSpecifier } from '../label';
 import type { AxisLayout } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
 import { ZIndexMap } from '../zIndexMap';
@@ -79,6 +82,16 @@ export enum AxisGroupZIndexMap {
 }
 
 export type CrosslineFormatterParams<D> = Omit<ScaleFormatParams<D>, 'specifier'> | undefined;
+
+const hardCodedTimeFormats: Record<TimeIntervalUnit, string> = {
+    millisecond: '%Y %b %e %H:%M:%S.%Q',
+    second: '%Y %b %e %H:%M:%S',
+    minute: '%Y %b %e %H:%M',
+    hour: '%Y %b %e %H:%M',
+    day: '%Y %b %e',
+    month: '%Y %b',
+    year: '%Y',
+};
 
 /**
  * A general purpose linear axis with no notion of orientation.
@@ -483,13 +496,17 @@ export abstract class Axis<
             visibleRange,
             initialPrimaryTickCount
         );
+        const timeInterval = UnitTimeScale.is(scale) ? scale.interval : undefined;
 
         this.scale.domain = niceDomain;
 
         this._scaleNiceDomainInputDomain = nice ? domain : undefined;
         this._scaleNiceDomainRangeExtent = nice ? rangeExtent : NaN;
 
-        const specifier = typeof label.format === 'string' ? label.format : undefined;
+        const specifier = labelSpecifier(
+            typeof label.format === 'string' ? label.format : hardCodedTimeFormats,
+            timeInterval
+        );
         this.labelFormatter =
             scale.tickFormatter({ domain: tickDomain, specifier, ticks, fractionDigits }) ??
             ((value: unknown) => this.defaultLabelFormatter(value, fractionDigits));
@@ -522,6 +539,7 @@ export abstract class Axis<
         tickDomain: D[];
         ticks: D[];
         fractionDigits: number;
+        timeInterval: TimeInterval | undefined;
         bbox?: BBox;
     };
 

@@ -28,7 +28,7 @@ interface RangeParams {
 export class TimeInterval {
     constructor(
         public readonly unit: TimeIntervalUnit,
-        public readonly milliseconds: number | undefined,
+        public readonly duration: { readonly milliseconds: number; readonly exact: boolean },
         public readonly hierarchy: TimeInterval | undefined,
         protected readonly _encode: EncodeFn,
         protected readonly _decode: DecodeFn,
@@ -129,7 +129,7 @@ export class CountableTimeInterval extends TimeInterval {
     every(step: number, options?: CountableTimeIntervalOptions): TimeInterval {
         if (step === 1) return this;
 
-        const { unit, milliseconds, hierarchy } = this;
+        const { unit, duration, hierarchy } = this;
 
         let offset = 0;
         let rangeCallback: RangeFn | undefined;
@@ -159,7 +159,7 @@ export class CountableTimeInterval extends TimeInterval {
 
         return new TimeInterval(
             unit,
-            milliseconds != null ? milliseconds * step : undefined,
+            { milliseconds: duration.milliseconds * step, exact: duration.exact },
             hierarchy,
             encode,
             decode,
