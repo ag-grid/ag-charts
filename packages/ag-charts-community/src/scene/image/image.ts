@@ -38,13 +38,12 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
         pixelRatio: number
     ): CanvasPattern | null {
         if (!image) return null;
+        const { dw, dh } = this.getDimensions(image.width, image.height, width, height);
 
-        const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio });
+        const offscreenPattern = new HdpiOffscreenCanvas({ width: dw, height: dh, pixelRatio });
         const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
 
-        const { dx, dy, dw, dh } = this.getDimensions(image.width, image.height, width, height);
-
-        offscreenPatternCtx.drawImage(image, dx, dy, dw, dh);
+        offscreenPatternCtx.drawImage(image, 0, 0, dw, dh);
         return ctx.createPattern(offscreenPattern.canvas, this.repetition);
     }
 
@@ -52,7 +51,9 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
         imageWidth: number,
         imageHeight: number,
         width: number,
-        height: number
+        height: number,
+        shapeWidth: number = width,
+        shapeHeight: number = height
     ): { dx: number; dy: number; dw: number; dh: number } {
         const { fit } = this;
         if (fit === 'stretch' || imageWidth === 0 || imageHeight === 0) {
@@ -78,22 +79,39 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
         const scaledHeight = imageHeight * scale;
 
         return {
-            dx: (width - scaledWidth) / 2,
-            dy: (height - scaledHeight) / 2,
+            dx: (shapeWidth - scaledWidth) / 2,
+            dy: (shapeHeight - scaledHeight) / 2,
             dw: scaledWidth,
             dh: scaledHeight,
         };
     }
 
-    setImageTransform(pattern: CanvasPattern | string | undefined, pixelRatio: number, tx: number = 0, ty: number = 0) {
+    setImageTransform(
+        pattern: CanvasPattern | string | undefined,
+        pixelRatio: number,
+        tx: number = 0,
+        ty: number = 0,
+        shapeWidth: number = 0,
+        shapeHeight: number = 0
+    ) {
         if (typeof pattern === 'string') return;
+
+        const image = this.imageLoader?.loadImage(this.url);
+        if (!image) {
+            return;
+        }
+
+        const width = Math.max(1, this.width ?? shapeWidth);
+        const height = Math.max(1, this.height ?? shapeHeight);
+
+        const { dx, dy } = this.getDimensions(image.width, image.height, width, height, shapeWidth, shapeHeight);
 
         const angle = normalizeAngle360(toRadians(this.rotation));
         const scale = this.scale / pixelRatio;
         const cos = Math.cos(angle) * scale;
         const sin = Math.sin(angle) * scale;
 
-        pattern?.setTransform(new DOMMatrix([cos, sin, -sin, cos, tx, ty]));
+        pattern?.setTransform(new DOMMatrix([cos, sin, -sin, cos, tx + dx, ty + dy]));
     }
 
     private _cache:
@@ -112,8 +130,8 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
         shapeHeight: number,
         node: Node
     ): CanvasPattern | string | undefined {
-        const width = this.width ?? shapeWidth;
-        const height = this.height ?? shapeHeight;
+        const width = Math.max(1, this.width ?? shapeWidth);
+        const height = Math.max(1, this.height ?? shapeHeight);
 
         const cache = this._cache;
         if (cache != null && cache.ctx === ctx && cache.width === width && cache.height === height) {
