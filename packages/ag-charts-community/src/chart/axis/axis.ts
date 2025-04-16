@@ -7,7 +7,6 @@ import type {
     FontSize,
     FontStyle,
     FontWeight,
-    TimeIntervalUnit,
 } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
@@ -50,6 +49,7 @@ import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
 import { NiceMode } from './axisUtil';
+import { deriveTimeSpecifier } from './timeFormatUtil';
 
 export interface LabelNodeDatum {
     tickId: string;
@@ -82,16 +82,6 @@ export enum AxisGroupZIndexMap {
 }
 
 export type CrosslineFormatterParams<D> = Omit<ScaleFormatParams<D>, 'specifier'> | undefined;
-
-const hardCodedTimeFormats: Record<TimeIntervalUnit, string> = {
-    millisecond: '%Y %b %e %H:%M:%S.%Q',
-    second: '%Y %b %e %H:%M:%S',
-    minute: '%Y %b %e %H:%M',
-    hour: '%Y %b %e %H:%M',
-    day: '%Y %b %e',
-    month: '%Y %b',
-    year: '%Y',
-};
 
 /**
  * A general purpose linear axis with no notion of orientation.
@@ -504,7 +494,7 @@ export abstract class Axis<
         this._scaleNiceDomainRangeExtent = nice ? rangeExtent : NaN;
 
         const specifier = labelSpecifier(
-            typeof label.format === 'string' ? label.format : hardCodedTimeFormats,
+            timeInterval == null ? label.format : deriveTimeSpecifier(label.format, timeInterval),
             timeInterval
         );
         this.labelFormatter =

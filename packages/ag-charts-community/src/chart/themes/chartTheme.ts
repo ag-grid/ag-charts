@@ -110,7 +110,7 @@ function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverri
 }
 
 const timeLabelFormats: Record<TimeIntervalUnit, string> = {
-    millisecond: '%H:%M:%S.%Q',
+    millisecond: '%H:%M:%S.L',
     second: '%H:%M:%S',
     minute: '%H:%M',
     hour: '%H:%M',
@@ -120,7 +120,7 @@ const timeLabelFormats: Record<TimeIntervalUnit, string> = {
 };
 
 const timeDivisionLabelFormats: Record<TimeIntervalUnit, string> = {
-    millisecond: '%H:%M:%S.%Q',
+    millisecond: '%H:%M:%S.%L',
     second: '%H:%M:%S',
     minute: '%H:%M',
     hour: '%H:%M',
