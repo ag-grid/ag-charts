@@ -1,4 +1,4 @@
-import { type FunctionComponent, useCallback, useEffect, useRef } from 'react';
+import { type FunctionComponent, useCallback, useRef } from 'react';
 import { useMemo, useState } from 'react';
 
 import { AllCommunityModule } from 'ag-grid-community';
@@ -15,6 +15,7 @@ import { AgGridReact } from 'ag-grid-react';
 
 import styles from './DocsExamples.module.scss';
 import { ChartsHeaderComponent } from './cell-renderers/ChartsHeaderComponent';
+import { EnterpriseCellRenderer } from './cell-renderers/EnterpriseCellRenderer';
 import { EnterpriseHeaderComponent } from './cell-renderers/EnterpriseHeaderComponent';
 import { ExampleCountComponent } from './cell-renderers/ExampleCountComponent';
 import { LinkCellRenderer } from './cell-renderers/LinkCellRenderer';
@@ -41,6 +42,7 @@ const ALL_PROPERTIES: (ColDef & {
         },
         enableRowGroup: true,
         minWidth: 80,
+        cellRenderer: EnterpriseCellRenderer,
     },
     {
         field: 'isIntegratedCharts',
