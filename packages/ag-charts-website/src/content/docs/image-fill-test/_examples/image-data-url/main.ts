@@ -18,6 +18,7 @@ const options: AgChartOptions = {
             yKey: 'Tate Modern',
             yName: 'Tate Modern',
             normalizedTo: 100,
+            fillOpacity: 1,
             fill: {
                 type: 'image',
                 url: ImageDataURL,
