@@ -16,6 +16,8 @@ Supported Fill Types are:
 
 -   **Pattern Fill**: Predefined patterns including lines and shapes.
 
+-   **Image Fill**: An image.
+
 The default colours and fills come from the default or user provided [Theme Palette](./themes/#palette).
 
 ## Setting a Fill
@@ -113,7 +115,24 @@ Stock patterns include:
 
 Use styling properties such as `stroke`, `fill` and `backgroundFill` to further customise the patterns.
 
-See the [Pattern API reference](#reference-AgPatternColor) all the available options.
+### Images
+
+{% chartExampleRunner title="Image Fill" name="image-fill" type="generated" /%}
+
+Any image url or data:url can be provided in the `fill.image.url` property.
+
+```js
+{
+    series: {
+        fill: {
+            type: 'image',
+            url: 'url'
+        },
+    },
+}
+```
+
+See the [Image API reference](#reference-AgImageColor) all the available options.
 
 ## API Reference
 
@@ -125,6 +144,10 @@ See the [Pattern API reference](#reference-AgPatternColor) all the available opt
 
 {% tabItem id="AgPatternColor" label="Pattern Fill" %}
 {% apiReference id="AgPatternColor" /%}
+{% /tabItem %}
+
+{% tabItem id="AgImageColor" label="Image Fill" %}
+{% apiReference id="AgImageColor" /%}
 {% /tabItem %}
 
 {% /tabs %}
