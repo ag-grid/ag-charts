@@ -116,7 +116,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             props: [
                 valueProperty(xKey, xScaleType, { id: 'xValue' }),
                 valueProperty(yKey, yScaleType, { id: 'yValue' }),
-                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
+                ...(colorKey
+                    ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: null })]
+                    : []),
             ],
         });
 
