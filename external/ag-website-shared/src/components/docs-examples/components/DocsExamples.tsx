@@ -1,5 +1,4 @@
-import { Icon } from '@ag-website-shared/components/icon/Icon';
-import { type FunctionComponent } from 'react';
+import { type FunctionComponent, useCallback, useRef } from 'react';
 import { useMemo, useState } from 'react';
 
 import { AllCommunityModule } from 'ag-grid-community';
@@ -64,6 +63,7 @@ const ALL_PROPERTIES: (ColDef & {
 ];
 
 export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampleContents }) => {
+    const gridRef = useRef<AgGridReact>(null);
     const [colDefs] = useState<ColDef[]>([
         {
             field: 'pageName',
@@ -146,9 +146,21 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
         ],
     });
 
+    const onFilterTextBoxChanged = useCallback(() => {
+        gridRef.current!.api.setGridOption(
+            'quickFilterText',
+            (document.getElementById('filter-text-box') as HTMLInputElement).value
+        );
+    }, []);
+
     return (
         <div className={styles.container}>
+            <div className={styles.controls}>
+                <span>Quick Filter:</span>
+                <input type="text" id="filter-text-box" placeholder="Filter..." onInput={onFilterTextBoxChanged} />
+            </div>
             <AgGridReact
+                ref={gridRef}
                 modules={[
                     AllCommunityModule,
                     StatusBarModule,

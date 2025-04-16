@@ -4,9 +4,18 @@
     --layout-grid-header-height: 200px;
 
     height: calc(100vh - var(--layout-grid-header-height));
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-size-3;
 }
 
 svg.icon {
     width: 18px;
     height: 18px;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: $spacing-size-2;
 }
