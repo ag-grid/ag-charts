@@ -57,7 +57,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     }
 
     private updateChart(chart: _ModuleSupport.SyncChartLike, updateType = ChartUpdateType.PROCESS_DOMAIN) {
-        debug('ChartSync.updateChart()', chart.id, updateType, chart);
+        debug('ChartSync.updateChart()', chart.id, ChartUpdateType[updateType], chart);
         if (updateType === ChartUpdateType.PROCESS_DOMAIN) {
             chart.ctx.updateService.update(updateType, { forceNodeDataRefresh: true });
         } else {
@@ -89,7 +89,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
         const { syncManager } = this.moduleContext;
 
-        debug('ChartSync - highlight-change', event);
+        debug('ChartSync.onHighlightChange()', event);
 
         const mainDirection = this.axes === 'xy' ? 'x' : this.axes;
         const secondaryDirection = mainDirection === 'x' ? 'y' : 'x';
@@ -152,7 +152,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                 const { series, nodeDatum } = matchingNodes[0] ?? {};
                 this.dispatchHighlightUpdate(chart, nodeDatum, series);
             } else {
-                debug('ChartSync - no matching nodes', event);
+                debug('ChartSync.findMatchingHighlightNodes() - no matching nodes', chart.id, event);
             }
         }
     }
@@ -190,7 +190,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         nodeDatum: any,
         series: _ModuleSupport.ISeries<any, any, any, any>
     ) {
-        chart.ctx.highlightManager.updateHighlight(chart.id, nodeDatum);
+        debug('ChartSync.dispatchHighlightUpdate()', chart.id, nodeDatum, series);
 
         if (nodeDatum) {
             const bbox = chart.seriesAreaBoundingBox;
@@ -310,7 +310,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         directionDomains.dirty = false;
 
         if (!arraysEqual(previousDerived, directionDomains.derived)) {
-            debug(axis.id, 'updated', previousDerived, directionDomains.derived);
+            debug(axis.id, 'updated', axis.keys, { before: previousDerived, after: directionDomains.derived });
             this.updateSiblings();
         }
 
@@ -354,7 +354,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         }
 
         if (updated && !arraysEqual(previousDerived, newDerived)) {
-            debug(axis.id, 'updated', previousDerived, newDerived);
+            debug(axis.id, 'updated', axis.keys, { before: previousDerived, after: newDerived });
             this.updateSiblings();
         }
 
