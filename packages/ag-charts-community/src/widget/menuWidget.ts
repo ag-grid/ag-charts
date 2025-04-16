@@ -18,8 +18,8 @@ type OpenScope = {
     lastFocus: HTMLElement | undefined;
     lastFocusAborted: boolean;
     removers: DestroyFns;
-    abort(): void;
-    close(): void;
+    abort: () => void;
+    close: () => void;
 };
 
 export class MenuWidget extends RovingTabContainerWidget {
