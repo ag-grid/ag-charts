@@ -69,6 +69,8 @@
     opacity: 1;
     flex-shrink: 0;
     font-weight: 600;
+    padding-left: 4px;
+    padding-right: 4px;
 
     #{$selector-darkmode} & {
         background-color: var(--color-gray-600);
