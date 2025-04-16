@@ -35,6 +35,13 @@ svg.icon {
     gap: $spacing-size-1;
 }
 
+.linksContainer {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: $spacing-size-4;
+}
+
 .iconContainer {
     margin-top: 9px;
 }

@@ -1,3 +1,4 @@
+import type { InternalFramework } from '@ag-grid-types';
 import { type FunctionComponent, useCallback, useRef } from 'react';
 import { useMemo, useState } from 'react';
 
@@ -94,14 +95,14 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             },
             children: [
                 {
-                    colId: 'react',
+                    colId: 'reactFunctional' as InternalFramework,
                     headerName: 'React',
                     cellRenderer: LinkCellRenderer,
                     filter: false,
                     minWidth: 200,
                 },
                 {
-                    colId: 'reactTs',
+                    colId: 'reactFunctionalTs' as InternalFramework,
                     headerName: 'React TS',
                     cellRenderer: LinkCellRenderer,
                     filter: false,
@@ -110,7 +111,7 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             ],
         },
         {
-            colId: 'angular',
+            colId: 'angular' as InternalFramework,
             headerName: 'Angular',
             headerComponentParams: {
                 innerHeaderComponent: FrameworkLogoCellRenderer,
@@ -123,7 +124,7 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             minWidth: 200,
         },
         {
-            colId: 'vue',
+            colId: 'vue' as InternalFramework,
             headerName: 'Vue',
             headerComponentParams: {
                 innerHeaderComponent: FrameworkLogoCellRenderer,
@@ -145,14 +146,14 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             },
             children: [
                 {
-                    colId: 'vanilla',
+                    colId: 'vanilla' as InternalFramework,
                     headerName: 'Vanilla JS',
                     cellRenderer: LinkCellRenderer,
                     filter: false,
                     minWidth: 200,
                 },
                 {
-                    colId: 'typescript',
+                    colId: 'typescript' as InternalFramework,
                     headerName: 'Typescript',
                     cellRenderer: LinkCellRenderer,
                     filter: false,

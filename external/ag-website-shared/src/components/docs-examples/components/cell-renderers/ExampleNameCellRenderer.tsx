@@ -24,16 +24,18 @@ export function ExampleNameCellRenderer(props: CustomCellRendererProps) {
     return (
         <div className={styles.exampleNameContainer}>
             <span>{value}</span>
-            <span className={styles.frameworkLinks}>
-                {FRAMEWORKS.map((framework: Framework) => {
-                    const url = isPage ? `./${pageName}` : `./${pageName}#example-${exampleName}`;
-                    const link = urlWithPrefix({
-                        framework,
-                        url,
-                    });
-                    return <FrameworkLink key={framework} framework={framework} link={link} />;
-                })}
-            </span>
+            {isPage && (
+                <span className={styles.frameworkLinks}>
+                    {FRAMEWORKS.map((framework: Framework) => {
+                        const url = isPage ? `./${pageName}` : `./${pageName}#example-${exampleName}`;
+                        const link = urlWithPrefix({
+                            framework,
+                            url,
+                        });
+                        return <FrameworkLink key={framework} framework={framework} link={link} />;
+                    })}
+                </span>
+            )}
         </div>
     );
 }
