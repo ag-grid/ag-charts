@@ -166,7 +166,7 @@ export class FillImageDefaults
     scale: number = 1;
 
     @Property
-    fallback: CssColor = 'black';
+    backgroundFill: CssColor = 'black';
 
     @Property
     repetition: AgColorRepetition = 'repeat';

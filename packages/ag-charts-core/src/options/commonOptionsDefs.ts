@@ -150,7 +150,7 @@ export const fillImageDefaults = optionsDefs<InternalAgImageColor>({
     height: positiveNumber,
     rotation: required(number),
     scale: required(positiveNumber),
-    fallback: required(color),
+    backgroundFill: required(color),
     fit: required(union('stretch', 'contain', 'cover')),
     repetition: required(union('repeat', 'repeat-x', 'repeat-y', 'no-repeat')),
 });
@@ -194,7 +194,7 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
         },
         image: {
             url: required(string),
-            fallback: color,
+            backgroundFill: color,
             width: positiveNumber,
             height: positiveNumber,
             fit: union('stretch', 'contain', 'cover'),

@@ -94,8 +94,8 @@ export interface AgImageColor {
     type: 'image';
     /** URL of the image. */
     url: string;
-    /** Temporary or backup colour to show while the image is loading or if it fails to load. */
-    fallback?: string;
+    /** The colour for filling the background in the pattern. */
+    backgroundFill?: CssColor;
     /** Height of the image. */
     width?: number;
     /** Width of the image. */

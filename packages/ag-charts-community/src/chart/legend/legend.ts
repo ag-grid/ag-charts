@@ -176,7 +176,7 @@ const fillPatternDefaults: RequiredInternalAgPatternColor = {
 
 const fillImageDefaults: RequiredInternalAgImageColor = {
     type: 'image',
-    fallback: 'black',
+    backgroundFill: 'black',
     rotation: 0,
     scale: 1,
     repetition: 'repeat',

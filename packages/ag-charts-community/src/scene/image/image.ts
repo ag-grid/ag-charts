@@ -8,7 +8,7 @@ import type { ImageLoader } from './imageLoader';
 
 export class Image implements Omit<InternalAgImageColor, 'type'> {
     url: string;
-    fallback: string;
+    backgroundFill: string;
     width?: number;
     height?: number;
     repetition: AgColorRepetition;
@@ -21,7 +21,7 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
         imageOptions: InternalAgImageColor
     ) {
         this.url = imageOptions.url;
-        this.fallback = imageOptions.fallback ?? 'black';
+        this.backgroundFill = imageOptions.backgroundFill ?? 'black';
         this.repetition = imageOptions.repetition ?? 'repeat';
         this.width = imageOptions.width;
         this.height = imageOptions.height;
@@ -123,7 +123,7 @@ export class Image implements Omit<InternalAgImageColor, 'type'> {
         const image = this.imageLoader?.loadImage(this.url, node);
         const pattern = this.createCanvasImage(ctx, image, width, height, pixelRatio);
 
-        if (pattern == null) return this.fallback;
+        if (pattern == null) return this.backgroundFill;
 
         this._cache = { ctx, pattern, width, height, pixelRatio };
 

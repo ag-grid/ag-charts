@@ -93,7 +93,7 @@ export function getShapeFill(
             url: fill.url,
             width: fill.width,
             height: fill.height,
-            fallback: fill.fallback ?? defaultImage.fallback,
+            backgroundFill: fill.backgroundFill ?? defaultImage.backgroundFill,
             scale: fill.scale ?? defaultImage.scale,
             rotation: fill.rotation ?? defaultImage.rotation,
             repetition: fill.repetition ?? defaultImage.repetition,

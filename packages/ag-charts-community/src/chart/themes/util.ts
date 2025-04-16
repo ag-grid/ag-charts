@@ -99,7 +99,7 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
 
 export const FILL_IMAGE_DEFAULTS: WithThemeParams<RequiredInternalAgImageColor> = {
     type: 'image',
-    fallback: { $palette: 'fillFallback' },
+    backgroundFill: { $palette: 'fillFallback' },
     repetition: 'repeat',
     fit: 'stretch',
     scale: 1,
