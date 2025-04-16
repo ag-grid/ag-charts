@@ -18,4 +18,12 @@ svg.icon {
     display: flex;
     align-items: center;
     gap: $spacing-size-2;
+    justify-content: space-between;
+}
+
+.controlsState,
+.controlsFilter {
+    display: flex;
+    align-items: center;
+    gap: $spacing-size-2;
 }

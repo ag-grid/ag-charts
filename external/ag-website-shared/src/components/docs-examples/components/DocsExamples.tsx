@@ -1,8 +1,8 @@
-import { type FunctionComponent, useCallback, useRef } from 'react';
+import { type FunctionComponent, useCallback, useEffect, useRef } from 'react';
 import { useMemo, useState } from 'react';
 
 import { AllCommunityModule } from 'ag-grid-community';
-import type { ColDef } from 'ag-grid-community';
+import type { ColDef, ColumnState } from 'ag-grid-community';
 import {
     ColumnsToolPanelModule,
     FiltersToolPanelModule,
@@ -26,6 +26,9 @@ export interface Props {
     properties?: ExampleProperty[];
     exampleContents: any[];
 }
+
+const LOCALSTORAGE_PREFIX = 'documentation:debug';
+const LOCALSTORAGE_COL_STATE_KEY = `${LOCALSTORAGE_PREFIX}:colState`;
 
 const ALL_PROPERTIES: (ColDef & {
     field: ExampleProperty;
@@ -114,6 +117,7 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             minWidth: 200,
         },
     ]);
+    const [colState, setColState] = useState<ColumnState[]>();
 
     const defaultColDef: ColDef = {
         flex: 1,
@@ -129,6 +133,7 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
     }, []);
     const rowGroupPanelShow = 'always';
     const groupDisplayType = 'singleColumn';
+    const groupDefaultExpanded = 1;
     const sideBar = useMemo(() => {
         return {
             toolPanels: ['filters', 'columns'],
@@ -146,18 +151,71 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
         ],
     });
 
+    const applyLocalStorageColState = useCallback(() => {
+        const localColState = localStorage.getItem(LOCALSTORAGE_COL_STATE_KEY);
+
+        if (!localColState) {
+            return;
+        }
+
+        const parsedColState = JSON.parse(localColState) as ColumnState[];
+        setColState(parsedColState);
+        gridRef.current!.api.applyColumnState({
+            state: parsedColState,
+            applyOrder: true,
+        });
+    }, [gridRef]);
+    const onGridReady = useCallback(() => {
+        applyLocalStorageColState();
+    }, []);
+
     const onFilterTextBoxChanged = useCallback(() => {
         gridRef.current!.api.setGridOption(
             'quickFilterText',
             (document.getElementById('filter-text-box') as HTMLInputElement).value
         );
+    }, [gridRef]);
+
+    const saveState = useCallback(() => {
+        const currentColState = gridRef.current!.api.getColumnState();
+        setColState(currentColState);
+
+        localStorage.setItem(LOCALSTORAGE_COL_STATE_KEY, JSON.stringify(currentColState));
+    }, [gridRef]);
+
+    const restoreState = useCallback(() => {
+        if (!colState) {
+            return;
+        }
+
+        gridRef.current!.api.applyColumnState({
+            state: colState,
+            applyOrder: true,
+        });
+    }, [gridRef, colState]);
+
+    const resetState = useCallback(() => {
+        gridRef.current!.api.resetColumnState();
     }, []);
 
     return (
         <div className={styles.container}>
             <div className={styles.controls}>
-                <span>Quick Filter:</span>
-                <input type="text" id="filter-text-box" placeholder="Filter..." onInput={onFilterTextBoxChanged} />
+                <div className={styles.controlsFilter}>
+                    <span>Quick Filter:</span>
+                    <input type="text" id="filter-text-box" placeholder="Filter..." onInput={onFilterTextBoxChanged} />
+                </div>
+                <div className={styles.controlsState}>
+                    <button className="button-secondary" onClick={saveState}>
+                        Save
+                    </button>
+                    <button className="button-secondary" onClick={restoreState} disabled={!colState}>
+                        Restore
+                    </button>
+                    <button className="button-secondary" onClick={resetState}>
+                        Reset
+                    </button>
+                </div>
             </div>
             <AgGridReact
                 ref={gridRef}
@@ -178,7 +236,8 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
                 autoGroupColumnDef={autoGroupColumnDef}
                 groupDisplayType={groupDisplayType}
                 rowGroupPanelShow={rowGroupPanelShow}
-                groupDefaultExpanded={1}
+                groupDefaultExpanded={groupDefaultExpanded}
+                onGridReady={onGridReady}
             />
         </div>
     );
