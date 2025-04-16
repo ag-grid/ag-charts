@@ -1,7 +1,7 @@
 import { type AnyFn, Logger, type RequireOptional } from 'ag-charts-core';
 import type {
     RequiredInternalAgGradientColor,
-    RequiredInternalAgImageColor,
+    RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 import type {
@@ -814,7 +814,7 @@ export abstract class Series<
         marker: ISeriesMarker<TParams> & {
             fillGradientDefaults: RequiredInternalAgGradientColor;
             fillPatternDefaults: RequiredInternalAgPatternColor;
-            fillImageDefaults: RequiredInternalAgImageColor;
+            fillImageDefaults: RequiredInternalAgImageFill;
         },
         datum?: any,
         params?: TParams,
@@ -855,7 +855,7 @@ export abstract class Series<
         marker: ISeriesMarker<TParams> & {
             fillGradientDefaults: RequiredInternalAgGradientColor;
             fillPatternDefaults: RequiredInternalAgPatternColor;
-            fillImageDefaults: RequiredInternalAgImageColor;
+            fillImageDefaults: RequiredInternalAgImageFill;
         },
         markerNode: Marker,
         datum: any,

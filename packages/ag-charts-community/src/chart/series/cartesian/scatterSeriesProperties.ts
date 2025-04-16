@@ -1,7 +1,7 @@
 import type {
     InternalAgColorType,
     RequiredInternalAgGradientColor,
-    RequiredInternalAgImageColor,
+    RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 import type {
@@ -82,7 +82,7 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     fillPatternDefaults!: RequiredInternalAgPatternColor;
 
     @ProxyProperty('marker.fillImageDefaults')
-    fillImageDefaults!: RequiredInternalAgImageColor;
+    fillImageDefaults!: RequiredInternalAgImageFill;
 
     @ProxyProperty('marker.fillOpacity')
     fillOpacity!: number;
