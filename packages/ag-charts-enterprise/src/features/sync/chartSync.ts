@@ -89,6 +89,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
         const { syncManager } = this.moduleContext;
 
+        if (event.callerId.endsWith('-sync')) return;
+
         debug('ChartSync.onHighlightChange()', event);
 
         const mainDirection = this.axes === 'xy' ? 'x' : this.axes;
@@ -104,8 +106,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
                 if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
 
-                chart.ctx.highlightManager.updateHighlight(chart.id);
-                chart.ctx.tooltipManager.removeTooltip(chart.id);
+                chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`);
+                chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`);
             }
             return;
         }
@@ -192,6 +194,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     ) {
         debug('ChartSync.dispatchHighlightUpdate()', chart.id, nodeDatum, series);
 
+        chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, nodeDatum);
+
         if (nodeDatum) {
             const bbox = chart.seriesAreaBoundingBox;
             const canvasX = bbox.x + (nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0);
@@ -204,12 +208,12 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             );
 
             chart.ctx.tooltipManager.updateTooltip(
-                chart.id,
+                `${chart.id}-sync`,
                 tooltipMeta,
                 chart.getTooltipContent(series, nodeDatum.datumIndex, nodeDatum)
             );
         } else {
-            chart.ctx.tooltipManager.removeTooltip(chart.id);
+            chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`);
         }
 
         this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
