@@ -141,7 +141,8 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         }
 
         if (hasExampleConsoleLog) {
-            transformedEntryFile = transformedEntryFile + '\n' + getConsoleLogSnippet({ pageName, exampleName });
+            transformedEntryFile =
+                transformedEntryFile + '\n' + getConsoleLogSnippet({ pageName, exampleName, logError: isDev });
         }
 
         return transformedEntryFile;
