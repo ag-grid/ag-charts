@@ -129,6 +129,7 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             headerName: 'Page Examples',
             field: 'exampleName',
             minWidth: 300,
+            pinned: 'left',
         };
     }, []);
     const rowGroupPanelShow = 'always';
