@@ -1,3 +1,5 @@
+import type { MouseWidgetEvent } from 'packages/ag-charts-community/src/module-support';
+
 import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { Logger, clamp } from 'ag-charts-core';
@@ -229,9 +231,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createButtonOnClick(
         showOn: AgContextMenuItemShowOn,
         callback: ContextMenuCallback
-    ): (event: MouseEvent) => void {
+    ): (event: _ModuleSupport.MouseWidgetEvent) => void {
         if (ContextMenuRegistry.checkCallback('legend-item', showOn, callback)) {
-            return (event: Event) => {
+            return (widgetEvent: _ModuleSupport.MouseWidgetEvent) => {
+                const event: Event = widgetEvent.sourceEvent;
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId } = this.pickedLegendItem;
                     callback({ type: 'contextmenu', seriesId, itemId, event });
@@ -272,7 +275,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         button.setTextContent(this.ctx.localeManager.t(item.label));
         const { showOn, action } = item;
         if (action != null) {
-            button.addListener('click', () => this.createButtonOnClick(showOn, action));
+            button.addListener('click', this.createButtonOnClick(showOn, action));
         }
         button.addListener('mousemove', () => button.focus({ preventScroll: true }));
         return button;
