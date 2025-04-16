@@ -103,7 +103,8 @@ export class WidgetListenerInternal {
         this.listeners ??= new Map();
         let result: Set<EventHandler<T, K>> | undefined = this.listeners.get(type);
         if (result === undefined) {
-            this.listeners.set(type, (result = new Set()));
+            result = new Set();
+            this.listeners.set(type, result);
         }
         return result;
     }
