@@ -15,6 +15,8 @@ import {
 import { AgGridReact } from 'ag-grid-react';
 
 import styles from './DocsExamples.module.scss';
+import { ChartsHeaderComponent } from './cell-renderers/ChartsHeaderComponent';
+import { EnterpriseHeaderComponent } from './cell-renderers/EnterpriseHeaderComponent';
 import { ExampleCountComponent } from './cell-renderers/ExampleCountComponent';
 import { LinkCellRenderer } from './cell-renderers/LinkCellRenderer';
 import { PageCountComponent } from './cell-renderers/PageCountComponent';
@@ -26,34 +28,26 @@ export interface Props {
     exampleContents: any[];
 }
 
-const EnterpriseIcon = () => (
-    <span title="Enterprise">
-        <Icon name="enterprise" svgClasses={styles.icon} />
-    </span>
-);
-
-const ChartsIcon = () => (
-    <span title="Integrated Charts">
-        <Icon name="chartsColumn" svgClasses={styles.icon} />
-    </span>
-);
-
 const ALL_PROPERTIES: (ColDef & {
     field: ExampleProperty;
 })[] = [
     {
         field: 'isEnterprise',
         headerName: 'Enterprise',
-        headerComponent: EnterpriseIcon,
+        headerComponentParams: {
+            innerHeaderComponent: EnterpriseHeaderComponent,
+        },
         enableRowGroup: true,
-        minWidth: 56,
+        minWidth: 80,
     },
     {
         field: 'isIntegratedCharts',
         headerName: 'Charts',
-        headerComponent: ChartsIcon,
+        headerComponentParams: {
+            innerHeaderComponent: ChartsHeaderComponent,
+        },
         enableRowGroup: true,
-        minWidth: 56,
+        minWidth: 80,
     },
     {
         field: 'isLocale',
