@@ -1,6 +1,6 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { type FunctionComponent } from 'react';
-import { type JSX, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { AllCommunityModule } from 'ag-grid-community';
 import type { ColDef } from 'ag-grid-community';
@@ -8,6 +8,7 @@ import {
     ColumnsToolPanelModule,
     FiltersToolPanelModule,
     RowGroupingModule,
+    RowGroupingPanelModule,
     SideBarModule,
     StatusBarModule,
 } from 'ag-grid-enterprise';
@@ -37,42 +38,44 @@ const ChartsIcon = () => (
     </span>
 );
 
-const ALL_PROPERTIES: {
+const ALL_PROPERTIES: (ColDef & {
     field: ExampleProperty;
-    headerName: string;
-    headerComponent?: () => JSX.Element;
-    minWidth?: number;
-}[] = [
+})[] = [
     {
         field: 'isEnterprise',
         headerName: 'Enterprise',
         headerComponent: EnterpriseIcon,
+        enableRowGroup: true,
         minWidth: 56,
     },
     {
         field: 'isIntegratedCharts',
         headerName: 'Charts',
         headerComponent: ChartsIcon,
+        enableRowGroup: true,
         minWidth: 56,
     },
     {
         field: 'isLocale',
         headerName: 'Locale',
+        enableRowGroup: true,
         minWidth: 110,
     },
     {
         field: 'hasExampleConsoleLog',
         headerName: 'Log',
+        enableRowGroup: true,
         minWidth: 90,
     },
 ];
 
 export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampleContents }) => {
-    const [colDefs] = useState([
+    const [colDefs] = useState<ColDef[]>([
         {
             field: 'pageName',
             rowGroup: true,
             hide: true,
+            enableRowGroup: true,
         },
         {
             field: 'exampleName',
@@ -130,6 +133,8 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             minWidth: 300,
         };
     }, []);
+    const rowGroupPanelShow = 'always';
+    const groupDisplayType = 'singleColumn';
     const sideBar = useMemo(() => {
         return {
             toolPanels: ['filters', 'columns'],
@@ -157,6 +162,7 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
                     SideBarModule,
                     FiltersToolPanelModule,
                     ColumnsToolPanelModule,
+                    RowGroupingPanelModule,
                 ]}
                 rowData={exampleContents}
                 columnDefs={colDefs}
@@ -164,7 +170,8 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
                 statusBar={statusBar}
                 sideBar={sideBar}
                 autoGroupColumnDef={autoGroupColumnDef}
-                groupDisplayType="singleColumn"
+                groupDisplayType={groupDisplayType}
+                rowGroupPanelShow={rowGroupPanelShow}
                 groupDefaultExpanded={1}
             />
         </div>
