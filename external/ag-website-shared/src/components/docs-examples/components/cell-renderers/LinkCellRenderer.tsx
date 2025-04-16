@@ -28,6 +28,7 @@ export function LinkCellRenderer({ colDef, data }) {
                     framework: getFrameworkFromInternalFramework(internalFramework),
                     url: `./${pageName}`,
                 })}
+                target="_blank"
                 title={`${pageName} ${internalFramework} page`}
             >
                 Page
@@ -38,6 +39,7 @@ export function LinkCellRenderer({ colDef, data }) {
                     framework: getFrameworkFromInternalFramework(internalFramework),
                     url: `./${pageName}#example-${exampleName}`,
                 })}
+                target="_blank"
                 title={`${titlePrefix} example on page`}
             >
                 Page Ex
@@ -49,6 +51,7 @@ export function LinkCellRenderer({ colDef, data }) {
                     pageName,
                     exampleName,
                 })}
+                target="_blank"
                 title={`${titlePrefix} example`}
             >
                 Ex
@@ -60,6 +63,7 @@ export function LinkCellRenderer({ colDef, data }) {
                     pageName,
                     exampleName,
                 })}
+                target="_blank"
                 title={`${titlePrefix} contents.json`}
             >
                 <Icon name="codeResult" />
