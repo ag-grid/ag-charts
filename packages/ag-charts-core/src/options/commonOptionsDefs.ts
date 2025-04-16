@@ -5,7 +5,7 @@ import type {
     AgGradientColorStop,
     AgGradientColorStrict,
     AgGradientType,
-    AgImageColor,
+    AgImageFill,
     AgPatternColor,
     CssColor,
     FillOptions,
@@ -78,23 +78,23 @@ export interface InternalAgPatternColor extends AgPatternColor {
     /** Padding for the shape in the pattern unit. */
     padding?: number;
 }
-export interface InternalAgImageColor extends AgImageColor {}
+export interface InternalAgImageFill extends AgImageFill {}
 
-export type RequiredInternalAgImageColor = Required<Omit<InternalAgImageColor, 'url' | 'width' | 'height'>> &
-    Pick<Partial<InternalAgImageColor>, 'url'> &
-    Pick<InternalAgImageColor, 'width' | 'height'>;
+export type RequiredInternalAgImageFill = Required<Omit<InternalAgImageFill, 'url' | 'width' | 'height'>> &
+    Pick<Partial<InternalAgImageFill>, 'url'> &
+    Pick<InternalAgImageFill, 'width' | 'height'>;
 
 export type RequiredInternalAgPatternColor = Required<Omit<InternalAgPatternColor, 'path'>> &
     Pick<InternalAgPatternColor, 'path'>;
 
 export type RequiredInternalAgGradientColor = Required<InternalAgGradientColor>;
 
-export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageColor;
+export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageFill;
 export type RequiredInternalAgColorType =
     | CssColor
     | RequiredInternalAgGradientColor
     | RequiredInternalAgPatternColor
-    | (RequiredInternalAgImageColor & Pick<InternalAgImageColor, 'url'>);
+    | (RequiredInternalAgImageFill & Pick<InternalAgImageFill, 'url'>);
 
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
     stroke: color,
@@ -143,7 +143,7 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
     strokeOpacity: required(ratio),
 });
 
-export const fillImageDefaults = optionsDefs<InternalAgImageColor>({
+export const fillImageDefaults = optionsDefs<InternalAgImageFill>({
     type: required(constant('image')),
     url: string,
     width: positiveNumber,

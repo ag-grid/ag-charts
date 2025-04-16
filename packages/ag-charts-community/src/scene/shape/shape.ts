@@ -1,5 +1,5 @@
 import { type InternalAgGradientColor, clamp } from 'ag-charts-core';
-import type { AgImageColor, AgPatternColor } from 'ag-charts-types';
+import type { AgImageFill, AgPatternColor } from 'ag-charts-types';
 
 import { BBoxValues } from '../../util/bboxinterface';
 import { generateUUID } from '../../util/id';
@@ -32,7 +32,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
 
 export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
 
-export type ShapeColor = string | ShapeGradientColor | AgPatternColor | AgImageColor;
+export type ShapeColor = string | ShapeGradientColor | AgPatternColor | AgImageFill;
 
 export interface DefaultStyles {
     fill?: ShapeColor;
@@ -119,7 +119,7 @@ export abstract class Shape<D = any> extends Node<D> {
         if (isImageFill(fill)) return this.createImage(fill);
     }
 
-    private createImage(fill: AgImageColor) {
+    private createImage(fill: AgImageFill) {
         return new Image(this.imageLoader, fill);
     }
 

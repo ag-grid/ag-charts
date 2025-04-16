@@ -2,7 +2,7 @@ import type {
     InternalAgColorType,
     RequiredInternalAgColorType,
     RequiredInternalAgGradientColor,
-    RequiredInternalAgImageColor,
+    RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 
@@ -24,19 +24,19 @@ export function getShapeFill(
     fill: InternalAgColorType,
     defaultGradient: RequiredInternalAgGradientColor,
     defaultPattern: RequiredInternalAgPatternColor,
-    defaultImage: RequiredInternalAgImageColor
+    defaultImage: RequiredInternalAgImageFill
 ): RequiredInternalAgColorType;
 export function getShapeFill(
     fill: InternalAgColorType | undefined,
     defaultGradient: RequiredInternalAgGradientColor,
     defaultPattern: RequiredInternalAgPatternColor,
-    defaultImage: RequiredInternalAgImageColor
+    defaultImage: RequiredInternalAgImageFill
 ): RequiredInternalAgColorType | undefined;
 export function getShapeFill(
     fill: InternalAgColorType | undefined,
     defaultGradient: RequiredInternalAgGradientColor,
     defaultPattern: RequiredInternalAgPatternColor,
-    defaultImage: RequiredInternalAgImageColor
+    defaultImage: RequiredInternalAgImageFill
 ): RequiredInternalAgColorType | undefined {
     if (isGradientFill(fill)) {
         return {
@@ -108,19 +108,19 @@ export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T,
     defaultGradient: RequiredInternalAgGradientColor,
     defaultPattern: RequiredInternalAgPatternColor,
-    defaultImage: RequiredInternalAgImageColor
+    defaultImage: RequiredInternalAgImageFill
 ): T;
 export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T | undefined,
     defaultGradient: RequiredInternalAgGradientColor,
     defaultPattern: RequiredInternalAgPatternColor,
-    defaultImage: RequiredInternalAgImageColor
+    defaultImage: RequiredInternalAgImageFill
 ): T | undefined;
 export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
     style: T | undefined,
     defaultGradient: RequiredInternalAgGradientColor,
     defaultPattern: RequiredInternalAgPatternColor,
-    defaultImage: RequiredInternalAgImageColor
+    defaultImage: RequiredInternalAgImageFill
 ): T | undefined {
     if (!isGradientFill(style?.fill) && !isPatternFill(style?.fill) && !isImageFill(style?.fill)) return style;
     return {

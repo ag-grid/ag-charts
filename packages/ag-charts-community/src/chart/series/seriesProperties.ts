@@ -1,6 +1,6 @@
 import type {
     RequiredInternalAgGradientColor,
-    RequiredInternalAgImageColor,
+    RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 import type {
@@ -8,7 +8,7 @@ import type {
     AgGradientColorBounds,
     AgGradientColorStop,
     AgGradientType,
-    AgImageColorFit,
+    AgImageFillFit,
     AgPatternName,
     CssColor,
     InteractionRange,
@@ -150,8 +150,8 @@ export class FillPatternDefaults
 }
 
 export class FillImageDefaults
-    extends BaseProperties<RequiredInternalAgImageColor>
-    implements RequiredInternalAgImageColor
+    extends BaseProperties<RequiredInternalAgImageFill>
+    implements RequiredInternalAgImageFill
 {
     @Property
     type: 'image' = 'image' as const;
@@ -172,7 +172,7 @@ export class FillImageDefaults
     repetition: AgColorRepetition = 'repeat';
 
     @Property
-    fit: AgImageColorFit = 'stretch';
+    fit: AgImageFillFit = 'stretch';
 }
 
 export class HighlightStyle extends BaseProperties {

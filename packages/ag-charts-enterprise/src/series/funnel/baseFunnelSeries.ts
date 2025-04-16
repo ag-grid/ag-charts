@@ -2,7 +2,7 @@ import { type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type {
     InternalAgColorType,
     RequiredInternalAgGradientColor,
-    RequiredInternalAgImageColor,
+    RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 
@@ -109,7 +109,7 @@ export interface FunnelSeriesShapeStyle {
     fill?: InternalAgColorType;
     fillGradientDefaults: RequiredInternalAgGradientColor;
     fillPatternDefaults: RequiredInternalAgPatternColor;
-    fillImageDefaults: RequiredInternalAgImageColor;
+    fillImageDefaults: RequiredInternalAgImageFill;
     fillOpacity: number;
     stroke?: string;
     strokeWidth: number;

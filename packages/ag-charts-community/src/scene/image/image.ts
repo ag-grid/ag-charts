@@ -1,24 +1,24 @@
-import { type InternalAgImageColor, createSvgElement } from 'ag-charts-core';
-import type { AgColorRepetition, AgImageColorFit } from 'ag-charts-types';
+import { type InternalAgImageFill, createSvgElement } from 'ag-charts-core';
+import type { AgColorRepetition, AgImageFillFit } from 'ag-charts-types';
 
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import type { Node } from '../node';
 import type { ImageLoader } from './imageLoader';
 
-export class Image implements Omit<InternalAgImageColor, 'type'> {
+export class Image implements Omit<InternalAgImageFill, 'type'> {
     url: string;
     backgroundFill: string;
     width?: number;
     height?: number;
     repetition: AgColorRepetition;
-    fit: AgImageColorFit;
+    fit: AgImageFillFit;
     rotation: number;
     scale: number;
 
     constructor(
         readonly imageLoader: ImageLoader | undefined,
-        imageOptions: InternalAgImageColor
+        imageOptions: InternalAgImageFill
     ) {
         this.url = imageOptions.url;
         this.backgroundFill = imageOptions.backgroundFill ?? 'black';
