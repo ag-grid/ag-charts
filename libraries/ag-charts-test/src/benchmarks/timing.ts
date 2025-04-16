@@ -29,13 +29,13 @@ export function recordTiming(suitePath: string, name: string, measurement: Bench
     };
 }
 
-function formatMemoryUse(memory: BenchmarkMeasurement['memory']) {
+function memoryUse(memory: BenchmarkMeasurement['memory'], format = false) {
     return Object.fromEntries(
         (memory?.nativeAllocations ? Object.keys(memory.nativeAllocations) : []).flatMap((objectName) => {
             const value = memory.nativeAllocations[objectName];
             return [
                 [`${objectName}Count`, value.count],
-                [`${objectName}Bytes`, formatBytes(value.bytes)],
+                [`${objectName}Bytes`, format ? formatBytes(value.bytes) : value.bytes],
             ];
         })
     );
@@ -47,7 +47,7 @@ export function logTimings() {
         memoryUsage: measurement.memory ? formatBytes(getTotalMemoryUsage(measurement.memory)) : null,
         heapUsed: measurement.memory ? formatBytes(measurement.memory.after.heapUsed) : null,
         relativeUsage: measurement.memory ? formatBytes(getRelativeMemoryUsage(measurement.memory)) : null,
-        ...formatMemoryUse(measurement.memory),
+        ...memoryUse(measurement.memory, true),
     }));
     for (const [suitePath, results] of timings) {
         console.log(suitePath);
@@ -61,7 +61,7 @@ export function flushTimings() {
         memoryUsage: measurement.memory ? getTotalMemoryUsage(measurement.memory) : null,
         heapUsed: measurement.memory ? measurement.memory.after.heapUsed : null,
         relativeUsage: measurement.memory ? getRelativeMemoryUsage(measurement.memory) : null,
-        ...formatMemoryUse(measurement.memory),
+        ...memoryUse(measurement.memory),
     }));
     for (const [suitePath, results] of timings) {
         const filename = `./reports${suitePath.replace(/.ts$/, '.json')}`;

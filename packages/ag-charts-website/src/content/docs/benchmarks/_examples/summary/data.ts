@@ -1108,7 +1108,7 @@ export function getData() {
                     heapUsed: 169048464,
                     relativeUsage: 84157824,
                     canvasCount: 37,
-                    canvasBytes: '56.76MB',
+                    canvasBytes: 59520000,
                 },
                 'integrated charts large scale benchmark after load 1x legend toggle': {
                     timeMs: 221.77654200000006,
@@ -1116,7 +1116,7 @@ export function getData() {
                     heapUsed: 171652872,
                     relativeUsage: 60418984,
                     canvasCount: 37,
-                    canvasBytes: '56.76MB',
+                    canvasBytes: 59520000,
                 },
                 'integrated charts large scale benchmark after load 4x legend toggle': {
                     timeMs: 402.94679199999973,
@@ -1124,7 +1124,7 @@ export function getData() {
                     heapUsed: 172927616,
                     relativeUsage: 60599680,
                     canvasCount: 37,
-                    canvasBytes: '56.76MB',
+                    canvasBytes: 59520000,
                 },
                 'large-dataset benchmark initial load': {
                     timeMs: 3540.705042,
@@ -1132,7 +1132,7 @@ export function getData() {
                     heapUsed: 829134224,
                     relativeUsage: 684284488,
                     canvasCount: 9,
-                    canvasBytes: '5.50MB',
+                    canvasBytes: 5767168,
                 },
                 'large-dataset benchmark after load 1x legend toggle': {
                     timeMs: 3495.6706670000003,
@@ -1140,7 +1140,7 @@ export function getData() {
                     heapUsed: 1006785856,
                     relativeUsage: 163382272,
                     canvasCount: 9,
-                    canvasBytes: '5.50MB',
+                    canvasBytes: 5767168,
                 },
                 'large-dataset benchmark after load 1x datum highlight': {
                     timeMs: 880.7912500000002,
@@ -1148,7 +1148,7 @@ export function getData() {
                     heapUsed: 891738344,
                     relativeUsage: 41334088,
                     canvasCount: 9,
-                    canvasBytes: '5.50MB',
+                    canvasBytes: 5767168,
                 },
                 'large-dataset benchmark after load 4x datum highlight': {
                     timeMs: 2358.489791,
@@ -1156,7 +1156,7 @@ export function getData() {
                     heapUsed: 897160040,
                     relativeUsage: 38160104,
                     canvasCount: 9,
-                    canvasBytes: '5.50MB',
+                    canvasBytes: 5767168,
                 },
                 'large-scale multi-series benchmark initial load': {
                     timeMs: 614.300333,
@@ -1164,7 +1164,7 @@ export function getData() {
                     heapUsed: 195943656,
                     relativeUsage: 110925104,
                     canvasCount: 39,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'large-scale multi-series benchmark after load 1x legend toggle': {
                     timeMs: 590.8064590000004,
@@ -1172,7 +1172,7 @@ export function getData() {
                     heapUsed: 200638976,
                     relativeUsage: 61776128,
                     canvasCount: 39,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'large-scale multi-series benchmark after load 4x legend toggle': {
                     timeMs: 1126.493167,
@@ -1180,7 +1180,7 @@ export function getData() {
                     heapUsed: 201925304,
                     relativeUsage: 61896512,
                     canvasCount: 39,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'multi-series benchmark initial load': {
                     timeMs: 247.82379100000003,
@@ -1188,7 +1188,7 @@ export function getData() {
                     heapUsed: 158948280,
                     relativeUsage: 74148072,
                     canvasCount: 42,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'multi-series benchmark after load 1x legend toggle': {
                     timeMs: 107.88808300000005,
@@ -1196,7 +1196,7 @@ export function getData() {
                     heapUsed: 161027816,
                     relativeUsage: 60315592,
                     canvasCount: 42,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'multi-series benchmark after load 10x legend toggle': {
                     timeMs: 444.8340840000003,
@@ -1204,7 +1204,7 @@ export function getData() {
                     heapUsed: 162495752,
                     relativeUsage: 61003400,
                     canvasCount: 42,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'multi-series benchmark after load 1x datum highlight': {
                     timeMs: 56.61249999999973,
@@ -1212,7 +1212,7 @@ export function getData() {
                     heapUsed: 162359272,
                     relativeUsage: 59796520,
                     canvasCount: 42,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'multi-series benchmark after load 15x datum highlight': {
                     timeMs: 812.3266659999999,
@@ -1220,7 +1220,7 @@ export function getData() {
                     heapUsed: 163197768,
                     relativeUsage: 60371152,
                     canvasCount: 42,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'resize benchmark initial load': {
                     timeMs: 164.2594170000001,
@@ -1228,7 +1228,7 @@ export function getData() {
                     heapUsed: 150583216,
                     relativeUsage: 8320192,
                     canvasCount: 11,
-                    canvasBytes: '1.83MB',
+                    canvasBytes: 1916928,
                 },
                 'resize benchmark after load 10x resize': {
                     timeMs: 50.669999999999845,
@@ -1236,7 +1236,7 @@ export function getData() {
                     heapUsed: 152527992,
                     relativeUsage: 2593752,
                     canvasCount: 11,
-                    canvasBytes: '1.83MB',
+                    canvasBytes: 1916928,
                 },
                 'simple-chart benchmark initial load': {
                     timeMs: 33.2612084,
@@ -1244,7 +1244,7 @@ export function getData() {
                     heapUsed: 154144416,
                     relativeUsage: 15646256,
                     canvasCount: 12,
-                    canvasBytes: '5.50MB',
+                    canvasBytes: 5767168,
                 },
                 'simple-chart benchmark after load 1x legend toggle': {
                     timeMs: 13.350566700000012,
@@ -1252,7 +1252,7 @@ export function getData() {
                     heapUsed: 155012240,
                     relativeUsage: 4585992,
                     canvasCount: 11,
-                    canvasBytes: '3.67MB',
+                    canvasBytes: 3846144,
                 },
                 'simple-chart benchmark after load 10x legend toggle': {
                     timeMs: 56.47867910000002,
@@ -1260,7 +1260,7 @@ export function getData() {
                     heapUsed: 156121272,
                     relativeUsage: 5038856,
                     canvasCount: 11,
-                    canvasBytes: '3.67MB',
+                    canvasBytes: 3846144,
                 },
                 'sparkline benchmark initial load': {
                     timeMs: 3.802037832,
@@ -1268,7 +1268,7 @@ export function getData() {
                     heapUsed: 149374664,
                     relativeUsage: 8976080,
                     canvasCount: 2,
-                    canvasBytes: '3.66MB',
+                    canvasBytes: 3833856,
                 },
                 'sparkline benchmark initial load (pooled)': {
                     timeMs: 0.554081916000001,
@@ -1276,7 +1276,7 @@ export function getData() {
                     heapUsed: 149374672,
                     relativeUsage: 1999376,
                     canvasCount: 1,
-                    canvasBytes: '1.83MB',
+                    canvasBytes: 1916928,
                 },
                 'sparkline benchmark after load update': {
                     timeMs: 0.40841575000000013,
@@ -1284,7 +1284,7 @@ export function getData() {
                     heapUsed: 150437992,
                     relativeUsage: 809336,
                     canvasCount: 0,
-                    canvasBytes: '0.00KB',
+                    canvasBytes: 0,
                 },
                 'sparkline benchmark after load updateDelta': {
                     timeMs: 0.46817633399999975,
@@ -1292,7 +1292,7 @@ export function getData() {
                     heapUsed: 150785104,
                     relativeUsage: 493632,
                     canvasCount: 0,
-                    canvasBytes: '0.00KB',
+                    canvasBytes: 0,
                 },
                 'zoom-large-dataset benchmark initial load': {
                     timeMs: 1653.5470840000003,
@@ -1300,7 +1300,7 @@ export function getData() {
                     heapUsed: 356687000,
                     relativeUsage: 78548936,
                     canvasCount: 9,
-                    canvasBytes: '5.49MB',
+                    canvasBytes: 5756928,
                 },
                 'zoom-large-dataset benchmark after load 100x zoom': {
                     timeMs: 13246.242875,
@@ -1308,7 +1308,7 @@ export function getData() {
                     heapUsed: 349378408,
                     relativeUsage: 1921056,
                     canvasCount: 7,
-                    canvasBytes: '1.83MB',
+                    canvasBytes: 1916928,
                 },
             },
         },
@@ -1321,7 +1321,7 @@ export function getData() {
                     heapUsed: 169435520,
                     relativeUsage: 84084272,
                     canvasCount: 37,
-                    canvasBytes: '56.76MB',
+                    canvasBytes: 59520000,
                 },
                 'integrated charts large scale benchmark after load 1x legend toggle': {
                     timeMs: 245.38512500000002,
@@ -1329,7 +1329,7 @@ export function getData() {
                     heapUsed: 172006640,
                     relativeUsage: 60337704,
                     canvasCount: 37,
-                    canvasBytes: '56.76MB',
+                    canvasBytes: 59520000,
                 },
                 'integrated charts large scale benchmark after load 4x legend toggle': {
                     timeMs: 449.6370829999996,
@@ -1337,7 +1337,7 @@ export function getData() {
                     heapUsed: 173265112,
                     relativeUsage: 60761704,
                     canvasCount: 37,
-                    canvasBytes: '56.76MB',
+                    canvasBytes: 59520000,
                 },
                 'large-dataset benchmark initial load': {
                     timeMs: 3464.9855000000007,
@@ -1345,7 +1345,7 @@ export function getData() {
                     heapUsed: 829629320,
                     relativeUsage: 684288840,
                     canvasCount: 9,
-                    canvasBytes: '5.50MB',
+                    canvasBytes: 5767168,
                 },
                 'large-dataset benchmark after load 1x legend toggle': {
                     timeMs: 3483.124417000002,
@@ -1353,7 +1353,7 @@ export function getData() {
                     heapUsed: 1007319912,
                     relativeUsage: 163401504,
                     canvasCount: 9,
-                    canvasBytes: '5.50MB',
+                    canvasBytes: 5767168,
                 },
                 'large-dataset benchmark after load 1x datum highlight': {
                     timeMs: 885.3013339999998,
@@ -1361,7 +1361,7 @@ export function getData() {
                     heapUsed: 892275864,
                     relativeUsage: 41302896,
                     canvasCount: 9,
-                    canvasBytes: '5.50MB',
+                    canvasBytes: 5767168,
                 },
                 'large-dataset benchmark after load 4x datum highlight': {
                     timeMs: 2373.631165999999,
@@ -1369,7 +1369,7 @@ export function getData() {
                     heapUsed: 897699984,
                     relativeUsage: 38162104,
                     canvasCount: 9,
-                    canvasBytes: '5.50MB',
+                    canvasBytes: 5767168,
                 },
                 'large-scale multi-series benchmark initial load': {
                     timeMs: 642.506709,
@@ -1377,7 +1377,7 @@ export function getData() {
                     heapUsed: 196289464,
                     relativeUsage: 110828616,
                     canvasCount: 39,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'large-scale multi-series benchmark after load 1x legend toggle': {
                     timeMs: 608.8382499999998,
@@ -1385,7 +1385,7 @@ export function getData() {
                     heapUsed: 202173320,
                     relativeUsage: 61679312,
                     canvasCount: 39,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'large-scale multi-series benchmark after load 4x legend toggle': {
                     timeMs: 1196.6316249999995,
@@ -1393,7 +1393,7 @@ export function getData() {
                     heapUsed: 203478648,
                     relativeUsage: 61844952,
                     canvasCount: 39,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'multi-series benchmark initial load': {
                     timeMs: 248.50300000000004,
@@ -1401,7 +1401,7 @@ export function getData() {
                     heapUsed: 159350096,
                     relativeUsage: 74133000,
                     canvasCount: 42,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'multi-series benchmark after load 1x legend toggle': {
                     timeMs: 107.28220799999986,
@@ -1409,7 +1409,7 @@ export function getData() {
                     heapUsed: 161452120,
                     relativeUsage: 60339592,
                     canvasCount: 42,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'multi-series benchmark after load 10x legend toggle': {
                     timeMs: 458.77804200000037,
@@ -1417,7 +1417,7 @@ export function getData() {
                     heapUsed: 162864944,
                     relativeUsage: 60979080,
                     canvasCount: 42,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'multi-series benchmark after load 1x datum highlight': {
                     timeMs: 57.399167000000034,
@@ -1425,7 +1425,7 @@ export function getData() {
                     heapUsed: 162745376,
                     relativeUsage: 59774032,
                     canvasCount: 42,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'multi-series benchmark after load 15x datum highlight': {
                     timeMs: 811.7671249999999,
@@ -1433,7 +1433,7 @@ export function getData() {
                     heapUsed: 163567608,
                     relativeUsage: 60379328,
                     canvasCount: 42,
-                    canvasBytes: '56.77MB',
+                    canvasBytes: 59520000,
                 },
                 'resize benchmark initial load': {
                     timeMs: 161.57708300000002,
@@ -1441,7 +1441,7 @@ export function getData() {
                     heapUsed: 151021992,
                     relativeUsage: 8270960,
                     canvasCount: 11,
-                    canvasBytes: '1.83MB',
+                    canvasBytes: 1916928,
                 },
                 'resize benchmark after load 10x resize': {
                     timeMs: 52.40604200000007,
@@ -1449,7 +1449,7 @@ export function getData() {
                     heapUsed: 152954304,
                     relativeUsage: 2587696,
                     canvasCount: 11,
-                    canvasBytes: '1.83MB',
+                    canvasBytes: 1916928,
                 },
                 'simple-chart benchmark initial load': {
                     timeMs: 31.739374999999995,
@@ -1457,7 +1457,7 @@ export function getData() {
                     heapUsed: 154465504,
                     relativeUsage: 15597072,
                     canvasCount: 12,
-                    canvasBytes: '5.50MB',
+                    canvasBytes: 5767168,
                 },
                 'simple-chart benchmark after load 1x legend toggle': {
                     timeMs: 13.662191700000005,
@@ -1465,7 +1465,7 @@ export function getData() {
                     heapUsed: 155324448,
                     relativeUsage: 4595216,
                     canvasCount: 11,
-                    canvasBytes: '3.67MB',
+                    canvasBytes: 3846144,
                 },
                 'simple-chart benchmark after load 10x legend toggle': {
                     timeMs: 56.72158329999998,
@@ -1473,7 +1473,7 @@ export function getData() {
                     heapUsed: 156423936,
                     relativeUsage: 5045496,
                     canvasCount: 11,
-                    canvasBytes: '3.67MB',
+                    canvasBytes: 3846144,
                 },
                 'sparkline benchmark initial load': {
                     timeMs: 3.749758834,
@@ -1481,7 +1481,7 @@ export function getData() {
                     heapUsed: 149690720,
                     relativeUsage: 8822480,
                     canvasCount: 2,
-                    canvasBytes: '3.66MB',
+                    canvasBytes: 3833856,
                 },
                 'sparkline benchmark initial load (pooled)': {
                     timeMs: 0.578399582,
@@ -1489,7 +1489,7 @@ export function getData() {
                     heapUsed: 149448800,
                     relativeUsage: 1920000,
                     canvasCount: 1,
-                    canvasBytes: '1.83MB',
+                    canvasBytes: 1916928,
                 },
                 'sparkline benchmark after load update': {
                     timeMs: 0.45483716600000024,
@@ -1497,7 +1497,7 @@ export function getData() {
                     heapUsed: 150527048,
                     relativeUsage: 811560,
                     canvasCount: 0,
-                    canvasBytes: '0.00KB',
+                    canvasBytes: 0,
                 },
                 'sparkline benchmark after load updateDelta': {
                     timeMs: 0.49803849999999966,
@@ -1505,7 +1505,7 @@ export function getData() {
                     heapUsed: 150891528,
                     relativeUsage: 507504,
                     canvasCount: 0,
-                    canvasBytes: '0.00KB',
+                    canvasBytes: 0,
                 },
                 'zoom-large-dataset benchmark initial load': {
                     timeMs: 1659.001917,
@@ -1513,7 +1513,7 @@ export function getData() {
                     heapUsed: 357764928,
                     relativeUsage: 78468536,
                     canvasCount: 9,
-                    canvasBytes: '5.49MB',
+                    canvasBytes: 5756928,
                 },
                 'zoom-large-dataset benchmark after load 100x zoom': {
                     timeMs: 13238.509875,
@@ -1521,7 +1521,7 @@ export function getData() {
                     heapUsed: 350389296,
                     relativeUsage: 1921056,
                     canvasCount: 7,
-                    canvasBytes: '1.83MB',
+                    canvasBytes: 1916928,
                 },
             },
         },
