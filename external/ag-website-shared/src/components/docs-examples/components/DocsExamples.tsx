@@ -1,6 +1,6 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { type FunctionComponent } from 'react';
-import { useMemo, useState } from 'react';
+import { type JSX, useMemo, useState } from 'react';
 
 import { AllCommunityModule } from 'ag-grid-community';
 import type { ColDef } from 'ag-grid-community';
@@ -18,7 +18,10 @@ import { ExampleCountComponent } from './cell-renderers/ExampleCountComponent';
 import { LinkCellRenderer } from './cell-renderers/LinkCellRenderer';
 import { PageCountComponent } from './cell-renderers/PageCountComponent';
 
+export type ExampleProperty = 'isEnterprise' | 'isIntegratedCharts' | 'isLocale' | 'hasExampleConsoleLog';
+
 export interface Props {
+    properties?: ExampleProperty[];
     exampleContents: any[];
 }
 
@@ -34,7 +37,37 @@ const ChartsIcon = () => (
     </span>
 );
 
-export const DocsExamples: FunctionComponent<Props> = ({ exampleContents }) => {
+const ALL_PROPERTIES: {
+    field: ExampleProperty;
+    headerName: string;
+    headerComponent?: () => JSX.Element;
+    minWidth?: number;
+}[] = [
+    {
+        field: 'isEnterprise',
+        headerName: 'Enterprise',
+        headerComponent: EnterpriseIcon,
+        minWidth: 56,
+    },
+    {
+        field: 'isIntegratedCharts',
+        headerName: 'Charts',
+        headerComponent: ChartsIcon,
+        minWidth: 56,
+    },
+    {
+        field: 'isLocale',
+        headerName: 'Locale',
+        minWidth: 110,
+    },
+    {
+        field: 'hasExampleConsoleLog',
+        headerName: 'Log',
+        minWidth: 90,
+    },
+];
+
+export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampleContents }) => {
     const [colDefs] = useState([
         {
             field: 'pageName',
@@ -45,28 +78,8 @@ export const DocsExamples: FunctionComponent<Props> = ({ exampleContents }) => {
             field: 'exampleName',
             hide: true,
         },
-        {
-            field: 'isEnterprise',
-            headerName: 'Enterprise',
-            headerComponent: EnterpriseIcon,
-            minWidth: 56,
-        },
-        {
-            field: 'isIntegratedCharts',
-            headerName: 'Charts',
-            headerComponent: ChartsIcon,
-            minWidth: 56,
-        },
-        {
-            field: 'isLocale',
-            headerName: 'Locale',
-            minWidth: 110,
-        },
-        {
-            field: 'hasExampleConsoleLog',
-            headerName: 'Log',
-            minWidth: 90,
-        },
+        ...ALL_PROPERTIES.filter((property) => properties.includes(property.field)),
+
         {
             headerName: 'React',
             cellRenderer: LinkCellRenderer,
