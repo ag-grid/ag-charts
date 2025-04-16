@@ -1,58 +1,19 @@
 ---
 import { getCollection } from 'astro:content';
-import Layout from '@layouts/Layout.astro';
-import { getDocsExamplePages } from '@components/docs/utils/pageData';
-import { getExampleUrl } from '@components/docs/utils/urlPaths';
+import DebugLayout from '@layouts/DebugLayout.astro';
+import { getDocsExampleContents } from '@components/docs/utils/pageData';
+
+import {
+    DocsExamples,
+    type ExampleProperty,
+} from '@ag-website-shared/components/docs-examples/components/DocsExamples';
 
 const pages = await getCollection('docs');
-const examples = await getDocsExamplePages({
-    pages,
-});
+const exampleContents = await getDocsExampleContents({ pages });
+const properties: ExampleProperty[] = ['isEnterprise', 'hasExampleConsoleLog'];
 ---
 
-<Layout title={`Debug: Docs Example Pages`}>
-    <main class="layout-page-max-width container">
-        <h1>Example pages ({examples.length})</h1>
-        <table>
-            <thead>
-                <th>No.</th>
-                <th>Url</th>
-                <th><code>params.internalFramework</code></th>
-                <th><code>params.pageName</code></th>
-                <th><code>params.exampleName</code></th>
-            </thead>
-            <tbody>
-                {
-                    examples.map((example, index) => {
-                        const { internalFramework, pageName, exampleName } = example.params;
-                        const url = getExampleUrl({
-                            internalFramework,
-                            pageName,
-                            exampleName,
-                        });
-                        return (
-                            <tr>
-                                <td>{index + 1}</td>
-                                <td>
-                                    <a href={url}>{url}</a>
-                                </td>
-                                <td>{internalFramework}</td>
-                                <td>{pageName}</td>
-                                <td>{exampleName}</td>
-                            </tr>
-                        );
-                    })
-                }
-            </tbody>
-        </table>
-    </main>
-</Layout>
-
-<style lang="scss">
-    @use 'design-system' as *;
-
-    .container {
-        margin-top: $spacing-size-12;
-        margin-bottom: calc($spacing-size-12 * 4);
-    }
-</style>
+<DebugLayout title={`Debug: Docs Example Pages`}>
+    <h1>Docs Example Pages</h1>
+    <DocsExamples client:load exampleContents={exampleContents} properties={properties} />
+</DebugLayout>

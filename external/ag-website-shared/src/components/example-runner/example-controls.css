@@ -92,6 +92,7 @@ body > #highlighter {
         background-color 0.25s ease-in-out,
         border-color 0.25s ease-in-out,
         box-shadow 0.25s ease-in-out;
+    align-self: flex-start;
 }
 
 .example-controls :where(button, select, input[type='submit']) {

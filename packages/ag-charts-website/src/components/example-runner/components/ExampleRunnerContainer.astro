@@ -31,9 +31,11 @@ const EXAMPLE_CONSOLE_LOG_HEIGHT = hasExampleConsoleLog ? 100 : 0;
 const minHeight = exampleHeight + FRAME_WRAPPER_HEIGHT + EXAMPLE_CONSOLE_LOG_HEIGHT;
 const maxWidth = exampleWidth;
 const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
+const id = `example-${exampleName}`;
 ---
 
 <div
+    id={id}
     class:list={[
         'container',
         'example-runner-outer',

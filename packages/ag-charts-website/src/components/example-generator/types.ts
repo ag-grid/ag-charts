@@ -14,12 +14,15 @@ export interface GeneratedContents {
     mainFileName: string;
     scriptFiles: string[];
     styleFiles: string[];
+    htmlFiles: string[];
     isEnterprise: boolean;
+    hasLocale: boolean;
+    hasExampleConsoleLog: boolean;
     sourceFileList: string[];
     boilerPlateFiles: FileContents;
     providedExamples: FileContents;
     generatedFiles: FileContents;
-    packageJson: Record<string, string>;
+    packageJson: Record<string, any>;
 }
 
 export type InternalFramework = 'vanilla' | 'typescript' | 'reactFunctional' | 'reactFunctionalTs' | 'angular' | 'vue3';

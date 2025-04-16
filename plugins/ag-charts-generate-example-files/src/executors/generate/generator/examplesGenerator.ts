@@ -141,7 +141,8 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         }
 
         if (hasExampleConsoleLog) {
-            transformedEntryFile = transformedEntryFile + '\n' + getConsoleLogSnippet({ pageName, exampleName });
+            transformedEntryFile =
+                transformedEntryFile + '\n' + getConsoleLogSnippet({ pageName, exampleName, logError: isDev });
         }
 
         return transformedEntryFile;
@@ -159,7 +160,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         folderPath,
         internalFramework,
     });
-    const hasExampleConsoleLog = getHasExampleConsoleLog({ entryFile });
+    const hasExampleConsoleLog = getHasExampleConsoleLog({ contents: entryFile });
     const mainEntryFilename = getEntryFileName(internalFramework);
     const providedExampleEntries = await Promise.all(
         providedExampleFileNames.map(async (fileName) => {

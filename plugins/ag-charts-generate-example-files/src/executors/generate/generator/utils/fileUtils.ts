@@ -155,6 +155,6 @@ export const getIsEnterprise = ({ entryFile }: { entryFile: string }) => entryFi
 
 export const getHasLocale = ({ entryFile }: { entryFile: string }) => entryFile?.includes('ag-charts-locale');
 
-export const getHasExampleConsoleLog = ({ entryFile }: { entryFile: string }) => {
-    return entryFile?.includes('console.log');
+export const getHasExampleConsoleLog = ({ contents }: { contents: string }) => {
+    return contents?.includes('console.log');
 };
