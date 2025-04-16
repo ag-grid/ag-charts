@@ -2,7 +2,7 @@ import { type FunctionComponent, useCallback, useRef } from 'react';
 import { useMemo, useState } from 'react';
 
 import { AllCommunityModule } from 'ag-grid-community';
-import type { ColDef, ColumnState } from 'ag-grid-community';
+import type { ColDef, ColGroupDef, ColumnState } from 'ag-grid-community';
 import {
     ColumnsToolPanelModule,
     FiltersToolPanelModule,
@@ -18,6 +18,7 @@ import { ChartsHeaderComponent } from './cell-renderers/ChartsHeaderComponent';
 import { EnterpriseCellRenderer } from './cell-renderers/EnterpriseCellRenderer';
 import { EnterpriseHeaderComponent } from './cell-renderers/EnterpriseHeaderComponent';
 import { ExampleCountComponent } from './cell-renderers/ExampleCountComponent';
+import { FrameworkLogoCellRenderer } from './cell-renderers/FrameworkLogoCellRenderer';
 import { LinkCellRenderer } from './cell-renderers/LinkCellRenderer';
 import { PageCountComponent } from './cell-renderers/PageCountComponent';
 
@@ -69,7 +70,7 @@ const ALL_PROPERTIES: (ColDef & {
 
 export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampleContents }) => {
     const gridRef = useRef<AgGridReact>(null);
-    const [colDefs] = useState<ColDef[]>([
+    const [colDefs] = useState<(ColDef | ColGroupDef)[]>([
         {
             field: 'pageName',
             rowGroup: true,
@@ -84,39 +85,73 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
 
         {
             headerName: 'React',
-            cellRenderer: LinkCellRenderer,
-            filter: false,
-            minWidth: 200,
-        },
-        {
-            headerName: 'React TS',
-            cellRenderer: LinkCellRenderer,
-            filter: false,
-            minWidth: 200,
+            headerGroupComponentParams: {
+                innerHeaderGroupComponent: FrameworkLogoCellRenderer,
+                innerHeaderGroupComponentParams: {
+                    framework: 'react',
+                },
+            },
+            children: [
+                {
+                    headerName: 'React',
+                    cellRenderer: LinkCellRenderer,
+                    filter: false,
+                    minWidth: 200,
+                },
+                {
+                    headerName: 'React TS',
+                    cellRenderer: LinkCellRenderer,
+                    filter: false,
+                    minWidth: 200,
+                },
+            ],
         },
         {
             headerName: 'Angular',
+            headerComponentParams: {
+                innerHeaderComponent: FrameworkLogoCellRenderer,
+                innerHeaderComponentParams: {
+                    framework: 'angular',
+                },
+            },
             cellRenderer: LinkCellRenderer,
             filter: false,
             minWidth: 200,
         },
         {
             headerName: 'Vue',
+            headerComponentParams: {
+                innerHeaderComponent: FrameworkLogoCellRenderer,
+                innerHeaderComponentParams: {
+                    framework: 'vue',
+                },
+            },
             cellRenderer: LinkCellRenderer,
             filter: false,
             minWidth: 200,
         },
         {
             headerName: 'JavaScript',
-            cellRenderer: LinkCellRenderer,
-            filter: false,
-            minWidth: 200,
-        },
-        {
-            headerName: 'Typescript',
-            cellRenderer: LinkCellRenderer,
-            filter: false,
-            minWidth: 200,
+            headerGroupComponentParams: {
+                innerHeaderGroupComponent: FrameworkLogoCellRenderer,
+                innerHeaderGroupComponentParams: {
+                    framework: 'javascript',
+                },
+            },
+            children: [
+                {
+                    headerName: 'Vanilla JS',
+                    cellRenderer: LinkCellRenderer,
+                    filter: false,
+                    minWidth: 200,
+                },
+                {
+                    headerName: 'Typescript',
+                    cellRenderer: LinkCellRenderer,
+                    filter: false,
+                    minWidth: 200,
+                },
+            ],
         },
     ]);
     const [colState, setColState] = useState<ColumnState[]>();
