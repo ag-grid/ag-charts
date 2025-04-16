@@ -34,6 +34,8 @@ export class FibonacciProperties extends LineTypeProperties {
                 return this.rangeStroke ?? this.stroke;
             case 'text-color':
                 return this.text.color;
+            default:
+                colorPickerType satisfies 'fill-color';
         }
     }
 }

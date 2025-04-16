@@ -670,6 +670,8 @@ function palette(value: string | Array<unknown>, path: string[], params: any, so
                 return circularSliceArray(p.sequentialColors, 1, index)[0];
             case 'range2':
                 return circularSliceArray(p.fills, 2, index);
+            default:
+                value satisfies string;
         }
 
         return;

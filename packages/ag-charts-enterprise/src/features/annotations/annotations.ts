@@ -1101,6 +1101,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             case 'Delete':
                 this.onDelete();
                 return;
+            default:
+                sourceEvent.key satisfies string;
         }
 
         if (translation.x || translation.y) {
@@ -1126,6 +1128,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 state.transition('paste');
                 this.recordActionAfterNextUpdate('Paste annotation');
                 return;
+            default:
+                sourceEvent.key satisfies string;
         }
     }
 

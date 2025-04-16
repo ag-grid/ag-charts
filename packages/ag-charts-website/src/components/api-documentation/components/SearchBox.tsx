@@ -142,6 +142,8 @@ function useSearch(
                     handleClick(data[selectedIndex]);
                 }
                 break;
+            default:
+                event.key satisfies string;
         }
     };
 

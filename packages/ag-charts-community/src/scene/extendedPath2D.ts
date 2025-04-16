@@ -7,13 +7,14 @@ import { BBox } from './bbox';
 import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
 import { calculateDerivativeExtremaXY, evaluateBezier } from './util/bezier';
 
-enum Command {
+enum CommandEnum {
     Move,
     Line,
     Arc,
     Curve,
     ClosePath,
 }
+type Command = CommandEnum.Move | CommandEnum.Line | CommandEnum.Arc | CommandEnum.Curve | CommandEnum.ClosePath;
 
 export class ExtendedPath2D {
     // The methods of this class will likely be called many times per animation frame,
@@ -52,14 +53,14 @@ export class ExtendedPath2D {
     moveTo(x: number, y: number) {
         this.openedPath = true;
         this.path2d.moveTo(x, y);
-        this.commands.push(Command.Move);
+        this.commands.push(CommandEnum.Move);
         this.params.push(x, y);
     }
 
     lineTo(x: number, y: number) {
         if (this.openedPath) {
             this.path2d.lineTo(x, y);
-            this.commands.push(Command.Line);
+            this.commands.push(CommandEnum.Line);
             this.params.push(x, y);
         } else {
             this.moveTo(x, y);
@@ -390,7 +391,7 @@ export class ExtendedPath2D {
     arc(x: number, y: number, r: number, sAngle: number, eAngle: number, counterClockwise?: boolean) {
         this.openedPath = true;
         this.path2d.arc(x, y, r, sAngle, eAngle, counterClockwise);
-        this.commands.push(Command.Arc);
+        this.commands.push(CommandEnum.Arc);
         this.params.push(x, y, r, sAngle, eAngle, counterClockwise ? 1 : 0);
     }
 
@@ -399,14 +400,14 @@ export class ExtendedPath2D {
             this.moveTo(cx1, cy1);
         }
         this.path2d.bezierCurveTo(cx1, cy1, cx2, cy2, x, y);
-        this.commands.push(Command.Curve);
+        this.commands.push(CommandEnum.Curve);
         this.params.push(cx1, cy1, cx2, cy2, x, y);
     }
 
     closePath() {
         if (this.openedPath) {
             this.path2d.closePath();
-            this.commands.push(Command.ClosePath);
+            this.commands.push(CommandEnum.ClosePath);
             this.openedPath = false;
             this.closedPath = true;
         }
@@ -452,20 +453,21 @@ export class ExtendedPath2D {
         let intersectionCount = 0;
 
         for (let ci = 0, pi = 0; ci < cn; ci++) {
-            switch (commands[ci]) {
-                case Command.Move:
+            const command = commands[ci];
+            switch (command) {
+                case CommandEnum.Move:
                     intersectionCount += segmentIntersection(sx, sy, px, py, ox, oy, x, y);
                     px = params[pi++];
                     sx = px;
                     py = params[pi++];
                     sy = py;
                     break;
-                case Command.Line:
+                case CommandEnum.Line:
                     intersectionCount += segmentIntersection(px, py, params[pi++], params[pi++], ox, oy, x, y);
                     px = params[pi - 2];
                     py = params[pi - 1];
                     break;
-                case Command.Curve:
+                case CommandEnum.Curve:
                     intersectionCount += cubicSegmentIntersections(
                         px,
                         py,
@@ -483,7 +485,7 @@ export class ExtendedPath2D {
                     px = params[pi - 2];
                     py = params[pi - 1];
                     break;
-                case Command.Arc: {
+                case CommandEnum.Arc: {
                     const cx = params[pi++];
                     const cy = params[pi++];
                     const r = params[pi++];
@@ -513,9 +515,11 @@ export class ExtendedPath2D {
                     py = cy + Math.sin(endAngle) * r;
                     break;
                 }
-                case Command.ClosePath:
+                case CommandEnum.ClosePath:
                     intersectionCount += segmentIntersection(sx, sy, px, py, ox, oy, x, y);
                     break;
+                default:
+                    command satisfies never;
             }
         }
 
@@ -535,21 +539,22 @@ export class ExtendedPath2D {
         let py = 0;
 
         for (let ci = 0, pi = 0; ci < cn; ci++) {
-            switch (commands[ci]) {
-                case Command.Move:
+            const command = commands[ci];
+            switch (command) {
+                case CommandEnum.Move:
                     px = sx = params[pi++];
                     py = sy = params[pi++];
                     break;
-                case Command.Line: {
+                case CommandEnum.Line: {
                     const nx = params[pi++];
                     const ny = params[pi++];
                     best = lineDistanceSquared(x, y, px, py, nx, ny, best);
                     break;
                 }
-                case Command.Curve:
-                    Logger.error('Command.Curve distanceSquare not implemented');
+                case CommandEnum.Curve:
+                    Logger.error('CommandEnum.Curve distanceSquare not implemented');
                     break;
-                case Command.Arc: {
+                case CommandEnum.Arc: {
                     const cx = params[pi++];
                     const cy = params[pi++];
                     const r = params[pi++];
@@ -564,9 +569,11 @@ export class ExtendedPath2D {
                     py = cy + Math.sin(endAngle) * r;
                     break;
                 }
-                case Command.ClosePath:
+                case CommandEnum.ClosePath:
                     best = lineDistanceSquared(x, y, px, py, sx, sy, best);
                     break;
+                default:
+                    command satisfies never;
             }
         }
 
@@ -589,16 +596,16 @@ export class ExtendedPath2D {
         let pi = 0;
         for (const command of commands) {
             switch (command) {
-                case Command.Move:
+                case CommandEnum.Move:
                     addCommand('M', params[pi++], params[pi++]);
                     break;
-                case Command.Line:
+                case CommandEnum.Line:
                     addCommand('L', params[pi++], params[pi++]);
                     break;
-                case Command.Curve:
+                case CommandEnum.Curve:
                     addCommand('C', params[pi++], params[pi++], params[pi++], params[pi++], params[pi++], params[pi++]);
                     break;
-                case Command.Arc: {
+                case CommandEnum.Arc: {
                     const cx = params[pi++];
                     const cy = params[pi++];
                     const r = params[pi++];
@@ -646,9 +653,11 @@ export class ExtendedPath2D {
                     }
                     break;
                 }
-                case Command.ClosePath:
+                case CommandEnum.ClosePath:
                     buffer.push('Z');
                     break;
+                default:
+                    command satisfies never;
             }
         }
 
@@ -680,14 +689,14 @@ export class ExtendedPath2D {
         let pi = 0;
         for (const command of commands) {
             switch (command) {
-                case Command.Move:
+                case CommandEnum.Move:
                     joinPoint(params[pi++], params[pi++], true);
                     [mx, my] = [sx, sy];
                     break;
-                case Command.Line:
+                case CommandEnum.Line:
                     joinPoint(params[pi++], params[pi++], true);
                     break;
-                case Command.Curve: {
+                case CommandEnum.Curve: {
                     const cp1x = params[pi++];
                     const cp1y = params[pi++];
                     const cp2x = params[pi++];
@@ -707,7 +716,7 @@ export class ExtendedPath2D {
                     joinPoint(x, y, true);
                     break;
                 }
-                case Command.Arc: {
+                case CommandEnum.Arc: {
                     const cx = params[pi++];
                     const cy = params[pi++];
                     const r = params[pi++];
@@ -726,9 +735,11 @@ export class ExtendedPath2D {
                     joinAngle(cx, cy, r, a1, true);
                     break;
                 }
-                case Command.ClosePath:
+                case CommandEnum.ClosePath:
                     [sx, sy] = [mx, my];
                     break;
+                default:
+                    command satisfies never;
             }
         }
 

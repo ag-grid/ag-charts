@@ -107,6 +107,8 @@ function updatePath(pathData: string, path: AgPath, scale: number, x: number, y:
             case 'z':
                 path.closePath();
                 break;
+            default:
+                throw new Error(`unknown command ${command}`);
         }
     }
 }

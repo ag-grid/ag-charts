@@ -125,6 +125,8 @@ export class Color implements IColor {
                     .map((p) => parseInt(p, 16))
                     .map((p) => p + p * 16);
                 break;
+            default:
+                input.length satisfies number;
         }
 
         if (parts?.length >= 3 && parts.every((p: number) => p >= 0)) {
@@ -420,9 +422,8 @@ export class Color implements IColor {
             const p = B * (1 - S);
             const q = B * (1 - S * f);
             const t = B * (1 - S * (1 - f));
-            switch (
-                h >> 0 // discard the floating point part of the number
-            ) {
+            const hShift = h >> 0; // discard the floating point part of the number
+            switch (hShift) {
                 case 0:
                     r = B;
                     g = t;
@@ -453,6 +454,8 @@ export class Color implements IColor {
                     g = p;
                     b = q;
                     break;
+                default:
+                    hShift satisfies number;
             }
         }
         return [r, g, b];

@@ -285,7 +285,8 @@ export class Animation<T extends AnimationValue> implements IAnimation {
         }
 
         try {
-            switch (typeof a) {
+            const type = typeof a;
+            switch (type) {
                 case 'number':
                     return interpolateNumber(a, b);
                 case 'string':
@@ -297,6 +298,8 @@ export class Animation<T extends AnimationValue> implements IAnimation {
                     break;
                 case 'object':
                     return () => a;
+                default:
+                    (type) satisfies 'symbol' | 'bigint' | 'undefined' | 'function';
             }
         } catch {
             // Error-case handled below.

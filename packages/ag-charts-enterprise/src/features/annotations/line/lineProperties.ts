@@ -20,6 +20,8 @@ export abstract class LineTypeProperties extends Localisable(
                 return this.stroke;
             case 'text-color':
                 return this.text.color;
+            default:
+                colorPickerType satisfies 'fill-color';
         }
     }
 

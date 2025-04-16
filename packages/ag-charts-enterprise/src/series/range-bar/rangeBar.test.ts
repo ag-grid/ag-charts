@@ -221,6 +221,8 @@ describe('RangeBarSeries', () => {
                     case 'top':
                         axis.position = 'right';
                         break;
+                    default:
+                        axis.position satisfies undefined;
                 }
             });
         }

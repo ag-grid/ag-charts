@@ -720,6 +720,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
                 this.updateRequestors = {};
                 this._performUpdateSkipAnimations = false;
                 ctx.animationManager.endBatch();
+
+            // fallthrough
+            default:
+                performUpdateType satisfies ChartUpdateType;
         }
 
         if (!this.destroyed) {

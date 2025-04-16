@@ -397,6 +397,12 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
                 case AnnotationOptions.TextSize:
                     this.textSizeMenu.setAnchor(anchor, fallbackAnchor);
                     break;
+
+                default:
+                    button.value satisfies Exclude<
+                        AnnotationOptions,
+                        AnnotationOptions.LineStrokeWidth | AnnotationOptions.LineStyleType | AnnotationOptions.TextSize
+                    >;
             }
         }
     }

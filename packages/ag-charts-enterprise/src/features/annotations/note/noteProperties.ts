@@ -44,15 +44,18 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
                 return this.fill;
             case `text-color`:
                 return this.color;
+            default:
+                colorPickerType satisfies 'fill-color';
         }
     }
 
     override getDefaultOpacity(colorPickerType: AnnotationOptionsColorPickerType) {
+        // eslint-disable-next-line sonarjs/no-small-switch
         switch (colorPickerType) {
             case `line-color`:
                 return this.fillOpacity;
-            case `text-color`:
-                return undefined;
+            default:
+                colorPickerType satisfies 'text-color' | 'fill-color';
         }
     }
 

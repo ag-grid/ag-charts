@@ -734,6 +734,8 @@ describe('ErrorBars', () => {
                     stroke = 'gold';
                     cap = { lengthRatio: 0.5 };
                     break;
+                default:
+                    throw new Error(`unknown month ${params.datum[params.xKey]}`);
             }
             return { stroke, cap };
         };

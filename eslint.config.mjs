@@ -106,6 +106,7 @@ export default [
     {
         files: ['**/*.{js,ts,tsx}'],
         rules: {
+            'default-case': 2,
             'no-lonely-if': 2,
             'no-negated-condition': 1,
             'no-nested-ternary': 2,

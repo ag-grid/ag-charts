@@ -210,6 +210,9 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
                 this.width -= value * 2;
                 this.height -= value * 2;
                 break;
+
+            default:
+                position satisfies never;
         }
     }
 

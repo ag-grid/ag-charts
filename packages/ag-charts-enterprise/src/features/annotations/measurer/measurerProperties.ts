@@ -67,6 +67,8 @@ export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineSt
                 return this.background.fillOpacity;
             case `line-color`:
                 return this.strokeOpacity;
+            default:
+                colorPickerType satisfies 'text-color';
         }
     }
 

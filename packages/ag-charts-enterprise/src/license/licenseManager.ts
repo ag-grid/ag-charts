@@ -141,7 +141,10 @@ export class LicenseManager {
                                 handleTrial();
                             }
                         }
+                        break;
                     }
+                    default:
+                        version satisfies string | null;
                 }
             }
         }
