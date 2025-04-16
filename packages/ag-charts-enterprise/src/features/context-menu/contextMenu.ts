@@ -49,7 +49,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     // HTML elements
     private readonly element: HTMLElement;
-    private menuWidget: _Widget.MenuWidget = new _Widget.MenuWidget();
+    private readonly menuWidget: _Widget.MenuWidget = new _Widget.MenuWidget();
     private readonly mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
