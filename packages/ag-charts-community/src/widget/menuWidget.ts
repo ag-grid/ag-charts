@@ -67,6 +67,7 @@ export class MenuWidget extends RovingTabContainerWidget {
     private selfClose() {
         if (this.openScope === undefined) return;
         const { lastFocus, lastFocusAborted, removers } = this.openScope;
+        this.openScope = undefined; // stop re-entrance
 
         setAttribute(lastFocus, 'aria-expanded', false);
         if (!lastFocusAborted) {
@@ -75,7 +76,6 @@ export class MenuWidget extends RovingTabContainerWidget {
         removers.destroy();
 
         this.internalListener?.dispatch('close-widget', this, { type: 'close-widget' });
-        this.openScope = undefined;
     }
 
     public close() {
