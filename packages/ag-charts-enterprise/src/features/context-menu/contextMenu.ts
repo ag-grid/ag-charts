@@ -1,6 +1,6 @@
 import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, clamp, createElement, isNever } from 'ag-charts-core';
+import { Logger, clamp, createElement } from 'ag-charts-core';
 
 import { ContextMenuItem, appendItem, expandBuiltin } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
@@ -257,7 +257,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 case 'submenu':
                     break;
                 default:
-                    isNever(item.type);
+                    throw new Error('unhandled case');
             }
         }
 
