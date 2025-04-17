@@ -14,7 +14,7 @@ const { id, title = 'Video', showHeader } = Astro.props as Props;
 
 <div class={styles.videoSection}>
     <div>
-        <div class={styles.dragContainer}>
+        <div class={styles.deviceContainer}>
             <div class={styles.deviceContent} class:list={{ [styles.videoContent]: showHeader }}><slot /></div>
             <img
                 src="/charts/images/ipad-pro-clay.png"
