@@ -18,10 +18,14 @@ test.describe('synchronised', () => {
 
                 test.skip('should animate on legend toggle', async ({ page }) => {
                     await gotoExample(page, url);
-                    const wrappers = page.locator(SELECTORS.wrapper);
-                    const legendLocator = page.locator(SELECTORS.legendItems);
+                    const wrapper1 = page.locator(`#myChart1 ${SELECTORS.wrapper}`);
+                    const wrapper2 = page.locator(`#myChart2 ${SELECTORS.wrapper}`);
+                    const legendItems1 = page.locator(`#myChart1 ${SELECTORS.legendItems}`);
+                    const legendItems2 = page.locator(`#myChart2 ${SELECTORS.legendItems}`);
 
-                    await expect(legendLocator).toHaveCount(6);
+                    await expect(legendItems1).toHaveCount(3);
+                    await expect(legendItems2).toHaveCount(3);
+
                     // Dependent on data setup:
                     // 1st series has smaller domain in 1st chart vs 2nd chart, so toggling it in 2nd chart animates the 1st chart.
                     // 2nd & 3rd series have similar domains, so toggling them has in one chart has no effect on the other chart.
@@ -37,26 +41,26 @@ test.describe('synchronised', () => {
                     ];
 
                     const animationOptions = { timeout: 100 }; // Timeout quickly so the animation ending isn't treated as a success for `false` cases.
-                    const legendItems = await legendLocator.all();
+                    const legendItems = [...(await legendItems1.all()), ...(await legendItems2.all())];
                     for (let i = 0; i < legendItems.length; i++) {
                         // Toggle the legend item to hide a series.
                         await legendItems[i].hover();
                         await legendItems[i].click();
 
                         // Check the animation state of the charts.
-                        await expect(wrappers.nth(0)).toHaveAttribute(
+                        await expect(wrapper1).toHaveAttribute(
                             'data-animating',
                             String(expectations[i].chart1Animated),
                             animationOptions
                         );
-                        await expect(wrappers.nth(1)).toHaveAttribute(
+                        await expect(wrapper2).toHaveAttribute(
                             'data-animating',
                             String(expectations[i].chart2Animated),
                             animationOptions
                         );
 
-                        await waitForChartUpdate(wrappers.nth(0));
-                        await waitForChartUpdate(wrappers.nth(1));
+                        await waitForChartUpdate(wrapper1);
+                        await waitForChartUpdate(wrapper2);
 
                         await expect(page).toHaveScreenshot(`legend-toggle-${i}.png`);
 
@@ -64,19 +68,19 @@ test.describe('synchronised', () => {
                         await legendItems[i].click();
 
                         // Check the animation state of the charts.
-                        await expect(wrappers.nth(0)).toHaveAttribute(
+                        await expect(wrapper1).toHaveAttribute(
                             'data-animating',
                             String(expectations[i].chart1Animated),
                             animationOptions
                         );
-                        await expect(wrappers.nth(1)).toHaveAttribute(
+                        await expect(wrapper2).toHaveAttribute(
                             'data-animating',
                             String(expectations[i].chart2Animated),
                             animationOptions
                         );
 
-                        await waitForChartUpdate(wrappers.nth(0));
-                        await waitForChartUpdate(wrappers.nth(1));
+                        await waitForChartUpdate(wrapper1);
+                        await waitForChartUpdate(wrapper2);
                     }
                 });
             });
@@ -126,7 +130,7 @@ test.describe('synchronised', () => {
                     await expect(page).toHaveScreenshot('tooltip-replicated.png');
                 });
 
-                test.skip('should not replicate tooltip for hidden series', async ({ page }) => {
+                test('should not replicate tooltip for hidden series', async ({ page }) => {
                     await gotoExample(page, url);
 
                     const wrappers = page.locator(SELECTORS.wrapper);
@@ -137,11 +141,16 @@ test.describe('synchronised', () => {
                     await waitForChartUpdate(wrappers.nth(0));
                     await waitForChartUpdate(wrappers.nth(1));
 
-                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Shift+Tab');
+                    await page.keyboard.press('Shift+Tab');
+                    await page.keyboard.press('Shift+Tab');
                     await expect(tooltipLocator).toHaveCount(2);
                     await expect(tooltipLocator.nth(0)).toBeVisible();
                     await expect(tooltipLocator.nth(1)).not.toBeVisible();
-                    expect(await tooltipLocator.allTextContents()).toMatchObject(['b9.3.0 Time 29ms']);
+                    expect(await tooltipLocator.allTextContents()).toMatchObject([
+                        'b9.3.0 Time 29ms',
+                        expect.anything(), // Skip invisible tooltip.
+                    ]);
 
                     await expect(page).toHaveScreenshot('tooltip-hidden-series.png');
                 });
@@ -230,7 +239,7 @@ test.describe('synchronised', () => {
                     await expect(page).toHaveScreenshot('crosshair-replicated.png');
                 });
 
-                test.skip('should not replicate crosshair for hidden series', async ({ page }) => {
+                test('should not replicate crosshair for hidden series', async ({ page }) => {
                     await gotoExample(page, url);
 
                     const wrappers = page.locator(SELECTORS.wrapper);
@@ -243,19 +252,20 @@ test.describe('synchronised', () => {
                     await waitForChartUpdate(wrappers.nth(0));
                     await waitForChartUpdate(wrappers.nth(1));
 
-                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Shift+Tab');
+                    await page.keyboard.press('Shift+Tab');
+                    await page.keyboard.press('Shift+Tab');
                     await page.keyboard.press('ArrowDown'); // Force 2nd set of y-axis crosshairs to render
                     await page.keyboard.press('ArrowUp'); // 1st series.
 
-                    await expect(crosshairLocator).toHaveCount(4);
+                    await expect(crosshairLocator).toHaveCount(3);
                     await expect(crosshairLocator.nth(0)).toBeVisible();
                     await expect(crosshairLocator.nth(1)).not.toBeVisible();
                     await expect(crosshairLocator.nth(2)).not.toBeVisible();
-                    await expect(crosshairLocator.nth(3)).not.toBeVisible();
                     expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
                         '29ms',
                         expect.anything(), // Skip invisible axis.
-                        expect.anything(), // Skip invisible axis.
+                        // No 3rd axis (left axis on 2nd chart) is disabled due to no active series.
                         expect.anything(), // Skip invisible axis.
                     ]);
                     await expect(page).toHaveScreenshot('crosshair-hidden-data.png');
