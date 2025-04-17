@@ -1,5 +1,3 @@
-import type { MouseWidgetEvent } from 'packages/ag-charts-community/src/module-support';
-
 import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { Logger, clamp } from 'ag-charts-core';

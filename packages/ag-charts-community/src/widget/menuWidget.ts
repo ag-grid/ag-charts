@@ -1,7 +1,7 @@
 import { getDocument } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
-import { setAttribute } from '../module-support';
+import { setAttribute } from '../util/attributeUtil';
 import { DestroyFns } from '../util/destroy';
 import {
     addAutoCloseOnBlurEventListener,
