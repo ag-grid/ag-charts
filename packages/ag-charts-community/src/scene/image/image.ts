@@ -1,7 +1,6 @@
 import { type InternalAgImageFill, createSvgElement } from 'ag-charts-core';
 import type { AgColorRepetition, AgImageFillFit } from 'ag-charts-types';
 
-import { normalizeAngle360, toRadians } from '../../util/angle';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import type { Node } from '../node';
 import type { ImageLoader } from './imageLoader';
