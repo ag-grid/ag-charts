@@ -303,7 +303,7 @@ jobs:
                   set -x
                   if [[ "${{github.head_ref || github.ref}}" == "refs/heads/latest" ]] ; then
                       git fetch origin ${{github.head_ref || github.ref}}
-                      git switch ${{github.head_ref || github.ref}}
+                      git switch latest
                   fi
 
                   git checkout -b ${{needs.init.outputs.snapshot_branch}}
