@@ -100,9 +100,8 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
 export const FILL_IMAGE_DEFAULTS: WithThemeParams<RequiredInternalAgImageFill> = {
     type: 'image',
     backgroundFill: { $palette: 'fillFallback' },
-    repetition: 'repeat',
-    fit: 'stretch',
-    scale: 1,
+    repetition: 'no-repeat',
+    fit: 'contain',
     rotation: 0,
 };
 
