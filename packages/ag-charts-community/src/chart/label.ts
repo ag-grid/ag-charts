@@ -217,14 +217,8 @@ export function createLabelData(
     for (const { tickLabel: text, translationY } of tickData) {
         if (!text) continue;
 
+        const { x, y } = labelMatrix.transformBBox(new BBox(labelX, translationY, 0, 0));
         const { width, height } = textMeasurer.measureLines(text);
-        const bbox = new BBox(labelX, translationY, width, height);
-        const translatedBBox = new BBox(labelX, translationY, 0, 0);
-
-        labelMatrix.transformBBox(translatedBBox, bbox);
-
-        const { x, y } = bbox;
-
         labelData.push({
             point: { x, y },
             label: { text, width, height },
@@ -239,17 +233,15 @@ export function createFixedLabelData(
     labelX: number,
     labelMatrix: Matrix
 ): PlacedLabelDatum[] {
-    const bbox1 = labelMatrix.transformBBox(new BBox(labelX, 0, 0, 0), new BBox(labelX, 0, width, height));
-    const bbox2 = labelMatrix.transformBBox(new BBox(labelX, spacing, 0, 0), new BBox(labelX, spacing, width, height));
+    const labelData: PlacedLabelDatum[] = [];
 
-    return [
-        {
-            point: { x: bbox1.x, y: bbox1.y },
+    for (const translationY of [0, spacing]) {
+        const { x, y } = labelMatrix.transformBBox(new BBox(labelX, translationY, 0, 0));
+        labelData.push({
+            point: { x, y },
             label: { text: undefined!, width, height },
-        },
-        {
-            point: { x: bbox2.x, y: bbox2.y },
-            label: { text: undefined!, width, height },
-        },
-    ];
+        });
+    }
+
+    return labelData;
 }
