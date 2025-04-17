@@ -124,16 +124,19 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     ) {
         const { syncManager } = this.moduleContext;
 
+        const { domainsByKey = {} } = syncManager.getGroupState(this.groupId) ?? {};
+        const hasKeyBasedDomains = Object.keys(domainsByKey).length > 0;
         for (const [chart, axis] of syncManager.getGroupSiblingAxes(this.groupId)) {
             if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
             if (!CartesianAxis.is(axis) || axis.direction !== mainDirection) continue;
 
             // Find matching nodes for the main direction.
             let matchingNodes = chart.series
+                .filter((s) => s.visible)
                 .map(this.findMatchingNodes(axis, mainDirection, valueIsDate, eventValue))
                 .filter(isDefined);
 
-            if (matchingNodes.length > 1) {
+            if (this.domainMode === 'key' && hasKeyBasedDomains) {
                 const secondaryKey = `${secondaryDirection}Key` as const;
                 const secondaryValue = _ModuleSupport.isObjectWithProperty(event.currentHighlight, secondaryKey)
                     ? event.currentHighlight?.[secondaryKey]
