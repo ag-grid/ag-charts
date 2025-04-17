@@ -33,7 +33,7 @@ const {
     motion,
     checkCrisp,
     createDatumId,
-    applyShapeFillBBox,
+    applyShapeStyle,
     getShapeStyle,
     getShapeFill,
 } = _ModuleSupport;
@@ -504,14 +504,21 @@ export abstract class BaseFunnelSeries<
                 fillPatternDefaults,
                 fillImageDefaults
             );
-            connector.fill = connectorFill;
-            applyShapeFillBBox(connector, connectorFill, fillBBox);
-            connector.fillOpacity = fillOpacity;
-            connector.stroke = stroke ?? strokes[datumIndex % strokes.length];
-            connector.strokeOpacity = strokeOpacity;
-            connector.strokeWidth = strokeWidth;
-            connector.lineDash = lineDash;
-            connector.lineDashOffset = lineDashOffset;
+
+            applyShapeStyle(
+                connector,
+                {
+                    fill: connectorFill,
+                    stroke: stroke ?? strokes[datumIndex % strokes.length],
+                    fillOpacity,
+                    strokeOpacity,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                },
+                undefined,
+                fillBBox
+            );
         });
     }
 

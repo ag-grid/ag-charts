@@ -47,6 +47,7 @@ const {
     findMinMax,
     getShapeStyle,
     getShapeFill,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 class RangeAreaSeriesNodeEvent<
@@ -451,17 +452,25 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         applyShapeFillBBox(fill, seriesFill, fillBBox);
 
+        applyShapeStyle(
+            fill,
+            {
+                stroke: undefined,
+                fill: seriesFill,
+                fillOpacity: this.properties.fillOpacity,
+                lineDash: this.properties.lineDash,
+                lineDashOffset: this.properties.lineDashOffset,
+                strokeOpacity: this.properties.strokeOpacity,
+                strokeWidth,
+            },
+            undefined,
+            fillBBox
+        );
+
         fill.setProperties({
-            stroke: undefined,
-            lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            fill: seriesFill,
-            fillOpacity: this.properties.fillOpacity,
-            lineDash: this.properties.lineDash,
-            lineDashOffset: this.properties.lineDashOffset,
-            strokeOpacity: this.properties.strokeOpacity,
+            lineJoin: 'round',
             fillShadow: this.properties.shadow,
-            strokeWidth,
             opacity,
             visible: visible || animationEnabled,
         });

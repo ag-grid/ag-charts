@@ -5,7 +5,7 @@ import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { createDatumId, isGradientFill, isPatternFill, isImageFill, applyShapeFillBBox, getShapeFill, getShapeStyle } =
+const { createDatumId, isGradientFill, isPatternFill, isImageFill, getShapeFill, applyShapeStyle, getShapeStyle } =
     _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, CandlestickSeriesProperties<any>> {
@@ -106,15 +106,21 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             const risingStyle = isRising ? upStyle : downStyle;
             const risingWickStyle = isRising ? up.wick : down.wick;
 
-            const fill = highlightStyle?.fill ?? style?.fill ?? risingStyle.fill;
-            applyShapeFillBBox(node, fill, this.getShapeFillBBox());
-            node.fill = highlightStyle?.fill ?? style?.fill ?? risingStyle.fill;
-            node.fillOpacity = highlightStyle?.fillOpacity ?? style?.fillOpacity ?? risingStyle.fillOpacity;
-            node.stroke = highlightStyle?.stroke ?? style?.stroke ?? risingStyle.stroke;
-            node.strokeWidth = highlightStyle?.strokeWidth ?? style?.strokeWidth ?? risingStyle.strokeWidth;
-            node.strokeOpacity = highlightStyle?.strokeOpacity ?? style?.strokeOpacity ?? risingStyle.strokeOpacity;
-            node.lineDash = highlightStyle?.lineDash ?? style?.lineDash ?? risingStyle.lineDash;
-            node.lineDashOffset = highlightStyle?.lineDashOffset ?? style?.lineDashOffset ?? risingStyle.lineDashOffset;
+            applyShapeStyle(
+                node,
+                {
+                    fill: highlightStyle?.fill ?? style?.fill ?? risingStyle.fill,
+                    fillOpacity: highlightStyle?.fillOpacity ?? style?.fillOpacity ?? risingStyle.fillOpacity,
+                    stroke: highlightStyle?.stroke ?? style?.stroke ?? risingStyle.stroke,
+                    strokeWidth: highlightStyle?.strokeWidth ?? style?.strokeWidth ?? risingStyle.strokeWidth,
+                    strokeOpacity: highlightStyle?.strokeOpacity ?? style?.strokeOpacity ?? risingStyle.strokeOpacity,
+                    lineDash: highlightStyle?.lineDash ?? style?.lineDash ?? risingStyle.lineDash,
+                    lineDashOffset:
+                        highlightStyle?.lineDashOffset ?? style?.lineDashOffset ?? risingStyle.lineDashOffset,
+                },
+                undefined,
+                this.getShapeFillBBox()
+            );
 
             const styleWick = style?.wick;
             node.wickStroke = highlightStyle?.stroke ?? styleWick?.stroke ?? risingWickStyle.stroke;
