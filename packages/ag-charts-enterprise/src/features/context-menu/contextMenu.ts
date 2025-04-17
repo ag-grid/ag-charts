@@ -2,7 +2,7 @@ import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions }
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger, clamp, createElement } from 'ag-charts-core';
 
-import { ContextMenuItem, expandBuiltin, removeUnusedItems } from './contextMenuItem';
+import { ContextMenuItem, appendItem, expandBuiltin } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
@@ -54,7 +54,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly registry: _ModuleSupport.ContextMenuRegistry;
 
     // State
-    private expandedItems: ContextMenuItem[] = [];
     private pickedNode: _ModuleSupport.SeriesNodeDatum<unknown> | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private showEvent: MouseEvent | undefined = undefined;
@@ -136,15 +135,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(this.registry.addListener('context-complete', (e) => this.onContext(e)));
     }
 
-    private expandItemsOptions() {
-        const { ctx, expandedItems, deprecationMap } = this;
+    private expandItemsOptions(showing: AgContextMenuItemShowOn): ContextMenuItem[] {
+        const { ctx, deprecationMap } = this;
+        const expandedItems: ContextMenuItem[] = [];
         expandedItems.length = 0;
 
         for (const item of this.items) {
             if (typeof item === 'string') {
-                expandBuiltin(ctx.contextMenuRegistry, item, expandedItems);
+                expandBuiltin(showing, ctx.contextMenuRegistry, item, expandedItems);
             } else if (item.type !== 'submenu') {
-                expandedItems.push(new ContextMenuItem(item));
+                appendItem(showing, item, expandedItems);
             } else {
                 throw new Error('`type: "submenu" not yet implemented');
             }
@@ -156,12 +156,18 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 const type = 'action';
                 const iconUrl = undefined;
                 const enable = true;
-                expandBuiltin(ctx.contextMenuRegistry, 'separator', expandedItems);
+                expandBuiltin(showing, ctx.contextMenuRegistry, 'separator', expandedItems);
                 for (const { action, label } of items) {
-                    expandedItems.push(new ContextMenuItem({ type, showOn, iconUrl, enable, label, action }));
+                    appendItem(showing, { type, showOn, iconUrl, enable, label, action }, expandedItems);
                 }
             }
         }
+
+        // remove trailing 'separator' menu item
+        if (expandedItems[expandedItems.length - 1].type === 'separator') {
+            expandedItems.length = expandedItems.length - 1;
+        }
+        return expandedItems;
     }
 
     private onContext(event: ContextMenuEvent) {
@@ -179,18 +185,17 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.pickedLegendItem = event.context.legendItem;
         }
 
-        this.expandItemsOptions();
-        this.expandedItems = removeUnusedItems(this.expandedItems, event.showOn);
-        if (this.expandedItems.length === 0) return;
+        const expandedItems = this.expandItemsOptions(event.showOn);
+        if (expandedItems.length === 0) return;
 
-        this.show(event.sourceEvent);
+        this.show(event.sourceEvent, expandedItems);
     }
 
-    private show(sourceEvent: ContextMenuEvent['sourceEvent']) {
+    private show(sourceEvent: ContextMenuEvent['sourceEvent'], expandedItems: ContextMenuItem[]) {
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
-        const newMenuElement = this.renderMenu();
+        const newMenuElement = this.renderMenu(expandedItems);
 
         this.menuCloser?.close();
         if (this.menuElement) {
@@ -235,13 +240,13 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.style.display = 'none';
     }
 
-    private renderMenu() {
+    private renderMenu(expandedItems: ContextMenuItem[]) {
         const menuElement = createElement('div');
         menuElement.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
         menuElement.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         menuElement.role = 'menu';
 
-        for (const item of this.expandedItems) {
+        for (const item of expandedItems) {
             switch (item.type) {
                 case 'separator':
                     menuElement.append(this.createDividerElement());
