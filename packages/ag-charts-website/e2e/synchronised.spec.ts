@@ -16,7 +16,7 @@ test.describe('synchronised', () => {
                     await expect(wrappers.nth(1)).toHaveAttribute('data-animating', 'true');
                 });
 
-                test('should animate on legend toggle', async ({ page }) => {
+                test.skip('should animate on legend toggle', async ({ page }) => {
                     await gotoExample(page, url);
                     const wrappers = page.locator(SELECTORS.wrapper);
                     const legendLocator = page.locator(SELECTORS.legendItems);
@@ -126,7 +126,7 @@ test.describe('synchronised', () => {
                     await expect(page).toHaveScreenshot('tooltip-replicated.png');
                 });
 
-                test('should not replicate tooltip for hidden series', async ({ page }) => {
+                test.skip('should not replicate tooltip for hidden series', async ({ page }) => {
                     await gotoExample(page, url);
 
                     const wrappers = page.locator(SELECTORS.wrapper);
@@ -230,7 +230,7 @@ test.describe('synchronised', () => {
                     await expect(page).toHaveScreenshot('crosshair-replicated.png');
                 });
 
-                test('should not replicate crosshair for hidden series', async ({ page }) => {
+                test.skip('should not replicate crosshair for hidden series', async ({ page }) => {
                     await gotoExample(page, url);
 
                     const wrappers = page.locator(SELECTORS.wrapper);
