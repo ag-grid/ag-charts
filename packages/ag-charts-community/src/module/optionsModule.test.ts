@@ -446,7 +446,7 @@ describe('ChartOptions', () => {
       "type": "gradient",
     },
     "fillImageDefaults": {
-      "fallback": "#5090dc",
+      "backgroundFill": "#5090dc",
       "fit": "stretch",
       "repetition": "repeat",
       "rotation": 0,
@@ -524,7 +524,7 @@ describe('ChartOptions', () => {
       "type": "gradient",
     },
     "fillImageDefaults": {
-      "fallback": "#ffa03a",
+      "backgroundFill": "#ffa03a",
       "fit": "stretch",
       "repetition": "repeat",
       "rotation": 0,
@@ -602,7 +602,7 @@ describe('ChartOptions', () => {
       "type": "gradient",
     },
     "fillImageDefaults": {
-      "fallback": "#459d55",
+      "backgroundFill": "#459d55",
       "fit": "stretch",
       "repetition": "repeat",
       "rotation": 0,
@@ -680,7 +680,7 @@ describe('ChartOptions', () => {
       "type": "gradient",
     },
     "fillImageDefaults": {
-      "fallback": "#34bfe1",
+      "backgroundFill": "#34bfe1",
       "fit": "stretch",
       "repetition": "repeat",
       "rotation": 0,
@@ -772,7 +772,7 @@ describe('ChartOptions', () => {
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#e1cc00",
+        "backgroundFill": "#e1cc00",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -845,7 +845,7 @@ describe('ChartOptions', () => {
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#9669cb",
+        "backgroundFill": "#9669cb",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -915,7 +915,7 @@ describe('ChartOptions', () => {
       "type": "gradient",
     },
     "fillImageDefaults": {
-      "fallback": "#5090dc",
+      "backgroundFill": "#5090dc",
       "fit": "stretch",
       "repetition": "repeat",
       "rotation": 0,
@@ -993,7 +993,7 @@ describe('ChartOptions', () => {
       "type": "gradient",
     },
     "fillImageDefaults": {
-      "fallback": "#ffa03a",
+      "backgroundFill": "#ffa03a",
       "fit": "stretch",
       "repetition": "repeat",
       "rotation": 0,
@@ -1071,7 +1071,7 @@ describe('ChartOptions', () => {
       "type": "gradient",
     },
     "fillImageDefaults": {
-      "fallback": "#459d55",
+      "backgroundFill": "#459d55",
       "fit": "stretch",
       "repetition": "repeat",
       "rotation": 0,
@@ -1149,7 +1149,7 @@ describe('ChartOptions', () => {
       "type": "gradient",
     },
     "fillImageDefaults": {
-      "fallback": "#34bfe1",
+      "backgroundFill": "#34bfe1",
       "fit": "stretch",
       "repetition": "repeat",
       "rotation": 0,
@@ -1241,7 +1241,7 @@ describe('ChartOptions', () => {
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#e1cc00",
+        "backgroundFill": "#e1cc00",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -1314,7 +1314,7 @@ describe('ChartOptions', () => {
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#9669cb",
+        "backgroundFill": "#9669cb",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -1384,7 +1384,7 @@ describe('ChartOptions', () => {
       "type": "gradient",
     },
     "fillImageDefaults": {
-      "fallback": "#5090dc",
+      "backgroundFill": "#5090dc",
       "fit": "stretch",
       "repetition": "repeat",
       "rotation": 0,
@@ -1462,7 +1462,7 @@ describe('ChartOptions', () => {
       "type": "gradient",
     },
     "fillImageDefaults": {
-      "fallback": "#ffa03a",
+      "backgroundFill": "#ffa03a",
       "fit": "stretch",
       "repetition": "repeat",
       "rotation": 0,
@@ -1540,7 +1540,7 @@ describe('ChartOptions', () => {
       "type": "gradient",
     },
     "fillImageDefaults": {
-      "fallback": "#459d55",
+      "backgroundFill": "#459d55",
       "fit": "stretch",
       "repetition": "repeat",
       "rotation": 0,
@@ -1618,7 +1618,7 @@ describe('ChartOptions', () => {
       "type": "gradient",
     },
     "fillImageDefaults": {
-      "fallback": "#34bfe1",
+      "backgroundFill": "#34bfe1",
       "fit": "stretch",
       "repetition": "repeat",
       "rotation": 0,
@@ -1710,7 +1710,7 @@ describe('ChartOptions', () => {
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#e1cc00",
+        "backgroundFill": "#e1cc00",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -1783,7 +1783,7 @@ describe('ChartOptions', () => {
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#9669cb",
+        "backgroundFill": "#9669cb",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,

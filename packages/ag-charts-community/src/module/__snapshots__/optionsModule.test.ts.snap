@@ -247,7 +247,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#5090dc",
+          "backgroundFill": "#5090dc",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -321,7 +321,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#ffa03a",
+          "backgroundFill": "#ffa03a",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -395,7 +395,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#459d55",
+          "backgroundFill": "#459d55",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -736,7 +736,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -813,7 +813,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -905,7 +905,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#459d55",
+          "backgroundFill": "#459d55",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -1222,7 +1222,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#5090dc",
+          "backgroundFill": "#5090dc",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -1301,7 +1301,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#ffa03a",
+          "backgroundFill": "#ffa03a",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -1380,7 +1380,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#459d55",
+          "backgroundFill": "#459d55",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -1459,7 +1459,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#34bfe1",
+          "backgroundFill": "#34bfe1",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -1538,7 +1538,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#e1cc00",
+          "backgroundFill": "#e1cc00",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -1617,7 +1617,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#9669cb",
+          "backgroundFill": "#9669cb",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -1696,7 +1696,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#b5b5b5",
+          "backgroundFill": "#b5b5b5",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -1999,7 +1999,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -2077,7 +2077,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -2155,7 +2155,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#459d55",
+        "backgroundFill": "#459d55",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -2233,7 +2233,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#34bfe1",
+        "backgroundFill": "#34bfe1",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -2311,7 +2311,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#e1cc00",
+        "backgroundFill": "#e1cc00",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -2389,7 +2389,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#9669cb",
+        "backgroundFill": "#9669cb",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -2467,7 +2467,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#b5b5b5",
+        "backgroundFill": "#b5b5b5",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -2545,7 +2545,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#bd5aa7",
+        "backgroundFill": "#bd5aa7",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -2798,7 +2798,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -3114,7 +3114,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#5090dc",
+          "backgroundFill": "#5090dc",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -3188,7 +3188,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#ffa03a",
+          "backgroundFill": "#ffa03a",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -3262,7 +3262,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#459d55",
+          "backgroundFill": "#459d55",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -3336,7 +3336,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#34bfe1",
+          "backgroundFill": "#34bfe1",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -3631,7 +3631,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -3749,7 +3749,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -3867,7 +3867,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#459d55",
+        "backgroundFill": "#459d55",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -3985,7 +3985,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#34bfe1",
+        "backgroundFill": "#34bfe1",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -4103,7 +4103,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#e1cc00",
+        "backgroundFill": "#e1cc00",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -4419,7 +4419,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -4671,7 +4671,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -4924,7 +4924,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -5161,7 +5161,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -5438,7 +5438,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -5520,7 +5520,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -5832,7 +5832,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -5915,7 +5915,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -6231,7 +6231,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -6316,7 +6316,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -6401,7 +6401,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#459d55",
+        "backgroundFill": "#459d55",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -6486,7 +6486,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#34bfe1",
+        "backgroundFill": "#34bfe1",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -6571,7 +6571,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#e1cc00",
+        "backgroundFill": "#e1cc00",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -6656,7 +6656,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#9669cb",
+        "backgroundFill": "#9669cb",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -6741,7 +6741,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#b5b5b5",
+        "backgroundFill": "#b5b5b5",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -7076,7 +7076,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#5090dc",
+          "backgroundFill": "#5090dc",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -7156,7 +7156,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#ffa03a",
+          "backgroundFill": "#ffa03a",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -7236,7 +7236,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#459d55",
+          "backgroundFill": "#459d55",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -7316,7 +7316,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#34bfe1",
+          "backgroundFill": "#34bfe1",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -7396,7 +7396,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#e1cc00",
+          "backgroundFill": "#e1cc00",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -7476,7 +7476,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#9669cb",
+          "backgroundFill": "#9669cb",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -7556,7 +7556,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#b5b5b5",
+          "backgroundFill": "#b5b5b5",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -7636,7 +7636,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#bd5aa7",
+          "backgroundFill": "#bd5aa7",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -7716,7 +7716,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#8a6224",
+          "backgroundFill": "#8a6224",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -7796,7 +7796,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#ef5452",
+          "backgroundFill": "#ef5452",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -7876,7 +7876,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#5090dc",
+          "backgroundFill": "#5090dc",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -7956,7 +7956,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#ffa03a",
+          "backgroundFill": "#ffa03a",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -8036,7 +8036,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#459d55",
+          "backgroundFill": "#459d55",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -8116,7 +8116,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#34bfe1",
+          "backgroundFill": "#34bfe1",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -8196,7 +8196,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#e1cc00",
+          "backgroundFill": "#e1cc00",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -8276,7 +8276,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#9669cb",
+          "backgroundFill": "#9669cb",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -8570,7 +8570,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#5090dc",
+          "backgroundFill": "#5090dc",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -8835,7 +8835,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -8961,7 +8961,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -9087,7 +9087,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#459d55",
+        "backgroundFill": "#459d55",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -9213,7 +9213,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#34bfe1",
+        "backgroundFill": "#34bfe1",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -9339,7 +9339,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#e1cc00",
+        "backgroundFill": "#e1cc00",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -9465,7 +9465,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#9669cb",
+        "backgroundFill": "#9669cb",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -9591,7 +9591,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#b5b5b5",
+        "backgroundFill": "#b5b5b5",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -9941,7 +9941,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -10025,7 +10025,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -10109,7 +10109,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#459d55",
+        "backgroundFill": "#459d55",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -10428,7 +10428,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -10511,7 +10511,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -10594,7 +10594,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#459d55",
+        "backgroundFill": "#459d55",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -10677,7 +10677,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#34bfe1",
+        "backgroundFill": "#34bfe1",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -10760,7 +10760,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#e1cc00",
+        "backgroundFill": "#e1cc00",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -10843,7 +10843,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#9669cb",
+        "backgroundFill": "#9669cb",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -11199,7 +11199,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -11311,7 +11311,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -11423,7 +11423,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#459d55",
+        "backgroundFill": "#459d55",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -11535,7 +11535,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#34bfe1",
+        "backgroundFill": "#34bfe1",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -11824,7 +11824,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -12470,7 +12470,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#5090dc",
+          "backgroundFill": "#5090dc",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -12548,7 +12548,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "type": "gradient",
         },
         "fillImageDefaults": {
-          "fallback": "#ffa03a",
+          "backgroundFill": "#ffa03a",
           "fit": "stretch",
           "repetition": "repeat",
           "rotation": 0,
@@ -13020,7 +13020,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -13332,7 +13332,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -13456,7 +13456,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -13580,7 +13580,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#459d55",
+        "backgroundFill": "#459d55",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -13704,7 +13704,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#34bfe1",
+        "backgroundFill": "#34bfe1",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -13828,7 +13828,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#e1cc00",
+        "backgroundFill": "#e1cc00",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -13952,7 +13952,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#9669cb",
+        "backgroundFill": "#9669cb",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -14319,7 +14319,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -14402,7 +14402,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -14485,7 +14485,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#459d55",
+        "backgroundFill": "#459d55",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -14568,7 +14568,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#34bfe1",
+        "backgroundFill": "#34bfe1",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -14874,7 +14874,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#5090dc",
+        "backgroundFill": "#5090dc",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -14957,7 +14957,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#ffa03a",
+        "backgroundFill": "#ffa03a",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -15040,7 +15040,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#459d55",
+        "backgroundFill": "#459d55",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -15123,7 +15123,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#34bfe1",
+        "backgroundFill": "#34bfe1",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,
@@ -15206,7 +15206,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "type": "gradient",
       },
       "fillImageDefaults": {
-        "fallback": "#e1cc00",
+        "backgroundFill": "#e1cc00",
         "fit": "stretch",
         "repetition": "repeat",
         "rotation": 0,

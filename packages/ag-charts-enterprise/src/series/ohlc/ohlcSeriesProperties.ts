@@ -15,7 +15,7 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import type {
     RequiredInternalAgGradientColor,
-    RequiredInternalAgImageColor,
+    RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 
@@ -56,7 +56,7 @@ export abstract class OhlcSeriesBaseProperties<
             LineDashOptions & {
                 fillGradientDefaults?: RequiredInternalAgGradientColor;
                 fillPatternDefaults?: RequiredInternalAgPatternColor;
-                fillImageDefaults?: RequiredInternalAgImageColor;
+                fillImageDefaults?: RequiredInternalAgImageFill;
             }
     >;
 

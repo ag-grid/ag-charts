@@ -1,4 +1,4 @@
-import type { RequiredInternalAgImageColor, RequiredInternalAgPatternColor } from 'ag-charts-core';
+import type { RequiredInternalAgImageFill, RequiredInternalAgPatternColor } from 'ag-charts-core';
 import type { AgCartesianChartOptions, WithThemeParams } from 'ag-charts-types';
 
 import { Color } from '../../util/color';
@@ -97,9 +97,9 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
     scale: 1,
 };
 
-export const FILL_IMAGE_DEFAULTS: WithThemeParams<RequiredInternalAgImageColor> = {
+export const FILL_IMAGE_DEFAULTS: WithThemeParams<RequiredInternalAgImageFill> = {
     type: 'image',
-    fallback: { $palette: 'fillFallback' },
+    backgroundFill: { $palette: 'fillFallback' },
     repetition: 'repeat',
     fit: 'stretch',
     scale: 1,

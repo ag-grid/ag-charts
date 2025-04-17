@@ -16,12 +16,16 @@ export class ImageLoader extends EventEmitter<EventMap> {
     private readonly cache = new Map<string, CacheEntry>();
     private imageLoadingCount = 0;
 
-    public loadImage(uri: string, node: NotifiableNode): HTMLImageElement | undefined {
+    public loadImage(uri: string, node?: NotifiableNode): HTMLImageElement | undefined {
         const entry = this.cache.get(uri);
         if (entry?.image) {
             return entry.image;
-        } else if (entry != null) {
+        } else if (entry != null && node) {
             entry.nodes.add(node);
+            return;
+        }
+
+        if (!node) {
             return;
         }
 

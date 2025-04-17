@@ -1,7 +1,7 @@
 import { type AnyFn, Logger, clamp } from 'ag-charts-core';
 import type {
     RequiredInternalAgGradientColor,
-    RequiredInternalAgImageColor,
+    RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 import type {
@@ -174,9 +174,9 @@ const fillPatternDefaults: RequiredInternalAgPatternColor = {
     scale: 1,
 };
 
-const fillImageDefaults: RequiredInternalAgImageColor = {
+const fillImageDefaults: RequiredInternalAgImageFill = {
     type: 'image',
-    fallback: 'black',
+    backgroundFill: 'black',
     rotation: 0,
     scale: 1,
     repetition: 'repeat',
