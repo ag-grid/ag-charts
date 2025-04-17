@@ -136,7 +136,7 @@ export class SeriesAreaManager extends BaseManager {
     private readonly swapChain: FocusSwapChain;
 
     get bbox() {
-        return BBox.merge([this.seriesRect ?? BBox.zero]);
+        return (this.seriesRect ?? BBox.zero).clone();
     }
 
     private readonly highlight = {
