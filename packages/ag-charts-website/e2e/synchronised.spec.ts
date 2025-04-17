@@ -4,11 +4,11 @@ import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrls, wa
 test.describe('synchronised', () => {
     setupIntrinsicAssertions();
 
-    for (const { framework, url } of toExamplePageUrls('sync', 'multi-series-sync')) {
+    for (const { framework, url } of toExamplePageUrls('sync-test', 'multi-series-sync')) {
         test.describe(`for ${framework}`, () => {
             test.describe('animation', () => {
                 test('should animate on initial load', async ({ page }) => {
-                    await gotoExample(page, url, { skipStabilityChecks: true });
+                    await gotoExample(page, url, { skipStabilityChecks: true }); // Stability checks wait for animations to complete.
 
                     const wrappers = page.locator(SELECTORS.wrapper);
                     await expect(wrappers).toHaveCount(2);
@@ -89,8 +89,8 @@ test.describe('synchronised', () => {
 
                     await page.keyboard.press('Tab');
                     await expect(tooltipLocator).toHaveCount(2);
-                    expect(await tooltipLocator.nth(0).isVisible()).toBe(true);
-                    expect(await tooltipLocator.nth(1).isVisible()).toBe(true);
+                    await expect(tooltipLocator.nth(0)).toBeVisible();
+                    await expect(tooltipLocator.nth(1)).toBeVisible();
                     expect(await tooltipLocator.allTextContents()).toMatchObject([
                         'b9.3.0 Time 29ms',
                         'b9.3.0 Time 117ms',
@@ -98,8 +98,8 @@ test.describe('synchronised', () => {
 
                     await page.keyboard.press('ArrowDown');
                     await expect(tooltipLocator).toHaveCount(2);
-                    expect(await tooltipLocator.nth(0).isVisible()).toBe(true);
-                    expect(await tooltipLocator.nth(1).isVisible()).toBe(true);
+                    await expect(tooltipLocator.nth(0)).toBeVisible();
+                    await expect(tooltipLocator.nth(1)).toBeVisible();
                     expect(await tooltipLocator.allTextContents()).toMatchObject([
                         'b9.3.0 Heap 176.80MB',
                         'b9.3.0 Heap 178.17MB',
@@ -107,8 +107,8 @@ test.describe('synchronised', () => {
 
                     await page.keyboard.press('ArrowDown');
                     await expect(tooltipLocator).toHaveCount(2);
-                    expect(await tooltipLocator.nth(0).isVisible()).toBe(true);
-                    expect(await tooltipLocator.nth(1).isVisible()).toBe(true);
+                    await expect(tooltipLocator.nth(0)).toBeVisible();
+                    await expect(tooltipLocator.nth(1)).toBeVisible();
                     expect(await tooltipLocator.allTextContents()).toMatchObject([
                         'b9.3.0 Canvas 20.14MB',
                         'b9.3.0 Canvas 16.48MB',
@@ -116,8 +116,8 @@ test.describe('synchronised', () => {
 
                     await page.keyboard.press('ArrowRight');
                     await expect(tooltipLocator).toHaveCount(2);
-                    expect(await tooltipLocator.nth(0).isVisible()).toBe(true);
-                    expect(await tooltipLocator.nth(1).isVisible()).toBe(true);
+                    await expect(tooltipLocator.nth(0)).toBeVisible();
+                    await expect(tooltipLocator.nth(1)).toBeVisible();
                     expect(await tooltipLocator.allTextContents()).toMatchObject([
                         'b10.0.0 Canvas 20.14MB',
                         'b10.0.0 Canvas 18.31MB',
@@ -139,8 +139,8 @@ test.describe('synchronised', () => {
 
                     await page.keyboard.press('Tab');
                     await expect(tooltipLocator).toHaveCount(2);
-                    expect(await tooltipLocator.nth(0).isVisible()).toBe(true);
-                    expect(await tooltipLocator.nth(1).isVisible()).toBe(false);
+                    await expect(tooltipLocator.nth(0)).toBeVisible();
+                    await expect(tooltipLocator.nth(1)).not.toBeVisible();
                     expect(await tooltipLocator.allTextContents()).toMatchObject(['b9.3.0 Time 29ms']);
 
                     await expect(page).toHaveScreenshot('tooltip-hidden-series.png');
@@ -159,8 +159,8 @@ test.describe('synchronised', () => {
                     await page.keyboard.press('ArrowRight');
                     await page.keyboard.press('ArrowRight');
                     await expect(tooltipLocator).toHaveCount(2);
-                    expect(await tooltipLocator.nth(0).isVisible()).toBe(true);
-                    expect(await tooltipLocator.nth(1).isVisible()).toBe(false);
+                    await expect(tooltipLocator.nth(0)).toBeVisible();
+                    await expect(tooltipLocator.nth(1)).not.toBeVisible();
                     expect(await tooltipLocator.nth(0).allTextContents()).toMatchObject(['b11.1.0 Time 33ms']);
 
                     await expect(page).toHaveScreenshot('tooltip-missing-data.png');
@@ -180,10 +180,10 @@ test.describe('synchronised', () => {
                     await page.keyboard.press('ArrowUp'); // 1st series.
                     await expect(crosshairLocator).toHaveCount(4);
 
-                    expect(await crosshairLocator.nth(0).isVisible()).toBe(true);
-                    expect(await crosshairLocator.nth(1).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(2).isVisible()).toBe(true);
-                    expect(await crosshairLocator.nth(3).isVisible()).toBe(false);
+                    await expect(crosshairLocator.nth(0)).toBeVisible();
+                    await expect(crosshairLocator.nth(1)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(2)).toBeVisible();
+                    await expect(crosshairLocator.nth(3)).not.toBeVisible();
                     expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
                         '29ms',
                         expect.anything(), // Skip invisible axis.
@@ -192,10 +192,10 @@ test.describe('synchronised', () => {
                     ]);
 
                     await page.keyboard.press('ArrowDown'); // 2nd series, different y-axis.
-                    expect(await crosshairLocator.nth(0).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(1).isVisible()).toBe(true);
-                    expect(await crosshairLocator.nth(2).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(3).isVisible()).toBe(true);
+                    await expect(crosshairLocator.nth(0)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(1)).toBeVisible();
+                    await expect(crosshairLocator.nth(2)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(3)).toBeVisible();
                     expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
                         expect.anything(), // Skip invisible axis.
                         '176.80MB',
@@ -204,10 +204,10 @@ test.describe('synchronised', () => {
                     ]);
 
                     await page.keyboard.press('ArrowDown'); // 3rd series.
-                    expect(await crosshairLocator.nth(0).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(1).isVisible()).toBe(true);
-                    expect(await crosshairLocator.nth(2).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(3).isVisible()).toBe(true);
+                    await expect(crosshairLocator.nth(0)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(1)).toBeVisible();
+                    await expect(crosshairLocator.nth(2)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(3)).toBeVisible();
                     expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
                         expect.anything(), // Skip invisible axis.
                         '196.94MB',
@@ -216,10 +216,10 @@ test.describe('synchronised', () => {
                     ]);
 
                     await page.keyboard.press('ArrowRight'); // 3rd series, 2nd datum.
-                    expect(await crosshairLocator.nth(0).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(1).isVisible()).toBe(true);
-                    expect(await crosshairLocator.nth(2).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(3).isVisible()).toBe(true);
+                    await expect(crosshairLocator.nth(0)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(1)).toBeVisible();
+                    await expect(crosshairLocator.nth(2)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(3)).toBeVisible();
                     expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
                         expect.anything(), // Skip invisible axis.
                         '205.42MB',
@@ -248,10 +248,10 @@ test.describe('synchronised', () => {
                     await page.keyboard.press('ArrowUp'); // 1st series.
 
                     await expect(crosshairLocator).toHaveCount(4);
-                    expect(await crosshairLocator.nth(0).isVisible()).toBe(true);
-                    expect(await crosshairLocator.nth(1).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(2).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(3).isVisible()).toBe(false);
+                    await expect(crosshairLocator.nth(0)).toBeVisible();
+                    await expect(crosshairLocator.nth(1)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(2)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(3)).not.toBeVisible();
                     expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
                         '29ms',
                         expect.anything(), // Skip invisible axis.
@@ -279,10 +279,10 @@ test.describe('synchronised', () => {
                     await page.keyboard.press('ArrowRight'); // 1st series, 7th datum.
 
                     await expect(crosshairLocator).toHaveCount(4);
-                    expect(await crosshairLocator.nth(0).isVisible()).toBe(true);
-                    expect(await crosshairLocator.nth(1).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(2).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(3).isVisible()).toBe(false);
+                    await expect(crosshairLocator.nth(0)).toBeVisible();
+                    await expect(crosshairLocator.nth(1)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(2)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(3)).not.toBeVisible();
                     expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
                         '33ms',
                         expect.anything(), // Skip invisible axis.
@@ -293,10 +293,10 @@ test.describe('synchronised', () => {
 
                     await page.keyboard.press('ArrowDown'); // 2nd series.
                     await expect(crosshairLocator).toHaveCount(4);
-                    expect(await crosshairLocator.nth(0).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(1).isVisible()).toBe(true);
-                    expect(await crosshairLocator.nth(2).isVisible()).toBe(false);
-                    expect(await crosshairLocator.nth(3).isVisible()).toBe(false);
+                    await expect(crosshairLocator.nth(0)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(1)).toBeVisible();
+                    await expect(crosshairLocator.nth(2)).not.toBeVisible();
+                    await expect(crosshairLocator.nth(3)).not.toBeVisible();
                     expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
                         expect.anything(), // Skip invisible axis.
                         '144.94MB',
