@@ -1,7 +1,6 @@
 import { findMinIndex } from 'ag-charts-core';
 
-import { compareDates } from '../util/date';
-import type { TimeInterval } from '../util/time';
+import { type TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
@@ -16,11 +15,11 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | n
         return new Date(value);
     }
 
-    override convert(d: Date, options?: { clamp?: boolean; interpolate?: boolean }): number {
+    override convert(d: Date, options?: { interpolate?: boolean }): number {
+        const { domain, bands } = this;
+
         const interpolate = options?.interpolate ?? false;
         if (!interpolate) return super.convert(d, options);
-
-        const { domain, bands } = this;
 
         const r0 = this.ordinalRange(0);
         if (domain.length <= 1 || bands.length === 0) return r0;
@@ -32,10 +31,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | n
         domainIndex = Math.min(Math.max(domainIndex, 0), domain.length - 2);
         const d0 = domain[domainIndex].getTime();
         const d1 = domain[domainIndex + 1].getTime();
-
-        const clamp = options?.clamp ?? false;
-        let v = d.getTime();
-        if (clamp) v = Math.min(Math.max(v, d0), d1);
+        const v = d.getTime();
 
         return ((v - d0) / (d1 - d0)) * (r1 - r0) + r0;
     }
@@ -68,16 +64,5 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | n
         formatOffset?: number
     ): (date: Date) => string {
         return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(ticks, domain, formatOffset);
-    }
-
-    tickIsFirstAfter(tick: Date, reference: Date) {
-        if (compareDates(tick, reference) < 0) return false;
-
-        const index = this.findIndex(tick);
-        if (index == null) return false;
-        if (index === 0) return true;
-
-        const previousTick = this.bands[index - 1];
-        return compareDates(previousTick, reference) < 0;
     }
 }

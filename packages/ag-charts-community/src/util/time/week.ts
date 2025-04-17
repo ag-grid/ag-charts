@@ -21,7 +21,13 @@ function weekday(weekStart: number): CountableTimeInterval {
         return d;
     }
 
-    return new CountableTimeInterval('day', 7 * 24 * 60 * 60 * 1000, month, encode, decode);
+    return new CountableTimeInterval(
+        'day',
+        { milliseconds: 7 * 24 * 60 * 60 * 1000, exact: true },
+        month,
+        encode,
+        decode
+    );
 }
 
 export const sunday = weekday(0);

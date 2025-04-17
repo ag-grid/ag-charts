@@ -17,6 +17,7 @@ import { ModuleMap } from '../../module/moduleMap';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale, ScaleFormatParams } from '../../scale/scale';
+import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
@@ -31,11 +32,13 @@ import { mergeDefaults } from '../../util/object';
 import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
+import type { TimeInterval } from '../../util/time';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
+import { labelSpecifier } from '../label';
 import type { AxisLayout } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
 import { ZIndexMap } from '../zIndexMap';
@@ -46,6 +49,7 @@ import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
 import { NiceMode } from './axisUtil';
+import { deriveTimeSpecifier } from './timeFormatUtil';
 
 export interface LabelNodeDatum {
     tickId: string;
@@ -482,13 +486,17 @@ export abstract class Axis<
             visibleRange,
             initialPrimaryTickCount
         );
+        const timeInterval = UnitTimeScale.is(scale) ? scale.interval : undefined;
 
         this.scale.domain = niceDomain;
 
         this._scaleNiceDomainInputDomain = nice ? domain : undefined;
         this._scaleNiceDomainRangeExtent = nice ? rangeExtent : NaN;
 
-        const specifier = typeof label.format === 'string' ? label.format : undefined;
+        const specifier = labelSpecifier(
+            timeInterval == null ? label.format : deriveTimeSpecifier(label.format, timeInterval),
+            timeInterval
+        );
         this.labelFormatter =
             scale.tickFormatter({ domain: tickDomain, specifier, ticks, fractionDigits }) ??
             ((value: unknown) => this.defaultLabelFormatter(value, fractionDigits));
@@ -521,6 +529,7 @@ export abstract class Axis<
         tickDomain: D[];
         ticks: D[];
         fractionDigits: number;
+        timeInterval: TimeInterval | undefined;
         bbox?: BBox;
     };
 
@@ -552,6 +561,7 @@ export abstract class Axis<
         index: number,
         domain: D[],
         fractionDigits?: number,
+        timeInterval?: TimeInterval,
         defaultFormatter?: (datum: unknown) => string
     ): string {
         const {
@@ -562,7 +572,14 @@ export abstract class Axis<
         let result: string | undefined;
         if (formatter) {
             const boundSeries = this.getFormatterBoundSeries();
-            result = this.callWithContext(formatter, { value, index, domain, fractionDigits, boundSeries });
+            result = this.callWithContext(formatter, {
+                value,
+                index,
+                domain,
+                fractionDigits,
+                timeInterval,
+                boundSeries,
+            });
         } else if (defaultFormatter) {
             result = defaultFormatter(value);
         } else if (labelFormatter) {

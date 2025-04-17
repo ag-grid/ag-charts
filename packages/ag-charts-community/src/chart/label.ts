@@ -1,4 +1,4 @@
-import type { RequireOptional } from 'ag-charts-core';
+import { type RequireOptional, isPlainObject } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -7,6 +7,7 @@ import type {
     Formatter,
 } from 'ag-charts-types';
 
+import type { Scale, ScaleFormatParams } from '../scale/scale';
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
 import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
@@ -14,7 +15,8 @@ import { normalizeAngle360, toRadians } from '../util/angle';
 import { BaseProperties } from '../util/properties';
 import { Property } from '../util/properties';
 import { type TextMeasurer, TextUtils } from '../util/textMeasurer';
-import type { ChartAxisLabelFlipFlag } from './chartAxis';
+import type { TimeInterval } from '../util/time';
+import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
 
 export class Label<TParams = never, TDatum = any>
     extends BaseProperties
@@ -118,6 +120,92 @@ export function getTextAlign(
     return 'start';
 }
 
+export function labelSpecifier(
+    format: ChartAxisLabel['format'] | undefined,
+    timeInterval: TimeInterval | undefined
+): string | undefined {
+    if (format == null) return;
+
+    if (typeof format === 'string') {
+        return format;
+    } else if (isPlainObject(format) && timeInterval != null) {
+        return format[timeInterval.unit];
+    }
+}
+
+export function timeIntervalMaxLabelSize(
+    scale: Scale<Date, number>,
+    label: ChartAxisLabel,
+    primaryLabel: ChartAxisLabel | undefined,
+    domain: Date[],
+    ticks: Date[],
+    timeInterval: TimeInterval,
+    textMeasurer: TextMeasurer
+) {
+    const specifier =
+        labelSpecifier(label.format, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
+
+    const formatParams: ScaleFormatParams<Date> = {
+        domain,
+        ticks,
+        fractionDigits: 0,
+        specifier,
+    };
+    const labelFormatter = scale.tickFormatter(formatParams as ScaleFormatParams<any>);
+
+    const primarySpecifier = labelSpecifier(primaryLabel?.format, timeInterval?.hierarchy);
+    const primaryLabelFormatter = primarySpecifier
+        ? scale.tickFormatter({
+              ...formatParams,
+              specifier: primarySpecifier,
+          } as ScaleFormatParams<any>)
+        : labelFormatter;
+
+    const d0 = new Date(scale.domain[0] as any);
+    const d1 = new Date(scale.domain[scale.domain.length - 1] as any);
+
+    const hierarchyRange = timeInterval.hierarchy?.range(
+        new Date(scale.domain[0] as any),
+        new Date(scale.domain[scale.domain.length - 1] as any),
+        { extend: true }
+    );
+
+    let maxWidth = 0;
+    let maxHeight = 0;
+    if (labelFormatter != null) {
+        let l0: Date;
+        let l1: Date;
+        if (hierarchyRange != null && hierarchyRange.length > 1) {
+            l0 = hierarchyRange[0];
+            l1 = hierarchyRange[1];
+        } else {
+            l0 = d0;
+            l1 = d1;
+        }
+        const labelRange = timeInterval.range(l0, l1);
+        for (const date of labelRange) {
+            const text = labelFormatter(date);
+            const { width, height } = textMeasurer.measureLines(text);
+            maxWidth = Math.max(maxWidth, width);
+            maxHeight = Math.max(maxHeight, height);
+        }
+    }
+
+    if (primaryLabelFormatter != null && hierarchyRange != null) {
+        for (const date of hierarchyRange) {
+            const text = primaryLabelFormatter(date);
+            const { width, height } = textMeasurer.measureLines(text);
+            maxWidth = Math.max(maxWidth, width);
+            maxHeight = Math.max(maxHeight, height);
+        }
+    }
+
+    return {
+        width: Math.ceil(maxWidth),
+        height: Math.ceil(maxHeight),
+    };
+}
+
 export function createLabelData(
     tickData: { tickLabel: string | undefined; translationY: number }[],
     labelX: number,
@@ -129,17 +217,29 @@ export function createLabelData(
     for (const { tickLabel: text, translationY } of tickData) {
         if (!text) continue;
 
+        const { x, y } = labelMatrix.transformBBox(new BBox(labelX, translationY, 0, 0));
         const { width, height } = textMeasurer.measureLines(text);
-        const bbox = new BBox(labelX, translationY, width, height);
-        const translatedBBox = new BBox(labelX, translationY, 0, 0);
-
-        labelMatrix.transformBBox(translatedBBox, bbox);
-
-        const { x, y } = bbox;
-
         labelData.push({
             point: { x, y },
             label: { text, width, height },
+        });
+    }
+
+    return labelData;
+}
+
+export function createFixedLabelData(
+    { width, height, spacing }: { width: number; height: number; spacing: number },
+    labelX: number,
+    labelMatrix: Matrix
+): PlacedLabelDatum[] {
+    const labelData: PlacedLabelDatum[] = [];
+
+    for (const translationY of [0, spacing]) {
+        const { x, y } = labelMatrix.transformBBox(new BBox(labelX, translationY, 0, 0));
+        labelData.push({
+            point: { x, y },
+            label: { text: undefined!, width, height },
         });
     }
 

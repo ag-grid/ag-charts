@@ -15,4 +15,10 @@ function decode(encoded: number) {
     return d;
 }
 
-export const day = new CountableTimeInterval('day', 24 * 60 * 60 * 1000, month, encode, decode);
+export const day = new CountableTimeInterval(
+    'day',
+    { milliseconds: 24 * 60 * 60 * 1000, exact: true },
+    month,
+    encode,
+    decode
+);

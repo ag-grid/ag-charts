@@ -14,4 +14,12 @@ function decode(encoded: number) {
     return d;
 }
 
-export const year = new CountableTimeInterval('year', undefined, undefined, encode, decode);
+export const yearMs = (365 + 1 / 4 - 1 / 100 + 1 / 400) * 24 * 60 * 60 * 1000;
+
+export const year = new CountableTimeInterval(
+    'year',
+    { milliseconds: yearMs, exact: false },
+    undefined,
+    encode,
+    decode
+);

@@ -1,12 +1,13 @@
-import { findMinIndex } from 'ag-charts-core';
+import { findMaxIndex } from 'ag-charts-core';
 
-import { compareDates } from '../util/date';
 import { TimeInterval } from '../util/time';
 import { normalizeContinuousDomains } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams } from './scale';
 
 export class UnitTimeScale extends DiscreteTimeScale {
+    static readonly defaultTickCount = 12;
+
     static override is(value: unknown): value is UnitTimeScale {
         return value instanceof UnitTimeScale;
     }
@@ -45,6 +46,16 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return normalizeContinuousDomains(...domains);
     }
 
+    override convert(d: Date, options?: { interpolate?: boolean }): number {
+        const { domain, interval } = this;
+        if (interval != null) {
+            const t = d.valueOf();
+            const [start, stop] = this.calculateBandRange(domain, interval);
+            if (t < start.valueOf() || t >= stop.valueOf() + interval.duration.milliseconds) return NaN;
+        }
+        return super.convert(d, options);
+    }
+
     private calculateBandRange(domain: Date[], interval: TimeInterval) {
         const start = interval.floor(domain[0]);
         const stop = interval.floor(domain[1]);
@@ -66,7 +77,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
     override ticks(
         { interval }: ScaleTickParams<TimeInterval | number>,
         domain: Date[] = this.domain,
-        visibleRange: [number, number] = [0, 1]
+        visibleRange: [number, number] = [0, 1],
+        extend = false
     ): Date[] {
         const bands = this.calculateBands(domain, visibleRange);
 
@@ -80,42 +92,41 @@ export class UnitTimeScale extends DiscreteTimeScale {
         if (interval instanceof TimeInterval) {
             intervalTicks = interval.range(domain[0], domain[1], { extend: true, visibleRange });
         } else {
-            intervalTicks = [];
-            for (let intervalTickTime = d0; intervalTickTime <= d1; intervalTickTime += interval) {
-                const intervalTick = new Date(intervalTickTime);
-                intervalTicks.push(intervalTick);
-            }
+            const i0Index = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0);
+            const i1Index = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1);
+            if (i0Index == null || i1Index == null) return [];
+            intervalTicks = bands.slice(i0Index, i1Index + 1);
         }
 
         let lastIndex: number | undefined;
         for (const intervalTick of intervalTicks) {
-            const bandIndex = findMinIndex(0, bands.length - 1, (index) => {
-                return compareDates(bands[index], intervalTick) >= 0;
-            });
+            const intervalTickValue = intervalTick.valueOf();
+            const bandIndex = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= intervalTickValue);
             const tick = bandIndex != null && bandIndex != lastIndex ? bands[bandIndex] : undefined;
             lastIndex = bandIndex;
 
-            if (tick != null && tick.valueOf() >= d0 && tick.valueOf() <= d1) ticks.push(tick);
+            if (tick != null) ticks.push(tick);
         }
 
-        return ticks;
+        let firstTickIndex = ticks.findIndex((tick) => tick.valueOf() >= d0);
+        let lastTickIndex = ticks.findLastIndex((tick) => tick.valueOf() <= d1);
+
+        if (extend) {
+            firstTickIndex = Math.max(firstTickIndex - 1, 0);
+            lastTickIndex = Math.min(lastTickIndex - 1, ticks.length - 1);
+        }
+
+        return ticks.slice(firstTickIndex, lastTickIndex + 1);
     }
 
     override findIndex(value: Date): number | undefined {
         const { bands } = this;
         const target = value.valueOf();
-        return findMinIndex(0, bands.length - 1, (index) => bands[index].valueOf() >= target);
+        return findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= target);
     }
 
     override datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
         return this.tickFormatter(params, 1);
-    }
-
-    override tickIsFirstAfter(tick: Date, reference: Date) {
-        const milliseconds = this.interval?.milliseconds;
-        if (milliseconds == null) return super.tickIsFirstAfter(tick, reference);
-
-        return tick.getTime() - milliseconds <= reference.getTime();
     }
 
     calculateBandCount(domain: Date[]) {

@@ -13,4 +13,10 @@ function decode(encoded: number) {
     return d;
 }
 
-export const utcDay = new CountableTimeInterval('day', 24 * 60 * 60 * 1000, utcMonth, encode, decode);
+export const utcDay = new CountableTimeInterval(
+    'day',
+    { milliseconds: 24 * 60 * 60 * 1000, exact: true },
+    utcMonth,
+    encode,
+    decode
+);

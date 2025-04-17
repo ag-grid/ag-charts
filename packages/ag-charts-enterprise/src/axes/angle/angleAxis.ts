@@ -105,6 +105,7 @@ export abstract class AngleAxis<
         tickDomain: TDomain[];
         ticks: TDomain[];
         fractionDigits: number;
+        timeInterval: undefined;
         bbox: _ModuleSupport.BBox;
     } {
         const { nice, scale } = this;
@@ -135,6 +136,7 @@ export abstract class AngleAxis<
             tickDomain: niceDomain,
             ticks,
             fractionDigits,
+            timeInterval: undefined,
             bbox: this.getBBox(),
         };
     }
