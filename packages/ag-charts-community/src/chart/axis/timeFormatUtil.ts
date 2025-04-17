@@ -2,7 +2,6 @@ import { isPlainObject } from 'ag-charts-core';
 import type { TimeIntervalUnit } from 'ag-charts-types';
 
 import type { TimeInterval } from '../../util/time';
-import type { ChartAxisLabel } from '../chartAxis';
 
 const hardCodedTimeFormats: Record<TimeIntervalUnit, string> = {
     millisecond: '%Y %b %e %H:%M:%S.%L',
@@ -33,7 +32,7 @@ const MONTH_FORMAT = /^%[-_0]?[Bbm]$/;
 const YEAR_FORMAT = /^%[-_0]?[Yy]$/;
 
 export function deriveTimeSpecifier(
-    format: ChartAxisLabel['format'] | undefined,
+    format: string | Record<string, string> | undefined,
     timeInterval: TimeInterval
 ): string | undefined {
     if (!isPlainObject(format)) return format;
