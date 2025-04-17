@@ -75,7 +75,7 @@ class SeriesRegistry {
         return this.themeTemplates.get(seriesType);
     }
 
-    getTooltipDefauls(seriesType: SeriesType) {
+    getTooltipDefaults(seriesType: SeriesType) {
         return this.seriesMap.get(seriesType)?.tooltipDefaults;
     }
 

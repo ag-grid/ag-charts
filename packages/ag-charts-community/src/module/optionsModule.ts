@@ -32,7 +32,6 @@ import {
     AgTooltipPlacementType,
     type AgTooltipPositionOptions,
     AgTooltipPositionType, // eslint-disable-line sonarjs/deprecation
-    type WithThemeParams,
 } from 'ag-charts-types';
 
 import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
@@ -117,7 +116,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     activeTheme: ChartTheme;
     processedOptions: T;
-    defaultAxes: T;
     userOptions: Partial<T>;
     processedOverrides: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
@@ -170,22 +168,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.removeLeftoverSymbols(this.userOptions);
         }
 
-        let activeTheme, processedOptions, defaultAxes, fastDelta, themeParameters, annotationThemes;
+        let activeTheme, processedOptions, fastDelta, themeParameters, annotationThemes;
         if (
             !stripSymbols &&
             deltaOptions !== undefined &&
             ChartOptions.isFastPathDelta(deltaOptions) &&
             baseChartOptions != null
         ) {
-            ({ activeTheme, processedOptions, defaultAxes, fastDelta } = this.fastSetup(
-                deltaOptions,
-                baseChartOptions
-            ));
+            ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
             themeParameters = baseChartOptions.themeParameters;
             annotationThemes = baseChartOptions.annotationThemes;
         } else {
             ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
-            ({ activeTheme, processedOptions, defaultAxes, themeParameters, annotationThemes } = this.slowSetup(
+            ({ activeTheme, processedOptions, themeParameters, annotationThemes } = this.slowSetup(
                 processedOverrides,
                 deltaOptions,
                 stripSymbols
@@ -193,8 +188,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         this.activeTheme = activeTheme;
-        this.processedOptions = processedOptions;
-        this.defaultAxes = defaultAxes;
+        this.processedOptions = processedOptions as any;
         this.fastDelta = fastDelta ?? undefined;
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
@@ -205,7 +199,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private fastSetup(deltaOptions: DeepPartial<T> | null, baseChartOptions: ChartOptions<T>) {
-        const { activeTheme, defaultAxes, processedOptions: baseOptions } = baseChartOptions;
+        const { activeTheme, processedOptions: baseOptions } = baseChartOptions;
+
         const { presetType } = this.optionMetadata;
 
         if (presetType != null && deltaOptions?.data != null) {
@@ -222,7 +217,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         ChartOptions.debug('ChartOptions.fastSetup() - processed options', processedOptions);
 
-        return { activeTheme, defaultAxes, processedOptions, fastDelta: deltaOptions };
+        return { activeTheme, processedOptions, fastDelta: deltaOptions };
     }
 
     private fastSeriesSetup(deltaOptions: DeepPartial<T> | null, baseOptions: T) {
@@ -298,31 +293,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.validateAxesOptions(options);
         this.removeDisabledOptions(options);
 
-        const seriesType = this.optionsType(options);
-        const {
-            annotations = {},
-            axes: axesThemes = {},
-            series: seriesTheme,
-            ...themeDefaults
-        } = this.getSeriesThemeConfig(seriesType, activeTheme);
+        const themeParameters = this.getThemeParameters(activeTheme, options);
+        const defaults = this.getAllThemeDefaults(activeTheme);
 
-        const [annotationsOptions, annotationsThemes] = this.splitAnnotationsOptions(annotations);
-        const annotationThemes = deepClone(annotationsThemes);
-
-        const defaultAxes = this.getDefaultAxes(options, seriesTheme);
-        let processedOptions = mergeDefaults(
-            processedOverrides,
-            options,
-            annotationsOptions,
-            themeDefaults,
-            defaultAxes
+        let processedOptions = jsonResolveOperations<T>(
+            [processedOverrides, options, ...defaults],
+            themeParameters
+            // new Set(['palette', 'theme'])
         );
-        this.processAxesOptions(processedOptions, axesThemes);
-        this.processSeriesOptions(processedOptions, activeTheme);
+        // ChartOptions.debug('ChartOptions.resolveTheme()', modifiedPaths);
+        // console.log(defaults);
+        console.log(options);
+        console.log(processedOptions);
 
-        // Create isolated copy of options before we start mutations - this is performance sensitive,
-        // so we aim to only do this once in the processing flow.
-        processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
+        this.enableConfiguredOptions(processedOptions, options);
 
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
         if (
@@ -335,17 +319,52 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             processedOptions.legend.enabled = processedOptions.series!.length > 1;
         }
 
-        this.enableConfiguredOptions(processedOptions, options);
+        /*
 
-        const themeParameters = this.getThemeParameters(activeTheme, processedOptions) as AgChartThemeParams;
-        (themeParameters as any).__palette = deepClone(activeTheme.palette);
-        (themeParameters as any).__palette.type = isObject(options.theme)
-            ? paletteType(options.theme?.palette)
-            : 'inbuilt';
-        this.resolveThemeOperations(themeParameters, themeParameters);
-        this.resolveThemeOperations(themeParameters, processedOptions);
-        this.resolveThemeOperations(themeParameters, annotationThemes);
+        TODO:
+        1 – Circular paths in `chartTheme.ts` axis default shapes
+        2 – Apply annotations like series
+        3 – Should `jsonResolveSourceWithTarget()` use `isObject()` or `isPlainObject()`? Compare tests vs `processedOptions.container` being removed by it.
+        4 – Series groupings
+        5 – Cross lines
 
+        */
+
+        /*
+
+        const { annotations, ...processedDefaults } = this.getAllThemeDefaults(activeTheme, options);
+        // const [annotationsOptions, annotationsThemes] = this.splitAnnotationsOptions(annotations);
+        // const annotationThemes = deepClone(annotationsThemes);
+
+        let processedOptions = mergeDefaults(processedOverrides, options,
+         annotationsOptions,
+          processedDefaults);
+
+        // const defaultAxes = this.getDefaultAxes(options, seriesTheme);
+        // let processedOptions = mergeDefaults(
+        //     processedOverrides,
+        //     options,
+        //     annotationsOptions,
+        //     themeDefaults,
+        //     defaultAxes
+        // );
+        // this.processAxesOptions(processedOptions, axesThemes);
+        // this.processSeriesOptions(processedOptions, activeTheme);
+
+        // this.resolveThemeOperations(themeParameters, annotationThemes);
+        
+        */
+
+        // TODO: Is this still needed? The `jsonResolveOperations()` is also a deep clone.
+        // Create isolated copy of options before we start mutations - this is performance sensitive,
+        // so we aim to only do this once in the processing flow.
+        processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
+
+        // TODO: Replace these with theme operations?
+        this.processSeriesOptions(processedOptions);
+        // this.processAxesOptions(processedOptions)
+
+        // TODO: Replace theme template symbols with $ref operations etc.
         activeTheme.templateTheme(processedOptions, false);
 
         removeUnusedEnterpriseOptions(processedOptions);
@@ -356,12 +375,71 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.validateSeriesOptions(processedOptions);
         this.validateAxesOptions(processedOptions);
         this.validatePluginOptions(processedOptions);
-        this.processMiniChartSeriesOptions(processedOptions);
+
+        // TODO: convert this to theme operations
+        // this.processMiniChartSeriesOptions(processedOptions);
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
-        return { activeTheme, processedOptions, defaultAxes, themeParameters, annotationThemes };
+        return { activeTheme, processedOptions, defaultAxes: [], themeParameters: {}, annotationThemes: {} };
     }
+
+    getAllThemeDefaults(activeTheme: ChartTheme) {
+        const themeConfig = activeTheme.config ?? {};
+        const chartDefaults = {
+            $apply: [themeConfig, '/$seriesType', { seriesType: { $path: '/series/0/type' } }, ['axes', 'series']],
+        };
+        const axesDefaults = {
+            axes: {
+                $apply: [
+                    themeConfig,
+                    '/$seriesType/axes/$axisType',
+                    {
+                        seriesType: { $path: ['/series/0/type', 'line'] },
+                        axisType: { $path: ['/type', 'category', { $value: '$1' }] },
+                    },
+                    ['crossLines'],
+                ],
+            },
+        };
+        const seriesDefaults = {
+            series: {
+                $apply: [
+                    themeConfig,
+                    '/$seriesType/series',
+                    { seriesType: { $path: ['/type', 'line', { $value: '$1' }] } },
+                ],
+            },
+        };
+        const annotationsDefaults = {
+            annotations: {
+                // $apply: [{ $pick: [['axesButtons', 'enabled', 'optionsToolbar', 'toolbar'], { $value: '$target' }] }],
+                $apply: [{}],
+            },
+        };
+
+        return [chartDefaults, axesDefaults, seriesDefaults, annotationsDefaults];
+    }
+
+    // const { crossLines: crossLinesTheme, ...axisTheme } = mergeDefaults(
+    //     axesThemes[axis.type]?.[axis.position],
+    //     axesThemes[axis.type]
+    // );
+
+    // if (axis.crossLines) {
+    //     axis.crossLines = mergeArrayDefaults(axis.crossLines, crossLinesTheme);
+    // }
+
+    // const gridLineStyle = axisTheme.gridLine?.style;
+    // if (axis.gridLine?.style && gridLineStyle?.length) {
+    //     axis.gridLine.style = axis.gridLine.style.map((style: any, index: number) =>
+    //         style.stroke != null || style.lineDash != null
+    //             ? mergeDefaults(style, gridLineStyle.at(index % gridLineStyle.length))
+    //             : style
+    //     );
+    // }
+    // const { top: _1, right: _2, bottom: _3, left: _4, ...axisOptions } = mergeDefaults(axis, axisTheme);
+    // return axisOptions;
 
     private validatePluginOptions(options: T) {
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
@@ -478,33 +556,33 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return activeTheme?.config[seriesType] ?? {};
     }
 
-    private getDefaultAxes(options: T, seriesTheme: object) {
-        const optionsType = this.optionsType(options);
-        const firstSeriesOptions = options.series?.find((series) => (series.type ?? 'line') === optionsType) ?? {};
-        const axes = seriesRegistry.cloneDefaultAxes(optionsType) as T;
-        jsonResolveOperations(axes, {}, undefined, mergeDefaults(firstSeriesOptions, seriesTheme));
-        return axes;
-    }
+    // private getDefaultAxes(options: T, _seriesTheme: object) {
+    //     const optionsType = this.optionsType(options);
+    //     // const firstSeriesOptions = options.series?.find((series) => (series.type ?? 'line') === optionsType) ?? {};
+    //     const axes = seriesRegistry.cloneDefaultAxes(optionsType) as T;
+    //     // jsonResolveOperations(axes, {}, undefined, mergeDefaults(firstSeriesOptions, seriesTheme));
+    //     return axes;
+    // }
 
     private optionsType(options: Partial<T>) {
         return options.series?.[0]?.type ?? 'line';
     }
 
-    private splitAnnotationsOptions(annotations: any) {
-        const {
-            axesButtons = null,
-            enabled = null,
-            optionsToolbar = null,
-            toolbar = null,
-            ...annotationsThemes
-        } = annotations;
+    // private splitAnnotationsOptions(annotations: any) {
+    //     const {
+    //         axesButtons = null,
+    //         enabled = null,
+    //         optionsToolbar = null,
+    //         toolbar = null,
+    //         ...annotationsThemes
+    //     } = annotations;
 
-        if (axesButtons == null && enabled == null && optionsToolbar == null && toolbar == null) {
-            return [{}, annotationsThemes];
-        }
+    //     if (axesButtons == null && enabled == null && optionsToolbar == null && toolbar == null) {
+    //         return [{}, annotationsThemes];
+    //     }
 
-        return [{ annotations: { axesButtons, enabled, optionsToolbar, toolbar } }, annotationsThemes];
-    }
+    //     return [{ annotations: { axesButtons, enabled, optionsToolbar, toolbar } }, annotationsThemes];
+    // }
 
     private processAxesOptions(options: T, axesThemes: any) {
         if (!('axes' in options)) return;
@@ -531,13 +609,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }) as AgCartesianAxisOptions[] | AgPolarAxisOptions[];
     }
 
-    private processSeriesOptions(options: T, activeTheme: ChartTheme) {
+    private processSeriesOptions(options: T) {
         const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
 
         const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series) => {
             series.type ??= 'line'; // TODO remove this behaviour
-            const { innerLabels: innerLabelsTheme, ...seriesTheme } =
-                this.getSeriesThemeConfig(series.type, activeTheme).series ?? {};
 
             const seriesDef = ModuleRegistry.getSeriesModule(series.type);
             const tooltipDefined = Boolean(seriesDef?.options.tooltip);
@@ -549,13 +625,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 series,
                 tooltipDefined && defaultTooltipPosition,
                 defaultTooltipRange,
-                seriesTheme,
+                // seriesTheme,
                 visibleDefined && { visible: true }
             );
 
-            if (seriesOptions.innerLabels) {
-                seriesOptions.innerLabels = mergeArrayDefaults(seriesOptions.innerLabels, innerLabelsTheme);
-            }
+            // if (seriesOptions.innerLabels) {
+            //     seriesOptions.innerLabels = mergeArrayDefaults(seriesOptions.innerLabels, innerLabelsTheme);
+            // }
 
             return seriesOptions;
         });
@@ -576,22 +652,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private getThemeParameters(theme: ChartTheme, options: T) {
-        const defaultParameters = theme.getPublicParameters();
+        let themeParameters = theme.getPublicParameters();
 
-        if (!isPlainObject(options.theme) || !options.theme.params) {
-            return defaultParameters;
+        if (isPlainObject(options.theme) && options.theme.params) {
+            const { cleared, invalid } = validate(options.theme.params, themeOptionsDef.params);
+            invalid.forEach((error) => Logger.warn(error));
+            themeParameters = mergeDefaults(cleared, themeParameters);
         }
 
-        const { cleared, invalid } = validate(options.theme.params, themeOptionsDef.params);
+        (themeParameters as any).__palette = deepClone(theme.palette);
+        (themeParameters as any).__palette.type = isObject(options.theme)
+            ? paletteType(options.theme?.palette)
+            : 'inbuilt';
+        themeParameters = jsonResolveOperations([themeParameters], themeParameters);
 
-        invalid.forEach((error) => Logger.warn(error));
-
-        return mergeDefaults(cleared, defaultParameters);
-    }
-
-    private resolveThemeOperations(params: WithThemeParams<AgChartThemeParams>, options: object) {
-        const modifiedPaths = jsonResolveOperations(options, params, new Set(['palette', 'data', 'theme']));
-        ChartOptions.debug('ChartOptions.resolveTheme()', modifiedPaths);
+        return themeParameters;
     }
 
     private getSeriesGroupingOptions(series: SeriesOptionsTypes & GroupingOptions) {
@@ -739,7 +814,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private getTooltipRangeDefaults(options: T, seriesType: SeriesType) {
         return {
             tooltip: {
-                range: options.tooltip?.range ?? seriesRegistry.getTooltipDefauls(seriesType)?.range,
+                range: options.tooltip?.range ?? seriesRegistry.getTooltipDefaults(seriesType)?.range,
             },
         };
     }

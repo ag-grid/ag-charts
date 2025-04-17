@@ -272,18 +272,22 @@ export class ChartTheme {
                     style: [{ stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
                 },
                 crossLines: {
-                    enabled: true,
-                    fill: { $ref: 'foregroundColor' },
-                    stroke: { $ref: 'foregroundColor' },
-                    fillOpacity: 0.1,
-                    strokeWidth: 1,
-                    label: {
-                        fontSize: { $ref: 'fontSize' },
-                        fontFamily: { $ref: 'fontFamily' },
-                        fontWeight: { $ref: 'fontWeight' },
-                        padding: 5,
-                        color: { $ref: 'textColor' },
-                    },
+                    $apply: [
+                        {
+                            enabled: true,
+                            fill: { $ref: 'foregroundColor' },
+                            stroke: { $ref: 'foregroundColor' },
+                            fillOpacity: 0.1,
+                            strokeWidth: 1,
+                            label: {
+                                fontSize: { $ref: 'fontSize' },
+                                fontFamily: { $ref: 'fontFamily' },
+                                fontWeight: { $ref: 'fontWeight' },
+                                padding: 5,
+                                color: { $ref: 'textColor' },
+                            },
+                        },
+                    ],
                 },
             }
         );

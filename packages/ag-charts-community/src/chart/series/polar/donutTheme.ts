@@ -76,12 +76,16 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             blur: 5,
         },
         innerLabels: {
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'textColor' },
-            spacing: 2,
-        },
+            $apply: [
+                {
+                    fontSize: { $ref: 'fontSize' },
+                    fontFamily: { $ref: 'fontFamily' },
+                    fontWeight: { $ref: 'fontWeight' },
+                    color: { $ref: 'textColor' },
+                    spacing: 2,
+                },
+            ],
+        } as any,
     },
     legend: { enabled: true },
 };
