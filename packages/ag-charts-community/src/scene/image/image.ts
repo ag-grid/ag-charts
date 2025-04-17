@@ -57,8 +57,8 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
             return {
                 dx: (shapeWidth - width) / 2,
                 dy: (shapeHeight - height) / 2,
-                dw: width,
-                dh: height,
+                dw: Math.max(1, width),
+                dh: Math.max(1, height),
             };
         }
 
@@ -72,8 +72,8 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
             scale = imageAspectRatio > shapeAspectRatio ? height / imageHeight : width / imageWidth;
         }
 
-        const scaledWidth = imageWidth * scale;
-        const scaledHeight = imageHeight * scale;
+        const scaledWidth = Math.max(1, imageWidth * scale);
+        const scaledHeight = Math.max(1, imageHeight * scale);
 
         return {
             dx: (shapeWidth - scaledWidth) / 2,
@@ -98,8 +98,8 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
             return;
         }
 
-        const width = Math.max(1, this.width ?? shapeWidth);
-        const height = Math.max(1, this.height ?? shapeHeight);
+        const width = this.width ?? shapeWidth;
+        const height = this.height ?? shapeHeight;
 
         const { dx, dy } = this.getDimensions(image.width, image.height, width, height, shapeWidth, shapeHeight);
 
@@ -131,8 +131,8 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         shapeHeight: number,
         node: Node
     ): CanvasPattern | string | undefined {
-        const width = Math.max(1, this.width ?? shapeWidth);
-        const height = Math.max(1, this.height ?? shapeHeight);
+        const width = this.width ?? shapeWidth;
+        const height = this.height ?? shapeHeight;
 
         const cache = this._cache;
         if (cache != null && cache.ctx === ctx && cache.width === width && cache.height === height) {
