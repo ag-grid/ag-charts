@@ -17,9 +17,6 @@ const options: AgCartesianChartOptions = {
                     fill: {
                         type: 'image',
                         url: datum.logo,
-                        fit: 'contain', // cover, stretch
-                        backgroundFill: 'pink',
-                        repetition: 'no-repeat',
                     },
                 };
             },

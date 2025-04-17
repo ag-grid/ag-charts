@@ -106,8 +106,6 @@ export interface AgImageFill {
     fit?: AgImageFillFit;
     /** The rotation angle of the image. */
     rotation?: number;
-    /** The scaling of the image. */
-    scale?: number;
 }
 
 export type AgColorRepetition = 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat';
