@@ -21,9 +21,9 @@ const options: AgChartOptions = {
             fillOpacity: 1,
             fill: {
                 type: 'image',
-                url: '${baseWWWUrl}/example-assets/e2e-test-images/parakeet-close-up.jpg',
-                width: 300,
-                height: 300,
+                url: '${baseWWWUrl}/example-assets/e2e-test-images/parakeet-drinking-water.jpg',
+                repetition: 'repeat',
+                rotation: 90,
             },
         },
     ],
