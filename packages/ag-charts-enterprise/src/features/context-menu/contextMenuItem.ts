@@ -17,7 +17,7 @@ function showsFor(showOn: AgContextMenuItemShowOn, showing: AgContextMenuItemSho
 export function appendItem(showing: AgContextMenuItemShowOn, item: Options, result: ContextMenuItem[]) {
     let mustShow: boolean = true;
     if (item.type === 'separator') {
-        const last: ContextMenuItem | undefined = result[result.length - 1];
+        const last: ContextMenuItem | undefined = result.at(result.length - 1);
         mustShow = last !== undefined && last.type !== 'separator';
     }
 
