@@ -14,6 +14,8 @@ export const SELECTORS = {
     canvasCenter: '.ag-charts-canvas-center',
     legendItems: 'button[role="switch"][class="ag-charts-proxy-elem"]',
     axisButton: '.ag-charts-annotations__axis-button',
+    tooltip: '.ag-charts-tooltip',
+    crosshairLabel: '.ag-charts-crosshair-label',
 } as const;
 
 export function getExamples() {
@@ -136,7 +138,7 @@ export function repeat(repCount: number, fn: () => unknown) {
     }
 }
 
-export async function gotoExample(page: Page, url: string) {
+export async function gotoExample(page: Page, url: string, opts = { skipStabilityChecks: false }) {
     await page.goto(url + '#e2e=true');
 
     await page.waitForLoadState('networkidle');
@@ -150,6 +152,8 @@ export async function gotoExample(page: Page, url: string) {
     for (const elements of await page.locator(SELECTORS.canvas).all()) {
         await expect(elements).toBeVisible();
     }
+
+    if (opts.skipStabilityChecks) return;
     for (const elements of await page.locator(SELECTORS.wrapper).all()) {
         const count: number = await elements.count();
         for (let i = 0; i < count; i++) {
