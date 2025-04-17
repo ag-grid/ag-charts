@@ -4,6 +4,7 @@ exports[`Context Menu should initially be hidden 1`] = `
 HTMLCollection [
   <div
     class="ag-charts-context-menu"
+    style="display: none;"
   />,
 ]
 `;
