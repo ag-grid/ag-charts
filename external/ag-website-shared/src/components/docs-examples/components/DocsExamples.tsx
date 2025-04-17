@@ -1,9 +1,10 @@
 import type { InternalFramework } from '@ag-grid-types';
+import { INTERNAL_FRAMEWORKS } from '@constants';
 import { type FunctionComponent, useCallback, useRef } from 'react';
 import { useMemo, useState } from 'react';
 
 import { AllCommunityModule } from 'ag-grid-community';
-import type { ColDef, ColGroupDef, ColumnState } from 'ag-grid-community';
+import type { ColDef, ColGroupDef, ColumnState, ColumnVisibleEvent } from 'ag-grid-community';
 import {
     ColumnsToolPanelModule,
     FiltersToolPanelModule,
@@ -124,7 +125,7 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             minWidth: 200,
         },
         {
-            colId: 'vue' as InternalFramework,
+            colId: 'vue3' as InternalFramework,
             headerName: 'Vue',
             headerComponentParams: {
                 innerHeaderComponent: FrameworkLogoCellRenderer,
@@ -163,6 +164,14 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
         },
     ]);
     const [colState, setColState] = useState<ColumnState[]>();
+    const [columnsVisible, setColumnsVisible] = useState<Record<InternalFramework, boolean>>({
+        vanilla: false,
+        typescript: false,
+        reactFunctional: false,
+        reactFunctionalTs: false,
+        angular: false,
+        vue3: false,
+    });
 
     const defaultColDef: ColDef = {
         flex: 1,
@@ -176,11 +185,14 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             cellRendererParams: {
                 suppressPadding: true,
                 innerRenderer: ExampleNameCellRenderer,
+                innerRendererParams: {
+                    columnsVisible,
+                },
             },
             minWidth: 400,
             pinned: 'left',
         };
-    }, []);
+    }, [columnsVisible]);
     const rowGroupPanelShow = 'always';
     const groupDisplayType = 'singleColumn';
     const groupDefaultExpanded = 1;
@@ -200,6 +212,15 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
             },
         ],
     });
+
+    const onColumnVisible = useCallback(({ api }: ColumnVisibleEvent) => {
+        const newColumnsVisible: Record<InternalFramework, boolean> = {};
+        INTERNAL_FRAMEWORKS.forEach((internalFramework: InternalFramework) => {
+            newColumnsVisible[internalFramework] = Boolean(api.getColumn(internalFramework)?.isVisible());
+        });
+
+        setColumnsVisible(newColumnsVisible);
+    }, []);
 
     const applyLocalStorageColState = useCallback(() => {
         const localColState = localStorage.getItem(LOCALSTORAGE_COL_STATE_KEY);
@@ -288,6 +309,7 @@ export const DocsExamples: FunctionComponent<Props> = ({ properties = [], exampl
                 rowGroupPanelShow={rowGroupPanelShow}
                 groupDefaultExpanded={groupDefaultExpanded}
                 onGridReady={onGridReady}
+                onColumnVisible={onColumnVisible}
             />
         </div>
     );

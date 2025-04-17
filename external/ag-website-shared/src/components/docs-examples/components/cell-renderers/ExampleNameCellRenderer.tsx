@@ -1,11 +1,16 @@
-import type { Framework } from '@ag-grid-types';
+import type { Framework, InternalFramework } from '@ag-grid-types';
 import fwLogos from '@ag-website-shared/images/fw-logos';
 import { FRAMEWORKS } from '@constants';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
+import { useEffect, useState } from 'react';
 
 import type { CustomCellRendererProps } from 'ag-grid-react';
 
 import styles from '../DocsExamples.module.scss';
+
+type Props = CustomCellRendererProps & {
+    columnsVisible: Record<InternalFramework, boolean>;
+};
 
 function FrameworkLink({ framework, link }: { framework: Framework; link: string }) {
     return (
@@ -15,11 +20,26 @@ function FrameworkLink({ framework, link }: { framework: Framework; link: string
     );
 }
 
-export function ExampleNameCellRenderer(props: CustomCellRendererProps) {
-    const { value, data, node } = props;
+export function ExampleNameCellRenderer({ value, data, node, columnsVisible }: Props) {
     const isPage = node.group;
     const pageName = isPage ? value : data.pageName;
     const exampleName = data?.exampleName;
+    const [frameworkVisible, setFrameworkVisible] = useState<Record<Framework, boolean>>({
+        react: false,
+        angular: false,
+        vue: false,
+        javascript: false,
+    });
+
+    useEffect(() => {
+        const newFrameworkVisible: Record<Framework, boolean> = {
+            react: columnsVisible.reactFunctional || columnsVisible.reactFunctionalTs,
+            angular: columnsVisible.angular,
+            vue: columnsVisible.vue3,
+            javascript: columnsVisible.vanilla || columnsVisible.typescript,
+        };
+        setFrameworkVisible(newFrameworkVisible);
+    }, [columnsVisible]);
 
     return (
         <div className={styles.exampleNameContainer}>
@@ -32,7 +52,11 @@ export function ExampleNameCellRenderer(props: CustomCellRendererProps) {
                             framework,
                             url,
                         });
-                        return <FrameworkLink key={framework} framework={framework} link={link} />;
+                        return (
+                            frameworkVisible[framework] && (
+                                <FrameworkLink key={framework} framework={framework} link={link} />
+                            )
+                        );
                     })}
                 </span>
             )}
