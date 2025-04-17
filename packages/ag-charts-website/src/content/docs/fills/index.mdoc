@@ -54,7 +54,7 @@ series: [
 
 ## Customisation
 
-### Gradients
+## Gradients
 
 {% chartExampleRunner title="Gradient Fill" name="gradient-fill" type="generated" /%}
 
@@ -89,7 +89,9 @@ In this configuration:
 
 See the [Gradient API reference](#reference-AgGradientColor) for all the available options.
 
-### Patterns
+## Patterns
+
+### Predefined
 
 {% chartExampleRunner title="Pattern Fill" name="pattern-fill" type="generated" /%}
 
@@ -115,7 +117,61 @@ Stock patterns include:
 
 Use styling properties such as `stroke`, `fill` and `backgroundFill` to further customise the patterns.
 
-### Images
+### Path
+
+SVG Path Data can be used to create custom patterns.
+
+```html
+<svg viewBox="0 0 16 10">
+    <path d="M0,6 Q4,1 8,6 T16,6" />
+</svg>
+```
+
+-   In the snippet above, the value of the `d` attribute on the SVG <path> element is `M4,6 Q8,1 12,6 T20,6`.
+-   It defines the shape of the path and can be used as a string in the `fill.path` property:
+
+```js
+{
+    series: {
+        fill: {
+            type: 'pattern',
+            path: 'M0,6 Q4,1 8,6 T16,6' // svg path data string
+        },
+    },
+}
+```
+
+{% chartExampleRunner title="Pattern Custom Path" name="pattern-custom-path" type="generated" /%}
+
+For detailed SVG Path Data syntax, refer to the [SVG Path Specification](https://www.w3.org/TR/SVG/paths.html#TheDProperty).
+
+A path consists of multiple segments defined by various commands. Each command (except `moveto` and `closepath`) creates a new path segment.
+All coordinates and lengths in the path data are interpreted in user units relative to the current coordinate system.
+
+To be valid, the path string must follow the SVG path grammar outlined in the [Path Data BNF](https://www.w3.org/TR/SVG/paths.html#PathDataBNF).
+
+Line Drawing Commands:
+
+-   L, l — Lineto (absolute and relative)
+-   H, h — Horizontal lineto
+-   V, v — Vertical lineto
+-   Z, z — Close path
+
+Cubic Bézier Curve Drawing Commands:
+
+-   C, c — Specify two control points and an endpoint
+-   S, s — Smooth cubic Bézier, uses the reflection of the previous control point
+
+Quadratic Bézier Curve Drawing Commands:
+
+-   Q, q — Specify one control point and an endpoint
+-   T, t — Smooth quadratic Bézier, uses the reflection of the previous control point
+
+Elliptical Arc Drawing Commands:
+
+-   A, a — Draws an elliptical arc segment
+
+## Images
 
 {% chartExampleRunner title="Image Fill" name="image-fill" type="generated" /%}
 
