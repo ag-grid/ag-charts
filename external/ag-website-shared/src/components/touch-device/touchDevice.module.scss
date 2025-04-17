@@ -12,6 +12,9 @@
 .ytContainer {
     position: relative;
     width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
     .deviceDark {
         display: none;
@@ -28,11 +31,8 @@
 
     .deviceContent {
         position: absolute;
-        width: 93%;
-        top: 10%;
-        left: 32px;
-        height: auto;
 
+        width: 93%;
         button:not(ul button) {
             display: none;
         }
