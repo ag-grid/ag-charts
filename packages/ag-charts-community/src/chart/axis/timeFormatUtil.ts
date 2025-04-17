@@ -55,9 +55,9 @@ export function deriveTimeSpecifier(
         case 'year':
             return year;
         case 'month':
-            return `${year} ${month}`;
+            return `${month} ${year}`;
         case 'day':
-            return `${year} ${month} ${day}`;
+            return `${month} ${day} ${year}`;
         case 'hour':
             time = hour;
             break;
@@ -83,5 +83,5 @@ export function deriveTimeSpecifier(
         return hardcodedTimeFormat;
     }
 
-    return `${year} ${month} ${day} ${time}`;
+    return `${time} ${month} ${day} ${year}`;
 }
