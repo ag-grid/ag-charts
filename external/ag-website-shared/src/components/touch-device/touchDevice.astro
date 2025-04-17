@@ -3,9 +3,6 @@ import { Icon } from '@ag-website-shared/components/icon/Icon';
 import styles from './touchDevice.module.scss';
 import classNames from 'classnames';
 
-/**
- * Show a YouTube thumbnail that links to the video
- */
 interface Props {
     id: string;
     title: string;
@@ -17,16 +14,16 @@ const { id, title = 'Video', showHeader } = Astro.props as Props;
 
 <div class={styles.videoSection}>
     <div>
-        <div class={styles.ytContainer}>
+        <div class={styles.dragContainer}>
             <div class={styles.deviceContent} class:list={{ [styles.videoContent]: showHeader }}><slot /></div>
             <img
                 src="/charts/images/ipad-pro-clay.png"
-                alt={`${title} thumbnail`}
+                alt={`${title}`}
                 class={classNames(styles.ytThumbnail, styles.deviceLight)}
             />
             <img
                 src="/charts/images/ipad-clay-dark.png"
-                alt={`${title} thumbnail`}
+                alt={`${title}`}
                 class={classNames(styles.ytThumbnail, styles.deviceDark)}
             />
         </div>

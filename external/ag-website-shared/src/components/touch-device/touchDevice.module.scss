@@ -9,7 +9,7 @@
     width: 100%;
 }
 
-.ytContainer {
+.dragContainer {
     position: relative;
     width: 100%;
     display: flex;
@@ -83,10 +83,4 @@
         height: auto;
         display: block;
     }
-}
-
-.ytThumbnail {
-    width: 100%;
-    height: auto;
-    padding-bottom: $spacing-size-2;
 }
