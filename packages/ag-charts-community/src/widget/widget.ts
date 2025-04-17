@@ -137,6 +137,10 @@ export abstract class Widget<
         this.elem.innerHTML = html;
     }
 
+    setPointerEvents(pointerEvents: BaseStyleTypeMap['pointer-events'] | undefined) {
+        setElementStyle(this.elem, 'pointer-events', pointerEvents);
+    }
+
     isDisabled() {
         return getAttribute(this.elem, 'aria-disabled', false);
     }

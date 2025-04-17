@@ -152,8 +152,10 @@ export class LegendDOMProxy {
                 const margin = (maxHeight - height) / 2; // CRT-543 Give the legend items the same heights for a better look.
                 const bbox: BBoxValues = { x: x - groupBBox.x, y: y - margin - groupBBox.y, height: maxHeight, width };
 
+                const enabled = interactive && visible;
                 l.proxyButton.setCursor('pointer');
-                l.proxyButton.setEnabled(interactive && visible);
+                l.proxyButton.setEnabled(enabled);
+                l.proxyButton.setPointerEvents(enabled ? undefined : 'none');
                 l.proxyButton.setBounds(bbox);
             }
         });
