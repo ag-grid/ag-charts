@@ -104,12 +104,16 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
 
         const { dx, dy } = this.getDimensions(image.width, image.height, width, height, shapeWidth, shapeHeight);
 
-        const angle = normalizeAngle360(toRadians(this.rotation));
-        const scale = 1 / pixelRatio;
-        const cos = Math.cos(angle) * scale;
-        const sin = Math.sin(angle) * scale;
+        const cx = shapeWidth / 2;
+        const cy = shapeHeight / 2;
 
-        pattern?.setTransform(new DOMMatrix([cos, sin, -sin, cos, tx + dx, ty + dy]));
+        const transform = new DOMMatrix()
+            .translate(cx, cy)
+            .rotate(this.rotation)
+            .translate(tx + dx - cx, ty + dy - cy)
+            .scale(1 / pixelRatio);
+
+        pattern?.setTransform(transform);
     }
 
     private _cache:
