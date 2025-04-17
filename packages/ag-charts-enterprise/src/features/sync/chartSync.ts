@@ -10,35 +10,8 @@ const {
     TooltipManager,
     Property,
     findMinMax,
+    isObjectWithStringProperty,
 } = _ModuleSupport;
-
-interface ZoomState {
-    min: number;
-    max: number;
-}
-
-interface AxisZoomState {
-    x?: ZoomState;
-    y?: ZoomState;
-    autoScaleYAxis?: boolean;
-}
-
-interface ChartLike {
-    id: string;
-    ctx: {
-        updateService: {
-            update(type: _ModuleSupport.ChartUpdateType): void;
-        };
-        zoomManager: {
-            getZoom(): AxisZoomState | undefined;
-        };
-    };
-    getTooltipContent(
-        series: _ModuleSupport.ISeries<unknown, unknown, unknown>,
-        datumIndex: unknown,
-        removeMeDatum: unknown
-    ): _ModuleSupport.TooltipContent[];
-}
 
 const debug = _ModuleSupport.Debug.create('sync');
 
@@ -65,6 +38,10 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     @ObserveChanges<ChartSync>((target) => target.onZoomChange())
     zoom: boolean = true;
 
+    @Property
+    @ObserveChanges<ChartSync>((target) => target.onAxesChange())
+    domainMode: 'direction' | 'position' | 'key' = 'key';
+
     private readonly domainSync = new AsyncAwaitQueue();
 
     constructor(protected moduleContext: _ModuleSupport.ModuleContext) {
@@ -79,11 +56,16 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         }
     }
 
-    private updateChart(chart: ChartLike, updateType = ChartUpdateType.UPDATE_DATA) {
-        debug('ChartSync.updateChart()', chart.id, updateType, chart);
-        chart.ctx.updateService.update(updateType);
+    private updateChart(chart: _ModuleSupport.SyncChartLike, updateType = ChartUpdateType.PROCESS_DOMAIN) {
+        debug('ChartSync.updateChart()', chart.id, ChartUpdateType[updateType], chart);
+        if (updateType === ChartUpdateType.PROCESS_DOMAIN) {
+            chart.ctx.updateService.update(updateType, { forceNodeDataRefresh: true });
+        } else {
+            chart.ctx.updateService.update(updateType);
+        }
     }
 
+    private disableZoomSync?: () => void;
     private enabledZoomSync() {
         const { syncManager, zoomManager } = this.moduleContext;
         this.disableZoomSync = zoomManager.addListener('zoom-change', () => {
@@ -95,106 +77,201 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         });
     }
 
-    private disableZoomSync?: () => void;
-
+    private disableNodeInteractionSync?: () => void;
     private enabledNodeInteractionSync() {
-        const { highlightManager, syncManager } = this.moduleContext;
-        this.disableNodeInteractionSync = highlightManager.addListener('highlight-change', (event) => {
-            debug('ChartSync - highlight-change', event);
+        const { highlightManager } = this.moduleContext;
+        this.disableNodeInteractionSync = highlightManager.addListener(
+            'highlight-change',
+            this.onHighlightChange.bind(this)
+        );
+    }
 
+    private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
+        const { syncManager } = this.moduleContext;
+
+        if (event.callerId.endsWith('-sync')) return;
+
+        debug('ChartSync.onHighlightChange()', event);
+
+        const mainDirection = this.axes === 'xy' ? 'x' : this.axes;
+        const secondaryDirection = mainDirection === 'x' ? 'y' : 'x';
+        const eventValueKey = event.currentHighlight?.[`${mainDirection}Key`];
+        let eventValue = eventValueKey ? event.currentHighlight?.datum[eventValueKey] : undefined;
+        const valueIsDate = isDate(eventValue);
+        if (valueIsDate) {
+            eventValue = eventValue.getTime();
+        }
+
+        if (!event.currentHighlight?.datum) {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
                 if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
 
-                if (!event.currentHighlight?.datum) {
-                    chart.ctx.highlightManager.updateHighlight(chart.id);
-                    chart.ctx.tooltipManager.removeTooltip(chart.id);
-                    continue;
-                }
-
-                for (const axis of chart.axes) {
-                    const validDirection = this.axes === 'xy' ? 'x' : this.axes;
-                    if (!CartesianAxis.is(axis) || axis.direction !== validDirection) continue;
-
-                    const matchingNodes = chart.series
-                        .map((series) => {
-                            const seriesKeys = series.getKeys(axis.direction);
-
-                            if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) return;
-
-                            const { nodeData } = (series as any).contextNodeData;
-
-                            if (!nodeData?.length) return;
-
-                            const valueKey = nodeData[0][`${axis.direction}Key`];
-                            let eventValue = event.currentHighlight!.datum[valueKey];
-                            const valueIsDate = isDate(eventValue);
-
-                            if (valueIsDate) {
-                                eventValue = eventValue.getTime();
-                            }
-
-                            const nodeDatum = nodeData.find((datum: any) => {
-                                const nodeValue = datum.datum[valueKey];
-                                return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
-                            });
-
-                            return nodeDatum ? { series, nodeDatum } : null;
-                        })
-                        .filter(isDefined);
-
-                    if (
-                        matchingNodes.length < 2 &&
-                        matchingNodes[0]?.nodeDatum !== chart.ctx.highlightManager.getActiveHighlight()
-                    ) {
-                        const { series, nodeDatum } = matchingNodes[0] ?? {};
-                        chart.ctx.highlightManager.updateHighlight(chart.id, nodeDatum);
-
-                        if (nodeDatum) {
-                            const canvasX = nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0;
-                            const canvasY = nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0;
-                            const tooltipMeta = TooltipManager.makeTooltipMeta(
-                                { type: 'pointermove', canvasX, canvasY },
-                                series,
-                                nodeDatum,
-                                undefined
-                            );
-
-                            chart.ctx.tooltipManager.updateTooltip(
-                                chart.id,
-                                tooltipMeta,
-                                chart.getTooltipContent(series, nodeDatum.datumIndex, nodeDatum)
-                            );
-                        } else {
-                            chart.ctx.tooltipManager.removeTooltip(chart.id);
-                        }
-
-                        this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
-                    }
-                }
+                chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`);
+                chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`);
             }
-        });
+            return;
+        }
+
+        this.findMatchingHighlightNodes(mainDirection, secondaryDirection, valueIsDate, eventValue, event);
     }
 
-    private disableNodeInteractionSync?: () => void;
+    private findMatchingHighlightNodes(
+        mainDirection: 'x' | 'y',
+        secondaryDirection: 'x' | 'y',
+        valueIsDate: boolean,
+        eventValue: any,
+        event: _ModuleSupport.HighlightChangeEvent
+    ) {
+        const { syncManager } = this.moduleContext;
+
+        for (const [chart, axis] of syncManager.getGroupSiblingAxes(this.groupId)) {
+            if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
+            if (!CartesianAxis.is(axis) || axis.direction !== mainDirection) continue;
+
+            // Find matching nodes for the main direction.
+            let matchingNodes = chart.series
+                .map(this.findMatchingNodes(axis, mainDirection, valueIsDate, eventValue))
+                .filter(isDefined);
+
+            if (matchingNodes.length > 1) {
+                const secondaryKey = `${secondaryDirection}Key` as const;
+                const secondaryValue = _ModuleSupport.isObjectWithProperty(event.currentHighlight, secondaryKey)
+                    ? event.currentHighlight?.[secondaryKey]
+                    : undefined;
+                // Narrow matches by matching the secondary direction key.
+                matchingNodes = matchingNodes.filter(({ nodeDatum }) => {
+                    return (
+                        isObjectWithStringProperty(nodeDatum, secondaryKey) &&
+                        nodeDatum[secondaryKey] === secondaryValue
+                    );
+                });
+            }
+
+            if (
+                matchingNodes.length < 2 &&
+                matchingNodes[0]?.nodeDatum !== chart.ctx.highlightManager.getActiveHighlight()
+            ) {
+                const { series, nodeDatum } = matchingNodes[0] ?? {};
+                this.dispatchHighlightUpdate(chart, nodeDatum, series);
+            } else {
+                debug('ChartSync.findMatchingHighlightNodes() - no matching nodes', chart.id, event);
+            }
+        }
+    }
+
+    private findMatchingNodes(
+        axis: _ModuleSupport.CartesianAxis<any, any>,
+        mainDirection: string,
+        valueIsDate: boolean,
+        eventValue: any
+    ) {
+        return (series: _ModuleSupport.ISeries<any, any, any, any>) => {
+            const seriesKeys = series.getKeys(axis.direction);
+
+            if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) return;
+
+            const nodeData: _ModuleSupport.SeriesNodeDatum<unknown>[] = (series as any).contextNodeData?.nodeData ?? [];
+            if (!nodeData?.length) return;
+
+            const firstNode = nodeData[0];
+            const mainDirectionKey = `${mainDirection}Key` as const;
+            if (!isObjectWithStringProperty(firstNode, mainDirectionKey)) return;
+
+            const valueKey = firstNode[mainDirectionKey];
+            const nodeDatum = nodeData.find((datum: any) => {
+                const nodeValue = datum.datum[valueKey];
+                return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
+            });
+
+            return nodeDatum ? { series, nodeDatum } : null;
+        };
+    }
+
+    private dispatchHighlightUpdate(
+        chart: _ModuleSupport.SyncChartLike,
+        nodeDatum: any,
+        series: _ModuleSupport.ISeries<any, any, any, any>
+    ) {
+        debug('ChartSync.dispatchHighlightUpdate()', chart.id, nodeDatum, series);
+
+        chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, nodeDatum);
+
+        if (nodeDatum) {
+            const bbox = chart.seriesAreaBoundingBox;
+            const canvasX = bbox.x + (nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0);
+            const canvasY = bbox.y + (nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0);
+            const tooltipMeta = TooltipManager.makeTooltipMeta(
+                { type: 'pointermove', canvasX, canvasY },
+                series,
+                nodeDatum,
+                undefined
+            );
+
+            chart.ctx.tooltipManager.updateTooltip(
+                `${chart.id}-sync`,
+                tooltipMeta,
+                chart.getTooltipContent(series, nodeDatum.datumIndex, nodeDatum)
+            );
+        } else {
+            chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`);
+        }
+
+        this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
+    }
 
     async getSyncedDomain(axis: unknown) {
         if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
             return;
         }
 
+        const { groupState, directionDomains, domainsByKey, positionDomains } = this.updateDomainState(axis);
+        this.validateAxis(axis, groupState);
+
+        await this.waitForDomainsToBeReady();
+
+        if (this.domainMode === 'position') {
+            return this.calculateDerivedDomain(axis, positionDomains);
+        }
+
+        if (this.domainMode === 'direction' || axis.keys.length === 0) {
+            return this.calculateDerivedDomain(axis, directionDomains);
+        }
+
+        return this.calculateKeyDerivedDomain(axis, domainsByKey);
+    }
+
+    private updateDomainState(axis: _ModuleSupport.CartesianAxis<any, any>) {
         const { syncManager } = this.moduleContext;
         const chartId = syncManager.getChart().id;
+        const axisId = axis.id;
         const groupState = syncManager.getGroupState(this.groupId);
         if (!groupState) throw new Error('AG Charts - no GroupState for groupId: ' + this.groupId);
 
         // Update shared state of synced axis domain.
-        const domains = (groupState.domains ??= {});
-        const directionDomains = (domains[axis.direction] ??= { derived: [], sources: {} });
-        const chartDomains = (directionDomains.sources[chartId] ??= {});
-        chartDomains[axis.id] = axis.dataDomain.domain;
+        const domainsByDirection = (groupState.domains ??= {});
+        const directionDomains = (domainsByDirection[axis.direction] ??= { derived: [], sources: {}, dirty: true });
+        const chartDirectionDomains = (directionDomains.sources[chartId] ??= {});
+        chartDirectionDomains[axisId] = axis.dataDomain.domain;
+        directionDomains.dirty = true;
 
-        await this.waitForDomainsToBeReady();
+        const domainsByKey = (groupState.domainsByKey ??= {});
+        for (const key of axis.keys ?? []) {
+            const keyDomains = (domainsByKey[key] ??= { derived: [], sources: {}, dirty: true });
+            const chartKeyDomains = (keyDomains.sources[chartId] ??= {});
+            chartKeyDomains[axisId] = axis.dataDomain.domain;
+            keyDomains.dirty = true;
+        }
 
+        const domainsByPosition = (groupState.domainsByPosition ??= {});
+        const positionDomains = (domainsByPosition[axis.position] ??= { derived: [], sources: {}, dirty: true });
+        const chartPositionDomains = (positionDomains.sources[chartId] ??= {});
+        chartPositionDomains[axisId] = axis.dataDomain.domain;
+        positionDomains.dirty = true;
+
+        return { groupState, directionDomains, domainsByKey, positionDomains };
+    }
+
+    private validateAxis(axis: _ModuleSupport.CartesianAxis<any, any>, groupState: _ModuleSupport.SyncGroupState) {
         const members = groupState.members;
         const [{ axes: syncAxes }] = members;
 
@@ -216,6 +293,13 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                 return;
             }
         }
+    }
+
+    private calculateDerivedDomain(
+        axis: _ModuleSupport.CartesianAxis<any, any>,
+        directionDomains: _ModuleSupport.SyncDerivedDomain
+    ) {
+        if (!directionDomains.dirty) return directionDomains.derived;
 
         const previousDerived = directionDomains.derived;
         directionDomains.derived = unique(
@@ -227,11 +311,58 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         if (ContinuousScale.is(axis.scale)) {
             directionDomains.derived = findMinMax(directionDomains.derived as number[]);
         }
+        directionDomains.dirty = false;
+
         if (!arraysEqual(previousDerived, directionDomains.derived)) {
+            debug(axis.id, 'updated', axis.keys, { before: previousDerived, after: directionDomains.derived });
             this.updateSiblings();
         }
 
         return directionDomains.derived;
+    }
+
+    private calculateKeyDerivedDomain(
+        axis: _ModuleSupport.CartesianAxis<any, any>,
+        domainsByKey: { [key: string]: _ModuleSupport.SyncDerivedDomain }
+    ) {
+        let previousDerived = [];
+        let newDerived = [];
+        let updated = false;
+        for (const key of axis.keys ?? []) {
+            const keyDomains = domainsByKey[key];
+            const previousDerivedForKey = keyDomains.derived;
+            previousDerived.push(...previousDerivedForKey);
+
+            if (!keyDomains.dirty) {
+                newDerived.push(...keyDomains.derived);
+                continue;
+            }
+
+            keyDomains.derived = unique(
+                Object.values(keyDomains.sources)
+                    .map((d) => Object.values(d))
+                    .flat(2)
+            );
+            if (ContinuousScale.is(axis.scale)) {
+                keyDomains.derived = findMinMax(keyDomains.derived as number[]);
+            }
+            newDerived.push(...keyDomains.derived);
+
+            keyDomains.dirty = false;
+            updated ||= !arraysEqual(previousDerivedForKey, keyDomains.derived);
+        }
+
+        if (ContinuousScale.is(axis.scale)) {
+            previousDerived = findMinMax(previousDerived as number[]);
+            newDerived = findMinMax(newDerived as number[]);
+        }
+
+        if (updated && !arraysEqual(previousDerived, newDerived)) {
+            debug(axis.id, 'updated', axis.keys, { before: previousDerived, after: newDerived });
+            this.updateSiblings();
+        }
+
+        return newDerived;
     }
 
     removeAxis(axis: unknown) {
@@ -242,19 +373,30 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const { syncManager } = this.moduleContext;
         const syncGroup = syncManager.getGroupState(this.groupId);
 
-        delete syncGroup?.domains?.[axis.direction]?.sources?.[syncManager.getChart().id]?.[axis.id];
+        const chartId = syncManager.getChart().id;
+        const axisId = axis.id;
+        delete syncGroup?.domains?.[axis.direction]?.sources?.[chartId]?.[axisId];
+        for (const key of axis.keys ?? []) {
+            delete syncGroup?.domainsByKey?.[key]?.sources?.[chartId]?.[axisId];
+        }
+        delete syncGroup?.domainsByPosition?.[axis.position]?.sources?.[chartId]?.[axisId];
     }
 
     private async waitForDomainsToBeReady() {
         const { syncManager } = this.moduleContext;
+        let count = 0;
         while (syncManager.getGroupMembers(this.groupId).some((c) => c.syncStatus === 'init')) {
             debug('ChartSync.waitForDomainsToBeReady() - waiting for all domains to be calculated', this.groupId);
             await this.domainSync.await();
+            count++;
+        }
+        if (count > 0) {
+            debug('ChartSync.waitForDomainsToBeReady() - waited for', count, 'iterations');
         }
         this.domainSync.notify();
     }
 
-    private mergeZoom(chart: ChartLike) {
+    private mergeZoom(chart: _ModuleSupport.SyncChartLike) {
         const { zoomManager } = this.moduleContext;
 
         if (this.axes === 'xy') {

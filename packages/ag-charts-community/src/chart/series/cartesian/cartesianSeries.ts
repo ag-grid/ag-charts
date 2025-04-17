@@ -321,6 +321,10 @@ export abstract class CartesianSeries<
         this.detachPaths(this.paths, seriesNode, annotationNode);
     }
 
+    override updatedDomains(): void {
+        this.animationState.transition('updateData');
+    }
+
     protected attachPaths(paths: Path[], _seriesNode: Node, _annotationNode: Node | undefined) {
         for (const path of paths) {
             this.contentGroup.appendChild(path);

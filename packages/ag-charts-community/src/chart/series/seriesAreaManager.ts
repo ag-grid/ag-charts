@@ -135,6 +135,10 @@ export class SeriesAreaManager extends BaseManager {
     public readonly focusIndicator?: FocusIndicator;
     private readonly swapChain: FocusSwapChain;
 
+    get bbox() {
+        return (this.seriesRect ?? BBox.zero).clone();
+    }
+
     private readonly highlight = {
         /** Last received event that still needs to be applied. */
         pendingHoverEvent: undefined as HoverLikeEvent | undefined,

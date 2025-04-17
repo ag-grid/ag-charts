@@ -161,3 +161,11 @@ export function deepFreeze<T>(obj: T): T {
 
     return obj;
 }
+
+export function isObjectWithProperty<K extends string>(obj: unknown, key: K): obj is { [key in K]: unknown } {
+    return isPlainObject(obj) && key in obj;
+}
+
+export function isObjectWithStringProperty<K extends string>(obj: unknown, key: K): obj is { [key in K]: string } {
+    return isObjectWithProperty(obj, key) && typeof obj[key] === 'string';
+}

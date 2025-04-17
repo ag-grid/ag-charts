@@ -432,6 +432,10 @@ export abstract class Series<
         return;
     }
 
+    updatedDomains() {
+        // For override by subclasses.
+    }
+
     destroy(): void {
         this.destroyFns.forEach((f) => f());
         this.destroyFns = [];

@@ -83,6 +83,12 @@ export class CartesianChart extends Chart {
             this.syncStatus = 'domains-calculated';
         }
 
+        this.ctx.updateService.dispatchProcessData({ series: { shouldFlipXY: this.shouldFlipXY() } });
+    }
+
+    override async processDomains() {
+        await super.processDomains();
+
         for (const axis of this.axes) {
             const syncedDomain = await this.getSyncedDomain(axis);
 
@@ -90,8 +96,6 @@ export class CartesianChart extends Chart {
                 axis.setDomains(syncedDomain);
             }
         }
-
-        this.ctx.updateService.dispatchProcessData({ series: { shouldFlipXY: this.shouldFlipXY() } });
     }
 
     private lastLayoutWidth = NaN;

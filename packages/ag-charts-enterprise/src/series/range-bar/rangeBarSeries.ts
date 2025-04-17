@@ -682,9 +682,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override animateWaitingUpdateReady(data: RangeBarAnimationData) {
-        const { datumSelection: datumSelections, labelSelection, previousContextData } = data;
-        const { processedData } = this;
-        const dataDiff = processedData?.reduced?.diff?.[this.id];
+        const { datumSelection: datumSelections, labelSelection, contextData, previousContextData } = data;
+        const dataDiff = _ModuleSupport.calculateDataDiff(
+            this.id,
+            datumSelections,
+            this.getDatumId.bind(this),
+            contextData,
+            previousContextData,
+            this.processedData
+        );
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
@@ -700,7 +706,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             dataDiff
         );
 
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+        if (dataDiff?.changed) {
+            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+        }
     }
 
     private getDatumId(datum: RangeBarNodeDatum) {
