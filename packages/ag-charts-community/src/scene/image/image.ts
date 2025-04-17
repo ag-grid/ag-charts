@@ -56,8 +56,8 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         const { fit } = this;
         if (fit === 'stretch' || imageWidth === 0 || imageHeight === 0) {
             return {
-                dx: 0,
-                dy: 0,
+                dx: (shapeWidth - width) / 2,
+                dy: (shapeHeight - height) / 2,
                 dw: width,
                 dh: height,
             };
