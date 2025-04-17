@@ -208,6 +208,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const { menuWidget } = this;
         menuWidget.clear();
         menuWidget.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
+        menuWidget.setTabIndex(-1);
 
         for (const item of expandedItems) {
             switch (item.type) {
