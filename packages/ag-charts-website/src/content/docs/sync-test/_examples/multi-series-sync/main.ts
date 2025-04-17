@@ -45,7 +45,7 @@ const commonOptions: AgCartesianChartOptions = {
             stackGroup: 'memory',
         },
     ],
-    tooltip: { mode: 'shared' },
+    // tooltip: { mode: 'shared' },
 };
 
 const chartOptions1 = {
