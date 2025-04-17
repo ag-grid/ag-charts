@@ -13,15 +13,68 @@
     position: relative;
     width: 100%;
 
-    div:first-child {
+    .deviceDark {
+        display: none;
+    }
+
+    #{$selector-darkmode} & {
+        .deviceLight {
+            display: none;
+        }
+        .deviceDark {
+            display: block;
+        }
+    }
+
+    .deviceContent {
         position: absolute;
-        width: 94%;
+        width: 93%;
         top: 10%;
         left: 32px;
-        height: 773px;
+        height: auto;
 
-        button {
+        button:not(ul button) {
             display: none;
+        }
+
+        header {
+            border: none !important;
+            display: flex;
+            justify-content: center;
+            padding-bottom: $spacing-size-5;
+            box-shadow: none;
+        }
+
+        [role='tabpanel'] {
+            border: none;
+        }
+
+        ul button {
+            appearance: none;
+            display: inline-block;
+            height: 36px;
+            padding: 5px 14px 7px;
+            white-space: nowrap;
+            border-radius: 6px;
+            color: var(--color-fg-primary);
+            text-transform: lowercase;
+            background-color: var(--button-bg);
+            border: 1px solid var(--color-border-secondary);
+            box-shadow: 0 0 0 0 transparent;
+            font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+            font-size: 14px;
+
+            &:hover {
+                background-color: rgba(0, 0, 0, 0.1);
+            }
+            transition:
+                background-color 0.25s ease-in-out,
+                border-color 0.25s ease-in-out,
+                box-shadow 0.25s ease-in-out;
+        }
+
+        ::after {
+            background: none;
         }
     }
 
@@ -31,23 +84,6 @@
         display: block;
     }
 }
-
-// // This will position the video content (from slot) inside the iPad frame
-// .ytContainer video {
-//     position: absolute;
-//     top: 3.8%; // Adjust these values to fit the iPad Pro clay image exactly
-//     left: 6.2%;
-//     width: 87.6%; // Width of the screen area in the iPad image
-//     height: 91.4%; // Height of the screen area in the iPad image
-//     overflow: hidden;
-//     border-radius: 3px; // Slight rounding to match iPad screen corners
-
-//     video {
-//         width: 100%;
-//         height: 100%;
-//         object-fit: cover;
-//     }
-// }
 
 .ytThumbnail {
     width: 100%;

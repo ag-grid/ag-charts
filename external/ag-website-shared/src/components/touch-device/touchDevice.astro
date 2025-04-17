@@ -1,6 +1,7 @@
 ---
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import styles from './touchDevice.module.scss';
+import classNames from 'classnames';
 
 /**
  * Show a YouTube thumbnail that links to the video
@@ -8,19 +9,26 @@ import styles from './touchDevice.module.scss';
 interface Props {
     id: string;
     title: string;
-    playlist?: string;
     showHeader?: boolean;
 }
 
-const { id, title = 'Video', playlist, showHeader } = Astro.props as Props;
-const link = `https://www.youtube.com/watch?v=${id}${playlist ? `&list=${playlist}` : ''}`;
+const { id, title = 'Video', showHeader } = Astro.props as Props;
 ---
 
 <div class={styles.videoSection}>
-    <div href={link} target="_blank">
+    <div>
         <div class={styles.ytContainer}>
-            <div class:list={{ [styles.videoContent]: showHeader }}><slot /></div>
-            <img src="/charts/images/ipad-pro-clay.png" alt={`${title} thumbnail`} class={styles.ytThumbnail} />
+            <div class={styles.deviceContent} class:list={{ [styles.videoContent]: showHeader }}><slot /></div>
+            <img
+                src="/charts/images/ipad-pro-clay.png"
+                alt={`${title} thumbnail`}
+                class={classNames(styles.ytThumbnail, styles.deviceLight)}
+            />
+            <img
+                src="/charts/images/ipad-clay-dark.png"
+                alt={`${title} thumbnail`}
+                class={classNames(styles.ytThumbnail, styles.deviceDark)}
+            />
         </div>
     </div>
 </div>
