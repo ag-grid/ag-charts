@@ -1,7 +1,6 @@
 import { type InternalAgImageFill, createSvgElement } from 'ag-charts-core';
 import type { AgColorRepetition, AgImageFillFit } from 'ag-charts-types';
 
-import { normalizeAngle360, toRadians } from '../../util/angle';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import type { Node } from '../node';
 import type { ImageLoader } from './imageLoader';
@@ -14,7 +13,6 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
     repetition: AgColorRepetition;
     fit: AgImageFillFit;
     rotation: number;
-    scale: number;
 
     constructor(
         readonly imageLoader: ImageLoader | undefined,
@@ -27,7 +25,6 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         this.height = imageOptions.height;
         this.fit = imageOptions.fit ?? 'stretch';
         this.rotation = imageOptions.rotation ?? 0;
-        this.scale = imageOptions.scale ?? 1;
     }
 
     private createCanvasImage(
@@ -58,10 +55,10 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         const { fit } = this;
         if (fit === 'stretch' || imageWidth === 0 || imageHeight === 0) {
             return {
-                dx: 0,
-                dy: 0,
-                dw: width,
-                dh: height,
+                dx: (shapeWidth - width) / 2,
+                dy: (shapeHeight - height) / 2,
+                dw: Math.max(1, width),
+                dh: Math.max(1, height),
             };
         }
 
@@ -75,8 +72,8 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
             scale = imageAspectRatio > shapeAspectRatio ? height / imageHeight : width / imageWidth;
         }
 
-        const scaledWidth = imageWidth * scale;
-        const scaledHeight = imageHeight * scale;
+        const scaledWidth = Math.max(1, imageWidth * scale);
+        const scaledHeight = Math.max(1, imageHeight * scale);
 
         return {
             dx: (shapeWidth - scaledWidth) / 2,
@@ -101,17 +98,21 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
             return;
         }
 
-        const width = Math.max(1, this.width ?? shapeWidth);
-        const height = Math.max(1, this.height ?? shapeHeight);
+        const width = this.width ?? shapeWidth;
+        const height = this.height ?? shapeHeight;
 
         const { dx, dy } = this.getDimensions(image.width, image.height, width, height, shapeWidth, shapeHeight);
 
-        const angle = normalizeAngle360(toRadians(this.rotation));
-        const scale = this.scale / pixelRatio;
-        const cos = Math.cos(angle) * scale;
-        const sin = Math.sin(angle) * scale;
+        const cx = shapeWidth / 2;
+        const cy = shapeHeight / 2;
 
-        pattern?.setTransform(new DOMMatrix([cos, sin, -sin, cos, tx + dx, ty + dy]));
+        const transform = new DOMMatrix()
+            .translate(cx, cy)
+            .rotate(this.rotation)
+            .translate(tx + dx - cx, ty + dy - cy)
+            .scale(1 / pixelRatio);
+
+        pattern?.setTransform(transform);
     }
 
     private _cache:
@@ -130,8 +131,8 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         shapeHeight: number,
         node: Node
     ): CanvasPattern | string | undefined {
-        const width = Math.max(1, this.width ?? shapeWidth);
-        const height = Math.max(1, this.height ?? shapeHeight);
+        const width = this.width ?? shapeWidth;
+        const height = this.height ?? shapeHeight;
 
         const cache = this._cache;
         if (cache != null && cache.ctx === ctx && cache.width === width && cache.height === height) {
@@ -149,7 +150,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
     }
 
     toSvg(shapeWidth: number, shapeHeight: number, pixelRatio: number): SVGElement {
-        const { url, width = shapeWidth, height = shapeHeight, scale, rotation } = this;
+        const { url, width = shapeWidth, height = shapeHeight, rotation } = this;
 
         const pattern = createSvgElement('pattern');
         pattern.setAttribute('viewBox', `0 0 ${width} ${height}`);
@@ -158,7 +159,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         pattern.setAttribute('patternUnits', 'userSpaceOnUse');
         pattern.setAttribute(
             'patternTransform',
-            `scale(${scale / pixelRatio}) rotate(${rotation}, ${width / 2}, ${height / 2})`
+            `scale(${1 / pixelRatio}) rotate(${rotation}, ${width / 2}, ${height / 2})`
         );
 
         const image = createSvgElement('image');

@@ -178,9 +178,8 @@ const fillImageDefaults: RequiredInternalAgImageFill = {
     type: 'image',
     backgroundFill: 'black',
     rotation: 0,
-    scale: 1,
-    repetition: 'repeat',
-    fit: 'cover',
+    repetition: 'no-repeat',
+    fit: 'contain',
 };
 
 export class Legend extends BaseProperties {

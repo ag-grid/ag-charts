@@ -22,8 +22,6 @@ const options: AgChartOptions = {
             fill: {
                 type: 'image',
                 url: '${baseWWWUrl}/example-assets/e2e-test-images/parakeet-drinking-water.jpg',
-                width: 100,
-                height: 150,
                 rotation: 90,
             },
         },
