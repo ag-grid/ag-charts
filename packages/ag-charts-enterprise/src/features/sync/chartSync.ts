@@ -130,10 +130,11 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
             // Find matching nodes for the main direction.
             let matchingNodes = chart.series
+                .filter((s) => s.visible)
                 .map(this.findMatchingNodes(axis, mainDirection, valueIsDate, eventValue))
                 .filter(isDefined);
 
-            if (matchingNodes.length > 1) {
+            if (this.domainMode === 'key') {
                 const secondaryKey = `${secondaryDirection}Key` as const;
                 const secondaryValue = _ModuleSupport.isObjectWithProperty(event.currentHighlight, secondaryKey)
                     ? event.currentHighlight?.[secondaryKey]
