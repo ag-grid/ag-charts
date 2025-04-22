@@ -1,11 +1,4 @@
 import {
-    type AgGaugeColorStop,
-    type AgLinearGaugePreset,
-    type AgLinearGaugeTarget,
-    type FillsOptions,
-    _ModuleSupport,
-} from 'ag-charts-community';
-import {
     type OptionsDefs,
     and,
     arrayLength,
@@ -32,14 +25,23 @@ import {
     undocumented,
     union,
 } from 'ag-charts-core';
+import type {
+    AgGaugeColorStop,
+    AgLinearGaugePreset,
+    AgLinearGaugeTarget,
+    AgRadialGaugePreset,
+    AgRadialGaugeTarget,
+    FillsOptions,
+} from 'ag-charts-types';
 
-const {
-    commonSeriesOptionsDefs,
+import { numberFormatValidator } from '../../chart/axesOptionsDefs';
+import {
     autoSizedLabelOptionsDefs,
+    commonSeriesOptionsDefs,
     seriesLabelOptionsDefs,
     tooltipOptionsDefs,
-    numberFormatValidator,
-} = _ModuleSupport;
+} from '../../chart/commonOptionsDefs';
+import { without } from '../../util/object';
 
 export const fillsOptionsDef: OptionsDefs<FillsOptions> = {
     fills: and(
@@ -50,7 +52,7 @@ export const fillsOptionsDef: OptionsDefs<FillsOptions> = {
     fillMode: union('continuous', 'discrete'),
 };
 
-const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
+export const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
     value: required(number),
     text: string,
     shape: or(
@@ -61,6 +63,26 @@ const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
     spacing: positiveNumber,
     size: positiveNumber,
     rotation: number,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+export const radialGaugeTargetOptionsDef: OptionsDefs<AgRadialGaugeTarget> = {
+    value: required(number),
+    text: string,
+    shape: or(
+        union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle', 'line'),
+        callback
+    ),
+    placement: union('inside', 'outside', 'middle'),
+    spacing: positiveNumber,
+    size: positiveNumber,
+    rotation: number,
+    label: {
+        ...seriesLabelOptionsDefs,
+        spacing: positiveNumber,
+    },
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
@@ -133,7 +155,7 @@ export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
         ),
     },
     tooltip: tooltipOptionsDefs,
-    ...commonSeriesOptionsDefs,
+    ...without(commonSeriesOptionsDefs, ['listeners']),
 };
 
 // @ts-expect-error undocumented option
@@ -153,3 +175,89 @@ linearGaugeSeriesOptionsDef.defaultTarget = undocumented({
 linearGaugeSeriesOptionsDef.defaultScale = undocumented(linearGaugeSeriesOptionsDef.scale);
 // @ts-expect-error undocumented option
 linearGaugeSeriesOptionsDef.scale.defaultFill = undocumented(color);
+
+export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
+    type: required(constant('radial-gauge')),
+    value: required(number),
+    outerRadius: positiveNumber,
+    innerRadius: positiveNumber,
+    outerRadiusRatio: ratio,
+    innerRadiusRatio: ratio,
+    startAngle: number,
+    endAngle: number,
+    spacing: positiveNumber,
+    cornerMode: union('container', 'item'),
+    cornerRadius: positiveNumber,
+    scale: {
+        min: and(number, lessThan('max')),
+        max: and(number, greaterThan('min')),
+        label: {
+            enabled: boolean,
+            formatter: callback,
+            rotation: number,
+            spacing: positiveNumber,
+            minSpacing: positiveNumber,
+            avoidCollisions: boolean,
+            format: numberFormatValidator,
+            ...fontOptionsDef,
+        },
+        interval: {
+            values: arrayOf(number),
+            step: number,
+        },
+        ...fillsOptionsDef,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    targets: arrayOfDefs(radialGaugeTargetOptionsDef, 'target options array'),
+    segmentation: {
+        enabled: boolean,
+        spacing: positiveNumber,
+        interval: {
+            values: arrayOf(number),
+            step: number,
+            count: number,
+        },
+    },
+    bar: {
+        enabled: boolean,
+        ...fillsOptionsDef,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    needle: {
+        enabled: boolean,
+        spacing: positiveNumber,
+        radiusRatio: ratio,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    label: {
+        text: string,
+        spacing: positiveNumber,
+        ...autoSizedLabelOptionsDefs,
+    },
+    secondaryLabel: {
+        text: string,
+        ...autoSizedLabelOptionsDefs,
+    },
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesOptionsDefs,
+};
+
+// @ts-expect-error undocumented option
+radialGaugeSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(color));
+// @ts-expect-error undocumented option
+radialGaugeSeriesOptionsDef.defaultTarget = undocumented({
+    ...radialGaugeTargetOptionsDef,
+    value: number,
+    label: {
+        ...seriesLabelOptionsDefs,
+        spacing: number,
+    },
+});
+// @ts-expect-error undocumented option
+radialGaugeSeriesOptionsDef.scale.defaultFill = undocumented(color);

@@ -1,6 +1,5 @@
 import type { AgAxisLabelFormatterParams, AgBaseAxisLabelOptions } from '../../chart/axisOptions';
 import type { Formatter } from '../../chart/callbackOptions';
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type {
     CssColor,
     Degree,
@@ -13,12 +12,6 @@ import type {
 } from '../../chart/types';
 import type { AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../../series/seriesOptions';
 
-export interface GaugeDatum {
-    value: number;
-    segmentStart: number;
-    segmentEnd: number;
-}
-
 export interface AgBaseGaugeThemeableOptions {
     /** The cursor to use for the gauge. This config is identical to the CSS `cursor` property. */
     cursor?: string;
@@ -26,14 +19,13 @@ export interface AgBaseGaugeThemeableOptions {
     highlightStyle?: AgSeriesHighlightStyle;
     /** Range from a node that a click triggers the listener. */
     nodeClickRange?: InteractionRange;
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<GaugeDatum>;
 }
 
 // Verification checks for completeness/correctness.
 const __THEMEABLE_OPTIONS = undefined as any as Required<AgBaseGaugeThemeableOptions>;
 // @ts-expect-error TS6133 - this is used to validate completeness by the compiler, but is deliberately unused.
-let __VERIFY_THEMEABLE_OPTIONS: Required<Omit<AgBaseSeriesThemeableOptions<any>, 'showInLegend'>> = undefined as any;
+let __VERIFY_THEMEABLE_OPTIONS: Required<Omit<AgBaseSeriesThemeableOptions<any>, 'showInLegend' | 'listeners'>> =
+    undefined as any;
 __VERIFY_THEMEABLE_OPTIONS = __THEMEABLE_OPTIONS;
 
 export interface AgGaugeScaleLabel {

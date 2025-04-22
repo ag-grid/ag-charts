@@ -1,4 +1,10 @@
 // Entry point to implement and test our tree-shaking abilities
+import {
+    LinearGaugePresetModule,
+    PriceVolumePresetModule,
+    RadialGaugePresetModule,
+    SparklinePresetModule,
+} from './api/preset/presetModules';
 import { CartesianChartModule } from './chart/cartesianChartModule';
 import {
     FlowProportionChartModule,
@@ -74,4 +80,10 @@ export const AllCommunityModules = [
     HierarchyChartModule,
     StandaloneChartModule,
     TopologyChartModule,
+
+    // Presets
+    PriceVolumePresetModule,
+    RadialGaugePresetModule,
+    LinearGaugePresetModule,
+    SparklinePresetModule,
 ];

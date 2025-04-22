@@ -35,7 +35,6 @@ import {
     type WithThemeParams,
 } from 'ag-charts-types';
 
-import { PRESETS, PRESET_DATA_PROCESSORS } from '../api/preset/presets';
 import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import { getChartTheme, themeOptionsDef } from '../chart/mapping/themes';
@@ -68,7 +67,7 @@ export interface ChartSpecialOverrides {
 }
 
 export interface ChartInternalOptionMetadata {
-    presetType?: keyof typeof PRESETS;
+    presetType?: 'price-volume' | 'radial-gauge-preset' | 'linear-gauge-preset' | 'sparkline';
     pool?: boolean;
     domMode?: 'normal' | 'minimal';
 }
@@ -207,13 +206,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private fastSetup(deltaOptions: DeepPartial<T> | null, baseChartOptions: ChartOptions<T>) {
         const { activeTheme, defaultAxes, processedOptions: baseOptions } = baseChartOptions;
-
         const { presetType } = this.optionMetadata;
-        const processor = presetType ? PRESET_DATA_PROCESSORS[presetType] : undefined;
-        if (presetType != null && deltaOptions?.data != null && processor != null) {
+
+        if (presetType != null && deltaOptions?.data != null) {
+            const presetDef = ModuleRegistry.getPresetModule(presetType);
             // Handle preset data transforms gracefully.
-            const { series, data } = processor(deltaOptions.data);
-            deltaOptions = mergeDefaults({ series, data }, deltaOptions) as DeepPartial<T>;
+            if (presetDef?.processData) {
+                const { series, data } = presetDef.processData(deltaOptions.data);
+                deltaOptions = mergeDefaults({ series, data }, deltaOptions) as DeepPartial<T>;
+            }
         }
 
         this.fastSeriesSetup(deltaOptions, baseOptions);
@@ -250,14 +251,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         const { presetType } = this.optionMetadata;
         if (presetType != null) {
-            type PresetConstructor = (
-                options: AgPresetOptions,
-                themeOptions: AgPresetOptions | undefined,
-                activeTheme: () => ChartTheme
-            ) => T;
-
-            const presetConstructor: PresetConstructor | undefined = (PRESETS as any)[presetType];
-
+            const presetDef = ModuleRegistry.getPresetModule(presetType);
             const presetParams = options as any as AgPresetOptions;
 
             // Note financial charts defines the theme in its returned options,
@@ -266,7 +260,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const presetTheme = presetSubType != null ? getChartTheme(options.theme).presets[presetSubType] : undefined;
 
             ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', presetParams);
-            options = presetConstructor?.(presetParams, presetTheme, () => this.activeTheme) ?? options;
+            options = presetDef?.create(presetParams, presetTheme, () => this.activeTheme) ?? options;
         }
 
         this.soloSeriesIntegrity(options);

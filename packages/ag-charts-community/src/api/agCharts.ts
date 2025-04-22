@@ -93,7 +93,7 @@ export abstract class AgCharts {
 
     public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
         return debug.group('AgCharts.createGauge()', () => {
-            return this.create(options as AgChartOptions, { presetType: 'gauge' }) as any;
+            return this.create(options as AgChartOptions, { presetType: `${options.type}-preset` }) as any;
         });
     }
 
