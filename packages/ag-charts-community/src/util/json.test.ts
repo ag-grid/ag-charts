@@ -967,27 +967,24 @@ describe('json module', () => {
                 expect(resolved).toEqual({ a: 'bonjour' });
             });
 
-            it.failing(
-                'should resolve `$find` and safely handle circular references with `$isOperation` operation',
-                () => {
-                    const source = {
-                        a: [
-                            // { $find: [{ $not: [{ $eq: [{ $value: '$1' }, undefined] }] }, { $path: '../a' }] },
-                            { $find: [{ $not: [{ $isOperation: '.' }] }, { $path: '../a' }] },
-                            { greeting: 'bonjour', lang: 'fr' },
-                            { greeting: 'howdy', lang: 'en-US' },
-                        ],
-                    };
-                    const resolved = jsonResolveOperations([source]);
-                    expect(resolved).toEqual({
-                        a: [
-                            { greeting: 'bonjour', lang: 'fr' },
-                            { greeting: 'bonjour', lang: 'fr' },
-                            { greeting: 'howdy', lang: 'en-US' },
-                        ],
-                    });
-                }
-            );
+            it('should resolve `$find` and safely handle circular references with `$isOperation` operation', () => {
+                const source = {
+                    a: [
+                        // { $find: [{ $not: [{ $eq: [{ $value: '$1' }, undefined] }] }, { $path: '../a' }] },
+                        { $find: [{ $not: [{ $isOperation: '.' }] }, { $path: '../a' }] },
+                        { greeting: 'bonjour', lang: 'fr' },
+                        { greeting: 'howdy', lang: 'en-US' },
+                    ],
+                };
+                const resolved = jsonResolveOperations([source]);
+                expect(resolved).toEqual({
+                    a: [
+                        { greeting: 'bonjour', lang: 'fr' },
+                        { greeting: 'bonjour', lang: 'fr' },
+                        { greeting: 'howdy', lang: 'en-US' },
+                    ],
+                });
+            });
 
             it('should resolve `$find` and safely handle circular references with `$isOperation` operation on child', () => {
                 const source = {
@@ -1016,9 +1013,9 @@ describe('json module', () => {
                 });
             });
 
-            it('should resolve `$apply` operation', () => {
-                const source = { items: [{ type: 'one' }, { type: 'two' }, { type: 'two', color: 'red' }] };
-                const logic = {
+            it('should resolve `$apply` operation with arrays', () => {
+                const options = { items: [{ type: 'one' }, { type: 'two' }, { type: 'two', color: 'red' }] };
+                const defaults = {
                     items: {
                         $apply: [
                             {
@@ -1033,12 +1030,116 @@ describe('json module', () => {
                         ],
                     },
                 };
-                const resolved = jsonResolveOperations([source, logic]);
+                const resolved = jsonResolveOperations([options, defaults]);
                 expect(resolved).toEqual({
                     items: [
                         { type: 'one', color: 'white' },
                         { type: 'two', color: 'black', other: 'black' },
                         { type: 'two', color: 'red', other: 'red' },
+                    ],
+                });
+            });
+
+            describe('should resolve `$apply` operations with objects', () => {
+                const config = {
+                    item: {
+                        child: {
+                            position: 'bottom',
+                            orientation: {
+                                $if: [
+                                    {
+                                        $or: [
+                                            { $eq: [{ $path: './position' }, 'left'] },
+                                            { $eq: [{ $path: './position' }, 'right'] },
+                                        ],
+                                    },
+                                    'vertical',
+                                    'horizontal',
+                                ],
+                            },
+                        },
+                    },
+                };
+                const defaults = {
+                    $apply: [config, '/item', {}],
+                };
+
+                it('with missing object', () => {
+                    const options = {};
+                    const resolved = jsonResolveOperations([options, defaults]);
+                    expect(resolved).toEqual({
+                        child: { position: 'bottom', orientation: 'horizontal' },
+                    });
+                });
+
+                it('with empty object', () => {
+                    const options = { child: {} };
+                    const resolved = jsonResolveOperations([options, defaults]);
+                    expect(resolved).toEqual({
+                        child: { position: 'bottom', orientation: 'horizontal' },
+                    });
+                });
+
+                it('with expected object', () => {
+                    const options = {
+                        child: { position: 'left' },
+                    };
+                    const resolved = jsonResolveOperations([options, defaults]);
+                    expect(resolved).toEqual({
+                        child: { position: 'left', orientation: 'vertical' },
+                    });
+                });
+
+                it('with partial object', () => {
+                    const options = {
+                        child: { other: 'value' },
+                    };
+                    const resolved = jsonResolveOperations([options, defaults]);
+                    expect(resolved).toEqual({
+                        child: { position: 'bottom', orientation: 'horizontal', other: 'value' },
+                    });
+                });
+            });
+
+            it('should resolve nested `$apply` operations', () => {
+                const options = {
+                    items: [
+                        { type: 'one', children: [{ color: 'red' }, { color: 'green' }] },
+                        { type: 'two', children: [{ width: 4 }] },
+                        { type: 'two' }, // no children
+                    ],
+                };
+                const defaults = {
+                    items: {
+                        $apply: [
+                            {
+                                one: {
+                                    color: 'white',
+                                    children: { $apply: [{ color: 'black', width: 2 }] },
+                                },
+                                two: {
+                                    color: 'black',
+                                    children: { $apply: [{ color: 'black', width: 2 }] },
+                                },
+                            },
+                            '/$type',
+                            { type: { $path: ['./type', 'one', { $value: '$1' }] } },
+                        ],
+                    },
+                };
+                const resolved = jsonResolveOperations([options, defaults]);
+                expect(resolved).toEqual({
+                    items: [
+                        {
+                            type: 'one',
+                            color: 'white',
+                            children: [
+                                { color: 'red', width: 2 },
+                                { color: 'green', width: 2 },
+                            ],
+                        },
+                        { type: 'two', color: 'black', children: [{ color: 'black', width: 4 }] },
+                        { type: 'two', color: 'black' },
                     ],
                 });
             });
@@ -1181,9 +1282,7 @@ describe('json module', () => {
                 const userOptions = {
                     title: 'User Options',
                     background: 'grey',
-                    legend: {
-                        position: 'left',
-                    },
+                    legend: { position: 'left' },
                     series: [
                         { type: 'line', stroke: 'purple' },
                         { type: 'bar', label: { placement: 'outside-start' } },
@@ -1218,7 +1317,6 @@ describe('json module', () => {
                         foreground: 'white',
                         legend: {
                             position: 'bottom',
-                            spacing: 30,
                             orientation: {
                                 $if: [
                                     {
@@ -1231,6 +1329,7 @@ describe('json module', () => {
                                     'horizontal',
                                 ],
                             },
+                            spacing: 30,
                         },
                         series: { stroke: { $palette: 'fill' } },
                     },

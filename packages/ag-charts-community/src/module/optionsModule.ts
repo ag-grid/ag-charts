@@ -398,7 +398,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         seriesType: { $path: ['/series/0/type', 'line'] },
                         axisType: { $path: ['/type', 'category', { $value: '$1' }] },
                     },
-                    ['crossLines'],
                 ],
             },
         };

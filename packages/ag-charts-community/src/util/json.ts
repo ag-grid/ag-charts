@@ -7,6 +7,7 @@ import {
     isHtmlElement,
     isNumber,
     isObject,
+    isObjectLike,
     isPlainObject,
     isRegExp,
     isString,
@@ -181,8 +182,7 @@ export function jsonWalk<T, C, R>(
         }
     } else if (isPlainObject(json)) {
         acc = visit(json, parallelJson, ctx, acc);
-        // for (const key of Object.keys(json)) {
-        for (const key in json) {
+        for (const key of Object.keys(json)) {
             if (skip?.has(key)) {
                 continue;
             }
@@ -341,11 +341,7 @@ export function jsonResolveOperations<S extends object = object, P extends objec
     missingPathsWithDefaults.clear();
 
     for (const source of sources) {
-        const resolvedSource = jsonResolveSourceWithoutTarget(source, meta);
-        if (!isObject(resolvedSource)) continue;
-        for (const key of Object.keys(resolvedSource)) {
-            jsonResolveSourceWithTarget(resolved, resolvedSource, { ...meta, key, path: [key] });
-        }
+        jsonResolveSource(resolved, source, meta);
     }
 
     // Increase if required by internal code, but could impact performance.
@@ -356,11 +352,7 @@ export function jsonResolveOperations<S extends object = object, P extends objec
     while (unresolvedIds.size > 0 && attempt < maxAttempts) {
         unresolvedIds.clear();
         for (const source of sources) {
-            const resolvedSource = jsonResolveSourceWithoutTarget(source, meta);
-            if (!isObject(resolvedSource)) continue;
-            for (const key in resolvedSource) {
-                jsonResolveSourceWithTarget(resolved, resolvedSource, { ...meta, key, path: [key] });
-            }
+            jsonResolveSource(resolved, source, meta);
         }
 
         // TODO: this could fail, should test a union
@@ -415,29 +407,26 @@ function hasUnresolvedChildren(id: string) {
     return false;
 }
 
-/**
- * Resolve the `source` object if it is an operation, otherwise just return it.
- */
-function jsonResolveSourceWithoutTarget(source: unknown, meta: OperationMeta) {
+function jsonResolveSource(target: PlainObject, source: unknown, meta: OperationMeta) {
     const operation = getOperation(source);
-    if (!operation) return source;
-
-    const id = `${meta.id}/source`;
-    const target: PlainObject = {};
-    jsonResolveOperationWithTarget(target, id, operation, { ...meta, id, key: 'source' });
-
-    if (hasUnresolvedChildren(id)) {
-        unresolvedIds.add(id);
-        return source;
+    if (operation) {
+        // Only attempt to resolve top-level $apply operations, ignore other operators as they don't really work.
+        if (operation.operation === TransformOperation.Apply) {
+            const resolved = resolveOperation(operation.operation, operation.values, meta);
+            jsonResolveObjects(target, [resolved], meta);
+        }
+    } else {
+        if (!isObject(source)) return;
+        for (const key of Object.keys(source)) {
+            jsonResolveSourceKey(target, source, { ...meta, key, path: [...meta.path, key] });
+        }
     }
-
-    return target.source;
 }
 
 /**
- * Merge the key `meta.key` on `target` with the value on `source while processing any operations.
+ * Merge the key `meta.key` on `target` with the value on `source` while processing any operations.
  */
-function jsonResolveSourceWithTarget(target: PlainObject, source: PlainObject, meta: OperationMeta) {
+function jsonResolveSourceKey(target: PlainObject, source: PlainObject, meta: OperationMeta) {
     const { delay, key, skip } = meta;
     if (key == null || skip?.has(key)) return;
 
@@ -455,7 +444,7 @@ function jsonResolveSourceWithTarget(target: PlainObject, source: PlainObject, m
     const operation = getOperation(source[key]);
 
     if (operation) {
-        jsonResolveOperationWithTarget(target, id, operation, meta);
+        jsonResolveOperationWithTarget(target, operation, { ...meta, id });
         return;
     }
 
@@ -486,7 +475,6 @@ function jsonResolveSourceWithTarget(target: PlainObject, source: PlainObject, m
 
 function jsonResolveOperationWithTarget(
     target: PlainObject,
-    id: string,
     operation: { operation: Operation; values: any },
     meta: OperationMeta
 ) {
@@ -495,7 +483,6 @@ function jsonResolveOperationWithTarget(
 
     const operationValuesMeta = {
         ...meta,
-        id,
         key: operation.operation,
         skip: operation.operation === TransformOperation.Skip ? new Set<string>(operation.values[0]) : meta.skip,
         delay: operationDelaySets.get(operation.operation),
@@ -504,41 +491,25 @@ function jsonResolveOperationWithTarget(
     };
 
     const operationValuesTarget: PlainObject = {};
-    jsonResolveSourceWithTarget(
-        operationValuesTarget,
-        { [operationValuesMeta.key]: operation.values },
-        operationValuesMeta
-    );
+    jsonResolveSourceKey(operationValuesTarget, { [operationValuesMeta.key]: operation.values }, operationValuesMeta);
 
-    if (hasUnresolvedChildren(id)) {
-        unresolvedIds.add(id);
+    if (hasUnresolvedChildren(meta.id)) {
+        unresolvedIds.add(meta.id);
         return;
     }
 
-    const result = resolveOperation(operation.operation, operationValuesTarget[operationValuesMeta.key], {
-        ...meta,
-        id,
-    });
+    const result = resolveOperation(operation.operation, operationValuesTarget[operationValuesMeta.key], meta);
     if (result === unresolvedOperation) {
-        unresolvedIds.add(id);
+        unresolvedIds.add(meta.id);
     } else {
         target[meta.key] = result;
-        resolvedIds.add(id);
+        resolvedIds.add(meta.id);
     }
 }
 
 function jsonResolveObjects(target: PlainObject, sources: Array<unknown>, meta: OperationMeta) {
     for (const source of sources) {
-        const resolvedSource = jsonResolveSourceWithoutTarget(source, meta);
-        if (!isObject(resolvedSource)) continue;
-        for (const key of Object.keys(resolvedSource)) {
-            jsonResolveSourceWithTarget(target, resolvedSource, {
-                ...meta,
-                extendPath: true,
-                key,
-                path: [...meta.path, key],
-            });
-        }
+        jsonResolveSource(target, source, { ...meta, extendPath: true });
     }
 }
 
@@ -547,7 +518,7 @@ function jsonResolveArrays(target: Array<unknown>, sources: Array<unknown>, meta
         if (!isArray(source)) continue;
         for (let index = 0; index < source.length; index++) {
             const path = meta.extendPath ? [...meta.path, `${index}`] : meta.path;
-            jsonResolveSourceWithTarget(target, source, {
+            jsonResolveSourceKey(target, source, {
                 ...meta,
                 extendPath: true,
                 key: `${index}`,
@@ -653,7 +624,7 @@ function isPatternFill(fill: any): fill is AgPatternColor {
 function getPath(object: PlainObject, path: string[]) {
     let result = object;
     for (const part of path) {
-        if (!isPlainObject(result) || !isKey(part, result)) break;
+        if (!isObjectLike(result) || !isKey(part, result)) return;
         result = result[part];
     }
     return result as unknown;
@@ -664,7 +635,7 @@ function setPath(object: PlainObject, path: string[], value: any) {
     let result = object;
     while (path.length > 1) {
         const part = path.shift();
-        if (!isPlainObject(result) || !isKey(part, result)) return;
+        if (!isObjectLike(result) || !isKey(part, result)) return;
         result = result[part];
     }
     result[path[0]] = value;
@@ -808,10 +779,13 @@ function palette(value: string | Array<unknown>, { key, matchIndex, path, params
         } else {
             const seriesPath = path.slice(0, indexIndex);
             const ignoreIndexSeries = ['map-shape-background', 'map-line-background'];
-            const ignoreIndexOffset = (getPath(root, seriesPath) as Array<string>) // TODO?
-                .slice(0, index)
-                .filter((s: any) => ignoreIndexSeries.includes(s.type)).length;
-            index -= ignoreIndexOffset;
+            const series = getPath(root, seriesPath);
+            if (isArray(series)) {
+                const ignoreIndexOffset = series
+                    .slice(0, index)
+                    .filter((s: any) => ignoreIndexSeries.includes(s.type)).length;
+                index -= ignoreIndexOffset;
+            }
         }
 
         switch (value) {
@@ -939,7 +913,7 @@ function map([mapOperation, mapValues]: string | Array<unknown>, meta: Operation
     const source = mapValues.map(() => ({ [mappedOperation.operation]: deepClone(mappedOperation.values) }));
 
     for (let index = 0; index < mapValues.length; index++) {
-        jsonResolveSourceWithTarget(target, source, {
+        jsonResolveSourceKey(target, source, {
             ...meta,
             key: `${index}`,
             path: [...meta.path, `${index}`],
@@ -972,7 +946,7 @@ function find([findCondition, findValues]: string | Array<unknown>, meta: Operat
     for (let index = 0; index < findValues.length; index++) {
         const path = [...meta.path];
         path[indexIndex] = `${index}`;
-        jsonResolveSourceWithTarget(target, source, {
+        jsonResolveSourceKey(target, source, {
             ...meta,
             path,
             key: `${index}`,
@@ -991,14 +965,17 @@ function merge(values: string | Array<unknown>, meta: OperationMeta) {
     return merged;
 }
 
-function apply([object, fromPath, variables, skip]: string | Array<unknown>, meta: OperationMeta) {
+function apply(value: string | Array<unknown>, meta: OperationMeta) {
+    const [object, fromPath, variables, skipArray] = value;
     if (!isPlainObject(object)) return;
 
     const branch = getPath(meta.root, meta.path);
+    const skip = isArray(skipArray) ? new Set(skipArray as string[]) : undefined;
 
     if (isArray(branch)) {
-        let index = 0;
+        let index = -1;
         for (const item of branch) {
+            index++;
             if (!isPlainObject(item)) continue;
 
             let source: unknown = object;
@@ -1016,14 +993,15 @@ function apply([object, fromPath, variables, skip]: string | Array<unknown>, met
                 source = getPath(object, resolvedFromPath);
             }
 
-            jsonResolveObjects(item, [source], {
+            const target = {};
+            jsonResolveObjects(target, [item, source], {
                 ...meta,
-                skip: isArray(skip) ? new Set(skip as string[]) : undefined,
+                skip,
                 id: `${meta.id}/$apply/$items/${index}`,
                 key: `${index}`,
                 path: [...meta.path, `${index}`],
             });
-            index++;
+            branch[index] = target;
         }
 
         return branch;
@@ -1041,11 +1019,12 @@ function apply([object, fromPath, variables, skip]: string | Array<unknown>, met
             source = getPath(object, resolvedFromPath);
         }
 
+        // TODO: check safe to apply straight to branch
         const target: PlainObject = {};
         jsonResolveObjects(target, [branch, source], {
             ...meta,
             id: `${meta.id}/$apply/$item`,
-            skip: isArray(skip) ? new Set(skip as string[]) : undefined,
+            skip,
         });
 
         return target;
