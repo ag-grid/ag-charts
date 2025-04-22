@@ -73,8 +73,7 @@ export function expandItems(
         } else {
             const menuItem = appendItem(showing, item, result);
             if (item.items && menuItem && menuItem.type === 'submenu') {
-                const submenuItems: ContextMenuItem[] = [];
-                expandItems(showing, registry, item.items, submenuItems);
+                expandItems(showing, registry, item.items, menuItem.items);
             }
         }
     }
@@ -91,6 +90,7 @@ export class ContextMenuItem implements _ModuleSupport.ContextMenuItemContract {
 
     constructor(options?: Options) {
         if (options) this.setOptions(options);
+        this.items = [];
     }
 
     private setField<K extends keyof Options>(key: K, that: { [L in K]: Options[K] }, value: Options[K]): void {
