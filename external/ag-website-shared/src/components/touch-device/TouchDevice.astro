@@ -16,12 +16,12 @@ const { id, title = 'Video', showHeader } = Astro.props as Props;
         <div class={styles.deviceContainer}>
             <div class={styles.deviceContent} class:list={{ [styles.videoContent]: showHeader }}><slot /></div>
             <img
-                src="/charts/images/ipad-pro-clay.png"
+                src="/images/ipad-pro-clay.png"
                 alt={`${title}`}
                 class={classNames(styles.ytThumbnail, styles.deviceLight)}
             />
             <img
-                src="/charts/images/ipad-clay-dark.png"
+                src="/images/ipad-clay-dark.png"
                 alt={`${title}`}
                 class={classNames(styles.ytThumbnail, styles.deviceDark)}
             />
