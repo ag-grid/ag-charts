@@ -263,12 +263,15 @@ export function gauge(
 ): AgGaugeChartOptions {
     // PATCH for backwards compatibility - remove in v12.x.x
     if (opts.listeners) {
-        if ('nodeClick' in opts.listeners) {
-            opts.listeners.seriesNodeClick ??= opts.listeners.nodeClick as any;
-        }
-        if ('nodeDoubleClick' in opts.listeners) {
-            opts.listeners.seriesNodeDoubleClick ??= opts.listeners.nodeDoubleClick as any;
-        }
+        const { nodeClick, nodeDoubleClick, ...listeners } = opts.listeners as any;
+        opts = {
+            ...opts,
+            listeners: {
+                seriesNodeClick: nodeClick,
+                seriesNodeDoubleClick: nodeDoubleClick,
+                ...listeners,
+            },
+        };
     }
 
     switch (opts.type) {
