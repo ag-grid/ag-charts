@@ -1,4 +1,3 @@
-import type { DatumCallbackParams } from '../../chart/callbackOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -13,7 +12,6 @@ import type {
     AgGaugeScaleLabel,
     AgGaugeSegmentation,
     FillsOptions,
-    GaugeDatum,
 } from './commonOptions';
 
 export type AgRadialGaugeTargetPlacement = 'inside' | 'outside' | 'middle';
@@ -21,8 +19,6 @@ export type AgRadialGaugeTargetPlacement = 'inside' | 'outside' | 'middle';
 export interface AgRadialGaugeLabelFormatterParams {
     value: number;
 }
-
-export interface AgRadialGaugeItemStylerParams extends DatumCallbackParams<GaugeDatum>, Required<AgRadialGaugeStyle> {}
 
 export interface AgRadialGaugeScaleInterval {
     /** Array of values in scale units for specified intervals along the scale. The values in this array must be compatible with the scale type. */
@@ -48,8 +44,6 @@ export interface AgRadialGaugeTooltipRendererParams extends AgSeriesTooltipRende
     /** Value of the Gauge */
     value: number;
 }
-
-export interface AgRadialGaugeStyle {}
 
 export interface AgRadialGaugeBarStyle extends FillsOptions, FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the bar should be shown. */
@@ -103,7 +97,7 @@ export interface AgRadialGaugeSecondaryLabelOptions
     text?: string;
 }
 
-export interface AgRadialGaugeThemeableOptions extends AgRadialGaugeStyle, AgBaseGaugeThemeableOptions {
+export interface AgRadialGaugeThemeableOptions extends AgBaseGaugeThemeableOptions {
     /** Outer radius of the gauge. */
     outerRadius?: PixelSize;
     /** Inner radius of the gauge. */
@@ -140,8 +134,6 @@ export interface AgRadialGaugeThemeableOptions extends AgRadialGaugeStyle, AgBas
     spacing?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadialGaugeTooltipRendererParams>;
-    // /** A callback function for adjusting the styles of a particular Radial Gauge based on the input parameters. */
-    // itemStyler?: Styler<AgRadialGaugeItemStylerParams, AgRadialGaugeStyle>;
 }
 
 export interface AgRadialGaugePreset extends AgRadialGaugeThemeableOptions {

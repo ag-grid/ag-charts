@@ -3,17 +3,14 @@ import { type RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,
-    AgRadialGaugeItemStylerParams,
     AgRadialGaugeLabelFormatterParams,
     AgRadialGaugeMarkerShape,
     AgRadialGaugeOptions,
-    AgRadialGaugeStyle,
     AgRadialGaugeTargetPlacement,
     AgRadialGaugeTooltipRendererParams,
     FontStyle,
     FontWeight,
     Formatter,
-    Styler,
 } from 'ag-charts-types';
 
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
@@ -337,9 +334,6 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeO
 
     @Property
     readonly needle = new RadialGaugeNeedleProperties();
-
-    @Property
-    itemStyler?: Styler<AgRadialGaugeItemStylerParams, AgRadialGaugeStyle>;
 
     @Property
     readonly label = new RadialGaugeLabelProperties();

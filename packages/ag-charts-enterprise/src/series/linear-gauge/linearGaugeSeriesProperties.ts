@@ -1,21 +1,16 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,
-    AgLinearGaugeItemStylerParams,
-    AgLinearGaugeLabelFormatterParams,
     AgLinearGaugeLabelPlacement,
     AgLinearGaugeMarkerShape,
     AgLinearGaugeOptions,
-    AgLinearGaugeStyle,
     AgLinearGaugeTargetPlacement,
     AgLinearGaugeTooltipRendererParams,
     FontStyle,
     FontWeight,
     Formatter,
     OverflowStrategy,
-    Styler,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -96,9 +91,7 @@ export type LinearGaugeLabelDatum = {
     lineHeight: number | undefined;
     wrapping: TextWrap;
     overflowStrategy: OverflowStrategy;
-    formatter:
-        | Formatter<AgChartLabelFormatterParams<any> & RequireOptional<AgLinearGaugeLabelFormatterParams>>
-        | undefined;
+    formatter: Formatter<AgChartLabelFormatterParams<any>> | undefined;
 };
 
 class LinearGaugeDefaultTargetLabelProperties extends Label<never> {
@@ -254,7 +247,7 @@ class LinearGaugeScaleProperties extends BaseProperties {
     readonly label = new LinearGaugeScaleLabelProperties();
 }
 
-export class LinearGaugeLabelProperties extends AutoSizedLabel<AgLinearGaugeLabelFormatterParams> {
+export class LinearGaugeLabelProperties extends AutoSizedLabel<unknown> {
     @Property
     text?: string;
 
@@ -304,9 +297,6 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeO
 
     @Property
     readonly bar = new LinearGaugeBarProperties();
-
-    @Property
-    itemStyler?: Styler<AgLinearGaugeItemStylerParams, AgLinearGaugeStyle>;
 
     @Property
     readonly label = new LinearGaugeLabelProperties();

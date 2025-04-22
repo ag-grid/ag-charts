@@ -37,7 +37,9 @@ export interface AgSparklineNumberAxisOptions
     type: 'number';
 }
 
-export interface AgSparklineTimeAxisOptions extends AgSparklineBaseAxisOptions, AgSparklineContinuousAxisOptions<Date> {
+export interface AgSparklineTimeAxisOptions
+    extends AgSparklineBaseAxisOptions,
+        AgSparklineContinuousAxisOptions<Date | number> {
     type: 'time';
 }
 

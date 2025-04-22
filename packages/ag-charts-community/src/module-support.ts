@@ -15,6 +15,7 @@ export { ModuleRegistry } from 'ag-charts-core';
 export * from './chart/commonOptionsDefs';
 export * from './chart/axesOptionsDefs';
 export * from './chart/chartOptionsDefs';
+export * from './api/preset/gaugeOptionsDefs';
 export { NewAreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
 export { NewBubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
 export { NewHistogramSeriesModule } from './chart/series/cartesian/histogramSeriesModule';

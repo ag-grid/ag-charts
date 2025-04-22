@@ -98,7 +98,7 @@ export interface AgBaseChartListeners<TDatum> {
     /** The listener to call when the chart is double-clicked. */
     doubleClick?: Listener<AgChartDoubleClickEvent>;
     /** The listener to call when the annotations are changed. */
-    annotations?: (event: AgAnnotationsEvent) => void;
+    annotations?: Listener<AgAnnotationsEvent>;
     /** The listener to call when the zoom is changed. */
     zoom?: Listener<AgZoomEvent>;
 }

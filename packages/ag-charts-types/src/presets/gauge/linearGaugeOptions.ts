@@ -1,4 +1,3 @@
-import type { DatumCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgMarkerShape, Degree, Direction, PixelSize } from '../../chart/types';
@@ -9,14 +8,9 @@ import type {
     AgGaugeScaleLabel,
     AgGaugeSegmentation,
     FillsOptions,
-    GaugeDatum,
 } from './commonOptions';
 
 export type AgLinearGaugeTargetPlacement = 'before' | 'after' | 'middle';
-
-export interface AgLinearGaugeLabelFormatterParams {}
-
-export interface AgLinearGaugeItemStylerParams extends DatumCallbackParams<GaugeDatum>, Required<AgLinearGaugeStyle> {}
 
 export interface AgLinearGaugeScaleInterval {
     /** Array of values in scale units for specified intervals along the scale. The values in this array must be compatible with the scale type. */
@@ -45,8 +39,6 @@ export interface AgLinearGaugeTooltipRendererParams extends AgSeriesTooltipRende
     /** Value of the Gauge */
     value: number;
 }
-
-export interface AgLinearGaugeStyle {}
 
 export interface AgLinearGaugeBarStyle extends FillsOptions, FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the bar should be shown. */
@@ -87,8 +79,7 @@ export type AgLinearGaugeLabelPlacement =
     | 'bar-outside-end'
     | 'bar-end';
 
-export interface AgLinearGaugeLabelOptions
-    extends AgChartAutoSizedLabelOptions<never, AgLinearGaugeLabelFormatterParams> {
+export interface AgLinearGaugeLabelOptions extends AgChartAutoSizedLabelOptions<never, unknown> {
     /** Text to always display. */
     text?: string;
     /** Distance between the shape edges and the text. */
@@ -103,7 +94,7 @@ export interface AgLinearGaugeLabelOptions
     placement?: AgLinearGaugeLabelPlacement;
 }
 
-export interface AgLinearGaugeThemeableOptions extends AgLinearGaugeStyle, AgBaseGaugeThemeableOptions {
+export interface AgLinearGaugeThemeableOptions extends AgBaseGaugeThemeableOptions {
     /** Direction to display the gauge in. */
     direction?: Direction;
     /** Width of the gauge, or the height if `direction` is `horizontal`. */
@@ -124,8 +115,6 @@ export interface AgLinearGaugeThemeableOptions extends AgLinearGaugeStyle, AgBas
     label?: AgLinearGaugeLabelOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgLinearGaugeTooltipRendererParams>;
-    // /** A callback function for adjusting the styles of a particular Linear Gauge based on the input parameters. */
-    // itemStyler?: Styler<AgLinearGaugeItemStylerParams, AgLinearGaugeStyle>;
 }
 
 export interface AgLinearGaugePreset extends AgLinearGaugeThemeableOptions {

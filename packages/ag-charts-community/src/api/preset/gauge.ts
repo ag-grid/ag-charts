@@ -15,14 +15,6 @@ import {
 import { mergeArrayDefaults, mergeDefaults } from '../../util/object';
 import { IGNORED_PROP, pickProps } from './presetUtils';
 
-function isRadialGauge(opts: AgGaugeOptions): opts is AgRadialGaugeOptions {
-    return opts.type === 'radial-gauge';
-}
-
-function isLinearGauge(opts: AgGaugeOptions): opts is AgLinearGaugeOptions {
-    return opts.type === 'linear-gauge';
-}
-
 interface UndocumentedProperties {
     overrideDevicePixelRatio?: number;
 }
@@ -129,7 +121,6 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         type,
         cursor,
         nodeClickRange,
-        listeners,
         tooltip: seriesTooltipOptions,
         value,
         highlightStyle,
@@ -219,7 +210,6 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         type,
         cursor,
         nodeClickRange,
-        listeners,
         tooltip: seriesTooltipOptions,
         value,
         direction,
@@ -271,48 +261,23 @@ export function gauge(
     opts: AgGaugeOptions,
     presetTheme: AgRadialGaugeThemeOverrides | AgLinearGaugeThemeOverrides | undefined
 ): AgGaugeChartOptions {
-    if (isRadialGauge(opts)) {
-        const radialGaugeOpts = applyThemeDefaults(opts, presetTheme as any);
-        return radialGaugeOptions(radialGaugeOpts);
-    } else if (isLinearGauge(opts)) {
-        const linearGaugeOpts = applyThemeDefaults(opts, presetTheme as any);
-        return linearGaugeOptions(linearGaugeOpts);
+    // PATCH for backwards compatibility - remove in v12.x.x
+    if (opts.listeners) {
+        if ('nodeClick' in opts.listeners) {
+            opts.listeners.seriesNodeClick ??= opts.listeners.nodeClick as any;
+        }
+        if ('nodeDoubleClick' in opts.listeners) {
+            opts.listeners.seriesNodeDoubleClick ??= opts.listeners.nodeDoubleClick as any;
+        }
     }
 
-    const {
-        animation,
-        background,
-        container,
-        contextMenu,
-        footnote,
-        height,
-        listeners,
-        locale,
-        minHeight,
-        minWidth,
-        padding,
-        subtitle,
-        theme,
-        title,
-        tooltip,
-        width,
-    } = opts;
-    return pickProps<AgBaseGaugePresetOptions>(opts, {
-        animation,
-        background,
-        container,
-        contextMenu,
-        footnote,
-        height,
-        listeners,
-        locale,
-        minHeight,
-        minWidth,
-        padding,
-        subtitle,
-        theme,
-        title,
-        tooltip,
-        width,
-    });
+    switch (opts.type) {
+        case 'radial-gauge':
+            const radialGaugeOpts = applyThemeDefaults(opts, presetTheme as any);
+            return radialGaugeOptions(radialGaugeOpts);
+
+        case 'linear-gauge':
+            const linearGaugeOpts = applyThemeDefaults(opts, presetTheme as any);
+            return linearGaugeOptions(linearGaugeOpts);
+    }
 }

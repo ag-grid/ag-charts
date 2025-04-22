@@ -88,7 +88,7 @@ const tooltipDeprecatedTypeValidator = union(
     'bottom-left',
     'bottom-right'
 );
-const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
+export const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
 // const themeValidator = or(
 //     union(
 //         'ag-default',
@@ -244,7 +244,6 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
 };
 
 export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, 'navigator'>> = {
-    // container: required(instanceOf(HTMLElement)),
     width: positiveNumber,
     height: positiveNumber,
     minWidth: positiveNumber,

@@ -12,11 +12,13 @@ export type ModuleTypeSwitch<TModule extends ModuleType, TOptions = any> = TModu
     ? AxisModuleDefinition<TOptions>
     : TModule extends ModuleType.Chart
       ? ChartModuleDefinition<TOptions>
-      : TModule extends ModuleType.Plugin
-        ? PluginModuleDefinition<TOptions>
-        : TModule extends ModuleType.Series
-          ? SeriesModuleDefinition<TOptions>
-          : never;
+      : TModule extends ModuleType.Preset
+        ? PresetModuleDefinition<TOptions>
+        : TModule extends ModuleType.Plugin
+          ? PluginModuleDefinition<TOptions>
+          : TModule extends ModuleType.Series
+            ? SeriesModuleDefinition<TOptions>
+            : never;
 
 export interface ModuleInstance {}
 
@@ -42,6 +44,12 @@ export interface ModuleDefinition<TModule extends ModuleType = ModuleType, TOpti
 
 export interface ChartModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Chart, TOptions> {
     detect(options: object): boolean;
+}
+
+export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Preset, TOptions> {
+    create(this: void, options: unknown, ...args: any[]): any;
+    // Used only by sparklines, types should be normalised to support generic cases
+    processData?(this: void, data: unknown): { data?: unknown[]; series?: Array<{ xKey: string; yKey: string }> };
 }
 
 export interface AxisModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Axis, TOptions> {

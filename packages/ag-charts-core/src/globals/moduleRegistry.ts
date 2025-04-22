@@ -4,6 +4,7 @@ import {
     type ModuleDefinition,
     ModuleType,
     type ModuleTypeSwitch,
+    type PresetModuleDefinition,
     type SeriesModuleDefinition,
 } from '../interfaces/moduleDefinition';
 
@@ -51,13 +52,6 @@ export function detectChartDefinition(options: object): ChartModuleDefinition<an
     );
 }
 
-export function getSeriesModule(moduleName: string): SeriesModuleDefinition<any> | undefined {
-    const definition = registeredModules.get(moduleName);
-    if (isSeriesModule(definition)) {
-        return definition;
-    }
-}
-
 export function getAxisModule(moduleName: string): AxisModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
     if (isAxisModule(definition)) {
@@ -65,12 +59,30 @@ export function getAxisModule(moduleName: string): AxisModuleDefinition<any> | u
     }
 }
 
-function isChartModule(definition?: ModuleDefinition): definition is ChartModuleDefinition<any> {
-    return definition?.type === ModuleType.Chart;
+export function getPresetModule(moduleName: string): PresetModuleDefinition<any> | undefined {
+    const definition = registeredModules.get(moduleName);
+    if (isPresetModule(definition)) {
+        return definition;
+    }
+}
+
+export function getSeriesModule(moduleName: string): SeriesModuleDefinition<any> | undefined {
+    const definition = registeredModules.get(moduleName);
+    if (isSeriesModule(definition)) {
+        return definition;
+    }
 }
 
 function isAxisModule(definition?: ModuleDefinition): definition is AxisModuleDefinition<any> {
     return definition?.type === ModuleType.Axis;
+}
+
+function isChartModule(definition?: ModuleDefinition): definition is ChartModuleDefinition<any> {
+    return definition?.type === ModuleType.Chart;
+}
+
+function isPresetModule(definition?: ModuleDefinition): definition is PresetModuleDefinition<any> {
+    return definition?.type === ModuleType.Preset;
 }
 
 function isSeriesModule(definition?: ModuleDefinition): definition is SeriesModuleDefinition<any> {
