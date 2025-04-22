@@ -200,7 +200,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         menuWidget.clear();
         menuWidget.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         menuWidget.setTabIndex(-1);
+        this.createMenuItems(menuWidget, expandedItems);
+    }
 
+    private createMenuItems(menuWidget: _Widget.MenuWidget, expandedItems: ContextMenuItem[]) {
         for (const item of expandedItems) {
             switch (item.type) {
                 case 'separator':
@@ -209,9 +212,14 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     sep.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
                     break;
                 case 'action':
-                    menuWidget.addChild(this.createButtonElement(item));
+                    const btn = new _Widget.ButtonWidget();
+                    this.initButtonElement(btn, item);
+                    menuWidget.addChild(btn);
                     break;
                 case 'submenu':
+                    const { subMenuButton, subMenu } = menuWidget.addSubMenu();
+                    this.initButtonElement(subMenuButton, item);
+                    this.createMenuItems(subMenu, item.items);
                     break;
                 default:
                     throw new Error('unhandled case');
@@ -221,7 +229,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createButtonOnClick(
         showOn: AgContextMenuItemShowOn,
         callback: ContextMenuCallback
-    ): (event: _ModuleSupport.MouseWidgetEvent) => void {
+    ): (event: _Widget.MouseWidgetEvent) => void {
         if (ContextMenuRegistry.checkCallback('legend-item', showOn, callback)) {
             return (widgetEvent: _ModuleSupport.MouseWidgetEvent) => {
                 const event: Event = widgetEvent.sourceEvent;
@@ -257,8 +265,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private createButtonElement(item: ContextMenuItem): _Widget.ButtonWidget {
-        const button = new _Widget.ButtonWidget();
+    private initButtonElement(button: _Widget.ButtonWidget, item: ContextMenuItem) {
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         button.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         button.setEnabled(item.enable);
@@ -268,7 +275,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             button.addListener('click', this.createButtonOnClick(showOn, action));
         }
         button.addListener('mousemove', () => button.focus({ preventScroll: true }));
-        return button;
     }
 
     private reposition() {

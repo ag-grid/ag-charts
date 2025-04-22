@@ -15,7 +15,11 @@ function showsFor(showOn: AgContextMenuItemShowOn, showing: AgContextMenuItemSho
     return showOn === showing;
 }
 
-export function appendItem(showing: AgContextMenuItemShowOn, item: Options, result: ContextMenuItem[]) {
+export function appendItem(
+    showing: AgContextMenuItemShowOn,
+    item: Options,
+    result: ContextMenuItem[]
+): ContextMenuItem | undefined {
     let mustShow: boolean = true;
     if (item.type === 'separator') {
         const last: ContextMenuItem | undefined = result.at(result.length - 1);
@@ -24,7 +28,9 @@ export function appendItem(showing: AgContextMenuItemShowOn, item: Options, resu
 
     mustShow &&= showsFor(item.showOn ?? 'always', showing);
     if (mustShow) {
-        result.push(new ContextMenuItem(item));
+        const menuItem = new ContextMenuItem(item);
+        result.push(menuItem);
+        return menuItem;
     }
 }
 
@@ -64,10 +70,12 @@ export function expandItems(
     for (const item of items) {
         if (typeof item === 'string') {
             expandBuiltin(showing, registry, item, result);
-        } else if (item.type !== 'submenu') {
-            appendItem(showing, item, result);
         } else {
-            throw new Error('`type: "submenu" not yet implemented');
+            const menuItem = appendItem(showing, item, result);
+            if (item.items && menuItem && menuItem.type === 'submenu') {
+                const submenuItems: ContextMenuItem[] = [];
+                expandItems(showing, registry, item.items, submenuItems);
+            }
         }
     }
 }

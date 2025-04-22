@@ -11,6 +11,7 @@ import {
     addTouchCloseListener,
     getLastFocus,
 } from '../util/keynavUtil';
+import { ButtonWidget } from './buttonWidget';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
 import type { WidgetEvent } from './widgetEvents';
 
@@ -37,6 +38,15 @@ export class MenuWidget extends RovingTabContainerWidget {
         const sep = getDocument().createElement('div');
         this.elem.appendChild(sep);
         return sep;
+    }
+
+    public addSubMenu(): { subMenuButton: ButtonWidget; subMenu: MenuWidget } {
+        const subMenuButton = new ButtonWidget();
+        const subMenu = new MenuWidget();
+        subMenuButton.setAriaHasPopup('menu');
+        subMenuButton.addListener('click', (ev) => subMenu.open(ev));
+        this.addChild(subMenuButton);
+        return { subMenuButton, subMenu };
     }
 
     public open(event: WidgetEvent, opts?: { overrideFocusVisible?: boolean; autoCloseOnBlur?: boolean }): void {
