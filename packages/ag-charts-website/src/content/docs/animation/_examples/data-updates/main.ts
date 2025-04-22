@@ -1,10 +1,4 @@
-import {
-    AgCartesianChartOptions,
-    AgChartInstance,
-    AgChartOptions,
-    AgCharts,
-    AgPolarChartOptions,
-} from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChartOptions, AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 import { getData, random } from './data';
 
@@ -194,7 +188,6 @@ const donutOptions: AgPolarChartOptions = {
             showInLegend: false,
         },
     ],
-    axes: [],
 };
 
 let options: AgCartesianChartOptions | AgPolarChartOptions = {
