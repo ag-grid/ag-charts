@@ -100,7 +100,7 @@ export function createTestCase(
             const canvas = canvases[0];
 
             // Try pressing the buttons to see if any errors are thrown.
-            const buttons = await page.locator('.toolbar > button').all();
+            const buttons = await page.locator('.example-controls > button').all();
             if (clickOrder === 'reverse') buttons.reverse();
 
             for (const button of buttons) {

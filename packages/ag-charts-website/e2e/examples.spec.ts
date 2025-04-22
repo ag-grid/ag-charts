@@ -9,7 +9,6 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         'data-updates': { skipCanvasUpdateCheck: true /* clickOrder: 'reverse' */ },
         duration: { skipCanvasUpdateCheck: true },
     },
-
     'axes-labels': {
         // Too complex to test with a naive button-click sweep
         'axis-label-rotation': { skipCanvasUpdateCheck: true },
