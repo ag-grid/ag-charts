@@ -133,6 +133,10 @@ export abstract class Widget<
         setAttribute(this.elem, 'aria-label', ariaLabel);
     }
 
+    setAriaHasPopup(ariaHasPopup: BaseAttributeTypeMap['aria-haspopup'] | undefined) {
+        setAttribute(this.elem, 'aria-haspopup', ariaHasPopup);
+    }
+
     setInnerHTML(html: string) {
         this.elem.innerHTML = html;
     }
