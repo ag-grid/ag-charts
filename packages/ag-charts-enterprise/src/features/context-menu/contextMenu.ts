@@ -2,7 +2,7 @@ import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions }
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { Logger, clamp } from 'ag-charts-core';
 
-import { ContextMenuItem, appendItem, expandBuiltin } from './contextMenuItem';
+import { ContextMenuItem, appendItem, expandBuiltin, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
@@ -127,17 +127,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private expandItemsOptions(showing: AgContextMenuItemShowOn): ContextMenuItem[] {
         const { ctx, deprecationMap } = this;
         const expandedItems: ContextMenuItem[] = [];
-        expandedItems.length = 0;
-
-        for (const item of this.items) {
-            if (typeof item === 'string') {
-                expandBuiltin(showing, ctx.contextMenuRegistry, item, expandedItems);
-            } else if (item.type !== 'submenu') {
-                appendItem(showing, item, expandedItems);
-            } else {
-                throw new Error('`type: "submenu" not yet implemented');
-            }
-        }
+        expandItems(showing, ctx.contextMenuRegistry, this.items, expandedItems);
 
         for (const deprecatedKey of Object.keys(deprecationMap) as (keyof typeof deprecationMap)[]) {
             const { items, showOn } = deprecationMap[deprecatedKey];

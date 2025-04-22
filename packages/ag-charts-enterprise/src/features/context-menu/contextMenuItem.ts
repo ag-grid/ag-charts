@@ -1,4 +1,5 @@
 import type {
+    AgContextMenuItem,
     AgContextMenuItemLiteral,
     AgContextMenuItemShowOn,
     AgContextMenuItemType,
@@ -51,6 +52,23 @@ export function expandBuiltin(
         }
     } else {
         appendBuiltinItem(showing, registry, keyword, result);
+    }
+}
+
+export function expandItems(
+    showing: AgContextMenuItemShowOn,
+    registry: _ModuleSupport.ContextMenuRegistry,
+    items: readonly Readonly<AgContextMenuItem>[],
+    result: ContextMenuItem[]
+) {
+    for (const item of items) {
+        if (typeof item === 'string') {
+            expandBuiltin(showing, registry, item, result);
+        } else if (item.type !== 'submenu') {
+            appendItem(showing, item, result);
+        } else {
+            throw new Error('`type: "submenu" not yet implemented');
+        }
     }
 }
 
