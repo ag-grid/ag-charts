@@ -119,8 +119,6 @@ export class WidgetListenerInternal {
                 this.registerDragTrigger(target);
                 break;
             }
-            default:
-                (type) satisfies 'close-widget';
         }
     }
 
