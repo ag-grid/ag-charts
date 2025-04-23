@@ -156,13 +156,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ) as DeepPartial<T>;
             }
 
-            this.userOptions = deepClone(
-                merge(deltaOptions, baseChartOptions.userOptions),
-                ChartOptions.OPTIONS_CLONE_OPTS
-            ) as T;
+            this.userOptions = deepClone(merge(deltaOptions, baseChartOptions.userOptions), {
+                ...ChartOptions.OPTIONS_CLONE_OPTS,
+                seen: new Set(),
+            }) as T;
         } else {
             // Full update case.
-            this.userOptions = deepClone(currentUserOptions ?? newUserOptions, ChartOptions.OPTIONS_CLONE_OPTS);
+            this.userOptions = deepClone(currentUserOptions ?? newUserOptions, {
+                ...ChartOptions.OPTIONS_CLONE_OPTS,
+                seen: new Set(),
+            });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
 

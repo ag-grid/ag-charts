@@ -133,6 +133,14 @@ HTMLCollection [
 ]
 `;
 
+exports[`Context Menu submenu cycle detection 1`] = `
+[
+  [
+    "AG Charts - Option \`contextMenu.items[3].items[1].items\` cannot be set to \`[]\`; expecting unknown, ignoring.",
+  ],
+]
+`;
+
 exports[`Extra Actions callbacks 1`] = `
 [
   {

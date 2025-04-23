@@ -19,7 +19,7 @@ import { SKIP_JS_BUILTINS, getPath, mergeDefaults, without } from './object';
 import { isProperties } from './properties';
 
 type StringSet = { has(value: string): boolean };
-export type CloneOptions = { shallow?: StringSet; assign?: StringSet };
+export type CloneOptions = { shallow?: StringSet; assign?: StringSet; seen?: Set<unknown> };
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
 
@@ -104,7 +104,7 @@ export function jsonPropertyCompare<T>(source: Partial<T>, target: T) {
  */
 export function deepClone<T>(source: T, opts?: CloneOptions): T {
     if (isArray(source)) {
-        return source.map((item) => deepClone(item, opts)) as T;
+        return cloneArray(source, opts) as T;
     }
     if (isPlainObject(source)) {
         return clonePlainObject(source, opts) as T;
@@ -113,6 +113,22 @@ export function deepClone<T>(source: T, opts?: CloneOptions): T {
         return new Map(deepClone(Array.from(source))) as T;
     }
     return shallowClone(source);
+}
+
+function cloneArray<T>(source: T[], opts?: CloneOptions): T[] {
+    const result: T[] = [];
+    result.length = source.length;
+    let i = 0;
+    for (const item of source) {
+        if (opts?.seen?.has(item)) {
+            Logger.error('cycle detected in array', item);
+            continue;
+        }
+        opts?.seen?.add(item);
+        result[i++] = deepClone(item);
+    }
+    result.length = i;
+    return result;
 }
 
 function clonePlainObject(source: PlainObject, opts?: CloneOptions) {

@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it, test } from '@jest/globals';
 
 // eslint-disable-next-line sonarjs/deprecation
-import { type AgChartOptions, AgCharts, AgContextMenuAction } from 'ag-charts-community';
+import { AgCharts, AgContextMenuAction } from 'ag-charts-community';
+import type { AgChartOptions, AgContextMenuItem } from 'ag-charts-community';
 import {
     Chart,
     contextMenuAction,
+    expectWarningsCalls,
     longTapAction,
     setupMockCanvas,
     setupMockConsole,
@@ -106,6 +108,25 @@ describe('Context Menu', () => {
             await longTapAction(410, 575)(chart);
             await compare();
         });
+    });
+
+    test('submenu cycle detection', () => {
+        const subsubmenu: Exclude<AgContextMenuItem, string> = { type: 'submenu', label: 'subsubmenu', items: [] };
+        const contextMenu: AgChartOptions['contextMenu'] = {
+            items: [
+                'defaults',
+                'separator',
+                { type: 'action', label: 'my action', action: () => {} },
+                {
+                    type: 'submenu',
+                    label: 'my submenu',
+                    items: [{ type: 'action', label: 'subaction', action: () => {} }, subsubmenu],
+                },
+            ],
+        };
+        subsubmenu.items = contextMenu.items;
+        chart = AgCharts.create(prepareEnterpriseTestOptions({ ...EXAMPLE_OPTIONS, contextMenu }));
+        expectWarningsCalls().toMatchSnapshot();
     });
 });
 
