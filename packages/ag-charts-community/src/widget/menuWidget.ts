@@ -4,7 +4,6 @@ import type { Direction } from 'ag-charts-types';
 import { setAttribute } from '../util/attributeUtil';
 import { DestroyFns } from '../util/destroy';
 import {
-    addAutoCloseOnBlurEventListener,
     addEscapeEventListener,
     addMouseCloseListener,
     addOverrideFocusVisibleEventListener,
@@ -50,8 +49,8 @@ export class MenuWidget extends RovingTabContainerWidget {
         return { subMenuButton, subMenu };
     }
 
-    public open(event: WidgetEvent, opts?: { overrideFocusVisible?: boolean; autoCloseOnBlur?: boolean }): void {
-        const { autoCloseOnBlur = false, overrideFocusVisible = undefined } = opts ?? {};
+    public open(event: WidgetEvent, opts?: { overrideFocusVisible?: boolean }): void {
+        const { overrideFocusVisible = undefined } = opts ?? {};
         this.openScope = {
             lastFocus: getLastFocus(event.sourceEvent),
             lastFocusAborted: false,
@@ -65,9 +64,6 @@ export class MenuWidget extends RovingTabContainerWidget {
         addMouseCloseListener(this.openScope.removers, this.elem, this.openScope.abort);
         addTouchCloseListener(this.openScope.removers, this.elem, this.openScope.abort);
         addEscapeEventListener(this.openScope.removers, this.elem, this.openScope.close);
-        if (autoCloseOnBlur === true) {
-            addAutoCloseOnBlurEventListener(this.openScope.removers, buttons, this.openScope.close);
-        }
         if (overrideFocusVisible !== undefined) {
             addOverrideFocusVisibleEventListener(this.openScope.removers, this.elem, buttons, overrideFocusVisible);
         }
