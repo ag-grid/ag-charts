@@ -148,10 +148,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             }
         }
 
-        // remove trailing 'separator' menu item
-        if (expandedItems[expandedItems.length - 1].type === 'separator') {
-            expandedItems.length = expandedItems.length - 1;
-        }
         return expandedItems;
     }
 
