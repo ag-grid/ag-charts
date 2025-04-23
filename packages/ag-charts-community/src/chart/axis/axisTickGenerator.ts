@@ -456,7 +456,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
     private getTimeIntervalTicks(
         visibleRange: [number, number],
-        tickParams: ScaleTickParams<any>,
+        tickParams: Readonly<ScaleTickParams<any>>,
         timeInterval: TimeInterval
     ) {
         if (timeInterval.hierarchy == null) return;
@@ -483,9 +483,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 const p0 = primaryTicks[i];
                 const p1 = primaryTicks[i + 1];
                 const intervalTicks =
-                    UnitTimeScale.is(scale) && !interpolate
-                        ? (scale as UnitTimeScale).ticks(intervalTickParams, [p0, p1])
-                        : this.timeScaleTicks(intervalTickParams, [p0, p1]);
+                    !UnitTimeScale.is(scale) || interpolate
+                        ? this.timeScaleTicks(intervalTickParams, [p0, p1])
+                        : scale.ticks(intervalTickParams, [p0, p1]) ?? [];
                 if (intervalTicks.length === 0) continue;
 
                 const lastTick = ticks.at(-1);
@@ -595,7 +595,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             case TickGenerationType.VALUES:
                 tickDomain = interval.values!;
                 rawTicks = interval.values!;
-                interpolate = true;
+                interpolate = UnitTimeScale.is(scale);
                 if (ContinuousScale.is(scale)) {
                     const [d0, d1] = findMinMax(niceDomain.map(Number));
                     rawTicks = rawTicks
@@ -661,12 +661,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 }
 
                 if (rawTicks == null) {
-                    if (UnitTimeScale.is(scale)) {
-                        rawTicks = this.timeScaleTicks(tickParams, niceDomain as any);
-                    } else {
-                        rawTicks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
-                    }
-                    interpolate = true;
+                    interpolate = UnitTimeScale.is(scale);
+                    rawTicks = interpolate
+                        ? this.timeScaleTicks(tickParams, niceDomain as any)
+                        : scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
                 }
             }
         }

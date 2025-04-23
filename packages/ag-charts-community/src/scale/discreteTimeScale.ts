@@ -1,4 +1,4 @@
-import { findMinIndex } from 'ag-charts-core';
+import { findMaxIndex, findMinIndex } from 'ag-charts-core';
 
 import { type TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
@@ -25,15 +25,23 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | n
         if (domain.length <= 1 || bands.length === 0) return r0;
 
         const r1 = this.ordinalRange(bands.length - 1);
+        const reversed = domain[0].getTime() > domain[domain.length - 1].getTime();
 
-        const dTime = d.getTime();
-        let domainIndex = findMinIndex(0, domain.length - 1, (i) => domain[i].getTime() >= dTime) ?? 0;
-        domainIndex = Math.min(Math.max(domainIndex, 0), domain.length - 2);
-        const d0 = domain[domainIndex].getTime();
-        const d1 = domain[domainIndex + 1].getTime();
         const v = d.getTime();
+        let domainIndex: number;
+        if (reversed) {
+            domainIndex = (findMinIndex(0, domain.length - 1, (i) => domain[i].getTime() <= v) ?? domain.length) - 1;
+        } else {
+            domainIndex = findMaxIndex(0, domain.length - 1, (i) => domain[i].getTime() <= v) ?? 0;
+        }
+        domainIndex = Math.min(Math.max(domainIndex, 0), domain.length - 2);
+        const v0 = domain[domainIndex].getTime();
+        const v1 = domain[domainIndex + 1].getTime();
 
-        return ((v - d0) / (d1 - d0)) * (r1 - r0) + r0;
+        const ratioWithinInterval = (v - v0) / (v1 - v0);
+        const ratio = (domainIndex + ratioWithinInterval) / (domain.length - 1);
+
+        return ratio * (r1 - r0) + r0;
     }
 
     override invert(position: number, nearest = false): Date | undefined {

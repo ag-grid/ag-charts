@@ -71,6 +71,7 @@ export class TimeInterval {
     ): [number, number] {
         if (start.getTime() > stop.getTime()) {
             [start, stop] = [stop, start];
+            visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];
         }
 
         if (visibleRange != null) {
@@ -94,11 +95,12 @@ export class TimeInterval {
      * @param extend If specified, the requested range will be extended to the closest "nice" values.
      */
     range(start: Date, stop: Date, params: RangeParams = {}): Date[] {
+        let rangeCallback: (() => void) | undefined;
         if (start.getTime() > stop.getTime()) {
-            [start, stop] = [stop, start];
+            rangeCallback = this._rangeCallback?.(stop, start);
+        } else {
+            rangeCallback = this._rangeCallback?.(start, stop);
         }
-
-        const rangeCallback = this._rangeCallback?.(start, stop);
 
         const [e0, e1] = this.rangeIndices(start, stop, params);
 
