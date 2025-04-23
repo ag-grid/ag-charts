@@ -9,6 +9,8 @@ type AriaRole =
     | 'img'
     | 'list'
     | 'listitem'
+    | 'menu'
+    | 'menuitem'
     | 'radio'
     | 'radiogroup'
     | 'status'

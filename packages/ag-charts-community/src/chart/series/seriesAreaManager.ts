@@ -311,7 +311,7 @@ export class SeriesAreaManager extends BaseManager {
                 const { currentX: canvasX, currentY: canvasY } = event;
                 this.chart.ctx.contextMenuRegistry.dispatchContext(
                     'always',
-                    { sourceEvent, canvasX, canvasY },
+                    { widgetEvent: event, canvasX, canvasY },
                     undefined
                 );
             }
@@ -345,14 +345,14 @@ export class SeriesAreaManager extends BaseManager {
         if (pickedSeries && pickedNode) {
             this.chart.ctx.contextMenuRegistry.dispatchContext(
                 'series-node',
-                { sourceEvent, canvasX, canvasY },
+                { widgetEvent: event, canvasX, canvasY },
                 { pickedSeries, pickedNode },
                 position
             );
         } else {
             this.chart.ctx.contextMenuRegistry.dispatchContext(
                 'series-area',
-                { sourceEvent, canvasX, canvasY },
+                { widgetEvent: event, canvasX, canvasY },
                 undefined,
                 position
             );

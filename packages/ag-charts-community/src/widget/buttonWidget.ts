@@ -1,6 +1,6 @@
 import { createElement } from 'ag-charts-core';
 
-import { setAttribute, setElementStyle } from '../util/attributeUtil';
+import { setAttribute } from '../util/attributeUtil';
 import { Widget } from './widget';
 import type { WidgetEventMap as EventMap } from './widgetEvents';
 
@@ -18,7 +18,6 @@ export class ButtonWidget extends Widget<HTMLButtonElement> {
 
     setEnabled(enabled: boolean) {
         setAttribute(this.elem, 'aria-disabled', !enabled);
-        setElementStyle(this.elem, 'pointer-events', enabled ? undefined : 'none');
     }
 
     override addListener<K extends keyof EventMap>(type: K, listener: (ev: EventMap[K], current: this) => unknown): R;
