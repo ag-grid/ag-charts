@@ -9,6 +9,7 @@ import type {
     AgBaseAxisOptions,
     AgContinuousAxisOptions,
     AgNumericAxisFormattableLabelOptions,
+    AgTimeAxisFormattableLabelOptions,
     TimeInterval,
 } from '../../chart/axisOptions';
 import type { Styler } from '../../chart/callbackOptions';
@@ -54,6 +55,10 @@ export interface AgTimeAxisDivision {
 export interface AgCartesianAxisLabelOptions
     extends AgBaseCartesianAxisLabelOptions,
         AgNumericAxisFormattableLabelOptions {}
+
+export interface AgCartesianTimeAxisLabelOptions
+    extends AgBaseCartesianAxisLabelOptions,
+        AgTimeAxisFormattableLabelOptions {}
 
 export interface AgBaseCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
     /** If specified and axis labels may collide, they are rotated so that they are positioned at the supplied angle. This is enabled by default for category. If the `rotation` property is specified, it takes precedence. */
@@ -122,7 +127,9 @@ export interface AgGroupedCategoryAxisOptions
     tick?: AgGroupedCategoryAxisTickOptions;
 }
 
-export interface AgUnitTimeAxisOptions extends AgBaseCartesianAxisOptions {
+export interface AgUnitTimeAxisOptions
+    extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions>, 'interval'>,
+        Omit<AgContinuousAxisOptions<Date | number, TimeInterval | number>, 'nice'> {
     type: 'unit-time';
     /** Axis division */
     division?: AgTimeAxisDivision;
@@ -140,7 +147,7 @@ export interface AgUnitTimeAxisOptions extends AgBaseCartesianAxisOptions {
     max?: Date;
 }
 
-export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions {
+export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions> {
     type: 'ordinal-time';
     /** Axis division */
     division?: AgTimeAxisDivision;
@@ -165,7 +172,7 @@ export interface AgLogAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'inte
 }
 
 export interface AgTimeAxisOptions
-    extends Omit<AgBaseCartesianAxisOptions, 'interval'>,
+    extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions>, 'interval'>,
         AgContinuousAxisOptions<Date | number, TimeInterval | number> {
     type: 'time';
     /** Axis division */

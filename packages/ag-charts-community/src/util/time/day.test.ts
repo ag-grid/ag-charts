@@ -106,3 +106,11 @@ test('day.every stick to a different date', () => {
         new Date(2023, 1, 24),
     ]);
 });
+
+test('day.every snapTo weekly', () => {
+    const start = new Date(2023, 10, 1);
+    const end = new Date(2023, 11, 1);
+    const interval = day.every(14).every(1, { snapTo: start });
+    const ticks = interval.range(start, end);
+    expect(ticks).toEqual([new Date(2023, 10, 1), new Date(2023, 10, 15), new Date(2023, 10, 29)]);
+});

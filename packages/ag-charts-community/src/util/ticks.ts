@@ -10,9 +10,9 @@ import {
     durationWeek,
     durationYear,
 } from './time/duration';
-import { type CountableTimeInterval, type TimeInterval } from './time/interval';
+import { type TimeInterval } from './time/interval';
 
-const tInterval = (timeInterval: CountableTimeInterval, baseDuration: number, step: number) => ({
+const tInterval = (timeInterval: TimeInterval, baseDuration: number, step: number) => ({
     duration: baseDuration * step,
     timeInterval,
     step,
@@ -84,9 +84,9 @@ export function getTickTimeInterval(
     start: number,
     stop: number,
     count: number,
-    minCount?: number,
-    maxCount?: number,
-    { targetInterval }: { targetInterval?: number } = {}
+    minCount: number | undefined,
+    maxCount: number | undefined,
+    { weekStart, targetInterval }: { weekStart: TimeInterval | undefined; targetInterval?: number }
 ): TimeInterval | undefined {
     if (count <= 0) return;
 
@@ -110,6 +110,9 @@ export function getTickTimeInterval(
     const i0 = TickIntervals[i - 1];
     const i1 = TickIntervals[i];
     const { timeInterval, step } = target - i0.duration < i1.duration - target ? i0 : i1;
+    if (timeInterval === week) {
+        return weekStart?.every(step) ?? day.every(7 * step);
+    }
     return timeInterval.every(step);
 }
 

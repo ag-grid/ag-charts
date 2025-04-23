@@ -1,9 +1,9 @@
 import { durationMinute, durationWeek } from './duration';
-import { CountableTimeInterval } from './interval';
+import { TimeInterval } from './interval';
 import { month } from './month';
 
 // Set date to n-th day of the week.
-function weekday(weekStart: number): CountableTimeInterval {
+function weekday(weekStart: number): TimeInterval {
     // 1970-01-01 starts on a Thursday
     const thursday = 4;
     const dayShift = (7 + weekStart - thursday) % 7;
@@ -21,9 +21,9 @@ function weekday(weekStart: number): CountableTimeInterval {
         return d;
     }
 
-    return new CountableTimeInterval(
+    return new TimeInterval(
         'day',
-        { milliseconds: 7 * 24 * 60 * 60 * 1000, exact: true },
+        { milliseconds: 7 * 24 * 60 * 60 * 1000, exact: false /* Weeks with DST change */ },
         month,
         encode,
         decode

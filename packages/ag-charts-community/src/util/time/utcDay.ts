@@ -1,5 +1,5 @@
 import { durationDay } from './duration';
-import { CountableTimeInterval } from './interval';
+import { TimeInterval } from './interval';
 import { utcMonth } from './utcMonth';
 
 function encode(date: Date) {
@@ -13,7 +13,7 @@ function decode(encoded: number) {
     return d;
 }
 
-export const utcDay = new CountableTimeInterval(
+export const utcDay = new TimeInterval(
     'day',
     { milliseconds: 24 * 60 * 60 * 1000, exact: true },
     utcMonth,

@@ -1,4 +1,4 @@
-import { CountableTimeInterval } from './interval';
+import { TimeInterval } from './interval';
 import { year } from './year';
 
 function encode(date: Date) {
@@ -11,7 +11,7 @@ function decode(encoded: number) {
     return new Date(y, month, 1);
 }
 
-export const month = new CountableTimeInterval(
+export const month = new TimeInterval(
     'month',
     { milliseconds: year.duration.milliseconds / 12, exact: false },
     year,

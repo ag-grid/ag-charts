@@ -12196,7 +12196,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
             "exact": false,
             "milliseconds": 5259491999.999999,
           },
-          "hierarchy": CountableTimeInterval {
+          "hierarchy": TimeInterval {
             "_decode": [Function],
             "_encode": [Function],
             "_rangeCallback": undefined,
@@ -13073,7 +13073,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         ],
       },
       "interval": {
-        "step": CountableTimeInterval {
+        "step": TimeInterval {
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": undefined,
@@ -13081,7 +13081,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
             "exact": false,
             "milliseconds": 2629745999.9999995,
           },
-          "hierarchy": CountableTimeInterval {
+          "hierarchy": TimeInterval {
             "_decode": [Function],
             "_encode": [Function],
             "_rangeCallback": undefined,

@@ -22,6 +22,10 @@ interface RangeParams {
     visibleRange?: [number, number];
 }
 
+interface EveryParams {
+    snapTo?: Date | number | 'start' | 'end';
+}
+
 /**
  * The interval methods don't mutate Date parameters.
  */
@@ -34,6 +38,10 @@ export class TimeInterval {
         protected readonly _decode: DecodeFn,
         protected readonly _rangeCallback?: RangeFn
     ) {}
+
+    private getOffset(snapTo: Date, step: number) {
+        return Math.floor(this._encode(new Date(snapTo))) % step;
+    }
 
     /**
      * Returns a new date representing the latest interval boundary date before or equal to date.
@@ -109,16 +117,6 @@ export class TimeInterval {
         const [e0, e1] = this.rangeIndices(start, stop, params);
         return e1 - e0;
     }
-}
-
-interface CountableTimeIntervalOptions {
-    snapTo?: Date | number | 'start' | 'end';
-}
-
-export class CountableTimeInterval extends TimeInterval {
-    private getOffset(snapTo: Date, step: number) {
-        return Math.floor(this._encode(new Date(snapTo))) % step;
-    }
 
     /**
      * Returns a filtered view of this interval representing every step'th date.
@@ -126,8 +124,8 @@ export class CountableTimeInterval extends TimeInterval {
      * Must be a positive integer.
      * @param step
      */
-    every(step: number, options?: CountableTimeIntervalOptions): TimeInterval {
-        if (step === 1) return this;
+    every(step: number, options?: EveryParams): TimeInterval {
+        if (step === 1 && options?.snapTo != null) return this;
 
         const { unit, duration, hierarchy } = this;
 
