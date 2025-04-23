@@ -16,10 +16,13 @@ HTMLCollection [
     style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
+      aria-orientation="vertical"
       class="ag-charts-context-menu__menu"
+      role="menu"
       tabindex="-1"
     >
       <button
+        aria-disabled="false"
         class="ag-charts-context-menu__item"
         tabindex="0"
       >
@@ -37,10 +40,13 @@ HTMLCollection [
     style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
+      aria-orientation="vertical"
       class="ag-charts-context-menu__menu"
+      role="menu"
       tabindex="-1"
     >
       <button
+        aria-disabled="false"
         class="ag-charts-context-menu__item"
         tabindex="0"
       >
@@ -58,22 +64,27 @@ HTMLCollection [
     style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
+      aria-orientation="vertical"
       class="ag-charts-context-menu__menu"
+      role="menu"
       tabindex="-1"
     >
       <button
+        aria-disabled="false"
         class="ag-charts-context-menu__item"
         tabindex="0"
       >
         Download
       </button>
       <button
+        aria-disabled="false"
         class="ag-charts-context-menu__item"
         tabindex="-1"
       >
         Toggle Visibility
       </button>
       <button
+        aria-disabled="false"
         class="ag-charts-context-menu__item"
         tabindex="-1"
       >
@@ -91,22 +102,27 @@ HTMLCollection [
     style="display: block; top: calc(NaNpx - 0.5em);"
   >
     <div
+      aria-orientation="vertical"
       class="ag-charts-context-menu__menu"
+      role="menu"
       tabindex="-1"
     >
       <button
+        aria-disabled="false"
         class="ag-charts-context-menu__item"
         tabindex="0"
       >
         Download
       </button>
       <button
+        aria-disabled="false"
         class="ag-charts-context-menu__item"
         tabindex="-1"
       >
         Toggle Visibility
       </button>
       <button
+        aria-disabled="false"
         class="ag-charts-context-menu__item"
         tabindex="-1"
       >

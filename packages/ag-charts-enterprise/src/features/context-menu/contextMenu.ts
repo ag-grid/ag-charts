@@ -1,6 +1,6 @@
 import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, clamp, createElement } from 'ag-charts-core';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { Logger, clamp } from 'ag-charts-core';
 
 import { ContextMenuItem, appendItem, expandBuiltin } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
@@ -16,22 +16,9 @@ type DeprecatedMap = {
     };
 };
 
-const { Property, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } = _ModuleSupport;
+const { Property, ContextMenuRegistry } = _ModuleSupport;
 
 const moduleId = 'context-menu';
-
-function getChildrenOfType<TElem extends Element>(parent: Element, ctor: new () => TElem): TElem[] {
-    const { children } = parent ?? {};
-    if (!children) return [];
-
-    const result: TElem[] = [];
-    for (const child of Array.from(children)) {
-        if (child instanceof ctor) {
-            result.push(child);
-        }
-    }
-    return result;
-}
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Property
@@ -62,8 +49,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     // HTML elements
     private readonly element: HTMLElement;
-    private menuElement?: HTMLDivElement;
-    private menuCloser?: _ModuleSupport.MenuCloser;
+    private readonly menuWidget: _Widget.MenuWidget = new _Widget.MenuWidget();
     private readonly mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -103,16 +89,19 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         // State
         this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
+        this.element.style.display = 'none';
         this.element.addEventListener('contextmenu', (event) => event.preventDefault()); // AG-10223
-        this.destroyFns.push(() => this.element.parentNode?.removeChild(this.element));
-
-        this.doClose();
-
-        this.destroyFns.push(ctx.domManager.addListener('hidden', () => this.hide()));
+        this.destroyFns.push(
+            () => this.element.parentNode?.removeChild(this.element),
+            () => this.menuWidget.destroy(),
+            ctx.domManager.addListener('hidden', () => this.hide()),
+            this.menuWidget.addListener('close-widget', () => this.onClose())
+        );
+        this.menuWidget.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
 
         if (typeof MutationObserver !== 'undefined') {
             const observer = new MutationObserver(() => {
-                if (this.menuElement && this.element.contains(this.menuElement)) {
+                if (this.element.contains(this.menuWidget.getElement())) {
                     this.reposition();
                 }
             });
@@ -172,9 +161,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onContext(event: ContextMenuEvent) {
         if (!this.enabled) return;
-        event.sourceEvent.preventDefault();
 
-        this.showEvent = event.sourceEvent as MouseEvent;
+        event.widgetEvent.sourceEvent.preventDefault();
+        this.showEvent = event.widgetEvent.sourceEvent;
         this.x = event.x;
         this.y = event.y;
         this.pickedNode = undefined;
@@ -188,71 +177,49 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const expandedItems = this.expandItemsOptions(event.showOn);
         if (expandedItems.length === 0) return;
 
-        this.show(event.sourceEvent, expandedItems);
+        this.show(event.widgetEvent, expandedItems);
     }
 
-    private show(sourceEvent: ContextMenuEvent['sourceEvent'], expandedItems: ContextMenuItem[]) {
+    private show(widgetEvent: ContextMenuEvent['widgetEvent'], expandedItems: ContextMenuItem[]) {
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-
-        const newMenuElement = this.renderMenu(expandedItems);
-
-        this.menuCloser?.close();
-        if (this.menuElement) {
-            this.element.replaceChild(newMenuElement, this.menuElement);
-        } else {
-            this.element.appendChild(newMenuElement);
-        }
-
-        this.menuElement = newMenuElement;
-
         this.element.style.display = 'block';
 
-        const overrideFocusVisible = sourceEvent.pointerType === 'touch' ? false : undefined;
-        const buttons = getChildrenOfType(newMenuElement, HTMLButtonElement);
-        this.menuCloser = initMenuKeyNav({
-            menu: newMenuElement,
-            buttons,
-            orientation: 'vertical',
-            sourceEvent,
-            overrideFocusVisible,
-            autoCloseOnBlur: true,
-            closeCallback: () => this.doClose(),
-        });
-        if (sourceEvent.pointerType === 'touch') {
-            this.ctx.chartService.overrideFocusVisible(false);
+        const overrideFocusVisible = widgetEvent.sourceEvent.pointerType === 'touch' ? false : undefined;
+        if (overrideFocusVisible !== undefined) {
+            this.ctx.chartService.overrideFocusVisible(overrideFocusVisible);
         }
+
+        this.createMenu(expandedItems);
+        this.element.appendChild(this.menuWidget.getElement());
+        this.menuWidget.open(widgetEvent, { overrideFocusVisible, autoCloseOnBlur: true });
     }
 
     private hide() {
-        this.menuCloser?.close();
+        this.menuWidget.close();
     }
 
-    private doClose() {
+    private onClose() {
         this.interactionManager.popState(_ModuleSupport.InteractionState.ContextMenu);
-
-        if (this.menuElement) {
-            this.element.removeChild(this.menuElement);
-            this.menuElement = undefined;
-            this.menuCloser = undefined;
-        }
-
+        this.element.removeChild(this.menuWidget.getElement());
         this.element.style.display = 'none';
     }
 
-    private renderMenu(expandedItems: ContextMenuItem[]) {
-        const menuElement = createElement('div');
-        menuElement.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
-        menuElement.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        menuElement.role = 'menu';
+    private createMenu(expandedItems: ContextMenuItem[]) {
+        const { menuWidget } = this;
+        menuWidget.clear();
+        menuWidget.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
+        menuWidget.setTabIndex(-1);
 
         for (const item of expandedItems) {
             switch (item.type) {
                 case 'separator':
-                    menuElement.append(this.createDividerElement());
+                    const sep = menuWidget.addSeparator();
+                    sep.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
+                    sep.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
                     break;
                 case 'action':
-                    menuElement.append(this.createActionElement(item));
+                    menuWidget.addChild(this.createButtonElement(item));
                     break;
                 case 'submenu':
                     break;
@@ -260,29 +227,14 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     throw new Error('unhandled case');
             }
         }
-
-        return menuElement;
     }
-
-    private createDividerElement(): HTMLElement {
-        const el = createElement('div');
-        el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
-        el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        el.role = 'separator';
-        return el;
-    }
-
-    private createActionElement(item: ContextMenuItem): HTMLElement {
-        const { showOn, label, action, enable } = item;
-        return this.createButtonElement(showOn, label, action, !enable);
-    }
-
     private createButtonOnClick(
         showOn: AgContextMenuItemShowOn,
         callback: ContextMenuCallback
-    ): (event: MouseEvent) => void {
+    ): (event: _ModuleSupport.MouseWidgetEvent) => void {
         if (ContextMenuRegistry.checkCallback('legend-item', showOn, callback)) {
-            return (event: Event) => {
+            return (widgetEvent: _ModuleSupport.MouseWidgetEvent) => {
+                const event: Event = widgetEvent.sourceEvent;
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId } = this.pickedLegendItem;
                     callback({ type: 'contextmenu', seriesId, itemId, event });
@@ -315,23 +267,18 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private createButtonElement(
-        showOn: AgContextMenuItemShowOn,
-        label: string,
-        callback: ContextMenuCallback | undefined,
-        disabled: boolean
-    ): HTMLElement {
-        const el = createElement('button');
-        el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
-        el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        el.ariaDisabled = disabled.toString();
-        el.textContent = this.ctx.localeManager.t(label);
-        el.role = 'menuitem';
-        if (callback != null) {
-            el.onclick = makeAccessibleClickListener(el, this.createButtonOnClick(showOn, callback));
+    private createButtonElement(item: ContextMenuItem): _Widget.ButtonWidget {
+        const button = new _Widget.ButtonWidget();
+        button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
+        button.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
+        button.setEnabled(item.enable);
+        button.setTextContent(this.ctx.localeManager.t(item.label));
+        const { showOn, action } = item;
+        if (action != null) {
+            button.addListener('click', this.createButtonOnClick(showOn, action));
         }
-        el.addEventListener('mouseover', () => el.focus({ preventScroll: true }));
-        return el;
+        button.addListener('mousemove', () => button.focus({ preventScroll: true }));
+        return button;
     }
 
     private reposition() {

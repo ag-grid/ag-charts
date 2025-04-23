@@ -2,6 +2,7 @@ import type { Writeable } from 'ag-charts-core';
 import type { AgContextMenuItemLiteral, AgContextMenuItemShowOn } from 'ag-charts-types';
 
 import { BaseManager } from '../../util/baseManager';
+import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { ContextMenuCallback, ContextMenuEvent, ContextMenuEventType, ContextShowOnMap } from './contextMenuTypes';
 import { ContextMenuBuiltins } from './contextMenuTypes';
 
@@ -33,19 +34,19 @@ export class ContextMenuRegistry extends BaseManager<ContextMenuEventType, Conte
 
     public dispatchContext<T extends AgContextMenuItemShowOn>(
         showOn: T,
-        pointerEvent: { sourceEvent: MouseEvent; canvasX: number; canvasY: number },
+        pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'>; canvasX: number; canvasY: number },
         context: ContextShowOnMap[T]['context'],
         position?: { x: number; y: number }
     ) {
-        const { sourceEvent } = pointerEvent;
-        if (sourceEvent.defaultPrevented) {
+        const { widgetEvent } = pointerEvent;
+        if (widgetEvent.sourceEvent.defaultPrevented) {
             // AG-12894 'contextmenu' event bubbles, do not re-dispatch ContextMenuEvent if we're already draw own menu
             return;
         }
         const x = position?.x ?? pointerEvent.canvasX;
         const y = position?.y ?? pointerEvent.canvasY;
 
-        const event: Writeable<ContextMenuEvent> = { type: 'context-setup', showOn, x, y, context, sourceEvent };
+        const event: Writeable<ContextMenuEvent> = { type: 'context-setup', showOn, x, y, context, widgetEvent };
         this.listeners.dispatch('context-setup', event);
 
         event.type = 'context-complete';

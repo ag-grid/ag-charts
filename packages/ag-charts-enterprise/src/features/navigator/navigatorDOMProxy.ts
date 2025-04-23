@@ -157,13 +157,14 @@ export class NavigatorDOMProxy {
 
     private onContextMenu(
         slider: _ModuleSupport.SliderWidget,
-        { sourceEvent, offsetX, offsetY }: _ModuleSupport.MouseWidgetEvent<'contextmenu'>
+        widgetEvent: _ModuleSupport.MouseWidgetEvent<'contextmenu'>
     ) {
+        const { offsetX, offsetY } = widgetEvent;
         const { x: toolbarX, y: toolbarY } = this.toolbar.getBounds();
         const { x: sliderX, y: sliderY } = slider.getBounds();
         const canvasX = offsetX + toolbarX + sliderX;
         const canvasY = offsetY + toolbarY + sliderY;
-        this.ctx.contextMenuRegistry.dispatchContext('always', { sourceEvent, canvasX, canvasY }, undefined);
+        this.ctx.contextMenuRegistry.dispatchContext('always', { widgetEvent, canvasX, canvasY }, undefined);
     }
 
     private onPanSliderChange() {
