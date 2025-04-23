@@ -201,10 +201,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.style.display = 'none';
     }
 
-    private onSubMenuOpen(_button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
-        const menuEl = menu.getElement();
-        menuEl.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
-        this.element.parentElement!.appendChild(menuEl);
+    private onSubMenuOpen(button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
+        const bounds = button.getBounds();
+        this.element.appendChild(menu.getElement());
+        menu.getElement().style.position = 'absolute';
+        menu.setBounds({ x: bounds.x + bounds.width, y: bounds.y });
     }
     private onSubMenuClose(_button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
         menu.destroy();
@@ -233,6 +234,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     break;
                 case 'submenu':
                     const { subMenuButton, subMenu } = menuWidget.addSubMenu();
+                    subMenu.getElement().className = this.element.className;
                     subMenu.addListener('open-widget', () => this.onSubMenuOpen(subMenuButton, subMenu));
                     subMenu.addListener('close-widget', () => this.onSubMenuClose(subMenuButton, subMenu));
                     this.initButtonElement(subMenuButton, item);
