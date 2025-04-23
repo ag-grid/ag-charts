@@ -15,7 +15,7 @@ function install_fw {
         npm i -g @angular/cli@^${version}.0.0
     fi
     echo ">>> ng new angular-${version}-test"
-    echo "" | ng new angular-${version}-test --defaults=true --strict --prefix=app --style=scss --package-manager=npm --routing=false --interactive=false
+    echo "" | ng new angular-${version}-test --defaults=true --strict --prefix=app --style=scss --package-manager=npm --routing=false --interactive=false --no-strict
 
     cd angular-${version}-test
 }
