@@ -136,7 +136,40 @@ HTMLCollection [
 exports[`Context Menu submenu cycle detection 1`] = `
 [
   [
-    "AG Charts - Option \`contextMenu.items[3].items[1].items\` cannot be set to \`[]\`; expecting unknown, ignoring.",
+    "AG Charts - cycle detected in array",
+    {
+      "action": [Function],
+      "label": "my action",
+      "type": "action",
+    },
+  ],
+  [
+    "AG Charts - cycle detected in array",
+    {
+      "items": [
+        {
+          "action": [Function],
+          "label": "subaction",
+          "type": "action",
+        },
+        {
+          "items": [
+            "defaults",
+            "separator",
+            {
+              "action": [Function],
+              "label": "my action",
+              "type": "action",
+            },
+            [Circular],
+          ],
+          "label": "subsubmenu",
+          "type": "submenu",
+        },
+      ],
+      "label": "my submenu",
+      "type": "submenu",
+    },
   ],
 ]
 `;

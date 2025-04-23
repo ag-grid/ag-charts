@@ -120,12 +120,12 @@ function cloneArray<T>(source: T[], opts?: CloneOptions): T[] {
     result.length = source.length;
     let i = 0;
     for (const item of source) {
-        if (opts?.seen?.has(item)) {
-            Logger.error('cycle detected in array', item);
+        if (typeof item === 'object' && opts?.seen?.has(item)) {
+            Logger.warn('cycle detected in array', item);
             continue;
         }
         opts?.seen?.add(item);
-        result[i++] = deepClone(item);
+        result[i++] = deepClone(item, opts);
     }
     result.length = i;
     return result;
