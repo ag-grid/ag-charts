@@ -17,6 +17,7 @@ import {
     string,
     strokeOptionsDef,
     typeUnion,
+    undocumented,
     union,
 } from 'ag-charts-core';
 import type {
@@ -94,6 +95,9 @@ const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgS
         ...(commonChartOptionsDefs.tooltip as OptionsDefs<AgChartTooltipOptions>),
     },
 };
+
+// @ts-expect-error undocumented option
+commonGaugeOptions.overrideDevicePixelRatio = undocumented(positiveNumber);
 
 const radialGaugePresetOptionsDef: OptionsDefs<AgRadialGaugeOptions> = {
     ...radialGaugeSeriesOptionsDef,
