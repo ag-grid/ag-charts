@@ -81,11 +81,17 @@ export type CloseWidgetEvent = {
     sourceEvent?: never;
 };
 
+export type OpenWidgetEvent = {
+    type: 'open-widget';
+    sourceEvent?: never;
+};
+
 export type WidgetEventMap = {
     'drag-start': DragWidgetEvent<'drag-start'>;
     'drag-move': DragWidgetEvent<'drag-move'>;
     'drag-end': DragWidgetEvent<'drag-end'>;
     'close-widget': CloseWidgetEvent;
+    'open-widget': OpenWidgetEvent;
 
     blur: FocusWidgetEvent<'blur'>;
     change: WidgetEvent;

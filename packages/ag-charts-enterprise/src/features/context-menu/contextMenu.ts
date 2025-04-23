@@ -195,6 +195,15 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.style.display = 'none';
     }
 
+    private onSubMenuOpen(_button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
+        const menuEl = menu.getElement();
+        menuEl.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
+        this.element.parentElement!.appendChild(menuEl);
+    }
+    private onSubMenuClose(_button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
+        menu.destroy();
+    }
+
     private createMenu(expandedItems: ContextMenuItem[]) {
         const { menuWidget } = this;
         menuWidget.clear();
@@ -218,6 +227,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     break;
                 case 'submenu':
                     const { subMenuButton, subMenu } = menuWidget.addSubMenu();
+                    subMenu.addListener('open-widget', () => this.onSubMenuOpen(subMenuButton, subMenu));
+                    subMenu.addListener('close-widget', () => this.onSubMenuClose(subMenuButton, subMenu));
                     this.initButtonElement(subMenuButton, item);
                     this.createMenuItems(subMenu, item.items);
                     break;

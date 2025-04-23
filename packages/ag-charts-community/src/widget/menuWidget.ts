@@ -45,6 +45,7 @@ export class MenuWidget extends RovingTabContainerWidget {
         const subMenu = new MenuWidget();
         subMenuButton.setAriaHasPopup('menu');
         subMenuButton.addListener('click', (ev) => subMenu.open(ev));
+        subMenuButton.addListener('mouseenter', (ev) => subMenu.open(ev));
         this.addChild(subMenuButton);
         return { subMenuButton, subMenu };
     }
@@ -72,6 +73,7 @@ export class MenuWidget extends RovingTabContainerWidget {
         }
 
         this.children[0]?.focus({ preventScroll: true });
+        this.internalListener?.dispatch('open-widget', this, { type: 'open-widget' });
     }
 
     private selfClose() {
