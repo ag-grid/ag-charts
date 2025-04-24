@@ -1,6 +1,6 @@
 import { day } from './day';
 import { durationMinute } from './duration';
-import { CountableTimeInterval } from './interval';
+import { TimeInterval } from './interval';
 
 const offset = new Date().getTimezoneOffset() * durationMinute;
 
@@ -12,10 +12,4 @@ function decode(encoded: number) {
     return new Date(offset + encoded * durationMinute);
 }
 
-export const minute = new CountableTimeInterval(
-    'minute',
-    { milliseconds: 60 * 1000, exact: true },
-    day,
-    encode,
-    decode
-);
+export const minute = new TimeInterval('minute', { milliseconds: 60 * 1000, exact: true }, day, encode, decode);

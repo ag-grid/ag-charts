@@ -163,9 +163,18 @@ export interface AgNumericAxisFormattableLabelOptions extends AgBaseAxisLabelOpt
     format?: string;
 }
 
+export interface AgTimeAxisFormattableLabelFormat {
+    millisecond?: string;
+    second?: string;
+    hour?: string;
+    day?: string;
+    month?: string;
+    year?: string;
+}
+
 export interface AgTimeAxisFormattableLabelOptions extends AgBaseAxisLabelOptions {
     /** Format string used when rendering labels. */
-    format?: string | Partial<Record<TimeIntervalUnit, string>>;
+    format?: string | AgTimeAxisFormattableLabelFormat;
 }
 
 export type AgFormattableLabelOptions = AgNumericAxisFormattableLabelOptions & AgTimeAxisFormattableLabelOptions;

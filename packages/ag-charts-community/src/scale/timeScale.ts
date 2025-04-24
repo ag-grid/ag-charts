@@ -1,5 +1,5 @@
 import { TickIntervals, getTickTimeInterval, isDenseInterval } from '../util/ticks';
-import { TimeInterval } from '../util/time';
+import { TimeInterval, sunday } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { ContinuousScale } from './continuousScale';
@@ -115,7 +115,7 @@ function getDefaultDateTicks({
     visibleRange: [number, number];
     extend: boolean;
 }) {
-    const t = getTickTimeInterval(start, stop, tickCount, minTickCount, maxTickCount);
+    const t = getTickTimeInterval(start, stop, tickCount, minTickCount, maxTickCount, { weekStart: sunday });
     return t ? t.range(new Date(start), new Date(stop), { visibleRange, extend }) : []; // inclusive stop
 }
 
@@ -193,7 +193,7 @@ function updateNiceDomainIteration(
             }
         }
         tickCount ??= ticks.tickCount ?? ContinuousScale.defaultTickCount;
-        i = getTickTimeInterval(start, stop, tickCount, ticks.minTickCount, ticks.maxTickCount);
+        i = getTickTimeInterval(start, stop, tickCount, ticks.minTickCount, ticks.maxTickCount, { weekStart: sunday });
     }
 
     const domain = i?.range(new Date(start), new Date(stop), { extend: true });

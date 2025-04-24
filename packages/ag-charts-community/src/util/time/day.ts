@@ -1,5 +1,5 @@
 import { durationDay, durationMinute } from './duration';
-import { CountableTimeInterval } from './interval';
+import { TimeInterval } from './interval';
 import { month } from './month';
 
 function encode(date: Date) {
@@ -15,9 +15,9 @@ function decode(encoded: number) {
     return d;
 }
 
-export const day = new CountableTimeInterval(
+export const day = new TimeInterval(
     'day',
-    { milliseconds: 24 * 60 * 60 * 1000, exact: true },
+    { milliseconds: 24 * 60 * 60 * 1000, exact: false /* For days with DST change */ },
     month,
     encode,
     decode

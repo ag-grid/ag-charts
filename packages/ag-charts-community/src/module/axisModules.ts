@@ -9,10 +9,8 @@ import {
     constant,
     date,
     fontOptionsDef,
-    greaterThan,
     instanceOf,
     isPlainObject,
-    lessThan,
     number,
     or,
     positiveNumber,
@@ -44,6 +42,7 @@ import { LogAxis } from '../chart/axis/logAxis';
 import { NumberAxis } from '../chart/axis/numberAxis';
 import { TimeAxis } from '../chart/axis/timeAxis';
 import { UnitTimeAxis } from '../chart/axis/unitTimeAxis';
+import { without } from '../util/object';
 import { TimeInterval } from '../util/time';
 import type { ModuleContext } from './moduleContext';
 
@@ -112,6 +111,7 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
 
 export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
+    ...without(continuousAxisOptions(or(number, date), true), ['nice']),
     type: required(constant('unit-time')),
     unit: instanceOf(TimeInterval),
     label: cartesianTimeAxisLabel,
@@ -120,8 +120,6 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     paddingOuter: positiveNumber,
     groupPaddingInner: positiveNumber,
     crosshair: cartesianAxisCrosshairOptions(true),
-    min: and(date, lessThan('max')),
-    max: and(date, greaterThan('min')),
 };
 
 // @todo(AG-14472) - Remove

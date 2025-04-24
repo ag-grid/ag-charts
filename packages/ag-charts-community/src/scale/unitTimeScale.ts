@@ -126,7 +126,11 @@ export class UnitTimeScale extends DiscreteTimeScale {
     }
 
     override datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
-        return this.tickFormatter(params, 1);
+        const formatter = this.tickFormatter(params, 1);
+        return (date: Date) => {
+            const index = this.findIndex(date);
+            return index != null ? formatter(this.bands[index]) : formatter(date);
+        };
     }
 
     calculateBandCount(domain: Date[]) {

@@ -74,9 +74,8 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             return getDefaultTicks(domain, maxTickCount, isReversed, visibleRange, extend);
         }
 
-        const [t0, t1] = [domain[0].valueOf(), domain.at(-1)!.valueOf()];
-        const start = Math.min(t0, t1);
-        const stop = Math.max(t0, t1);
+        const start = domain[0].valueOf();
+        const stop = domain[domain.length - 1].valueOf();
 
         const [r0, r1] = this.range;
         const availableRange = Math.abs(r1 - r0);

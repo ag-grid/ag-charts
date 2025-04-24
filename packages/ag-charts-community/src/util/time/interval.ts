@@ -22,6 +22,10 @@ interface RangeParams {
     visibleRange?: [number, number];
 }
 
+interface EveryParams {
+    snapTo?: Date | number | 'start' | 'end';
+}
+
 /**
  * The interval methods don't mutate Date parameters.
  */
@@ -34,6 +38,10 @@ export class TimeInterval {
         protected readonly _decode: DecodeFn,
         protected readonly _rangeCallback?: RangeFn
     ) {}
+
+    private getOffset(snapTo: Date, step: number) {
+        return Math.floor(this._encode(new Date(snapTo))) % step;
+    }
 
     /**
      * Returns a new date representing the latest interval boundary date before or equal to date.
@@ -63,6 +71,7 @@ export class TimeInterval {
     ): [number, number] {
         if (start.getTime() > stop.getTime()) {
             [start, stop] = [stop, start];
+            visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];
         }
 
         if (visibleRange != null) {
@@ -86,11 +95,12 @@ export class TimeInterval {
      * @param extend If specified, the requested range will be extended to the closest "nice" values.
      */
     range(start: Date, stop: Date, params: RangeParams = {}): Date[] {
+        let rangeCallback: (() => void) | undefined;
         if (start.getTime() > stop.getTime()) {
-            [start, stop] = [stop, start];
+            rangeCallback = this._rangeCallback?.(stop, start);
+        } else {
+            rangeCallback = this._rangeCallback?.(start, stop);
         }
-
-        const rangeCallback = this._rangeCallback?.(start, stop);
 
         const [e0, e1] = this.rangeIndices(start, stop, params);
 
@@ -109,16 +119,6 @@ export class TimeInterval {
         const [e0, e1] = this.rangeIndices(start, stop, params);
         return e1 - e0;
     }
-}
-
-interface CountableTimeIntervalOptions {
-    snapTo?: Date | number | 'start' | 'end';
-}
-
-export class CountableTimeInterval extends TimeInterval {
-    private getOffset(snapTo: Date, step: number) {
-        return Math.floor(this._encode(new Date(snapTo))) % step;
-    }
 
     /**
      * Returns a filtered view of this interval representing every step'th date.
@@ -126,8 +126,8 @@ export class CountableTimeInterval extends TimeInterval {
      * Must be a positive integer.
      * @param step
      */
-    every(step: number, options?: CountableTimeIntervalOptions): TimeInterval {
-        if (step === 1) return this;
+    every(step: number, options?: EveryParams): TimeInterval {
+        if (step === 1 && options?.snapTo != null) return this;
 
         const { unit, duration, hierarchy } = this;
 
