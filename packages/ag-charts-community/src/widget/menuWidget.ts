@@ -51,6 +51,8 @@ export class MenuWidget extends RovingTabContainerWidget {
 
     public open(event: WidgetEvent, opts?: { overrideFocusVisible?: boolean }): void {
         const { overrideFocusVisible = undefined } = opts ?? {};
+        if (this.openScope != null) return; // already open
+
         this.openScope = {
             lastFocus: getLastFocus(event.sourceEvent),
             lastFocusAborted: false,
