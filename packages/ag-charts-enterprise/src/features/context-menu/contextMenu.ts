@@ -204,7 +204,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         menu.setBounds({ x: bounds.x + bounds.width, y: bounds.y });
     }
     private onSubMenuClose(_button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
-        menu.destroy();
+        menu.remove();
     }
 
     private createMenu(expandedItems: ContextMenuItem[]) {
