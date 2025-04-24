@@ -42,9 +42,15 @@ export class MenuWidget extends RovingTabContainerWidget {
     public addSubMenu(): { subMenuButton: ButtonWidget; subMenu: MenuWidget } {
         const subMenuButton = new ButtonWidget();
         const subMenu = new MenuWidget();
+        const accessibleOpener = (ev: WidgetEvent) => {
+            // Disabled buttons are focusable and can receive events, but have aria-disabled="true"
+            if (!subMenuButton.isDisabled()) {
+                subMenu.open(ev);
+            }
+        };
         subMenuButton.setAriaHasPopup('menu');
-        subMenuButton.addListener('click', (ev) => subMenu.open(ev));
-        subMenuButton.addListener('mouseenter', (ev) => subMenu.open(ev));
+        subMenuButton.addListener('click', accessibleOpener);
+        subMenuButton.addListener('mouseenter', accessibleOpener);
         this.addChild(subMenuButton);
         return { subMenuButton, subMenu };
     }
