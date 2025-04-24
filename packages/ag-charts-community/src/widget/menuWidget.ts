@@ -70,8 +70,8 @@ export class MenuWidget extends RovingTabContainerWidget {
             addOverrideFocusVisibleEventListener(this.openScope.removers, this.elem, buttons, overrideFocusVisible);
         }
 
-        this.children[0]?.focus({ preventScroll: true });
         this.internalListener?.dispatch('open-widget', this, { type: 'open-widget' });
+        this.children[0]?.focus({ preventScroll: true });
     }
 
     private selfClose() {
