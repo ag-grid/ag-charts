@@ -230,7 +230,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     break;
                 case 'submenu':
                     const { subMenuButton, subMenu } = menuWidget.addSubMenu();
-                    subMenu.getElement().className = this.element.className;
+                    // TODO: the submenu styling should be fixed in the CSS logic.
+                    subMenu.getElement().className = `${this.element.className} ${this.menuWidget.getElement().className}`;
                     subMenu.addListener('open-widget', () => this.onSubMenuOpen(subMenuButton, subMenu));
                     subMenu.addListener('close-widget', () => this.onSubMenuClose(subMenuButton, subMenu));
                     this.initButtonElement(subMenuButton, item);
