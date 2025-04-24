@@ -15,7 +15,7 @@ function showsFor(showOn: AgContextMenuItemShowOn, showing: AgContextMenuItemSho
     return showOn === showing;
 }
 
-export function appendItem(
+function appendItem(
     showing: AgContextMenuItemShowOn,
     item: Options,
     result: ContextMenuItem[]
@@ -45,7 +45,7 @@ function appendBuiltinItem(
     }
 }
 
-export function expandBuiltin(
+function expandBuiltin(
     showing: AgContextMenuItemShowOn,
     registry: _ModuleSupport.ContextMenuRegistry,
     keyword: AgContextMenuItemLiteral,

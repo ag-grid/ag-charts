@@ -1,8 +1,8 @@
 import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { Logger, clamp } from 'ag-charts-core';
+import { type AnyFn, Logger, clamp } from 'ag-charts-core';
 
-import { ContextMenuItem, appendItem, expandBuiltin, expandItems } from './contextMenuItem';
+import { ContextMenuItem, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
@@ -130,29 +130,32 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(this.registry.addListener('context-complete', (e) => this.onContext(e)));
     }
 
-    private expandItemsOptions(showing: AgContextMenuItemShowOn): ContextMenuItem[] {
-        const { ctx, deprecationMap } = this;
-        const expandedItems: ContextMenuItem[] = [];
-        expandItems(showing, ctx.contextMenuRegistry, this.items, expandedItems);
-
-        for (const deprecatedKey of Object.keys(deprecationMap) as (keyof typeof deprecationMap)[]) {
-            const { items, showOn } = deprecationMap[deprecatedKey];
-            if (items.length > 0) {
+    private createDeprecatedAdaptorItems(): typeof this.items {
+        const result: AgContextMenuItem[] = [] satisfies typeof this.items;
+        for (const deprecatedKey of Object.keys(this.deprecationMap) as (keyof typeof this.deprecationMap)[]) {
+            const { items, showOn } = this.deprecationMap[deprecatedKey];
+            result.push('separator');
+            for (const { action, label } of items) {
                 const type = 'action';
                 const iconUrl = undefined;
                 const enable = true;
-                expandBuiltin(showing, ctx.contextMenuRegistry, 'separator', expandedItems);
-                for (const { action, label } of items) {
-                    appendItem(showing, { type, showOn, iconUrl, enable, label, action }, expandedItems);
-                }
+                // Signature typing cannot be verified at compile, because callbacks in api options are just JS
+                // functions assigned at runtime (typing info is lost).
+                action satisfies AnyFn;
+                result.push({ type, showOn, iconUrl, enable, label, action: action as AnyFn });
             }
         }
-        // remove trailing 'separator' menu item potentionally left behind by expanded deprecated options
-        if (expandedItems[expandedItems.length - 1].type === 'separator') {
-            expandedItems.length = expandedItems.length - 1;
-        }
+        return result;
+    }
 
-        return expandedItems;
+    private expandItemsOptions(showing: AgContextMenuItemShowOn): ContextMenuItem[] {
+        const result: ContextMenuItem[] = [];
+        const deprecatedItems = this.createDeprecatedAdaptorItems();
+
+        expandItems(showing, this.ctx.contextMenuRegistry, this.items, result);
+        expandItems(showing, this.ctx.contextMenuRegistry, deprecatedItems, result);
+
+        return result;
     }
 
     private onContext(event: ContextMenuEvent) {
