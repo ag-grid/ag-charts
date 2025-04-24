@@ -9,4 +9,4 @@ function decode(encoded: number) {
     return new Date(encoded);
 }
 
-export const millisecond = new TimeInterval('millisecond', { milliseconds: 1, exact: true }, day, encode, decode);
+export const millisecond = new TimeInterval('millisecond', 1, day, encode, decode);

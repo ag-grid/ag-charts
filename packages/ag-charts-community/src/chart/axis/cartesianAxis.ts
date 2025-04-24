@@ -1,4 +1,4 @@
-import { arraysEqual, diffArrays } from 'ag-charts-core';
+import { arraysEqual, countLines, diffArrays, isPlainObject } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
@@ -17,6 +17,7 @@ import { findMinMax } from '../../util/number';
 import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import { StateMachine } from '../../util/stateMachine';
+import { TextUtils } from '../../util/textMeasurer';
 import type { TimeInterval } from '../../util/time';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
@@ -282,48 +283,18 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const p2 = direction * gridLength - gridPadding;
 
         const { gridLine } = this;
-        const gridLines = ticks.map(({ tickId, translationY }, index): AxisLineDatum => {
-            const offset = translationY;
-            let x1: number;
-            let y1: number;
-            let x2: number;
-            let y2: number;
-            if (horizontal) {
-                x1 = translationY;
-                y1 = p1;
-                x2 = translationY;
-                y2 = p2;
-            } else {
-                x1 = p1;
-                y1 = translationY;
-                x2 = p2;
-                y2 = translationY;
-            }
+        const gridLines = ticks.map(({ tickId, translationY: offset }, index): AxisLineDatum => {
+            const [x1, y1, x2, y2] = horizontal ? [offset, p1, offset, p2] : [p1, offset, p2, offset];
             const { style, width: strokeWidth } = gridLine;
             const { stroke, lineDash } = style[index % style.length];
             return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
         });
 
         const { tick, primaryTick } = this;
-        const tickLines = ticks.map(({ primary, tickId, translationY }): AxisLineDatum => {
+        const tickLines = ticks.map(({ primary, tickId, translationY: offset }): AxisLineDatum => {
             const datumTick = primary && primaryTick?.enabled ? primaryTick : tick;
             const h = -direction * this.getTickSize(datumTick);
-            const offset = translationY;
-            let x1: number;
-            let y1: number;
-            let x2: number;
-            let y2: number;
-            if (horizontal) {
-                x1 = translationY;
-                y1 = 0;
-                x2 = translationY;
-                y2 = h;
-            } else {
-                x1 = 0;
-                y1 = translationY;
-                x2 = h;
-                y2 = translationY;
-            }
+            const [x1, y1, x2, y2] = horizontal ? [offset, 0, offset, h] : [0, offset, h, offset];
             const { stroke, width: strokeWidth } = datumTick;
             const lineDash = undefined;
             return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
@@ -432,19 +403,19 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     private tickBBox(domain: D[], ticks: TickDatum[], labels: LabelNodeDatum[]) {
-        const { horizontal } = this;
+        const { tick, primaryTick, label, primaryLabel, title, position, horizontal, seriesAreaPadding } = this;
         const boxes: BBox[] = [];
 
         boxes.push(this.lineNodeBBox());
 
-        if (this.tick.enabled) {
+        if (tick.enabled) {
             for (const datum of ticks) {
                 boxes.push(this.getTickLineBBox(datum));
             }
         }
 
         const { tempText } = this;
-        if (this.label.enabled) {
+        if (label.enabled) {
             for (const datum of labels) {
                 if (!datum.visible) continue;
 
@@ -457,8 +428,18 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             }
         }
 
+        if (primaryLabel?.enabled && primaryLabel.format != null && position === 'bottom') {
+            const { fontSize, format } = primaryLabel;
+            const formats = isPlainObject(format) ? Object.values(format) : [format];
+            const maxLines = formats.reduce((m, f) => Math.max(m, countLines(f)), 0);
+            const labelOffset = this.getTickSize(primaryTick ?? tick) + primaryLabel.spacing + seriesAreaPadding;
+            const inexactMeasurementPadding = 2;
+            const height = maxLines * TextUtils.getLineHeight(fontSize) + inexactMeasurementPadding;
+            boxes.push(new BBox(0, labelOffset, 1, height));
+        }
+
         let spacing = 0;
-        if (this.title?.enabled) {
+        if (title.enabled) {
             const combined = BBox.merge(boxes);
             spacing = horizontal ? combined.height : combined.width;
             boxes.push(this.titleBBox(domain, spacing));
@@ -538,14 +519,14 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
-        const { horizontal, primaryLabel, primaryTick } = this;
+        const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
         const { tickId, tickLabel: text = '', translationY, primary } = datum;
         const label = primary && primaryLabel?.enabled ? primaryLabel : this.label;
         const tick = primary && primaryTick?.enabled ? primaryTick : this.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
-        const { range } = this.scale;
+        const { range } = scale;
         const sideFlag = label.getSideFlag();
-        const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + this.seriesAreaPadding);
+        const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + seriesAreaPadding);
         const visible = text !== '';
 
         const x = horizontal ? translationY : labelOffset;

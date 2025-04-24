@@ -12,4 +12,4 @@ function decode(encoded: number) {
     return new Date(offset + encoded * durationSecond);
 }
 
-export const second = new TimeInterval('second', { milliseconds: 1000, exact: true }, day, encode, decode);
+export const second = new TimeInterval('second', 1000, day, encode, decode);

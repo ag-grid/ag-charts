@@ -12,4 +12,4 @@ function decode(encoded: number) {
     return new Date(offset + encoded * durationHour);
 }
 
-export const hour = new TimeInterval('hour', { milliseconds: 60 * 60 * 1000, exact: true }, day, encode, decode);
+export const hour = new TimeInterval('hour', 60 * 60 * 1000, day, encode, decode);

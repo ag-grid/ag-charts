@@ -32,7 +32,7 @@ interface EveryParams {
 export class TimeInterval {
     constructor(
         public readonly unit: TimeIntervalUnit,
-        public readonly duration: { readonly milliseconds: number; readonly exact: boolean },
+        public readonly milliseconds: number,
         public readonly hierarchy: TimeInterval | undefined,
         protected readonly _encode: EncodeFn,
         protected readonly _decode: DecodeFn,
@@ -129,7 +129,7 @@ export class TimeInterval {
     every(step: number, options?: EveryParams): TimeInterval {
         if (step === 1 && options?.snapTo != null) return this;
 
-        const { unit, duration, hierarchy } = this;
+        const { unit, milliseconds, hierarchy } = this;
 
         let offset = 0;
         let rangeCallback: RangeFn | undefined;
@@ -157,13 +157,6 @@ export class TimeInterval {
         const encode = (date: Date) => Math.floor((this._encode(date) - offset) / step);
         const decode = (encoded: number) => this._decode(encoded * step + offset);
 
-        return new TimeInterval(
-            unit,
-            { milliseconds: duration.milliseconds * step, exact: duration.exact },
-            hierarchy,
-            encode,
-            decode,
-            rangeCallback
-        );
+        return new TimeInterval(unit, milliseconds * step, hierarchy, encode, decode, rangeCallback);
     }
 }

@@ -10,4 +10,4 @@ function decode(encoded: number) {
     return new Date(encoded * durationMinute);
 }
 
-export const utcMinute = new TimeInterval('minute', { milliseconds: 60 * 1000, exact: true }, utcDay, encode, decode);
+export const utcMinute = new TimeInterval('minute', 60 * 1000, utcDay, encode, decode);

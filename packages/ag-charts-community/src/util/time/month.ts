@@ -11,10 +11,4 @@ function decode(encoded: number) {
     return new Date(y, month, 1);
 }
 
-export const month = new TimeInterval(
-    'month',
-    { milliseconds: year.duration.milliseconds / 12, exact: false },
-    year,
-    encode,
-    decode
-);
+export const month = new TimeInterval('month', year.milliseconds / 12, year, encode, decode);

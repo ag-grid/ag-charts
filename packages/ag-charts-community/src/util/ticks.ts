@@ -12,13 +12,19 @@ import {
 } from './time/duration';
 import { type TimeInterval } from './time/interval';
 
-const tInterval = (timeInterval: TimeInterval, baseDuration: number, step: number) => ({
+interface TickInterval {
+    duration: number;
+    timeInterval: TimeInterval;
+    step: number;
+}
+
+const tInterval = (timeInterval: TimeInterval, baseDuration: number, step: number): TickInterval => ({
     duration: baseDuration * step,
     timeInterval,
     step,
 });
 
-export const TickIntervals = [
+export const TickIntervals: TickInterval[] = [
     tInterval(second, durationSecond, 1),
     tInterval(second, durationSecond, 5),
     tInterval(second, durationSecond, 15),
@@ -80,35 +86,46 @@ export function createTicks(
     return range(start, stop, step);
 }
 
+const minPrimaryTickRatio = Math.floor(((2 * week.milliseconds) / month.milliseconds) * 10) / 10;
+function isPrimaryTickInterval({ timeInterval, step }: TickInterval) {
+    // Don't include TickIntervals that will have 2 or fewer values between their hierarchy interval
+    // I.e. not every 12 hours, because you'll have this interval twice within a day
+    const milliseconds = timeInterval.milliseconds * step;
+    return milliseconds <= (timeInterval.hierarchy?.milliseconds ?? Infinity) * minPrimaryTickRatio;
+}
+
 export function getTickTimeInterval(
     start: number,
     stop: number,
     count: number,
     minCount: number | undefined,
     maxCount: number | undefined,
-    { weekStart, targetInterval }: { weekStart: TimeInterval | undefined; targetInterval?: number }
+    {
+        weekStart,
+        primaryOnly = false,
+        targetInterval,
+    }: {
+        weekStart: TimeInterval | undefined;
+        primaryOnly?: boolean;
+        targetInterval?: number;
+    }
 ): TimeInterval | undefined {
     if (count <= 0) return;
 
     const target = targetInterval ?? Math.abs(stop - start) / Math.max(count, 1);
 
-    let i = 0;
-    for (const tickInterval of TickIntervals) {
-        if (target <= tickInterval.duration) break;
-        i++;
-    }
+    const i0 = TickIntervals.findLast((t) => (!primaryOnly || isPrimaryTickInterval(t)) && target > t.duration);
+    const i1 = TickIntervals.find((t) => (!primaryOnly || isPrimaryTickInterval(t)) && target <= t.duration);
 
-    if (i === 0) {
+    if (i0 == null) {
         const step = Math.max(tickStep(start, stop, count, minCount, maxCount), 1);
         return millisecond.every(step);
-    } else if (i === TickIntervals.length) {
+    } else if (i1 == null) {
         const step =
             targetInterval == null ? tickStep(start / durationYear, stop / durationYear, count, minCount, maxCount) : 1;
         return year.every(step);
     }
 
-    const i0 = TickIntervals[i - 1];
-    const i1 = TickIntervals[i];
     const { timeInterval, step } = target - i0.duration < i1.duration - target ? i0 : i1;
     if (timeInterval === week) {
         return weekStart?.every(step) ?? day.every(7 * step);

@@ -15,10 +15,4 @@ function decode(encoded: number) {
     return d;
 }
 
-export const day = new TimeInterval(
-    'day',
-    { milliseconds: 24 * 60 * 60 * 1000, exact: false /* For days with DST change */ },
-    month,
-    encode,
-    decode
-);
+export const day = new TimeInterval('day', 24 * 60 * 60 * 1000, month, encode, decode);
