@@ -30,7 +30,6 @@ import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerato
 import {
     type AxisLabelDatum,
     type AxisLineDatum,
-    type AxisTickDatum,
     NiceMode,
     type TickDatum,
     prepareAxisAnimationContext,
@@ -46,7 +45,7 @@ type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToD
 
 interface GeneratedTicks {
     ticks: TickDatum[];
-    tickLines: AxisTickDatum[];
+    tickLines: AxisLineDatum[];
     gridLines: AxisLineDatum[];
     labels: LabelNodeDatum[];
     spacing: number;
@@ -92,7 +91,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         })
     );
 
-    protected tickLineGroupSelection = Selection.select<Line, AxisTickDatum>(this.tickLineGroup, Line, false);
+    protected tickLineGroupSelection = Selection.select<Line, AxisLineDatum>(this.tickLineGroup, Line, false);
     protected gridLineGroupSelection = Selection.select<Line, AxisLineDatum>(this.gridLineGroup, Line, false);
 
     private readonly tempText = new TransformableText({ debugDirty: false });
@@ -282,19 +281,52 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const p1 = gridPadding;
         const p2 = direction * gridLength - gridPadding;
 
-        const gridLines = ticks.map(({ tickId, translationY }) => {
-            return horizontal
-                ? { tickId, offset: translationY, x1: translationY, x2: translationY, y1: p1, y2: p2 }
-                : { tickId, offset: translationY, x1: p1, x2: p2, y1: translationY, y2: translationY };
+        const { gridLine } = this;
+        const gridLines = ticks.map(({ tickId, translationY }, index): AxisLineDatum => {
+            const offset = translationY;
+            let x1: number;
+            let y1: number;
+            let x2: number;
+            let y2: number;
+            if (horizontal) {
+                x1 = translationY;
+                y1 = p1;
+                x2 = translationY;
+                y2 = p2;
+            } else {
+                x1 = p1;
+                y1 = translationY;
+                x2 = p2;
+                y2 = translationY;
+            }
+            const { style, width: strokeWidth } = gridLine;
+            const { stroke, lineDash } = style[index % style.length];
+            return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
         });
 
-        const { tick } = this;
-        const primaryTick = this.primaryTick ?? tick;
-        const tickLines = ticks.map(({ primary, tickId, translationY, tickSize }) => {
-            const h = -direction * (tickSize ?? this.getTickSize(primary ? primaryTick : tick));
-            return horizontal
-                ? { tickId, offset: translationY, x1: translationY, x2: translationY, y1: 0, y2: h }
-                : { tickId, offset: translationY, x1: 0, x2: h, y1: translationY, y2: translationY };
+        const { tick, primaryTick } = this;
+        const tickLines = ticks.map(({ primary, tickId, translationY }): AxisLineDatum => {
+            const datumTick = primary && primaryTick?.enabled ? primaryTick : tick;
+            const h = -direction * this.getTickSize(datumTick);
+            const offset = translationY;
+            let x1: number;
+            let y1: number;
+            let x2: number;
+            let y2: number;
+            if (horizontal) {
+                x1 = translationY;
+                y1 = 0;
+                x2 = translationY;
+                y2 = h;
+            } else {
+                x1 = 0;
+                y1 = translationY;
+                x2 = h;
+                y2 = translationY;
+            }
+            const { stroke, width: strokeWidth } = datumTick;
+            const lineDash = undefined;
+            return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
         });
 
         const { bbox, spacing } = this.tickBBox(tickDomain, ticks, labels);
@@ -364,7 +396,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private getTickLineBBox(datum: TickDatum) {
         const { position, primaryTick } = this;
-        const tickSize = Math.max(this.getTickSize(), primaryTick ? this.getTickSize(primaryTick) : 0);
+        const tickSize = Math.max(this.getTickSize(), primaryTick?.enabled ? this.getTickSize(primaryTick) : 0);
         const { translationY } = datum;
         switch (position) {
             case 'top':
@@ -506,12 +538,12 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
-        const { horizontal } = this;
-        const label = datum.primary ? this.primaryLabel ?? this.label : this.label;
-        const tick = datum.primary ? this.primaryTick ?? this.tick : this.tick;
+        const { horizontal, primaryLabel, primaryTick } = this;
+        const { tickId, tickLabel: text = '', translationY, primary } = datum;
+        const label = primary && primaryLabel?.enabled ? primaryLabel : this.label;
+        const tick = primary && primaryTick?.enabled ? primaryTick : this.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = this.scale;
-        const { tickId, tickLabel: text = '', translationY } = datum;
         const sideFlag = label.getSideFlag();
         const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + this.seriesAreaPadding);
         const visible = text !== '';
@@ -550,24 +582,18 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected updateGridLines() {
-        const { style, width } = this.gridLine;
-
-        if (this.gridLength === 0 || style.length === 0) return;
-
-        this.gridLineGroupSelection.each((line, _, index) => {
-            const { stroke, lineDash } = style[index % style.length];
-            line.stroke = stroke;
-            line.strokeWidth = width;
-            line.lineDash = lineDash;
+        this.gridLineGroupSelection.each((line, datum) => {
+            line.stroke = datum.stroke;
+            line.strokeWidth = datum.strokeWidth;
+            line.lineDash = datum.lineDash;
         });
     }
 
     protected updateTickLines() {
-        const { tick } = this;
-
-        this.tickLineGroupSelection.each((line, datum: AxisTickDatum) => {
-            line.strokeWidth = datum.tickWidth ?? tick.width;
-            line.stroke = datum.tickStroke ?? tick.stroke;
+        this.tickLineGroupSelection.each((line, datum) => {
+            line.stroke = datum.stroke;
+            line.strokeWidth = datum.strokeWidth;
+            line.lineDash = datum.lineDash;
         });
     }
 

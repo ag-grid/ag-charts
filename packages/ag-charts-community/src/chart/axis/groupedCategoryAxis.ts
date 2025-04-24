@@ -13,7 +13,6 @@ import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
 import { createDatumId } from '../data/processors';
 import type { LabelNodeDatum } from './axis';
-import type { TickDatum } from './axisUtil';
 import { CategoryAxis } from './categoryAxis';
 import { type TreeLayout, treeLayout } from './tree';
 
@@ -382,7 +381,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         // As most super methods aren't called, we need to do this manually
         this.moduleCtx.animationManager.skipCurrentBatch();
 
-        const { tickScale, gridLine, gridLength } = this;
+        const { tickScale, tick, gridLine, gridLength } = this;
         const { separatorLayout, spacing } = this.computedLayout;
 
         const { position, horizontal, gridPadding } = this;
@@ -390,7 +389,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const p1 = gridPadding;
         const p2 = direction * gridLength - gridPadding;
 
-        const ticksData: TickDatum[] = tickScale
+        const ticks = tickScale
             .ticks({
                 nice: false,
                 interval: undefined,
@@ -398,31 +397,33 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 minTickCount: 0,
                 maxTickCount: Infinity,
             })
-            .map((tick, index) => ({
-                ...separatorLayout[index],
-                tick,
-                tickId: createDatumId(tick, index),
-                tickLabel: tick.filter(Boolean).join(' - '),
-                translationY: Math.round(tickScale.convert(tick)),
-                primary: false,
+            .map((t, index) => ({
+                tickId: createDatumId(t, index),
+                offset: Math.round(tickScale.convert(t)),
             }));
 
         this.gridLineGroupSelection.update(
             gridLine.enabled && gridLength
-                ? ticksData.map(({ tickId, translationY: offset }) =>
-                      horizontal
-                          ? { tickId, offset, x1: offset, x2: offset, y1: p1, y2: p2 }
-                          : { tickId, offset, x1: p1, x2: p2, y1: offset, y2: offset }
-                  )
+                ? ticks.map(({ tickId, offset }, index) => {
+                      const [x1, x2, y1, y2] = horizontal ? [offset, offset, p1, p2] : [p1, p2, offset, offset];
+                      const { style, width: strokeWidth } = gridLine;
+                      const { stroke, lineDash } = style[index % style.length];
+                      return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
+                  })
                 : []
         );
         this.tickLineGroupSelection.update(
-            this.tick.enabled
-                ? ticksData.map(({ tickId, tickSize, translationY: offset, tickStroke, tickWidth }) => {
-                      const h = -direction * (tickSize ?? this.getTickSize());
-                      return horizontal
-                          ? { tickId, offset, x1: offset, x2: offset, y1: 0, y2: h, tickStroke, tickWidth }
-                          : { tickId, offset, x1: 0, x2: h, y1: offset, y2: offset, tickStroke, tickWidth };
+            tick.enabled
+                ? ticks.map(({ tickId, offset }, index) => {
+                      const {
+                          tickSize,
+                          tickStroke: stroke = tick.stroke,
+                          tickWidth: strokeWidth = tick.width,
+                      } = separatorLayout[index];
+                      const h = -direction * tickSize;
+                      const [x1, x2, y1, y2] = horizontal ? [offset, offset, 0, h] : [0, h, offset, offset];
+                      const lineDash = undefined;
+                      return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
                   })
                 : []
         );

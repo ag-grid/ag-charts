@@ -37,8 +37,6 @@ export interface TickData<D = any> {
     rawTicks: D[];
     fractionDigits: number;
     ticks: TickDatum[];
-    primaryTicks: TickDatum[] | undefined;
-    interpolate: boolean;
     timeInterval: TimeInterval | undefined;
     niceDomain?: D[];
 }
@@ -251,8 +249,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             tickDomain: [],
             ticks: [],
             rawTicks: [],
-            primaryTicks: undefined,
-            interpolate: false,
             timeInterval: undefined,
             fractionDigits: 0,
             niceDomain: undefined,
@@ -722,7 +718,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             // instead hide ticks based on their translation.
             if (range.length > 0 && !axis.inRange(translationY, 0.001)) continue;
 
-            const tickLabelFormatter = primary ? primaryLabelFormatter : labelFormatter;
+            const tickLabelFormatter =
+                primary && primaryLabel?.enabled === true ? primaryLabelFormatter : labelFormatter;
             const tickLabel = label.enabled
                 ? axis.formatTick(tick, i, niceDomain, fractionDigits, timeInterval, tickLabelFormatter)
                 : '';
@@ -745,8 +742,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             fractionDigits,
             timeInterval,
             ticks,
-            primaryTicks,
-            interpolate,
             niceDomain,
         };
     }
