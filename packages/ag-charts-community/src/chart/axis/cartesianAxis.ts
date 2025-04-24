@@ -286,7 +286,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const gridLines = ticks.map(({ tickId, translationY: offset }, index): AxisLineDatum => {
             const [x1, y1, x2, y2] = horizontal ? [offset, p1, offset, p2] : [p1, offset, p2, offset];
             const { style, width: strokeWidth } = gridLine;
-            const { stroke, lineDash } = style[index % style.length];
+            const { stroke, lineDash } = style[index % style.length] ?? {};
             return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
         });
 
