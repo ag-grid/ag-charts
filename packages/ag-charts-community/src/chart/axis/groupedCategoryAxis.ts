@@ -407,7 +407,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 ? ticks.map(({ tickId, offset }, index) => {
                       const [x1, x2, y1, y2] = horizontal ? [offset, offset, p1, p2] : [p1, p2, offset, offset];
                       const { style, width: strokeWidth } = gridLine;
-                      const { stroke, lineDash } = style[index % style.length];
+                      const { stroke, lineDash } = style[index % style.length] ?? {};
                       return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
                   })
                 : []
@@ -416,10 +416,10 @@ export class GroupedCategoryAxis extends CategoryAxis {
             tick.enabled
                 ? ticks.map(({ tickId, offset }, index) => {
                       const {
-                          tickSize,
+                          tickSize = this.getTickSize(),
                           tickStroke: stroke = tick.stroke,
                           tickWidth: strokeWidth = tick.width,
-                      } = separatorLayout[index];
+                      } = separatorLayout[index] ?? {};
                       const h = -direction * tickSize;
                       const [x1, x2, y1, y2] = horizontal ? [offset, offset, 0, h] : [0, h, offset, offset];
                       const lineDash = undefined;
