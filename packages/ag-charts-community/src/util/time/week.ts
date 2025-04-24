@@ -21,13 +21,7 @@ function weekday(weekStart: number): TimeInterval {
         return d;
     }
 
-    return new TimeInterval(
-        'day',
-        { milliseconds: 7 * 24 * 60 * 60 * 1000, exact: false /* Weeks with DST change */ },
-        month,
-        encode,
-        decode
-    );
+    return new TimeInterval('day', 7 * 24 * 60 * 60 * 1000, month, encode, decode);
 }
 
 export const sunday = weekday(0);

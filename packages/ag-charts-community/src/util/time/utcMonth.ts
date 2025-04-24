@@ -12,4 +12,4 @@ function decode(encoded: number) {
     return new Date(Date.UTC(year, m, 1));
 }
 
-export const utcMonth = new TimeInterval('month', month.duration, utcYear, encode, decode);
+export const utcMonth = new TimeInterval('month', month.milliseconds, utcYear, encode, decode);

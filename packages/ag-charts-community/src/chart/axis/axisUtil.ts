@@ -17,9 +17,6 @@ export interface TickDatum {
     tickId: string;
     translationY: number;
     primary: boolean;
-    tickSize?: number;
-    tickStroke?: string;
-    tickWidth?: number;
 }
 
 export interface AxisLineDatum {
@@ -29,11 +26,9 @@ export interface AxisLineDatum {
     x2: number;
     y1: number;
     y2: number;
-}
-
-export interface AxisTickDatum extends AxisLineDatum {
-    tickStroke?: string;
-    tickWidth?: number;
+    stroke: string | undefined;
+    strokeWidth: number;
+    lineDash: number[] | undefined;
 }
 
 export interface AxisAnimationContext {
@@ -84,7 +79,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
     const outOfBounds = (y: number) => {
         return y < min || y > max;
     };
-    const tick: FromToFns<Line, any, AxisTickDatum> = {
+    const tick: FromToFns<Line, any, AxisLineDatum> = {
         fromFn(node, datum, status) {
             // Default to starting at the same position that the node is currently in.
             let { x1, x2, y1, y2 } = node;

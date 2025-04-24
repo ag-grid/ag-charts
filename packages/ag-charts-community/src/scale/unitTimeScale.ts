@@ -51,7 +51,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         if (interval != null) {
             const t = d.valueOf();
             const [start, stop] = this.calculateBandRange(domain, interval);
-            if (t < start.valueOf() || t >= stop.valueOf() + interval.duration.milliseconds) return NaN;
+            if (t < start.valueOf() || t >= stop.valueOf() + interval.milliseconds) return NaN;
         }
         return super.convert(d, options);
     }

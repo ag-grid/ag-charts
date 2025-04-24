@@ -13,10 +13,4 @@ function decode(encoded: number) {
     return d;
 }
 
-export const utcDay = new TimeInterval(
-    'day',
-    { milliseconds: 24 * 60 * 60 * 1000, exact: true },
-    utcMonth,
-    encode,
-    decode
-);
+export const utcDay = new TimeInterval('day', 24 * 60 * 60 * 1000, utcMonth, encode, decode);

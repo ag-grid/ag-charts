@@ -15,4 +15,4 @@ function decode(encoded: number) {
     return d;
 }
 
-export const utcYear = new TimeInterval('year', year.duration, undefined, encode, decode);
+export const utcYear = new TimeInterval('year', year.milliseconds, undefined, encode, decode);
