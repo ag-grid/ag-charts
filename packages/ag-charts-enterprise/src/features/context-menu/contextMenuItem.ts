@@ -76,10 +76,10 @@ export function expandItems(
                 expandItems(showing, registry, item.items, menuItem.items);
             }
         }
-        // remove trailing 'separator' menu item
-        if (result[result.length - 1]?.type === 'separator') {
-            result.length = result.length - 1;
-        }
+    }
+    // remove trailing 'separator' menu item
+    if (result[result.length - 1]?.type === 'separator') {
+        result.length = result.length - 1;
     }
 }
 
