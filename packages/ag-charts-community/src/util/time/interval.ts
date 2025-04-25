@@ -20,6 +20,7 @@ type RangeFn = (start: Date, end: Date) => () => void;
 interface RangeParams {
     extend?: boolean;
     visibleRange?: [number, number];
+    limit?: number;
 }
 
 interface EveryParams {
@@ -67,7 +68,7 @@ export class TimeInterval {
     private rangeIndices(
         start: Date,
         stop: Date,
-        { extend = false, visibleRange = [0, 1] }: RangeParams
+        { extend = false, visibleRange = [0, 1], limit }: RangeParams
     ): [number, number] {
         if (start.getTime() > stop.getTime()) {
             [start, stop] = [stop, start];
@@ -83,7 +84,11 @@ export class TimeInterval {
         }
 
         const e0 = this._encode(extend ? this.floor(start) : this.ceil(start));
-        const e1 = this._encode(extend ? this.ceil(stop) : this.floor(stop));
+        let e1 = this._encode(extend ? this.ceil(stop) : this.floor(stop));
+
+        if (limit != null && e1 - e0 > limit) {
+            e1 = e0 + limit;
+        }
 
         return [e0, e1];
     }

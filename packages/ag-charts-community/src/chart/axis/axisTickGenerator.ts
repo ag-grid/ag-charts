@@ -478,13 +478,42 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 ...tickParams,
                 interval: timeInterval as any,
             };
+            // Because the first tick after a primary tick is considered primary,
+            // we need to generate all ticks between the domain of the primary ticks
+            // and not just the visible ticks to ensure sure every tick is correctly
+            // marked as primary not.
+            //
+            // However, for a millisecond timeInterval, this would mean generating
+            // a day of milliseconds (86 million), which will crash the browser.
+            //
+            // Instead, we'll generate just a few ticks outside of the visible range.
+            // This means the first tick could be marked incorrectly as primary.
+            // However, since it's not visible, it doesn't really matter.
+            // All the other ticks should be correctly marked as primary.
+            //
+            // Only one tick is needed in most circumstances.
+            // A second may be needed for when the clocks change.
+            const additionalTicksOutside = 2;
+            const pVisibleRangePadding = additionalTicksOutside * milliseconds;
             for (let i = 0; i < primaryTicks.length - 1; i += 1) {
                 const p0 = primaryTicks[i];
                 const p1 = primaryTicks[i + 1];
+
+                let pVisibleRange: [number, number] | undefined;
+                const dp = p1.valueOf() - p0.valueOf();
+                if (i === 0) {
+                    pVisibleRange ??= [0, 1];
+                    pVisibleRange[0] = Math.max((d0.valueOf() - pVisibleRangePadding - p0.valueOf()) / dp, 0);
+                }
+                if (i === primaryTicks.length - 2) {
+                    pVisibleRange ??= [0, 1];
+                    pVisibleRange[1] = Math.min((d1.valueOf() + pVisibleRangePadding - p0.valueOf()) / dp, 1);
+                }
+
                 const intervalTicks =
                     !UnitTimeScale.is(scale) || interpolate
-                        ? this.timeScaleTicks(intervalTickParams, [p0, p1])
-                        : scale.ticks(intervalTickParams, [p0, p1]) ?? [];
+                        ? this.timeScaleTicks(intervalTickParams, [p0, p1], pVisibleRange)
+                        : scale.ticks(intervalTickParams, [p0, p1], pVisibleRange) ?? [];
                 if (intervalTicks.length === 0) continue;
 
                 const lastTick = ticks.at(-1);
@@ -507,7 +536,11 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         return { primaryTicks, ticks, interpolate };
     }
 
-    private timeScaleTicks(params: ScaleTickParams<TimeInterval | number>, domain: [Date, Date]) {
+    private timeScaleTicks(
+        params: ScaleTickParams<TimeInterval | number>,
+        domain: [Date, Date],
+        visibleRange?: [number, number]
+    ) {
         const { interval } = params;
         if (interval == null) return domain;
 
@@ -517,7 +550,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         if (interval instanceof TimeInterval) {
             return interval
                 .every(1, { snapTo: domain[0] })
-                .range(domain[0], domain[1])
+                .range(domain[0], domain[1], { visibleRange })
                 .filter((intervalTick) => {
                     const intervalTickTime = intervalTick.valueOf();
                     return intervalTickTime >= d0 && intervalTickTime <= d1;
