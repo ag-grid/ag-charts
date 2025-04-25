@@ -32,7 +32,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         return x;
     }
 
-    calcBandwidth(smallestInterval = 1) {
+    calcBandwidth(smallestInterval = 1, minWidth: 1 | 0 = 1) {
         const { domain } = this;
 
         const rangeDistance = this.getPixelRange();
@@ -41,10 +41,14 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         const intervals = Math.abs(domain[1].valueOf() - domain[0].valueOf()) / smallestInterval + 1;
 
         // The number of intervals/bands is used to determine the width of individual bands by dividing the available range.
+        let bands = intervals;
+
         // Allow a maximum number of bands to ensure the step does not fall below 1 pixel.
         // This means there could be some overlap of the bands in the chart.
-        const maxBands = Math.floor(rangeDistance); // A minimum of 1px per bar/column means the maximum number of bands will equal the available range
-        const bands = Math.min(intervals, maxBands);
+        if (minWidth !== 0) {
+            const maxBands = Math.floor(rangeDistance); // A minimum of 1px per bar/column means the maximum number of bands will equal the available range
+            bands = Math.min(bands, maxBands);
+        }
 
         return rangeDistance / Math.max(1, bands);
     }
