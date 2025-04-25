@@ -79,7 +79,7 @@ export function expandItems(
     }
     // remove trailing 'separator' menu item
     if (result[result.length - 1]?.type === 'separator') {
-        result.length = result.length - 1;
+        result.pop();
     }
 }
 
