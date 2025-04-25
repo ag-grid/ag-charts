@@ -5,7 +5,7 @@
 /* eslint-disable sonarjs/prefer-function-type */
 import type { Operation } from './chart/operationOptions';
 import type { AgChartThemePalette, AgPaletteColors } from './chart/themeOptions';
-import type { AgChartInstance, AgChartInstanceOptions } from './chartBuilderOptions';
+import type { AgChartInstance, AgChartInstanceOptions, AgSparklineOptions } from './chartBuilderOptions';
 import type {
     Arc,
     BBox,
@@ -23,7 +23,6 @@ import type {
     Shape,
     TranslatableGroup,
 } from './main-scene';
-import type { AgSparklineOptions } from './presets/sparkline/sparklineOptions';
 
 export interface IColor {
     r: number;

@@ -12,7 +12,7 @@ import type { AgFinancialChartPresets } from './presets/financial/financialOptio
 import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
 import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugePreset } from './presets/gauge/radialGaugeOptions';
-import type { AgSparklineBaseThemeableOptions, AgSparklineOptions } from './presets/sparkline/sparklineOptions';
+import type { AgSparklineBaseThemeableOptions, AgSparklinePresets } from './presets/sparkline/sparklineOptions';
 import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
@@ -99,6 +99,8 @@ export type AgGaugeOptions = AgBaseGaugePresetOptions & AgGaugePresets;
 export interface AgBaseSparklinePresetOptions extends AgBaseSparklinePresetThemeOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
+
+export type AgSparklineOptions = AgBaseSparklinePresetOptions & AgSparklinePresets;
 
 export type AgPresetOptions = AgFinancialChartOptions | AgGaugeOptions | AgSparklineOptions;
 
