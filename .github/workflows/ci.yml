@@ -283,6 +283,7 @@ jobs:
                   cd packages/ag-charts-website/
 
                   ./playwright.sh --host test -u --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+                  PLAYWRIGHT_EXIT_CODE=$?
 
                   git add e2e/
                   git status
@@ -294,6 +295,7 @@ jobs:
                     echo "No changes to commit."
                     echo "updates=false" >> $GITHUB_OUTPUT
                   fi
+                  echo "playwright_exit_code=${PLAYWRIGHT_EXIT_CODE}" >> $GITHUB_OUTPUT
               timeout-minutes: 10
 
             - name: Push Snapshot Changes
@@ -323,6 +325,12 @@ jobs:
               if: steps.test.outputs.updates == 'true' && github.head_ref
               run: |
                   echo "Snapshots need to be updated, failing test execution."
+                  exit 1
+
+            - name: Fail PR checks if playwright failed
+              if: steps.test.outputs.playwright_exit_code != '0'
+              run: |
+                  echo "Playwright tests failed."
                   exit 1
 
             - name: Perist test results
