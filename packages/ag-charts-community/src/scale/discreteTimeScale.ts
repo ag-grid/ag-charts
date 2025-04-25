@@ -25,18 +25,18 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | n
         if (domain.length <= 1 || bands.length === 0) return r0;
 
         const r1 = this.ordinalRange(bands.length - 1);
-        const reversed = domain[0].getTime() > domain[domain.length - 1].getTime();
+        const reversed = domain[0].valueOf() > domain[domain.length - 1].valueOf();
 
-        const v = d.getTime();
+        const v = d.valueOf();
         let domainIndex: number;
         if (reversed) {
-            domainIndex = (findMinIndex(0, domain.length - 1, (i) => domain[i].getTime() <= v) ?? domain.length) - 1;
+            domainIndex = (findMinIndex(0, domain.length - 1, (i) => domain[i].valueOf() <= v) ?? domain.length) - 1;
         } else {
-            domainIndex = findMaxIndex(0, domain.length - 1, (i) => domain[i].getTime() <= v) ?? 0;
+            domainIndex = findMaxIndex(0, domain.length - 1, (i) => domain[i].valueOf() <= v) ?? 0;
         }
         domainIndex = Math.min(Math.max(domainIndex, 0), domain.length - 2);
-        const v0 = domain[domainIndex].getTime();
-        const v1 = domain[domainIndex + 1].getTime();
+        const v0 = domain[domainIndex].valueOf();
+        const v1 = domain[domainIndex + 1].valueOf();
 
         const ratioWithinInterval = (v - v0) / (v1 - v0);
         const ratio = (domainIndex + ratioWithinInterval) / (domain.length - 1);

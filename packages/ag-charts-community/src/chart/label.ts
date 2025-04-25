@@ -184,7 +184,7 @@ export function timeIntervalMaxLabelSize(
             l0 = d0;
             l1 = d1;
         }
-        const labelRange = timeInterval.range(l0, l1);
+        const labelRange = timeInterval.range(l0, l1, { limit: 50 });
         for (const date of labelRange) {
             const text = labelFormatter(date);
             const { width, height } = textMeasurer.measureLines(text);
