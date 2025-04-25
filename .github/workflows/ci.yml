@@ -108,6 +108,7 @@ jobs:
                   else
                     e2e_count=0
                   fi
+                  echo "E2E count determined to be: ${e2e_count}"
 
                   e2e_matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 8 ${e2e_count})
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
