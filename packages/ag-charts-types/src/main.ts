@@ -38,7 +38,6 @@ export * from './presets/gauge/linearGaugeOptions';
 export * from './presets/gauge/radialGaugeOptions';
 export * from './presets/sparkline/sparklineAxisOptions';
 export * from './presets/sparkline/sparklineOptions';
-export * from './presets/presetOptions';
 export * from './series/cartesian/areaOptions';
 export * from './series/cartesian/barOptions';
 export * from './series/cartesian/boxPlotOptions';

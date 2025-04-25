@@ -62,34 +62,33 @@ export interface AgSparklineDataKeysOptions {
     yKey?: string;
 }
 
-export interface AgBarSparklinePreset
-    extends AgSparklineBaseThemeableOptions,
-        AgSparklineDataKeysOptions,
-        Omit<
-            AgBarSeriesOptions,
-            | 'showInLegend'
-            | 'showInMiniChart'
-            | 'grouped'
-            | 'stacked'
-            | 'stackGroup'
-            | 'errorBar'
-            | 'tooltip'
-            | 'xKey'
-            | 'yKey'
-        > {}
-export interface AgLineSparklinePreset
-    extends AgSparklineBaseThemeableOptions,
-        AgSparklineDataKeysOptions,
-        Omit<
-            AgLineSeriesOptions,
-            'showInLegend' | 'showInMiniChart' | 'stacked' | 'stackGroup' | 'errorBar' | 'tooltip' | 'xKey' | 'yKey'
-        > {}
+type AgSparklineSeriesOmit =
+    | 'showInLegend'
+    | 'showInMiniChart'
+    | 'grouped'
+    | 'stacked'
+    | 'stackGroup'
+    | 'tooltip'
+    | 'listeners'
+    | 'errorBar'
+    | 'xKey'
+    | 'yKey';
+
 export interface AgAreaSparklinePreset
     extends AgSparklineBaseThemeableOptions,
         AgSparklineDataKeysOptions,
-        Omit<
-            AgAreaSeriesOptions,
-            'showInLegend' | 'showInMiniChart' | 'stacked' | 'stackGroup' | 'tooltip' | 'xKey' | 'yKey'
-        > {}
+        Omit<AgAreaSeriesOptions, AgSparklineSeriesOmit> {}
+
+export interface AgBarSparklinePreset
+    extends AgSparklineBaseThemeableOptions,
+        AgSparklineDataKeysOptions,
+        Omit<AgBarSeriesOptions, AgSparklineSeriesOmit> {}
+
+export interface AgLineSparklinePreset
+    extends AgSparklineBaseThemeableOptions,
+        AgSparklineDataKeysOptions,
+        Omit<AgLineSeriesOptions, AgSparklineSeriesOmit> {
+    type: 'line';
+}
 
 export type AgSparklinePresets = AgBarSparklinePreset | AgLineSparklinePreset | AgAreaSparklinePreset;

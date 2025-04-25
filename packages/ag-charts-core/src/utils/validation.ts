@@ -1,4 +1,5 @@
 import { warn, warnOnce } from '../globals/logger';
+import type { IsUnion } from '../interfaces/globalTypes';
 import { safeCall } from './functions';
 import { joinFormatted, levenshteinDistance, stringifyValue } from './strings';
 import {
@@ -18,6 +19,7 @@ const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
 const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
+const unionSymbol = Symbol('union');
 
 const similarOptionsMap = [
     ['placement', 'position'],
@@ -26,6 +28,7 @@ const similarOptionsMap = [
     ['whisker', 'wick'],
     ['nodeClick', 'seriesNodeClick'],
     ['nodeDoubleClick', 'seriesNodeDoubleClick'],
+    ['src', 'url'],
 ].reduce((map, words) => {
     for (const word of words) {
         map.set(word.toLowerCase(), new Set(words.filter((w) => w !== word)));
@@ -33,15 +36,29 @@ const similarOptionsMap = [
     return map;
 }, new Map<string, Set<string>>());
 
-type ObjectLikeDef<T> = T extends object ? (keyof T extends never ? never : OptionsDefs<T>) : never;
+type ObjectLikeDef<T> =
+    IsUnion<NonNullable<T>> extends true
+        ? OptionsDefs<Exclude<T, undefined>>
+        : T extends object
+          ? keyof T extends never
+              ? never
+              : OptionsDefs<T>
+          : never;
 
 type Singular<T> = T extends any[] ? T[number] : T;
 
-// Definitions for options validation with support for nested structures.
-export type OptionsDefs<T> = { [K in keyof Singular<T>]-?: Validator | ObjectLikeDef<Singular<T>[K]> } & {
+type PrivateSymbols = {
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
     [undocumentedSymbol]?: boolean;
+    [unionSymbol]?: boolean;
+};
+
+// Definitions for options validation with support for nested structures.
+export type OptionsDefs<T> = { [K in keyof Singular<T>]-?: Validator | ObjectLikeDef<Singular<T>[K]> } & PrivateSymbols;
+
+export type TypeUnionDefs<T, K extends string | number | symbol> = {
+    [P in K]: OptionsDefs<Omit<Extract<T, { type: P }>, 'type'>>;
 };
 
 export interface ValidationResult<T> {
@@ -66,11 +83,8 @@ export enum ErrorType {
 }
 
 // Validator interface with optional description and required flag for better error messages.
-export interface Validator extends Function {
+export interface Validator extends Function, PrivateSymbols {
     (value: unknown, context: ValidatorContext): ValidatorResult | boolean;
-    [descriptionSymbol]?: string;
-    [requiredSymbol]?: boolean;
-    [undocumentedSymbol]?: boolean;
 }
 
 function extendPath(path: string, key: string | number) {
@@ -81,6 +95,8 @@ function extendPath(path: string, key: string | number) {
 }
 
 export class ValidationError {
+    public unionType?: string;
+
     constructor(
         public readonly type: ErrorType | `${ErrorType}`,
         public description: string | undefined,
@@ -92,7 +108,8 @@ export class ValidationError {
     getPrefix(): string {
         const { path, key } = this;
         if (!path && !key) return 'Value';
-        return `Option \`${key ? extendPath(path, key) : path}\``;
+        const unionPath = this.unionType ? `${path}[type=${this.unionType}]` : path;
+        return `Option \`${key ? extendPath(unionPath, key) : unionPath}\``;
     }
 
     toString() {
@@ -145,8 +162,27 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     const optionsKeys = new Set(Object.keys(options));
     const unusedKeys = [];
 
+    if (optionsDefs[unionSymbol]) {
+        const validTypes = Object.keys(optionsDefs);
+        if (validTypes.includes(options.type)) {
+            const { type, ...rest } = options;
+            const nestedResult = validate(rest, (optionsDefs as any)[type], path);
+            Object.assign(cleared, { type }, nestedResult.cleared);
+            for (const error of nestedResult.invalid) {
+                error.unionType = type;
+            }
+            invalid.push(...nestedResult.invalid);
+        } else {
+            const keywords = joinFormatted(validTypes, 'or', (val) => `'${val}'`);
+            invalid.push(
+                new ValidationError(ErrorType.Required, `a keyword such as ${keywords}`, options.type, path, 'type')
+            );
+        }
+        return { cleared, invalid };
+    }
+
     for (const key of Object.keys(optionsDefs)) {
-        const validatorOrDefs: Validator | ObjectLikeDef<any> = optionsDefs[key as keyof T];
+        const validatorOrDefs: Validator | OptionsDefs<any> = optionsDefs[key as keyof T];
         const required = validatorOrDefs[requiredSymbol];
         const value = options[key as keyof object];
 
@@ -284,6 +320,9 @@ export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
         const valid = !hasRequiredInPath(result.invalid, context.path);
         return { valid, cleared: result.cleared, invalid: result.invalid };
     }, description);
+
+export const typeUnion = <T extends { type: string }>(defs: TypeUnionDefs<T, T['type']>, description = 'an object') =>
+    ({ ...defs, [descriptionSymbol]: description, [unionSymbol]: true }) as OptionsDefs<T>;
 
 /**
  * Creates a validator for ensuring an object matches the provided option definitions. Ignores unknown properties.
@@ -474,38 +513,42 @@ export const instanceOf = (instanceType: Function, description?: string) =>
  * Creates a validator for arrays where every element must pass a given validator.
  * @param validator The validator to apply to each array element.
  * @param description An optional description string.
+ * @param strict When enabled validator fails on any invalid item, otherwise invalid items are filtered.
  * @returns A validator function for arrays with elements validated by the specified validator.
  */
-export const arrayOf = (validator: Validator, description?: string, validOperand?: 'or' | 'and') =>
+export const arrayOf = (validator: Validator, description?: string, strict: boolean = true) =>
     attachDescription(
         (value, context) => {
             if (!isArray(value)) return false;
 
-            validOperand ??= 'and';
-            let valid: boolean = validOperand === 'and';
+            let valid: boolean = strict;
+
             const cleared: unknown[] = [];
             const invalid: ValidationError[] = [];
+            const setValid = (result: boolean) => (valid = strict ? valid && result : valid || result);
+
+            if (value.length === 0) {
+                return { valid: true, cleared, invalid };
+            }
 
             for (let i = 0; i < value.length; i++) {
                 const options = value[i];
                 const result = validator(options, { options, path: `${context.path}[${i}]` });
-                let elemValid: boolean;
                 if (typeof result === 'object') {
+                    valid = setValid(result.valid);
                     invalid.push(...result.invalid);
-                    cleared.push(result.cleared);
-                    elemValid = result.valid;
+                    if (result.cleared != null) {
+                        cleared.push(result.cleared);
+                    }
                 } else {
-                    cleared.push(options);
-                    elemValid = result;
-                }
-                if (validOperand === 'and') {
-                    valid &&= elemValid;
-                } else {
-                    valid ||= elemValid;
+                    valid = setValid(result);
+                    if (result) {
+                        cleared.push(options);
+                    }
                 }
             }
 
-            return { valid, cleared: valid ? cleared : null, invalid };
+            return { valid, cleared: valid || !strict ? cleared : null, invalid };
         },
         description ?? `${validator[descriptionSymbol]} array`
     );
@@ -535,28 +578,6 @@ export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description = 'an object ar
 
         return { valid: true, cleared, invalid };
     }, description);
-
-export const typeUnion = <T extends { type: string }>(
-    defs: { [K in T['type']]: OptionsDefs<Omit<Extract<T, { type: K }>, 'type'>> },
-    description = 'an object'
-) => {
-    const typeValidator = partialDefs<{ type: string }>({ type: required(union(...Object.keys(defs))) });
-    return attachDescription((value: any, context) => {
-        const typeResult = typeValidator(value, context);
-
-        if (isBoolean(typeResult) || !typeResult.valid) return typeResult;
-
-        const type: T['type'] = value.type;
-        const typeDefs = { type: required(constant(type)), ...defs[type] };
-        const result = optionsDefs(typeDefs)(value, context);
-        if (typeof result === 'object') {
-            for (const error of result.invalid) {
-                error.description += ` (type="${type}")`;
-            }
-        }
-        return result;
-    }, description);
-};
 
 export const callbackOf = (validator: Validator, description?: string) =>
     attachDescription((value, context) => {
@@ -600,13 +621,13 @@ export const callbackDefs = <T>(defs: OptionsDefs<T>, description = 'an object')
                 validatorResult.invalid.forEach((error) => {
                     if (error instanceof UnknownError) {
                         return warnOnce(
-                            `Callback \`${context.path}\` returned an unknown property \`${error.key}\`${error.getPostfix()}`
+                            `Callback \`${context.path}\` returned an unknown property \`${extendPath(error.path, error.key)}\`${error.getPostfix()}`
                         );
                     }
                     const errorValue = stringifyValue(error.value, 50);
                     warnOnce(
                         error.key
-                            ? `Callback \`${context.path}\` returned an invalid property \`${error.key}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
+                            ? `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
                             : `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description}, ignoring.`
                     );
                 });

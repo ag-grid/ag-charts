@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     array,
-    arrayOf,
+    arrayOfDefs,
     boolean,
     callback,
     color,
@@ -94,7 +94,7 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
             },
             ...fontOptionsDef,
         },
-        series: arrayOf(
+        series: arrayOfDefs(
             typeUnion<Required<AgMiniChartSeriesOptions>>(
                 {
                     area: without(NewAreaSeriesModule.options, commonIgnoredMiniChartProperties),

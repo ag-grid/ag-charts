@@ -538,7 +538,6 @@ export class ChartTheme {
                     delete cleanedCommon[commonKey];
                 }
             }
-            if (!cleanedCommon) continue;
             for (const s of seriesTypes) {
                 const seriesType = s as keyof AgThemeOverrides;
 

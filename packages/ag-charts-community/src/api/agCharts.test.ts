@@ -75,16 +75,17 @@ describe('AgCharts', () => {
     });
 
     describe('sparkline optimisations', () => {
-        const sparklineOptions = {
+        const sparklineOptions: AgSparklineOptions = {
+            type: 'line',
             width: 200,
             height: 50,
             data: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
         };
 
         const fastSettings = {
-            width: sparklineOptions.width + 100,
-            height: sparklineOptions.height + 50,
-            data: sparklineOptions.data.toReversed(),
+            width: sparklineOptions.width! + 100,
+            height: sparklineOptions.height! + 50,
+            data: sparklineOptions.data!.toReversed(),
             container: () => getDocument().createElement('div'),
         };
 
@@ -286,6 +287,7 @@ describe('AgCharts', () => {
 
         it('should handle disabled preset nested options', async () => {
             const options: AgSparklineOptions = {
+                type: 'line',
                 width: 200,
                 height: 50,
                 data: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],

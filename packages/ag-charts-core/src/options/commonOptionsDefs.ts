@@ -52,16 +52,15 @@ export const colorStopsOrderValidator = attachDescription((value) => {
 export const gradientColorStops = and(arrayLength(2), arrayOf(colorStop), colorStopsOrderValidator);
 const gradientBounds = union('axis', 'item', 'series');
 
-export const gradientStrict = typeUnion<AgGradientColorStrict>(
+export const gradientStrict = optionsDefs<AgGradientColorStrict>(
     {
-        gradient: {
-            colorStops: required(gradientColorStops),
-            rotation: number,
-            // @ts-expect-error undocumented options
-            gradient: undocumented(union('linear', 'radial', 'conic')),
-            bounds: undocumented(gradientBounds),
-            reverse: undocumented(boolean),
-        },
+        type: required(constant('gradient')),
+        colorStops: required(gradientColorStops),
+        rotation: number,
+        // @ts-expect-error undocumented options
+        gradient: undocumented(union('linear', 'radial', 'conic')),
+        bounds: undocumented(gradientBounds),
+        reverse: undocumented(boolean),
     },
     'a gradient object with color stops'
 );
@@ -204,7 +203,7 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
     'a color object'
 );
 
-export const colorUnion = or(color, colorObject);
+export const colorUnion = or(color, optionsDefs(colorObject, 'a color object'));
 
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
     fill: colorUnion,

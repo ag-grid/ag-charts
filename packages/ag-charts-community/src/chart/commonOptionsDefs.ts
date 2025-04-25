@@ -1,3 +1,4 @@
+import type { OptionsDefs, Validator, ValidatorContext, ValidatorResult } from 'ag-charts-core';
 import {
     ErrorType,
     ValidationError,
@@ -33,7 +34,6 @@ import {
     undocumented,
     union,
 } from 'ag-charts-core';
-import type { OptionsDefs, Validator, ValidatorContext, ValidatorResult } from 'ag-charts-core';
 import type {
     AgBaseSeriesOptions,
     AgBaseThemeableChartOptions,
@@ -173,7 +173,7 @@ const contextMenuItemValidator = attachDescription(
     `a context menu item object or string alias: [${contextMenuItemLiterals.join(', ')}]`
 );
 
-const contextMenuItemsArray = arrayOf(contextMenuItemValidator, 'a menu items array', 'or');
+const contextMenuItemsArray = arrayOf(contextMenuItemValidator, 'a menu items array', false);
 
 // eslint-disable-next-line sonarjs/deprecation
 const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
@@ -517,7 +517,7 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     id: string,
     cursor: string,
     visible: boolean,
-    data: arrayOf(object),
+    data: array,
     showInLegend: boolean,
     nodeClickRange: rangeValidator,
     listeners: {

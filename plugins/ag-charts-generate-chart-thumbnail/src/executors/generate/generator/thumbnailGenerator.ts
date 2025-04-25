@@ -74,15 +74,6 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
         );
         mockCtx.mockText = mockText;
         mockCanvas.setup(mockCtx);
-
-        const chartProxy = AgCharts[api]({
-            animation: { enabled: false },
-            document,
-            window,
-            width: DEFAULT_THUMBNAIL_WIDTH,
-            height: DEFAULT_THUMBNAIL_HEIGHT,
-            overrideDevicePixelRatio: dpi,
-        } as any);
         /* End TODO */
 
         const options = optionsById.get(id);
@@ -116,7 +107,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
         const x0 = (containerWidth * column + (containerWidth - width) / 2) | 0;
         const y0 = (containerHeight * row + (containerHeight - height) / 2) | 0;
 
-        await chartProxy.update({
+        const chartProxy = AgCharts[api]({
             ...options,
             animation: { enabled: false },
             document,
@@ -125,6 +116,8 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
             height,
             overrideDevicePixelRatio: dpi,
         } as any);
+
+        await chartProxy.waitForUpdate();
 
         if (output.multiple === true) {
             output.ctx.drawImage(

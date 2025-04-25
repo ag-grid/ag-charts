@@ -67,7 +67,7 @@ export interface ChartSpecialOverrides {
 }
 
 export interface ChartInternalOptionMetadata {
-    presetType?: 'price-volume' | 'radial-gauge-preset' | 'linear-gauge-preset' | 'sparkline';
+    presetType?: 'price-volume' | 'gauge-preset' | 'sparkline';
     pool?: boolean;
     domMode?: 'normal' | 'minimal';
 }
@@ -240,7 +240,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
-        let options = deepClone(this.userOptions, ChartOptions.OPTIONS_CLONE_OPTS) as T;
+        let options = deepClone(this.userOptions, ChartOptions.OPTIONS_CLONE_OPTS) as T & { type?: string };
 
         if (deltaOptions) {
             options = mergeDefaults(deltaOptions, options) as T;
@@ -252,15 +252,23 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const { presetType } = this.optionMetadata;
         if (presetType != null) {
             const presetDef = ModuleRegistry.getPresetModule(presetType);
-            const presetParams = options as any as AgPresetOptions;
 
-            // Note financial charts defines the theme in its returned options,
-            // so we need to get the theme before and after applying the preset
-            const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
-            const presetTheme = presetSubType != null ? getChartTheme(options.theme).presets[presetSubType] : undefined;
+            if (presetDef) {
+                const { validate: validatePreset = validate } = presetDef;
+                const presetParams = options as any as AgPresetOptions;
 
-            ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', presetParams);
-            options = presetDef?.create(presetParams, presetTheme, () => this.activeTheme) ?? options;
+                // Note financial charts defines the theme in its returned options,
+                // so we need to get the theme before and after applying the preset
+                const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
+                const presetTheme =
+                    presetSubType != null ? getChartTheme(options.theme).presets[presetSubType] : undefined;
+
+                const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '');
+                invalid.forEach((error) => Logger.warn(error));
+
+                ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', cleared);
+                options = presetDef.create(cleared, presetTheme, () => this.activeTheme);
+            }
         }
 
         this.soloSeriesIntegrity(options);
