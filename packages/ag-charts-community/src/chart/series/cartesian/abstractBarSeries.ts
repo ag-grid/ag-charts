@@ -81,16 +81,16 @@ export abstract class AbstractBarSeries<
         return this.axes[direction];
     }
 
-    protected getBandwidth(xAxis: ChartAxis) {
+    protected getBandwidth(xAxis: ChartAxis, minWidth?: 1 | 0) {
         return ContinuousScale.is(xAxis.scale)
-            ? xAxis.scale.calcBandwidth(this.smallestDataInterval)
+            ? xAxis.scale.calcBandwidth(this.smallestDataInterval, minWidth)
             : xAxis.scale.bandwidth;
     }
 
     override xCoordinateRange(xValue: any): [number, number] {
         const xAxis = this.axes[this.getCategoryDirection()]!;
         const xScale = xAxis.scale;
-        const bandWidth = this.getBandwidth(xAxis) ?? 0;
+        const bandWidth = this.getBandwidth(xAxis, 0) ?? 0;
         const barOffset = ContinuousScale.is(xScale) ? bandWidth * -0.5 : 0;
         const x = xScale.convert(xValue) + barOffset;
         return [x, x + bandWidth];
