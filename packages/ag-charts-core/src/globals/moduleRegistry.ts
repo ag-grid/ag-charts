@@ -35,15 +35,15 @@ export function hasModule(moduleName: string): boolean {
 
 export function* listModulesByType<T extends ModuleType>(moduleType: T): Generator<ModuleTypeSwitch<T>> {
     for (const definition of registeredModules.values()) {
-        if (definition.type === moduleType) {
-            yield definition as ModuleTypeSwitch<T>;
+        if (isModuleType(moduleType, definition)) {
+            yield definition;
         }
     }
 }
 
 export function detectChartDefinition(options: object): ChartModuleDefinition<any> {
     for (const definition of registeredModules.values()) {
-        if (isChartModule(definition) && definition.detect(options)) {
+        if (isModuleType(ModuleType.Chart, definition) && definition.detect(options)) {
             return definition;
         }
     }
@@ -54,37 +54,28 @@ export function detectChartDefinition(options: object): ChartModuleDefinition<an
 
 export function getAxisModule(moduleName: string): AxisModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
-    if (isAxisModule(definition)) {
+    if (isModuleType(ModuleType.Axis, definition)) {
         return definition;
     }
 }
 
 export function getPresetModule(moduleName: string): PresetModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
-    if (isPresetModule(definition)) {
+    if (isModuleType(ModuleType.Preset, definition)) {
         return definition;
     }
 }
 
 export function getSeriesModule(moduleName: string): SeriesModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
-    if (isSeriesModule(definition)) {
+    if (isModuleType(ModuleType.Series, definition)) {
         return definition;
     }
 }
 
-function isAxisModule(definition?: ModuleDefinition): definition is AxisModuleDefinition<any> {
-    return definition?.type === ModuleType.Axis;
-}
-
-function isChartModule(definition?: ModuleDefinition): definition is ChartModuleDefinition<any> {
-    return definition?.type === ModuleType.Chart;
-}
-
-function isPresetModule(definition?: ModuleDefinition): definition is PresetModuleDefinition<any> {
-    return definition?.type === ModuleType.Preset;
-}
-
-function isSeriesModule(definition?: ModuleDefinition): definition is SeriesModuleDefinition<any> {
-    return definition?.type === ModuleType.Series;
+function isModuleType<T extends ModuleType>(
+    moduleType: T,
+    definition: ModuleDefinition | undefined
+): definition is ModuleTypeSwitch<T> {
+    return definition?.type === moduleType;
 }

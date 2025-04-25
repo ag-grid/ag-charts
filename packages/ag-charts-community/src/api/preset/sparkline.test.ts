@@ -42,6 +42,7 @@ describe('Sparkline Preset', () => {
     describe('#__createSparkline', () => {
         it('should render a basic sparkline', async () => {
             const options = prepareSparklineOptions({
+                type: 'line',
                 xKey: 'x',
                 yKey: 'y',
                 data: [
@@ -76,6 +77,7 @@ describe('Sparkline Preset', () => {
 
         it('should render a basic sparkline from single value data', async () => {
             const options = prepareSparklineOptions({
+                type: 'line',
                 data: [0.56, -0.81, -0.18, 0.66, -0.45],
             });
 
@@ -87,6 +89,7 @@ describe('Sparkline Preset', () => {
 
         it('should render a basic sparkline from tuples', async () => {
             const options = prepareSparklineOptions({
+                type: 'line',
                 data: [
                     [0, 0.56],
                     [1, -0.81],
@@ -106,6 +109,7 @@ describe('Sparkline Preset', () => {
     describe('#updateDelta', () => {
         it('should update a basic sparkline', async () => {
             const options = prepareSparklineOptions({
+                type: 'line',
                 xKey: 'x',
                 yKey: 'y',
                 data: [
@@ -164,9 +168,7 @@ describe('Sparkline Preset', () => {
         });
 
         it('should update a basic sparkline from single value data', async () => {
-            const options = prepareSparklineOptions({
-                data: [0.56, -0.81, -0.18, 0.66, -0.45],
-            });
+            const options = prepareSparklineOptions({ type: 'line', data: [0.56, -0.81, -0.18, 0.66, -0.45] });
 
             chart = AgCharts.__createSparkline(options);
             await waitForChartStability(chart);
@@ -178,6 +180,7 @@ describe('Sparkline Preset', () => {
 
         it('should render a basic sparkline from tuples', async () => {
             const options = prepareSparklineOptions({
+                type: 'line',
                 data: [
                     [0, 0.56],
                     [1, -0.81],

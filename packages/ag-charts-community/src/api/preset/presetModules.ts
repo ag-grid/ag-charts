@@ -13,7 +13,6 @@ import {
     or,
     positiveNumber,
     ratio,
-    required,
     string,
     strokeOptionsDef,
     typeUnion,
@@ -23,23 +22,23 @@ import {
 import type {
     AgBaseFinancialPresetOptions,
     AgBaseGaugePresetOptions,
+    AgBaseSparklinePresetOptions,
     AgChartTooltipOptions,
-    AgLinearGaugeOptions,
+    AgGaugeOptions,
     AgPriceVolumePreset,
-    AgRadialGaugeOptions,
     AgSeriesTooltip,
     AgSparklineAxisOptions,
     AgSparklineBaseAxisOptions,
+    AgSparklineBaseThemeableOptions,
+    AgSparklineDataKeysOptions,
     AgSparklineOptions,
 } from 'ag-charts-types';
 
-import {
-    commonChartOptionsDefs,
-    commonSeriesOptionsDefs,
-    rangeValidator,
-    seriesLabelOptionsDefs,
-    tooltipOptionsDefs,
-} from '../../chart/commonOptionsDefs';
+import { commonChartOptionsDefs, tooltipOptionsDefs } from '../../chart/commonOptionsDefs';
+import { areaSeriesOptionsDef } from '../../chart/series/cartesian/areaSeriesOptionsDef';
+import { barSeriesOptionsDef } from '../../chart/series/cartesian/barSeriesOptionsDef';
+import { lineSeriesOptionsDef } from '../../chart/series/cartesian/lineSeriesOptionsDef';
+import { without } from '../../util/object';
 import { gauge } from './gauge';
 import { linearGaugeSeriesOptionsDef, radialGaugeSeriesOptionsDef } from './gaugeOptionsDefs';
 import { priceVolume } from './priceVolumePreset';
@@ -99,15 +98,19 @@ const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgS
 // @ts-expect-error undocumented option
 commonGaugeOptions.overrideDevicePixelRatio = undocumented(positiveNumber);
 
-const radialGaugePresetOptionsDef: OptionsDefs<AgRadialGaugeOptions> = {
-    ...radialGaugeSeriesOptionsDef,
-    ...commonGaugeOptions,
-};
-
-const linearGaugePresetOptionsDef: OptionsDefs<AgLinearGaugeOptions> = {
-    ...linearGaugeSeriesOptionsDef,
-    ...commonGaugeOptions,
-};
+const commonSparklineOmit = [
+    'showInLegend',
+    'showInMiniChart',
+    'grouped',
+    'stacked',
+    'stackGroup',
+    'tooltip',
+    'listeners',
+    'errorBar',
+    'xKey',
+    'yKey',
+    'type',
+] as const;
 
 const commonSparklineAxisOptionsDef: OptionsDefs<AgSparklineBaseAxisOptions> = {
     visible: boolean,
@@ -116,7 +119,23 @@ const commonSparklineAxisOptionsDef: OptionsDefs<AgSparklineBaseAxisOptions> = {
     strokeWidth: positiveNumber,
 };
 
-const sparklineOptionsDef: OptionsDefs<AgSparklineOptions> = {
+const commonSparklineOptionsDef: OptionsDefs<
+    AgBaseSparklinePresetOptions & AgSparklineBaseThemeableOptions & AgSparklineDataKeysOptions
+> = {
+    context: defined,
+    tooltip: defined,
+    theme: defined,
+    background: defined,
+    container: defined,
+    width: defined,
+    height: defined,
+    minWidth: defined,
+    minHeight: defined,
+    padding: defined,
+    listeners: defined,
+    locale: defined,
+    data: defined,
+
     axis: typeUnion<AgSparklineAxisOptions>({
         number: {
             ...commonSparklineAxisOptionsDef,
@@ -134,44 +153,16 @@ const sparklineOptionsDef: OptionsDefs<AgSparklineOptions> = {
             max: and(or(number, date), greaterThan('min')),
         },
     }),
+    min: and(number, lessThan('max')),
+    max: and(number, greaterThan('min')),
     crosshair: {
         enabled: boolean,
         snap: boolean,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    highlightStyle: commonSeriesOptionsDefs.highlightStyle,
-    label: seriesLabelOptionsDefs,
-    id: string,
-    context: defined,
-    min: and(number, lessThan('max')),
-    max: and(number, greaterThan('min')),
-    nodeClickRange: rangeValidator,
-    normalizedTo: number,
-    type: union('bar', 'line', 'area'),
-    visible: boolean,
-    xKey: required(string),
-    yKey: required(string),
-    xName: string,
-    yName: string,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
-
-    tooltip: defined,
-    cursor: defined,
-
-    // Valid pass-through options
-    theme: defined,
-    background: defined,
-    container: defined,
-    width: defined,
-    height: defined,
-    minWidth: defined,
-    minHeight: defined,
-    padding: defined,
-    listeners: defined,
-    locale: defined,
-    data: defined,
+    xKey: string,
+    yKey: string,
 };
 
 export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
@@ -184,22 +175,21 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
     create: priceVolume,
 };
 
-export const RadialGaugePresetModule: PresetModuleDefinition<AgRadialGaugeOptions> = {
+export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
     type: 'preset',
-    name: 'radial-gauge-preset',
+    name: 'gauge-preset',
     enterprise: true,
 
-    options: radialGaugePresetOptionsDef,
-
-    create: gauge,
-};
-
-export const LinearGaugePresetModule: PresetModuleDefinition<AgLinearGaugeOptions> = {
-    type: 'preset',
-    name: 'linear-gauge-preset',
-    enterprise: true,
-
-    options: linearGaugePresetOptionsDef,
+    options: typeUnion<AgGaugeOptions>({
+        'linear-gauge': {
+            ...without(linearGaugeSeriesOptionsDef, ['type']),
+            ...commonGaugeOptions,
+        },
+        'radial-gauge': {
+            ...without(radialGaugeSeriesOptionsDef, ['type']),
+            ...commonGaugeOptions,
+        },
+    }),
 
     create: gauge,
 };
@@ -208,7 +198,20 @@ export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> =
     type: 'preset',
     name: 'sparkline',
 
-    options: sparklineOptionsDef,
+    options: typeUnion<AgSparklineOptions>({
+        area: {
+            ...commonSparklineOptionsDef,
+            ...without(areaSeriesOptionsDef, commonSparklineOmit),
+        },
+        bar: {
+            ...commonSparklineOptionsDef,
+            ...without(barSeriesOptionsDef, commonSparklineOmit),
+        },
+        line: {
+            ...commonSparklineOptionsDef,
+            ...without(lineSeriesOptionsDef, commonSparklineOmit),
+        },
+    }),
 
     create: sparkline,
     processData: sparklineDataPreset,

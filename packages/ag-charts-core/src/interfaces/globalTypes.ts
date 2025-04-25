@@ -36,3 +36,11 @@ export type RequireOptional<T> = {
 export type Intersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
 export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
+
+export type IsUnion<T> = [T] extends [infer U]
+    ? (U extends any ? (x: U) => any : never) extends (x: infer I) => any
+        ? [T] extends [I]
+            ? false
+            : true
+        : never
+    : never;

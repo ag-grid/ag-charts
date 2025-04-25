@@ -1,4 +1,5 @@
 import { warn, warnOnce } from '../globals/logger';
+import type { IsUnion } from '../interfaces/globalTypes';
 import { safeCall } from './functions';
 import { joinFormatted, levenshteinDistance, stringifyValue } from './strings';
 import {
@@ -18,6 +19,7 @@ const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
 const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
+const unionSymbol = Symbol('union');
 
 const similarOptionsMap = [
     ['placement', 'position'],
@@ -33,16 +35,39 @@ const similarOptionsMap = [
     return map;
 }, new Map<string, Set<string>>());
 
-type ObjectLikeDef<T> = T extends object ? (keyof T extends never ? never : OptionsDefs<T>) : never;
+type ObjectLikeDef<T> =
+    IsUnion<NonNullable<T>> extends true
+        ? OptionsDefs<Exclude<T, undefined>>
+        : T extends object
+          ? keyof T extends never
+              ? never
+              : OptionsDefs<T>
+          : never;
 
 type Singular<T> = T extends any[] ? T[number] : T;
 
-// Definitions for options validation with support for nested structures.
-export type OptionsDefs<T> = { [K in keyof Singular<T>]-?: Validator | ObjectLikeDef<Singular<T>[K]> } & {
+type PrivateSymbols = {
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
     [undocumentedSymbol]?: boolean;
+    [unionSymbol]?: boolean;
 };
+
+// Definitions for options validation with support for nested structures.
+export type OptionsDefs<T> = { [K in keyof Singular<T>]-?: Validator | ObjectLikeDef<Singular<T>[K]> } & PrivateSymbols;
+
+export type TypeUnionDefs<T, K extends string | number | symbol> = {
+    [P in K]: OptionsDefs<Omit<Extract<T, { type: P }>, 'type'>>;
+};
+
+// export type OptionsDefs<T> = (T extends { type: infer U }
+//     ? U extends string | number | symbol
+//         ? IsUnion<U> extends true
+//             ? TypeUnionDefs<T, U>
+//             : { [K in keyof Singular<T>]-?: Validator | ObjectLikeDef<Singular<T>[K]> }
+//         : never
+//     : { [K in keyof Singular<T>]-?: Validator | ObjectLikeDef<Singular<T>[K]> }) &
+//     PrivateSymbols;
 
 export interface ValidationResult<T> {
     cleared: Partial<T> | null;
@@ -66,11 +91,8 @@ export enum ErrorType {
 }
 
 // Validator interface with optional description and required flag for better error messages.
-export interface Validator extends Function {
+export interface Validator extends Function, PrivateSymbols {
     (value: unknown, context: ValidatorContext): ValidatorResult | boolean;
-    [descriptionSymbol]?: string;
-    [requiredSymbol]?: boolean;
-    [undocumentedSymbol]?: boolean;
 }
 
 function extendPath(path: string, key: string | number) {
@@ -145,8 +167,29 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     const optionsKeys = new Set(Object.keys(options));
     const unusedKeys = [];
 
+    if (optionsDefs[unionSymbol]) {
+        const validTypes = Object.keys(optionsDefs);
+        if (validTypes.includes(options.type)) {
+            const { type, ...rest } = options;
+            const nestedResult = validate(rest, (optionsDefs as any)[type], path);
+            if (nestedResult.cleared != null) {
+                Object.assign(cleared, { type, ...nestedResult.cleared });
+            }
+            for (const error of nestedResult.invalid) {
+                error.description += ` (type="${type}")`;
+            }
+            invalid.push(...nestedResult.invalid);
+        } else {
+            const keywords = joinFormatted(validTypes, 'or', (val) => `'${val}'`);
+            invalid.push(
+                new ValidationError(ErrorType.Required, `a keyword such as ${keywords}`, options.type, path, 'type')
+            );
+        }
+        return { cleared, invalid };
+    }
+
     for (const key of Object.keys(optionsDefs)) {
-        const validatorOrDefs: Validator | ObjectLikeDef<any> = optionsDefs[key as keyof T];
+        const validatorOrDefs: Validator | OptionsDefs<any> = optionsDefs[key as keyof T];
         const required = validatorOrDefs[requiredSymbol];
         const value = options[key as keyof object];
 
@@ -284,6 +327,9 @@ export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
         const valid = !hasRequiredInPath(result.invalid, context.path);
         return { valid, cleared: result.cleared, invalid: result.invalid };
     }, description);
+
+export const typeUnion = <T extends { type: string }>(defs: TypeUnionDefs<T, T['type']>, description = 'an object') =>
+    ({ ...defs, [descriptionSymbol]: description, [unionSymbol]: true }) as OptionsDefs<T>;
 
 /**
  * Creates a validator for ensuring an object matches the provided option definitions. Ignores unknown properties.
@@ -535,28 +581,6 @@ export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description = 'an object ar
 
         return { valid: true, cleared, invalid };
     }, description);
-
-export const typeUnion = <T extends { type: string }>(
-    defs: { [K in T['type']]: OptionsDefs<Omit<Extract<T, { type: K }>, 'type'>> },
-    description = 'an object'
-) => {
-    const typeValidator = partialDefs<{ type: string }>({ type: required(union(...Object.keys(defs))) });
-    return attachDescription((value: any, context) => {
-        const typeResult = typeValidator(value, context);
-
-        if (isBoolean(typeResult) || !typeResult.valid) return typeResult;
-
-        const type: T['type'] = value.type;
-        const typeDefs = { type: required(constant(type)), ...defs[type] };
-        const result = optionsDefs(typeDefs)(value, context);
-        if (typeof result === 'object') {
-            for (const error of result.invalid) {
-                error.description += ` (type="${type}")`;
-            }
-        }
-        return result;
-    }, description);
-};
 
 export const callbackOf = (validator: Validator, description?: string) =>
     attachDescription((value, context) => {

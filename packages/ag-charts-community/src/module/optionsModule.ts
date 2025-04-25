@@ -67,7 +67,7 @@ export interface ChartSpecialOverrides {
 }
 
 export interface ChartInternalOptionMetadata {
-    presetType?: 'price-volume' | 'gauge' | 'sparkline';
+    presetType?: 'price-volume' | 'gauge-preset' | 'sparkline';
     pool?: boolean;
     domMode?: 'normal' | 'minimal';
 }
@@ -204,23 +204,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         Debug.inDevelopmentMode(() => deepFreeze(this));
     }
 
-    private getPresetModuleName(presetSubType: string | undefined) {
-        const { presetType } = this.optionMetadata;
-        return presetType === 'gauge' ? `${presetSubType}-preset` : presetType;
-    }
-
-    private getPresetSubType(...sources: any[]): keyof AgPresetOverrides | undefined {
-        for (const options of sources) {
-            if (options?.type) {
-                return options.type;
-            }
-        }
-    }
-
     private fastSetup(deltaOptions: DeepPartial<T> | null, baseChartOptions: ChartOptions<T>) {
         const { activeTheme, defaultAxes, processedOptions: baseOptions } = baseChartOptions;
-        const presetSubType = this.getPresetSubType(deltaOptions, baseOptions);
-        const presetType = this.getPresetModuleName(presetSubType);
+        const { presetType } = this.optionMetadata;
 
         if (presetType != null && deltaOptions?.data != null) {
             const presetDef = ModuleRegistry.getPresetModule(presetType);
@@ -263,7 +249,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         }
 
-        const presetType = this.getPresetModuleName(options.type);
+        const { presetType } = this.optionMetadata;
         if (presetType != null) {
             const presetDef = ModuleRegistry.getPresetModule(presetType);
 
@@ -273,7 +259,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
                 // Note financial charts defines the theme in its returned options,
                 // so we need to get the theme before and after applying the preset
-                const presetSubType = this.getPresetSubType(options);
+                const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
                 const presetTheme =
                     presetSubType != null ? getChartTheme(options.theme).presets[presetSubType] : undefined;
 
