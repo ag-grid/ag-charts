@@ -172,9 +172,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
         if (validTypes.includes(options.type)) {
             const { type, ...rest } = options;
             const nestedResult = validate(rest, (optionsDefs as any)[type], path);
-            if (nestedResult.cleared != null) {
-                Object.assign(cleared, { type, ...nestedResult.cleared });
-            }
+            Object.assign(cleared, { type }, nestedResult.cleared);
             for (const error of nestedResult.invalid) {
                 error.description += ` (type="${type}")`;
             }
@@ -520,38 +518,42 @@ export const instanceOf = (instanceType: Function, description?: string) =>
  * Creates a validator for arrays where every element must pass a given validator.
  * @param validator The validator to apply to each array element.
  * @param description An optional description string.
+ * @param strict When enabled validator fails on any invalid item, otherwise invalid items are filtered.
  * @returns A validator function for arrays with elements validated by the specified validator.
  */
-export const arrayOf = (validator: Validator, description?: string, validOperand?: 'or' | 'and') =>
+export const arrayOf = (validator: Validator, description?: string, strict: boolean = true) =>
     attachDescription(
         (value, context) => {
             if (!isArray(value)) return false;
 
-            validOperand ??= 'and';
-            let valid: boolean = validOperand === 'and';
+            let valid: boolean = strict;
+
             const cleared: unknown[] = [];
             const invalid: ValidationError[] = [];
+            const setValid = (result: boolean) => (valid = strict ? valid && result : valid || result);
+
+            if (value.length === 0) {
+                return { valid: true, cleared, invalid };
+            }
 
             for (let i = 0; i < value.length; i++) {
                 const options = value[i];
                 const result = validator(options, { options, path: `${context.path}[${i}]` });
-                let elemValid: boolean;
                 if (typeof result === 'object') {
+                    valid = setValid(result.valid);
                     invalid.push(...result.invalid);
-                    cleared.push(result.cleared);
-                    elemValid = result.valid;
+                    if (result.cleared != null) {
+                        cleared.push(result.cleared);
+                    }
                 } else {
-                    cleared.push(options);
-                    elemValid = result;
-                }
-                if (validOperand === 'and') {
-                    valid &&= elemValid;
-                } else {
-                    valid ||= elemValid;
+                    valid = setValid(result);
+                    if (result) {
+                        cleared.push(options);
+                    }
                 }
             }
 
-            return { valid, cleared: valid ? cleared : null, invalid };
+            return { valid, cleared: valid || !strict ? cleared : null, invalid };
         },
         description ?? `${validator[descriptionSymbol]} array`
     );

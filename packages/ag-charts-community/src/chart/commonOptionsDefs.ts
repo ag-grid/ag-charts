@@ -173,7 +173,7 @@ const contextMenuItemValidator = attachDescription(
     `a context menu item object or string alias: [${contextMenuItemLiterals.join(', ')}]`
 );
 
-const contextMenuItemsArray = arrayOf(contextMenuItemValidator, 'a menu items array', 'or');
+const contextMenuItemsArray = arrayOf(contextMenuItemValidator, 'a menu items array', false);
 
 // eslint-disable-next-line sonarjs/deprecation
 const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
