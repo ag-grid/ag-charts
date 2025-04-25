@@ -97,3 +97,23 @@ export function sortBasedOnArray<T>(baseArray: T[], orderArray: T[]): T[] {
         return indexA - indexB;
     });
 }
+
+export function dropFirstWhile<T>(array: T[], cond: (value: T) => boolean) {
+    let i = 0;
+    while (i < array.length && cond(array[i])) {
+        i += 1;
+    }
+
+    const deleteCount = i;
+    if (deleteCount !== 0) array.splice(0, deleteCount);
+}
+
+export function dropLastWhile<T>(array: T[], cond: (value: T) => boolean) {
+    let i = array.length - 1;
+    while (i >= 0 && cond(array[i])) {
+        i -= 1;
+    }
+
+    const deleteCount = array.length - 1 - i;
+    if (deleteCount !== 0) array.splice(array.length - deleteCount, deleteCount);
+}
