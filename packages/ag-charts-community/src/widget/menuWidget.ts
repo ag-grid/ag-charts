@@ -71,7 +71,9 @@ export class MenuWidget extends RovingTabContainerWidget {
 
         addMouseCloseListener(this.openScope.removers, this.elem, this.openScope.abort);
         addTouchCloseListener(this.openScope.removers, this.elem, this.openScope.abort);
-        addEscapeEventListener(this.openScope.removers, this.elem, this.openScope.close);
+        for (const child of this.children) {
+            addEscapeEventListener(this.openScope.removers, child.getElement(), this.openScope.close);
+        }
         if (overrideFocusVisible !== undefined) {
             addOverrideFocusVisibleEventListener(this.openScope.removers, this.elem, buttons, overrideFocusVisible);
         }

@@ -206,7 +206,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onSubMenuOpen(button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
         const bounds = button.getBounds();
-        this.element.appendChild(menu.getElement());
+        button.getElement().insertAdjacentElement('afterend', menu.getElement());
         menu.getElement().style.position = 'absolute';
         menu.setBounds({ x: bounds.x + bounds.width, y: bounds.y });
     }
