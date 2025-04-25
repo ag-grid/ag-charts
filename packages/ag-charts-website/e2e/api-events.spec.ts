@@ -50,7 +50,6 @@ test.describe('api-events', () => {
         });
         test.describe('touch', () => {
             test('click', async ({ page }) => {
-                expect(false).toEqual(true); // test;
                 await page.touchscreen.tap(node.x, node.y);
                 expect(consoleLogs.get()).toEqual([]);
 
