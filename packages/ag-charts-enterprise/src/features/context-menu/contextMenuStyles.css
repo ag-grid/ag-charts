@@ -1,4 +1,7 @@
 .ag-charts-context-menu {
+    font-family: var(--ag-charts-chrome-font-family);
+    font-size: calc(var(--ag-charts-chrome-font-size) * (13 / 12));
+    font-weight: var(--ag-charts-chrome-font-weight);
     z-index: var(--ag-charts-layer-ui-overlay);
 }
 
@@ -16,9 +19,6 @@
     color: var(--ag-charts-chrome-text-color);
     display: flex;
     flex-direction: column;
-    font-family: var(--ag-charts-chrome-font-family);
-    font-size: calc(var(--ag-charts-chrome-font-size) * (13 / 12));
-    font-weight: var(--ag-charts-chrome-font-weight);
     padding: 0.5em 0;
     transition: transform 0.1s ease;
     white-space: nowrap;
