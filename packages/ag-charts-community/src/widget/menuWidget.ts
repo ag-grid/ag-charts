@@ -16,11 +16,12 @@ import type { WidgetEvent } from './widgetEvents';
 
 type OpenScope = {
     lastFocus: HTMLElement | undefined;
-    lastFocusAborted: boolean;
     removers: DestroyFns;
     abort: () => void;
     close: () => void;
 };
+
+enum CloseEnum { CLOSE = '0', ABORT = '1', DESTROY = '2' };
 
 export class MenuWidget extends RovingTabContainerWidget {
     private openScope?: OpenScope;
@@ -30,7 +31,7 @@ export class MenuWidget extends RovingTabContainerWidget {
     }
 
     protected override destructor() {
-        // Nothing to destroy.
+        this.selfClose(CloseEnum.DESTROY);
     }
 
     public addSeparator(): Element {
@@ -61,9 +62,8 @@ export class MenuWidget extends RovingTabContainerWidget {
 
         this.openScope = {
             lastFocus: getLastFocus(event.sourceEvent),
-            lastFocusAborted: false,
-            abort: () => this.abort(),
-            close: () => this.selfClose(),
+            abort: () => this.selfClose(CloseEnum.ABORT),
+            close: () => this.selfClose(CloseEnum.CLOSE),
             removers: new DestroyFns(),
         };
         const buttons: HTMLElement[] = this.children.map((value) => value.getElement());
@@ -82,13 +82,13 @@ export class MenuWidget extends RovingTabContainerWidget {
         this.children[0]?.focus({ preventScroll: true });
     }
 
-    private selfClose() {
+    private selfClose(mode: CloseEnum) {
         if (this.openScope === undefined) return;
-        const { lastFocus, lastFocusAborted, removers } = this.openScope;
+        const { lastFocus, removers } = this.openScope;
         this.openScope = undefined; // stop re-entrance
 
         setAttribute(lastFocus, 'aria-expanded', false);
-        if (!lastFocusAborted) {
+        if (mode === CloseEnum.CLOSE) {
             lastFocus?.focus({ preventScroll: true });
         }
         removers.destroy();
@@ -97,11 +97,6 @@ export class MenuWidget extends RovingTabContainerWidget {
     }
 
     public close() {
-        this.selfClose();
-    }
-
-    private abort() {
-        this.openScope!.lastFocusAborted = true;
-        this.selfClose();
+        this.selfClose(CloseEnum.CLOSE);
     }
 }
