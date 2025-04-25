@@ -28,6 +28,7 @@ const similarOptionsMap = [
     ['whisker', 'wick'],
     ['nodeClick', 'seriesNodeClick'],
     ['nodeDoubleClick', 'seriesNodeDoubleClick'],
+    ['src', 'url'],
 ].reduce((map, words) => {
     for (const word of words) {
         map.set(word.toLowerCase(), new Set(words.filter((w) => w !== word)));
@@ -59,15 +60,6 @@ export type OptionsDefs<T> = { [K in keyof Singular<T>]-?: Validator | ObjectLik
 export type TypeUnionDefs<T, K extends string | number | symbol> = {
     [P in K]: OptionsDefs<Omit<Extract<T, { type: P }>, 'type'>>;
 };
-
-// export type OptionsDefs<T> = (T extends { type: infer U }
-//     ? U extends string | number | symbol
-//         ? IsUnion<U> extends true
-//             ? TypeUnionDefs<T, U>
-//             : { [K in keyof Singular<T>]-?: Validator | ObjectLikeDef<Singular<T>[K]> }
-//         : never
-//     : { [K in keyof Singular<T>]-?: Validator | ObjectLikeDef<Singular<T>[K]> }) &
-//     PrivateSymbols;
 
 export interface ValidationResult<T> {
     cleared: Partial<T> | null;
@@ -103,6 +95,8 @@ function extendPath(path: string, key: string | number) {
 }
 
 export class ValidationError {
+    public unionType?: string;
+
     constructor(
         public readonly type: ErrorType | `${ErrorType}`,
         public description: string | undefined,
@@ -114,7 +108,8 @@ export class ValidationError {
     getPrefix(): string {
         const { path, key } = this;
         if (!path && !key) return 'Value';
-        return `Option \`${key ? extendPath(path, key) : path}\``;
+        const unionPath = this.unionType ? `${path}[type=${this.unionType}]` : path;
+        return `Option \`${key ? extendPath(unionPath, key) : unionPath}\``;
     }
 
     toString() {
@@ -174,7 +169,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
             const nestedResult = validate(rest, (optionsDefs as any)[type], path);
             Object.assign(cleared, { type }, nestedResult.cleared);
             for (const error of nestedResult.invalid) {
-                error.description += ` (type="${type}")`;
+                error.unionType = type;
             }
             invalid.push(...nestedResult.invalid);
         } else {
@@ -626,13 +621,13 @@ export const callbackDefs = <T>(defs: OptionsDefs<T>, description = 'an object')
                 validatorResult.invalid.forEach((error) => {
                     if (error instanceof UnknownError) {
                         return warnOnce(
-                            `Callback \`${context.path}\` returned an unknown property \`${error.key}\`${error.getPostfix()}`
+                            `Callback \`${context.path}\` returned an unknown property \`${extendPath(error.path, error.key)}\`${error.getPostfix()}`
                         );
                     }
                     const errorValue = stringifyValue(error.value, 50);
                     warnOnce(
                         error.key
-                            ? `Callback \`${context.path}\` returned an invalid property \`${error.key}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
+                            ? `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
                             : `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description}, ignoring.`
                     );
                 });

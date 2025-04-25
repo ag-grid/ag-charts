@@ -60,7 +60,7 @@ export const INVALID_CUSTOM_SVG_PATHS = [
         patternName: 'Empty',
         path: '',
         warningMessage:
-            'AG Charts - Option `series[0].fill.path` cannot be set to `""`; expecting a string of at least 2 characters (type="pattern"), ignoring.',
+            'AG Charts - Option `series[0].fill[type=pattern].path` cannot be set to `""`; expecting a string of at least 2 characters, ignoring.',
     },
     {
         patternName: 'No Commands',
