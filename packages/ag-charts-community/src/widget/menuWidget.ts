@@ -22,7 +22,7 @@ type OpenScope = {
     close: () => void;
 };
 
-enum CloseEnum {
+enum CloseMode {
     CLOSE = '0',
     ABORT = '1',
     DESTROY = '2',
@@ -38,7 +38,7 @@ export class MenuWidget extends RovingTabContainerWidget {
     }
 
     protected override destructor() {
-        this.selfClose(CloseEnum.DESTROY);
+        this.selfClose(CloseMode.DESTROY);
     }
 
     public addSeparator(): Element {
@@ -54,7 +54,7 @@ export class MenuWidget extends RovingTabContainerWidget {
             const { openScope } = this;
             // Disabled buttons are focusable and can receive events, but have aria-disabled="true"
             if (openScope && !subMenuButton.isDisabled()) {
-                openScope.openSubMenu?.selfClose(CloseEnum.SIDLING_OPENED);
+                openScope.openSubMenu?.selfClose(CloseMode.SIDLING_OPENED);
                 subMenu.open(ev);
                 openScope.openSubMenu = subMenu;
             }
@@ -73,8 +73,8 @@ export class MenuWidget extends RovingTabContainerWidget {
         this.openScope = {
             lastFocus: getLastFocus(event.sourceEvent),
             openSubMenu: undefined,
-            abort: () => this.selfClose(CloseEnum.ABORT),
-            close: () => this.selfClose(CloseEnum.CLOSE),
+            abort: () => this.selfClose(CloseMode.ABORT),
+            close: () => this.selfClose(CloseMode.CLOSE),
             removers: new DestroyFns(),
         };
         const buttons: HTMLElement[] = this.children.map((value) => value.getElement());
@@ -93,14 +93,14 @@ export class MenuWidget extends RovingTabContainerWidget {
         this.children[0]?.focus({ preventScroll: true });
     }
 
-    private selfClose(mode: CloseEnum) {
+    private selfClose(mode: CloseMode) {
         if (this.openScope === undefined) return;
         const { lastFocus, removers, openSubMenu } = this.openScope;
         this.openScope = undefined; // stop re-entrance
 
-        openSubMenu?.selfClose(CloseEnum.PARENT_CLOSED);
+        openSubMenu?.selfClose(CloseMode.PARENT_CLOSED);
         setAttribute(lastFocus, 'aria-expanded', false);
-        if (mode === CloseEnum.CLOSE) {
+        if (mode === CloseMode.CLOSE) {
             lastFocus?.focus({ preventScroll: true });
         }
         removers.destroy();
@@ -109,6 +109,6 @@ export class MenuWidget extends RovingTabContainerWidget {
     }
 
     public close() {
-        this.selfClose(CloseEnum.CLOSE);
+        this.selfClose(CloseMode.CLOSE);
     }
 }
