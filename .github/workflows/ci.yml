@@ -285,6 +285,8 @@ jobs:
 
                   ./playwright.sh --host test -u --shard=${{ matrix.shard }}/${{ strategy.job-total }}
                   PLAYWRIGHT_EXIT_CODE=$?
+                  echo "playwright_exit_code=$PLAYWRIGHT_EXIT_CODE" >> $GITHUB_OUTPUT
+                  echo "playwright.sh exit with code: $PLAYWRIGHT_EXIT_CODE"
 
                   git add e2e/
                   git status
@@ -296,7 +298,6 @@ jobs:
                     echo "No changes to commit."
                     echo "updates=false" >> $GITHUB_OUTPUT
                   fi
-                  echo "playwright_exit_code=${PLAYWRIGHT_EXIT_CODE}" >> $GITHUB_OUTPUT
               timeout-minutes: 10
 
             - name: Push Snapshot Changes
