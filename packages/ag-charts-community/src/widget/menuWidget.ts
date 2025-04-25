@@ -16,12 +16,19 @@ import type { WidgetEvent } from './widgetEvents';
 
 type OpenScope = {
     lastFocus: HTMLElement | undefined;
+    openSubMenu: MenuWidget | undefined;
     removers: DestroyFns;
     abort: () => void;
     close: () => void;
 };
 
-enum CloseEnum { CLOSE = '0', ABORT = '1', DESTROY = '2' };
+enum CloseEnum {
+    CLOSE = '0',
+    ABORT = '1',
+    DESTROY = '2',
+    PARENT_CLOSED = '3',
+    SIDLING_OPENED = '4',
+}
 
 export class MenuWidget extends RovingTabContainerWidget {
     private openScope?: OpenScope;
@@ -44,9 +51,12 @@ export class MenuWidget extends RovingTabContainerWidget {
         const subMenuButton = new ButtonWidget();
         const subMenu = new MenuWidget();
         const accessibleOpener = (ev: WidgetEvent) => {
+            const { openScope } = this;
             // Disabled buttons are focusable and can receive events, but have aria-disabled="true"
-            if (!subMenuButton.isDisabled()) {
+            if (openScope && !subMenuButton.isDisabled()) {
+                openScope.openSubMenu?.selfClose(CloseEnum.SIDLING_OPENED);
                 subMenu.open(ev);
+                openScope.openSubMenu = subMenu;
             }
         };
         subMenuButton.setAriaHasPopup('menu');
@@ -62,6 +72,7 @@ export class MenuWidget extends RovingTabContainerWidget {
 
         this.openScope = {
             lastFocus: getLastFocus(event.sourceEvent),
+            openSubMenu: undefined,
             abort: () => this.selfClose(CloseEnum.ABORT),
             close: () => this.selfClose(CloseEnum.CLOSE),
             removers: new DestroyFns(),
@@ -84,9 +95,10 @@ export class MenuWidget extends RovingTabContainerWidget {
 
     private selfClose(mode: CloseEnum) {
         if (this.openScope === undefined) return;
-        const { lastFocus, removers } = this.openScope;
+        const { lastFocus, removers, openSubMenu } = this.openScope;
         this.openScope = undefined; // stop re-entrance
 
+        openSubMenu?.selfClose(CloseEnum.PARENT_CLOSED);
         setAttribute(lastFocus, 'aria-expanded', false);
         if (mode === CloseEnum.CLOSE) {
             lastFocus?.focus({ preventScroll: true });
