@@ -19,7 +19,7 @@ import { SKIP_JS_BUILTINS, getPath, mergeDefaults, without } from './object';
 import { isProperties } from './properties';
 
 type StringSet = { has(value: string): boolean };
-export type CloneOptions = { shallow?: StringSet; assign?: StringSet; seen?: Set<unknown> };
+export type CloneOptions = { shallow?: StringSet; assign?: StringSet; seen?: unknown[] };
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
 
@@ -119,13 +119,14 @@ function cloneArray<T>(source: T[], opts?: CloneOptions): T[] {
     const result: T[] = [];
     result.length = source.length;
     let i = 0;
+    const parentSeen = opts?.seen;
     for (const item of source) {
-        if (typeof item === 'object' && opts?.seen?.has(item)) {
+        if (typeof item === 'object' && parentSeen?.includes(item)) {
             Logger.warn('cycle detected in array', item);
             continue;
         }
-        opts?.seen?.add(item);
-        result[i++] = deepClone(item, opts);
+        const seen = parentSeen ? [...parentSeen, item] : undefined;
+        result[i++] = deepClone(item, { ...opts, seen });
     }
     result.length = i;
     return result;
