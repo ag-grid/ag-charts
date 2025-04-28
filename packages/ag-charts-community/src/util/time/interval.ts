@@ -120,6 +120,14 @@ export class TimeInterval {
         return range;
     }
 
+    previous(date: Date) {
+        return this._decode(this._encode(this.ceil(date)) - 1);
+    }
+
+    next(date: Date) {
+        return this._decode(this._encode(this.floor(date)) + 1);
+    }
+
     rangeCount(start: Date, stop: Date, params: RangeParams = {}) {
         const [e0, e1] = this.rangeIndices(start, stop, params);
         return e1 - e0;
