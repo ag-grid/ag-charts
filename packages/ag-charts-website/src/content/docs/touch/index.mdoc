@@ -23,7 +23,8 @@ By default, Single Finger Touch Drag events are handled like mouse drag events. 
 
 {% touchDevice
     title="Single Finger Drag"
-    videoPath="/images/left-right-touch.gif" %}
+    videoPath="/images/left-right-touch.gif"
+    description="Click on the different drag actions to see what happens" %}
 {% /touchDevice %}
 
 {% chartExampleRunner
@@ -49,7 +50,7 @@ In this example:
 
 By default, charts use two finger gestures to zoom and pan. To pass this gesture to the underlying page, set `enableTwoFingerZoom: false`.
 
-{% touchDevice title="Two Finger Zoom"  videoPath="/images/zoom-out-touch.gif" %}
+{% touchDevice title="Two Finger Zoom"  videoPath="/images/zoom-out-touch.gif"  description="Pinch with two fingers to zoom in and out" %}
 {% /touchDevice %}
 
 {% chartExampleRunner
@@ -69,7 +70,7 @@ zoom: {
 
 Long Tapping the chart will open the [Context Menu](./context-menu), if available.
 
-{% touchDevice title="Long"  videoPath="/images/long-touch.gif" %}
+{% touchDevice title="Long Press"  videoPath="/images/long-touch.gif"  description="Hold to open the context menu on a chart" %}
 {% /touchDevice %}
 
 

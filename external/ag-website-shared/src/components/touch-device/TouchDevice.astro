@@ -7,16 +7,24 @@ interface Props {
     title: string;
     showHeader?: boolean;
     videoPath?: string;
+    description?: string;
 }
 
-const { title = 'Video', showHeader, videoPath } = Astro.props as Props;
+const { title = 'Video', showHeader, videoPath, description } = Astro.props as Props;
 ---
 
 <div class={styles.videoSection}>
     <div>
         <div class={styles.deviceContainer}>
-            <div class={styles.deviceContent} class:list={{ [styles.videoContent]: showHeader }}><slot /></div>
-            <img src={urlWithBaseUrl(videoPath)} class={styles.touchImage} alt={title} />
+            <hr />
+            <div class={styles.touchContainer}>
+                <img src={urlWithBaseUrl(videoPath)} class={styles.touchImage} alt={title} />
+                <div class={styles.gap}>
+                    <div class={styles.title}>{title}</div>
+                    <div class={styles.description}>{description}</div>
+                </div>
+            </div>
+            <hr />
         </div>
     </div>
 </div>

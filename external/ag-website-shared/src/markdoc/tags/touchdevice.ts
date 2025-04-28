@@ -8,5 +8,6 @@ export const touchDevice: Schema<Config, Render> = {
         title: { type: String },
         playlist: { type: String },
         videoPath: { type: String },
+        description: { type: String },
     },
 };
