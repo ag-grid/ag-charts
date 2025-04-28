@@ -961,14 +961,14 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
         const { offset } = this.properties.calloutLabel;
 
-        this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.Callout).forEach((line, index) => {
+        this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.Callout).forEach((line) => {
             const datum = line.closestDatum() as DonutNodeDatum;
-            const { calloutLabel: label, outerRadius } = datum;
+            const { calloutLabel: label, outerRadius, datumIndex } = datum;
 
             if (label?.text && !label.hidden && outerRadius !== 0) {
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
-                line.stroke = calloutColors[index % calloutColors.length];
+                line.stroke = calloutColors[datumIndex % calloutColors.length];
                 line.fill = undefined;
 
                 const x1 = datum.midCos * outerRadius;
