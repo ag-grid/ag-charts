@@ -1,8 +1,8 @@
 import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { Logger, clamp } from 'ag-charts-core';
+import { type AnyFn, Logger, clamp } from 'ag-charts-core';
 
-import { ContextMenuItem, appendItem, expandBuiltin } from './contextMenuItem';
+import { ContextMenuItem, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
@@ -91,6 +91,12 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
         this.element.style.display = 'none';
         this.element.addEventListener('contextmenu', (event) => event.preventDefault()); // AG-10223
+        // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
+        this.element.addEventListener('focusout', ({ relatedTarget }) => {
+            if (relatedTarget instanceof Node && !this.element.contains(relatedTarget)) {
+                this.hide();
+            }
+        });
         this.destroyFns.push(
             () => this.element.parentNode?.removeChild(this.element),
             () => this.menuWidget.destroy(),
@@ -124,39 +130,32 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(this.registry.addListener('context-complete', (e) => this.onContext(e)));
     }
 
-    private expandItemsOptions(showing: AgContextMenuItemShowOn): ContextMenuItem[] {
-        const { ctx, deprecationMap } = this;
-        const expandedItems: ContextMenuItem[] = [];
-        expandedItems.length = 0;
-
-        for (const item of this.items) {
-            if (typeof item === 'string') {
-                expandBuiltin(showing, ctx.contextMenuRegistry, item, expandedItems);
-            } else if (item.type !== 'submenu') {
-                appendItem(showing, item, expandedItems);
-            } else {
-                throw new Error('`type: "submenu" not yet implemented');
-            }
-        }
-
-        for (const deprecatedKey of Object.keys(deprecationMap) as (keyof typeof deprecationMap)[]) {
-            const { items, showOn } = deprecationMap[deprecatedKey];
-            if (items.length > 0) {
+    private createDeprecatedAdaptorItems(): typeof this.items {
+        const result: AgContextMenuItem[] = [] satisfies typeof this.items;
+        for (const deprecatedKey of Object.keys(this.deprecationMap) as (keyof typeof this.deprecationMap)[]) {
+            const { items, showOn } = this.deprecationMap[deprecatedKey];
+            result.push('separator');
+            for (const { action, label } of items) {
                 const type = 'action';
                 const iconUrl = undefined;
                 const enable = true;
-                expandBuiltin(showing, ctx.contextMenuRegistry, 'separator', expandedItems);
-                for (const { action, label } of items) {
-                    appendItem(showing, { type, showOn, iconUrl, enable, label, action }, expandedItems);
-                }
+                // Signature typing cannot be verified at compile, because callbacks in api options are just JS
+                // functions assigned at runtime (typing info is lost).
+                action satisfies AnyFn;
+                result.push({ type, showOn, iconUrl, enable, label, action: action as AnyFn });
             }
         }
+        return result;
+    }
 
-        // remove trailing 'separator' menu item
-        if (expandedItems[expandedItems.length - 1].type === 'separator') {
-            expandedItems.length = expandedItems.length - 1;
-        }
-        return expandedItems;
+    private expandItemsOptions(showing: AgContextMenuItemShowOn): ContextMenuItem[] {
+        const result: ContextMenuItem[] = [];
+        const deprecatedItems = this.createDeprecatedAdaptorItems();
+
+        expandItems(showing, this.ctx.contextMenuRegistry, this.items, result);
+        expandItems(showing, this.ctx.contextMenuRegistry, deprecatedItems, result);
+
+        return result;
     }
 
     private onContext(event: ContextMenuEvent) {
@@ -192,7 +191,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.createMenu(expandedItems);
         this.element.appendChild(this.menuWidget.getElement());
-        this.menuWidget.open(widgetEvent, { overrideFocusVisible, autoCloseOnBlur: true });
+        this.menuWidget.open(widgetEvent, { overrideFocusVisible });
     }
 
     private hide() {
@@ -205,12 +204,25 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.style.display = 'none';
     }
 
+    private onSubMenuOpen(button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
+        const bounds = button.getBounds();
+        button.getElement().insertAdjacentElement('afterend', menu.getElement());
+        menu.getElement().style.position = 'absolute';
+        menu.setBounds({ x: bounds.x + bounds.width, y: bounds.y });
+    }
+    private onSubMenuClose(_button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
+        menu.remove();
+    }
+
     private createMenu(expandedItems: ContextMenuItem[]) {
         const { menuWidget } = this;
         menuWidget.clear();
         menuWidget.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         menuWidget.setTabIndex(-1);
+        this.createMenuItems(menuWidget, expandedItems);
+    }
 
+    private createMenuItems(menuWidget: _Widget.MenuWidget, expandedItems: ContextMenuItem[]) {
         for (const item of expandedItems) {
             switch (item.type) {
                 case 'separator':
@@ -219,9 +231,17 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     sep.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
                     break;
                 case 'action':
-                    menuWidget.addChild(this.createButtonElement(item));
+                    const btn = new _Widget.ButtonWidget();
+                    this.initButtonElement(btn, item);
+                    menuWidget.addChild(btn);
                     break;
                 case 'submenu':
+                    const { subMenuButton, subMenu } = menuWidget.addSubMenu();
+                    subMenu.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
+                    subMenu.addListener('open-widget', () => this.onSubMenuOpen(subMenuButton, subMenu));
+                    subMenu.addListener('close-widget', () => this.onSubMenuClose(subMenuButton, subMenu));
+                    this.initButtonElement(subMenuButton, item);
+                    this.createMenuItems(subMenu, item.items);
                     break;
                 default:
                     throw new Error('unhandled case');
@@ -231,7 +251,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createButtonOnClick(
         showOn: AgContextMenuItemShowOn,
         callback: ContextMenuCallback
-    ): (event: _ModuleSupport.MouseWidgetEvent) => void {
+    ): (event: _Widget.MouseWidgetEvent) => void {
         if (ContextMenuRegistry.checkCallback('legend-item', showOn, callback)) {
             return (widgetEvent: _ModuleSupport.MouseWidgetEvent) => {
                 const event: Event = widgetEvent.sourceEvent;
@@ -267,8 +287,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private createButtonElement(item: ContextMenuItem): _Widget.ButtonWidget {
-        const button = new _Widget.ButtonWidget();
+    private initButtonElement(button: _Widget.ButtonWidget, item: ContextMenuItem) {
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         button.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         button.setEnabled(item.enable);
@@ -278,7 +297,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             button.addListener('click', this.createButtonOnClick(showOn, action));
         }
         button.addListener('mousemove', () => button.focus({ preventScroll: true }));
-        return button;
     }
 
     private reposition() {

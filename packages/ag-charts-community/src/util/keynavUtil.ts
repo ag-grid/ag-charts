@@ -73,19 +73,6 @@ function containsPoint(container: Element, event: Pick<MouseEvent & TouchEvent, 
     return false;
 }
 
-export function addAutoCloseOnBlurEventListener(destroyFns: DestroyFns, buttons: HTMLElement[], hideCb: () => void) {
-    const handler = (ev: FocusEvent) => {
-        const buttonArray: (EventTarget | null)[] = buttons;
-        const isLeavingMenu = !buttonArray.includes(ev.relatedTarget);
-        if (isLeavingMenu) {
-            hideCb();
-        }
-    };
-    for (const button of buttons) {
-        addRemovableEventListener(destroyFns, button, 'blur', handler);
-    }
-}
-
 export function addOverrideFocusVisibleEventListener(
     destroyFns: DestroyFns,
     menu: HTMLElement,
@@ -225,19 +212,9 @@ export function initMenuKeyNav(opts: {
     buttons: HTMLElement[];
     // AG-13363 Force disable `:focus-visible` selector (e.g. when opened by a touch device)
     overrideFocusVisible?: false;
-    // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
-    autoCloseOnBlur?: boolean;
     closeCallback: () => void;
 }): MenuCloser {
-    const {
-        sourceEvent,
-        orientation,
-        menu,
-        buttons,
-        closeCallback,
-        overrideFocusVisible,
-        autoCloseOnBlur = false,
-    } = opts;
+    const { sourceEvent, orientation, menu, buttons, closeCallback, overrideFocusVisible } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
 
     const lastFocus = getLastFocus(sourceEvent);
@@ -260,10 +237,6 @@ export function initMenuKeyNav(opts: {
             buttons[0]?.focus();
         }
     });
-
-    if (autoCloseOnBlur) {
-        addAutoCloseOnBlurEventListener(destroyFns, buttons, onEscape);
-    }
 
     buttons[0]?.focus({ preventScroll: true });
 

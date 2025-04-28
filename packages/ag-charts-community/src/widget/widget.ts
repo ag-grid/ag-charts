@@ -100,9 +100,15 @@ export abstract class Widget<
         this.children.length = 0;
         this.destructor();
         this.elem.remove();
+        this.remove();
         this.elemContainer?.remove();
         this.internalListener?.destroy();
         this.htmlListener?.destroy(this);
+    }
+
+    remove(): void {
+        this.elem.remove();
+        this.elemContainer?.remove();
     }
 
     setHidden(hidden: boolean): void {
@@ -131,6 +137,10 @@ export abstract class Widget<
 
     setAriaLabel(ariaLabel: BaseAttributeTypeMap['aria-label'] | undefined) {
         setAttribute(this.elem, 'aria-label', ariaLabel);
+    }
+
+    setAriaHasPopup(ariaHasPopup: BaseAttributeTypeMap['aria-haspopup'] | undefined) {
+        setAttribute(this.elem, 'aria-haspopup', ariaHasPopup);
     }
 
     setInnerHTML(html: string) {

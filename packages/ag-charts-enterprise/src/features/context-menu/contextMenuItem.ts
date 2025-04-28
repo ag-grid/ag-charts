@@ -1,4 +1,5 @@
 import type {
+    AgContextMenuItem,
     AgContextMenuItemLiteral,
     AgContextMenuItemShowOn,
     AgContextMenuItemType,
@@ -14,7 +15,11 @@ function showsFor(showOn: AgContextMenuItemShowOn, showing: AgContextMenuItemSho
     return showOn === showing;
 }
 
-export function appendItem(showing: AgContextMenuItemShowOn, item: Options, result: ContextMenuItem[]) {
+function appendItem(
+    showing: AgContextMenuItemShowOn,
+    item: Options,
+    result: ContextMenuItem[]
+): ContextMenuItem | undefined {
     let mustShow: boolean = true;
     if (item.type === 'separator') {
         const last: ContextMenuItem | undefined = result.at(result.length - 1);
@@ -23,7 +28,9 @@ export function appendItem(showing: AgContextMenuItemShowOn, item: Options, resu
 
     mustShow &&= showsFor(item.showOn ?? 'always', showing);
     if (mustShow) {
-        result.push(new ContextMenuItem(item));
+        const menuItem = new ContextMenuItem(item);
+        result.push(menuItem);
+        return menuItem;
     }
 }
 
@@ -38,7 +45,7 @@ function appendBuiltinItem(
     }
 }
 
-export function expandBuiltin(
+function expandBuiltin(
     showing: AgContextMenuItemShowOn,
     registry: _ModuleSupport.ContextMenuRegistry,
     keyword: AgContextMenuItemLiteral,
@@ -54,6 +61,28 @@ export function expandBuiltin(
     }
 }
 
+export function expandItems(
+    showing: AgContextMenuItemShowOn,
+    registry: _ModuleSupport.ContextMenuRegistry,
+    items: readonly Readonly<AgContextMenuItem>[],
+    result: ContextMenuItem[]
+) {
+    for (const item of items) {
+        if (typeof item === 'string') {
+            expandBuiltin(showing, registry, item, result);
+        } else {
+            const menuItem = appendItem(showing, item, result);
+            if (item.items && menuItem && menuItem.type === 'submenu') {
+                expandItems(showing, registry, item.items, menuItem.items);
+            }
+        }
+    }
+    // remove trailing 'separator' menu item
+    if (result[result.length - 1]?.type === 'separator') {
+        result.pop();
+    }
+}
+
 export class ContextMenuItem implements _ModuleSupport.ContextMenuItemContract {
     type: AgContextMenuItemType = 'action';
     showOn: AgContextMenuItemShowOn = 'always';
@@ -65,6 +94,7 @@ export class ContextMenuItem implements _ModuleSupport.ContextMenuItemContract {
 
     constructor(options?: Options) {
         if (options) this.setOptions(options);
+        this.items = [];
     }
 
     private setField<K extends keyof Options>(key: K, that: { [L in K]: Options[K] }, value: Options[K]): void {

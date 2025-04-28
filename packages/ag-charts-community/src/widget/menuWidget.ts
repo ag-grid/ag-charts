@@ -4,23 +4,31 @@ import type { Direction } from 'ag-charts-types';
 import { setAttribute } from '../util/attributeUtil';
 import { DestroyFns } from '../util/destroy';
 import {
-    addAutoCloseOnBlurEventListener,
     addEscapeEventListener,
     addMouseCloseListener,
     addOverrideFocusVisibleEventListener,
     addTouchCloseListener,
     getLastFocus,
 } from '../util/keynavUtil';
+import { ButtonWidget } from './buttonWidget';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
 import type { WidgetEvent } from './widgetEvents';
 
 type OpenScope = {
     lastFocus: HTMLElement | undefined;
-    lastFocusAborted: boolean;
+    openSubMenu: MenuWidget | undefined;
     removers: DestroyFns;
     abort: () => void;
     close: () => void;
 };
+
+enum CloseMode {
+    CLOSE = '0',
+    ABORT = '1',
+    DESTROY = '2',
+    PARENT_CLOSED = '3',
+    SIDLING_OPENED = '4',
+}
 
 export class MenuWidget extends RovingTabContainerWidget {
     private openScope?: OpenScope;
@@ -30,7 +38,7 @@ export class MenuWidget extends RovingTabContainerWidget {
     }
 
     protected override destructor() {
-        // Nothing to destroy.
+        this.selfClose(CloseMode.DESTROY);
     }
 
     public addSeparator(): Element {
@@ -39,13 +47,34 @@ export class MenuWidget extends RovingTabContainerWidget {
         return sep;
     }
 
-    public open(event: WidgetEvent, opts?: { overrideFocusVisible?: boolean; autoCloseOnBlur?: boolean }): void {
-        const { autoCloseOnBlur = false, overrideFocusVisible = undefined } = opts ?? {};
+    public addSubMenu(): { subMenuButton: ButtonWidget; subMenu: MenuWidget } {
+        const subMenuButton = new ButtonWidget();
+        const subMenu = new MenuWidget();
+        const accessibleOpener = (ev: WidgetEvent) => {
+            const { openScope } = this;
+            // Disabled buttons are focusable and can receive events, but have aria-disabled="true"
+            if (openScope && !subMenuButton.isDisabled()) {
+                openScope.openSubMenu?.selfClose(CloseMode.SIDLING_OPENED);
+                subMenu.open(ev);
+                openScope.openSubMenu = subMenu;
+            }
+        };
+        subMenuButton.setAriaHasPopup('menu');
+        subMenuButton.addListener('click', accessibleOpener);
+        subMenuButton.addListener('mouseenter', accessibleOpener);
+        this.addChild(subMenuButton);
+        return { subMenuButton, subMenu };
+    }
+
+    public open(event: WidgetEvent, opts?: { overrideFocusVisible?: boolean }): void {
+        const { overrideFocusVisible = undefined } = opts ?? {};
+        if (this.openScope != null) return; // already open
+
         this.openScope = {
             lastFocus: getLastFocus(event.sourceEvent),
-            lastFocusAborted: false,
-            abort: () => this.abort(),
-            close: () => this.selfClose(),
+            openSubMenu: undefined,
+            abort: () => this.selfClose(CloseMode.ABORT),
+            close: () => this.selfClose(CloseMode.CLOSE),
             removers: new DestroyFns(),
         };
         const buttons: HTMLElement[] = this.children.map((value) => value.getElement());
@@ -53,24 +82,25 @@ export class MenuWidget extends RovingTabContainerWidget {
 
         addMouseCloseListener(this.openScope.removers, this.elem, this.openScope.abort);
         addTouchCloseListener(this.openScope.removers, this.elem, this.openScope.abort);
-        addEscapeEventListener(this.openScope.removers, this.elem, this.openScope.close);
-        if (autoCloseOnBlur === true) {
-            addAutoCloseOnBlurEventListener(this.openScope.removers, buttons, this.openScope.close);
+        for (const child of this.children) {
+            addEscapeEventListener(this.openScope.removers, child.getElement(), this.openScope.close);
         }
         if (overrideFocusVisible !== undefined) {
             addOverrideFocusVisibleEventListener(this.openScope.removers, this.elem, buttons, overrideFocusVisible);
         }
 
+        this.internalListener?.dispatch('open-widget', this, { type: 'open-widget' });
         this.children[0]?.focus({ preventScroll: true });
     }
 
-    private selfClose() {
+    private selfClose(mode: CloseMode) {
         if (this.openScope === undefined) return;
-        const { lastFocus, lastFocusAborted, removers } = this.openScope;
+        const { lastFocus, removers, openSubMenu } = this.openScope;
         this.openScope = undefined; // stop re-entrance
 
+        openSubMenu?.selfClose(CloseMode.PARENT_CLOSED);
         setAttribute(lastFocus, 'aria-expanded', false);
-        if (!lastFocusAborted) {
+        if (mode === CloseMode.CLOSE) {
             lastFocus?.focus({ preventScroll: true });
         }
         removers.destroy();
@@ -79,11 +109,6 @@ export class MenuWidget extends RovingTabContainerWidget {
     }
 
     public close() {
-        this.selfClose();
-    }
-
-    private abort() {
-        this.openScope!.lastFocusAborted = true;
-        this.selfClose();
+        this.selfClose(CloseMode.CLOSE);
     }
 }
