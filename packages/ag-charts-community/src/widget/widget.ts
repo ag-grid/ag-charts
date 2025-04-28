@@ -99,9 +99,7 @@ export abstract class Widget<
         });
         this.children.length = 0;
         this.destructor();
-        this.elem.remove();
         this.remove();
-        this.elemContainer?.remove();
         this.internalListener?.destroy();
         this.htmlListener?.destroy(this);
     }
