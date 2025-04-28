@@ -1,4 +1,4 @@
-import { type BaseStyleTypeMap, createElement, setAttribute, setElementStyle } from 'ag-charts-core';
+import { type BaseStyleTypeMap, createElement, setElementStyle } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
 import type { LocaleManager } from '../locale/localeManager';
@@ -19,7 +19,6 @@ type ParentProperties<T = NativeWidget<HTMLDivElement>> =
 
 type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
-    readonly id?: string;
     readonly cursor?: BaseStyleTypeMap['cursor'];
 };
 
@@ -221,7 +220,6 @@ export class ProxyInteractionService {
 
     private initElement<T extends ProxyElementType>(params: ElemParams<T>, widget: Widget) {
         const element = widget.getElement();
-        setAttribute(element, 'id', params.id);
         setElementStyle(element, 'cursor', params.cursor);
         element.classList.toggle('ag-charts-proxy-elem', true);
         return element;

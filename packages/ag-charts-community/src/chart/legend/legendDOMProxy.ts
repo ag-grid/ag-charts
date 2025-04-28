@@ -56,10 +56,7 @@ export class LegendDOMProxy {
     private prevButton?: ButtonWidget;
     private nextButton?: ButtonWidget;
 
-    public constructor(
-        ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>,
-        private readonly idPrefix: string
-    ) {
+    public constructor(ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>, idPrefix: string) {
         this.itemList = ctx.proxyInteractionService.createProxyContainer({
             type: 'list',
             domManagerId: `${idPrefix}-toolbar`,
@@ -176,7 +173,6 @@ export class LegendDOMProxy {
                 if (newNeedsButtons) {
                     this.prevButton = ctx.proxyInteractionService.createProxyElement({
                         type: 'button',
-                        id: `${this.idPrefix}-prev-page`,
                         textContent: { id: 'ariaLabelLegendPagePrevious' },
                         tabIndex: 0,
                         parent: this.paginationGroup,
@@ -187,7 +183,6 @@ export class LegendDOMProxy {
 
                     this.nextButton ??= ctx.proxyInteractionService.createProxyElement({
                         type: 'button',
-                        id: `${this.idPrefix}-next-page`,
                         textContent: { id: 'ariaLabelLegendPageNext' },
                         tabIndex: 0,
                         parent: this.paginationGroup,
