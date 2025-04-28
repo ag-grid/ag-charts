@@ -119,14 +119,15 @@ function cloneArray<T>(source: T[], opts?: CloneOptions): T[] {
     const result: T[] = [];
     result.length = source.length;
     let i = 0;
-    const parentSeen = opts?.seen;
+    const seen = opts?.seen;
     for (const item of source) {
-        if (typeof item === 'object' && parentSeen?.includes(item)) {
+        if (typeof item === 'object' && seen?.includes(item)) {
             Logger.warn('cycle detected in array', item);
             continue;
         }
-        const seen = parentSeen ? [...parentSeen, item] : undefined;
+        seen?.push(item);
         result[i++] = deepClone(item, { ...opts, seen });
+        seen?.pop();
     }
     result.length = i;
     return result;
