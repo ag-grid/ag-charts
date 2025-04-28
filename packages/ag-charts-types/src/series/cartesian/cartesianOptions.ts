@@ -194,8 +194,7 @@ export type AgCartesianAxisOptions =
     | AgCategoryAxisOptions
     | AgOrdinalTimeAxisOptions
     | AgGroupedCategoryAxisOptions
-    | AgContinuousTimeAxisOptions
-    | AgUnitTimeAxisOptions;
+    | AgTimeAxisOptions;
 
 type AgCartesianAxisThemeSpecialOptions = 'position' | 'type' | 'crossLines';
 /** This is the configuration shared by all types of axis. */
