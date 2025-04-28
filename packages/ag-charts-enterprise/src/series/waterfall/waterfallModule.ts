@@ -15,7 +15,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     solo: true,
     moduleFactory: (ctx) => new WaterfallSeries(ctx),
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
+    defaultAxes: [{ type: 'number' }, { type: 'category' }],
     themeTemplate: WATERFALL_SERIES_THEME,
 };
 

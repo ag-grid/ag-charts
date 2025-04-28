@@ -404,6 +404,25 @@ export class ChartTheme {
                 keys: [],
                 line: { enabled: false },
                 crosshair: { enabled: true },
+                position: {
+                    $if: [
+                        {
+                            $and: [
+                                {
+                                    $or: [
+                                        { $eq: [{ $path: '/series/0/type' }, 'bar'] },
+                                        { $eq: [{ $path: '/series/0/type' }, 'box-plot'] },
+                                        { $eq: [{ $path: '/series/0/type' }, 'range-bar'] },
+                                        { $eq: [{ $path: '/series/0/type' }, 'waterfall'] },
+                                    ],
+                                },
+                                { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] },
+                            ],
+                        },
+                        CARTESIAN_POSITION.BOTTOM,
+                        CARTESIAN_POSITION.LEFT,
+                    ],
+                },
             },
             { title: true, time: 'off' }
         ),
@@ -423,6 +442,25 @@ export class ChartTheme {
                 label: { autoRotate: true },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: false },
+                position: {
+                    $if: [
+                        {
+                            $and: [
+                                {
+                                    $or: [
+                                        { $eq: [{ $path: '/series/0/type' }, 'bar'] },
+                                        { $eq: [{ $path: '/series/0/type' }, 'box-plot'] },
+                                        { $eq: [{ $path: '/series/0/type' }, 'range-bar'] },
+                                        { $eq: [{ $path: '/series/0/type' }, 'waterfall'] },
+                                    ],
+                                },
+                                { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] },
+                            ],
+                        },
+                        CARTESIAN_POSITION.LEFT,
+                        CARTESIAN_POSITION.BOTTOM,
+                    ],
+                },
             },
             { title: true, time: 'off' }
         ),

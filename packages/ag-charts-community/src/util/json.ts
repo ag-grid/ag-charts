@@ -1044,7 +1044,7 @@ function apply(value: string | Array<unknown>, meta: OperationMeta) {
             if (isPlainObject(variables)) {
                 jsonResolveObjects(variablesTarget, [variables], {
                     ...meta,
-                    id: `${meta.id}/$apply/$variables/`,
+                    id: `${meta.id}/$apply/$variables`,
                 });
             }
             const resolvedFromPath = resolvePath([], fromPath, undefined, variablesTarget);

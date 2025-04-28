@@ -292,10 +292,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.removeDisabledOptions(options);
 
         const themeParameters = this.getThemeParameters(activeTheme, options);
-        const defaults = this.getAllThemeDefaults(activeTheme);
+        const themeDefaults = this.getAllThemeDefaults(activeTheme);
+        const defaultAxes = seriesRegistry.cloneDefaultAxes(this.optionsType(options));
+        const defaultSeries = { series: options.series?.map(() => ({ type: 'line' })) };
+
+        const sources: Array<object> = [processedOverrides, options];
+        if (defaultAxes) sources.push(defaultAxes);
+        if (defaultSeries) sources.push(defaultSeries);
+        sources.push(...themeDefaults);
 
         let processedOptions = jsonResolveOperations<T>(
-            [processedOverrides, options, ...defaults],
+            sources,
             themeParameters
             // new Set(['palette', 'theme'])
         );
@@ -322,11 +329,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         3 – Should `jsonResolveSourceWithTarget()` use `isObject()` or `isPlainObject()`? Compare tests vs `processedOptions.container` being removed by it.
 
         */
-
-        // TODO: Is this still needed? The `jsonResolveOperations()` is also a deep clone.
-        // Create isolated copy of options before we start mutations - this is performance sensitive,
-        // so we aim to only do this once in the processing flow.
-        processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
         // TODO: Replace these with theme operations?
         this.processSeriesOptions(processedOptions);
@@ -355,7 +357,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     getAllThemeDefaults(activeTheme: ChartTheme) {
         const themeConfig = activeTheme.config ?? {};
         const chartDefaults = {
-            $apply: [themeConfig, '/$seriesType', { seriesType: { $path: '/series/0/type' } }, ['axes', 'series']],
+            $apply: [
+                themeConfig,
+                '/$seriesType',
+                { seriesType: { $path: ['/series/0/type', 'line'] } },
+                ['axes', 'series'],
+            ],
         };
         const axesDefaults = {
             axes: {

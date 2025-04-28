@@ -14,7 +14,7 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     identifier: 'box-plot',
     moduleFactory: (ctx) => new BoxPlotSeries(ctx),
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
+    defaultAxes: [{ type: 'number' }, { type: 'category' }],
     themeTemplate: BOX_PLOT_SERIES_THEME,
     groupable: true,
 };

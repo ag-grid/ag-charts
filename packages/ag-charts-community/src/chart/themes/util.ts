@@ -1,34 +1,8 @@
 import type { RequiredInternalAgImageFill, RequiredInternalAgPatternColor } from 'ag-charts-core';
-import type { AgCartesianChartOptions, WithThemeParams } from 'ag-charts-types';
+import type { WithThemeParams } from 'ag-charts-types';
 
 import { Color } from '../../util/color';
 import { mapValues } from '../../util/object';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from './constants';
-
-type CartesianAxis = Exclude<AgCartesianChartOptions['axes'], undefined>[0];
-
-export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]> = [
-    {
-        type: CARTESIAN_AXIS_TYPE.NUMBER,
-        position: {
-            $if: [
-                { $eq: [{ $path: ['/direction', undefined] }, 'horizontal'] },
-                CARTESIAN_POSITION.BOTTOM,
-                CARTESIAN_POSITION.LEFT,
-            ],
-        },
-    },
-    {
-        type: CARTESIAN_AXIS_TYPE.CATEGORY,
-        position: {
-            $if: [
-                { $eq: [{ $path: ['/direction', undefined] }, 'horizontal'] },
-                CARTESIAN_POSITION.LEFT,
-                CARTESIAN_POSITION.BOTTOM,
-            ],
-        },
-    },
-];
 
 export const SAFE_FILL_OPERATION: any = {
     $if: [
