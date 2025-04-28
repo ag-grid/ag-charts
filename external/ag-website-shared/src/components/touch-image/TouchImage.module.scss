@@ -4,6 +4,7 @@
     position: relative;
     width: 100%;
 }
+
 .touchImage {
     filter: invert(0) hue-rotate(206deg) saturate(1.25);
     width: 150px;
@@ -15,9 +16,11 @@
         mix-blend-mode: screen;
     }
 }
+
 .title {
     font-weight: var(--text-semibold);
 }
+
 .description {
     color: var(--color-text-secondary);
     opacity: 0.8;
@@ -39,64 +42,50 @@
     padding-top: $spacing-size-5;
     padding-bottom: $spacing-size-5;
     gap: 16px;
+}
+
+.touchContainer {
+    flex: 0 0 60%;
+    max-width: 60%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+hr {
+    flex: 1 1 0;
+}
+
+img {
+    height: auto;
+    display: block;
+}
+
+@media (max-width: 720px) {
+    .deviceContainer {
+        flex-direction: column;
+        gap: 12px;
+    }
 
     .touchContainer {
-        flex: 0 0 60%;
-        max-width: 60%;
-        display: flex;
-        flex-direction: row;
+        flex: 0 0 100%;
+        max-width: 100%;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
     }
 
-    .deviceContent {
-        position: absolute;
-        width: 93%;
-        button:not(ul button) {
-            display: none;
-        }
+    .description {
+        text-align: center;
+    }
 
-        header {
-            border: none !important;
-            display: flex;
-            justify-content: center;
-            padding-bottom: $spacing-size-5;
-            box-shadow: none;
-        }
+    .gap {
+        align-items: center;
+        width: 100%;
     }
 
     hr {
-        flex: 1 1 0;
-    }
-
-    img {
-        height: auto;
-        display: block;
-    }
-
-    @media (max-width: 720px) {
-        flex-direction: column;
-        gap: 12px;
-
-        .touchContainer {
-            flex: 0 0 100%;
-            max-width: 100%;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .description {
-            text-align: center;
-        }
-
-        .gap {
-            align-items: center;
-            width: 100%;
-        }
-
-        hr {
-            display: none;
-        }
+        display: none;
     }
 }
