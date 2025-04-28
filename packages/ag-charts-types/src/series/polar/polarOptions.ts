@@ -1,6 +1,14 @@
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
-import type { AgAngleCategoryAxisOptions, AgAngleNumberAxisOptions } from '../../chart/polarAxisOptions';
-import type { AgRadiusCategoryAxisOptions, AgRadiusNumberAxisOptions } from '../../chart/radiusAxisOptions';
+import type {
+    AgAngleAxesCrossLineThemeOptions,
+    AgAngleCategoryAxisOptions,
+    AgAngleNumberAxisOptions,
+} from '../../chart/polarAxisOptions';
+import type {
+    AgRadiusAxesCrossLineThemeOptions,
+    AgRadiusCategoryAxisOptions,
+    AgRadiusNumberAxisOptions,
+} from '../../chart/radiusAxisOptions';
 import type { AgDonutSeriesOptions } from './donutOptions';
 import type { AgNightingaleSeriesOptions } from './nightingaleOptions';
 import type { AgPieSeriesOptions } from './pieOptions';
@@ -24,8 +32,6 @@ export type AgPolarAxisOptions =
     | AgRadiusCategoryAxisOptions
     | AgRadiusNumberAxisOptions;
 
-export type AgPolarAxisType = AgPolarAxisOptions['type'];
-
 export interface AgBasePolarChartOptions {
     /** Series configurations. */
     series?: AgPolarSeriesOptions[];
@@ -34,10 +40,18 @@ export interface AgBasePolarChartOptions {
     axes?: AgPolarAxisOptions[];
 }
 
-export interface AgAngleCategoryAxisThemeOptions extends Omit<AgAngleCategoryAxisOptions, 'type'> {}
-export interface AgAngleNumberAxisThemeOptions extends Omit<AgAngleNumberAxisOptions, 'type'> {}
-export interface AgRadiusCategoryAxisThemeOptions extends Omit<AgRadiusCategoryAxisOptions, 'type'> {}
-export interface AgRadiusNumberAxisThemeOptions extends Omit<AgRadiusNumberAxisOptions, 'type'> {}
+export interface AgAngleCategoryAxisThemeOptions
+    extends Omit<AgAngleCategoryAxisOptions, 'type' | 'crossLines'>,
+        AgAngleAxesCrossLineThemeOptions {}
+export interface AgAngleNumberAxisThemeOptions
+    extends Omit<AgAngleNumberAxisOptions, 'type' | 'crossLines'>,
+        AgAngleAxesCrossLineThemeOptions {}
+export interface AgRadiusCategoryAxisThemeOptions
+    extends Omit<AgRadiusCategoryAxisOptions, 'type' | 'crossLines'>,
+        AgRadiusAxesCrossLineThemeOptions {}
+export interface AgRadiusNumberAxisThemeOptions
+    extends Omit<AgRadiusNumberAxisOptions, 'type' | 'crossLines'>,
+        AgRadiusAxesCrossLineThemeOptions {}
 
 export interface AgPolarAxesTheme {
     'angle-category'?: AgAngleCategoryAxisThemeOptions;

@@ -235,7 +235,7 @@ export interface AgCartesianAxesTheme {
     /** This extends the common axis configuration with options specific to grouped-category axes. */
     'grouped-category'?: AgGroupedCategoryAxisThemeOptions;
     /** This extends the common axis configuration with options specific to unit-time axes. */
-    'unit-time'?: AgUnitTimeAxisOptions;
+    'unit-time'?: AgUnitTimeAxisThemeOptions;
 }
 
 export type AgContinuousCartesianAxesTheme = Pick<AgCartesianAxesTheme, 'number' | 'log' | 'time'>;
@@ -263,6 +263,10 @@ export interface AgGroupedCategoryAxisThemeOptions
 export interface AgTimeAxisThemeOptions
     extends Omit<AgTimeAxisOptions, 'type' | 'crossLines'>,
         AgCartesianAxisThemeOptions<AgTimeAxisOptions>,
+        AgCartesianAxesCrossLineThemeOptions {}
+export interface AgUnitTimeAxisThemeOptions
+    extends Omit<AgUnitTimeAxisOptions, 'type' | 'crossLines'>,
+        AgCartesianAxisThemeOptions<AgUnitTimeAxisOptions>,
         AgCartesianAxesCrossLineThemeOptions {}
 
 export interface AgCartesianCrossLineOptions extends AgBaseCrossLineOptions<AgCartesianCrossLineLabelOptions> {}

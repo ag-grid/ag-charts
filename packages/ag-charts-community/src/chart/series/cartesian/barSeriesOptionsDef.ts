@@ -13,28 +13,20 @@ import {
     undocumented,
     union,
 } from 'ag-charts-core';
-import type { AgBarSeriesOptions, AgBarSeriesStyle } from 'ag-charts-types';
+import type { AgBarSeriesOptions, AgBarSeriesStyle, AgBarSeriesThemeableOptions } from 'ag-charts-types';
 
 import {
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     errorBarOptionsDefs,
+    errorBarThemeableOptionsDefs,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
-export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
-    type: required(constant('bar')),
-    xKey: required(string),
-    yKey: required(string),
-    xName: string,
-    yName: string,
+export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
-    grouped: boolean,
-    stacked: boolean,
-    stackGroup: string,
-    normalizedTo: number,
-    legendItemName: string,
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
     itemStyler: callbackDefs<AgBarSeriesStyle>({
@@ -49,13 +41,30 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
         placement: union('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'),
         padding: positiveNumber,
     },
-    errorBar: errorBarOptionsDefs,
+    errorBar: errorBarThemeableOptionsDefs,
     shadow: shadowOptionsDefs,
     tooltip: tooltipOptionsDefs,
-    ...commonSeriesOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+};
+
+export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
+    ...barSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
+    type: required(constant('bar')),
+    xKey: required(string),
+    yKey: required(string),
+    xName: string,
+    yName: string,
+    direction: union('horizontal', 'vertical'),
+    grouped: boolean,
+    stacked: boolean,
+    stackGroup: string,
+    normalizedTo: number,
+    legendItemName: string,
+    errorBar: errorBarOptionsDefs,
 };
 
 // @ts-expect-error undocumented option

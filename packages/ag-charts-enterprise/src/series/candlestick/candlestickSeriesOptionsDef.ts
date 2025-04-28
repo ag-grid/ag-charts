@@ -1,37 +1,11 @@
-import {
-    type AgCandlestickSeriesItemOptions,
-    type AgCandlestickSeriesOptions,
-    _ModuleSupport,
-} from 'ag-charts-community';
-import {
-    type OptionsDefs,
-    boolean,
-    callbackDefs,
-    constant,
-    fillOptionsDef,
-    lineDashOptionsDef,
-    number,
-    positiveNumber,
-    required,
-    string,
-    strokeOptionsDef,
-    undocumented,
-} from 'ag-charts-core';
+import { type AgCandlestickSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type OptionsDefs, boolean, constant, number, required, string, undocumented } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
-
-const candlestickSeriesItemOptionsDef: OptionsDefs<AgCandlestickSeriesItemOptions> = {
-    cornerRadius: positiveNumber,
-    wick: {
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    },
-    ...fillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
-};
+const { commonSeriesOptionsDefs, candlestickSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions> = {
+    ...candlestickSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
     type: required(constant('candlestick')),
     xKey: required(string),
     openKey: required(string),
@@ -44,23 +18,6 @@ export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions
     highName: string,
     lowName: string,
     closeName: string,
-    item: {
-        up: candlestickSeriesItemOptionsDef,
-        down: candlestickSeriesItemOptionsDef,
-    },
-    itemStyler: callbackDefs<AgCandlestickSeriesItemOptions>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-        wick: {
-            ...strokeOptionsDef,
-            ...lineDashOptionsDef,
-        },
-    }),
-    showInMiniChart: boolean,
-    tooltip: tooltipOptionsDefs,
-    ...commonSeriesOptionsDefs,
 };
 
 // @ts-expect-error undocumented option

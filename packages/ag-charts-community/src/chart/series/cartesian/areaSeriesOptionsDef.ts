@@ -9,10 +9,11 @@ import {
     string,
     strokeOptionsDef,
 } from 'ag-charts-core';
-import type { AgAreaSeriesOptions } from 'ag-charts-types';
+import type { AgAreaSeriesOptions, AgAreaSeriesThemeableOptions } from 'ag-charts-types';
 
 import {
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     interpolationValidator,
     markerOptionsDefs,
     seriesLabelOptionsDefs,
@@ -20,7 +21,23 @@ import {
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
+export const areaSeriesThemeableOptionsDef: OptionsDefs<AgAreaSeriesThemeableOptions> = {
+    showInMiniChart: boolean,
+    connectMissingData: boolean,
+    interpolation: interpolationValidator,
+    label: seriesLabelOptionsDefs,
+    marker: markerOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
 export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
+    ...areaSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
     type: required(constant('area')),
     xKey: required(string),
     yKey: required(string),
@@ -29,15 +46,4 @@ export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,
-    showInMiniChart: boolean,
-    connectMissingData: boolean,
-    interpolation: interpolationValidator,
-    label: seriesLabelOptionsDefs,
-    marker: markerOptionsDefs,
-    tooltip: tooltipOptionsDefs,
-    shadow: shadowOptionsDefs,
-    ...commonSeriesOptionsDefs,
-    ...fillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
 };

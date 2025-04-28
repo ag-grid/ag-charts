@@ -9,38 +9,46 @@ import {
     strokeOptionsDef,
     undocumented,
 } from 'ag-charts-core';
-import type { AgLineSeriesOptions } from 'ag-charts-types';
+import type { AgLineSeriesOptions, AgLineSeriesThemeableOptions } from 'ag-charts-types';
 
 import {
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     errorBarOptionsDefs,
+    errorBarThemeableOptionsDefs,
     interpolationValidator,
     markerOptionsDefs,
     seriesLabelOptionsDefs,
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
-export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
-    type: constant('line'),
-    xKey: required(string),
-    yKey: required(string),
-    xName: string,
-    yName: string,
+export const lineSeriesThemeableOptionsDef: OptionsDefs<AgLineSeriesThemeableOptions> = {
     title: string,
-    stacked: boolean,
-    stackGroup: string,
-    normalizedTo: number,
-    legendItemName: string,
     showInMiniChart: boolean,
     connectMissingData: boolean,
     interpolation: interpolationValidator,
     label: seriesLabelOptionsDefs,
     marker: markerOptionsDefs,
     tooltip: tooltipOptionsDefs,
-    errorBar: errorBarOptionsDefs,
-    ...commonSeriesOptionsDefs,
+    errorBar: errorBarThemeableOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+};
+
+export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
+    ...lineSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
+    type: constant('line'),
+    xKey: required(string),
+    yKey: required(string),
+    xName: string,
+    yName: string,
+    stacked: boolean,
+    stackGroup: string,
+    normalizedTo: number,
+    legendItemName: string,
+    errorBar: errorBarOptionsDefs,
 };
 
 // @ts-expect-error undocumented option

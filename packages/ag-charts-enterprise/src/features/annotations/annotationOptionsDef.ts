@@ -1,26 +1,18 @@
 import {
-    type AgAnnotationAxisLabel,
     type AgAnnotationHandle,
-    type AgAnnotationOptionsToolbarButton,
-    type AgAnnotationOptionsToolbarSwitch,
     type AgAnnotationPoint,
     type AgChannelAnnotationText,
-    type AgFibonacciAnnotationStyles,
     type AgGroupingValueType,
     type AgInitialStateLegendOptions,
     type AgInitialStateOptions,
     type AgLineAnnotationText,
-    type LineOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
-    array,
     arrayOf,
     arrayOfDefs,
     boolean,
-    callback,
-    color,
     constant,
     fillOptionsDef,
     fontOptionsDef,
@@ -34,90 +26,22 @@ import {
     string,
     strokeOptionsDef,
     typeUnion,
-    undocumented,
     union,
 } from 'ag-charts-core';
-import type {
-    AgAnnotation,
-    AgAnnotationsOptions,
-    AgAnnotationsToolbarButton,
-    AgStateSerializableDate,
-} from 'ag-charts-types';
+import type { AgAnnotation, AgStateSerializableDate } from 'ag-charts-types';
 
-const { toolbarButtonOptionsDefs } = _ModuleSupport;
-
-export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
-    enabled: boolean,
-    axesButtons: {
-        enabled: boolean,
-        axes: union('x', 'y', 'xy'),
-    },
-    toolbar: {
-        enabled: boolean,
-        padding: positiveNumber,
-        buttons: arrayOfDefs<AgAnnotationsToolbarButton>(
-            {
-                ...toolbarButtonOptionsDefs,
-                value: union(
-                    'line-menu',
-                    'fibonacci-menu',
-                    'text-menu',
-                    'shape-menu',
-                    'measurer-menu',
-                    'line',
-                    'horizontal-line',
-                    'vertical-line',
-                    'parallel-channel',
-                    'disjoint-channel',
-                    'fibonacci-retracement',
-                    'fibonacci-retracement-trend-based',
-                    'text',
-                    'comment',
-                    'callout',
-                    'note',
-                    'clear'
-                ),
-            },
-            'annotation toolbar buttons array'
-        ),
-    },
-    optionsToolbar: {
-        enabled: boolean,
-        buttons: arrayOf(
-            or(
-                optionsDefs<AgAnnotationOptionsToolbarButton>({
-                    ...toolbarButtonOptionsDefs,
-                    value: required(
-                        union(
-                            'line-stroke-width',
-                            'line-style-type',
-                            'line-color',
-                            'fill-color',
-                            'text-color',
-                            'text-size',
-                            'delete',
-                            'settings'
-                        )
-                    ),
-                }),
-                optionsDefs<AgAnnotationOptionsToolbarSwitch>({
-                    ...toolbarButtonOptionsDefs,
-                    value: required(union('lock')),
-                    checkedOverrides: toolbarButtonOptionsDefs,
-                })
-            )
-        ),
-    },
-};
-
-// @ts-expect-error undocumented option
-annotationOptionsDef.data = undocumented(array);
-// @ts-expect-error undocumented option
-annotationOptionsDef.xKey = undocumented(string);
-// @ts-expect-error undocumented option
-annotationOptionsDef.volumeKey = undocumented(string);
-// @ts-expect-error undocumented option
-annotationOptionsDef.snap = undocumented(boolean);
+const {
+    annotationCommentStylesDefs,
+    annotationMeasurerStylesDefs,
+    annotationShapeStylesDefs,
+    annotationChannelTextDefs,
+    annotationCrossLineStyleDefs,
+    annotationFibonacciStylesDefs,
+    annotationLineStyleDefs,
+    annotationLineTextDefs,
+    annotationDisjointChannelStyleDefs,
+    annotationParallelChannelStyleDefs,
+} = _ModuleSupport;
 
 const serializableDate = optionsDefs<AgStateSerializableDate>(
     {
@@ -135,28 +59,14 @@ const annotationValue = or(
     })
 );
 
-const annotationAxisLabelOptionsDef: OptionsDefs<AgAnnotationAxisLabel> = {
-    enabled: boolean,
-    cornerRadius: positiveNumber,
-    formatter: callback,
-    ...fontOptionsDef,
-    ...fillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
+const channelAnnotationTextOptionsDef: OptionsDefs<AgChannelAnnotationText> = {
+    ...annotationChannelTextDefs,
+    label: string,
 };
 
 const lineAnnotationTextOptionsDef: OptionsDefs<AgLineAnnotationText> = {
+    ...annotationLineTextDefs,
     label: string,
-    position: union('top', 'center', 'bottom'),
-    alignment: union('left', 'center', 'right'),
-    ...fontOptionsDef,
-};
-
-const channelAnnotationTextOptionsDef: OptionsDefs<AgChannelAnnotationText> = {
-    label: string,
-    position: union('top', 'inside', 'bottom'),
-    alignment: union('left', 'center', 'right'),
-    ...fontOptionsDef,
 };
 
 const annotationHandleOptionsDef: OptionsDefs<AgAnnotationHandle> = {
@@ -170,107 +80,52 @@ const annotationPointOptionsDef: OptionsDefs<AgAnnotationPoint> = {
     y: number,
 };
 
-const annotationLineOptionsDef: OptionsDefs<LineOptions> = {
-    lineStyle: union('solid', 'dashed', 'dotted'),
-    ...lineDashOptionsDef,
-};
-
-const fibonacciAnnotationStylesOptionsDef: OptionsDefs<AgFibonacciAnnotationStyles> = {
-    visible: boolean,
-    extendStart: boolean,
-    extendEnd: boolean,
-    locked: boolean,
-    text: lineAnnotationTextOptionsDef,
-    handle: annotationHandleOptionsDef,
-    label: fontOptionsDef,
-    showFill: boolean,
-    isMultiColor: boolean,
-    strokes: arrayOf(color),
-    rangeStroke: color,
-    bands: union(4, 6, 10),
-    ...strokeOptionsDef,
-    ...annotationLineOptionsDef,
-};
-
 export const annotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
     line: {
-        visible: boolean,
-        extendStart: boolean,
-        extendEnd: boolean,
-        locked: boolean,
-        text: lineAnnotationTextOptionsDef,
-        handle: annotationHandleOptionsDef,
+        ...annotationLineStyleDefs,
         start: annotationPointOptionsDef,
         end: annotationPointOptionsDef,
-        ...strokeOptionsDef,
-        ...annotationLineOptionsDef,
+        text: lineAnnotationTextOptionsDef,
     },
     'horizontal-line': {
-        visible: boolean,
-        locked: boolean,
+        ...annotationCrossLineStyleDefs,
         value: annotationValue,
-        axisLabel: annotationAxisLabelOptionsDef,
         text: lineAnnotationTextOptionsDef,
-        handle: annotationHandleOptionsDef,
-        ...strokeOptionsDef,
-        ...annotationLineOptionsDef,
     },
     'vertical-line': {
-        visible: boolean,
-        locked: boolean,
+        ...annotationCrossLineStyleDefs,
         value: annotationValue,
-        axisLabel: annotationAxisLabelOptionsDef,
         text: lineAnnotationTextOptionsDef,
-        handle: annotationHandleOptionsDef,
-        ...strokeOptionsDef,
-        ...annotationLineOptionsDef,
     },
     'disjoint-channel': {
-        visible: boolean,
-        extendStart: boolean,
-        extendEnd: boolean,
-        locked: boolean,
+        ...annotationDisjointChannelStyleDefs,
         startHeight: positiveNumber,
         endHeight: positiveNumber,
-        text: channelAnnotationTextOptionsDef,
-        handle: annotationHandleOptionsDef,
         start: annotationPointOptionsDef,
         end: annotationPointOptionsDef,
-        background: fillOptionsDef,
-        ...strokeOptionsDef,
-        ...annotationLineOptionsDef,
+        text: channelAnnotationTextOptionsDef,
     },
     'parallel-channel': {
-        visible: boolean,
-        extendStart: boolean,
-        extendEnd: boolean,
-        locked: boolean,
+        ...annotationParallelChannelStyleDefs,
         height: positiveNumber,
-        text: channelAnnotationTextOptionsDef,
-        handle: annotationHandleOptionsDef,
         start: annotationPointOptionsDef,
         end: annotationPointOptionsDef,
-        background: fillOptionsDef,
-        middle: {
-            visible: boolean,
-            ...strokeOptionsDef,
-            ...annotationLineOptionsDef,
-        },
-        ...strokeOptionsDef,
-        ...annotationLineOptionsDef,
+        text: channelAnnotationTextOptionsDef,
     },
     'fibonacci-retracement': {
-        reverse: boolean,
+        ...annotationFibonacciStylesDefs,
         start: annotationPointOptionsDef,
         end: annotationPointOptionsDef,
-        ...fibonacciAnnotationStylesOptionsDef,
+        text: lineAnnotationTextOptionsDef,
+        reverse: boolean,
     },
     'fibonacci-retracement-trend-based': {
-        reverse: boolean,
+        ...annotationFibonacciStylesDefs,
         start: annotationPointOptionsDef,
         end: annotationPointOptionsDef,
         endRetracement: annotationPointOptionsDef,
-        ...fibonacciAnnotationStylesOptionsDef,
+        text: lineAnnotationTextOptionsDef,
+        reverse: boolean,
     },
     callout: {
         visible: boolean,
@@ -284,13 +139,9 @@ export const annotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
         ...strokeOptionsDef,
     },
     comment: {
-        visible: boolean,
-        locked: boolean,
-        text: string,
-        handle: annotationHandleOptionsDef,
+        ...annotationCommentStylesDefs,
         ...annotationPointOptionsDef,
-        ...fontOptionsDef,
-        ...fillOptionsDef,
+        text: string,
     },
     note: {
         visible: boolean,
@@ -316,82 +167,40 @@ export const annotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
         ...fillOptionsDef,
     },
     arrow: {
-        visible: boolean,
-        extendStart: boolean,
-        extendEnd: boolean,
-        locked: boolean,
+        ...annotationLineStyleDefs,
         text: lineAnnotationTextOptionsDef,
-        handle: annotationHandleOptionsDef,
         start: annotationPointOptionsDef,
         end: annotationPointOptionsDef,
-        ...strokeOptionsDef,
-        ...annotationLineOptionsDef,
     },
     'arrow-up': {
-        visible: boolean,
-        locked: boolean,
-        handle: annotationHandleOptionsDef,
+        ...annotationShapeStylesDefs,
         ...annotationPointOptionsDef,
-        ...fillOptionsDef,
     },
     'arrow-down': {
-        visible: boolean,
-        locked: boolean,
-        handle: annotationHandleOptionsDef,
+        ...annotationShapeStylesDefs,
         ...annotationPointOptionsDef,
-        ...fillOptionsDef,
     },
     'date-range': {
-        visible: boolean,
+        ...annotationMeasurerStylesDefs,
         extendAbove: boolean,
         extendBelow: boolean,
-        locked: boolean,
         text: lineAnnotationTextOptionsDef,
-        handle: annotationHandleOptionsDef,
         start: annotationPointOptionsDef,
         end: annotationPointOptionsDef,
-        statistics: {
-            divider: strokeOptionsDef,
-            ...fontOptionsDef,
-            ...fillOptionsDef,
-            ...strokeOptionsDef,
-        },
-        ...strokeOptionsDef,
-        ...annotationLineOptionsDef,
     },
     'price-range': {
-        visible: boolean,
+        ...annotationMeasurerStylesDefs,
         extendLeft: boolean,
         extendRight: boolean,
-        locked: boolean,
         text: lineAnnotationTextOptionsDef,
-        handle: annotationHandleOptionsDef,
         start: annotationPointOptionsDef,
         end: annotationPointOptionsDef,
-        statistics: {
-            divider: strokeOptionsDef,
-            ...fontOptionsDef,
-            ...fillOptionsDef,
-            ...strokeOptionsDef,
-        },
-        ...strokeOptionsDef,
-        ...annotationLineOptionsDef,
     },
     'date-price-range': {
-        visible: boolean,
-        locked: boolean,
+        ...annotationMeasurerStylesDefs,
         text: lineAnnotationTextOptionsDef,
-        handle: annotationHandleOptionsDef,
         start: annotationPointOptionsDef,
         end: annotationPointOptionsDef,
-        statistics: {
-            divider: strokeOptionsDef,
-            ...fontOptionsDef,
-            ...fillOptionsDef,
-            ...strokeOptionsDef,
-        },
-        ...strokeOptionsDef,
-        ...annotationLineOptionsDef,
     },
 });
 

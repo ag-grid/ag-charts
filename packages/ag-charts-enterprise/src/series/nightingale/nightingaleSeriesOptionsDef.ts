@@ -1,21 +1,11 @@
-import { type AgNightingaleSeriesOptions, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import {
-    type OptionsDefs,
-    boolean,
-    callbackDefs,
-    constant,
-    fillOptionsDef,
-    lineDashOptionsDef,
-    number,
-    positiveNumber,
-    required,
-    string,
-    strokeOptionsDef,
-} from 'ag-charts-core';
+import { type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type OptionsDefs, boolean, constant, number, required, string } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
+const { commonSeriesOptionsDefs, nightingaleSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions> = {
+    ...nightingaleSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
     type: required(constant('nightingale')),
     angleKey: required(string),
     radiusKey: required(string),
@@ -25,17 +15,4 @@ export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,
-    cornerRadius: positiveNumber,
-    itemStyler: callbackDefs<AgRadialSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-    }),
-    label: seriesLabelOptionsDefs,
-    tooltip: tooltipOptionsDefs,
-    ...commonSeriesOptionsDefs,
-    ...fillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
 };

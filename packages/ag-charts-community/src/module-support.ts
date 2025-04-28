@@ -12,10 +12,14 @@ export {
     isAgTopologyChartOptions,
 } from './chart/mapping/types';
 export { ModuleRegistry } from 'ag-charts-core';
+export * from './api/preset/gaugeOptionsDefs';
 export * from './chart/commonOptionsDefs';
 export * from './chart/axesOptionsDefs';
+export * from './chart/axesOptionsEnterpriseDefs';
+export * from './chart/axesOptionsDefs';
 export * from './chart/chartOptionsDefs';
-export * from './api/preset/gaugeOptionsDefs';
+export * from './chart/themes/annotationOptionsDef';
+export * from './chart/themes/enterpriseThemeableOptionsDef';
 export { NewAreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
 export { NewBubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
 export { NewHistogramSeriesModule } from './chart/series/cartesian/histogramSeriesModule';

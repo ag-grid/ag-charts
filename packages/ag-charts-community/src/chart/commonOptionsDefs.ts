@@ -36,11 +36,12 @@ import {
 } from 'ag-charts-core';
 import type {
     AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
     AgBaseThemeableChartOptions,
     AgChartAutoSizedBaseLabelOptions,
     AgChartCaptionOptions,
     AgChartLabelOptions,
-    AgChartOverlayOptions, // eslint-disable-next-line sonarjs/deprecation
+    AgChartOverlayOptions,
     AgContextMenuAction,
     AgContextMenuItem,
     AgContextMenuItemLiteral,
@@ -513,11 +514,8 @@ commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.sync.domainMode = undocumented(union('direction', 'position', 'key'));
 
-export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
-    id: string,
+export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeableOptions<any>> = {
     cursor: string,
-    visible: boolean,
-    data: array,
     showInLegend: boolean,
     nodeClickRange: rangeValidator,
     listeners: {
@@ -532,6 +530,13 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
             strokeWidth: positiveNumber,
         },
     },
+};
+
+export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
+    ...commonSeriesThemeableOptionsDefs,
+    id: string,
+    visible: boolean,
+    data: array,
 };
 
 // @ts-expect-error undocumented option
@@ -572,8 +577,21 @@ export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOpt
     overflowStrategy: union('ellipsis', 'hide'),
 };
 
-export const errorBarOptionsDefs: OptionsDefs<AgErrorBarOptions<any>> = {
+export const errorBarThemeableOptionsDefs: OptionsDefs<AgErrorBarThemeableOptions> = {
     visible: boolean,
+    cap: {
+        visible: boolean,
+        length: positiveNumber,
+        lengthRatio: ratio,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+export const errorBarOptionsDefs: OptionsDefs<AgErrorBarOptions<any>> = {
+    ...errorBarThemeableOptionsDefs,
     xLowerKey: string,
     xUpperKey: string,
     yLowerKey: string,
@@ -594,15 +612,6 @@ export const errorBarOptionsDefs: OptionsDefs<AgErrorBarOptions<any>> = {
             ...lineDashOptionsDef,
         },
     }),
-    cap: {
-        visible: boolean,
-        length: positiveNumber,
-        lengthRatio: ratio,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    },
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
 };
 
 export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {

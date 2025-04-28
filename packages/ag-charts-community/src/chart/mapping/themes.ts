@@ -39,7 +39,6 @@ type SpecialThemeName = 'ag-financial' | 'ag-financial-dark';
 type ThemeMap = { [key in AgChartThemeName | SpecialThemeName | 'undefined' | 'null']?: () => ChartTheme };
 
 const lightTheme = simpleMemorize(() => new ChartTheme());
-const darkTheme = simpleMemorize(() => new DarkTheme());
 
 const themeCacheDebug = Debug.create(true, 'perf');
 const cacheCallback = (status: 'hit' | 'miss', fn: Function, keys: any[]) => {
@@ -48,7 +47,7 @@ const cacheCallback = (status: 'hit' | 'miss', fn: Function, keys: any[]) => {
 
 export const themes: ThemeMap = {
     // darkThemes,
-    'ag-default-dark': darkTheme,
+    'ag-default-dark': simpleMemorize(() => new DarkTheme()),
     'ag-sheets-dark': simpleMemorize(() => new SheetsDark(), cacheCallback),
     'ag-polychroma-dark': simpleMemorize(() => new PolychromaDark(), cacheCallback),
     'ag-vivid-dark': simpleMemorize(() => new VividDark(), cacheCallback),
@@ -56,8 +55,6 @@ export const themes: ThemeMap = {
     'ag-financial-dark': simpleMemorize(() => new FinancialDark(), cacheCallback),
 
     // lightThemes,
-    null: lightTheme,
-    undefined: lightTheme,
     'ag-default': lightTheme,
     'ag-sheets': simpleMemorize(() => new SheetsLight(), cacheCallback),
     'ag-polychroma': simpleMemorize(() => new PolychromaLight(), cacheCallback),
@@ -74,7 +71,7 @@ function createChartTheme(value: unknown): ChartTheme {
     }
 
     if (value == null || typeof value === 'string') {
-        const stockTheme = themes[value as AgChartThemeName];
+        const stockTheme = themes[(value as AgChartThemeName) ?? 'ag-default'];
         if (stockTheme) {
             return stockTheme();
         }
