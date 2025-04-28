@@ -417,10 +417,15 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const { step, values, minSpacing, maxSpacing } = interval;
         const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(visibleRange, minSpacing, maxSpacing);
 
-        const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
-        const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
+        const visibleTickStep = Math.floor(1 / (visibleRange[1] - visibleRange[0]));
+        const tickIterationReduction = Math.max(1, visibleTickStep);
 
-        const countTicks = (i: number) => (continuous ? Math.max(tickCount - i, minTickCount) : maxTickCount);
+        const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
+        const maxIterations =
+            !continuous || isNaN(maxTickCount) ? 10 : Math.floor(maxTickCount / tickIterationReduction);
+
+        const countTicks = (i: number) =>
+            continuous ? Math.max(tickCount - i * tickIterationReduction, minTickCount) : maxTickCount;
 
         const regenerateTicks =
             step == null &&
