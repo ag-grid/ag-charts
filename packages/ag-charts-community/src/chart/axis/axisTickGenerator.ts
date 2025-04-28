@@ -393,15 +393,15 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         return strategies;
     }
 
-    private ticksEqual(a: any[], b: any[]) {
-        if (a.length !== b.length) return false;
+    // private ticksEqual(a: any[], b: any[]) {
+    //     if (a.length !== b.length) return false;
 
-        for (let i = 0; i < a.length; i += 1) {
-            if (a[i]?.valueOf() !== b[i]?.valueOf()) return false;
-        }
+    //     for (let i = 0; i < a.length; i += 1) {
+    //         if (a[i]?.valueOf() !== b[i]?.valueOf()) return false;
+    //     }
 
-        return true;
-    }
+    //     return true;
+    // }
 
     private createTickData(
         domain: D[],
@@ -418,35 +418,35 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(visibleRange, minSpacing, maxSpacing);
 
         const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
-        const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
+        // const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
 
         const countTicks = (i: number) => (continuous ? Math.max(tickCount - i, minTickCount) : maxTickCount);
 
-        const regenerateTicks =
-            step == null &&
-            values == null &&
-            countTicks(index) > minTickCount &&
-            (continuous || tickGenerationType === TickGenerationType.FILTER);
+        // const regenerateTicks =
+        //     step == null &&
+        //     values == null &&
+        //     countTicks(index) > minTickCount &&
+        //     (continuous || tickGenerationType === TickGenerationType.FILTER);
 
-        while (index <= maxIterations) {
-            const previousTicks = tickData.rawTicks;
+        // while (index <= maxIterations) {
+        const previousTicks = tickData.rawTicks;
 
-            tickData = this.getTicks({
-                domain,
-                niceMode,
-                visibleRange,
-                primaryTickCount,
-                tickGenerationType,
-                previousTicks,
-                minTickCount,
-                maxTickCount,
-                tickCount: countTicks(index),
-            });
+        tickData = this.getTicks({
+            domain,
+            niceMode,
+            visibleRange,
+            primaryTickCount,
+            tickGenerationType,
+            previousTicks,
+            minTickCount,
+            maxTickCount,
+            tickCount: countTicks(index),
+        });
 
-            index++;
+        index++;
 
-            if (!regenerateTicks || !this.ticksEqual(tickData.rawTicks, previousTicks)) break;
-        }
+        //     if (!regenerateTicks || !this.ticksEqual(tickData.rawTicks, previousTicks)) break;
+        // }
 
         terminate ||= step != null || values != null;
 
