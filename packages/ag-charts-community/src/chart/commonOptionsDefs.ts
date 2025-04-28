@@ -41,7 +41,7 @@ import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartCaptionOptions,
     AgChartLabelOptions,
-    AgChartOverlayOptions,
+    AgChartOverlayOptions, // eslint-disable-next-line sonarjs/deprecation
     AgContextMenuAction,
     AgContextMenuItem,
     AgContextMenuItemLiteral,
