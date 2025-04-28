@@ -21,23 +21,17 @@ For example:
 
 By default, Single Finger Touch Drag events are handled like mouse drag events. To change the input handling behaviour of these events, use `touch.dragAction`.
 
-{% touchDevice title="Drag Single Touch" %}
-
-{% tabs %}
-
-{% tabItem id="drag" label="'Drag'" %}
-{% video videoSrc="resources/drag-single-touch.mp4" /%}
-{% /tabItem %}
-{% tabItem id="hover" label="'Hover'" %}
-{% video videoSrc="resources/drag-single-finger-hover.mp4" /%}
-{% /tabItem %}
-{% tabItem id="none" label="'None'" %}
-{% video videoSrc="resources/drag-single-finger-none.mp4" /%}
-{% /tabItem %}
-
-{% /tabs %}
-
+{% touchDevice
+    title="Single Finger Drag"
+    videoPath="/images/left-right-touch.gif" %}
 {% /touchDevice %}
+
+{% chartExampleRunner
+    title="Single Finger Touch Dragging"
+    name="single-finger-touch-dragging"
+    type="generated"
+    options={ "enterprise": true }
+/%}
 
 ```ts
 touch: {
@@ -55,11 +49,15 @@ In this example:
 
 By default, charts use two finger gestures to zoom and pan. To pass this gesture to the underlying page, set `enableTwoFingerZoom: false`.
 
-{% touchDevice title="Drag Single Touch" %}
-
-    {% video videoSrc="resources/two-finger-zoom.mp4" /%}
-
+{% touchDevice title="Two Finger Zoom"  videoPath="/images/zoom-out-touch.gif" %}
 {% /touchDevice %}
+
+{% chartExampleRunner
+    title="Two Finger Zoom-Pan"
+    name="two-finger-zoompan"
+    type="generated"
+    options={ "enterprise": true }
+/%}
 
 ```ts
 zoom: {
@@ -71,9 +69,17 @@ zoom: {
 
 Long Tapping the chart will open the [Context Menu](./context-menu), if available.
 
-{% touchDevice title="Long Tap" %}
-{% video videoSrc="resources/long-tap.mp4" /%}
+{% touchDevice title="Long"  videoPath="/images/long-touch.gif" %}
 {% /touchDevice %}
+
+
+
+{% chartExampleRunner
+    title="Long Tap"
+    name="long-tap"
+    type="generated"
+    options={ "enterprise": true }
+/%}
 
 ## API Reference
 

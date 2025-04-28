@@ -4,6 +4,17 @@
     position: relative;
     width: 100%;
 }
+.touchImage {
+    filter: invert(0) hue-rotate(206deg) saturate(1.25);
+    width: 150px;
+}
+
+#{$selector-darkmode} {
+    .touchImage {
+        filter: invert(1) hue-rotate(19deg) saturate(1.25);
+        mix-blend-mode: screen;
+    }
+}
 
 .deviceContainer {
     position: relative;
@@ -11,19 +22,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-
-    .deviceDark {
-        display: none;
-    }
-
-    #{$selector-darkmode} & {
-        .deviceLight {
-            display: none;
-        }
-        .deviceDark {
-            display: block;
-        }
-    }
 
     .deviceContent {
         position: absolute;
@@ -40,42 +38,9 @@
             padding-bottom: $spacing-size-5;
             box-shadow: none;
         }
-
-        [role='tabpanel'] {
-            border: none;
-        }
-
-        ul button {
-            appearance: none;
-            display: inline-block;
-            height: 36px;
-            padding: 5px 14px 7px;
-            white-space: nowrap;
-            border-radius: 6px;
-            color: var(--color-fg-primary);
-            text-transform: lowercase;
-            background-color: var(--button-bg);
-            border: 1px solid var(--color-border-secondary);
-            box-shadow: 0 0 0 0 transparent;
-            font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-            font-size: 14px;
-
-            &:hover {
-                background-color: rgba(0, 0, 0, 0.1);
-            }
-            transition:
-                background-color 0.25s ease-in-out,
-                border-color 0.25s ease-in-out,
-                box-shadow 0.25s ease-in-out;
-        }
-
-        ::after {
-            background: none;
-        }
     }
 
     img {
-        width: 100%;
         height: auto;
         display: block;
     }

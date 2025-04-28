@@ -7,6 +7,6 @@ export const touchDevice: Schema<Config, Render> = {
     attributes: {
         title: { type: String },
         playlist: { type: String },
-        showHeader: { type: Boolean },
+        videoPath: { type: String },
     },
 };
