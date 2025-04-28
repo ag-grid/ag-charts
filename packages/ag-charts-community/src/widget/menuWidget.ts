@@ -59,8 +59,11 @@ export class MenuWidget extends RovingTabContainerWidget {
             }
         };
         subMenuButton.setAriaHasPopup('menu');
+        subMenuButton.setAriaExpanded(false);
         subMenuButton.addListener('click', accessibleOpener);
         subMenuButton.addListener('mouseenter', accessibleOpener);
+        subMenu.addListener('close-widget', () => subMenuButton.setAriaExpanded(false));
+        subMenu.addListener('open-widget', () => subMenuButton.setAriaExpanded(true));
         this.addChild(subMenuButton);
         return { subMenuButton, subMenu };
     }

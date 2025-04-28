@@ -137,6 +137,10 @@ export abstract class Widget<
         setAttribute(this.elem, 'aria-label', ariaLabel);
     }
 
+    setAriaExpanded(ariaExpanded: BaseAttributeTypeMap['aria-expanded'] | undefined) {
+        setAttribute(this.elem, 'aria-expanded', ariaExpanded);
+    }
+
     setAriaHasPopup(ariaHasPopup: BaseAttributeTypeMap['aria-haspopup'] | undefined) {
         setAttribute(this.elem, 'aria-haspopup', ariaHasPopup);
     }
