@@ -28,6 +28,7 @@ export const test = base.extend({
         const proxiedProps = {
             mouse: stabilityProxy(page, page.mouse),
             keyboard: stabilityProxy(page, page.keyboard),
+            touchscreen: stabilityProxy(page, page.touchscreen),
         };
 
         Object.assign(page, proxiedProps);

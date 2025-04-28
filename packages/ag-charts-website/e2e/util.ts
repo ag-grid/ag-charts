@@ -128,7 +128,13 @@ export function createConsoleLogs() {
 
     return {
         clear,
-        get: () => consoleLogs,
+        async expectLogs(calls: string[]) {
+            const expectedCount: number = calls.length;
+            await expect
+                .poll(() => consoleLogs.length, { message: `Waiting for ${expectedCount} console logs` })
+                .toBe(expectedCount);
+            expect(consoleLogs).toEqual(calls);
+        },
     };
 }
 
