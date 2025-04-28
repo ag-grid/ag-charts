@@ -1,5 +1,4 @@
 import {
-    type AgAnnotationHandle,
     type AgAnnotationPoint,
     type AgChannelAnnotationText,
     type AgGroupingValueType,
@@ -14,9 +13,6 @@ import {
     arrayOfDefs,
     boolean,
     constant,
-    fillOptionsDef,
-    fontOptionsDef,
-    lineDashOptionsDef,
     number,
     optionsDefs,
     or,
@@ -24,11 +20,16 @@ import {
     ratio,
     required,
     string,
-    strokeOptionsDef,
     typeUnion,
     union,
 } from 'ag-charts-core';
 import type { AgAnnotation, AgStateSerializableDate } from 'ag-charts-types';
+
+import {
+    annotationCalloutStylesDefs,
+    annotationNoteStylesDefs,
+    annotationTextStylesDef,
+} from '../../../../ag-charts-community/src/chart/themes/annotationOptionsDef';
 
 const {
     annotationCommentStylesDefs,
@@ -67,12 +68,6 @@ const channelAnnotationTextOptionsDef: OptionsDefs<AgChannelAnnotationText> = {
 const lineAnnotationTextOptionsDef: OptionsDefs<AgLineAnnotationText> = {
     ...annotationLineTextDefs,
     label: string,
-};
-
-const annotationHandleOptionsDef: OptionsDefs<AgAnnotationHandle> = {
-    ...fillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
 };
 
 const annotationPointOptionsDef: OptionsDefs<AgAnnotationPoint> = {
@@ -128,15 +123,10 @@ export const annotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
         reverse: boolean,
     },
     callout: {
-        visible: boolean,
-        locked: boolean,
-        text: string,
-        handle: annotationHandleOptionsDef,
+        ...annotationCalloutStylesDefs,
         start: annotationPointOptionsDef,
         end: annotationPointOptionsDef,
-        ...fontOptionsDef,
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
+        text: string,
     },
     comment: {
         ...annotationCommentStylesDefs,
@@ -144,27 +134,14 @@ export const annotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
         text: string,
     },
     note: {
-        visible: boolean,
-        locked: boolean,
-        text: string,
-        handle: annotationHandleOptionsDef,
-        background: {
-            ...fillOptionsDef,
-            ...strokeOptionsDef,
-        },
+        ...annotationNoteStylesDefs,
         ...annotationPointOptionsDef,
-        ...fontOptionsDef,
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
+        text: string,
     },
     text: {
-        visible: boolean,
-        locked: boolean,
-        text: string,
-        handle: annotationHandleOptionsDef,
+        ...annotationTextStylesDef,
         ...annotationPointOptionsDef,
-        ...fontOptionsDef,
-        ...fillOptionsDef,
+        text: string,
     },
     arrow: {
         ...annotationLineStyleDefs,
