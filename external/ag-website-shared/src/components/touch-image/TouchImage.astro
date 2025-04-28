@@ -1,5 +1,5 @@
 ---
-import styles from './TouchDevice.module.scss';
+import styles from './TouchImage.module.scss';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 interface Props {
@@ -10,10 +10,10 @@ interface Props {
     description?: string;
 }
 
-const { title = 'Video', showHeader, videoPath, description } = Astro.props as Props;
+const { title = 'Video', videoPath, description } = Astro.props as Props;
 ---
 
-<div class={styles.videoSection}>
+<div class={styles.container}>
     <div>
         <div class={styles.deviceContainer}>
             <hr />
