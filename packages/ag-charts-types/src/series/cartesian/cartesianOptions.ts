@@ -130,7 +130,7 @@ export interface AgGroupedCategoryAxisOptions
 export interface AgUnitTimeAxisOptions
     extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions>, 'interval'>,
         Omit<AgContinuousAxisOptions<Date | number, TimeInterval | number>, 'nice'> {
-    type: 'unit-time';
+    type: 'time';
     /** Axis division */
     division?: AgTimeAxisDivision;
     /** The size of each band. */
@@ -141,10 +141,6 @@ export interface AgUnitTimeAxisOptions
     paddingOuter?: Ratio;
     /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */
     groupPaddingInner?: Ratio;
-    /** User override for the automatically determined min value (based on series data). */
-    min?: Date;
-    /** User override for the automatically determined max value (based on series data). */
-    max?: Date;
 }
 
 export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions> {
@@ -171,13 +167,15 @@ export interface AgLogAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'inte
     base?: number;
 }
 
-export interface AgTimeAxisOptions
+export interface AgContinuousTimeAxisOptions
     extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions>, 'interval'>,
         AgContinuousAxisOptions<Date | number, TimeInterval | number> {
     type: 'time';
     /** Axis division */
     division?: AgTimeAxisDivision;
 }
+
+export interface AgTimeAxisOptions extends AgContinuousTimeAxisOptions, AgUnitTimeAxisOptions {}
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
 
@@ -196,7 +194,7 @@ export type AgCartesianAxisOptions =
     | AgCategoryAxisOptions
     | AgOrdinalTimeAxisOptions
     | AgGroupedCategoryAxisOptions
-    | AgTimeAxisOptions
+    | AgContinuousTimeAxisOptions
     | AgUnitTimeAxisOptions;
 
 type AgCartesianAxisThemeSpecialOptions = 'position' | 'type' | 'crossLines';
