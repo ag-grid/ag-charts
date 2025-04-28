@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 
-import { expect, test } from './fixture';
+import { test } from './fixture';
 import { createConsoleLogs, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 async function openExample(
@@ -12,14 +12,6 @@ async function openExample(
 
 test.describe('api-events', () => {
     const consoleLogs = createConsoleLogs();
-
-    async function expectLogs(calls: string[]) {
-        const expectedCount: number = calls.length;
-        await expect
-            .poll(() => consoleLogs.get().length, { message: `Waiting for ${expectedCount} console logs` })
-            .toBe(expectedCount);
-        expect(consoleLogs.get()).toEqual(calls);
-    }
 
     setupIntrinsicAssertions();
 
@@ -34,53 +26,53 @@ test.describe('api-events', () => {
         test.describe('mouse', () => {
             test('click', async ({ page }) => {
                 await page.mouse.click(node.x, node.y);
-                await expectLogs([]);
+                await consoleLogs.expectLogs([]);
 
                 await page.mouse.click(west.x, west.y);
-                await expectLogs(['[click]']);
+                await consoleLogs.expectLogs(['[click]']);
                 consoleLogs.clear();
 
                 await page.mouse.click(east.x, east.y);
-                await expectLogs(['[click]']);
+                await consoleLogs.expectLogs(['[click]']);
             });
             test('doubleClick', async ({ page }) => {
                 await page.mouse.dblclick(node.x, node.y);
-                await expectLogs([]);
+                await consoleLogs.expectLogs([]);
 
                 await page.mouse.click(west.x, west.y);
                 await page.mouse.click(east.x, east.y);
-                await expectLogs(['[click]', '[click]']);
+                await consoleLogs.expectLogs(['[click]', '[click]']);
                 consoleLogs.clear();
 
                 await page.mouse.dblclick(west.x, west.y);
-                await expectLogs(['[click]', '[click]', '[double click]']);
+                await consoleLogs.expectLogs(['[click]', '[click]', '[double click]']);
             });
         });
         test.describe('touch', () => {
             test('click', async ({ page }) => {
                 await page.touchscreen.tap(node.x, node.y);
-                await expectLogs([]);
+                await consoleLogs.expectLogs([]);
 
                 await page.touchscreen.tap(west.x, west.y);
-                await expectLogs(['[click]']);
+                await consoleLogs.expectLogs(['[click]']);
                 consoleLogs.clear();
 
                 await page.touchscreen.tap(east.x, east.y);
-                await expectLogs(['[click]']);
+                await consoleLogs.expectLogs(['[click]']);
             });
             test('doubleClick', async ({ page }) => {
                 await page.touchscreen.tap(node.x, node.y);
                 await page.touchscreen.tap(node.x, node.y);
-                await expectLogs([]);
+                await consoleLogs.expectLogs([]);
 
                 await page.touchscreen.tap(west.x, west.y);
                 await page.touchscreen.tap(east.x, east.y);
-                await expectLogs(['[click]', '[click]']);
+                await consoleLogs.expectLogs(['[click]', '[click]']);
                 consoleLogs.clear();
 
                 await page.touchscreen.tap(west.x, west.y);
                 await page.touchscreen.tap(west.x, west.y);
-                await expectLogs(['[click]', '[click]', '[double click]']);
+                await consoleLogs.expectLogs(['[click]', '[click]', '[double click]']);
             });
         });
     });
@@ -97,25 +89,25 @@ test.describe('api-events', () => {
         test.describe('mouse', () => {
             test('seriesNodeClick', async ({ page }) => {
                 await page.mouse.click(center.x, center.y);
-                await expectLogs([]);
+                await consoleLogs.expectLogs([]);
 
                 await page.mouse.click(aprMarker.x, aprMarker.y);
-                await expectLogs(['[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1']);
+                await consoleLogs.expectLogs(['[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1']);
                 consoleLogs.clear();
 
                 await page.mouse.click(mayBarTop.x, mayBarTop.y);
-                await expectLogs(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
+                await consoleLogs.expectLogs(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
                 consoleLogs.clear();
 
                 await page.mouse.click(mayBarBot.x, mayBarBot.y);
-                await expectLogs(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
+                await consoleLogs.expectLogs(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
             });
             test('seriesNodeDoubleClick', async ({ page }) => {
                 await page.mouse.dblclick(center.x, center.y);
-                await expectLogs([]);
+                await consoleLogs.expectLogs([]);
 
                 await page.mouse.dblclick(aprMarker.x, aprMarker.y);
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1',
                     '[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1',
                     '[double click]\nTemperature in April: 57.56°F\nSeries: LineSeries-1',
@@ -123,7 +115,7 @@ test.describe('api-events', () => {
                 consoleLogs.clear();
 
                 await page.mouse.dblclick(mayBarTop.x, mayBarTop.y);
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
                     '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
                     '[double click]\nTemperature in May: 47.66°F\nSeries: BarSeries-1',
@@ -131,7 +123,7 @@ test.describe('api-events', () => {
                 consoleLogs.clear();
 
                 await page.mouse.dblclick(mayBarBot.x, mayBarBot.y);
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
                     '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
                     '[double click]\nTemperature in May: 47.66°F\nSeries: BarSeries-1',
@@ -141,27 +133,27 @@ test.describe('api-events', () => {
         test.describe('touch', () => {
             test('seriesNodeClick', async ({ page }) => {
                 await page.touchscreen.tap(center.x, center.y);
-                await expectLogs([]);
+                await consoleLogs.expectLogs([]);
 
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
-                await expectLogs(['[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1']);
+                await consoleLogs.expectLogs(['[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1']);
                 consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
-                await expectLogs(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
+                await consoleLogs.expectLogs(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
                 consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
-                await expectLogs(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
+                await consoleLogs.expectLogs(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
             });
             test('seriesNodeDoubleClick', async ({ page }) => {
                 await page.touchscreen.tap(center.x, center.y);
                 await page.touchscreen.tap(center.x, center.y);
-                await expectLogs([]);
+                await consoleLogs.expectLogs([]);
 
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1',
                     '[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1',
                     '[double click]\nTemperature in April: 57.56°F\nSeries: LineSeries-1',
@@ -170,7 +162,7 @@ test.describe('api-events', () => {
 
                 await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
                 await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
                     '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
                     '[double click]\nTemperature in May: 47.66°F\nSeries: BarSeries-1',
@@ -179,7 +171,7 @@ test.describe('api-events', () => {
 
                 await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
                 await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
                     '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
                     '[double click]\nTemperature in May: 47.66°F\nSeries: BarSeries-1',
@@ -188,7 +180,7 @@ test.describe('api-events', () => {
 
                 await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
                 await page.touchscreen.tap(mayBarBot.x, mayBarBot.y); // Not a double click
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
                     '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
                 ]);
@@ -198,7 +190,7 @@ test.describe('api-events', () => {
             test('seriesNodeClick', async ({ page }) => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Enter');
-                await expectLogs(['[click]\nTemperature in March: 11.3°C\nSeries: LineSeries-1']);
+                await consoleLogs.expectLogs(['[click]\nTemperature in March: 11.3°C\nSeries: LineSeries-1']);
             });
         });
     });
@@ -215,25 +207,25 @@ test.describe('api-events', () => {
         test.describe('mouse', () => {
             test('nodeClick', async ({ page }) => {
                 await page.mouse.click(noClick.x, noClick.y);
-                await expectLogs([]);
+                await consoleLogs.expectLogs([]);
 
                 await page.mouse.click(march.x, march.y);
-                await expectLogs(['[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n']);
+                await consoleLogs.expectLogs(['[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n']);
                 consoleLogs.clear();
 
                 await page.mouse.click(mayTop.x, mayTop.y);
-                await expectLogs(['[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n']);
+                await consoleLogs.expectLogs(['[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n']);
                 consoleLogs.clear();
 
                 await page.mouse.click(mayBot.x, mayBot.y);
-                await expectLogs(['[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n']);
+                await consoleLogs.expectLogs(['[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n']);
             });
             test('nodeDoubleClick', async ({ page }) => {
                 await page.mouse.dblclick(noClick.x, noClick.y);
-                await expectLogs([]);
+                await consoleLogs.expectLogs([]);
 
                 await page.mouse.dblclick(march.x, march.y);
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n',
                     '[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n',
                     '[double click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n',
@@ -241,7 +233,7 @@ test.describe('api-events', () => {
                 consoleLogs.clear();
 
                 await page.mouse.dblclick(mayTop.x, mayTop.y);
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
                     '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
                     '[double click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
@@ -249,7 +241,7 @@ test.describe('api-events', () => {
                 consoleLogs.clear();
 
                 await page.mouse.dblclick(mayBot.x, mayBot.y);
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
                     '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
                     '[double click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
@@ -259,27 +251,27 @@ test.describe('api-events', () => {
         test.describe('touch', () => {
             test('nodeClick', async ({ page }) => {
                 await page.touchscreen.tap(noClick.x, noClick.y);
-                await expectLogs([]);
+                await consoleLogs.expectLogs([]);
 
                 await page.touchscreen.tap(march.x, march.y);
-                await expectLogs(['[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n']);
+                await consoleLogs.expectLogs(['[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n']);
                 consoleLogs.clear();
 
                 await page.touchscreen.tap(mayTop.x, mayTop.y);
-                await expectLogs(['[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n']);
+                await consoleLogs.expectLogs(['[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n']);
                 consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBot.x, mayBot.y);
-                await expectLogs(['[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n']);
+                await consoleLogs.expectLogs(['[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n']);
             });
             test('nodeDoubleClick', async ({ page }) => {
                 await page.touchscreen.tap(noClick.x, noClick.y);
                 await page.touchscreen.tap(noClick.x, noClick.y);
-                await expectLogs([]);
+                await consoleLogs.expectLogs([]);
 
                 await page.touchscreen.tap(march.x, march.y);
                 await page.touchscreen.tap(march.x, march.y);
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n',
                     '[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n',
                     '[double click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n',
@@ -288,7 +280,7 @@ test.describe('api-events', () => {
 
                 await page.touchscreen.tap(mayTop.x, mayTop.y);
                 await page.touchscreen.tap(mayTop.x, mayTop.y);
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
                     '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
                     '[double click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
@@ -297,7 +289,7 @@ test.describe('api-events', () => {
 
                 await page.touchscreen.tap(mayBot.x, mayBot.y);
                 await page.touchscreen.tap(mayBot.x, mayBot.y);
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
                     '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
                     '[double click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
@@ -306,7 +298,7 @@ test.describe('api-events', () => {
 
                 await page.touchscreen.tap(mayTop.x, mayTop.y);
                 await page.touchscreen.tap(mayBot.x, mayBot.y); // Not a double click
-                await expectLogs([
+                await consoleLogs.expectLogs([
                     '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
                     '[click]\nCars sold in May: 42\nNissan: 20\nToyota: 22\n',
                 ]);
@@ -316,7 +308,7 @@ test.describe('api-events', () => {
             test('nodeClick', async ({ page }) => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Enter');
-                await expectLogs(['[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n']);
+                await consoleLogs.expectLogs(['[click]\nCars sold in March: 25\nBMW: 10\nToyota: 15\n']);
             });
         });
     });
