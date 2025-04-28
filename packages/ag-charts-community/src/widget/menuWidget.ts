@@ -1,4 +1,4 @@
-import { getDocument, setAttribute } from 'ag-charts-core';
+import { createElementId, getDocument, setAttribute } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
 import { DestroyFns } from '../util/destroy';
@@ -49,6 +49,7 @@ export class MenuWidget extends RovingTabContainerWidget {
 
     public addSubMenu(): { subMenuButton: ButtonWidget; subMenu: MenuWidget } {
         const subMenuButton = new ButtonWidget();
+        const subMenuId = createElementId();
         const subMenu = new MenuWidget();
         const accessibleOpener = (ev: WidgetEvent) => {
             const { openScope } = this;
@@ -61,10 +62,12 @@ export class MenuWidget extends RovingTabContainerWidget {
         };
         subMenuButton.setAriaHasPopup('menu');
         subMenuButton.setAriaExpanded(false);
+        subMenuButton.setAriaControls(subMenuId);
         subMenuButton.addListener('click', accessibleOpener);
         subMenuButton.addListener('mouseenter', accessibleOpener);
         subMenu.addListener('close-widget', () => subMenuButton.setAriaExpanded(false));
         subMenu.addListener('open-widget', () => subMenuButton.setAriaExpanded(true));
+        subMenu.id = subMenuId;
         this.addChild(subMenuButton);
         return { subMenuButton, subMenu };
     }

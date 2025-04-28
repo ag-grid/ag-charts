@@ -1,6 +1,7 @@
 import {
     type BaseAttributeTypeMap,
     type BaseStyleTypeMap,
+    type ElementID,
     getAttribute,
     getWindow,
     setAttribute,
@@ -75,6 +76,14 @@ export abstract class Widget<
 
     protected abstract destructor(): void;
 
+    set id(elementId: ElementID | undefined) {
+        setAttribute(this.elem, 'id', elementId);
+    }
+
+    get id(): ElementID | undefined {
+        return getAttribute(this.elem, 'id');
+    }
+
     getElement(): TElement {
         return this.elem;
     }
@@ -139,6 +148,10 @@ export abstract class Widget<
 
     setAriaExpanded(ariaExpanded: BaseAttributeTypeMap['aria-expanded'] | undefined) {
         setAttribute(this.elem, 'aria-expanded', ariaExpanded);
+    }
+
+    setAriaControls(ariaControls: BaseAttributeTypeMap['aria-controls'] | undefined) {
+        setAttribute(this.elem, 'aria-controls', ariaControls);
     }
 
     setAriaHasPopup(ariaHasPopup: BaseAttributeTypeMap['aria-haspopup'] | undefined) {
