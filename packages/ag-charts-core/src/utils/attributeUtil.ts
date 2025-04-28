@@ -15,6 +15,7 @@ type AriaRole =
     | 'menuitem'
     | 'radio'
     | 'radiogroup'
+    | 'separator'
     | 'status'
     | 'switch'
     | 'tab'

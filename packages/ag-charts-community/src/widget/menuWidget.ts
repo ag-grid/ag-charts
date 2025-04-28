@@ -42,6 +42,7 @@ export class MenuWidget extends RovingTabContainerWidget {
 
     public addSeparator(): Element {
         const sep = getDocument().createElement('div');
+        setAttribute(sep, 'role', 'separator');
         this.elem.appendChild(sep);
         return sep;
     }
