@@ -413,6 +413,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         tickData: TickData,
         terminate: boolean
     ): TickStrategyResult {
+        // Find the next tick data where the tick data is different from the previous tick data - and return the index of this data
         const { scale, interval } = this.axis;
         const { step, values, minSpacing, maxSpacing } = interval;
         const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(visibleRange, minSpacing, maxSpacing);
@@ -422,32 +423,49 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const countTicks = (i: number) => (continuous ? Math.max(tickCount - i, minTickCount) : maxTickCount);
 
+        const previousTicks = tickData.rawTicks;
+
         const regenerateTicks =
             step == null &&
             values == null &&
             countTicks(index) > minTickCount &&
             (continuous || tickGenerationType === TickGenerationType.FILTER);
 
-        while (index <= maxIterations) {
-            const previousTicks = tickData.rawTicks;
+        const getTickParams = {
+            domain,
+            niceMode,
+            visibleRange,
+            primaryTickCount,
+            tickGenerationType,
+            previousTicks,
+            minTickCount,
+            maxTickCount,
+            tickCount: 0,
+        };
 
-            tickData = this.getTicks({
-                domain,
-                niceMode,
-                visibleRange,
-                primaryTickCount,
-                tickGenerationType,
-                previousTicks,
-                minTickCount,
-                maxTickCount,
-                tickCount: countTicks(index),
-            });
+        // First guess - generate ticks at current index
+        getTickParams.tickCount = countTicks(index);
+        tickData = this.getTicks(getTickParams);
 
-            index++;
+        if (regenerateTicks && this.ticksEqual(tickData.rawTicks, previousTicks)) {
+            // Ticks didn't change
+            // Use binary search to find the index, as there could be a lot of ticks in some cases
+            let lowerBound = index;
+            let upperBound = maxIterations;
+            while (lowerBound <= upperBound) {
+                index = ((lowerBound + upperBound) / 2) | 0;
+                getTickParams.tickCount = countTicks(index);
+                tickData = this.getTicks(getTickParams);
 
-            if (!regenerateTicks || !this.ticksEqual(tickData.rawTicks, previousTicks)) break;
+                if (this.ticksEqual(tickData.rawTicks, previousTicks)) {
+                    lowerBound = index + 1;
+                } else {
+                    upperBound = index - 1;
+                }
+            }
         }
 
+        index += 1;
         terminate ||= step != null || values != null;
 
         return { tickData, index, autoRotation: 0, terminate };
