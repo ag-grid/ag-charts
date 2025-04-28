@@ -1,7 +1,12 @@
 const ID_MAP = new Map<string, number>();
+const elementIDBrand = Symbol('ElementID');
+let nextElementID: number = 1;
+
+export type ElementID = string & { readonly [elementIDBrand]: true };
 
 export function resetIds() {
     ID_MAP.clear();
+    nextElementID = 1;
 }
 
 export function createId(instance: any): string {
@@ -15,6 +20,10 @@ export function createId(instance: any): string {
     ID_MAP.set(className, nextId);
 
     return `${className}-${nextId}`;
+}
+
+export function createElementId(): ElementID {
+    return `ag-charts-${nextElementID++}` as ElementID;
 }
 
 export function generateUUID(): string {
