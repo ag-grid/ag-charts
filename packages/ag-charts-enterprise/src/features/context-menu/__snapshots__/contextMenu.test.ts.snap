@@ -138,14 +138,6 @@ exports[`Context Menu submenu cycle detection 1`] = `
   [
     "AG Charts - cycle detected in array",
     {
-      "action": [Function],
-      "label": "my action",
-      "type": "action",
-    },
-  ],
-  [
-    "AG Charts - cycle detected in array",
-    {
       "items": [
         {
           "action": [Function],
