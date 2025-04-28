@@ -1,4 +1,4 @@
-import { createElement } from 'ag-charts-core';
+import { type StrictHTMLElement, createElement, createElementId } from 'ag-charts-core';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -50,7 +50,7 @@ export class LegendDOMProxy {
     private dirty = true;
 
     private readonly itemList: ListWidget;
-    private readonly itemDescription: HTMLParagraphElement;
+    private readonly itemDescription: HTMLParagraphElement & StrictHTMLElement;
     private readonly paginationGroup: GroupWidget;
     private readonly destroyFns: DestroyFns = new DestroyFns();
     private prevButton?: ButtonWidget;
@@ -72,7 +72,7 @@ export class LegendDOMProxy {
         });
         this.itemDescription = createElement('p');
         this.itemDescription.style.display = 'none';
-        this.itemDescription.id = `${idPrefix}-ariaDescription`;
+        this.itemDescription.id = createElementId();
         this.itemDescription.textContent = this.getItemAriaDescription(ctx.localeManager);
         this.itemList.getElement().append(this.itemDescription);
     }

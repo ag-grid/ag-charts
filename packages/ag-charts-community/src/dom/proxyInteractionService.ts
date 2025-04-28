@@ -1,4 +1,4 @@
-import { type BaseStyleTypeMap, createElement, setElementStyle } from 'ag-charts-core';
+import { type BaseStyleTypeMap, type ElementID, createElement, setElementStyle } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
 import type { LocaleManager } from '../locale/localeManager';
@@ -58,7 +58,7 @@ type ProxyMeta = {
             InteractParams<'listswitch'> & {
                 readonly textContent: string;
                 readonly ariaChecked: boolean;
-                readonly ariaDescribedBy: string;
+                readonly ariaDescribedBy: ElementID;
             };
         result: SwitchWidget;
     };

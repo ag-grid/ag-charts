@@ -1,5 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { createElement, createElementId, entries, getWindow, setAttribute, setAttributes } from 'ag-charts-core';
+import {
+    type ElementID,
+    createElement,
+    createElementId,
+    entries,
+    getWindow,
+    setAttribute,
+    setAttributes,
+} from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
 import { ColorPicker } from '../color-picker/colorPicker';
@@ -110,8 +118,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     ) {
         const element = createElement('div', 'ag-charts-dialog__tabs');
 
-        const tabButtonIds = mapValues(tabs, () => createElementId('ag-charts-dialog__tab'));
-        const tabPanelIds = mapValues(tabs, () => createElementId('ag-charts-dialog__tab-panel'));
+        const tabButtonIds = mapValues(tabs, () => createElementId());
+        const tabPanelIds = mapValues(tabs, () => createElementId());
 
         for (const [key, tab] of entries(tabs)) {
             setAttributes(tab.panel, {
@@ -255,7 +263,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     protected createCheckbox({ label, checked, onChange }: CheckboxOptions) {
-        const id = `ag-charts__${label}`;
+        const id = createElementId();
         const group = this.createInputGroup(label, { for: id });
 
         const checkbox = createCheckbox(
@@ -349,12 +357,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         );
     }
 
-    private createInputGroup(label: string, options?: { for?: string }) {
+    private createInputGroup(label: string, options?: { for?: ElementID }) {
         const group = createElement('div', 'ag-charts-dialog__input-group');
 
         const labelEl = createElement('label', 'ag-charts-dialog__input-group-label');
         labelEl.innerText = this.ctx.localeManager.t(label);
-        if (options?.for) labelEl.setAttribute('for', options.for);
+        setAttribute(labelEl, 'for', options?.for);
 
         group.appendChild(labelEl);
 

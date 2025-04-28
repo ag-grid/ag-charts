@@ -190,7 +190,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
         const label2 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label2');
-        this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
+        this.swapChain = new FocusSwapChain(label1, label2, 'img');
         this.swapChain.addListener('blur', (event) => this.onBlur(event));
         this.swapChain.addListener('focus', () => this.onFocus());
         if (chart.ctx.domManager.mode === 'normal') {
