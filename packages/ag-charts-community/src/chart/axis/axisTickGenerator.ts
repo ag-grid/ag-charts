@@ -476,14 +476,19 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         tickParams: Readonly<ScaleTickParams<any>>,
         timeInterval: TimeInterval
     ) {
-        if (timeInterval.hierarchy == null) return;
+        const parentInterval = timeInterval.hierarchy;
+        if (parentInterval == null) return;
 
         const { scale } = this.axis;
         if (!TimeScale.is(scale) && !DiscreteTimeScale.is(scale)) return;
 
         const d0 = new Date(scale.domain[0]);
         const d1 = new Date(scale.domain[scale.domain.length - 1]);
-        const primaryTicks = timeInterval.hierarchy.range(d0, d1, { extend: true, visibleRange });
+        // Generate at least one tick outside the range on each side
+        let [dp0, dp1] = TimeInterval.extent(d0, d1, visibleRange);
+        dp0 = parentInterval.previous(parentInterval.floor(dp0));
+        dp1 = parentInterval.next(parentInterval.ceil(dp1));
+        const primaryTicks = parentInterval.range(dp0, dp1);
 
         const { milliseconds } = timeInterval;
         const interpolate =
@@ -505,8 +510,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
                 const dp = p1.valueOf() - p0.valueOf();
                 const pVisibleRange: [number, number] = [
-                    first ? Math.max((d0.valueOf() - p0.valueOf()) / dp, 0) : 0,
-                    last ? Math.min((d1.valueOf() - p0.valueOf()) / dp, 1) : 1,
+                    Math.max((d0.valueOf() - p0.valueOf()) / dp, 0),
+                    Math.min((d1.valueOf() - p0.valueOf()) / dp, 1),
                 ];
 
                 const extend = first || last;
@@ -680,7 +685,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 } else {
                     interpolate = UnitTimeScale.is(scale);
                     rawTicks = interpolate
-                        ? this.timeScaleTicks(tickParams, niceDomain as any)
+                        ? this.timeScaleTicks(
+                              { ...tickParams, interval: tickParams.interval ?? timeInterval },
+                              niceDomain as any
+                          )
                         : scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
                 }
             }

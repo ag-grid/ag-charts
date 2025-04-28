@@ -40,6 +40,26 @@ export class TimeInterval {
         protected readonly _rangeCallback?: RangeFn
     ) {}
 
+    static extent(start: Date, stop: Date, visibleRange?: [number, number]) {
+        if (start.getTime() > stop.getTime()) {
+            [start, stop] = [stop, start];
+
+            if (visibleRange != null) {
+                visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];
+            }
+        }
+
+        if (visibleRange != null) {
+            const delta = stop.getTime() - start.getTime();
+            const t0 = start.getTime();
+
+            start = new Date(t0 + visibleRange[0] * delta);
+            stop = new Date(t0 + visibleRange[1] * delta);
+        }
+
+        return [start, stop];
+    }
+
     private getOffset(snapTo: Date, step: number) {
         return Math.floor(this._encode(new Date(snapTo))) % step;
     }
@@ -70,18 +90,7 @@ export class TimeInterval {
         stop: Date,
         { extend = false, visibleRange = [0, 1], limit }: RangeParams
     ): [number, number] {
-        if (start.getTime() > stop.getTime()) {
-            [start, stop] = [stop, start];
-            visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];
-        }
-
-        if (visibleRange != null) {
-            const delta = stop.getTime() - start.getTime();
-            const t0 = start.getTime();
-
-            start = new Date(t0 + visibleRange[0] * delta);
-            stop = new Date(t0 + visibleRange[1] * delta);
-        }
+        [start, stop] = TimeInterval.extent(start, stop, visibleRange);
 
         const e0 = this._encode(extend ? this.floor(start) : this.ceil(start));
         let e1 = this._encode(extend ? this.ceil(stop) : this.floor(stop));
