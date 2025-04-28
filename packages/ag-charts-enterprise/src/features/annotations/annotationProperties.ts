@@ -7,6 +7,7 @@ import type {
     TextAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { generateUUID } from 'ag-charts-core';
 
 import type {
     AnnotationOptionsColorPickerType,
@@ -17,7 +18,7 @@ import type {
 } from './annotationTypes';
 import type { PointType } from './utils/scale';
 
-const { BaseProperties, Property, generateUUID } = _ModuleSupport;
+const { BaseProperties, Property } = _ModuleSupport;
 
 /**************
  * Components *

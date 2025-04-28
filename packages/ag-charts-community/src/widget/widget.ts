@@ -1,13 +1,13 @@
-import { getWindow } from 'ag-charts-core';
-
 import {
     type BaseAttributeTypeMap,
     type BaseStyleTypeMap,
     getAttribute,
+    getWindow,
     setAttribute,
     setElementStyle,
     setElementStyles,
-} from '../util/attributeUtil';
+} from 'ag-charts-core';
+
 import type { BBoxValues } from '../util/bboxinterface';
 import { getElementBBox, setElementBBox } from '../util/dom';
 import { type WidgetEventMap, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';

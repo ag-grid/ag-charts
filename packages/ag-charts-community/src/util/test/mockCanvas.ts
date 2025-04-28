@@ -3,9 +3,8 @@ import * as fs from 'fs';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 
+import { resetIds } from 'ag-charts-core';
 import { mockCanvas } from 'ag-charts-test';
-
-import { resetIds } from '../id';
 
 export const CANVAS_WIDTH = 800;
 export const CANVAS_HEIGHT = 600;

@@ -1,12 +1,10 @@
-import { createElement, entries, getDocument, getWindow } from 'ag-charts-core';
+import { createElement, createId, entries, getDocument, getWindow, setAttribute } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
 import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
-import { setAttribute } from '../util/attributeUtil';
 import { BaseManager } from '../util/baseManager';
 import { GuardedElement } from '../util/guardedElement';
-import { createId } from '../util/id';
 import { stopPageScrolling } from '../util/keynavUtil';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
 import { StateTracker } from '../util/stateTracker';
