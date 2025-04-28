@@ -27,6 +27,10 @@ function snapshot_versions {
 
 while getopts ":eniupc" opt; do
   case $opt in
+    i)
+      editor=true
+      mode=native
+      ;;
     e)
       editor=true
       ;;
