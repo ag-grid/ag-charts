@@ -1,13 +1,9 @@
-import { type Operation, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import { type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 import type { RequiredInternalAgGradientColor } from 'ag-charts-core';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE, POLAR_AXIS_SHAPE },
 } = _ModuleSupport;
-
-const axisShape: Operation = {
-    $path: ['./shape', POLAR_AXIS_SHAPE.CIRCLE, { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] }],
-};
 
 export const RADIAL_COLUMN_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-column'>['themeTemplate'] = {
     series: {
@@ -37,7 +33,7 @@ export const RADIAL_COLUMN_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-col
     },
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {
-            shape: axisShape,
+            shape: { $findFirstResolvedSibling: ['./shape', POLAR_AXIS_SHAPE.CIRCLE] },
             groupPaddingInner: 0,
             paddingInner: 0,
             label: {
@@ -45,7 +41,7 @@ export const RADIAL_COLUMN_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-col
             },
         },
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: {
-            shape: axisShape,
+            shape: { $findFirstResolvedSibling: ['./shape', POLAR_AXIS_SHAPE.CIRCLE] },
             innerRadiusRatio: 0.5,
         },
     },

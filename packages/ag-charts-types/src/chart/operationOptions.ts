@@ -78,8 +78,7 @@ type LogicOperation =
     | { $and: Leaf[] }
     | { $eq: [Leaf, Leaf] }
     | { $not: [Leaf] }
-    | { $switch: [Leaf] }
-    | { $isOperation: string };
+    | { $switch: [Leaf] };
 
 type NumericOperation = { $even: [Leaf<number>] } | { $mul: [Leaf<number>, Leaf<number>] } | { $round: [Leaf<number>] };
 
@@ -89,6 +88,7 @@ type TransformOperation =
     | { $merge: Leaf<object>[] }
     | { $omit: [Leaf<Array<string>>, Leaf<object>] }
     | { $apply: [Leaf<object>] | [Leaf<object>, Leaf<string>, Leaf<object>] }
+    | { $findFirstResolvedSibling: [Leaf<string>, Leaf] }
     | { $value: '$1' | '$index' };
 
 type FontOperation = { $rem: [Leaf] | [Leaf, Leaf] };

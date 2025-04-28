@@ -22,10 +22,8 @@ import {
     validate,
 } from 'ag-charts-core';
 import {
-    type AgCartesianAxisOptions,
     type AgChartOptions,
     type AgChartThemeParams,
-    type AgPolarAxisOptions,
     type AgPresetOptions,
     type AgPresetOverrides,
     AgTooltipAnchorToType,
@@ -53,7 +51,7 @@ import {
     jsonResolveOperations,
     jsonWalk,
 } from '../util/json';
-import { deepFreeze, merge, mergeArrayDefaults, mergeDefaults } from '../util/object';
+import { deepFreeze, merge, mergeDefaults } from '../util/object';
 import { paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
 import type { SeriesType } from './optionsModuleTypes';
@@ -302,9 +300,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             // new Set(['palette', 'theme'])
         );
         // ChartOptions.debug('ChartOptions.resolveTheme()', modifiedPaths);
-        // console.log(defaults);
-        console.log(options);
-        console.log(processedOptions);
 
         this.enableConfiguredOptions(processedOptions, options);
 
@@ -325,34 +320,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         1 – Circular paths in `chartTheme.ts` axis default shapes
         2 – Apply annotations like series
         3 – Should `jsonResolveSourceWithTarget()` use `isObject()` or `isPlainObject()`? Compare tests vs `processedOptions.container` being removed by it.
-        4 – Series groupings
-        5 – Cross lines
 
-        */
-
-        /*
-
-        const { annotations, ...processedDefaults } = this.getAllThemeDefaults(activeTheme, options);
-        // const [annotationsOptions, annotationsThemes] = this.splitAnnotationsOptions(annotations);
-        // const annotationThemes = deepClone(annotationsThemes);
-
-        let processedOptions = mergeDefaults(processedOverrides, options,
-         annotationsOptions,
-          processedDefaults);
-
-        // const defaultAxes = this.getDefaultAxes(options, seriesTheme);
-        // let processedOptions = mergeDefaults(
-        //     processedOverrides,
-        //     options,
-        //     annotationsOptions,
-        //     themeDefaults,
-        //     defaultAxes
-        // );
-        // this.processAxesOptions(processedOptions, axesThemes);
-        // this.processSeriesOptions(processedOptions, activeTheme);
-
-        // this.resolveThemeOperations(themeParameters, annotationThemes);
-        
         */
 
         // TODO: Is this still needed? The `jsonResolveOperations()` is also a deep clone.
@@ -377,7 +345,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.validatePluginOptions(processedOptions);
 
         // TODO: convert this to theme operations
-        // this.processMiniChartSeriesOptions(processedOptions);
+        this.processMiniChartSeriesOptions(processedOptions);
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
@@ -419,26 +387,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         return [chartDefaults, axesDefaults, seriesDefaults, annotationsDefaults];
     }
-
-    // const { crossLines: crossLinesTheme, ...axisTheme } = mergeDefaults(
-    //     axesThemes[axis.type]?.[axis.position],
-    //     axesThemes[axis.type]
-    // );
-
-    // if (axis.crossLines) {
-    //     axis.crossLines = mergeArrayDefaults(axis.crossLines, crossLinesTheme);
-    // }
-
-    // const gridLineStyle = axisTheme.gridLine?.style;
-    // if (axis.gridLine?.style && gridLineStyle?.length) {
-    //     axis.gridLine.style = axis.gridLine.style.map((style: any, index: number) =>
-    //         style.stroke != null || style.lineDash != null
-    //             ? mergeDefaults(style, gridLineStyle.at(index % gridLineStyle.length))
-    //             : style
-    //     );
-    // }
-    // const { top: _1, right: _2, bottom: _3, left: _4, ...axisOptions } = mergeDefaults(axis, axisTheme);
-    // return axisOptions;
 
     private validatePluginOptions(options: T) {
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
@@ -551,10 +499,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         );
     }
 
-    private getSeriesThemeConfig(seriesType: string, activeTheme: ChartTheme) {
-        return activeTheme?.config[seriesType] ?? {};
-    }
-
     // private getDefaultAxes(options: T, _seriesTheme: object) {
     //     const optionsType = this.optionsType(options);
     //     // const firstSeriesOptions = options.series?.find((series) => (series.type ?? 'line') === optionsType) ?? {};
@@ -583,6 +527,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     //     return [{ annotations: { axesButtons, enabled, optionsToolbar, toolbar } }, annotationsThemes];
     // }
 
+    /*
     private processAxesOptions(options: T, axesThemes: any) {
         if (!('axes' in options)) return;
         options.axes = options.axes?.map((axis: any) => {
@@ -607,6 +552,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return axisOptions;
         }) as AgCartesianAxisOptions[] | AgPolarAxisOptions[];
     }
+    */
 
     private processSeriesOptions(options: T) {
         const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
@@ -624,7 +570,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 series,
                 tooltipDefined && defaultTooltipPosition,
                 defaultTooltipRange,
-                // seriesTheme,
                 visibleDefined && { visible: true }
             );
 
@@ -641,11 +586,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private processMiniChartSeriesOptions(options: T) {
         let miniChartSeries = options.navigator?.miniChart?.series;
         if (miniChartSeries == null) return;
-
-        miniChartSeries = miniChartSeries.map((series) => {
-            series.type ??= 'line';
-            return series;
-        });
 
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
     }

@@ -470,13 +470,7 @@ export class ChartTheme {
             {
                 label: { spacing: 5 },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                shape: {
-                    $path: [
-                        './shape',
-                        undefined,
-                        { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] },
-                    ],
-                },
+                shape: { $findFirstResolvedSibling: ['./shape', undefined] },
             },
             { title: false, time: 'off' }
         ),
@@ -498,13 +492,7 @@ export class ChartTheme {
             {
                 positionAngle: 0,
                 line: { enabled: false },
-                shape: {
-                    $path: [
-                        './shape',
-                        undefined,
-                        { $find: [{ $not: [{ $isOperation: './shape' }] }, { $path: '..' }] },
-                    ],
-                },
+                shape: { $findFirstResolvedSibling: ['./shape', undefined] },
             },
             { title: true, time: 'off' }
         ),

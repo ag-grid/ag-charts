@@ -533,13 +533,6 @@ describe('json module', () => {
             expect(resolved).toEqual({ a: { b: 'ref' }, c: ['ref', 'other', 'ref'] });
         });
 
-        it('should resolve top-level operations', () => {
-            const source = { $ref: 'key' };
-            const params = { key: { a: 'object-ref' } };
-            const resolved = jsonResolveOperations([source], params);
-            expect(resolved).toEqual({ a: 'object-ref' });
-        });
-
         it('should resolve operations within operations', () => {
             const source = {
                 a: { $path: [{ $path: '/b' }, 'default'] },
@@ -745,9 +738,9 @@ describe('json module', () => {
                     },
                 });
                 expectWarningMessages([
-                    'AG Charts - `$path` json operation failed on [../sibling] at [parent.youngerSibling], could not find path in object.',
-                    'AG Charts - `$path` json operation failed on [./missing] at [parent.youngestSibling], could not find path in object.',
-                    'AG Charts - `$path` json operation failed on [../sibling] at [parent.invalidCousin], could not find path in object.',
+                    'AG Charts - `$path` json operation failed on [../sibling] at [parent.youngerSibling] resolved to [sibling], could not find path in object.',
+                    'AG Charts - `$path` json operation failed on [./missing] at [parent.youngestSibling] resolved to [parent.missing], could not find path in object.',
+                    'AG Charts - `$path` json operation failed on [../sibling] at [parent.invalidCousin] resolved to [sibling], could not find path in object.',
                 ]);
             });
 
@@ -842,12 +835,6 @@ describe('json module', () => {
                 const source = { a: { $if: [true, 'yes', 'no'] }, b: { $if: [false, 'yes', 'no'] } };
                 const resolved = jsonResolveOperations([source]);
                 expect(resolved).toEqual({ a: 'yes', b: 'no' });
-            });
-
-            it('should resolve `$isOperation` operation', () => {
-                const source = { a: { $isOperation: './b' }, b: { $not: [true] }, c: { $isOperation: './b' } };
-                const resolved = jsonResolveOperations([source]);
-                expect(resolved).toEqual({ a: true, b: false, c: true });
             });
         });
 
@@ -957,21 +944,24 @@ describe('json module', () => {
                             {
                                 $find: [
                                     { $eq: [{ $path: ['./greeting', undefined, { $value: '$1' }] }, 'bonjour'] },
-                                    [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
+                                    { $path: './b' },
                                 ],
                             },
                         ],
                     },
+                    b: [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
                 };
                 const resolved = jsonResolveOperations([source]);
-                expect(resolved).toEqual({ a: 'bonjour' });
+                expect(resolved).toEqual({
+                    a: 'bonjour',
+                    b: [{ greeting: 'hello' }, { greeting: 'bonjour' }, { greeting: 'howdy' }],
+                });
             });
 
-            it('should resolve `$find` and safely handle circular references with `$isOperation` operation', () => {
+            it('should resolve `$findFirstResolvedSibling` operation', () => {
                 const source = {
                     a: [
-                        // { $find: [{ $not: [{ $eq: [{ $value: '$1' }, undefined] }] }, { $path: '../a' }] },
-                        { $find: [{ $not: [{ $isOperation: '.' }] }, { $path: '../a' }] },
+                        { $findFirstResolvedSibling: ['.', 'default value'] },
                         { greeting: 'bonjour', lang: 'fr' },
                         { greeting: 'howdy', lang: 'en-US' },
                     ],
@@ -986,17 +976,11 @@ describe('json module', () => {
                 });
             });
 
-            it('should resolve `$find` and safely handle circular references with `$isOperation` operation on child', () => {
+            it('should resolve `$findFirstResolvedSibling` operation on child', () => {
                 const source = {
                     a: [
                         {
-                            greeting: {
-                                $path: [
-                                    './greeting',
-                                    'default value',
-                                    { $find: [{ $not: [{ $isOperation: './greeting' }] }, { $path: '..' }] },
-                                ],
-                            },
+                            greeting: { $findFirstResolvedSibling: ['./greeting', 'default value'] },
                             lang: 'en',
                         },
                         { greeting: 'bonjour', lang: 'fr' },

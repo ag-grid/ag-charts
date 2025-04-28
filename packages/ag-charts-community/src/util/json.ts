@@ -348,21 +348,17 @@ export function jsonResolveOperations<S extends object = object, P extends objec
     const maxAttempts = 2;
 
     let attempt = 0;
-    let unresolvedIdsSize = unresolvedIds.size;
     while (unresolvedIds.size > 0 && attempt < maxAttempts) {
+        let previouslyUnresolvedIds = new Set(unresolvedIds);
         unresolvedIds.clear();
         for (const source of sources) {
             jsonResolveSource(resolved, source, meta);
         }
 
-        // TODO: this could fail, should test a union
-        if (unresolvedIdsSize === unresolvedIds.size) {
-            // Until operations are made public, this error should not occur, if it does that is a library bug.
-            Logger.warnOnce(`Could not resolve operations at:\n- ${Array.from(unresolvedIds.values()).join('\n- ')}`);
+        if (setsEqual(unresolvedIds, previouslyUnresolvedIds)) {
             break;
         }
 
-        unresolvedIdsSize = unresolvedIds.size;
         attempt++;
     }
 
@@ -371,8 +367,12 @@ export function jsonResolveOperations<S extends object = object, P extends objec
         setPath(resolved, path.split('.'), defaultValue);
     }
     for (const [path, value] of missingPaths) {
+        let resolvedPath = resolvePath(path.split('.'), value);
+        if (resolvedPath === unresolvablePath) {
+            resolvedPath = [];
+        }
         Logger.warnOnce(
-            `\`$path\` json operation failed on [${value}] at [${path}] resolved to [${resolvePath(path.split('.'), value).join('.')}], could not find path in object.`
+            `\`$path\` json operation failed on [${value}] at [${path}] resolved to [${resolvedPath.join('.')}], could not find path in object.`
         );
     }
 
@@ -399,12 +399,21 @@ const unresolvedIds = new Set<string>();
 const missingPaths = new Map<string, string>();
 const missingPathsWithDefaults = new Map<string, any>();
 const unresolvedOperation = Symbol('unresolved-operation');
+const unresolvablePath = Symbol('unresolvable-path');
 
 function hasUnresolvedChildren(id: string) {
     for (const unresolvedId of unresolvedIds) {
         if (unresolvedId.startsWith(id)) return true;
     }
     return false;
+}
+
+function setsEqual<T>(a: Set<T>, b: Set<T>) {
+    if (a.size !== b.size) return false;
+    for (const value of a.values()) {
+        if (!b.has(value)) return false;
+    }
+    return true;
 }
 
 function jsonResolveSource(target: PlainObject, source: unknown, meta: OperationMeta) {
@@ -540,7 +549,6 @@ enum LogicOperation {
     Not = '$not',
     Or = '$or',
     And = '$and',
-    IsOperation = '$isOperation',
 }
 
 enum NumericOperation {
@@ -555,6 +563,7 @@ enum TransformOperation {
     Apply = '$apply',
     Value = '$value',
     Find = '$find',
+    FindFirstResolvedSibling = '$findFirstResolvedSibling',
     Pick = '$pick',
     Omit = '$omit',
     Clone = '$clone',
@@ -658,9 +667,11 @@ function resolvePath(currentPath: string[], path: string, index?: string, variab
         } else if (part === '.') {
             if (i < relativePathParts.length - 1) resolvedPath.pop();
         } else if (part === '$index') {
-            if (index != null) resolvedPath.push(index);
+            if (index == null) return unresolvablePath;
+            resolvedPath.push(index);
         } else if (part === '$prevIndex') {
-            if (index != null) resolvedPath.push(`${Number(index) - 1}`);
+            if (index == null || Number(index) <= 0) return unresolvablePath;
+            resolvedPath.push(`${Number(index) - 1}`);
         } else if (part.startsWith('$')) {
             resolvedPath.push(variables?.[part.slice(1)]);
         } else if (part.length !== 0) {
@@ -688,7 +699,6 @@ const logicOperations: Record<LogicOperation, OperationFn> = {
     $not: ([a]) => !a,
     $or: (values) => isArray(values) && values.some(Boolean),
     $and: (values) => isArray(values) && values.every(Boolean),
-    $isOperation: isOperationOperator,
 };
 
 const numericOperations: Record<NumericOperation, OperationFn> = {
@@ -700,6 +710,7 @@ const numericOperations: Record<NumericOperation, OperationFn> = {
 const transformOperations: Record<TransformOperation, OperationFn> = {
     $map: map,
     $find: find,
+    $findFirstResolvedSibling: findFirstResolvedSibling,
     $merge: merge,
     $apply: apply,
     $pick: pick,
@@ -838,6 +849,11 @@ function pathOperation(value: string | Array<unknown>, meta: OperationMeta) {
     if (usingCustomBranch) currentPath = [];
     const resolvedPath = resolvePath(currentPath, value, key, variables);
 
+    if (resolvedPath === unresolvablePath) {
+        if (hasDefaultValue) return defaultValue;
+        return undefined;
+    }
+
     // Track and update missing paths on the root object being resolved
     if (!usingCustomBranch && !resolvedIds.has(`/${resolvedPath.join('/')}`)) {
         if (hasDefaultValue) {
@@ -868,18 +884,6 @@ function pathOperation(value: string | Array<unknown>, meta: OperationMeta) {
     }
 
     return resolvedValue;
-}
-
-function isOperationOperator(value: string | Array<unknown>, { path, sources }: OperationMeta) {
-    const resolvedPath = isString(value) ? resolvePath(path, value) : path;
-    // Iterate sources in reverse since a later non-operation value will overwrite an earlier operation
-    for (let i = sources.length - 1; i >= 0; i--) {
-        const source = sources[i];
-        const branch = resolvedPath.length === 0 ? source : getPath(source, resolvedPath);
-        if (branch == null) continue;
-        return getOperation(branch) != null;
-    }
-    return false;
 }
 
 function isEven([a]: string | Array<unknown>, { path }: OperationMeta) {
@@ -958,6 +962,32 @@ function find([findCondition, findValues]: string | Array<unknown>, meta: Operat
     return findValues[target.findIndex((value) => value)];
 }
 
+function findFirstResolvedSibling([path, defaultValue]: string | Array<unknown>, meta: OperationMeta) {
+    if (!isString(path)) return defaultValue;
+
+    const indexIndex = meta.path.findLastIndex((v) => !isNaN(Number(v)));
+    if (indexIndex < 0) return defaultValue;
+
+    const parentPath = meta.path.slice(0, indexIndex);
+    const resolvedPath = resolvePath([], path);
+    if (resolvedPath === unresolvablePath) return defaultValue;
+
+    // Iterate sources in reverse since a later non-operation value will overwrite an earlier operation
+    for (let i = meta.sources.length - 1; i >= 0; i--) {
+        const source = meta.sources[i];
+        const branch = getPath(source, parentPath);
+        if (branch == null || !isArray(branch)) continue;
+        for (const sibling of branch) {
+            const resolvedSibling = getPath(sibling, resolvedPath);
+            if (getOperation(resolvedSibling) == null) {
+                return resolvedSibling;
+            }
+        }
+    }
+
+    return defaultValue;
+}
+
 function merge(values: string | Array<unknown>, meta: OperationMeta) {
     if (!isArray(values)) return;
     const merged = {};
@@ -990,7 +1020,9 @@ function apply(value: string | Array<unknown>, meta: OperationMeta) {
                     });
                 }
                 const resolvedFromPath = resolvePath([], fromPath, undefined, variablesTarget);
-                source = getPath(object, resolvedFromPath);
+                if (resolvedFromPath != unresolvablePath) {
+                    source = getPath(object, resolvedFromPath);
+                }
             }
 
             const target = {};
@@ -1016,7 +1048,9 @@ function apply(value: string | Array<unknown>, meta: OperationMeta) {
                 });
             }
             const resolvedFromPath = resolvePath([], fromPath, undefined, variablesTarget);
-            source = getPath(object, resolvedFromPath);
+            if (resolvedFromPath !== unresolvablePath) {
+                source = getPath(object, resolvedFromPath);
+            }
         }
 
         // TODO: check safe to apply straight to branch
