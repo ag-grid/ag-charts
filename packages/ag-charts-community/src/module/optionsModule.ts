@@ -499,14 +499,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         );
     }
 
-    // private getDefaultAxes(options: T, _seriesTheme: object) {
-    //     const optionsType = this.optionsType(options);
-    //     // const firstSeriesOptions = options.series?.find((series) => (series.type ?? 'line') === optionsType) ?? {};
-    //     const axes = seriesRegistry.cloneDefaultAxes(optionsType) as T;
-    //     // jsonResolveOperations(axes, {}, undefined, mergeDefaults(firstSeriesOptions, seriesTheme));
-    //     return axes;
-    // }
-
     private optionsType(options: Partial<T>) {
         return options.series?.[0]?.type ?? 'line';
     }
@@ -573,10 +565,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 visibleDefined && { visible: true }
             );
 
-            // if (seriesOptions.innerLabels) {
-            //     seriesOptions.innerLabels = mergeArrayDefaults(seriesOptions.innerLabels, innerLabelsTheme);
-            // }
-
             return seriesOptions;
         });
 
@@ -584,9 +572,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private processMiniChartSeriesOptions(options: T) {
-        let miniChartSeries = options.navigator?.miniChart?.series;
+        const miniChartSeries = options.navigator?.miniChart?.series;
         if (miniChartSeries == null) return;
-
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
     }
 

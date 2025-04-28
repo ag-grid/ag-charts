@@ -1,5 +1,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
+import { PlainObject } from 'ag-charts-core';
+
 import { deepClone, jsonApply, jsonDiff, jsonPropertyCompare, jsonResolveOperations, jsonWalk } from './json';
 import { mergeDefaults } from './object';
 import { expectWarningMessages, setupMockConsole } from './test/mockConsole';
@@ -1150,7 +1152,7 @@ describe('json module', () => {
 
             it('should resolve `$clone` operations', () => {
                 const source = { a: { greeting: 'hello' }, b: { $clone: [{ $path: './a' }] } };
-                const resolved = jsonResolveOperations([source]) as any;
+                const resolved = jsonResolveOperations<PlainObject>([source]);
                 expect(resolved.b).toEqual({ greeting: 'hello' });
                 resolved.a.greeting = 'bonjour';
                 expect(resolved.b).toEqual({ greeting: 'hello' });

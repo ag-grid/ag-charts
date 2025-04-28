@@ -349,7 +349,7 @@ export function jsonResolveOperations<S extends object = object, P extends objec
 
     let attempt = 0;
     while (unresolvedIds.size > 0 && attempt < maxAttempts) {
-        let previouslyUnresolvedIds = new Set(unresolvedIds);
+        const previouslyUnresolvedIds = new Set(unresolvedIds);
         unresolvedIds.clear();
         for (const source of sources) {
             jsonResolveSource(resolved, source, meta);
@@ -602,7 +602,7 @@ function getOperation(value: unknown) {
     if (!isPlainObject(value)) return;
     const [operation] = Object.keys(value) as Array<Operation>;
     if (!operationKeys.has(operation)) return;
-    return { operation: operation as Operation, values: value[operation] };
+    return { operation, values: value[operation] };
 }
 
 function resolveOperation(operation: Operation, value: string | Array<unknown>, meta: OperationMeta): any {
@@ -612,7 +612,7 @@ function resolveOperation(operation: Operation, value: string | Array<unknown>, 
 }
 
 function isKey<T extends object>(key: unknown, obj: T): key is keyof T & string {
-    return typeof key === 'string' && obj !== null && (typeof obj === 'object' || Array.isArray(obj)) && key in obj;
+    return typeof key === 'string' && obj != null && (typeof obj === 'object' || Array.isArray(obj)) && key in obj;
 }
 
 function isRatio(value: unknown): value is number {

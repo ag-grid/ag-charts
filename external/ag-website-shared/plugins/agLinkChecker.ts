@@ -221,7 +221,6 @@ const checkLinks = async (dir: string, files: string[], options: Options) => {
             ${errors.join('\n')}
         `);
     } else {
-        // eslint-disable-next-line no-console
         console.log('Link checker completed with no issues.');
     }
 };
