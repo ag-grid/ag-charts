@@ -4,6 +4,31 @@ set -eu
 
 cd $(dirname $0)
 
+function report_flaky_tests {
+  local report_file='./reports/ag-charts-website-e2e.json'
+
+  # Find all flaky tests recursively and output annotations.
+  jq -c '
+  def walk_suites($suite):
+    $suite.specs[]?.tests[]? // empty,
+    ($suite.suites[]? | walk_suites(.)) // empty;
+  .suites[]
+  | walk_suites(.)
+  | select(.status == "flaky")
+  | .results[]
+  | select(.status == "failed")
+  | .error
+  | { file: .location.file, line: .location.line, column: .location.column }
+' "$report_file" | while read test; do
+    FILE=$(echo "$test" | jq -r '.file')
+    LINE=$(echo "$test" | jq -r '.line')
+    COLUMN=$(echo "$test" | jq -r '.column')
+    
+    echo "::warning file=$FILE,line=$LINE,col=$COLUMN::Flaky test detected"
+  done
+}
+
+
 export $(cat .env.test:e2e.docker | grep -v '^#' | xargs)
 EXTRA_DOCKER_ARGS=
 if [ "${CI:-}" != "" ] ; then
@@ -82,3 +107,7 @@ echo "Waiting for connection to ${PUBLIC_SITE_URL}..."
 npx wait-on ${PUBLIC_SITE_URL}
 echo "Connected to ${PUBLIC_SITE_URL}!"
 npx playwright $@
+
+if [[ "${CI:-}" != "" ]] ; then
+  report_flaky_tests
+fi

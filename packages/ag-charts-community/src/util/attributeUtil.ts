@@ -27,7 +27,7 @@ export type BaseAttributeTypeMap = {
     'aria-describedby': ElementID;
     'aria-disabled': boolean;
     'aria-expanded': boolean;
-    'aria-haspopup': boolean;
+    'aria-haspopup': 'true' | 'false' | 'menu' | 'dialog' | 'grid' | 'listbox' | 'tree';
     'aria-hidden': boolean;
     'aria-label': string;
     'aria-labelledby': ElementID;
@@ -63,11 +63,11 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     'aria-describedby': stringParser<ElementID>,
     'aria-disabled': booleanParser,
     'aria-expanded': booleanParser,
-    'aria-haspopup': booleanParser,
+    'aria-haspopup': stringParser<BaseAttributeTypeMap['aria-haspopup']>,
     'aria-hidden': booleanParser,
     'aria-label': stringParser,
     'aria-labelledby': stringParser<ElementID>,
-    'aria-live': stringParser<'assertive' | 'polite'>,
+    'aria-live': stringParser<BaseAttributeTypeMap['aria-live']>,
     'aria-orientation': stringParser<Direction>,
     'aria-selected': booleanParser,
     'data-preventdefault': booleanParser,
