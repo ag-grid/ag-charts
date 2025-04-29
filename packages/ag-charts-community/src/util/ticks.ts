@@ -69,14 +69,24 @@ export function createTicks(
     const step = tickStep(start, stop, count, minCount, maxCount);
     if (!Number.isFinite(step)) return { ticks: [], count: 0 };
 
-    if (!isCloseToInteger(start / step, 1e-12)) {
-        start = Math.ceil(start / step) * step;
+    let d0 = start;
+    let d1 = stop;
+    if (!isCloseToInteger(d0 / step, 1e-12)) {
+        d0 = Math.ceil(d0 / step) * step;
     }
-    if (!isCloseToInteger(stop / step, 1e-12)) {
-        stop = Math.floor(stop / step) * step;
+    if (!isCloseToInteger(d1 / step, 1e-12)) {
+        d1 = Math.floor(d1 / step) * step;
     }
 
-    return range(start, stop, step, visibleRange);
+    if (visibleRange != null) {
+        const dr = d1 - d0;
+        const vr = stop - start;
+        const vd0 = start + vr * visibleRange[0];
+        const vd1 = start + vr * visibleRange[1];
+        visibleRange = [(vd0 - d0) / dr, (vd1 - d0) / dr];
+    }
+
+    return range(d0, d1, step, visibleRange);
 }
 
 const minPrimaryTickRatio = Math.floor(((2 * week.milliseconds) / month.milliseconds) * 10) / 10;
