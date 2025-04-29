@@ -124,8 +124,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     ) {
         const { syncManager } = this.moduleContext;
 
-        const { domainsByKey = {} } = syncManager.getGroupState(this.groupId) ?? {};
-        const hasKeyBasedDomains = Object.keys(domainsByKey).length > 0;
+        const useSecondaryDirectionKey = syncManager.getGroupMembers(this.groupId).some((c) => c.series.length > 1);
         for (const [chart, axis] of syncManager.getGroupSiblingAxes(this.groupId)) {
             if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
             if (!CartesianAxis.is(axis) || axis.direction !== mainDirection) continue;
@@ -136,12 +135,13 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                 .map(this.findMatchingNodes(axis, mainDirection, valueIsDate, eventValue))
                 .filter(isDefined);
 
-            if (this.domainMode === 'key' && hasKeyBasedDomains) {
+            // Narrow matches by matching the secondary direction key.
+            if (useSecondaryDirectionKey) {
                 const secondaryKey = `${secondaryDirection}Key` as const;
                 const secondaryValue = _ModuleSupport.isObjectWithProperty(event.currentHighlight, secondaryKey)
                     ? event.currentHighlight?.[secondaryKey]
                     : undefined;
-                // Narrow matches by matching the secondary direction key.
+
                 matchingNodes = matchingNodes.filter(({ nodeDatum }) => {
                     return (
                         isObjectWithStringProperty(nodeDatum, secondaryKey) &&
@@ -157,7 +157,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                 const { series, nodeDatum } = matchingNodes[0] ?? {};
                 this.dispatchHighlightUpdate(chart, nodeDatum, series);
             } else {
-                debug('ChartSync.findMatchingHighlightNodes() - no matching nodes', chart.id, event);
+                debug('ChartSync.findMatchingHighlightNodes() - no matching nodes', chart.id, event, matchingNodes);
             }
         }
     }
