@@ -1,13 +1,22 @@
 import {
     type OptionsDefs,
+    type Validator,
+    array,
     arrayOf,
     arrayOfDefs,
+    attachDescription,
     boolean,
+    callback,
+    color,
     constant,
     defined,
+    fontOptionsDef,
+    isFunction,
+    isObject,
     number,
     optionsDefs,
     or,
+    positiveNumber,
     ratio,
     required,
     string,
@@ -16,6 +25,8 @@ import type {
     AgCartesianAxesTheme,
     AgChartTooltipOptions,
     AgInitialStateLegendOptions,
+    AgNavigatorHandleOptions,
+    AgNavigatorThemeableOptions,
     AgPolarAxesTheme,
     AgSeriesTooltip,
     AgStateSerializableDate,
@@ -36,11 +47,12 @@ import {
     timeAxisOptionsDefs,
     unitTimeAxisOptionsDefs,
 } from '../../module/axisModules';
-import { without } from '../../util/object';
+import { mapValues, without } from '../../util/object';
 import {
     cartesianCrossLineOptionsDefs,
     commonCrossLineLabelOptionsDefs,
     commonCrossLineOptionsDefs,
+    numberFormatValidator,
 } from '../axesOptionsDefs';
 import {
     angleCategoryAxisOptionsDefs,
@@ -108,7 +120,140 @@ const serializableDate = optionsDefs<AgStateSerializableDate>(
     'a serializable date object'
 );
 
-const navigatorOptionsDef = defined;
+const themeOperator = attachDescription((value) => {
+    if (!isObject(value)) return false;
+    const keys = Object.keys(value);
+    return keys.length === 1 && keys[0].startsWith('$');
+}, 'a theme operator');
+
+// const commonIgnoredMiniChartProperties: CommonIgnoredProperties[] = [
+//     'cursor',
+//     'highlightStyle',
+//     'listeners',
+//     'nodeClickRange',
+//     'showInLegend',
+//     'showInMiniChart',
+//     'tooltip',
+//     'visible',
+//     'xName',
+//     'yName',
+// ];
+
+const navigatorHandleOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = {
+    width: positiveNumber,
+    height: positiveNumber,
+    grip: boolean,
+    fill: color,
+    stroke: color,
+    strokeWidth: positiveNumber,
+    cornerRadius: positiveNumber,
+};
+
+const navigatorOptionsDef: OptionsDefs<AgNavigatorThemeableOptions> = {
+    enabled: boolean,
+    height: positiveNumber,
+    spacing: positiveNumber,
+    cornerRadius: number,
+    mask: {
+        fill: color,
+        fillOpacity: ratio,
+        stroke: color,
+        strokeWidth: positiveNumber,
+    },
+    minHandle: navigatorHandleOptionsDef,
+    maxHandle: navigatorHandleOptionsDef,
+    miniChart: {
+        enabled: boolean,
+        padding: {
+            top: positiveNumber,
+            bottom: positiveNumber,
+        },
+        label: {
+            enabled: boolean,
+            avoidCollisions: boolean,
+            spacing: positiveNumber,
+            format: numberFormatValidator,
+            formatter: callback,
+            interval: {
+                minSpacing: positiveNumber,
+                maxSpacing: positiveNumber,
+                values: array,
+                step: number,
+            },
+            ...fontOptionsDef,
+        },
+        series: defined,
+        // series: {
+        //     area: without(areaSeriesThemeableOptionsDef, commonIgnoredMiniChartProperties),
+        //     bar: without(barSeriesThemeableOptionsDef, [
+        //         ...commonIgnoredMiniChartProperties,
+        //         'errorBar',
+        //         'label',
+        //         'legendItemName',
+        //         'direction',
+        //     ]),
+        //     'box-plot': without(boxPlotSeriesThemeableOptionsDef, [
+        //         ...commonIgnoredMiniChartProperties,
+        //         'direction',
+        //         'legendItemName',
+        //         'minName',
+        //         'q1Name',
+        //         'medianName',
+        //         'q3Name',
+        //         'maxName',
+        //     ]),
+        //     bubble: without(bubbleSeriesThemeableOptionsDef, [
+        //         ...commonIgnoredMiniChartProperties,
+        //         'title',
+        //         'label',
+        //         'labelKey',
+        //         'labelName',
+        //         'sizeName',
+        //     ]),
+        //     candlestick: without(candlestickSeriesThemeableOptionsDef, commonIgnoredMiniChartProperties),
+        //     heatmap: without(heatmapSeriesThemeableOptionsDef, [
+        //         ...commonIgnoredMiniChartProperties,
+        //         'title',
+        //         'label',
+        //         'colorName',
+        //         'textAlign',
+        //         'verticalAlign',
+        //         'itemPadding',
+        //         'colorRange',
+        //     ]),
+        //     histogram: without(histogramSeriesThemeableOptionsDef, [...commonIgnoredMiniChartProperties, 'label']),
+        //     line: without(lineSeriesThemeableOptionsDef, [
+        //         ...commonIgnoredMiniChartProperties,
+        //         'errorBar',
+        //         'title',
+        //         'label',
+        //     ]),
+        //     ohlc: without(ohlcSeriesThemeableOptionsDef, commonIgnoredMiniChartProperties),
+        //     'range-area': without(rangeAreaSeriesThemeableOptionsDef, [
+        //         ...commonIgnoredMiniChartProperties,
+        //         'label',
+        //         'yLowName',
+        //         'yHighName',
+        //     ]),
+        //     'range-bar': without(rangeBarSeriesThemeableOptionsDef, [
+        //         ...commonIgnoredMiniChartProperties,
+        //         'direction',
+        //         'label',
+        //         'yLowName',
+        //         'yHighName',
+        //     ]),
+        //     scatter: without(scatterSeriesThemeableOptionsDef, [
+        //         ...commonIgnoredMiniChartProperties,
+        //         'errorBar',
+        //         'title',
+        //         'label',
+        //         'labelKey',
+        //         'labelName',
+        //     ]),
+        //     waterfall: without(waterfallSeriesThemeableOptionsDef, [...commonIgnoredMiniChartProperties, 'direction']),
+        // },
+    },
+};
 
 const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
     number: {
@@ -498,3 +643,15 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         },
     },
 };
+
+export const themeOverridesOptionsWithOperatorsDef = mapValues(
+    themeOverridesOptionsDef,
+    function themeOperatorMapper(value: unknown): Validator {
+        if (isFunction(value)) {
+            return or(value as Validator, themeOperator);
+        } else if (isObject(value)) {
+            return or(optionsDefs(mapValues(value, themeOperatorMapper)), themeOperator);
+        }
+        throw new Error(`Invalid theme override value: ${String(value)}`);
+    }
+);

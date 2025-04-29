@@ -32,6 +32,8 @@ export type AgPolarAxisOptions =
     | AgRadiusCategoryAxisOptions
     | AgRadiusNumberAxisOptions;
 
+export type AgPolarAxisType = AgPolarAxisOptions['type'];
+
 export interface AgBasePolarChartOptions {
     /** Series configurations. */
     series?: AgPolarSeriesOptions[];

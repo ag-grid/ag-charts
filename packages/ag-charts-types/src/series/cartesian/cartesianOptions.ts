@@ -181,15 +181,6 @@ export interface AgTimeAxisOptions
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
 
-export type AgCartesianAxisType =
-    | 'category'
-    | 'grouped-category'
-    | 'ordinal-time'
-    | 'unit-time'
-    | 'number'
-    | 'log'
-    | 'time';
-
 export type AgCartesianAxisOptions =
     | AgNumberAxisOptions
     | AgLogAxisOptions
@@ -198,6 +189,8 @@ export type AgCartesianAxisOptions =
     | AgGroupedCategoryAxisOptions
     | AgTimeAxisOptions
     | AgUnitTimeAxisOptions;
+
+export type AgCartesianAxisType = AgCartesianAxisOptions['type'];
 
 type AgCartesianAxisThemeSpecialOptions = 'position' | 'type' | 'crossLines';
 /** This is the configuration shared by all types of axis. */
