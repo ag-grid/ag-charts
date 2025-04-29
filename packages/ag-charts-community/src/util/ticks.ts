@@ -210,6 +210,8 @@ export function range(
 ): { ticks: number[]; count: number } {
     if (!Number.isFinite(step) || step <= 0) {
         return { ticks: [], count: 0 };
+    } else if (start === end) {
+        return { ticks: [start], count: 1 };
     }
 
     const f = 10 ** countFractionDigits(step);
