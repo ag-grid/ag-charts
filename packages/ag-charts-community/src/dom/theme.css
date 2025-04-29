@@ -26,6 +26,7 @@
 
     --ag-charts-input-background-color: #fff;
     --ag-charts-input-text-color: #464646;
+    --ag-charts-input-text-color-dimmed: rgba(70, 70, 70, 0.5);
 
     --ag-charts-crosshair-label-background-color: #fff;
     --ag-charts-crosshair-label-text-color: #464646;

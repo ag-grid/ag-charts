@@ -62,7 +62,7 @@
 
 .ag-charts-context-menu__item[aria-disabled='true'] {
     border: none;
-    opacity: 0.5;
+    color: var(--ag-charts-input-text-color-dimmed);
     text-align: left;
 }
 
