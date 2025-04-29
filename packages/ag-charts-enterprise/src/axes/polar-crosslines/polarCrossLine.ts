@@ -1,7 +1,8 @@
 import type { AgBaseCrossLineLabelOptions, FontStyle, FontWeight } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { createId } from 'ag-charts-core';
 
-const { BaseProperties, ChartAxisDirection, Property, createId, Group } = _ModuleSupport;
+const { BaseProperties, ChartAxisDirection, Property, Group } = _ModuleSupport;
 
 export class PolarCrossLineLabel extends BaseProperties implements AgBaseCrossLineLabelOptions {
     @Property

@@ -1,6 +1,4 @@
-import { getDocument, getWindow } from 'ag-charts-core';
-
-import { setAttribute } from './attributeUtil';
+import { getDocument, getWindow, setAttribute } from 'ag-charts-core';
 
 export class GuardedElement {
     private readonly destroyFns: (() => void)[] = [];

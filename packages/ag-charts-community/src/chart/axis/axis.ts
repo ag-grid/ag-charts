@@ -1,4 +1,4 @@
-import { type AnyFn, Logger, isArray } from 'ag-charts-core';
+import { type AnyFn, Logger, createId, isArray } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -26,7 +26,6 @@ import { Line } from '../../scene/shape/line';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable, Translatable } from '../../scene/transformable';
 import { formatValue } from '../../util/format.util';
-import { createId } from '../../util/id';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import type { Padding } from '../../util/padding';

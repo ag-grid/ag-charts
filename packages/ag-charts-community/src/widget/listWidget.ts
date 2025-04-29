@@ -1,6 +1,5 @@
-import { createElement } from 'ag-charts-core';
+import { createElement, setAttribute, setElementStyle } from 'ag-charts-core';
 
-import { setAttribute, setElementStyle } from '../util/attributeUtil';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
 import { type BeforeWidget, Widget } from './widget';
 

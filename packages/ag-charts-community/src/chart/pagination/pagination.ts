@@ -1,11 +1,10 @@
-import { clamp } from 'ag-charts-core';
+import { clamp, createId } from 'ag-charts-core';
 import type { AgChartLegendOrientation, AgMarkerShape, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
 import { type RotatableType, Transformable } from '../../scene/transformable';
-import { createId } from '../../util/id';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
 import { ActionOnSet } from '../../util/proxy';

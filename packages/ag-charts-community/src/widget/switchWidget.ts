@@ -1,4 +1,5 @@
-import { setAttribute } from '../util/attributeUtil';
+import { setAttribute } from 'ag-charts-core';
+
 import { ButtonWidget } from './buttonWidget';
 
 export class SwitchWidget extends ButtonWidget {

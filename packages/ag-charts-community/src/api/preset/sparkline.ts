@@ -288,17 +288,19 @@ const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineToo
         const userContent = tooltip?.renderer?.({ context, datum, xValue, yValue });
         if (typeof userContent === 'string') return userContent;
 
-        return {
-            heading: undefined,
-            title: undefined,
-            data: [
-                {
-                    // @ts-expect-error This is safe for compact tooltips
-                    label: userContent?.title,
-                    value: userContent?.content ?? yValue.toFixed(2),
-                },
-            ],
-        };
+        const content = userContent?.content ?? yValue.toFixed(2);
+
+        return userContent?.title
+            ? {
+                  heading: undefined,
+                  title: undefined,
+                  data: [{ label: userContent.title, value: content }],
+              }
+            : {
+                  heading: undefined,
+                  title: content,
+                  data: [],
+              };
     };
 });
 

@@ -1,3 +1,4 @@
+import { createId } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
@@ -15,7 +16,6 @@ import { PointerEvents } from '../../scene/node';
 import { Range } from '../../scene/shape/range';
 import { TransformableText } from '../../scene/shape/text';
 import { toRadians } from '../../util/angle';
-import { createId } from '../../util/id';
 import { clampArray } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
