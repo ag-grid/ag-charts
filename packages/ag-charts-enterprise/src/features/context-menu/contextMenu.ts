@@ -208,7 +208,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const bounds = button.getBounds();
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
         menu.getElement().style.position = 'absolute';
-        menu.setBounds({ x: bounds.x + bounds.width, y: bounds.y });
+
+        const buttonClientRect = button.getBoundingClientRect();
+        const remainingSpaceOnRight = window.innerWidth - buttonClientRect.right;
+        const menuOffsetWidth = menu.getElement().offsetWidth;
+
+        if (remainingSpaceOnRight >= menuOffsetWidth) {
+            menu.setBounds({ x: bounds.x + bounds.width, y: bounds.y });
+        } else {
+            menu.setBounds({ x: bounds.x - menuOffsetWidth, y: bounds.y });
+        }
     }
     private onSubMenuClose(_button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
         menu.remove();
