@@ -1,7 +1,6 @@
-import { EventEmitter, Logger, downloadUrl } from 'ag-charts-core';
+import { EventEmitter, Logger, createId, downloadUrl } from 'ag-charts-core';
 
 import { Debug } from '../util/debug';
-import { createId } from '../util/id';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
 import { ImageLoader } from './image/imageLoader';

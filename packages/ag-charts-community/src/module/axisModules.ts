@@ -15,15 +15,16 @@ import {
     or,
     positiveNumber,
     positiveNumberNonZero,
+    ratio,
     required,
 } from 'ag-charts-core';
 import type {
     AgCategoryAxisOptions,
+    AgContinuousTimeAxisOptions,
     AgGroupedCategoryAxisOptions,
     AgGroupedCategoryDepthOptions,
     AgLogAxisOptions,
     AgNumberAxisOptions,
-    AgTimeAxisOptions,
     AgUnitTimeAxisOptions,
 } from 'ag-charts-types';
 
@@ -65,7 +66,7 @@ export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
     crosshair: cartesianAxisCrosshairOptions(true),
 };
 
-export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
+export const timeAxisOptionsDefs: OptionsDefs<AgContinuousTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     ...continuousAxisOptions(or(number, date), true),
     type: required(constant('time')),
@@ -86,9 +87,9 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     type: required(constant('category')),
     label: cartesianAxisLabelOptionsDefs,
-    paddingInner: positiveNumber,
-    paddingOuter: positiveNumber,
-    groupPaddingInner: positiveNumber,
+    paddingInner: ratio,
+    paddingOuter: ratio,
+    groupPaddingInner: ratio,
     crosshair: cartesianAxisCrosshairOptions(),
 };
 
@@ -97,8 +98,8 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
     type: required(constant('grouped-category')),
     label: cartesianAxisLabelOptionsDefs,
     crosshair: cartesianAxisCrosshairOptions(),
-    paddingInner: positiveNumber,
-    groupPaddingInner: positiveNumber,
+    paddingInner: ratio,
+    groupPaddingInner: ratio,
     depthOptions: arrayOfDefs<AgGroupedCategoryDepthOptions>(
         {
             label: {
@@ -125,9 +126,9 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     unit: instanceOf(TimeInterval),
     label: cartesianTimeAxisLabel,
     division: cartesianTimeAxisDivision,
-    paddingInner: positiveNumber,
-    paddingOuter: positiveNumber,
-    groupPaddingInner: positiveNumber,
+    paddingInner: ratio,
+    paddingOuter: ratio,
+    groupPaddingInner: ratio,
     crosshair: cartesianAxisCrosshairOptions(true),
 };
 
@@ -169,7 +170,7 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
     create: (ctx: ModuleContext) => new LogAxis(ctx),
 };
 
-export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
+export const TimeAxisModule: AxisModuleDefinition<AgContinuousTimeAxisOptions> = {
     type: 'axis',
     name: 'time',
     chartType: 'cartesian',

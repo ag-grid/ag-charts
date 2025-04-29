@@ -1,7 +1,4 @@
 ---
-import CleanCSS from 'clean-css';
-
-import type { Library } from '@ag-grid-types';
 import { MetaData } from './lib/MetaData';
 import { Scripts } from './lib/Scripts';
 import { Styles } from './lib/Styles';
@@ -40,37 +37,11 @@ const {
 } = Astro.props as Props;
 
 const startFile = pathJoin(appLocation, entryFileName);
-
-import exampleControlsStyles from '@ag-website-shared/components/example-runner/example-controls.css?raw';
-
-const frameworkStyles = `
-    #app {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        gap: 8px;
-    }
-
-    #app div:has(> .ag-charts-wrapper) {
-        padding: 1rem;
-        height: 100%;
-        border-radius: 8px;
-        background-color: var(--chart-bg);
-        border: 1px solid var(--chart-border);
-        overflow: hidden;
-    }
-`;
-
-const cssMinifier = new CleanCSS({ format: { wrapAt: 120 } });
-const minGenericExampleStyles = cssMinifier.minify(exampleControlsStyles.concat(frameworkStyles)).styles;
 ---
 
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Vue 3 Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-
-        <!-- Generic example styles must be first <style> tag in head, to skip prettier formatting in the middleware -->
-        <style set:html={minGenericExampleStyles}></style>
 
         <Styles
             baseUrl={appLocation}

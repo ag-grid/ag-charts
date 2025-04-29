@@ -1,4 +1,4 @@
-import { getAttribute, setAttribute } from './attributeUtil';
+import { getAttribute, setAttribute } from 'ag-charts-core';
 
 type DestroyFns = { push(...args: (() => void)[]): void };
 

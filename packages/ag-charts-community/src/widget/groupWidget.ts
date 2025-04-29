@@ -1,6 +1,5 @@
-import { createElement } from 'ag-charts-core';
+import { createElement, setAttribute } from 'ag-charts-core';
 
-import { setAttribute } from '../util/attributeUtil';
 import { Widget } from './widget';
 
 export class GroupWidget extends Widget<HTMLDivElement> {

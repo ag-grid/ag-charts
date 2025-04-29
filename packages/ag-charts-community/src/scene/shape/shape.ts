@@ -1,8 +1,7 @@
-import { type InternalAgGradientColor, clamp } from 'ag-charts-core';
+import { type InternalAgGradientColor, clamp, generateUUID } from 'ag-charts-core';
 import type { AgImageFill, AgPatternColor } from 'ag-charts-types';
 
 import { BBoxValues } from '../../util/bboxinterface';
-import { generateUUID } from '../../util/id';
 import { objectsEqual } from '../../util/object';
 import type { BBox } from '../bbox';
 import { SceneArrayChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../changeDetectable';

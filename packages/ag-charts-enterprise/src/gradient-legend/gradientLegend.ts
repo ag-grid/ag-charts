@@ -1,4 +1,5 @@
 import { type AgChartLegendPosition, type AgGradientLegendScaleOptions, _ModuleSupport } from 'ag-charts-community';
+import { createId } from 'ag-charts-core';
 
 const {
     BaseProperties,
@@ -7,7 +8,6 @@ const {
     ProxyProperty,
     Property,
     LayoutElement,
-    createId,
     Group,
     Rect,
     Marker,

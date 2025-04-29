@@ -70,6 +70,7 @@ export const getGeneratedContentsFileList = async (params: FileListParams): Prom
         isDev,
     });
     const styleFiles = await getStyleFiles({
+        internalFramework,
         folderPath,
         sourceFileList,
     });
@@ -175,7 +176,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     );
     const providedExamples = Object.fromEntries(providedExampleEntries);
 
-    const styleFiles = await getStyleFiles({ folderPath, sourceFileList });
+    const styleFiles = await getStyleFiles({ internalFramework, folderPath, sourceFileList });
     const htmlFiles = await getHtmlFiles({ folderPath, sourceFileList });
 
     const isEnterprise = getIsEnterprise({ entryFile });

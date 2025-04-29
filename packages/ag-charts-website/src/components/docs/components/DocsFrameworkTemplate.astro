@@ -17,13 +17,29 @@ interface Props {
      */
     addInitMessageScript?: boolean;
     /**
+     * Whether to add a script to check for E2E tests
+     */
+    addE2ECheckScript?: boolean;
+    /**
+     * Whether to add padding to the body element
+     */
+    addBodyPadding?: boolean;
+    /**
      * Whether to not include system js code
      */
     ignoreSystemJs?: boolean;
 }
 
-const { internalFramework, pageName, exampleName, relativePath, addInitMessageScript, ignoreSystemJs } =
-    Astro.props as Props;
+const {
+    internalFramework,
+    pageName,
+    exampleName,
+    relativePath,
+    addInitMessageScript,
+    addE2ECheckScript,
+    addBodyPadding,
+    ignoreSystemJs,
+} = Astro.props as Props;
 
 const generatedContents = await getGeneratedContents({
     type: 'docs',
@@ -47,4 +63,7 @@ const exampleUrl = getExampleUrl({
     relativePath={relativePath}
     addInitMessageScript={addInitMessageScript}
     ignoreSystemJs={ignoreSystemJs}
+    addInitMessageScript={addInitMessageScript}
+    addE2ECheckScript={addE2ECheckScript}
+    addBodyPadding={addBodyPadding}
 />

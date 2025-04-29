@@ -1,4 +1,4 @@
-import { type AnyFn, Logger, clamp } from 'ag-charts-core';
+import { type AnyFn, Logger, clamp, createId } from 'ag-charts-core';
 import type {
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
@@ -27,7 +27,6 @@ import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
 import { isPatternFill } from '../../scene/util/fill';
-import { createId } from '../../util/id';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';

@@ -1,0 +1,29 @@
+---
+import { E2E_STYLE_START, E2E_STYLE_END } from '@components/example-runner/constants';
+---
+
+<Fragment set:html={E2E_STYLE_START} />
+<script>
+    if (window.location.hash.includes('e2e=true')) {
+        const e2eStyleEl = document.createElement('style');
+        e2eStyleEl.textContent = `
+            /* Reset full-screen page border rendering to avoid conflicting with chart rendering */
+            body {
+                --chart-bg: transparent !important;
+                --chart-border: transparent !important;
+
+                padding: 1rem !important;
+            }
+
+            div:has(> .ag-charts-wrapper),
+            ag-charts,
+            ag-financial-charts {
+                padding: unset !important;
+                border-radius: unset !important;
+                background-color: unset !important;
+                border: unset !important;
+            }`;
+        document.head.appendChild(e2eStyleEl);
+    }
+</script>
+<Fragment set:html={E2E_STYLE_END} />
