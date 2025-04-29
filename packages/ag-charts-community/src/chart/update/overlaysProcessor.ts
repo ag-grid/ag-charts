@@ -1,7 +1,8 @@
+import { setAttribute } from 'ag-charts-core';
+
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
-import { setAttribute } from '../../util/attributeUtil';
 import { isUnsupportedBrowser } from '../../util/browser';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';

@@ -2,6 +2,7 @@ import {
     AsyncAwaitQueue,
     Logger,
     type ModuleInstance,
+    createId,
     entries,
     groupBy,
     isFiniteNumber,
@@ -30,7 +31,6 @@ import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import { Debug } from '../util/debug';
 import { isInputPending } from '../util/dom';
-import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Mutex } from '../util/mutex';
 import { mergeDefaults, without } from '../util/object';

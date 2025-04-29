@@ -1,6 +1,4 @@
-import { createElement } from 'ag-charts-core';
-
-import { type BaseAttributeTypeMap, setAttribute, setAttributes, setElementStyle } from '../util/attributeUtil';
+import { type BaseAttributeTypeMap, createElement, setAttribute, setAttributes, setElementStyle } from 'ag-charts-core';
 
 type SwapChainEventMap = { focus: FocusEvent; blur: FocusEvent; swap: HTMLElement };
 

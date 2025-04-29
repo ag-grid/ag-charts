@@ -51,7 +51,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     if (isHtml(context.url.pathname)) {
         body = rewriteAstroGeneratedContent(body);
-        body = body.replace(`<style`, `<!-- prettier-ignore -->\n<style`);
 
         try {
             body = await prettier.format(body, {
@@ -61,8 +60,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
             // eslint-disable-next-line no-console
             console.warn(`Unable to prettier format for [${context.url.pathname}]`);
         }
-
-        body = body.replace(`prettier-ignore`, `Generic Example Styles`);
     }
 
     return new Response(body, {

@@ -1,5 +1,5 @@
 import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { type AnyFn, isInteger } from 'ag-charts-core';
+import { type AnyFn, createId, isInteger } from 'ag-charts-core';
 
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
@@ -8,7 +8,6 @@ const {
     TranslatableGroup,
     Line,
     BBox,
-    createId,
     InteractionState,
     Property,
     ZIndexMap,

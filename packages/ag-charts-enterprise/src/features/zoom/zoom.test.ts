@@ -505,4 +505,46 @@ describe('Zoom', () => {
             await compare();
         });
     });
+
+    describe('autoScaling', () => {
+        it('Should auto scale the y axis on a continuous x axis', async () => {
+            const options: AgCartesianChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                zoom: {
+                    autoScaling: { enabled: true },
+                    axes: 'x',
+                    anchorPointX: 'middle',
+                },
+                animation: { enabled: false },
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+            await prepareChart(undefined, undefined, options);
+            await scrollAction(cx, cy, -2)(chart);
+
+            await compare();
+        });
+
+        it('Should auto scale the y axis on a category x axis', async () => {
+            const options: AgCartesianChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                zoom: {
+                    autoScaling: { enabled: true },
+                    axes: 'x',
+                    anchorPointX: 'middle',
+                },
+                animation: { enabled: false },
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+            await prepareChart(undefined, undefined, options);
+            await scrollAction(cx, cy, -2)(chart);
+
+            await compare();
+        });
+    });
 });

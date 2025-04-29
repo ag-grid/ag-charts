@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { setAttribute } from 'ag-charts-core';
 import type { FontOptions, TextAlign } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
@@ -53,7 +54,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.element.innerHTML = textInputTemplate;
 
         const textArea = this.element.firstElementChild! as HTMLDivElement;
-        _ModuleSupport.setAttribute(textArea, 'data-preventdefault', false); // AG-13715
+        setAttribute(textArea, 'data-preventdefault', false); // AG-13715
 
         // FireFox does not yet support `contenteditable="plaintext-only", so it defaults to false and has to be
         // added back on to the element as the normal richtext version. The plaintext version is preferred as

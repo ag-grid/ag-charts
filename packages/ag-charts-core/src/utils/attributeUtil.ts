@@ -1,5 +1,7 @@
-import { type Nullable, entries } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
+
+import type { Nullable } from '../interfaces/globalTypes';
+import { entries } from './iterators';
 
 type ElementID = string;
 

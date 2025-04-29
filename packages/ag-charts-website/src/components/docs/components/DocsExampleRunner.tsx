@@ -1,4 +1,5 @@
 import type { InternalFramework } from '@ag-grid-types';
+import { excludeHiddenFiles } from '@components/docs/utils/excludeHiddenFiles';
 import type { ExampleType } from '@components/example-generator/types';
 import { ExampleRunner } from '@components/example-runner/components/ExampleRunner';
 import { ExternalLinks } from '@components/example-runner/components/ExternalLinks';
@@ -58,7 +59,8 @@ const DocsExampleRunnerInner = ({
     const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
     const [codeSandboxHtmlUrl, setCodeSandboxHtmlUrl] = useState<string>();
     const [plunkrHtmlUrl, setPlunkrHtmlUrl] = useState<string>();
-    const [exampleFiles, setExampleFiles] = useState();
+    const [exampleFiles, setExampleFiles] = useState<Record<string, string>>();
+    const [exampleRunnerFiles, setExampleRunnerFiles] = useState<Record<string, string>>();
     const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
     const [packageJson, setPackageJson] = useState();
 
@@ -150,10 +152,16 @@ const DocsExampleRunnerInner = ({
             'index.html': exampleFileHtml,
         };
 
+        const newExampleRunnerFiles = excludeHiddenFiles({
+            internalFramework,
+            files,
+        });
+
         setExampleFiles(files);
+        setExampleRunnerFiles(newExampleRunnerFiles);
         setPackageJson(contents.packageJson);
         setExampleBoilerPlateFiles(contents.boilerPlateFiles);
-    }, [contents, contentsIsLoading, contentsIsError, exampleFileHtml]);
+    }, [internalFramework, contents, contentsIsLoading, contentsIsError, exampleFileHtml]);
 
     const externalLinks = (
         <ExternalLinks
@@ -179,7 +187,7 @@ const DocsExampleRunnerInner = ({
             exampleType={exampleType}
             exampleHeight={options?.exampleHeight}
             exampleWidth={options?.exampleWidth}
-            exampleFiles={exampleFiles}
+            exampleFiles={exampleRunnerFiles}
             initialShowCode={options?.showCode}
             initialSelectedFile={initialSelectedFile}
             internalFramework={internalFramework}

@@ -1,7 +1,8 @@
 import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { createId, setAttribute } from 'ag-charts-core';
 
-const { BaseProperties, Property, createId, setAttribute } = _ModuleSupport;
+const { BaseProperties, Property } = _ModuleSupport;
 
 const DEFAULT_LABEL_CLASS = 'ag-charts-crosshair-label';
 

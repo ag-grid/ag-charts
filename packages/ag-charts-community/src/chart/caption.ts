@@ -1,10 +1,10 @@
+import { createId } from 'ag-charts-core';
 import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
 import { RotatableText } from '../scene/shape/text';
 import { Transformable } from '../scene/transformable';
-import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
 import { Property } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
