@@ -577,7 +577,7 @@ export abstract class Axis<
                 index,
                 domain,
                 fractionDigits,
-                timeInterval,
+                timeInterval: timeInterval?.unit,
                 boundSeries,
             });
         } else if (defaultFormatter) {
