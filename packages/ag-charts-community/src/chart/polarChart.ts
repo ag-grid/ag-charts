@@ -66,7 +66,7 @@ export class PolarChart extends Chart {
                 minTickCount: 0,
                 maxTickCount: Infinity,
             })
-            ?.map((value) => angleScale.convert(value));
+            ?.ticks?.map((value) => angleScale.convert(value));
         radiusAxis.gridRange = angleAxis.range;
         radiusAxis.range = [radius, radius * innerRadiusRatio];
 

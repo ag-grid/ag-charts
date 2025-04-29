@@ -8,7 +8,7 @@ import type { BBox } from '../scene/bbox';
 import { CategoryAxis } from './axis/categoryAxis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
-import type { ChartAxis } from './chartAxis';
+import type { AxisPrimaryTickCount, ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { Series } from './series/series';
@@ -205,7 +205,7 @@ export class CartesianChart extends Chart {
 
     private updateAxesPass(axisAreaWidths: AreaWidthMap, axisAreaBound: BBox) {
         const axisWidths: Map<string, number> = new Map();
-        const primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
+        const primaryTickCounts: Partial<Record<ChartAxisDirection, AxisPrimaryTickCount>> = {};
 
         let overflows = false;
         let clipSeries = false;

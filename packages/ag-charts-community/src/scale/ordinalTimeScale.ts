@@ -2,7 +2,7 @@ import { datesSortOrder, sortAndUniqueDates } from '../util/date';
 import type { TimeInterval } from '../util/time';
 import { dateToNumber } from '../util/timeFormatDefaults';
 import { DiscreteTimeScale } from './discreteTimeScale';
-import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams } from './scale';
+import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
 import { getDateTicksForInterval } from './timeScale';
 
 export class OrdinalTimeScale extends DiscreteTimeScale {
@@ -62,16 +62,17 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         visibleRange: [number, number] = [0, 1],
         // Only used for OrdinalTimeScale
         extend = false
-    ): Date[] {
-        if (!domain.length) {
-            return [];
-        }
+    ): ScaleTickResult<Date> | undefined {
+        if (!domain.length) return;
 
         this.refresh();
 
         const { isReversed } = this;
         if (interval == null) {
-            return getDefaultTicks(domain, maxTickCount, isReversed, visibleRange, extend);
+            return {
+                ticks: getDefaultTicks(domain, maxTickCount, isReversed, visibleRange, extend),
+                count: undefined,
+            };
         }
 
         const start = domain[0].valueOf();
@@ -80,18 +81,23 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         const [r0, r1] = this.range;
         const availableRange = Math.abs(r1 - r0);
 
-        const ticks =
+        let ticks =
             getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
             getDefaultTicks(domain, maxTickCount, isReversed, visibleRange, extend);
 
         let lastIndex = -1;
-        return ticks.filter((tick) => {
+        ticks = ticks.filter((tick) => {
             const index = this.findInterval(tick.valueOf());
             const duplicated = index === lastIndex;
             lastIndex = index;
 
             return !duplicated;
         });
+
+        return {
+            ticks,
+            count: undefined,
+        };
     }
 
     private getSortedTimestamps() {

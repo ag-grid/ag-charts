@@ -184,7 +184,7 @@ export class AxisTicks {
     private getTicksData(tickParams: ScaleTickParams<any>) {
         const ticks: TickDatum[] = [];
         const niceDomain = tickParams.nice ? this.scale.niceDomain(tickParams) : this.scale.domain;
-        const rawTicks = this.scale.ticks(tickParams, niceDomain);
+        const rawTicks = this.scale.ticks(tickParams, niceDomain)?.ticks ?? [];
         const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
         const boundSeries: never[] = [];
         const idGenerator = createIdsGenerator();

@@ -30,16 +30,16 @@ export class LinearScale extends ContinuousScale<number> {
         { interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount }: ScaleTickParams<number>,
         domain: number[] = this.domain,
         visibleRange?: [number, number]
-    ): number[] {
+    ): { ticks: number[]; count: number } {
         if (!domain || domain.length < 2 || tickCount < 1 || !domain.every(isFinite)) {
-            return [];
+            return { ticks: [], count: 0 };
         }
         const [d0, d1] = domain;
 
         if (interval) {
             const step = Math.abs(interval);
             if (!isDenseInterval((d1 - d0) / step, this.getPixelRange())) {
-                return range(d0, d1, step);
+                return range(d0, d1, step, visibleRange);
             }
         }
 

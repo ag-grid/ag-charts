@@ -19,11 +19,14 @@ export class LinearAngleScale extends LinearScale {
 
     arcLength: number = 0;
 
-    override ticks(ticks: _ModuleSupport.ScaleTickParams<number>, domain: number[] = this.domain): number[] {
+    override ticks(
+        ticks: _ModuleSupport.ScaleTickParams<number>,
+        domain: number[] = this.domain
+    ): { ticks: number[]; count: number } {
         const { arcLength } = this;
 
         if (!domain || domain.length < 2 || domain.some((d) => !isFinite(d)) || arcLength <= 0) {
-            return [];
+            return { ticks: [], count: 0 };
         }
 
         const { nice, interval } = ticks;

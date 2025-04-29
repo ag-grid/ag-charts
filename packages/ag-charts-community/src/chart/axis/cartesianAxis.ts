@@ -21,6 +21,7 @@ import { TextUtils } from '../../util/textMeasurer';
 import type { TimeInterval } from '../../util/time';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
+import type { AxisPrimaryTickCount } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { AnimationManager } from '../interaction/animationManager';
@@ -191,7 +192,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
     }
 
-    override calculateLayout(primaryTickCount?: number, chartPadding?: Padding) {
+    override calculateLayout(primaryTickCount?: AxisPrimaryTickCount, chartPadding?: Padding) {
         this.updateDirection();
         return super.calculateLayout(primaryTickCount, chartPadding);
     }
@@ -212,12 +213,12 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         domain: D[],
         niceMode: NiceMode,
         visibleRange: [number, number],
-        initialPrimaryTickCount?: number
+        initialPrimaryTickCount?: AxisPrimaryTickCount
     ): {
         niceDomain: D[];
-        primaryTickCount: number | undefined;
         tickDomain: D[];
         ticks: D[];
+        rawTickCount: number | undefined;
         fractionDigits: number;
         timeInterval: TimeInterval | undefined;
         bbox: BBox;
@@ -249,9 +250,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             this.generatedTicks = { ticks: [], tickLines: [], gridLines: [], labels: [], spacing };
             return {
                 ticks: [],
+                rawTickCount: 0,
                 tickDomain: domain,
                 niceDomain: domain,
-                primaryTickCount: initialPrimaryTickCount,
                 fractionDigits: 0,
                 timeInterval: undefined,
                 bbox,
@@ -272,8 +273,16 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             removeOverflowThreshold: this.chartPadding?.right,
         });
 
-        const { tickData, primaryTickCount = initialPrimaryTickCount } = tickGenerationResult;
-        const { ticks, tickDomain, rawTicks, fractionDigits, timeInterval, niceDomain = domain } = tickData;
+        const { tickData } = tickGenerationResult;
+        const {
+            ticks,
+            tickDomain,
+            rawTicks,
+            rawTickCount,
+            fractionDigits,
+            timeInterval,
+            niceDomain = domain,
+        } = tickData;
 
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult));
 
@@ -304,7 +313,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         this.generatedTicks = { ticks, gridLines, tickLines, labels, spacing };
 
-        return { ticks: rawTicks, tickDomain, niceDomain, primaryTickCount, fractionDigits, timeInterval, bbox };
+        return { ticks: rawTicks, rawTickCount, tickDomain, niceDomain, fractionDigits, timeInterval, bbox };
     }
 
     override update() {

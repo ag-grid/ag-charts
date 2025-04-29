@@ -50,9 +50,17 @@ export interface AxisGroups {
     labelNode: Node;
 }
 
+export interface AxisPrimaryTickCount {
+    unzoomed: number;
+    zoomed: number;
+}
+
 export interface ChartAxis {
     attachAxis(opts: AxisGroups): void;
-    calculateLayout(primaryTickCount?: number, chartPadding?: Padding): { primaryTickCount?: number; bbox?: BBox };
+    calculateLayout(
+        primaryTickCount?: AxisPrimaryTickCount,
+        chartPadding?: Padding
+    ): { primaryTickCount?: AxisPrimaryTickCount; bbox?: BBox };
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
     createAxisContext(): AxisContext;

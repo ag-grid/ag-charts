@@ -63,27 +63,23 @@ export function createTicks(
     minCount?: number,
     maxCount?: number,
     visibleRange?: [number, number]
-): number[] {
+): { ticks: number[]; count: number } {
+    let step: number;
     if (count < 2) {
-        return [start, stop];
+        step = NaN;
+    } else {
+        step = tickStep(start, stop, count, minCount, maxCount);
+        if (!isCloseToInteger(start / step, 1e-12)) {
+            start = Math.ceil(start / step) * step;
+        }
+        if (!isCloseToInteger(stop / step, 1e-12)) {
+            stop = Math.floor(stop / step) * step;
+        }
     }
-    const step = tickStep(start, stop, count, minCount, maxCount);
     if (!Number.isFinite(step)) {
-        return [];
+        return { ticks: [], count: 0 };
     }
-    if (!isCloseToInteger(start / step, 1e-12)) {
-        start = Math.ceil(start / step) * step;
-    }
-    if (!isCloseToInteger(stop / step, 1e-12)) {
-        stop = Math.floor(stop / step) * step;
-    }
-    if (visibleRange != null && visibleRange[0] !== 0 && visibleRange[1] !== 1) {
-        const rangeExtent = stop - start;
-        const adjustedStart = start + rangeExtent * visibleRange[0];
-        const adjustedEnd = stop - rangeExtent * (1 - visibleRange[1]);
-        return range(adjustedStart - (adjustedStart % step), adjustedEnd + (adjustedEnd % step), step);
-    }
-    return range(start, stop, step);
+    return range(start, stop, step, visibleRange);
 }
 
 const minPrimaryTickRatio = Math.floor(((2 * week.milliseconds) / month.milliseconds) * 10) / 10;
@@ -199,23 +195,45 @@ export function tickFormat(ticks: any[], format?: string): (n: number | { valueO
     return (n) => formatter(Number(n));
 }
 
-export function range(start: number, end: number, step: number): number[] {
+export function range(
+    start: number,
+    end: number,
+    step: number,
+    visibleRange: [number, number] = [0, 1]
+): { ticks: number[]; count: number } {
     if (!Number.isFinite(step) || step <= 0) {
-        return [];
+        return { ticks: [], count: 0 };
     }
 
     const f = 10 ** countFractionDigits(step);
     const d0 = Math.min(start, end);
     const d1 = Math.max(start, end);
-    const out: number[] = [];
 
+    let vd0: number;
+    let vd1: number;
+    if (visibleRange[0] !== 0 || visibleRange[1] !== 1) {
+        const rangeExtent = end - start;
+        const adjustedStart = start + rangeExtent * visibleRange[0];
+        const adjustedEnd = end - rangeExtent * (1 - visibleRange[1]);
+        vd0 = Math.min(adjustedStart, adjustedEnd);
+        vd1 = Math.max(adjustedStart, adjustedEnd);
+    } else {
+        vd0 = d0;
+        vd1 = d1;
+    }
+
+    const ticks: number[] = [];
+    let count = 0;
     for (let i = 0; ; i += 1) {
         const p = Math.round((d0 + step * i) * f) / f;
         if (p > d1) break;
-        out.push(p);
+        if (p >= vd0 && p <= vd1) {
+            ticks.push(p);
+        }
+        count += 1;
     }
 
-    return out;
+    return { ticks, count };
 }
 
 export function isDenseInterval(count: number, availableRange: number) {

@@ -146,12 +146,12 @@ export abstract class RadiusAxis<
         domain: D[],
         niceMode: _ModuleSupport.NiceMode,
         _visibleRange: [number, number],
-        initialPrimaryTickCount?: number
+        initialPrimaryTickCount?: _ModuleSupport.AxisPrimaryTickCount
     ): {
         niceDomain: D[];
-        primaryTickCount: number | undefined;
         tickDomain: D[];
         ticks: D[];
+        rawTickCount: number | undefined;
         fractionDigits: number;
         timeInterval: undefined;
     } {
@@ -174,14 +174,14 @@ export abstract class RadiusAxis<
             removeOverflowLabels: false,
         });
 
-        const { tickData, primaryTickCount = initialPrimaryTickCount } = tickGenerationResult;
-        const { ticks, rawTicks, tickDomain, fractionDigits, niceDomain = domain } = tickData;
+        const { tickData } = tickGenerationResult;
+        const { ticks, rawTicks, rawTickCount, tickDomain, fractionDigits, niceDomain = domain } = tickData;
 
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult));
 
         this.generatedTicks = { ticks, labels };
 
-        return { ticks: rawTicks, tickDomain, niceDomain, primaryTickCount, fractionDigits, timeInterval: undefined };
+        return { ticks: rawTicks, tickDomain, niceDomain, rawTickCount, fractionDigits, timeInterval: undefined };
     }
 
     protected abstract prepareGridPathTickData(tickData: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[];

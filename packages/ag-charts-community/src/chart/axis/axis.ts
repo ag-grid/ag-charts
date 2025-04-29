@@ -34,7 +34,7 @@ import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { TimeInterval } from '../../util/time';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
-import type { AxisGroups, ChartAxis } from '../chartAxis';
+import type { AxisGroups, AxisPrimaryTickCount, ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
@@ -443,13 +443,14 @@ export abstract class Axis<
 
     protected chartPadding?: Padding;
 
-    _scaleNiceDomainInputDomain: D[] | undefined = undefined;
-    _scaleNiceDomainRangeExtent: number = NaN;
+    _cachedUnzoomedInputDomain: D[] | undefined = undefined;
+    _cachedUnzoomedRangeExtent: number = NaN;
+    _cachedUnzoomedTickCount: number = 0;
     calculateLayout(
-        initialPrimaryTickCount?: number,
+        initialPrimaryTickCount?: AxisPrimaryTickCount,
         chartPadding?: Padding
     ): {
-        primaryTickCount?: number;
+        primaryTickCount?: AxisPrimaryTickCount;
         bbox?: BBox;
         niceDomain?: unknown[];
     } {
@@ -462,14 +463,17 @@ export abstract class Axis<
 
         const domain = this.dataDomain.domain;
         let tickLayoutDomain: D[] | undefined;
+        let unzoomedTickCount: number | undefined;
         if (visibleRange[0] === 0 && visibleRange[1] === 1) {
             tickLayoutDomain = undefined;
-        } else if (!nice) {
-            tickLayoutDomain = domain;
-        } else if (this._scaleNiceDomainInputDomain === domain && this._scaleNiceDomainRangeExtent === rangeExtent) {
+            unzoomedTickCount = undefined;
+        } else if (this._cachedUnzoomedInputDomain === domain && this._cachedUnzoomedRangeExtent === rangeExtent) {
             tickLayoutDomain = this.scale.domain;
+            unzoomedTickCount = this._cachedUnzoomedTickCount;
         } else {
-            tickLayoutDomain = this.calculateTickLayout(domain, NiceMode.TickAndDomain, [0, 1]).niceDomain;
+            const unzoomedTickLayout = this.calculateTickLayout(domain, NiceMode.TickAndDomain, [0, 1]);
+            tickLayoutDomain = unzoomedTickLayout.niceDomain;
+            unzoomedTickCount = unzoomedTickLayout.rawTickCount ?? 0;
         }
 
         let niceMode: NiceMode;
@@ -480,18 +484,28 @@ export abstract class Axis<
         } else {
             niceMode = NiceMode.TicksOnly;
         }
-        const { niceDomain, primaryTickCount, ticks, tickDomain, fractionDigits, bbox } = this.calculateTickLayout(
-            tickLayoutDomain ?? domain,
-            niceMode,
-            visibleRange,
-            initialPrimaryTickCount
-        );
+        const {
+            niceDomain,
+            ticks,
+            rawTickCount = 0,
+            tickDomain,
+            fractionDigits,
+            bbox,
+        } = this.calculateTickLayout(tickLayoutDomain ?? domain, niceMode, visibleRange, initialPrimaryTickCount);
+        unzoomedTickCount ??= rawTickCount;
+
+        const primaryTickCount: AxisPrimaryTickCount = {
+            zoomed: rawTickCount,
+            unzoomed: unzoomedTickCount,
+        };
+
         const timeInterval = UnitTimeScale.is(scale) ? scale.interval : undefined;
 
         this.scale.domain = niceDomain;
 
-        this._scaleNiceDomainInputDomain = nice ? domain : undefined;
-        this._scaleNiceDomainRangeExtent = nice ? rangeExtent : NaN;
+        this._cachedUnzoomedInputDomain = domain;
+        this._cachedUnzoomedRangeExtent = rangeExtent;
+        this._cachedUnzoomedTickCount = unzoomedTickCount;
 
         const specifier = labelSpecifier(
             timeInterval == null ? label.format : deriveTimeSpecifier(label.format, timeInterval),
@@ -522,12 +536,12 @@ export abstract class Axis<
         domain: D[],
         niceMode: NiceMode,
         visibleRange: [number, number],
-        primaryTickCount?: number
+        primaryTickCount?: AxisPrimaryTickCount
     ): {
         niceDomain: D[];
-        primaryTickCount?: number;
         tickDomain: D[];
         ticks: D[];
+        rawTickCount: number | undefined;
         fractionDigits: number;
         timeInterval: TimeInterval | undefined;
         bbox?: BBox;

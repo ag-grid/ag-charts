@@ -1,6 +1,6 @@
 import { dateToNumber } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
-import type { NormalizedDomain, ScaleTickParams } from './scale';
+import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale';
 import { filterVisibleTicks } from './scaleUtil';
 
 export class CategoryScale<D, I = number> extends BandScale<D, I> {
@@ -72,7 +72,11 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
         return matches ? this.domain[index] : undefined;
     }
 
-    override ticks(_params: ScaleTickParams<I>, domain: D[] = this.domain, visibleRange?: [number, number]): D[] {
+    override ticks(
+        _params: ScaleTickParams<I>,
+        domain: D[] = this.domain,
+        visibleRange?: [number, number]
+    ): ScaleTickResult<D> {
         return filterVisibleTicks(domain, false, visibleRange);
     }
 

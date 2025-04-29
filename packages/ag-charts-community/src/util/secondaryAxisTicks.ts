@@ -1,3 +1,6 @@
+import { countFractionDigits } from 'ag-charts-core';
+
+import type { AxisPrimaryTickCount } from '../module-support';
 import { findMinMax } from './number';
 
 interface SecondaryTickScale<D> {
@@ -7,24 +10,26 @@ interface SecondaryTickScale<D> {
 export function calculateNiceSecondaryAxis<D extends number>(
     scale: SecondaryTickScale<D>,
     domain: D[],
-    primaryTickCount: number,
-    reverse?: boolean
+    primaryTickCount: AxisPrimaryTickCount,
+    reverse: boolean
 ): { domain: [D, D]; ticks: number[] } {
     // Make secondary axis domain nice using strict tick count, matching the tick count from the primary axis.
     // This is to make the secondary axis grid lines/ tick positions align with the ones from the primary axis.
 
     let [start, stop] = findMinMax(domain.map(Number));
 
-    start = calculateNiceStart(Math.floor(start), stop, primaryTickCount);
-    const step = getTickStep(start, stop, primaryTickCount);
+    start = calculateNiceStart(Math.floor(start), stop, primaryTickCount.unzoomed);
+    const baseStep = getTickStep(start, stop, primaryTickCount.unzoomed);
 
-    const segments = primaryTickCount - 1;
-    stop = start + segments * step;
+    const segments = primaryTickCount.unzoomed - 1;
+    stop = start + segments * baseStep;
+
+    const step = baseStep * ((primaryTickCount.unzoomed - 1) / (primaryTickCount.zoomed - 1));
 
     const d0 = scale.toDomain(start);
     const d1 = scale.toDomain(stop);
     const d: [D, D] = reverse ? [d1, d0] : [d0, d1];
-    const ticks = getTicks(start, step, primaryTickCount);
+    const ticks = getTicks(start, step, primaryTickCount.zoomed);
 
     return { domain: d, ticks };
 }
@@ -39,8 +44,7 @@ function calculateNiceStart(a: number, b: number, count: number): number {
 
 function getTicks(start: number, step: number, count: number): number[] {
     // power of the step will be negative if the step is a fraction (between 0 and 1)
-    const stepPower = Math.floor(Math.log10(step));
-    const fractionDigits = step > 0 && step < 1 ? Math.abs(stepPower) : 0;
+    const fractionDigits = countFractionDigits(step);
     const f = Math.pow(10, fractionDigits);
     const ticks: number[] = [];
 
