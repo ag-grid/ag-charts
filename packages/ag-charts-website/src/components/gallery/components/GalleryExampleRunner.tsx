@@ -1,3 +1,4 @@
+import { excludeHiddenFiles } from '@components/docs/utils/excludeHiddenFiles';
 import { ExampleRunner } from '@components/example-runner/components/ExampleRunner';
 import { ExternalLinks } from '@components/example-runner/components/ExternalLinks';
 import { type ReactElement, useEffect, useState } from 'react';
@@ -45,7 +46,8 @@ const GalleryExampleRunnerInner = ({
     const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
     const [codeSandboxHtmlUrl, setCodeSandboxHtmlUrl] = useState<string>();
     const [plunkrHtmlUrl, setPlunkrHtmlUrl] = useState<string>();
-    const [exampleFiles, setExampleFiles] = useState();
+    const [exampleFiles, setExampleFiles] = useState<Record<string, string>>();
+    const [exampleRunnerFiles, setExampleRunnerFiles] = useState<Record<string, string>>();
     const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
     const [packageJson, setPackageJson] = useState();
 
@@ -130,10 +132,16 @@ const GalleryExampleRunnerInner = ({
             'index.html': exampleFileHtml,
         };
 
+        const newExampleRunnerFiles = excludeHiddenFiles({
+            internalFramework,
+            files,
+        });
+
         setExampleFiles(files);
+        setExampleRunnerFiles(newExampleRunnerFiles);
         setPackageJson(contents.packageJson);
         setExampleBoilerPlateFiles(contents.boilerPlateFiles);
-    }, [contents, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
+    }, [internalFramework, contents, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
 
     const externalLinks = hideExternalLinks ? undefined : (
         <ExternalLinks
@@ -157,7 +165,7 @@ const GalleryExampleRunnerInner = ({
             exampleRunnerExampleUrl={exampleRunnerExampleUrl}
             exampleType={exampleType}
             hideCode={hideCode}
-            exampleFiles={exampleFiles}
+            exampleFiles={exampleRunnerFiles}
             initialSelectedFile={initialSelectedFile}
             internalFramework={internalFramework}
             externalLinks={externalLinks}

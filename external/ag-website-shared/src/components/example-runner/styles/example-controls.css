@@ -1,3 +1,6 @@
+/**
+ * Styles for control elements in examples, not required for the examples' functionality
+ */
 :root {
     --main-fg: #101828;
     --main-bg: #fff;
