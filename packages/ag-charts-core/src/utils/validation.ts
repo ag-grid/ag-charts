@@ -1,4 +1,4 @@
-import { warn, warnOnce } from '../globals/logger';
+import { warnOnce } from '../globals/logger';
 import type { IsUnion } from '../interfaces/globalTypes';
 import { safeCall } from './functions';
 import { joinFormatted, levenshteinDistance, stringifyValue } from './strings';
@@ -586,11 +586,13 @@ export const callbackOf = (validator: Validator, description?: string) =>
 
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
-                const result = safeCall(value, args, context.path);
+                const result = safeCall(value, args);
                 if (result == null) return;
-                const validatorResult = validator(result, context);
+                const validatorResult = validator(result, { options: result, path: '' });
                 if (typeof validatorResult === 'object') {
-                    validatorResult.invalid.forEach((error) => warn(error));
+                    validatorResult.invalid.forEach(
+                        callbackWarnInvalid(context, description ?? validator[descriptionSymbol])
+                    );
                     if (validatorResult.valid) {
                         return validatorResult.cleared;
                     }
@@ -598,7 +600,7 @@ export const callbackOf = (validator: Validator, description?: string) =>
                     return result;
                 } else {
                     warnOnce(
-                        `Callback \`${context.path}\` cannot return \`${stringifyValue(result, 50)}\`; expecting ${description ?? validator[descriptionSymbol]}, ignoring.`
+                        `Callback \`${context.path}\` returned an invalid value \`${stringifyValue(result, 50)}\`; expecting ${description ?? validator[descriptionSymbol]}, ignoring.`
                     );
                 }
             },
@@ -618,19 +620,7 @@ export const callbackDefs = <T>(defs: OptionsDefs<T>, description = 'an object')
                 const result = safeCall(value, args, context.path);
                 if (result == null) return;
                 const validatorResult = validate(result, defs);
-                validatorResult.invalid.forEach((error) => {
-                    if (error instanceof UnknownError) {
-                        return warnOnce(
-                            `Callback \`${context.path}\` returned an unknown property \`${extendPath(error.path, error.key)}\`${error.getPostfix()}`
-                        );
-                    }
-                    const errorValue = stringifyValue(error.value, 50);
-                    warnOnce(
-                        error.key
-                            ? `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
-                            : `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description}, ignoring.`
-                    );
-                });
+                validatorResult.invalid.forEach(callbackWarnInvalid(context, description));
                 return validatorResult.cleared;
             },
             { [markedSymbol]: true }
@@ -641,4 +631,20 @@ export const callbackDefs = <T>(defs: OptionsDefs<T>, description = 'an object')
 
 export function hasRequiredInPath(errors: ValidationError[], rootPath: string) {
     return errors.some((error: ValidationError) => error.type === ErrorType.Required && error.path === rootPath);
+}
+
+function callbackWarnInvalid(context: ValidatorContext, description?: string) {
+    return (error: ValidationError) => {
+        if (error instanceof UnknownError) {
+            return warnOnce(
+                `Callback \`${context.path}\` returned an unknown property \`${extendPath(error.path, error.key)}\`${error.getPostfix()}`
+            );
+        }
+        const errorValue = stringifyValue(error.value, 50);
+        warnOnce(
+            error.key
+                ? `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
+                : `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description ?? error.description}, ignoring.`
+        );
+    };
 }
