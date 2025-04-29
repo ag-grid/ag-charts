@@ -135,13 +135,13 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                 .map(this.findMatchingNodes(axis, mainDirection, valueIsDate, eventValue))
                 .filter(isDefined);
 
-            const secondaryKey = `${secondaryDirection}Key` as const;
-            const secondaryValue = _ModuleSupport.isObjectWithProperty(event.currentHighlight, secondaryKey)
-                ? event.currentHighlight?.[secondaryKey]
-                : undefined;
-
             // Narrow matches by matching the secondary direction key.
             if (useSecondaryDirectionKey) {
+                const secondaryKey = `${secondaryDirection}Key` as const;
+                const secondaryValue = _ModuleSupport.isObjectWithProperty(event.currentHighlight, secondaryKey)
+                    ? event.currentHighlight?.[secondaryKey]
+                    : undefined;
+
                 matchingNodes = matchingNodes.filter(({ nodeDatum }) => {
                     return (
                         isObjectWithStringProperty(nodeDatum, secondaryKey) &&
