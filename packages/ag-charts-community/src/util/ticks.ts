@@ -64,21 +64,18 @@ export function createTicks(
     maxCount?: number,
     visibleRange?: [number, number]
 ): { ticks: number[]; count: number } {
-    let step: number;
-    if (count < 2) {
-        step = NaN;
-    } else {
-        step = tickStep(start, stop, count, minCount, maxCount);
-        if (!isCloseToInteger(start / step, 1e-12)) {
-            start = Math.ceil(start / step) * step;
-        }
-        if (!isCloseToInteger(stop / step, 1e-12)) {
-            stop = Math.floor(stop / step) * step;
-        }
+    if (count < 2) return { ticks: [start, stop], count: 2 };
+
+    const step = tickStep(start, stop, count, minCount, maxCount);
+    if (!Number.isFinite(step)) return { ticks: [], count: 0 };
+
+    if (!isCloseToInteger(start / step, 1e-12)) {
+        start = Math.ceil(start / step) * step;
     }
-    if (!Number.isFinite(step)) {
-        return { ticks: [], count: 0 };
+    if (!isCloseToInteger(stop / step, 1e-12)) {
+        stop = Math.floor(stop / step) * step;
     }
+
     return range(start, stop, step, visibleRange);
 }
 

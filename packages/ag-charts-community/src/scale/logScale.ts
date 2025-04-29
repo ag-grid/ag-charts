@@ -103,7 +103,7 @@ export class LogScale extends ContinuousScale<number> {
         if (interval) {
             const inBounds = (tick: number) => tick >= start && tick <= stop;
             const step = Math.min(Math.abs(interval), Math.abs(p1 - p0));
-            const ticks = range(p0, p1, step).ticks.map(this.pow).filter(inBounds);
+            const ticks = range(p0, p1, step, visibleRange).ticks.map(this.pow).filter(inBounds);
 
             if (!isDenseInterval(ticks.length, this.getPixelRange())) {
                 return { ticks, count: ticks.length };
@@ -114,7 +114,7 @@ export class LogScale extends ContinuousScale<number> {
         // returns ticks in the format [10^1, 10^2, 10^3, 10^4, ...].
         if (!isInteger(base) || p1 - p0 >= tickCount) {
             const step = Math.min(p1 - p0, tickCount);
-            const { ticks, count } = createTicks(p0, p1, step);
+            const { ticks, count } = createTicks(p0, p1, step, undefined, undefined, visibleRange);
             return {
                 ticks: ticks.map(this.pow),
                 count: count,

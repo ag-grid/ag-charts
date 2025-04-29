@@ -151,7 +151,28 @@ describe('LinearScale', () => {
                 minTickCount: 0,
                 maxTickCount: Infinity,
             };
-            expect(scale.ticks(ticks)).toEqual([0, 30, 60, 90]);
+            expect(scale.ticks(ticks)).toEqual({
+                ticks: [0, 30, 60, 90],
+                count: 4,
+            });
+        });
+
+        it('should create ticks within visible range', () => {
+            const scale = new LinearScale();
+            scale.range = [0, 100];
+            scale.domain = [0, 100];
+
+            const ticks = {
+                nice: true,
+                interval: 10,
+                tickCount: undefined,
+                minTickCount: 0,
+                maxTickCount: Infinity,
+            };
+            expect(scale.ticks(ticks, undefined, [0.25, 0.75])).toEqual({
+                ticks: [30, 40, 50, 60, 70],
+                count: 11,
+            });
         });
     });
 

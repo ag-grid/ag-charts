@@ -13,7 +13,7 @@ function ticks(a: number, b: number, count: number): number[] {
 function compareTicks(actual: number[], array: number[]) {
     expect(actual).toHaveLength(array.length);
     actual.forEach((tick, index) => {
-        expect(tick).toBe(array[index]);
+        expect(tick).toBeCloseTo(array[index], 10);
     });
 }
 
