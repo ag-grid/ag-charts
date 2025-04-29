@@ -99,7 +99,7 @@ function getHeadingContent(heading) {
     for (const child of cleanHeading.children) {
         if (
             // Exclude `Copy` link in headings
-            child.textContent.trim() === 'Copy'
+            child.textContent.trim() === 'Copy Link'
         ) {
             cleanHeading.removeChild(child);
         }
