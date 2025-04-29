@@ -21,6 +21,10 @@ interface Props {
      */
     addE2ECheckScript?: boolean;
     /**
+     * Whether to add padding to the body element
+     */
+    addBodyPadding?: boolean;
+    /**
      * Override to be used for generated contents
      */
     generatedContents?: GeneratedContents;
@@ -31,6 +35,7 @@ const {
     relativePath,
     addInitMessageScript,
     addE2ECheckScript,
+    addBodyPadding,
     generatedContents: generatedContentsOverride,
 } = Astro.props as Props;
 
@@ -66,4 +71,5 @@ const displayExampleName = getExampleName({
     relativePath={relativePath}
     addInitMessageScript={addInitMessageScript}
     addE2ECheckScript={addE2ECheckScript}
+    addBodyPadding={addBodyPadding}
 />

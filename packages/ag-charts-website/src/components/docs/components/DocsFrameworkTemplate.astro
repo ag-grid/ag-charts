@@ -21,6 +21,10 @@ interface Props {
      */
     addE2ECheckScript?: boolean;
     /**
+     * Whether to add padding to the body element
+     */
+    addBodyPadding?: boolean;
+    /**
      * Whether to not include system js code
      */
     ignoreSystemJs?: boolean;
@@ -33,6 +37,7 @@ const {
     relativePath,
     addInitMessageScript,
     addE2ECheckScript,
+    addBodyPadding,
     ignoreSystemJs,
 } = Astro.props as Props;
 
@@ -60,4 +65,5 @@ const exampleUrl = getExampleUrl({
     ignoreSystemJs={ignoreSystemJs}
     addInitMessageScript={addInitMessageScript}
     addE2ECheckScript={addE2ECheckScript}
+    addBodyPadding={addBodyPadding}
 />

@@ -31,6 +31,10 @@ interface Props {
      */
     addE2ECheckScript?: boolean;
     /**
+     * Whether to add padding to the body element
+     */
+    addBodyPadding?: boolean;
+    /**
      * Whether to not include system js code
      */
     ignoreSystemJs?: boolean;
@@ -45,6 +49,7 @@ const {
     relativePath,
     addInitMessageScript,
     addE2ECheckScript,
+    addBodyPadding,
     ignoreSystemJs,
 } = Astro.props as Props;
 
@@ -55,7 +60,15 @@ const library = 'charts';
 const { entryFileName, files, scriptFiles, styleFiles, isEnterprise, hasLocale, layout, exampleConfig } =
     generatedContents || {};
 const indexFragment = files?.['index.html'];
-const headFragment = files?.['head.html'];
+
+const bodyPadding = `
+<style>
+    body {
+        padding: 2rem;
+    }
+</style>
+`;
+const headFragment = (addBodyPadding ? bodyPadding : '') + (files?.['head.html'] ?? '');
 const appLocation = relativePath ? '' : exampleUrl;
 const boilerPlateUrl = relativePath
     ? ''
