@@ -117,8 +117,6 @@ export function deepClone<T>(source: T, opts?: CloneOptions): T {
 
 function cloneArray<T>(source: T[], opts?: CloneOptions): T[] {
     const result: T[] = [];
-    result.length = source.length;
-    let i = 0;
     const seen = opts?.seen;
     for (const item of source) {
         if (typeof item === 'object' && seen?.includes(item)) {
@@ -126,10 +124,9 @@ function cloneArray<T>(source: T[], opts?: CloneOptions): T[] {
             continue;
         }
         seen?.push(item);
-        result[i++] = deepClone(item, { ...opts, seen });
+        result.push(deepClone(item, opts));
         seen?.pop();
     }
-    result.length = i;
     return result;
 }
 
