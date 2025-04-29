@@ -4,6 +4,7 @@ import {
     Logger,
     ModuleRegistry,
     ModuleType,
+    type PlainObject,
     getDocument,
     getWindow,
     groupBy,
@@ -45,6 +46,7 @@ import { type ChartTheme } from '../chart/themes/chartTheme';
 import { Debug } from '../util/debug';
 import {
     type CloneOptions,
+    type OperationPlugin,
     deepClone,
     jsonDiff,
     jsonPropertyCompare,
@@ -188,7 +190,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.activeTheme = activeTheme;
         this.processedOptions = processedOptions as any;
         this.fastDelta = fastDelta ?? undefined;
-        this.themeParameters = themeParameters;
+        this.themeParameters = themeParameters as any;
         this.annotationThemes = annotationThemes;
 
         // This ChartOptions should be treated as immutable from here-on, force immutability to
@@ -297,18 +299,23 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const defaultSeries = { series: options.series?.map(() => ({ type: 'line' })) };
 
         const sources: Array<object> = [processedOverrides, options];
-        if (defaultAxes) sources.push(defaultAxes);
-        if (defaultSeries) sources.push(defaultSeries);
-        sources.push(...themeDefaults);
+        if (defaultAxes?.axes) sources.push(defaultAxes);
+        sources.push(defaultSeries, ...themeDefaults);
 
-        let processedOptions = jsonResolveOperations<T>(
-            sources,
-            themeParameters
-            // new Set(['palette', 'theme'])
-        );
+        // Set `enabled: true` for all option objects where the user has provided values.
+        const enableConfiguredOptionsPlugin: OperationPlugin = {
+            key: 'enabled',
+            sourceIndex: 1,
+            operation: ChartOptions.enableConfiguredJsonOptions,
+        };
+
+        const processedOptions = jsonResolveOperations<T>(sources, themeParameters, new Set(['data']), [
+            enableConfiguredOptionsPlugin,
+        ]);
         // ChartOptions.debug('ChartOptions.resolveTheme()', modifiedPaths);
 
-        this.enableConfiguredOptions(processedOptions, options);
+        // Cleanup any special properties.
+        jsonWalk(processedOptions, ChartOptions.cleanupEnabledFromThemeJsonOptions, new Set(['data', 'theme']));
 
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
         if (
@@ -324,9 +331,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         /*
 
         TODO:
-        1 – Circular paths in `chartTheme.ts` axis default shapes
-        2 – Apply annotations like series
-        3 – Should `jsonResolveSourceWithTarget()` use `isObject()` or `isPlainObject()`? Compare tests vs `processedOptions.container` being removed by it.
+        1 – Apply annotations like series
+        2 – Should `jsonResolveSourceWithTarget()` use `isObject()` or `isPlainObject()`? Compare tests vs `processedOptions.container` being removed by it.
+        3 – Test crosslines and gridLine.styles with axis top/bottom/left/right
 
         */
 
@@ -351,7 +358,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
-        return { activeTheme, processedOptions, defaultAxes: [], themeParameters: {}, annotationThemes: {} };
+        return { activeTheme, processedOptions, themeParameters, annotationThemes: {} };
     }
 
     getAllThemeDefaults(activeTheme: ChartTheme) {
@@ -361,18 +368,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 themeConfig,
                 '/$seriesType',
                 { seriesType: { $path: ['/series/0/type', 'line'] } },
-                ['axes', 'series'],
+                ['axes', 'series', 'annotations'],
             ],
         };
         const axesDefaults = {
             axes: {
                 $apply: [
                     themeConfig,
-                    '/$seriesType/axes/$axisType',
+                    ['/$seriesType/axes/$axisType/$position', '/$seriesType/axes/$axisType'],
                     {
                         seriesType: { $path: ['/series/0/type', 'line'] },
                         axisType: { $path: ['/type', 'category', { $value: '$1' }] },
+                        position: { $path: ['/position', undefined, { $value: '$1' }] },
                     },
+                    ['top', 'right', 'bottom', 'left'],
                 ],
             },
         };
@@ -385,14 +394,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ],
             },
         };
-        const annotationsDefaults = {
-            annotations: {
-                // $apply: [{ $pick: [['axesButtons', 'enabled', 'optionsToolbar', 'toolbar'], { $value: '$target' }] }],
-                $apply: [{}],
-            },
-        };
+        // const annotationsDefaults = {
+        //     annotations: {
+        //         // $apply: [{ $pick: [['axesButtons', 'enabled', 'optionsToolbar', 'toolbar'], { $value: '$target' }] }],
+        //         // $apply: [{}],
+        //     },
+        // };
 
-        return [chartDefaults, axesDefaults, seriesDefaults, annotationsDefaults];
+        return [chartDefaults, axesDefaults, seriesDefaults];
     }
 
     private validatePluginOptions(options: T) {
@@ -535,18 +544,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 axesThemes[axis.type]
             );
 
-            if (axis.crossLines) {
-                axis.crossLines = mergeArrayDefaults(axis.crossLines, crossLinesTheme);
-            }
-
-            const gridLineStyle = axisTheme.gridLine?.style;
-            if (axis.gridLine?.style && gridLineStyle?.length) {
-                axis.gridLine.style = axis.gridLine.style.map((style: any, index: number) =>
-                    style.stroke != null || style.lineDash != null
-                        ? mergeDefaults(style, gridLineStyle.at(index % gridLineStyle.length))
-                        : style
-                );
-            }
             const { top: _1, right: _2, bottom: _3, left: _4, ...axisOptions } = mergeDefaults(axis, axisTheme);
             return axisOptions;
         }) as AgCartesianAxisOptions[] | AgPolarAxisOptions[];
@@ -773,30 +770,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private static enableConfiguredJsonOptions(this: void, visitingUserOpts: any, visitingMergedOpts: any) {
-        if (
-            typeof visitingMergedOpts === 'object' &&
-            'enabled' in visitingMergedOpts &&
-            !visitingMergedOpts._enabledFromTheme &&
-            visitingUserOpts.enabled == null
-        ) {
-            visitingMergedOpts.enabled = true;
+    private static enableConfiguredJsonOptions(this: void, value: any, branch: PlainObject, source: PlainObject) {
+        if (!branch._enabledFromTheme && source?.enabled == null) {
+            return true;
         }
+        return value;
     }
 
-    private static cleanupEnabledFromThemeJsonOptions(this: void, visitingMergedOpts: any) {
-        if (visitingMergedOpts._enabledFromTheme != null) {
-            // Do not apply special handling, base enablement on theme.
-            delete visitingMergedOpts._enabledFromTheme;
-        }
-    }
-
-    private enableConfiguredOptions(options: T, userOptions: T) {
-        // Set `enabled: true` for all option objects where the user has provided values.
-        jsonWalk(userOptions, ChartOptions.enableConfiguredJsonOptions, new Set(['data', 'theme']), options);
-
-        // Cleanup any special properties.
-        jsonWalk(options, ChartOptions.cleanupEnabledFromThemeJsonOptions, new Set(['data', 'theme']));
+    // private static cleanupEnabledFromThemeJsonOptions(this: void, _value: any, branch: PlainObject) {
+    private static cleanupEnabledFromThemeJsonOptions(this: void, branch: any) {
+        // Do not apply special handling, base enablement on theme.
+        delete branch._enabledFromTheme;
     }
 
     private static removeDisabledOptionJson(this: void, optionsNode: any) {

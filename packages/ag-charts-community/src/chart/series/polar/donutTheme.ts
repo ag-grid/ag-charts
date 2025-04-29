@@ -68,6 +68,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         innerRadiusRatio: {
             $if: [{ $eq: [{ $path: ['./innerRadiusOffset', undefined] }, undefined] }, 0.7, undefined],
         },
+        innerRadiusOffset: undefined,
         shadow: {
             enabled: false,
             color: DEFAULT_SHADOW_COLOUR,

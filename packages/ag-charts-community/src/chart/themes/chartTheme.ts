@@ -1,4 +1,4 @@
-import { entries, isArray } from 'ag-charts-core';
+import { entries, isArray, isPlainObject } from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeOptions,
@@ -17,7 +17,7 @@ import type {
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
 import { enterpriseModule } from '../../module/enterpriseModule';
 import { Color } from '../../util/color';
-import { deepClone, jsonWalk } from '../../util/json';
+import { deepClone, jsonWalk, shallowClone } from '../../util/json';
 import { deepFreeze, mergeDefaults } from '../../util/object';
 import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
@@ -269,7 +269,15 @@ export class ChartTheme {
                 },
                 gridLine: {
                     enabled: true,
-                    style: [{ stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
+                    style: {
+                        $apply: [
+                            { stroke: { $ref: 'gridLineColor' }, lineDash: [] },
+                            undefined,
+                            undefined,
+                            undefined,
+                            [{ stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
+                        ],
+                    },
                 },
                 crossLines: {
                     $apply: [
@@ -404,25 +412,6 @@ export class ChartTheme {
                 keys: [],
                 line: { enabled: false },
                 crosshair: { enabled: true },
-                position: {
-                    $if: [
-                        {
-                            $and: [
-                                {
-                                    $or: [
-                                        { $eq: [{ $path: '/series/0/type' }, 'bar'] },
-                                        { $eq: [{ $path: '/series/0/type' }, 'box-plot'] },
-                                        { $eq: [{ $path: '/series/0/type' }, 'range-bar'] },
-                                        { $eq: [{ $path: '/series/0/type' }, 'waterfall'] },
-                                    ],
-                                },
-                                { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] },
-                            ],
-                        },
-                        CARTESIAN_POSITION.BOTTOM,
-                        CARTESIAN_POSITION.LEFT,
-                    ],
-                },
             },
             { title: true, time: 'off' }
         ),
@@ -442,25 +431,6 @@ export class ChartTheme {
                 label: { autoRotate: true },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: false },
-                position: {
-                    $if: [
-                        {
-                            $and: [
-                                {
-                                    $or: [
-                                        { $eq: [{ $path: '/series/0/type' }, 'bar'] },
-                                        { $eq: [{ $path: '/series/0/type' }, 'box-plot'] },
-                                        { $eq: [{ $path: '/series/0/type' }, 'range-bar'] },
-                                        { $eq: [{ $path: '/series/0/type' }, 'waterfall'] },
-                                    ],
-                                },
-                                { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] },
-                            ],
-                        },
-                        CARTESIAN_POSITION.LEFT,
-                        CARTESIAN_POSITION.BOTTOM,
-                    ],
-                },
             },
             { title: true, time: 'off' }
         ),
@@ -561,6 +531,22 @@ export class ChartTheme {
     }
 
     private mergeOverrides(defaults: AgChartThemeOverrides, presets: AgPresetOverrides, overrides: AgThemeOverrides) {
+        // Do not look at this, don't do it, it's fine, just don't look.
+        jsonWalk(
+            overrides,
+            (node: any, defaultNode: any) => {
+                if (isPlainObject(node) && isPlainObject(defaultNode) && '$apply' in defaultNode) {
+                    const nodeClone = shallowClone(node);
+                    for (const key of Object.keys(node)) {
+                        delete node[key];
+                    }
+                    node.$apply = [{ ...defaultNode.$apply[0], ...nodeClone }, ...defaultNode.$apply.slice(1)];
+                }
+            },
+            undefined,
+            defaults
+        );
+
         for (const { seriesTypes, commonOptions } of Object.values(CHART_TYPE_CONFIG)) {
             const cleanedCommon = { ...overrides.common };
             for (const commonKey of CHART_TYPE_SPECIFIC_COMMON_OPTIONS) {

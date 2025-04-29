@@ -4,9 +4,8 @@ import type { AgBarSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
-import { CARTESIAN_AXIS_TYPE } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } from '../../themes/util';
+import { DIRECTION_SWAP_AXES, FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } from '../../themes/util';
 import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
 
@@ -21,7 +20,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     stackable: true,
     groupable: true,
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: [{ type: CARTESIAN_AXIS_TYPE.NUMBER }, { type: CARTESIAN_AXIS_TYPE.CATEGORY }],
+    defaultAxes: DIRECTION_SWAP_AXES,
     themeTemplate: {
         series: {
             direction: 'vertical',

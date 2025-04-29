@@ -12,7 +12,7 @@ const {
 
 export const FUNNEL_SERIES_AXES: any = {
     $if: [
-        { $eq: [{ $path: ['/direction', undefined] }, 'horizontal'] },
+        { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] },
         [
             {
                 type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -22,12 +22,12 @@ export const FUNNEL_SERIES_AXES: any = {
                 type: CARTESIAN_AXIS_TYPE.CATEGORY,
                 position: {
                     $if: [
-                        { $eq: [{ $path: ['/stageLabel/placement', undefined] }, 'before'] },
+                        { $eq: [{ $path: ['/series/0/stageLabel/placement', undefined] }, 'before'] },
                         CARTESIAN_POSITION.TOP,
                         CARTESIAN_POSITION.BOTTOM,
                     ],
                 },
-                label: { $omit: [['placement'], { $path: ['/stageLabel', undefined] }] },
+                label: { $omit: [['placement'], { $path: ['/series/0/stageLabel', undefined] }] },
             },
         ],
         [
@@ -35,12 +35,12 @@ export const FUNNEL_SERIES_AXES: any = {
                 type: CARTESIAN_AXIS_TYPE.CATEGORY,
                 position: {
                     $if: [
-                        { $eq: [{ $path: ['/stageLabel/placement', undefined] }, 'after'] },
+                        { $eq: [{ $path: ['/series/0/stageLabel/placement', undefined] }, 'after'] },
                         CARTESIAN_POSITION.RIGHT,
                         CARTESIAN_POSITION.LEFT,
                     ],
                 },
-                label: { $omit: [['placement'], { $path: ['/stageLabel', undefined] }] },
+                label: { $omit: [['placement'], { $path: ['/series/0/stageLabel', undefined] }] },
             },
             {
                 type: CARTESIAN_AXIS_TYPE.NUMBER,
