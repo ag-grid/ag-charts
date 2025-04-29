@@ -19,11 +19,11 @@ import {
 } from 'ag-charts-core';
 import type {
     AgCategoryAxisOptions,
+    AgContinuousTimeAxisOptions,
     AgGroupedCategoryAxisOptions,
     AgGroupedCategoryDepthOptions,
     AgLogAxisOptions,
     AgNumberAxisOptions,
-    AgTimeAxisOptions,
     AgUnitTimeAxisOptions,
 } from 'ag-charts-types';
 
@@ -66,7 +66,7 @@ export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
     crosshair: cartesianAxisCrosshairOptions(true),
 };
 
-export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
+export const timeAxisOptionsDefs: OptionsDefs<AgContinuousTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     ...continuousAxisOptions(or(number, date), true),
     type: required(constant('time')),
@@ -160,7 +160,7 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
     create: (ctx: ModuleContext) => new LogAxis(ctx),
 };
 
-export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
+export const TimeAxisModule: AxisModuleDefinition<AgContinuousTimeAxisOptions> = {
     type: 'axis',
     name: 'time',
     chartType: 'cartesian',
