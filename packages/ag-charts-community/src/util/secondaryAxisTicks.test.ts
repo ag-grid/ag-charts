@@ -6,7 +6,7 @@ function ticks(a: number, b: number, count: number): number[] {
     const scale = {
         toDomain: (d: any) => d,
     };
-    const { ticks: result } = calculateNiceSecondaryAxis(scale, [a, b], count);
+    const { ticks: result } = calculateNiceSecondaryAxis(scale, [a, b], { unzoomed: count, zoomed: count }, false);
     return result;
 }
 
