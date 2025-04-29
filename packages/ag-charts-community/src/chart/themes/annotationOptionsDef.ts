@@ -19,15 +19,21 @@ import {
     union,
 } from 'ag-charts-core';
 import type {
+    AgAnnotationAxisLabel,
+    AgAnnotationHandleStyles,
     AgAnnotationOptionsToolbarButton,
     AgAnnotationOptionsToolbarSwitch,
     AgAnnotationsOptions,
     AgAnnotationsToolbarButton,
     AgCalloutAnnotationStyles,
+    AgChannelAnnotationMiddle,
     AgChannelAnnotationStyles,
+    AgChannelAnnotationTextStyles,
     AgCommentAnnotationStyles,
+    AgCrossLineAnnotationStyles,
     AgDisjointChannelAnnotationStyles,
     AgFibonacciAnnotationStyles,
+    AgLineAnnotationStyles,
     AgLineAnnotationTextStyles,
     AgMeasurerAnnotationStatistics,
     AgMeasurerAnnotationStyles,
@@ -37,17 +43,9 @@ import type {
     AgQuickMeasurerAnnotationStyles,
     AgShapeAnnotationStyles,
     AgTextAnnotationStyles,
+    LineOptions,
 } from 'ag-charts-types';
 
-import {
-    type AgAnnotationAxisLabel,
-    type AgAnnotationHandleStyles,
-    type AgChannelAnnotationMiddle,
-    type AgChannelAnnotationTextStyles,
-    type AgCrossLineAnnotationStyles,
-    type AgLineAnnotationStyles,
-    type LineOptions,
-} from '../../main';
 import { toolbarButtonOptionsDefs } from '../commonOptionsDefs';
 
 const annotationLineOptionsDef: OptionsDefs<LineOptions> = {
