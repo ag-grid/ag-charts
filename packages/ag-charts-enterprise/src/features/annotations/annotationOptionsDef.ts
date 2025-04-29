@@ -25,13 +25,10 @@ import {
 } from 'ag-charts-core';
 import type { AgAnnotation, AgStateSerializableDate } from 'ag-charts-types';
 
-import {
+const {
     annotationCalloutStylesDefs,
     annotationNoteStylesDefs,
     annotationTextStylesDef,
-} from '../../../../ag-charts-community/src/chart/themes/annotationOptionsDef';
-
-const {
     annotationCommentStylesDefs,
     annotationMeasurerStylesDefs,
     annotationShapeStylesDefs,
