@@ -344,7 +344,10 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             const autoScaleYAxis = restoredZoom?.autoScaleYAxis ?? true;
             this.autoScaleYAxis.manuallyAdjusted = !autoScaleYAxis;
         }
-        this.updateAxisZoom(callerId, axisId, restoredZoom?.[direction] ?? { min: 0, max: 1 });
+        for (const axis of this.axes) {
+            if (axis.direction !== direction) continue;
+            this.updateAxisZoom(callerId, axis.id, restoredZoom?.[direction] ?? { min: 0, max: 1 });
+        }
     }
 
     public setAxisManuallyAdjusted(_callerId: string, axisId: string) {
