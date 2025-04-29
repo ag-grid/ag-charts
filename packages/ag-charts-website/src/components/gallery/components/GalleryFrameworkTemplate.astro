@@ -17,6 +17,10 @@ interface Props {
      */
     addInitMessageScript?: boolean;
     /**
+     * Whether to add a script to check for E2E tests
+     */
+    addE2ECheckScript?: boolean;
+    /**
      * Override to be used for generated contents
      */
     generatedContents?: GeneratedContents;
@@ -26,6 +30,7 @@ const {
     exampleName,
     relativePath,
     addInitMessageScript,
+    addE2ECheckScript,
     generatedContents: generatedContentsOverride,
 } = Astro.props as Props;
 
@@ -60,4 +65,5 @@ const displayExampleName = getExampleName({
     generatedContents={generatedContents!}
     relativePath={relativePath}
     addInitMessageScript={addInitMessageScript}
+    addE2ECheckScript={addE2ECheckScript}
 />

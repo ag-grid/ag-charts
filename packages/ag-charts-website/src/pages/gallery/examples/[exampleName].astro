@@ -16,10 +16,4 @@ export const partial = !getIsDev();
 const { exampleName } = Astro.params;
 ---
 
-<GalleryFrameworkTemplate exampleName={exampleName!} />
-
-<style>
-    body {
-        padding: 32px;
-    }
-</style>
+<GalleryFrameworkTemplate exampleName={exampleName!} addE2ECheckScript={true} />
