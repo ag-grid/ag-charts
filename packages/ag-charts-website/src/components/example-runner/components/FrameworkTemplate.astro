@@ -148,12 +148,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
     )
 }
 
-<style>
-    :global(astro-dev-toolbar) {
-        display: none !important;
-    }
-</style>
-
 <script>
     if (window.location.hash.includes('e2e=true')) {
         const e2eStyleEl = document.createElement('style');
