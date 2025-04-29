@@ -314,6 +314,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         super.update();
 
+        this.tickLineGroup.visible = this.tick.enabled || (this.primaryTick?.enabled ?? false);
+        this.tickLabelGroup.visible = this.label.enabled || (this.primaryTick?.enabled ?? false);
+
         if (!this.animatable) {
             this.moduleCtx.animationManager.skipCurrentBatch();
         }
@@ -408,7 +411,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         boxes.push(this.lineNodeBBox());
 
-        if (tick.enabled) {
+        if (tick.enabled || primaryTick?.enabled) {
             for (const datum of ticks) {
                 boxes.push(this.getTickLineBBox(datum));
             }
