@@ -14,6 +14,7 @@ import {
     boolean,
     constant,
     number,
+    numberRange,
     optionsDefs,
     or,
     positiveNumber,
@@ -53,7 +54,7 @@ const annotationValue = or(
     xValue,
     optionsDefs<AgGroupingValueType>({
         value: xValue,
-        groupPercentage: number,
+        groupPercentage: numberRange(-1, 1),
     })
 );
 
