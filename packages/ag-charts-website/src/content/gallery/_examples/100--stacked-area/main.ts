@@ -1,6 +1,17 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+function renderer({ datum, yKey, title }: AgCartesianSeriesTooltipRendererParams) {
+    return {
+        data: [
+            {
+                label: title!,
+                value: datum[yKey].toFixed(1),
+            },
+        ],
+    };
+}
 
 const interpolation = { type: 'smooth' } as const;
 
@@ -22,6 +33,7 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             stacked: true,
             interpolation,
+            tooltip: { renderer: renderer },
             fill: {
                 type: 'pattern',
             },
@@ -34,6 +46,7 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             stacked: true,
             interpolation,
+            tooltip: { renderer: renderer },
         },
         {
             type: 'area',
@@ -43,6 +56,7 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             stacked: true,
             interpolation,
+            tooltip: { renderer: renderer },
             fill: {
                 type: 'pattern',
             },
@@ -55,6 +69,7 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             stacked: true,
             interpolation,
+            tooltip: { renderer: renderer },
         },
         {
             type: 'area',
@@ -64,6 +79,7 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             stacked: true,
             interpolation,
+            tooltip: { renderer: renderer },
             fill: {
                 type: 'pattern',
             },
@@ -76,6 +92,7 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             stacked: true,
             interpolation,
+            tooltip: { renderer: renderer },
         },
         {
             type: 'area',
@@ -85,6 +102,7 @@ const options: AgChartOptions = {
             normalizedTo: 100,
             stacked: true,
             interpolation,
+            tooltip: { renderer: renderer },
             fill: {
                 type: 'pattern',
             },
