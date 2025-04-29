@@ -1,10 +1,14 @@
 import { countFractionDigits } from 'ag-charts-core';
 
-import type { AxisPrimaryTickCount } from '../module-support';
 import { findMinMax } from './number';
 
 interface SecondaryTickScale<D> {
     toDomain(d: number): D;
+}
+
+export interface AxisPrimaryTickCount {
+    unzoomed: number;
+    zoomed: number;
 }
 
 export function calculateNiceSecondaryAxis<D extends number>(

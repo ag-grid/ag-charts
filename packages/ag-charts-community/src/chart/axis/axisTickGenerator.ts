@@ -12,12 +12,12 @@ import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
-import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
+import { type AxisPrimaryTickCount, calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
 import { TimeInterval, sunday } from '../../util/time';
-import type { AxisPrimaryTickCount, ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
+import type { ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
 import {
     calculateLabelRotation,
     createFixedLabelData,

@@ -145,8 +145,7 @@ export abstract class RadiusAxis<
     override calculateTickLayout(
         domain: D[],
         niceMode: _ModuleSupport.NiceMode,
-        _visibleRange: [number, number],
-        initialPrimaryTickCount?: _ModuleSupport.AxisPrimaryTickCount
+        _visibleRange: [number, number]
     ): {
         niceDomain: D[];
         tickDomain: D[];
@@ -166,7 +165,7 @@ export abstract class RadiusAxis<
             domain,
             niceMode,
             visibleRange,
-            primaryTickCount: initialPrimaryTickCount,
+            primaryTickCount: undefined,
             parallelFlipRotation,
             regularFlipRotation,
             labelX,

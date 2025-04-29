@@ -16,6 +16,7 @@ import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { TransformableText } from '../scene/shape/text';
 import type { Padding } from '../util/padding';
+import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
 import type { AxisTick, TickInterval } from './axis/axisTick';
@@ -48,11 +49,6 @@ export interface AxisGroups {
     crossLineLineNode: Node;
     crossLineLabelNode: Node;
     labelNode: Node;
-}
-
-export interface AxisPrimaryTickCount {
-    unzoomed: number;
-    zoomed: number;
 }
 
 export interface ChartAxis {
