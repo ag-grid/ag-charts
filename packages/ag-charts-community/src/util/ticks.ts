@@ -196,7 +196,7 @@ export function range(
     start: number,
     end: number,
     step: number,
-    visibleRange: [number, number] = [0, 1]
+    visibleRange?: [number, number]
 ): { ticks: number[]; count: number } {
     if (!Number.isFinite(step) || step <= 0) {
         return { ticks: [], count: 0 };
@@ -208,7 +208,7 @@ export function range(
 
     let vd0: number;
     let vd1: number;
-    if (visibleRange[0] !== 0 || visibleRange[1] !== 1) {
+    if (visibleRange != null && (visibleRange[0] !== 0 || visibleRange[1] !== 1)) {
         const rangeExtent = end - start;
         const adjustedStart = start + rangeExtent * visibleRange[0];
         const adjustedEnd = end - rangeExtent * (1 - visibleRange[1]);
@@ -218,6 +218,9 @@ export function range(
         vd0 = d0;
         vd1 = d1;
     }
+
+    vd0 = Math.floor(vd0 * f) / f;
+    vd1 = Math.ceil(vd1 * f) / f;
 
     const ticks: number[] = [];
     let count = 0;
