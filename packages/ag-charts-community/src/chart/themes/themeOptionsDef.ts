@@ -13,6 +13,7 @@ import {
     fontOptionsDef,
     isFunction,
     isObject,
+    isSymbol,
     number,
     optionsDefs,
     or,
@@ -646,7 +647,8 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
 
 export const themeOverridesOptionsWithOperatorsDef = mapValues(
     themeOverridesOptionsDef,
-    function themeOperatorMapper(value: unknown): Validator {
+    function themeOperatorMapper(value: unknown, key: string | number | symbol): any {
+        if (isSymbol(key)) return value;
         if (isFunction(value)) {
             return or(value as Validator, themeOperator);
         } else if (isObject(value)) {
@@ -654,4 +656,4 @@ export const themeOverridesOptionsWithOperatorsDef = mapValues(
         }
         throw new Error(`Invalid theme override value: ${String(value)}`);
     }
-);
+) as OptionsDefs<AgThemeOverrides>;
