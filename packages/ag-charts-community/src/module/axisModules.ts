@@ -15,6 +15,7 @@ import {
     or,
     positiveNumber,
     positiveNumberNonZero,
+    ratio,
     required,
 } from 'ag-charts-core';
 import type {
@@ -79,9 +80,9 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     type: required(constant('category')),
     label: cartesianAxisLabelOptionsDefs,
-    paddingInner: positiveNumber,
-    paddingOuter: positiveNumber,
-    groupPaddingInner: positiveNumber,
+    paddingInner: ratio,
+    paddingOuter: ratio,
+    groupPaddingInner: ratio,
     crosshair: cartesianAxisCrosshairOptions(),
 };
 
@@ -90,8 +91,8 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
     type: required(constant('grouped-category')),
     label: cartesianAxisLabelOptionsDefs,
     crosshair: cartesianAxisCrosshairOptions(),
-    paddingInner: positiveNumber,
-    groupPaddingInner: positiveNumber,
+    paddingInner: ratio,
+    groupPaddingInner: ratio,
     depthOptions: arrayOfDefs<AgGroupedCategoryDepthOptions>(
         {
             label: {
@@ -116,9 +117,9 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     unit: instanceOf(TimeInterval),
     label: cartesianTimeAxisLabel,
     division: cartesianTimeAxisDivision,
-    paddingInner: positiveNumber,
-    paddingOuter: positiveNumber,
-    groupPaddingInner: positiveNumber,
+    paddingInner: ratio,
+    paddingOuter: ratio,
+    groupPaddingInner: ratio,
     crosshair: cartesianAxisCrosshairOptions(true),
 };
 
