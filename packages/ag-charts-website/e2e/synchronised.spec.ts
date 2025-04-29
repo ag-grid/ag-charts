@@ -717,4 +717,253 @@ test.describe('synchronised', () => {
             });
         });
     });
+
+    test.describe('for mixed-series with some matching keys', () => {
+        const { url } = toExamplePageUrl('sync-test', 'mixed-series-sync', 'vanilla');
+        test.describe('animation', () => {
+            test('should animate on initial load', async ({ page }) => {
+                await gotoExample(page, url, { skipStabilityChecks: true }); // Stability checks wait for animations to complete.
+
+                const wrappers = page.locator(SELECTORS.wrapper);
+                await expect(wrappers).toHaveCount(3);
+                await expect(wrappers.nth(0)).toHaveAttribute('data-animating', 'true');
+                await expect(wrappers.nth(1)).toHaveAttribute('data-animating', 'true');
+                await expect(wrappers.nth(2)).toHaveAttribute('data-animating', 'true');
+            });
+        });
+
+        test.describe('tooltip', () => {
+            test('should replicate tooltip', async ({ page }) => {
+                await gotoExample(page, url);
+
+                const tooltipLocator = page.locator(SELECTORS.tooltip);
+
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('ArrowDown'); // Activate tooltips on all charts so they are present.
+                await page.keyboard.press('ArrowUp');
+                await expect(tooltipLocator).toHaveCount(3);
+                await expect(tooltipLocator.nth(0)).toBeVisible();
+                await expect(tooltipLocator.nth(1)).not.toBeVisible();
+                await expect(tooltipLocator.nth(2)).toBeVisible();
+                expect(await tooltipLocator.allTextContents()).toMatchObject([
+                    'b9.3.0 Time 29.4',
+                    expect.anything(), // Skip invisible tooltip.
+                    'b9.3.0 Time 11.2',
+                ]);
+
+                await page.keyboard.press('ArrowDown');
+                await expect(tooltipLocator).toHaveCount(3);
+                await expect(tooltipLocator.nth(0)).toBeVisible();
+                await expect(tooltipLocator.nth(1)).toBeVisible();
+                await expect(tooltipLocator.nth(2)).not.toBeVisible();
+                expect(await tooltipLocator.allTextContents()).toMatchObject([
+                    'b9.3.0 Heap 18',
+                    'b9.3.0 Heap 18',
+                    expect.anything(), // Skip invisible tooltip.
+                ]);
+
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Tab');
+                await expect(tooltipLocator).toHaveCount(3);
+                await expect(tooltipLocator.nth(0)).toBeVisible();
+                await expect(tooltipLocator.nth(1)).toBeVisible();
+                await expect(tooltipLocator.nth(2)).not.toBeVisible();
+                expect(await tooltipLocator.allTextContents()).toMatchObject([
+                    'b9.3.0 Heap 18',
+                    'b9.3.0 Heap 18',
+                    expect.anything(), // Skip invisible tooltip.
+                ]);
+
+                await page.keyboard.press('ArrowDown');
+                await expect(tooltipLocator).toHaveCount(3);
+                await expect(tooltipLocator.nth(0)).not.toBeVisible();
+                await expect(tooltipLocator.nth(1)).toBeVisible();
+                await expect(tooltipLocator.nth(2)).not.toBeVisible();
+                expect(await tooltipLocator.allTextContents()).toMatchObject([
+                    expect.anything(), // Skip invisible tooltip.
+                    'b9.3.0 Canvas 17',
+                    expect.anything(), // Skip invisible tooltip.
+                ]);
+
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Tab');
+                await expect(tooltipLocator).toHaveCount(3);
+                await expect(tooltipLocator.nth(0)).toBeVisible();
+                await expect(tooltipLocator.nth(1)).not.toBeVisible();
+                await expect(tooltipLocator.nth(2)).toBeVisible();
+                expect(await tooltipLocator.allTextContents()).toMatchObject([
+                    'b9.3.0 Time 29.4',
+                    expect.anything(), // Skip invisible tooltip.
+                    'b9.3.0 Time 11.2',
+                ]);
+
+                await expect(page).toHaveScreenshot('mixed-key-tooltip-replicated.png');
+            });
+
+            test('should not replicate tooltip for hidden series', async ({ page }) => {
+                await gotoExample(page, url);
+
+                const wrappers = page.locator(SELECTORS.wrapper);
+                const tooltipLocator = page.locator(SELECTORS.tooltip);
+
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Space'); // Hide the 1st series on the 2nd chart.
+                await waitForChartUpdate(wrappers.nth(0));
+                await waitForChartUpdate(wrappers.nth(1));
+                await waitForChartUpdate(wrappers.nth(2));
+
+                await page.keyboard.press('Shift+Tab');
+                await page.keyboard.press('Shift+Tab');
+                await page.keyboard.press('Shift+Tab');
+                await page.keyboard.press('ArrowDown');
+                await expect(tooltipLocator).toHaveCount(3);
+                await expect(tooltipLocator.nth(0)).toBeVisible();
+                await expect(tooltipLocator.nth(1)).not.toBeVisible();
+                await expect(tooltipLocator.nth(2)).not.toBeVisible();
+                expect(await tooltipLocator.allTextContents()).toMatchObject([
+                    'b9.3.0 Heap 18',
+                    expect.anything(), // Skip invisible tooltip.
+                    expect.anything(), // Skip invisible tooltip.
+                ]);
+
+                await expect(page).toHaveScreenshot('mixed-key-tooltip-hidden-series.png');
+            });
+
+            test('should not replicate tooltip for missing data', async ({ page }) => {
+                await gotoExample(page, url);
+
+                const tooltipLocator = page.locator(SELECTORS.tooltip);
+
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await expect(tooltipLocator).toHaveCount(3);
+                await expect(tooltipLocator.nth(0)).toBeVisible();
+                await expect(tooltipLocator.nth(1)).not.toBeVisible();
+                await expect(tooltipLocator.nth(2)).not.toBeVisible();
+                expect(await tooltipLocator.nth(0).allTextContents()).toMatchObject(['b11.1.0 Time 32.8']);
+
+                await expect(page).toHaveScreenshot('mixed-key-tooltip-missing-data.png');
+            });
+        });
+
+        test.describe('crosshair', () => {
+            test('should replicate crosshair', async ({ page }) => {
+                await gotoExample(page, url);
+
+                const crosshairLocator = page.locator(
+                    `${SELECTORS.crosshairLabel}[data-key="yKey"] .ag-charts-crosshair-label-content`
+                );
+
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('ArrowDown'); // Force all crosshairs to render
+                await page.keyboard.press('ArrowUp'); // 1st series.
+                await expect(crosshairLocator).toHaveCount(3);
+
+                await expect(crosshairLocator.nth(0)).toBeVisible();
+                await expect(crosshairLocator.nth(1)).not.toBeVisible();
+                await expect(crosshairLocator.nth(2)).toBeVisible();
+                expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
+                    '29.4',
+                    expect.anything(), // Skip invisible axis.
+                    '11.2',
+                ]);
+
+                await page.keyboard.press('ArrowDown'); // 2nd series.
+                await expect(crosshairLocator.nth(0)).toBeVisible();
+                await expect(crosshairLocator.nth(1)).toBeVisible();
+                await expect(crosshairLocator.nth(2)).not.toBeVisible();
+                expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
+                    '18',
+                    '18',
+                    expect.anything(), // Skip invisible axis.
+                ]);
+
+                await expect(page).toHaveScreenshot('mixed-key-crosshair-replicated.png');
+            });
+
+            test('should not replicate crosshair for hidden series', async ({ page }) => {
+                await gotoExample(page, url);
+
+                const wrappers = page.locator(SELECTORS.wrapper);
+                const crosshairLocator = page.locator(
+                    `${SELECTORS.crosshairLabel}[data-key="yKey"] .ag-charts-crosshair-label-content`
+                );
+
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Space'); // Hide the 1st series on the 2nd chart.
+                await waitForChartUpdate(wrappers.nth(0));
+                await waitForChartUpdate(wrappers.nth(1));
+                await waitForChartUpdate(wrappers.nth(2));
+
+                await page.keyboard.press('Shift+Tab');
+                await page.keyboard.press('Shift+Tab');
+                await page.keyboard.press('Shift+Tab');
+
+                await page.keyboard.press('ArrowDown'); // 2nd series.
+
+                await expect(crosshairLocator).toHaveCount(3);
+                await expect(crosshairLocator.nth(0)).toBeVisible();
+                await expect(crosshairLocator.nth(1)).not.toBeVisible();
+                await expect(crosshairLocator.nth(2)).not.toBeVisible();
+                expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
+                    '18',
+                    expect.anything(), // Skip invisible axis.
+                    expect.anything(), // Skip invisible axis.
+                ]);
+                await expect(page).toHaveScreenshot('mixed-key-crosshair-hidden-data.png');
+            });
+
+            test('should not replicate crosshair for missing data', async ({ page }) => {
+                await gotoExample(page, url);
+
+                const crosshairLocator = page.locator(
+                    `${SELECTORS.crosshairLabel}[data-key="yKey"] .ag-charts-crosshair-label-content`
+                );
+
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('ArrowDown'); // Force all crosshairs to render
+                await page.keyboard.press('ArrowUp'); // 1st series.
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight'); // 1st series, 7th datum.
+
+                await expect(crosshairLocator).toHaveCount(3);
+                await expect(crosshairLocator.nth(0)).toBeVisible();
+                await expect(crosshairLocator.nth(1)).not.toBeVisible();
+                await expect(crosshairLocator.nth(2)).not.toBeVisible();
+                expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
+                    '32.8',
+                    expect.anything(), // Skip invisible axis.
+                    expect.anything(), // Skip invisible axis.
+                ]);
+                await expect(page).toHaveScreenshot('mixed-key-crosshair-missing-data-1.png');
+
+                await page.keyboard.press('ArrowDown'); // 2nd series.
+                await expect(crosshairLocator).toHaveCount(3);
+                await expect(crosshairLocator.nth(0)).toBeVisible();
+                await expect(crosshairLocator.nth(1)).not.toBeVisible();
+                await expect(crosshairLocator.nth(2)).not.toBeVisible();
+                expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
+                    '15',
+                    expect.anything(), // Skip invisible axis.
+                    expect.anything(), // Skip invisible axis.
+                ]);
+                await expect(page).toHaveScreenshot('mixed-key-crosshair-missing-data-2.png');
+            });
+        });
+    });
 });
