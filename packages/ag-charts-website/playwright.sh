@@ -100,6 +100,11 @@ if [ "$1" == "--host" ] ; then
   
   exit_code=$(docker wait ${container_name})
   echo "Exit code from docker wait: $exit_code"
+
+  if [[ "${CI:-}" != "" ]] ; then
+    report_flaky_tests
+  fi
+
   exit $exit_code
 fi
 
@@ -107,7 +112,3 @@ echo "Waiting for connection to ${PUBLIC_SITE_URL}..."
 npx wait-on ${PUBLIC_SITE_URL}
 echo "Connected to ${PUBLIC_SITE_URL}!"
 npx playwright $@
-
-if [[ "${CI:-}" != "" ]] ; then
-  report_flaky_tests
-fi
