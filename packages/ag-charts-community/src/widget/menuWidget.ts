@@ -1,7 +1,6 @@
-import { getDocument } from 'ag-charts-core';
+import { getDocument, setAttribute } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
-import { setAttribute } from '../util/attributeUtil';
 import { DestroyFns } from '../util/destroy';
 import {
     addEscapeEventListener,

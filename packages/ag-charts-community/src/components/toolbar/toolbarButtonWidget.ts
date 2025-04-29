@@ -1,7 +1,7 @@
+import { setAttribute } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
-import { setAttribute } from '../../util/attributeUtil';
 import { getIconClassNames } from '../../util/dom';
 import { ButtonWidget } from '../../widget/buttonWidget';
 
