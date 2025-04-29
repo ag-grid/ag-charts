@@ -195,7 +195,7 @@ describe('LogScale', () => {
             maxTickCount: Infinity,
         };
         ticks.tickCount = 4;
-        expect(scale.ticks(ticks, undefined, [0.15, 0.85])).toEqual({
+        expect(scale.ticks(ticks, undefined, [0.25, 0.75])).toEqual({
             ticks: [1000, 10000, 100000],
             count: 5,
         });
