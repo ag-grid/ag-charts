@@ -905,14 +905,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const calloutColors = isStringFillArray(colors) ? colors : strokes;
         const { offset } = this.properties.calloutLabel;
 
-        this.calloutLabelSelection.selectByTag<Line>(PieNodeTag.Callout).forEach((line, index) => {
+        this.calloutLabelSelection.selectByTag<Line>(PieNodeTag.Callout).forEach((line) => {
             const datum = line.closestDatum() as PieNodeDatum;
-            const { calloutLabel: label, outerRadius } = datum;
+            const { calloutLabel: label, outerRadius, datumIndex } = datum;
 
             if (label?.text && !label.hidden && outerRadius !== 0) {
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
-                line.stroke = calloutColors[index % calloutColors.length];
+                line.stroke = calloutColors[datumIndex % calloutColors.length];
                 line.fill = undefined;
 
                 const x1 = datum.midCos * outerRadius;
