@@ -11,9 +11,8 @@ import type { Scale, ScaleFormatParams } from '../scale/scale';
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
 import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
-import { normalizeAngle360, toRadians } from '../util/angle';
-import { BaseProperties } from '../util/properties';
-import { Property } from '../util/properties';
+import { normalizeAngle360FromDegrees } from '../util/angle';
+import { BaseProperties, Property } from '../util/properties';
 import { type TextMeasurer, TextUtils } from '../util/textMeasurer';
 import type { TimeInterval } from '../util/time';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
@@ -59,7 +58,7 @@ export function calculateLabelRotation(
     parallelFlipFlag: ChartAxisLabelFlipFlag;
     regularFlipFlag: ChartAxisLabelFlipFlag;
 } {
-    const configuredRotation = rotation ? normalizeAngle360(toRadians(rotation)) : 0;
+    const configuredRotation = normalizeAngle360FromDegrees(rotation);
     const parallelFlipFlag =
         !configuredRotation && parallelFlipRotation >= 0 && parallelFlipRotation <= Math.PI ? -1 : 1;
     // Flip if the axis rotation angle is in the top hemisphere.

@@ -92,3 +92,7 @@ export function getAngleRatioRadians(angle: number): number {
         return (twoPi - normalizedAngle) / halfPi;
     }
 }
+
+export function normalizeAngle360FromDegrees(degrees?: number): number {
+    return degrees ? normalizeAngle360(toRadians(degrees)) : 0;
+}

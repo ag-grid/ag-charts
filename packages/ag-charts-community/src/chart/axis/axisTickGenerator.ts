@@ -9,7 +9,7 @@ import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { Matrix } from '../../scene/matrix';
 import type { TextSizeProperties } from '../../scene/shape/text';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
-import { normalizeAngle360, toRadians } from '../../util/angle';
+import { normalizeAngle360FromDegrees } from '../../util/angle';
 import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
@@ -384,7 +384,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             const autoRotateStrategy = ({ index, tickData, labelsOverlap, terminate }: TickStrategyParams) => ({
                 index,
                 tickData,
-                autoRotation: labelsOverlap() ? normalizeAngle360(toRadians(label.autoRotateAngle ?? 0)) : 0,
+                autoRotation: labelsOverlap() ? normalizeAngle360FromDegrees(label.autoRotateAngle) : 0,
                 terminate,
             });
             strategies.push(autoRotateStrategy);

@@ -1,6 +1,6 @@
 import { createSvgElement } from 'ag-charts-core';
 
-import { normalizeAngle360, toRadians } from '../../util/angle';
+import { normalizeAngle360FromDegrees } from '../../util/angle';
 import type { BBox } from '../bbox';
 import { type ColorSpace, Gradient } from './gradient';
 import type { GradientColorStop } from './stops';
@@ -19,7 +19,7 @@ export class LinearGradient extends Gradient {
         const angleOffset = 90;
         const { angle } = this;
 
-        const radians = normalizeAngle360(toRadians(angle + angleOffset));
+        const radians = normalizeAngle360FromDegrees(angle + angleOffset);
         const cos = Math.cos(radians);
         const sin = Math.sin(radians);
 

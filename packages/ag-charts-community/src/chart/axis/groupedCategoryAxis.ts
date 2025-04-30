@@ -6,7 +6,7 @@ import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { getAngleRatioRadians, normalizeAngle360, toRadians } from '../../util/angle';
+import { getAngleRatioRadians, normalizeAngle360FromDegrees } from '../../util/angle';
 import { extent } from '../../util/extent';
 import { BaseProperties, PropertiesArray, Property } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
@@ -41,6 +41,9 @@ class DepthLabelProperties extends BaseProperties {
 
     @Property
     spacing?: number;
+
+    @Property
+    rotation?: number;
 
     @Property
     fontStyle?: FontStyle;
@@ -130,9 +133,10 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     ? {
                           enabled: true,
                           spacing: depthOptions[i]?.label.spacing ?? label.spacing,
+                          rotation: depthOptions[i]?.label.rotation ?? (i ? 0 : label.rotation), // Default top-level label roration only applies to label leaves
                           avoidCollisions: depthOptions[i]?.label.avoidCollisions ?? label.avoidCollisions,
                       }
-                    : { enabled: false, spacing: 0, avoidCollisions: false }
+                    : { enabled: false, spacing: 0, rotation: 0, avoidCollisions: false }
             );
         }
         return optionsMap;
@@ -173,7 +177,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const labelBBoxes: Map<number, BBox> = new Map();
         const tempText = new TransformableText();
 
-        const labelRotation = label.rotation ? normalizeAngle360(toRadians(label.rotation)) : 0;
         const optionsMap = this.getDepthOptionsMap(maxDepth);
         const labelSpacing = sideFlag * optionsMap[0].spacing;
 
@@ -205,6 +208,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         treeLabels.forEach((datum, index) => {
             const depth = maxDepth - datum.depth;
             const nodeLines = countLines(datum.label);
+            const labelRotation = normalizeAngle360FromDegrees(optionsMap[depth]?.rotation);
 
             depthLines[depth] ??= 1;
             if (depthLines[depth] < nodeLines) {
@@ -268,6 +272,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
             if (!visible) return;
 
+            const labelRotation = normalizeAngle360FromDegrees(optionsMap[depth]?.rotation);
             const { width: w, height: h } = labelBBoxes.get(index)!;
             const angleRatio = getAngleRatioRadians(labelRotation);
             const depthPadding = nestedPadding(depth);

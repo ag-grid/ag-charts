@@ -88,7 +88,7 @@ export interface AgBaseCartesianChartOptions {
 
 export type AgGroupedCategoryDepthLabelOptions = Pick<
     AgBaseAxisLabelOptions,
-    'enabled' | 'avoidCollisions' | 'color' | 'fontFamily' | 'fontSize' | 'fontStyle' | 'fontWeight'
+    'enabled' | 'avoidCollisions' | 'color' | 'fontFamily' | 'fontSize' | 'fontStyle' | 'fontWeight' | 'rotation'
 >;
 
 export type AgGroupedCategoryDepthTickOptions = Pick<AgAxisBaseTickOptions, 'enabled' | 'stroke' | 'width'>;
