@@ -21,7 +21,7 @@ const options: AgChartOptions = {
             fillOpacity: 1,
             fill: {
                 type: 'image',
-                url: '${baseWWWUrl}/example-assets/e2e-test-images/parakeet-side-eye.jpg',
+                url: '${baseWWWUrl}/example-assets/e2e-test-images/parakeet-side-eye.png',
                 fit: 'contain',
                 width: 125,
                 height: 150,
