@@ -127,13 +127,14 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private getDepthOptionsMap(maxDepth: number) {
         const optionsMap = [];
         const { depthOptions, label } = this;
+        const defaultNonLeafRotation = this.horizontal ? 0 : -90;
         for (let i = 0; i < maxDepth; i++) {
             optionsMap.push(
                 depthOptions[i]?.label.enabled ?? label.enabled
                     ? {
                           enabled: true,
                           spacing: depthOptions[i]?.label.spacing ?? label.spacing,
-                          rotation: depthOptions[i]?.label.rotation ?? (i ? -90 : label.rotation), // Default top-level label roration only applies to label leaves
+                          rotation: depthOptions[i]?.label.rotation ?? (i ? defaultNonLeafRotation : label.rotation), // Default top-level label roration only applies to label leaves
                           avoidCollisions: depthOptions[i]?.label.avoidCollisions ?? label.avoidCollisions,
                       }
                     : { enabled: false, spacing: 0, rotation: 0, avoidCollisions: false }
