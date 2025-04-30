@@ -36,7 +36,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
                 tickCount: undefined,
                 minTickCount: 0,
                 maxTickCount: Infinity,
-            }) ??
+            })?.ticks ??
             [];
         if (ticks.length < 2 || minSpacing == null) {
             return ticks.map((value) => {

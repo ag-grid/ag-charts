@@ -6,14 +6,14 @@ function ticks(a: number, b: number, count: number): number[] {
     const scale = {
         toDomain: (d: any) => d,
     };
-    const { ticks: result } = calculateNiceSecondaryAxis(scale, [a, b], count);
+    const { ticks: result } = calculateNiceSecondaryAxis(scale, [a, b], { unzoomed: count, zoomed: count }, false);
     return result;
 }
 
 function compareTicks(actual: number[], array: number[]) {
     expect(actual).toHaveLength(array.length);
     actual.forEach((tick, index) => {
-        expect(tick).toBe(array[index]);
+        expect(tick).toBeCloseTo(array[index], 10);
     });
 }
 

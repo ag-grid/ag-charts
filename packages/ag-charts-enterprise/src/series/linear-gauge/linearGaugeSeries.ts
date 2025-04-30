@@ -529,9 +529,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 minTickCount: 0,
                 maxTickCount: 6,
                 tickCount: 5,
-            });
+            })?.ticks ??
+            [];
         const linesOrTicks =
-            lines ?? ticks.map((tick) => getLabelText(this.id, this.ctx, this.labelDatum(label, tick)) ?? '');
+            lines ?? ticks?.map((tick) => getLabelText(this.id, this.ctx, this.labelDatum(label, tick)) ?? '');
 
         const labelSize = linesOrTicks.reduce((accum, text) => {
             const { width } = CachedTextMeasurerPool.measureText(text, { font });

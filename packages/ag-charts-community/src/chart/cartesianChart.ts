@@ -5,6 +5,7 @@ import type { LayoutContext, ModuleInstance } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
+import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import { CategoryAxis } from './axis/categoryAxis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
@@ -205,7 +206,7 @@ export class CartesianChart extends Chart {
 
     private updateAxesPass(axisAreaWidths: AreaWidthMap, axisAreaBound: BBox) {
         const axisWidths: Map<string, number> = new Map();
-        const primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
+        const primaryTickCounts: Partial<Record<ChartAxisDirection, AxisPrimaryTickCount>> = {};
 
         let overflows = false;
         let clipSeries = false;

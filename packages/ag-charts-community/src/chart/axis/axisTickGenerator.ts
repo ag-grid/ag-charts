@@ -12,7 +12,7 @@ import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
-import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
+import { type AxisPrimaryTickCount, calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
@@ -35,6 +35,7 @@ import { NiceMode, type TickDatum } from './axisUtil';
 export interface TickData<D = any> {
     tickDomain: D[];
     rawTicks: D[];
+    rawTickCount: number | undefined;
     fractionDigits: number;
     ticks: TickDatum[];
     timeInterval: TimeInterval | undefined;
@@ -43,7 +44,7 @@ export interface TickData<D = any> {
 
 export interface TickGenerationParams<D = any> {
     domain: D[];
-    primaryTickCount: number | undefined;
+    primaryTickCount: AxisPrimaryTickCount | undefined;
     visibleRange: [number, number];
     niceMode: NiceMode;
     parallelFlipRotation: number;
@@ -56,7 +57,6 @@ export interface TickGenerationParams<D = any> {
 
 export interface TickGenerationResult<D = any> {
     tickData: TickData<D>;
-    primaryTickCount?: number;
     rotation: number;
     textBaseline: CanvasTextBaseline;
     textAlign: CanvasTextAlign;
@@ -67,7 +67,7 @@ interface TickStrategyParams<D = any> {
     readonly tickData: TickData<D>;
     readonly textProps: TextSizeProperties;
     readonly terminate: boolean;
-    readonly primaryTickCount: number | undefined;
+    readonly primaryTickCount: AxisPrimaryTickCount | undefined;
     readonly visibleRange: [number, number];
     labelsOverlap(this: void): boolean;
 }
@@ -252,6 +252,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             tickDomain: [],
             ticks: [],
             rawTicks: [],
+            rawTickCount: undefined,
             timeInterval: undefined,
             fractionDigits: 0,
             niceDomain: undefined,
@@ -284,10 +285,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
         const rotation = configuredRotation + autoRotation;
 
-        if (!secondaryAxis && tickData.rawTicks.length > 0) {
-            primaryTickCount = tickData.rawTicks.length;
-        }
-
         if (removeOverflowLabels && tickData.ticks.length > 2) {
             const labelData = getLabelData(tickData, autoRotation);
             const lastTick = tickData.ticks.at(-1);
@@ -306,7 +303,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             }
         }
 
-        return { tickData, primaryTickCount, rotation, textBaseline, textAlign };
+        return { tickData, rotation, textBaseline, textAlign };
     }
 
     private getTickStrategies({
@@ -407,7 +404,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         domain: D[],
         niceMode: NiceMode,
         visibleRange: [number, number],
-        primaryTickCount: number | undefined,
+        primaryTickCount: AxisPrimaryTickCount | undefined,
         tickGenerationType: TickGenerationType,
         index: number,
         tickData: TickData,
@@ -524,7 +521,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 const timeScaleTicks = !UnitTimeScale.is(scale) || interpolate;
                 const intervalTicks = timeScaleTicks
                     ? this.timeScaleTicks(intervalTickParams, [p0, p1], pVisibleRange, true)
-                    : scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, true) ?? [];
+                    : scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, true)?.ticks ?? [];
 
                 dropFirstWhile(intervalTicks, (firstTick) => firstTick.valueOf() < p0.valueOf());
 
@@ -546,7 +543,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 ticks.push(...intervalTicks);
             }
         } else if (OrdinalTimeScale.is(scale)) {
-            ticks = (scale as OrdinalTimeScale).ticks(tickParams, undefined, visibleRange, true) ?? [];
+            ticks = (scale as OrdinalTimeScale).ticks(tickParams, undefined, visibleRange, true)?.ticks ?? [];
 
             let primaryTickIndex = 0;
             for (let i = 0; i < ticks.length; i++) {
@@ -575,7 +572,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             primaryTicksIndices = undefined;
         }
 
-        return { ticks, primaryTicksIndices, interpolate };
+        return { ticks, tickCount: undefined, primaryTicksIndices, interpolate };
     }
 
     private timeScaleTicks(
@@ -618,7 +615,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         niceMode: NiceMode;
         visibleRange: [number, number];
         tickGenerationType: TickGenerationType;
-        primaryTickCount: number | undefined;
+        primaryTickCount: AxisPrimaryTickCount | undefined;
         previousTicks: TickDatum[];
         tickCount: number;
         minTickCount: number;
@@ -642,9 +639,13 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         };
 
         let secondaryAxisTicks: { domain: D[]; ticks: number[] } | undefined;
-        if (tickGenerationType === TickGenerationType.CREATE_SECONDARY && ContinuousScale.is(scale)) {
+        if (
+            tickGenerationType === TickGenerationType.CREATE_SECONDARY &&
+            primaryTickCount != null &&
+            ContinuousScale.is(scale)
+        ) {
             // AG-10654 Just use normal ticks for categorical axes.
-            secondaryAxisTicks = calculateNiceSecondaryAxis(scale, domain, primaryTickCount ?? 0, axis.reverse);
+            secondaryAxisTicks = calculateNiceSecondaryAxis(scale, domain, primaryTickCount, axis.reverse);
         }
 
         const niceDomain =
@@ -653,6 +654,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 : domain;
         let tickDomain: D[] = niceDomain;
         let rawTicks: any[] | undefined;
+        let rawTickCount: number | undefined;
         let timeInterval: TimeInterval | undefined;
         let primaryTicksIndices: Set<number> | undefined;
         let interpolate = false;
@@ -664,6 +666,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             case TickGenerationType.VALUES:
                 tickDomain = interval.values!;
                 rawTicks = interval.values!;
+                rawTickCount = rawTicks.length;
                 interpolate = UnitTimeScale.is(scale);
                 if (ContinuousScale.is(scale)) {
                     const [d0, d1] = findMinMax(niceDomain.map(Number));
@@ -674,11 +677,19 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 break;
 
             case TickGenerationType.CREATE_SECONDARY:
-                rawTicks = secondaryAxisTicks?.ticks ?? scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
+                if (secondaryAxisTicks) {
+                    rawTicks = secondaryAxisTicks.ticks;
+                    rawTickCount = secondaryAxisTicks.ticks.length; // Visible range isn't used (yet)
+                } else {
+                    const tickGeneration = scale.ticks(tickParams, niceDomain, visibleRange);
+                    rawTicks = tickGeneration?.ticks ?? [];
+                    rawTickCount = tickGeneration?.count;
+                }
                 break;
 
             case TickGenerationType.FILTER:
                 rawTicks = this.filterTicks(previousTicks, tickCount);
+                rawTickCount = undefined; // AG-10654 Filter ticks is only done for category axes, so we can ignore this
                 break;
 
             default: {
@@ -711,15 +722,11 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     : undefined;
 
                 if (intervalTicks) {
-                    ({ ticks: rawTicks, primaryTicksIndices, interpolate } = intervalTicks);
+                    ({ ticks: rawTicks, tickCount: rawTickCount, primaryTicksIndices, interpolate } = intervalTicks);
                 } else {
-                    interpolate = UnitTimeScale.is(scale);
-                    rawTicks = interpolate
-                        ? this.timeScaleTicks(
-                              { ...tickParams, interval: tickParams.interval ?? timeInterval },
-                              niceDomain as any
-                          )
-                        : scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
+                    const tickGeneration = scale.ticks(tickParams, niceDomain, visibleRange);
+                    rawTicks = tickGeneration?.ticks ?? [];
+                    rawTickCount = tickGeneration?.count;
                 }
             }
         }
@@ -780,6 +787,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         return {
             tickDomain,
             rawTicks,
+            rawTickCount,
             fractionDigits,
             timeInterval,
             ticks,

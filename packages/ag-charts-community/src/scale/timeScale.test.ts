@@ -37,19 +37,22 @@ describe('TimeScale', () => {
             minTickCount: 0,
             maxTickCount: Infinity,
         };
-        expect(scale.ticks(ticks, scale.niceDomain(ticks))).toEqual([
-            new Date(2022, 1, 1),
-            new Date(2022, 2, 1),
-            new Date(2022, 3, 1),
-            new Date(2022, 4, 1),
-            new Date(2022, 5, 1),
-            new Date(2022, 6, 1),
-            new Date(2022, 7, 1),
-            new Date(2022, 8, 1),
-            new Date(2022, 9, 1),
-            new Date(2022, 10, 1),
-            new Date(2022, 11, 1),
-        ]);
+        expect(scale.ticks(ticks, scale.niceDomain(ticks))).toEqual({
+            ticks: [
+                new Date(2022, 1, 1),
+                new Date(2022, 2, 1),
+                new Date(2022, 3, 1),
+                new Date(2022, 4, 1),
+                new Date(2022, 5, 1),
+                new Date(2022, 6, 1),
+                new Date(2022, 7, 1),
+                new Date(2022, 8, 1),
+                new Date(2022, 9, 1),
+                new Date(2022, 10, 1),
+                new Date(2022, 11, 1),
+            ],
+            count: undefined,
+        });
     });
 
     describe('should create ticks with configured', () => {

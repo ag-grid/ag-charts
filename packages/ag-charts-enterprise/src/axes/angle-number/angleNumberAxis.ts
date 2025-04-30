@@ -69,7 +69,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
                 maxTickCount,
             };
 
-            rawTicks = scale.ticks(tickParams, domain);
+            rawTicks = scale.ticks(tickParams, domain)?.ticks ?? [];
         } else {
             const [d0, d1] = findMinMax(domain.map(Number));
             rawTicks = values.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);

@@ -20,6 +20,13 @@ export interface NormalizedDomain<D> {
     animatable: boolean;
 }
 
+export interface ScaleTickResult<D> {
+    // Ticks within visible range
+    ticks: D[];
+    // Count of all ticks (including outside visible range)
+    count: number | undefined;
+}
+
 export interface Scale<D, R, I = number> {
     type: ScaleType;
     domain: D[];
@@ -28,7 +35,7 @@ export interface Scale<D, R, I = number> {
     toDomain(value: number): D | undefined;
     convert(value: D, options?: { clamp?: boolean; interpolate?: boolean }): R;
     invert(value: R, exact?: boolean): D | undefined;
-    ticks(ticks: ScaleTickParams<I>, domain?: D[], visibleRange?: [number, number]): D[] | undefined;
+    ticks(ticks: ScaleTickParams<I>, domain?: D[], visibleRange?: [number, number]): ScaleTickResult<D> | undefined;
     niceDomain(ticks: ScaleTickParams<I>, domain?: D[]): D[];
     tickFormatter(params: ScaleFormatParams<D>): ((x: any) => string) | undefined;
     datumFormatter(params: ScaleFormatParams<D>): ((x: any) => string) | undefined;
