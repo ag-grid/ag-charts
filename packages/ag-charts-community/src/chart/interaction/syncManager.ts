@@ -104,12 +104,6 @@ export class SyncManager extends BaseManager {
         return this.getGroupMembers(groupId).filter((chart) => chart !== this.chart);
     }
 
-    getGroupSiblingAxes(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
-        return this.getGroupMembers(groupId)
-            .map((chart) => chart.axes.map((axis) => [chart, axis] as const))
-            .flat(1);
-    }
-
     private get(groupId: GroupId) {
         return SyncManager.chartsGroups.get(groupId);
     }
