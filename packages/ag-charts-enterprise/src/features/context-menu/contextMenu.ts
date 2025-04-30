@@ -301,17 +301,20 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         button.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         button.setEnabled(item.enabled);
         const label = this.ctx.localeManager.t(item.label);
+        const spanIcon = createElement('span');
+        const spanLabel = createElement('span');
+        const spanArrow = createElement('span');
+        spanIcon.classList.toggle('ag-charts-context-menu__icon', true);
+        spanIcon.ariaHidden = 'true';
+        spanLabel.classList.toggle('ag-charts-context-menu__label', true);
+        spanLabel.textContent = label;
+        spanArrow.classList.toggle('ag-charts-context-menu__rightarrowhead', true);
+        spanArrow.ariaHidden = 'true';
         if (item.type === 'submenu') {
-            const spanLabel = createElement('span');
-            const spanArrow = createElement('span');
-            spanLabel.textContent = label;
             spanArrow.textContent = '❯';
-            spanArrow.ariaHidden = 'true';
-            spanArrow.classList.toggle('ag-charts-context-menu__rightarrowhead', true);
-            button.getElement().append(spanLabel, spanArrow);
-        } else {
-            button.setTextContent(label);
         }
+        button.getElement().append(spanIcon, spanLabel, spanArrow);
+
         const { showOn, action } = item;
         if (action != null) {
             button.addListener('click', this.createButtonOnClick(showOn, action));

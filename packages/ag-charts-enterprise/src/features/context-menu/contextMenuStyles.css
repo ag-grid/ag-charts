@@ -46,6 +46,16 @@
     -moz-appearance: none;
 }
 
+.ag-charts-context-menu__icon {
+    width: var(--ag-charts-icon-size);
+    line-height: var(--ag-charts-icon-size);
+    margin-right: 0.5em;
+}
+
+.ag-charts-context-menu__label {
+    flex-grow: 1;
+}
+
 .ag-charts-context-menu__rightarrowhead {
     padding-left: 1em;
 }

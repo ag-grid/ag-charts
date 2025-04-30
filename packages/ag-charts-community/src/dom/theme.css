@@ -36,6 +36,7 @@
      *****************************************************************************************************************/
     --ag-charts-spacing: 4px;
     --ag-charts-border-radius: 4px;
+    --ag-charts-icon-size: 16px;
     --ag-charts-shadow: 0 2px 8px 0 color-mix(in srgb, black 8%, transparent);
     --ag-charts-focus-shadow: 0 0 0 3px var(--ag-charts-accent-color);
     --ag-charts-focus-color: color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-accent-color) 12%);
