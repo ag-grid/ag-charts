@@ -1,4 +1,4 @@
-import { countLines, inRange, isArray, isObject, sortBasedOnArray, toArray } from 'ag-charts-core';
+import { inRange, isArray, isObject, sortBasedOnArray, toArray } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -133,7 +133,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     ? {
                           enabled: true,
                           spacing: depthOptions[i]?.label.spacing ?? label.spacing,
-                          rotation: depthOptions[i]?.label.rotation ?? (i ? 0 : label.rotation), // Default top-level label roration only applies to label leaves
+                          rotation: depthOptions[i]?.label.rotation ?? (i ? -90 : label.rotation), // Default top-level label roration only applies to label leaves
                           avoidCollisions: depthOptions[i]?.label.avoidCollisions ?? label.avoidCollisions,
                       }
                     : { enabled: false, spacing: 0, rotation: 0, avoidCollisions: false }
@@ -203,23 +203,16 @@ export class GroupedCategoryAxis extends CategoryAxis {
             return true;
         };
 
-        const depthLines: Record<number, number> = {};
         const depthLabelMaxSize: Record<number, number> = {};
         treeLabels.forEach((datum, index) => {
             const depth = maxDepth - datum.depth;
-            const nodeLines = countLines(datum.label);
-            const labelRotation = normalizeAngle360FromDegrees(optionsMap[depth]?.rotation);
-
-            depthLines[depth] ??= 1;
-            if (depthLines[depth] < nodeLines) {
-                depthLines[depth] = nodeLines;
-            }
 
             const isVisible = setLabelProps(datum, index);
             if (!isVisible || !tempText.getBBox()) return;
-            labelBBoxes.set(index, tempText.getBBox());
 
-            tempText.rotation = labelRotation;
+            labelBBoxes.set(index, tempText.getBBox());
+            tempText.rotation = normalizeAngle360FromDegrees(optionsMap[depth]?.rotation);
+
             const { width, height } = tempText.getBBox();
             const labelSize = horizontal ? height : width;
 
@@ -272,7 +265,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
             if (!visible) return;
 
-            const labelRotation = normalizeAngle360FromDegrees(optionsMap[depth]?.rotation);
+            const labelRotation = normalizeAngle360FromDegrees(optionsMap[depth].rotation);
             const { width: w, height: h } = labelBBoxes.get(index)!;
             const angleRatio = getAngleRatioRadians(labelRotation);
             const depthPadding = nestedPadding(depth);
