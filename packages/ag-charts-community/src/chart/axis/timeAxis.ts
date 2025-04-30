@@ -30,6 +30,14 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     @Property
     max?: Date | number = undefined;
 
+    // @todo(AG-14472) - Remove padding options
+    @Property
+    groupPaddingInner: number = 0.1;
+    @Property
+    paddingInner?: number;
+    @Property
+    paddingOuter?: number;
+
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new TimeScale());
     }

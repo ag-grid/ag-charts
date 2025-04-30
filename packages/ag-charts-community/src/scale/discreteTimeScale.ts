@@ -18,14 +18,19 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | n
     override convert(d: Date, options?: { interpolate?: boolean }): number {
         const { domain, bands } = this;
 
-        const interpolate = options?.interpolate ?? false;
-        if (!interpolate) return super.convert(d, options);
+        if (domain.length <= 0) return NaN;
 
         const r0 = this.ordinalRange(0);
-        if (domain.length <= 1 || bands.length === 0) return r0;
-
         const r1 = this.ordinalRange(bands.length - 1);
+
+        const interpolate = options?.interpolate ?? false;
         const reversed = domain[0].valueOf() > domain[domain.length - 1].valueOf();
+        if (!interpolate) {
+            const r = super.convert(d, options);
+            return reversed ? r1 - (r - r0) : r;
+        }
+
+        if (bands.length === 0) return r0;
 
         const v = d.valueOf();
         let domainIndex: number;
@@ -47,18 +52,21 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | n
     override invert(position: number, nearest = false): Date | undefined {
         this.refresh();
 
-        const { bands } = this;
+        const { domain, bands } = this;
+        const reversed = domain[0].valueOf() > domain[domain.length - 1].valueOf();
 
+        let index: number | undefined;
         if (nearest) {
-            const index = this.invertNearestIndex(position - this.bandwidth / 2);
-            return index != null ? bands[index] : undefined;
+            index = this.invertNearestIndex(position - this.bandwidth / 2);
+        } else {
+            const closestIndex = findMinIndex(0, bands.length - 1, (i) => {
+                const p = this.ordinalRange(i);
+                return p >= position;
+            });
+            index = closestIndex ?? 0;
         }
 
-        const closestIndex = findMinIndex(0, bands.length - 1, (i) => {
-            const p = this.ordinalRange(i);
-            return p >= position;
-        });
-        return bands[closestIndex ?? 0];
+        return bands[reversed ? bands.length - 1 - index : index];
     }
 
     /**

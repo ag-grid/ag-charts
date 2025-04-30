@@ -21,6 +21,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
         this.invalid = true;
         this._domain = domain;
+        this._bands = undefined;
         this.isReversed = domain.length > 0 && domain[0] > domain[domain.length - 1];
 
         this.sortedTimestamps = undefined;
@@ -30,8 +31,10 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         return this._domain;
     }
 
+    private _bands: Date[] | undefined;
     get bands() {
-        return this._domain;
+        this._bands ??= this.isReversed ? this.domain.slice().reverse() : this.domain;
+        return this._bands;
     }
 
     override normalizeDomains(...domains: Date[][]): NormalizedDomain<Date> {
@@ -104,9 +107,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         let { sortedTimestamps } = this;
 
         if (sortedTimestamps == null) {
-            sortedTimestamps = this.domain.map<number>(dateToNumber);
-            if (this.isReversed) sortedTimestamps.reverse();
-
+            sortedTimestamps ??= this.bands.map<number>(dateToNumber);
             this.sortedTimestamps = sortedTimestamps;
         }
 
@@ -183,11 +184,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         if (n < sortedTimestamps[0]) {
             return undefined;
         }
-        let i = this.findInterval(n);
-        if (this.isReversed) {
-            i = this.domain.length - i - 1;
-        }
-        return i;
+        return this.findInterval(n);
     }
 }
 
@@ -215,10 +212,6 @@ function getDefaultTicks(
         if (tickEvery <= 0 || (tickIndex + tickOffset) % tickEvery === 0) {
             ticks.push(domain[index]);
         }
-    }
-
-    if (isReversed) {
-        ticks.reverse();
     }
 
     return ticks;

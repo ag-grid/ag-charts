@@ -48,21 +48,20 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
     override convert(d: Date, options?: { interpolate?: boolean }): number {
         const { domain, interval } = this;
+        if (domain.length < 2) return NaN;
         if (interval != null) {
             const t = d.valueOf();
             const [start, stop] = this.calculateBandRange(domain, interval);
-            if (t < start.valueOf() || t >= stop.valueOf() + interval.milliseconds) return NaN;
+            const d0 = Math.min(start.valueOf(), stop.valueOf());
+            const d1 = Math.max(start.valueOf(), stop.valueOf());
+            if (t < d0 || t >= d1 + interval.milliseconds) return NaN;
         }
         return super.convert(d, options);
     }
 
-    private calculateBandRange(domain: Date[], interval: TimeInterval, extend: boolean = false) {
-        let start = interval.floor(domain[0]);
-        let stop = interval.floor(domain[1]);
-        if (extend) {
-            start = interval.previous(start);
-            stop = interval.next(stop);
-        }
+    private calculateBandRange(domain: Date[], interval: TimeInterval) {
+        const start = interval.floor(domain[0]);
+        const stop = interval.floor(domain[1]);
         return [start, stop] as const;
     }
 
@@ -77,10 +76,12 @@ export class UnitTimeScale extends DiscreteTimeScale {
             return this._bands;
         }
 
+        if (domain.length < 2) return [];
+
         const { interval } = this;
         if (interval == null) return [];
 
-        const [start, stop] = this.calculateBandRange(domain, interval, extend);
+        const [start, stop] = this.calculateBandRange(domain, interval);
         return interval.range(start, stop, { visibleRange, extend });
     }
 
@@ -90,12 +91,14 @@ export class UnitTimeScale extends DiscreteTimeScale {
         visibleRange: [number, number] = [0, 1],
         extend = false
     ): ScaleTickResult<Date> | undefined {
+        if (domain.length < 2) return;
+
         const bands = this.calculateBands(domain, visibleRange, extend);
 
         if (interval == null) return { ticks: bands, count: undefined };
 
-        const d0 = domain[0].valueOf();
-        const d1 = domain[1].valueOf();
+        const d0 = Math.min(domain[0].valueOf(), domain[1].valueOf());
+        const d1 = Math.max(domain[0].valueOf(), domain[1].valueOf());
         const ticks: Date[] = [];
 
         let intervalTicks: Date[];
@@ -144,12 +147,5 @@ export class UnitTimeScale extends DiscreteTimeScale {
             const index = this.findIndex(date);
             return index != null ? formatter(this.bands[index]) : formatter(date);
         };
-    }
-
-    calculateBandCount(domain: Date[]) {
-        const { interval } = this;
-        if (interval == null) return 0;
-        const [start, stop] = this.calculateBandRange(domain, interval);
-        return interval.rangeCount(start, stop);
     }
 }
