@@ -2,6 +2,8 @@ const ID_MAP = new Map<string, number>();
 const elementIDBrand = Symbol('ElementID');
 let nextElementID: number = 1;
 
+// Branded string: This is used to ensure type safety by disallowing `Element.id` to be mistakeningly assigned to a
+// general-purpose string.
 export type ElementID = string & { readonly [elementIDBrand]: true };
 
 export function resetIds() {
