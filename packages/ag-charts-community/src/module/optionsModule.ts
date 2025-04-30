@@ -158,13 +158,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             this.userOptions = deepClone(merge(deltaOptions, baseChartOptions.userOptions), {
                 ...ChartOptions.OPTIONS_CLONE_OPTS,
-                seen: [],
+                seen: new Set(),
             }) as T;
         } else {
             // Full update case.
             this.userOptions = deepClone(currentUserOptions ?? newUserOptions, {
                 ...ChartOptions.OPTIONS_CLONE_OPTS,
-                seen: [],
+                seen: new Set(),
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
