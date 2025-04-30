@@ -139,7 +139,8 @@ const mergeOptionsDefs = (a: OptionsDefs<any>, b: OptionsDefs<any>) => {
     }
     return out;
 };
-const timeAxisOptionsCompatibilityDefs = mergeOptionsDefs(timeAxisOptionsDefs, unitTimeAxisOptionsDefs);
+
+export const timeAxisOptionsCompatibilityDefs = mergeOptionsDefs(timeAxisOptionsDefs, unitTimeAxisOptionsDefs);
 
 export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions> = {
     type: 'axis',

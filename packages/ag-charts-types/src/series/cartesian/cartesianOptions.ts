@@ -251,8 +251,8 @@ export interface AgGroupedCategoryAxisThemeOptions
         AgCartesianAxisThemeOptions<AgGroupedCategoryAxisOptions>,
         AgCartesianAxesCrossLineThemeOptions {}
 export interface AgTimeAxisThemeOptions
-    extends Omit<AgTimeAxisOptions, 'type' | 'crossLines'>,
-        AgCartesianAxisThemeOptions<AgTimeAxisOptions>,
+    extends Omit<AgContinuousTimeAxisOptions, 'type' | 'crossLines'>,
+        AgCartesianAxisThemeOptions<AgContinuousTimeAxisOptions>,
         AgCartesianAxesCrossLineThemeOptions {}
 export interface AgUnitTimeAxisThemeOptions
     extends Omit<AgUnitTimeAxisOptions, 'type' | 'crossLines'>,
