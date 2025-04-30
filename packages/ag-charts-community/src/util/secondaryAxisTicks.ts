@@ -20,7 +20,10 @@ export function calculateNiceSecondaryAxis<D extends number>(
     // Make secondary axis domain nice using strict tick count, matching the tick count from the primary axis.
     // This is to make the secondary axis grid lines/ tick positions align with the ones from the primary axis.
 
-    let [start, stop] = findMinMax(domain.map(Number));
+    const [d0, d1] = findMinMax(domain.map(Number));
+
+    let start = d0;
+    let stop = d1;
 
     start = calculateNiceStart(Math.floor(start), stop, primaryTickCount.unzoomed);
     const baseStep = getTickStep(start, stop, primaryTickCount.unzoomed);
@@ -28,11 +31,18 @@ export function calculateNiceSecondaryAxis<D extends number>(
     const segments = primaryTickCount.unzoomed - 1;
     stop = start + segments * baseStep;
 
-    const step = baseStep * ((primaryTickCount.unzoomed - 1) / (primaryTickCount.zoomed - 1));
+    // If we can align the start and stop to the base step - and be within the domain - we do so.
+    const stepAlignedStart = Math.floor(start / baseStep) * baseStep;
+    const stepAlignedStop = Math.floor(stop / baseStep) * baseStep;
+    if (stepAlignedStart <= d0 && stepAlignedStop >= d1) {
+        start = stepAlignedStart;
+        stop = stepAlignedStop;
+    }
 
-    const d0 = scale.toDomain(start);
-    const d1 = scale.toDomain(stop);
-    const d: [D, D] = reverse ? [d1, d0] : [d0, d1];
+    const d: [D, D] = [scale.toDomain(start), scale.toDomain(stop)];
+    if (reverse) d.reverse();
+
+    const step = baseStep * ((primaryTickCount.unzoomed - 1) / (primaryTickCount.zoomed - 1));
     const ticks = getTicks(start, step, primaryTickCount.zoomed);
 
     return { domain: d, ticks };
@@ -70,33 +80,13 @@ function calculateNextNiceStep(rawStep: number): number {
     const order = Math.floor(Math.log10(rawStep));
     const magnitude = Math.pow(10, order);
 
-    // Make order 1
-    const step = (rawStep / magnitude) * 10;
+    // Between 0-10
+    const step = rawStep / magnitude;
 
-    if (step > 0 && step <= 1) {
-        return magnitude / 10;
-    }
-    if (step > 1 && step <= 2) {
-        return (2 * magnitude) / 10;
-    }
-    if (step > 1 && step <= 5) {
-        return (5 * magnitude) / 10;
-    }
-    if (step > 5 && step <= 10) {
-        return (10 * magnitude) / 10;
-    }
-    if (step > 10 && step <= 20) {
-        return (20 * magnitude) / 10;
-    }
-    if (step > 20 && step <= 40) {
-        return (40 * magnitude) / 10;
-    }
-    if (step > 40 && step <= 50) {
-        return (50 * magnitude) / 10;
-    }
-    if (step > 50 && step <= 100) {
-        return (100 * magnitude) / 10;
-    }
+    if (step > 0 && step <= 1) return magnitude;
+    if (step > 1 && step <= 2) return 2 * magnitude;
+    if (step > 2 && step <= 5) return 5 * magnitude;
+    if (step > 5 && step <= 10) return 10 * magnitude;
 
-    return step;
+    return rawStep;
 }
