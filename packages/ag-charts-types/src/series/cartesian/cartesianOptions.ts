@@ -47,7 +47,7 @@ export interface AgTimeAxisDivision {
     /** Enabled division. */
     enabled?: boolean;
     /** Configuration for the axis labels, shown next to the ticks. */
-    label?: AgCartesianAxisLabelOptions;
+    label?: AgCartesianTimeAxisLabelOptions;
     /** Configuration for the axis ticks. */
     tick?: AgGroupedCategoryAxisTickOptions;
 }
