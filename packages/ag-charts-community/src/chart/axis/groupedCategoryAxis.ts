@@ -202,8 +202,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
             return true;
         };
 
-        let maxLeafLabelSize = 0;
         const depthLines: Record<number, number> = {};
+        const depthLabelMaxSize: Record<number, number> = {};
         treeLabels.forEach((datum, index) => {
             const depth = maxDepth - datum.depth;
             const nodeLines = countLines(datum.label);
@@ -217,20 +217,19 @@ export class GroupedCategoryAxis extends CategoryAxis {
             if (!isVisible || !tempText.getBBox()) return;
             labelBBoxes.set(index, tempText.getBBox());
 
-            if (!datum.leafCount) {
-                tempText.rotation = labelRotation;
-                const { width, height } = tempText.getBBox();
-                const labelSize = horizontal ? height : width;
-                if (maxLeafLabelSize < labelSize) {
-                    maxLeafLabelSize = labelSize;
-                }
+            tempText.rotation = labelRotation;
+            const { width, height } = tempText.getBBox();
+            const labelSize = horizontal ? height : width;
+
+            if (depthLabelMaxSize[depth] < labelSize || depthLabelMaxSize[depth] == null) {
+                depthLabelMaxSize[depth] = labelSize;
             }
         });
 
         const idGenerator = createIdsGenerator();
         const separatorData: Map<number, SeparatorDatum> = new Map();
         const nestedPadding = (d: number) => {
-            let v = maxLeafLabelSize;
+            let v = depthLabelMaxSize[0];
             for (let i = 1; i <= d; i++) {
                 v += optionsMap[i].spacing;
                 if (label.mirrored || i !== d) {
@@ -252,7 +251,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 const separatorX = isLeaf ? datum.position : datum.position - (datum.leafCount - 1) / 2;
                 if (!separatorData.has(separatorX)) {
                     const tickOptions = this.depthOptions[depth]?.tick;
-                    let v = maxLeafLabelSize;
+                    let v = depthLabelMaxSize[0];
                     for (let i = 0; i <= depth; i++) {
                         v += optionsMap[i].spacing;
                         if (i !== 0) {
