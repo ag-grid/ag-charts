@@ -68,7 +68,7 @@ body {
     gap: 8px;
 }
 
-#myChart {
+div:has(> .ag-charts-wrapper) {
     padding: 1rem;
     height: 100%;
     border-radius: 8px;
