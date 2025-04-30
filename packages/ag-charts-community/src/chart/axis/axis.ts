@@ -452,7 +452,6 @@ export abstract class Axis<
     ): {
         primaryTickCount?: AxisPrimaryTickCount;
         bbox?: BBox;
-        niceDomain?: unknown[];
     } {
         const { scale, label, visibleRange, nice } = this;
 
@@ -494,10 +493,10 @@ export abstract class Axis<
         } = this.calculateTickLayout(tickLayoutDomain ?? domain, niceMode, visibleRange, initialPrimaryTickCount);
         unzoomedTickCount ??= rawTickCount;
 
-        const primaryTickCount: AxisPrimaryTickCount = {
-            zoomed: rawTickCount,
-            unzoomed: unzoomedTickCount,
-        };
+        const primaryTickCount: AxisPrimaryTickCount | undefined =
+            rawTickCount !== 0 && unzoomedTickCount !== 0
+                ? { zoomed: rawTickCount, unzoomed: unzoomedTickCount }
+                : undefined;
 
         const timeInterval = UnitTimeScale.is(scale) ? scale.interval : undefined;
 
