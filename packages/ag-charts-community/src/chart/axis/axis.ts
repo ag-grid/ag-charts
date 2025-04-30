@@ -585,12 +585,13 @@ export abstract class Axis<
         let result: string | undefined;
         if (formatter) {
             const boundSeries = this.getFormatterBoundSeries();
+            const unit = timeInterval?.unit;
             result = this.callWithContext(formatter, {
                 value,
                 index,
                 domain,
                 fractionDigits,
-                timeInterval: timeInterval?.unit,
+                unit,
                 boundSeries,
             });
         } else if (defaultFormatter) {

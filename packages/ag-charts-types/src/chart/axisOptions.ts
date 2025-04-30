@@ -133,7 +133,7 @@ export interface AgAxisLabelFormatterParams {
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;
-    readonly timeInterval?: TimeIntervalUnit;
+    readonly unit?: TimeIntervalUnit;
     readonly boundSeries: AgAxisBoundSeries[];
     readonly domain: any[];
 }
