@@ -32,15 +32,22 @@
 }
 
 .ag-charts-context-menu__item {
+    align-items: center;
     background: none;
     border: none;
     box-sizing: border-box;
     color: inherit;
+    display: flex;
     font: inherit;
+    justify-content: space-between;
     padding: 0.5em 1em;
     text-align: left;
     -webkit-appearance: none;
     -moz-appearance: none;
+}
+
+.ag-charts-context-menu__rightarrowhead {
+    padding-left: 1em;
 }
 
 .ag-charts-context-menu__item:focus,

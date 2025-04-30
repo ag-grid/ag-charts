@@ -1,6 +1,6 @@
 import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { type AnyFn, Logger, clamp } from 'ag-charts-core';
+import { type AnyFn, Logger, clamp, createElement } from 'ag-charts-core';
 
 import { ContextMenuItem, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
@@ -300,7 +300,18 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         button.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         button.setEnabled(item.enabled);
-        button.setTextContent(this.ctx.localeManager.t(item.label));
+        const label = this.ctx.localeManager.t(item.label);
+        if (item.type === 'submenu') {
+            const spanLabel = createElement('span');
+            const spanArrow = createElement('span');
+            spanLabel.textContent = label;
+            spanArrow.textContent = '❯';
+            spanArrow.ariaHidden = 'true';
+            spanArrow.classList.toggle('ag-charts-context-menu__rightarrowhead', true);
+            button.getElement().append(spanLabel, spanArrow);
+        } else {
+            button.setTextContent(label);
+        }
         const { showOn, action } = item;
         if (action != null) {
             button.addListener('click', this.createButtonOnClick(showOn, action));
