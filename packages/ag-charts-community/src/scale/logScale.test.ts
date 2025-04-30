@@ -13,10 +13,16 @@ describe('LogScale', () => {
                 minTickCount: 0,
                 maxTickCount: Infinity,
             };
-            expect(scale.ticks(ticks)).toEqual([100, 1000, 10000, 100000, 1000000]);
+            expect(scale.ticks(ticks)).toEqual({
+                ticks: [100, 1000, 10000, 100000, 1000000],
+                count: 5,
+            });
 
             ticks.tickCount = 4;
-            expect(scale.ticks(ticks)).toEqual([100, 1000, 10000, 100000, 1000000]);
+            expect(scale.ticks(ticks)).toEqual({
+                ticks: [100, 1000, 10000, 100000, 1000000],
+                count: 5,
+            });
         }
         {
             const scale = new LogScale();
@@ -29,7 +35,10 @@ describe('LogScale', () => {
                 minTickCount: 0,
                 maxTickCount: Infinity,
             };
-            expect(scale.ticks(ticks)).toEqual([-1000, -300, -100, -30, -10]);
+            expect(scale.ticks(ticks)).toEqual({
+                ticks: [-1000, -300, -100, -30, -10],
+                count: 5,
+            });
         }
     });
 
@@ -138,7 +147,10 @@ describe('LogScale', () => {
     });
 
     test('base', () => {
-        const expTicks = [20.085536923187668, 54.598150033144236, 148.4131591025766, 403.4287934927351];
+        const expTicks = {
+            ticks: [20.085536923187668, 54.598150033144236, 148.4131591025766, 403.4287934927351],
+            count: 4,
+        };
         const scale = new LogScale();
         scale.domain = [10, 1000];
 
@@ -169,5 +181,23 @@ describe('LogScale', () => {
             expect(Math.log(domain[0])).toEqual(1);
             expect(Math.log(domain[1])).toEqual(3);
         }
+    });
+
+    test('should create ticks within visible range', () => {
+        const scale = new LogScale();
+        scale.domain = [100, 1000000];
+
+        const ticks = {
+            nice: true,
+            interval: undefined,
+            tickCount: 4,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+        ticks.tickCount = 4;
+        expect(scale.ticks(ticks, undefined, [0.25, 0.75])).toEqual({
+            ticks: [1000, 10000, 100000],
+            count: 5,
+        });
     });
 });

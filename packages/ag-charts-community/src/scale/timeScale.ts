@@ -3,7 +3,7 @@ import { TimeInterval, sunday } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { ContinuousScale } from './continuousScale';
-import type { ScaleFormatParams, ScaleTickParams } from './scale';
+import type { ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
 
 export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     static override is(value: unknown): value is TimeScale {
@@ -54,9 +54,9 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
         extend = false
-    ): Date[] {
+    ): ScaleTickResult<Date> | undefined {
         const { nice, interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount } = params;
-        if (domain.length < 2) return [];
+        if (domain.length < 2) return;
 
         const timestamps = domain.map(dateToNumber);
         const start = timestamps[0];
@@ -64,16 +64,21 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
 
         if (interval != null) {
             const availableRange = this.getPixelRange();
-            return (
-                getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
-                getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend })
-            );
+            return {
+                ticks:
+                    getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
+                    getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
+                count: undefined,
+            };
         } else if (nice && tickCount === 2) {
-            return domain;
+            return { ticks: domain, count: undefined };
         } else if (nice && tickCount === 1) {
-            return domain.slice(0, 1);
+            return { ticks: domain.slice(0, 1), count: undefined };
         }
-        return getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend });
+        return {
+            ticks: getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
+            count: undefined,
+        };
     }
 
     private _tickFormatter({ domain, ticks, specifier }: ScaleFormatParams<Date>, formatOffset?: number) {

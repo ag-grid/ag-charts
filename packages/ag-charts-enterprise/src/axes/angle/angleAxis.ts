@@ -101,9 +101,9 @@ export abstract class AngleAxis<
 
     override calculateTickLayout(domain: TDomain[]): {
         niceDomain: any[];
-        primaryTickCount: number | undefined;
         tickDomain: TDomain[];
         ticks: TDomain[];
+        rawTickCount: number | undefined;
         fractionDigits: number;
         timeInterval: undefined;
         bbox: _ModuleSupport.BBox;
@@ -132,9 +132,9 @@ export abstract class AngleAxis<
 
         return {
             niceDomain,
-            primaryTickCount: undefined,
             tickDomain: niceDomain,
             ticks,
+            rawTickCount: undefined,
             fractionDigits,
             timeInterval: undefined,
             bbox: this.getBBox(),
@@ -262,7 +262,7 @@ export abstract class AngleAxis<
                     minTickCount: 0,
                     maxTickCount: Infinity,
                 })
-                ?.map((value) => scale.convert(value));
+                ?.ticks?.map((value) => scale.convert(value));
             if (angles && angles.length > 2) {
                 angles.forEach((angle, i) => {
                     const x = radius * Math.cos(angle);

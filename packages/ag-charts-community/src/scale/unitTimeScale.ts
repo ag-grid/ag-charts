@@ -3,7 +3,7 @@ import { findMaxIndex, findMinIndex } from 'ag-charts-core';
 import { TimeInterval } from '../util/time';
 import { normalizeContinuousDomains } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
-import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams } from './scale';
+import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
 
 export class UnitTimeScale extends DiscreteTimeScale {
     static readonly defaultTickCount = 12;
@@ -90,12 +90,12 @@ export class UnitTimeScale extends DiscreteTimeScale {
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
         extend = false
-    ): Date[] {
-        if (domain.length < 2) return [];
+    ): ScaleTickResult<Date> | undefined {
+        if (domain.length < 2) return;
 
         const bands = this.calculateBands(domain, visibleRange, extend);
 
-        if (interval == null) return bands;
+        if (interval == null) return { ticks: bands, count: undefined };
 
         const d0 = Math.min(domain[0].valueOf(), domain[1].valueOf());
         const d1 = Math.max(domain[0].valueOf(), domain[1].valueOf());
@@ -107,7 +107,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         } else {
             const i0Index = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0);
             const i1Index = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1);
-            if (i0Index == null || i1Index == null) return [];
+            if (i0Index == null || i1Index == null) return;
             intervalTicks = bands.slice(i0Index, i1Index + 1);
         }
 
@@ -129,7 +129,10 @@ export class UnitTimeScale extends DiscreteTimeScale {
             lastTickIndex = Math.min(lastTickIndex + 1, ticks.length - 1);
         }
 
-        return ticks.slice(firstTickIndex, lastTickIndex + 1);
+        return {
+            ticks: ticks.slice(firstTickIndex, lastTickIndex + 1),
+            count: ticks.length,
+        };
     }
 
     override findIndex(value: Date): number | undefined {
