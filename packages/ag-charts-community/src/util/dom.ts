@@ -54,11 +54,6 @@ export function focusCursorAtEnd(element: HTMLElement) {
     selection?.addRange(range);
 }
 
-let _id = 0;
-export function createElementId(label?: string) {
-    return `${label ?? 'ag-charts-element'}-${_id++}`;
-}
-
 export function isInputPending() {
     // Chrome-specific API for checking if user-input is pending, and we should yield the main thread
     // to allow it to be processed.

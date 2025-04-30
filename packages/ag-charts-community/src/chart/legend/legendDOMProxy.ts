@@ -1,4 +1,4 @@
-import { createElement } from 'ag-charts-core';
+import { type StrictHTMLElement, createElement, createElementId } from 'ag-charts-core';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -50,16 +50,13 @@ export class LegendDOMProxy {
     private dirty = true;
 
     private readonly itemList: ListWidget;
-    private readonly itemDescription: HTMLParagraphElement;
+    private readonly itemDescription: HTMLParagraphElement & StrictHTMLElement;
     private readonly paginationGroup: GroupWidget;
     private readonly destroyFns: DestroyFns = new DestroyFns();
     private prevButton?: ButtonWidget;
     private nextButton?: ButtonWidget;
 
-    public constructor(
-        ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>,
-        private readonly idPrefix: string
-    ) {
+    public constructor(ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>, idPrefix: string) {
         this.itemList = ctx.proxyInteractionService.createProxyContainer({
             type: 'list',
             domManagerId: `${idPrefix}-toolbar`,
@@ -75,7 +72,7 @@ export class LegendDOMProxy {
         });
         this.itemDescription = createElement('p');
         this.itemDescription.style.display = 'none';
-        this.itemDescription.id = `${idPrefix}-ariaDescription`;
+        this.itemDescription.id = createElementId();
         this.itemDescription.textContent = this.getItemAriaDescription(ctx.localeManager);
         this.itemList.getElement().append(this.itemDescription);
     }
@@ -176,7 +173,6 @@ export class LegendDOMProxy {
                 if (newNeedsButtons) {
                     this.prevButton = ctx.proxyInteractionService.createProxyElement({
                         type: 'button',
-                        id: `${this.idPrefix}-prev-page`,
                         textContent: { id: 'ariaLabelLegendPagePrevious' },
                         tabIndex: 0,
                         parent: this.paginationGroup,
@@ -187,7 +183,6 @@ export class LegendDOMProxy {
 
                     this.nextButton ??= ctx.proxyInteractionService.createProxyElement({
                         type: 'button',
-                        id: `${this.idPrefix}-next-page`,
                         textContent: { id: 'ariaLabelLegendPageNext' },
                         tabIndex: 0,
                         parent: this.paginationGroup,

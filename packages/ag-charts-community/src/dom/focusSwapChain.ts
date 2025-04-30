@@ -1,4 +1,12 @@
-import { type BaseAttributeTypeMap, createElement, setAttribute, setAttributes, setElementStyle } from 'ag-charts-core';
+import {
+    type BaseAttributeTypeMap,
+    type StrictHTMLElement,
+    createElement,
+    createElementId,
+    setAttribute,
+    setAttributes,
+    setElementStyle,
+} from 'ag-charts-core';
 
 type SwapChainEventMap = { focus: FocusEvent; blur: FocusEvent; swap: HTMLElement };
 
@@ -39,13 +47,12 @@ export class FocusSwapChain {
     }
 
     constructor(
-        private label1: HTMLElement,
-        private label2: HTMLElement,
-        id: string,
+        private label1: StrictHTMLElement,
+        private label2: StrictHTMLElement,
         announcerRole: BaseAttributeTypeMap['role']
     ) {
-        setAttribute(this.label1, 'id', `${id}-label1`);
-        setAttribute(this.label2, 'id', `${id}-label2`);
+        setAttribute(this.label1, 'id', createElementId());
+        setAttribute(this.label2, 'id', createElementId());
         setElementStyle(this.label1, 'display', 'none');
         setElementStyle(this.label2, 'display', 'none');
 
