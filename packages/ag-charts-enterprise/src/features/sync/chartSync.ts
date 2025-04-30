@@ -125,39 +125,48 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const { syncManager } = this.moduleContext;
 
         const useSecondaryDirectionKey = syncManager.getGroupMembers(this.groupId).some((c) => c.series.length > 1);
-        for (const [chart, axis] of syncManager.getGroupSiblingAxes(this.groupId)) {
+        for (const chart of syncManager.getGroupSiblings(this.groupId)) {
             if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
-            if (!CartesianAxis.is(axis) || axis.direction !== mainDirection) continue;
 
-            // Find matching nodes for the main direction.
-            let matchingNodes = chart.series
-                .filter((s) => s.visible)
-                .map(this.findMatchingNodes(axis, mainDirection, valueIsDate, eventValue))
-                .filter(isDefined);
+            let dispatched = false;
+            for (const axis of chart.axes) {
+                if (!CartesianAxis.is(axis) || axis.direction !== mainDirection) continue;
 
-            // Narrow matches by matching the secondary direction key.
-            if (useSecondaryDirectionKey) {
-                const secondaryKey = `${secondaryDirection}Key` as const;
-                const secondaryValue = _ModuleSupport.isObjectWithProperty(event.currentHighlight, secondaryKey)
-                    ? event.currentHighlight?.[secondaryKey]
-                    : undefined;
+                // Find matching nodes for the main direction.
+                let matchingNodes = chart.series
+                    .filter((s) => s.visible)
+                    .map(this.findMatchingNodes(axis, mainDirection, valueIsDate, eventValue))
+                    .filter(isDefined);
 
-                matchingNodes = matchingNodes.filter(({ nodeDatum }) => {
-                    return (
-                        isObjectWithStringProperty(nodeDatum, secondaryKey) &&
-                        nodeDatum[secondaryKey] === secondaryValue
-                    );
-                });
+                // Narrow matches by matching the secondary direction key.
+                if (useSecondaryDirectionKey) {
+                    const secondaryKey = `${secondaryDirection}Key` as const;
+                    const secondaryValue = _ModuleSupport.isObjectWithProperty(event.currentHighlight, secondaryKey)
+                        ? event.currentHighlight?.[secondaryKey]
+                        : undefined;
+
+                    matchingNodes = matchingNodes.filter(({ nodeDatum }) => {
+                        return (
+                            isObjectWithStringProperty(nodeDatum, secondaryKey) &&
+                            nodeDatum[secondaryKey] === secondaryValue
+                        );
+                    });
+                }
+
+                if (
+                    matchingNodes.length === 1 &&
+                    matchingNodes[0]?.nodeDatum !== chart.ctx.highlightManager.getActiveHighlight()
+                ) {
+                    const { nodeDatum } = matchingNodes[0] ?? {};
+                    this.dispatchHighlightUpdate(chart, nodeDatum);
+                    dispatched = true;
+                    break;
+                }
             }
 
-            if (
-                matchingNodes.length < 2 &&
-                matchingNodes[0]?.nodeDatum !== chart.ctx.highlightManager.getActiveHighlight()
-            ) {
-                const { series, nodeDatum } = matchingNodes[0] ?? {};
-                this.dispatchHighlightUpdate(chart, nodeDatum, series);
-            } else {
-                debug('ChartSync.findMatchingHighlightNodes() - no matching nodes', chart.id, event, matchingNodes);
+            if (!dispatched) {
+                debug('ChartSync.findMatchingHighlightNodes() - no matching nodes', chart.id, event);
+                this.dispatchHighlightUpdate(chart);
             }
         }
     }
@@ -192,10 +201,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     private dispatchHighlightUpdate(
         chart: _ModuleSupport.SyncChartLike,
-        nodeDatum: any,
-        series: _ModuleSupport.ISeries<any, any, any, any>
+        nodeDatum?: _ModuleSupport.SeriesNodeDatum<any>
     ) {
-        debug('ChartSync.dispatchHighlightUpdate()', chart.id, nodeDatum, series);
+        debug('ChartSync.dispatchHighlightUpdate()', chart.id, nodeDatum);
 
         chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, nodeDatum);
 
@@ -205,7 +213,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             const canvasY = bbox.y + (nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0);
             const tooltipMeta = TooltipManager.makeTooltipMeta(
                 { type: 'pointermove', canvasX, canvasY },
-                series,
+                nodeDatum.series,
                 nodeDatum,
                 undefined
             );
@@ -213,7 +221,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             chart.ctx.tooltipManager.updateTooltip(
                 `${chart.id}-sync`,
                 tooltipMeta,
-                chart.getTooltipContent(series, nodeDatum.datumIndex, nodeDatum)
+                chart.getTooltipContent(nodeDatum.series, nodeDatum.datumIndex, nodeDatum)
             );
         } else {
             chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`);
