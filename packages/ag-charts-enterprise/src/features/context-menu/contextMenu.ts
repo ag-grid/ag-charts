@@ -310,9 +310,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         spanLabel.textContent = label;
         spanArrow.classList.toggle('ag-charts-context-menu__rightarrowhead', true);
         spanArrow.ariaHidden = 'true';
+
+        if (item.iconUrl != null) {
+            const img = createElement('img');
+            img.src = item.iconUrl;
+            spanIcon.append(img);
+        }
         if (item.type === 'submenu') {
             spanArrow.textContent = '❯';
         }
+
         button.getElement().append(spanIcon, spanLabel, spanArrow);
 
         const { showOn, action } = item;

@@ -47,9 +47,12 @@
 }
 
 .ag-charts-context-menu__icon {
-    width: var(--ag-charts-icon-size);
-    line-height: var(--ag-charts-icon-size);
     margin-right: 0.5em;
+}
+
+.ag-charts-context-menu__icon > img {
+    width: var(--ag-charts-icon-size);
+    height: var(--ag-charts-icon-size);
 }
 
 .ag-charts-context-menu__label {
