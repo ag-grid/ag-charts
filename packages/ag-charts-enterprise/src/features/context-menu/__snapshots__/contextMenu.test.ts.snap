@@ -133,6 +133,39 @@ HTMLCollection [
 ]
 `;
 
+exports[`Context Menu submenu cycle detection 1`] = `
+[
+  [
+    "AG Charts - cycle detected in array",
+    {
+      "items": [
+        {
+          "action": [Function],
+          "label": "subaction",
+          "type": "action",
+        },
+        {
+          "items": [
+            "defaults",
+            "separator",
+            {
+              "action": [Function],
+              "label": "my action",
+              "type": "action",
+            },
+            [Circular],
+          ],
+          "label": "subsubmenu",
+          "type": "submenu",
+        },
+      ],
+      "label": "my submenu",
+      "type": "submenu",
+    },
+  ],
+]
+`;
+
 exports[`Extra Actions callbacks 1`] = `
 [
   {
