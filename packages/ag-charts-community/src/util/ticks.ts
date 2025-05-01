@@ -56,6 +56,11 @@ function isCloseToInteger(n: number, delta: number) {
     return Math.abs(Math.round(n) - n) < delta;
 }
 
+function countTicks(d0: number, d1: number, step: number) {
+    const extent = Math.abs(d1 - d0);
+    return extent >= step ? Math.abs(d1 - d0) / step + 1 : 1;
+}
+
 export function createTicks(
     start: number,
     stop: number,
@@ -64,6 +69,7 @@ export function createTicks(
     maxCount?: number,
     visibleRange?: [number, number]
 ): { ticks: number[]; count: number } {
+    if (start === stop) return { ticks: [start], count: 1 };
     if (count < 2) return { ticks: [start, stop], count: 2 };
 
     const step = tickStep(start, stop, count, minCount, maxCount);
@@ -86,7 +92,8 @@ export function createTicks(
         visibleRange = [(vd0 - d0) / dr, (vd1 - d0) / dr];
     }
 
-    return range(d0, d1, step, visibleRange);
+    const { ticks } = range(d0, d1, step, visibleRange);
+    return { ticks, count: countTicks(start, stop, step) };
 }
 
 const minPrimaryTickRatio = Math.floor(((2 * week.milliseconds) / month.milliseconds) * 10) / 10;
@@ -235,17 +242,15 @@ export function range(
     vd1 = Math.ceil(vd1 * f) / f;
 
     const ticks: number[] = [];
-    let count = 0;
     for (let i = 0; ; i += 1) {
         const p = Math.round((d0 + step * i) * f) / f;
         if (p > d1) break;
         if (p >= vd0 && p <= vd1) {
             ticks.push(p);
         }
-        count += 1;
     }
 
-    return { ticks, count };
+    return { ticks, count: countTicks(d0, d1, step) };
 }
 
 export function isDenseInterval(count: number, availableRange: number) {

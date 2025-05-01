@@ -23,7 +23,9 @@ export interface NormalizedDomain<D> {
 export interface ScaleTickResult<D> {
     // Ticks within visible range
     ticks: D[];
-    // Count of all ticks (including outside visible range)
+    // Fractional count of all ticks (including outside visible range)
+    // If you generated a tick every 2 between 0 and 5, you'd have 2.5 ticks
+    // Use Math.floor to get the actual number of ticks rendered
     count: number | undefined;
 }
 
