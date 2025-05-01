@@ -658,6 +658,5 @@ export const interpolationValidator = typeUnion<AgInterpolationType>(
             position: union('start', 'middle', 'end'),
         },
     },
-    undefined,
     'interpolation line options'
 );

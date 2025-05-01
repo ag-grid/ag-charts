@@ -190,10 +190,13 @@ describe('Validation utils', () => {
     describe('TypeUnion Validator', () => {
         test('validates an object by the `type` property', () => {
             const isTypeUnionOfFoo = optionsDefs(
-                typeUnion<{ type: 'a'; aa?: boolean } | { type: 'b'; bb: number }>({
-                    a: { aa: boolean },
-                    b: { bb: required(number) },
-                })
+                typeUnion<{ type: 'a'; aa?: boolean } | { type: 'b'; bb: number }>(
+                    {
+                        a: { aa: boolean },
+                        b: { bb: required(number) },
+                    },
+                    'an object'
+                )
             );
             expect(runValidator(isTypeUnionOfFoo, { type: 'a', aa: true })).toBe(true);
             expect(runValidator(isTypeUnionOfFoo, { type: 'a' })).toBe(true);
@@ -212,6 +215,7 @@ describe('Validation utils', () => {
                         a: { aa: boolean },
                         b: { bb: required(number) },
                     },
+                    'an object',
                     'b' // Default type.
                 )
             );

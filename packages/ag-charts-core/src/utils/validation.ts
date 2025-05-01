@@ -329,8 +329,8 @@ export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
 
 export const typeUnion = <T extends { type: string }>(
     defs: TypeUnionDefs<T, T['type']>,
-    defaultType?: T['type'],
-    description = 'an object'
+    description: string,
+    defaultType?: T['type']
 ) =>
     ({
         ...defs,

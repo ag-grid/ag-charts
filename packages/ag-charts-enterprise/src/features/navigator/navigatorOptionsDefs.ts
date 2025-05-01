@@ -171,7 +171,6 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
                         'direction',
                     ]),
                 },
-                undefined,
                 'miniChart series options'
             )
         ),
