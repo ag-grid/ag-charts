@@ -27,7 +27,7 @@ export function parseSvg(d?: string): SVGPathSegment[] | undefined {
     let i = 0;
     let currentCommand: SVGCommand | undefined;
     while (i < d.length) {
-        const commandMatch = commandEx.exec(d.slice(i));
+        const commandMatch = commandEx.exec(d[i]);
         let command: SVGCommand;
 
         if (commandMatch == null) {
