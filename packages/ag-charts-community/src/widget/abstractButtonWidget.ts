@@ -6,8 +6,9 @@ import type { WidgetEventMap as EventMap } from './widgetEvents';
 type R = ReturnType<Widget['addListener']>;
 
 export class AbstractButtonWidget<TElement extends HTMLElement> extends Widget<TElement> {
-    constructor(element: TElement) {
+    constructor(element: TElement, role?: 'menuitem') {
         super(element);
+        setAttribute(this.elem, 'role', role);
         this.setEnabled(true);
     }
 

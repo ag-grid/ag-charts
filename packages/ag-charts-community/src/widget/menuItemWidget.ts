@@ -4,6 +4,6 @@ import { AbstractButtonWidget } from './abstractButtonWidget';
 
 export class MenuItemWidget extends AbstractButtonWidget<HTMLDivElement> {
     constructor() {
-        super(createElement('div'));
+        super(createElement('div'), 'menuitem');
     }
 }
