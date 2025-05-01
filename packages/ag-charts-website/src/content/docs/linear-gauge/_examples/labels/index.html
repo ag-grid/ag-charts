@@ -2,7 +2,7 @@
     <div class="controls-row">
         Placement:
         <select class="gap-right" onchange="setLabelPlacement(event.target.value)">
-            <option value="inside-start" selected>Inside Start</option>
+            <option value="inside-start">Inside Start</option>
             <option value="outside-start">Outside Start</option>
             <option value="inside-end">Inside End</option>
             <option value="outside-end">Outside End</option>
@@ -14,13 +14,13 @@
         </select>
         Avoid Collisions:
         <select onchange="setAvoidCollisions(event.target.value === 'on')">
-            <option value="on" selected>On</option>
+            <option value="on">On</option>
             <option value="off">Off</option>
         </select>
         Value:
         <select onchange="setValue(Number(event.target.value))">
             <option value="1">1</option>
-            <option value="50" selected>50</option>
+            <option value="50">50</option>
             <option value="99">99</option>
         </select>
     </div>
