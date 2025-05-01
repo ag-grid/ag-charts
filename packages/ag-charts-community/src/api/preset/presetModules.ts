@@ -136,23 +136,26 @@ const commonSparklineOptionsDef: OptionsDefs<
     locale: defined,
     data: defined,
 
-    axis: typeUnion<AgSparklineAxisOptions>({
-        number: {
-            ...commonSparklineAxisOptionsDef,
-            min: and(number, lessThan('max')),
-            max: and(number, greaterThan('min')),
+    axis: typeUnion<AgSparklineAxisOptions>(
+        {
+            number: {
+                ...commonSparklineAxisOptionsDef,
+                min: and(number, lessThan('max')),
+                max: and(number, greaterThan('min')),
+            },
+            category: {
+                ...commonSparklineAxisOptionsDef,
+                paddingInner: ratio,
+                paddingOuter: ratio,
+            },
+            time: {
+                ...commonSparklineAxisOptionsDef,
+                min: and(or(number, date), lessThan('max')),
+                max: and(or(number, date), greaterThan('min')),
+            },
         },
-        category: {
-            ...commonSparklineAxisOptionsDef,
-            paddingInner: ratio,
-            paddingOuter: ratio,
-        },
-        time: {
-            ...commonSparklineAxisOptionsDef,
-            min: and(or(number, date), lessThan('max')),
-            max: and(or(number, date), greaterThan('min')),
-        },
-    }),
+        'category' // AG-14799 - Contrary to the AgSparklineAxisOptions interface, type is optional and defaults to 'category'.
+    ),
     min: and(number, lessThan('max')),
     max: and(number, greaterThan('min')),
     crosshair: {
