@@ -11,7 +11,10 @@ import type { FocusWidgetEvent, KeyboardWidgetEvent } from './widgetEvents';
 type RovingChildWidgets = SliderWidget | ButtonWidget | NativeWidget;
 type RovingKeys = (typeof PREV_NEXT_KEYS)[keyof typeof PREV_NEXT_KEYS];
 
-export abstract class RovingTabContainerWidget extends Widget<HTMLDivElement, RovingChildWidgets> {
+export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildWidgets> extends Widget<
+    HTMLDivElement,
+    TChildWidget
+> {
     private focusedChildIndex = 0;
 
     public get orientation(): RovingDirection {

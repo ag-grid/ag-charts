@@ -29,7 +29,7 @@ enum CloseMode {
     SIDLING_OPENED = '4',
 }
 
-export class MenuWidget extends RovingTabContainerWidget {
+export class MenuWidget extends RovingTabContainerWidget<ButtonWidget> {
     private openScope?: OpenScope;
 
     constructor(orientation: Direction = 'vertical') {
