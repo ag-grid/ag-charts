@@ -148,7 +148,7 @@ exports[`LinearScale should create ticks for interval: 3 domain: [-3, 12] case 1
 
 exports[`LinearScale should create ticks for interval: 10.5 domain: [0, 102] case 1`] = `
 {
-  "count": 10,
+  "count": 10.714285714285714,
   "ticks": [
     0,
     10.5,

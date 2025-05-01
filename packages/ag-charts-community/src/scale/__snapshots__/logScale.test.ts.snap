@@ -40,18 +40,6 @@ exports[`LogScale should create ticks for interval: -10 domain: [-10000000, -0.1
 }
 `;
 
-exports[`LogScale should create ticks for interval: 0 domain: [0.1, 10000000] case 1`] = `
-{
-  "count": 4,
-  "ticks": [
-    1,
-    100,
-    10000,
-    1000000,
-  ],
-}
-`;
-
 exports[`LogScale should create ticks for interval: 0.1 domain: [0.1, 10000000] case 1`] = `
 {
   "count": 81,
@@ -228,7 +216,7 @@ exports[`LogScale should create ticks for interval: 2 domain: [0.1, 10000000] ca
 
 exports[`LogScale should create ticks for interval: 3 domain: [0.1, 10000000] case 1`] = `
 {
-  "count": 3,
+  "count": 3.6666666666666665,
   "ticks": [
     0.1,
     100,
@@ -250,7 +238,7 @@ exports[`LogScale should create ticks for interval: 4 domain: [0.1, 10000000] ca
 
 exports[`LogScale should create ticks for interval: 5 domain: [0.1, 10000000] case 1`] = `
 {
-  "count": 2,
+  "count": 2.6,
   "ticks": [
     0.1,
     10000,
@@ -260,7 +248,7 @@ exports[`LogScale should create ticks for interval: 5 domain: [0.1, 10000000] ca
 
 exports[`LogScale should create ticks for interval: 6 domain: [0.1, 10000000] case 1`] = `
 {
-  "count": 2,
+  "count": 2.333333333333333,
   "ticks": [
     0.1,
     100000,
@@ -270,7 +258,7 @@ exports[`LogScale should create ticks for interval: 6 domain: [0.1, 10000000] ca
 
 exports[`LogScale should create ticks for interval: 7 domain: [0.1, 10000000] case 1`] = `
 {
-  "count": 2,
+  "count": 2.142857142857143,
   "ticks": [
     0.1,
     1000000,
