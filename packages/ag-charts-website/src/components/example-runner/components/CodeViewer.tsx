@@ -6,6 +6,7 @@ import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import { useEffect, useState } from 'react';
 
+import { E2E_STYLE_END, E2E_STYLE_START } from '../constants';
 import { CodeOptions } from './CodeOptions';
 import styles from './CodeViewer.module.scss';
 
@@ -42,6 +43,9 @@ export function stripOutExampleGeneratorCode(files: FileContents) {
             files[mainFile] = files[mainFile].replace(darkModeRegex, '').replace(consoleLogRegex, '').trim() + '\n';
         }
     });
+
+    const e2eStyleRegex = getSnippetRegex({ startDelimiter: E2E_STYLE_START, endDelimiter: E2E_STYLE_END });
+    files['index.html'] = files['index.html']?.replace(e2eStyleRegex, '').trim();
 }
 
 /**
