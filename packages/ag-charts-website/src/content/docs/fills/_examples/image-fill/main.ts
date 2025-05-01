@@ -9,14 +9,15 @@ const options: AgCartesianChartOptions = {
         {
             type: 'bar',
             xKey: 'bank',
-            yKey: 'totalAssets',
-            yName: 'Total Assets',
+            yKey: 'height',
+            yName: 'Height (m)',
             strokeWidth: 1,
             itemStyler: ({ datum }) => {
                 return {
                     fill: {
                         type: 'image',
                         url: datum.logo,
+                        fit: 'cover',
                     },
                 };
             },
