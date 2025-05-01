@@ -645,7 +645,13 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             ContinuousScale.is(scale)
         ) {
             // AG-10654 Just use normal ticks for categorical axes.
-            secondaryAxisTicks = calculateNiceSecondaryAxis(scale, domain, primaryTickCount, axis.reverse);
+            secondaryAxisTicks = calculateNiceSecondaryAxis(
+                scale,
+                domain,
+                primaryTickCount,
+                axis.reverse,
+                visibleRange
+            );
         }
 
         const niceDomain =
