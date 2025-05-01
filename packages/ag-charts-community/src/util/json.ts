@@ -373,7 +373,11 @@ function jsonResolveInner<T extends object, P extends object>(
                 continue;
             }
             const node = json[key as keyof T];
-            jsonResolveInner(node, params, source, meta, skip, [...path, key], modifiedPaths);
+            if (getOperation(node)) {
+                json[key] = jsonResolveVisitorValue(node, params, source, meta, [...path, key], modifiedPaths);
+            } else {
+                jsonResolveInner(node, params, source, meta, skip, [...path, key], modifiedPaths);
+            }
         }
     }
 
