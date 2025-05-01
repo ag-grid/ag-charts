@@ -204,13 +204,13 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.style.display = 'none';
     }
 
-    private onSubMenuOpen(button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
+    private onSubMenuOpen(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
         const bounds = button.getBounds();
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
         menu.getElement().style.position = 'absolute';
         menu.setBounds({ x: bounds.x + bounds.width, y: bounds.y });
     }
-    private onSubMenuClose(_button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
+    private onSubMenuClose(_button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
         menu.remove();
     }
 
@@ -231,7 +231,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     sep.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
                     break;
                 case 'action':
-                    const btn = new _Widget.ButtonWidget();
+                    const btn = new _Widget.MenuItemWidget();
                     this.initButtonElement(btn, item);
                     menuWidget.addChild(btn);
                     break;
@@ -287,7 +287,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private initButtonElement(button: _Widget.ButtonWidget, item: ContextMenuItem) {
+    private initButtonElement(button: _Widget.MenuItemWidget, item: ContextMenuItem) {
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         button.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         button.setEnabled(item.enable);

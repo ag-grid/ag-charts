@@ -2,13 +2,14 @@ import { createElement, getAttribute, setAttribute } from 'ag-charts-core';
 
 import { PREV_NEXT_KEYS, hasNoModifiers } from '../util/keynavUtil';
 import type { ButtonWidget } from './buttonWidget';
+import type { MenuItemWidget } from './menuItemWidget';
 import type { NativeWidget } from './nativeWidget';
 import type { RovingDirection } from './rovingDirection';
 import type { SliderWidget } from './sliderWidget';
 import { Widget } from './widget';
 import type { FocusWidgetEvent, KeyboardWidgetEvent } from './widgetEvents';
 
-type RovingChildWidgets = SliderWidget | ButtonWidget | NativeWidget;
+type RovingChildWidgets = SliderWidget | ButtonWidget | MenuItemWidget | NativeWidget;
 type RovingKeys = (typeof PREV_NEXT_KEYS)[keyof typeof PREV_NEXT_KEYS];
 
 export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildWidgets> extends Widget<

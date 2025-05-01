@@ -8,7 +8,7 @@ import {
     addTouchCloseListener,
     getLastFocus,
 } from '../util/keynavUtil';
-import { ButtonWidget } from './buttonWidget';
+import { MenuItemWidget } from './menuItemWidget';
 import type { RovingDirection } from './rovingDirection';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
 import type { WidgetEvent } from './widgetEvents';
@@ -29,7 +29,7 @@ enum CloseMode {
     SIDLING_OPENED = '4',
 }
 
-export class MenuWidget extends RovingTabContainerWidget<ButtonWidget> {
+export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
     private openScope?: OpenScope;
 
     constructor(orientation: RovingDirection = 'vertical') {
@@ -47,8 +47,8 @@ export class MenuWidget extends RovingTabContainerWidget<ButtonWidget> {
         return sep;
     }
 
-    public addSubMenu(): { subMenuButton: ButtonWidget; subMenu: MenuWidget } {
-        const subMenuButton = new ButtonWidget();
+    public addSubMenu(): { subMenuButton: MenuItemWidget; subMenu: MenuWidget } {
+        const subMenuButton = new MenuItemWidget();
         const subMenuId = createElementId();
         const subMenu = new MenuWidget(this.orientation);
         const accessibleOpener = (ev: WidgetEvent) => {
