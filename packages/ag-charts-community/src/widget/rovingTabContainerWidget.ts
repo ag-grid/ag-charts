@@ -27,8 +27,8 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
 
     constructor(initialOrientation: RovingDirection, role: 'toolbar' | 'list' | 'menu') {
         super(createElement('div'));
-        this.orientation = initialOrientation;
         setAttribute(this.elem, 'role', role);
+        this.orientation = initialOrientation;
     }
 
     override focus() {
