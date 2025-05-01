@@ -157,8 +157,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                     matchingNodes.length === 1 &&
                     matchingNodes[0]?.nodeDatum !== chart.ctx.highlightManager.getActiveHighlight()
                 ) {
-                    const { nodeDatum } = matchingNodes[0] ?? {};
-                    this.dispatchHighlightUpdate(chart, nodeDatum);
+                    this.dispatchHighlightUpdate(chart, matchingNodes[0].nodeDatum);
                     dispatched = true;
                     break;
                 }
