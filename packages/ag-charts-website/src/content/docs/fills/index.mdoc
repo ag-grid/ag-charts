@@ -173,6 +173,7 @@ Elliptical Arc Drawing Commands:
 
 ## Images
 
+### Image Cover
 {% chartExampleRunner title="Image Fill" name="image-fill" type="generated" /%}
 
 Any image url or data:url can be provided in the `fill.image.url` property.
@@ -183,12 +184,26 @@ Any image url or data:url can be provided in the `fill.image.url` property.
         fill: {
             type: 'image',
             url: 'url'
+            fit: 'cover'
         },
     },
 }
 ```
 
-{% chartExampleRunner title="Image Fill Customisation" name="image-fill-customisation" type="generated" /%}
+### Image Repeat
+
+{% chartExampleRunner title="Image Fill Repeat" name="image-fill-repeat" type="generated" /%}
+```js
+{
+    series: {
+        fill: {
+            type: 'image',
+            url: 'url',
+            repetition: 'repeat'
+         },
+    },
+}
+```
 
 See the [Image API reference](#reference-AgImageColor) all the available options.
 

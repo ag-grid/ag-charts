@@ -30,10 +30,5 @@ export function getData() {
             height: 530,
             logo: '${baseWWWUrl}/example-assets/docs-images/building-6.png',
         },
-        {
-            bank: 'Shanghai Tower',
-            height: 529,
-            logo: '${baseWWWUrl}/example-assets/docs-images/building-7.png',
-        },
     ];
 }
