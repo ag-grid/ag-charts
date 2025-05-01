@@ -220,9 +220,6 @@ export class ExtendedPath2D {
                     cx = sx;
                     cy = sy;
 
-                    sx = 0;
-                    sy = 0;
-
                     break;
 
                 default:
