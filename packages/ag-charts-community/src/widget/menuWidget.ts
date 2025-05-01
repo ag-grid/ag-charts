@@ -1,5 +1,4 @@
 import { createElementId, getDocument, setAttribute } from 'ag-charts-core';
-import type { Direction } from 'ag-charts-types';
 
 import { DestroyFns } from '../util/destroy';
 import {
@@ -10,6 +9,7 @@ import {
     getLastFocus,
 } from '../util/keynavUtil';
 import { ButtonWidget } from './buttonWidget';
+import type { RovingDirection } from './rovingDirection';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
 import type { WidgetEvent } from './widgetEvents';
 
@@ -32,7 +32,7 @@ enum CloseMode {
 export class MenuWidget extends RovingTabContainerWidget<ButtonWidget> {
     private openScope?: OpenScope;
 
-    constructor(orientation: Direction = 'vertical') {
+    constructor(orientation: RovingDirection = 'vertical') {
         super(orientation, 'menu');
     }
 
@@ -50,7 +50,7 @@ export class MenuWidget extends RovingTabContainerWidget<ButtonWidget> {
     public addSubMenu(): { subMenuButton: ButtonWidget; subMenu: MenuWidget } {
         const subMenuButton = new ButtonWidget();
         const subMenuId = createElementId();
-        const subMenu = new MenuWidget();
+        const subMenu = new MenuWidget(this.orientation);
         const accessibleOpener = (ev: WidgetEvent) => {
             const { openScope } = this;
             // Disabled buttons are focusable and can receive events, but have aria-disabled="true"
