@@ -154,7 +154,7 @@ const contextMenuItemValidator = attachDescription(
             if (allowedValues.includes(value)) {
                 result = true;
             } else {
-                result = { valid: false, invalid: [], cleared: {} } satisfies ValidatorResult;
+                result = { valid: false, invalid: [], cleared: null } satisfies ValidatorResult;
                 result.invalid.push(
                     new ValidationError(
                         ErrorType.Invalid,
