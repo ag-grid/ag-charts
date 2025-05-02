@@ -222,7 +222,7 @@ export class ChartTheme {
                 label: {
                     format: {
                         $if: [
-                            { $path: '../division/enabled' },
+                            { $path: '../parentLevel/enabled' },
                             timeDivisionLabelFormats,
                             time === 'modern' ? timeLabelFormats : undefined,
                         ],
