@@ -864,9 +864,9 @@ export class Legend extends BaseProperties {
         const { sourceEvent } = widgetEvent;
         const legendItem: CategoryLegendDatum = node.datum;
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
-            this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enable = false;
+            this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enabled = false;
         } else {
-            this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enable = true;
+            this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enabled = true;
         }
 
         const { offsetX, offsetY } = sourceEvent;

@@ -138,11 +138,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             for (const { action, label } of items) {
                 const type = 'action';
                 const iconUrl = undefined;
-                const enable = true;
+                const enabled = true;
                 // Signature typing cannot be verified at compile, because callbacks in api options are just JS
                 // functions assigned at runtime (typing info is lost).
                 action satisfies AnyFn;
-                result.push({ type, showOn, iconUrl, enable, label, action: action as AnyFn });
+                result.push({ type, showOn, iconUrl, enabled, label, action: action as AnyFn });
             }
         }
         return result;
@@ -299,7 +299,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private initButtonElement(button: _Widget.MenuItemWidget, item: ContextMenuItem) {
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         button.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        button.setEnabled(item.enable);
+        button.setEnabled(item.enabled);
         button.setTextContent(this.ctx.localeManager.t(item.label));
         const { showOn, action } = item;
         if (action != null) {

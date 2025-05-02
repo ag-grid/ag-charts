@@ -29,7 +29,7 @@ interface ItemMixin {
     /**  TODO: writeme. */
     iconUrl?: string;
     /**  TODO: writeme. */
-    enable?: boolean;
+    enabled?: boolean;
     /**  TODO: writeme. */
     items?: AgContextMenuItem[];
 }

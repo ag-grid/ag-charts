@@ -49,8 +49,8 @@ export class ZoomContextMenu {
             return !isZoomEqual(definedZoomState(this.zoomManager.getZoom()), unitZoomState());
         };
         return contextMenuRegistry.addListener('context-setup', (event) => {
-            contextMenuRegistry.builtins.items['zoom-to-cursor'].enable = shouldEnableZoomToHere(event);
-            contextMenuRegistry.builtins.items['pan-to-cursor'].enable = shouldEnablePanToHere();
+            contextMenuRegistry.builtins.items['zoom-to-cursor'].enabled = shouldEnableZoomToHere(event);
+            contextMenuRegistry.builtins.items['pan-to-cursor'].enabled = shouldEnablePanToHere();
         });
     }
 
