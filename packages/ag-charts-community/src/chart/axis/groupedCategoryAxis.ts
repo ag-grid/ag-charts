@@ -6,10 +6,11 @@ import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { getAngleRatioRadians, normalizeAngle360FromDegrees } from '../../util/angle';
+import { angularPadding, getAngleRatioRadians, normalizeAngle360FromDegrees } from '../../util/angle';
 import { extent } from '../../util/extent';
 import { BaseProperties, PropertiesArray, Property } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
+import { TextUtils } from '../../util/textMeasurer';
 import { createDatumId } from '../data/processors';
 import type { LabelNodeDatum } from './axis';
 import { CategoryAxis } from './categoryAxis';
@@ -196,6 +197,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 text,
                 textAlign: 'center',
                 textBaseline: label.parallel ? 'hanging' : 'bottom',
+                lineHeight: depthOptions[depth]?.label.rotation
+                    ? undefined
+                    : TextUtils.getLineHeight(labelStyles.fontSize!),
                 x: horizontal ? datum.screen : labelSpacing,
                 y: horizontal ? labelSpacing : datum.screen,
                 rotation: 0,
@@ -269,6 +273,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
             const labelRotation = normalizeAngle360FromDegrees(optionsMap[depth].rotation);
             const { width: w, height: h } = labelBBoxes.get(index)!;
             const angleRatio = getAngleRatioRadians(labelRotation);
+            const reverseAngleRatio = Math.abs(1 - angleRatio);
             const depthPadding = nestedPadding(depth);
 
             tempText.textAlign = 'end';
@@ -277,13 +282,13 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
             if (horizontal) {
                 tempText.x += w / 2;
-                tempText.y += (h / 2 + depthPadding + ((w - optionsMap[depth].spacing) / 2) * angleRatio) * sideFlag;
+                tempText.y += (depthPadding + angularPadding(w / 2, h / 2, labelRotation)) * sideFlag;
                 tempText.rotationCenterX = datum.screen;
                 tempText.rotationCenterY = tempText.y;
             } else {
                 tempText.x += (depthPadding + ((optionsMap[depth].spacing + w * sideFlag) / 2) * angleRatio) * sideFlag;
                 if (label.mirrored) {
-                    tempText.x += w * Math.abs(1 - angleRatio);
+                    tempText.x += w * reverseAngleRatio;
                 }
                 tempText.rotationCenterX = tempText.x - w / 2;
                 tempText.rotationCenterY = datum.screen;

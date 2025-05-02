@@ -423,7 +423,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         fill: color,
         // enterprise
         image: {
-            url: string,
+            url: required(string),
             top: number,
             right: number,
             bottom: number,
