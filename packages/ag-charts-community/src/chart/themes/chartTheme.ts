@@ -231,19 +231,42 @@ export class ChartTheme {
                 division: {
                     enabled: false,
                     label: {
-                        fontSize: { $ref: 'fontSize' }, // { $path: '../label/fontSize' },
-                        fontFamily: { $ref: 'fontFamily' }, // { $path: '../label/fontFamily' },
+                        fontSize: { $path: '../../label/fontSize' },
+                        fontFamily: { $path: '../../label/fontFamily' },
                         fontWeight: 'bold',
-                        spacing: 11, // { $path: '../label/spacing' },
-                        color: { $ref: 'textColor' }, // { $path: '../label/color' },
-                        avoidCollisions: true, // { $path: '../label/avoidCollisions' },
-                        format: timeDivisionLabelFormats, // { $path: '../label/format' },
+                        spacing: { $path: '../../label/spacing' },
+                        color: { $path: '../../label/color' },
+                        avoidCollisions: { $path: '../../label/avoidCollisions' },
+                        format: {
+                            $if: [
+                                { $isOperation: '../../label/format' },
+                                {
+                                    $if: [
+                                        { $path: '../enabled' },
+                                        timeDivisionLabelFormats,
+                                        time === 'modern' ? timeLabelFormats : undefined,
+                                    ],
+                                },
+                                {
+                                    $path: [
+                                        '../../label/format',
+                                        {
+                                            $if: [
+                                                { $path: '../enabled' },
+                                                timeDivisionLabelFormats,
+                                                time === 'modern' ? timeLabelFormats : undefined,
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
                     },
                     tick: {
-                        enabled: false, // { $path: '../tick/enabled' },
-                        size: 6, // { $path: '../tick/size' },
-                        width: 1, // { $path: '../tick/width' },
-                        stroke: { $ref: 'axisColor' }, // { $path: '../tick/stroke' },
+                        enabled: { $path: '../../tick/enabled' },
+                        size: { $path: '../../tick/size' },
+                        width: { $path: '../../tick/width' },
+                        stroke: { $path: '../../tick/stroke' },
                     },
                 },
             },
