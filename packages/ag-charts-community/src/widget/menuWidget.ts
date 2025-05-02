@@ -47,17 +47,28 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
         return sep;
     }
 
+    protected override onChildAdded(child: MenuItemWidget): void {
+        super.onChildAdded(child);
+        if (!child.hasPopup()) {
+            child.addListener('mouseenter', this.closeSubMenu);
+        }
+    }
+
+    protected override onChildRemoved(child: MenuItemWidget): void {
+        super.onChildRemoved(child);
+        if (!child.hasPopup()) {
+            child.removeListener('mouseenter', this.closeSubMenu);
+        }
+    }
+
     public addSubMenu(): { subMenuButton: MenuItemWidget; subMenu: MenuWidget } {
         const subMenuButton = new MenuItemWidget();
         const subMenuId = createElementId();
         const subMenu = new MenuWidget(this.orientation);
         const accessibleOpener = (ev: WidgetEvent) => {
-            const { openScope } = this;
             // Disabled buttons are focusable and can receive events, but have aria-disabled="true"
-            if (openScope && !subMenuButton.isDisabled()) {
-                openScope.openSubMenu?.selfClose(CloseMode.SIDLING_OPENED);
-                subMenu.open(ev);
-                openScope.openSubMenu = subMenu;
+            if (!subMenuButton.isDisabled()) {
+                this.openSubMenu(ev, subMenu);
             }
         };
         subMenuButton.setAriaHasPopup('menu');
@@ -70,6 +81,17 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
         subMenu.id = subMenuId;
         this.addChild(subMenuButton);
         return { subMenuButton, subMenu };
+    }
+
+    private readonly closeSubMenu = (ev: WidgetEvent) => this.openSubMenu(ev, undefined);
+
+    private openSubMenu(ev: WidgetEvent, subMenu: MenuWidget | undefined) {
+        const { openScope } = this;
+        if (!openScope) return;
+
+        openScope.openSubMenu?.selfClose(CloseMode.SIDLING_OPENED);
+        subMenu?.open(ev);
+        openScope.openSubMenu = subMenu;
     }
 
     public open(event: WidgetEvent, opts?: { overrideFocusVisible?: boolean }): void {

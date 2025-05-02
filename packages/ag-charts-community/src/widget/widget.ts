@@ -170,6 +170,11 @@ export abstract class Widget<
         return getAttribute(this.elem, 'aria-disabled', false);
     }
 
+    hasPopup(): boolean {
+        const ariaHasPopup = getAttribute(this.elem, 'aria-haspopup');
+        return ariaHasPopup !== undefined && ariaHasPopup !== 'false';
+    }
+
     private parseFloat(s: string) {
         return s === '' ? 0 : parseFloat(s);
     }
