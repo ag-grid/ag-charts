@@ -7,11 +7,12 @@ import {
     addOverrideFocusVisibleEventListener,
     addTouchCloseListener,
     getLastFocus,
+    hasNoModifiers,
 } from '../util/keynavUtil';
 import { MenuItemWidget } from './menuItemWidget';
 import type { RovingDirection } from './rovingDirection';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
-import type { WidgetEvent } from './widgetEvents';
+import type { KeyboardWidgetEvent, WidgetEvent } from './widgetEvents';
 
 type OpenScope = {
     lastFocus: HTMLElement | undefined;
@@ -28,6 +29,7 @@ enum CloseMode {
     PARENT_CLOSED = '3',
     SIDLING_OPENED = '4',
 }
+const closeKeys = ['Escape', 'ArrowLeft'] as const;
 
 export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
     private openScope?: OpenScope;
@@ -71,11 +73,17 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
                 this.openSubMenu(ev, subMenu);
             }
         };
+        const arrowRightOpener = (ev: KeyboardWidgetEvent) => {
+            if (hasNoModifiers(ev.sourceEvent) && ev.sourceEvent.code === 'ArrowRight') {
+                accessibleOpener(ev);
+            }
+        };
         subMenuButton.setAriaHasPopup('menu');
         subMenuButton.setAriaExpanded(false);
         subMenuButton.setAriaControls(subMenuId);
         subMenuButton.addListener('click', accessibleOpener);
         subMenuButton.addListener('mouseenter', accessibleOpener);
+        subMenuButton.addListener('keydown', arrowRightOpener);
         subMenu.addListener('close-widget', () => subMenuButton.setAriaExpanded(false));
         subMenu.addListener('open-widget', () => subMenuButton.setAriaExpanded(true));
         subMenu.id = subMenuId;
@@ -111,7 +119,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
         addMouseCloseListener(this.openScope.removers, this.elem, this.openScope.abort);
         addTouchCloseListener(this.openScope.removers, this.elem, this.openScope.abort);
         for (const child of this.children) {
-            addEscapeEventListener(this.openScope.removers, child.getElement(), this.openScope.close);
+            addEscapeEventListener(this.openScope.removers, child.getElement(), this.openScope.close, closeKeys);
         }
         if (overrideFocusVisible !== undefined) {
             addOverrideFocusVisibleEventListener(this.openScope.removers, this.elem, buttons, overrideFocusVisible);

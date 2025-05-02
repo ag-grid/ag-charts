@@ -34,10 +34,11 @@ function addRemovableEventListener<K extends keyof (HTMLElementEventMap | Window
 export function addEscapeEventListener(
     destroyFns: DestroyFns,
     elem: HTMLElement,
-    onEscape: (event: KeyboardEvent) => void
+    onEscape: (event: KeyboardEvent) => void,
+    keyCodes: readonly string[] = ['Escape']
 ) {
     addRemovableEventListener(destroyFns, elem, 'keydown', (event: KeyboardEvent) => {
-        if (event.key === 'Escape') {
+        if (matchesKey(event, ...keyCodes)) {
             onEscape(event);
         }
     });
@@ -90,8 +91,8 @@ export function hasNoModifiers(event: KeyboardEvent | MouseEvent): boolean {
     return !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey);
 }
 
-function matchesKey(event: KeyboardEvent, key: string, ...morekeys: string[]): boolean {
-    return hasNoModifiers(event) && (event.key === key || morekeys.some((altkey) => event.key === altkey));
+function matchesKey(event: KeyboardEvent, ...keys: string[]): boolean {
+    return hasNoModifiers(event) && keys.some((key) => event.key === key);
 }
 
 function linkTwoButtons(destroyFns: (() => void)[], src: HTMLElement, dst: HTMLElement | undefined, key: string) {
