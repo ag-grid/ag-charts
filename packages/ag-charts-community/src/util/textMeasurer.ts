@@ -67,7 +67,10 @@ export class CachedTextMeasurerPool {
 
     // Gets a TextMeasurer instance, configuring text alignment and baseline if provided.
     static getMeasurer(options: MeasureOptions) {
-        const font = typeof options.font === 'string' ? options.font : TextUtils.toFontString(options.font);
+        const font =
+            typeof options.font === 'string'
+                ? options.font
+                : TextUtils.toFontString({ ...options.font, lineHeight: undefined });
         const key = `${font}-${options.textAlign ?? 'start'}-${options.textBaseline ?? 'alphabetic'}`;
         return this.instanceMap.get(key) ?? this.createFontMeasurer(font, options, key);
     }
