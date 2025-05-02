@@ -470,7 +470,11 @@ export abstract class Axis<
             tickLayoutDomain = this.scale.domain;
             unzoomedTickCount = this._cachedUnzoomedTickCount;
         } else {
-            const unzoomedTickLayout = this.calculateTickLayout(domain, NiceMode.TickAndDomain, [0, 1]);
+            const unzoomedTickLayout = this.calculateTickLayout(
+                domain,
+                nice ? NiceMode.TickAndDomain : NiceMode.Off,
+                [0, 1]
+            );
             tickLayoutDomain = unzoomedTickLayout.niceDomain;
             unzoomedTickCount = unzoomedTickLayout.rawTickCount ?? 0;
         }
