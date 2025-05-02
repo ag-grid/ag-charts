@@ -68,6 +68,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     private disableZoomSync?: () => void;
     private enabledZoomSync() {
         const { syncManager, zoomManager } = this.moduleContext;
+        this.disableZoomSync?.(); // Cleanup any existing listeners.
         this.disableZoomSync = zoomManager.addListener('zoom-change', () => {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
                 if (chart.modulesManager.getModule<ChartSync>('sync')?.zoom) {
@@ -207,7 +208,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
         chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, nodeDatum);
 
-        if (nodeDatum) {
+        const tooltipEnabled = nodeDatum?.series.tooltipEnabled ?? chart.tooltip.enabled;
+        if (nodeDatum && tooltipEnabled) {
             const bbox = chart.seriesAreaBoundingBox;
             const canvasX = bbox.x + (nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0);
             const canvasY = bbox.y + (nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0);
