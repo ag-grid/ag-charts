@@ -87,14 +87,6 @@ HTMLCollection [
       >
         Toggle Visibility
       </div>
-      <div
-        aria-disabled="false"
-        class="ag-charts-context-menu__item"
-        role="menuitem"
-        tabindex="-1"
-      >
-        Toggle Other Series
-      </div>
     </div>
   </div>,
 ]
@@ -127,14 +119,6 @@ HTMLCollection [
         tabindex="-1"
       >
         Toggle Visibility
-      </div>
-      <div
-        aria-disabled="false"
-        class="ag-charts-context-menu__item"
-        role="menuitem"
-        tabindex="-1"
-      >
-        Toggle Other Series
       </div>
     </div>
   </div>,
