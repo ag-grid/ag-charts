@@ -586,12 +586,14 @@ export abstract class Axis<
         if (formatter) {
             const boundSeries = this.getFormatterBoundSeries();
             const unit = timeInterval?.unit;
+            const step = timeInterval?.step;
             result = this.callWithContext(formatter, {
                 value,
                 index,
                 domain,
                 fractionDigits,
                 unit,
+                step,
                 boundSeries,
             });
         } else if (defaultFormatter) {
