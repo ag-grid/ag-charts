@@ -5,14 +5,14 @@ import type { TimeInterval } from '../../util/time';
 import type { AxisLabel } from './axisLabel';
 import type { AxisTick } from './axisTick';
 import { CategoryAxis } from './categoryAxis';
-import { TimeAxisDivision, normaliseTimeDataDomain } from './timeAxis';
+import { TimeAxisParentLevel, normaliseTimeDataDomain } from './timeAxis';
 
 export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
     static override readonly className = 'UnitTimeAxis' as const;
     static override readonly type = 'unit-time' as const;
 
     @Property
-    readonly division = new TimeAxisDivision();
+    readonly parentLevel = new TimeAxisParentLevel();
 
     @Property
     min?: Date | number = undefined;
@@ -24,11 +24,11 @@ export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
     unit: TimeInterval | undefined;
 
     override get primaryLabel(): AxisLabel | undefined {
-        return this.division.enabled ? this.division.label : undefined;
+        return this.parentLevel.enabled ? this.parentLevel.label : undefined;
     }
 
     override get primaryTick(): AxisTick | undefined {
-        return this.division.enabled ? this.division.tick : undefined;
+        return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
     }
 
     constructor(moduleCtx: ModuleContext) {

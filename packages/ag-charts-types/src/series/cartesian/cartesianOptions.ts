@@ -43,8 +43,8 @@ export interface AgBaseCartesianAxisOptions<
     crosshair?: AgCrosshairOptions<CrosshairLabelType>;
 }
 
-export interface AgTimeAxisDivision {
-    /** Enabled division. */
+export interface AgTimeAxisParentLevel {
+    /** Enables parent level grouping. */
     enabled?: boolean;
     /** Configuration for the axis labels, shown next to the ticks. */
     label?: AgCartesianTimeAxisLabelOptions;
@@ -131,8 +131,8 @@ export interface AgUnitTimeAxisOptions
     extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions>, 'interval'>,
         Omit<AgContinuousAxisOptions<Date | number, TimeInterval | number>, 'nice'> {
     type: 'time';
-    /** Axis division */
-    division?: AgTimeAxisDivision;
+    /** Options for highlighting ticks and labels that fall on the parent interval */
+    parentLevel?: AgTimeAxisParentLevel;
     /** The size of each band. */
     unit?: TimeInterval;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
@@ -145,8 +145,8 @@ export interface AgUnitTimeAxisOptions
 
 export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions> {
     type: 'ordinal-time';
-    /** Axis division */
-    division?: AgTimeAxisDivision;
+    /** Options for highlighting ticks and labels that fall on the parent interval */
+    parentLevel?: AgTimeAxisParentLevel;
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisContinuousIntervalOptions<TimeInterval | number>;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
@@ -171,8 +171,8 @@ export interface AgContinuousTimeAxisOptions
     extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions>, 'interval'>,
         AgContinuousAxisOptions<Date | number, TimeInterval | number> {
     type: 'time';
-    /** Axis division */
-    division?: AgTimeAxisDivision;
+    /** Options for highlighting ticks and labels that fall on the parent interval */
+    parentLevel?: AgTimeAxisParentLevel;
 }
 
 export interface AgTimeAxisOptions extends AgContinuousTimeAxisOptions, AgUnitTimeAxisOptions {}

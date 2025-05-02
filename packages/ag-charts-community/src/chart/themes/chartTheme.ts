@@ -228,7 +228,7 @@ export class ChartTheme {
                         ],
                     },
                 },
-                division: {
+                parentLevel: {
                     enabled: false,
                     label: {
                         fontSize: { $path: '../../label/fontSize' },
@@ -481,7 +481,7 @@ export class ChartTheme {
                 label: { autoRotate: false },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: true },
-                division: { enabled: true },
+                parentLevel: { enabled: true },
             },
             { title: true, time: 'modern' }
         ),

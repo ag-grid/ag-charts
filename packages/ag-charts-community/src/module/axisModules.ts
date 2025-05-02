@@ -33,8 +33,8 @@ import {
     cartesianAxisLabelOptionsDefs,
     cartesianAxisOptionsDefs,
     cartesianNumericAxisLabel,
-    cartesianTimeAxisDivision,
     cartesianTimeAxisLabel,
+    cartesianTimeAxisParentLevel,
     continuousAxisOptions,
 } from '../chart/axesOptionsDefs';
 import { CategoryAxis } from '../chart/axis/categoryAxis';
@@ -71,7 +71,7 @@ export const timeAxisOptionsDefs: OptionsDefs<AgContinuousTimeAxisOptions> = {
     ...continuousAxisOptions(or(number, date), true),
     type: required(constant('time')),
     label: cartesianTimeAxisLabel,
-    division: cartesianTimeAxisDivision,
+    parentLevel: cartesianTimeAxisParentLevel,
     crosshair: cartesianAxisCrosshairOptions(true),
 };
 
@@ -125,7 +125,7 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     type: required(constant('unit-time')),
     unit: instanceOf(TimeInterval),
     label: cartesianTimeAxisLabel,
-    division: cartesianTimeAxisDivision,
+    parentLevel: cartesianTimeAxisParentLevel,
     paddingInner: ratio,
     paddingOuter: ratio,
     groupPaddingInner: ratio,

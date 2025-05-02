@@ -26,7 +26,7 @@ const options: AgCartesianChartOptions = {
                     month: '%b',
                 },
             },
-            division: {
+            parentLevel: {
                 enabled: true,
                 label: {
                     format: {
