@@ -69,6 +69,7 @@ export type AgBaseFinancialPresetOptions = Pick<
     | 'initialState'
     | 'data'
     | 'listeners'
+    | 'sync'
 >;
 
 export type AgBaseSparklinePresetThemeOptions = AgSparklineBaseThemeableOptions &
