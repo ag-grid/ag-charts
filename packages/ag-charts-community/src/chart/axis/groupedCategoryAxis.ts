@@ -197,9 +197,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 text,
                 textAlign: 'center',
                 textBaseline: label.parallel ? 'hanging' : 'bottom',
-                lineHeight: depthOptions[depth]?.label.rotation
-                    ? undefined
-                    : TextUtils.getLineHeight(labelStyles.fontSize!),
+                lineHeight: TextUtils.getLineHeight(labelStyles.fontSize!),
                 x: horizontal ? datum.screen : labelSpacing,
                 y: horizontal ? labelSpacing : datum.screen,
                 rotation: 0,
