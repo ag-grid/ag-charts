@@ -2,8 +2,8 @@ import { createElement } from 'ag-charts-core';
 
 import { AbstractButtonWidget } from './abstractButtonWidget';
 
-export class ButtonWidget extends AbstractButtonWidget<HTMLButtonElement> {
+export class MenuItemWidget extends AbstractButtonWidget<HTMLDivElement> {
     constructor() {
-        super(createElement('button'));
+        super(createElement('div'), 'menuitem');
     }
 }

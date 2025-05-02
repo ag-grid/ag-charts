@@ -21,13 +21,14 @@ HTMLCollection [
       role="menu"
       tabindex="-1"
     >
-      <button
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="0"
       >
         Download
-      </button>
+      </div>
     </div>
   </div>,
 ]
@@ -45,13 +46,14 @@ HTMLCollection [
       role="menu"
       tabindex="-1"
     >
-      <button
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="0"
       >
         Download
-      </button>
+      </div>
     </div>
   </div>,
 ]
@@ -69,27 +71,30 @@ HTMLCollection [
       role="menu"
       tabindex="-1"
     >
-      <button
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="0"
       >
         Download
-      </button>
-      <button
+      </div>
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="-1"
       >
         Toggle Visibility
-      </button>
-      <button
+      </div>
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="-1"
       >
         Toggle Other Series
-      </button>
+      </div>
     </div>
   </div>,
 ]
@@ -107,27 +112,30 @@ HTMLCollection [
       role="menu"
       tabindex="-1"
     >
-      <button
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="0"
       >
         Download
-      </button>
-      <button
+      </div>
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="-1"
       >
         Toggle Visibility
-      </button>
-      <button
+      </div>
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="-1"
       >
         Toggle Other Series
-      </button>
+      </div>
     </div>
   </div>,
 ]
