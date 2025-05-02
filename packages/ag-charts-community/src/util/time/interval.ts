@@ -37,6 +37,7 @@ export class TimeInterval {
         public readonly hierarchy: TimeInterval | undefined,
         protected readonly _encode: EncodeFn,
         protected readonly _decode: DecodeFn,
+        public readonly step = 1,
         protected readonly _rangeCallback?: RangeFn
     ) {}
 
@@ -151,7 +152,7 @@ export class TimeInterval {
     every(step: number, options?: EveryParams): TimeInterval {
         if (step === 1 && options?.snapTo != null) return this;
 
-        const { unit, milliseconds, hierarchy } = this;
+        const { unit, milliseconds, hierarchy, step: baseStep } = this;
 
         let offset = 0;
         let rangeCallback: RangeFn | undefined;
@@ -179,6 +180,6 @@ export class TimeInterval {
         const encode = (date: Date) => Math.floor((this._encode(date) - offset) / step);
         const decode = (encoded: number) => this._decode(encoded * step + offset);
 
-        return new TimeInterval(unit, milliseconds * step, hierarchy, encode, decode, rangeCallback);
+        return new TimeInterval(unit, milliseconds * step, hierarchy, encode, decode, baseStep * step, rangeCallback);
     }
 }
