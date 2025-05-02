@@ -869,6 +869,8 @@ export class Legend extends BaseProperties {
             this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enable = true;
         }
 
+        this.ctx.contextMenuRegistry.setVisible('toggle-other-series', this.ctx.chartService.series.length > 1);
+
         const { offsetX, offsetY } = sourceEvent;
         const { x: canvasX, y: canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
         this.ctx.contextMenuRegistry.dispatchContext('legend-item', { widgetEvent, canvasX, canvasY }, { legendItem });
