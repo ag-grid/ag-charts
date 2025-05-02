@@ -4,6 +4,7 @@ import { AsyncAwaitQueue, Logger, arraysEqual, isDate, isDefined, isFiniteNumber
 const {
     BaseProperties,
     CartesianAxis,
+    ChartAxisDirection,
     ContinuousScale,
     ChartUpdateType,
     ObserveChanges,
@@ -95,8 +96,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
         debug('ChartSync.onHighlightChange()', event);
 
-        const mainDirection = this.axes === 'xy' ? 'x' : this.axes;
-        const secondaryDirection = mainDirection === 'x' ? 'y' : 'x';
+        const mainDirection =
+            this.axes === 'xy' ? ChartAxisDirection.X : _ModuleSupport.toChartAxisDirection(this.axes);
+        const secondaryDirection = mainDirection === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
         const eventValueKey = event.currentHighlight?.[`${mainDirection}Key`];
         let eventValue = eventValueKey ? event.currentHighlight?.datum[eventValueKey] : undefined;
         const valueIsDate = isDate(eventValue);
@@ -118,8 +120,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     }
 
     private findMatchingHighlightNodes(
-        mainDirection: 'x' | 'y',
-        secondaryDirection: 'x' | 'y',
+        mainDirection: _ModuleSupport.ChartAxisDirection,
+        secondaryDirection: _ModuleSupport.ChartAxisDirection,
         valueIsDate: boolean,
         eventValue: any,
         event: _ModuleSupport.HighlightChangeEvent
@@ -127,6 +129,16 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const { syncManager } = this.moduleContext;
 
         const useSecondaryDirectionKey = syncManager.getGroupMembers(this.groupId).some((c) => c.series.length > 1);
+        const secondaryKeys = useSecondaryDirectionKey
+            ? event.currentHighlight?.series.getKeys(secondaryDirection) ?? []
+            : [];
+
+        debug('ChartSync.findMatchingHighlightNodes()', {
+            mainDirection,
+            secondaryDirection,
+            secondaryKeys,
+        });
+
         for (const chart of syncManager.getGroupSiblings(this.groupId)) {
             if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
 
@@ -135,25 +147,19 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                 if (!CartesianAxis.is(axis) || axis.direction !== mainDirection) continue;
 
                 // Find matching nodes for the main direction.
-                let matchingNodes = chart.series
-                    .filter((s) => s.visible)
+                const matchingNodes = chart.series
+                    .filter((s) => {
+                        if (!s.visible) return false;
+
+                        // Narrow matches by matching the secondary direction keys of series, if multiple series are present.
+                        if (secondaryKeys.length > 0) {
+                            const seriesKeys = s.getKeys(secondaryDirection);
+                            return secondaryKeys.every((key) => seriesKeys.includes(key));
+                        }
+                        return true;
+                    })
                     .map(this.findMatchingNodes(axis, mainDirection, valueIsDate, eventValue))
                     .filter(isDefined);
-
-                // Narrow matches by matching the secondary direction key.
-                if (useSecondaryDirectionKey) {
-                    const secondaryKey = `${secondaryDirection}Key` as const;
-                    const secondaryValue = _ModuleSupport.isObjectWithProperty(event.currentHighlight, secondaryKey)
-                        ? event.currentHighlight?.[secondaryKey]
-                        : undefined;
-
-                    matchingNodes = matchingNodes.filter(({ nodeDatum }) => {
-                        return (
-                            isObjectWithStringProperty(nodeDatum, secondaryKey) &&
-                            nodeDatum[secondaryKey] === secondaryValue
-                        );
-                    });
-                }
 
                 if (
                     matchingNodes.length === 1 &&
