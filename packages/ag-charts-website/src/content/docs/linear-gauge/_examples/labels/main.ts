@@ -45,6 +45,7 @@ function setAvoidCollisions(avoidCollisions: boolean) {
 }
 
 function setValue(value: number) {
+    document.getElementById('gaugeValueLabel')!.innerHTML = String(value);
     options.value = value;
     chart.update(options);
 }
