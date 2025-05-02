@@ -5,6 +5,7 @@ import {
     setupIntrinsicAssertions,
     toExamplePageUrl,
     toExamplePageUrls,
+    waitForAllChartUpdates,
     waitForChartUpdate,
 } from './util';
 
@@ -33,6 +34,7 @@ test.describe('synchronised', () => {
                 const tooltipLocator = page.locator(SELECTORS.tooltip);
 
                 await page.keyboard.press('Tab');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -44,6 +46,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('ArrowRight');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -69,6 +72,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -88,6 +92,7 @@ test.describe('synchronised', () => {
                 );
 
                 await page.keyboard.press('Tab');
+                await waitForAllChartUpdates(page);
                 await expect(crosshairLocator).toHaveCount(3);
 
                 await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -100,6 +105,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('ArrowRight'); // 2nd datum.
+                await waitForAllChartUpdates(page);
                 await expect(crosshairLocator.nth(0)).toBeVisible();
                 await expect(crosshairLocator.nth(1)).toBeVisible();
                 await expect(crosshairLocator.nth(2)).toBeVisible();
@@ -126,6 +132,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight'); // 7th datum.
+                await waitForAllChartUpdates(page);
 
                 await expect(crosshairLocator).toHaveCount(3);
                 await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -231,6 +238,7 @@ test.describe('synchronised', () => {
                             const tooltipLocator = page.locator(SELECTORS.tooltip);
 
                             await page.keyboard.press('Tab');
+                            await waitForAllChartUpdates(page);
                             await expect(tooltipLocator).toHaveCount(2);
                             await expect(tooltipLocator.nth(0)).toBeVisible();
                             await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -240,6 +248,7 @@ test.describe('synchronised', () => {
                             ]);
 
                             await page.keyboard.press('ArrowDown');
+                            await waitForAllChartUpdates(page);
                             await expect(tooltipLocator).toHaveCount(2);
                             await expect(tooltipLocator.nth(0)).toBeVisible();
                             await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -249,6 +258,7 @@ test.describe('synchronised', () => {
                             ]);
 
                             await page.keyboard.press('ArrowDown');
+                            await waitForAllChartUpdates(page);
                             await expect(tooltipLocator).toHaveCount(2);
                             await expect(tooltipLocator.nth(0)).toBeVisible();
                             await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -258,6 +268,7 @@ test.describe('synchronised', () => {
                             ]);
 
                             await page.keyboard.press('ArrowRight');
+                            await waitForAllChartUpdates(page);
                             await expect(tooltipLocator).toHaveCount(2);
                             await expect(tooltipLocator.nth(0)).toBeVisible();
                             await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -272,17 +283,16 @@ test.describe('synchronised', () => {
                         test('should not replicate tooltip for hidden series', async ({ page }) => {
                             await gotoExample(page, url);
 
-                            const wrappers = page.locator(SELECTORS.wrapper);
                             const legendLocator = page.locator(SELECTORS.legendItems);
                             const tooltipLocator = page.locator(SELECTORS.tooltip);
 
                             await legendLocator.nth(3).click(); // Hide the 1st series on the 2nd chart.
-                            await waitForChartUpdate(wrappers.nth(0));
-                            await waitForChartUpdate(wrappers.nth(1));
+                            await waitForAllChartUpdates(page);
 
                             await page.keyboard.press('Shift+Tab');
                             await page.keyboard.press('Shift+Tab');
                             await page.keyboard.press('Shift+Tab');
+                            await waitForAllChartUpdates(page);
                             await expect(tooltipLocator).toHaveCount(2);
                             await expect(tooltipLocator.nth(0)).toBeVisible();
                             await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -306,6 +316,7 @@ test.describe('synchronised', () => {
                             await page.keyboard.press('ArrowRight');
                             await page.keyboard.press('ArrowRight');
                             await page.keyboard.press('ArrowRight');
+                            await waitForAllChartUpdates(page);
                             await expect(tooltipLocator).toHaveCount(2);
                             await expect(tooltipLocator.nth(0)).toBeVisible();
                             await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -326,6 +337,7 @@ test.describe('synchronised', () => {
                             await page.keyboard.press('Tab');
                             await page.keyboard.press('ArrowDown'); // Force 2nd set of y-axis crosshairs to render
                             await page.keyboard.press('ArrowUp'); // 1st series.
+                            await waitForAllChartUpdates(page);
                             await expect(crosshairLocator).toHaveCount(4);
 
                             await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -340,6 +352,7 @@ test.describe('synchronised', () => {
                             ]);
 
                             await page.keyboard.press('ArrowDown'); // 2nd series, different y-axis.
+                            await waitForAllChartUpdates(page);
                             await expect(crosshairLocator.nth(0)).not.toBeVisible();
                             await expect(crosshairLocator.nth(1)).toBeVisible();
                             await expect(crosshairLocator.nth(2)).not.toBeVisible();
@@ -352,6 +365,7 @@ test.describe('synchronised', () => {
                             ]);
 
                             await page.keyboard.press('ArrowDown'); // 3rd series.
+                            await waitForAllChartUpdates(page);
                             await expect(crosshairLocator.nth(0)).not.toBeVisible();
                             await expect(crosshairLocator.nth(1)).toBeVisible();
                             await expect(crosshairLocator.nth(2)).not.toBeVisible();
@@ -364,6 +378,7 @@ test.describe('synchronised', () => {
                             ]);
 
                             await page.keyboard.press('ArrowRight'); // 3rd series, 2nd datum.
+                            await waitForAllChartUpdates(page);
                             await expect(crosshairLocator.nth(0)).not.toBeVisible();
                             await expect(crosshairLocator.nth(1)).toBeVisible();
                             await expect(crosshairLocator.nth(2)).not.toBeVisible();
@@ -381,21 +396,20 @@ test.describe('synchronised', () => {
                         test('should not replicate crosshair for hidden series', async ({ page }) => {
                             await gotoExample(page, url);
 
-                            const wrappers = page.locator(SELECTORS.wrapper);
                             const legendLocator = page.locator(SELECTORS.legendItems);
                             const crosshairLocator = page.locator(
                                 `${SELECTORS.crosshairLabel}[data-key="yKey"] .ag-charts-crosshair-label-content`
                             );
 
                             await legendLocator.nth(3).click(); // Hide the 1st series on the 2nd chart.
-                            await waitForChartUpdate(wrappers.nth(0));
-                            await waitForChartUpdate(wrappers.nth(1));
+                            await waitForAllChartUpdates(page);
 
                             await page.keyboard.press('Shift+Tab');
                             await page.keyboard.press('Shift+Tab');
                             await page.keyboard.press('Shift+Tab');
                             await page.keyboard.press('ArrowDown'); // Force 2nd set of y-axis crosshairs to render
                             await page.keyboard.press('ArrowUp'); // 1st series.
+                            await waitForAllChartUpdates(page);
 
                             await expect(crosshairLocator).toHaveCount(3);
                             await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -426,6 +440,7 @@ test.describe('synchronised', () => {
                             await page.keyboard.press('ArrowRight');
                             await page.keyboard.press('ArrowRight');
                             await page.keyboard.press('ArrowRight'); // 1st series, 7th datum.
+                            await waitForAllChartUpdates(page);
 
                             await expect(crosshairLocator).toHaveCount(4);
                             await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -441,6 +456,7 @@ test.describe('synchronised', () => {
                             await expect(page).toHaveScreenshot(`${example}-crosshair-missing-data-1.png`);
 
                             await page.keyboard.press('ArrowDown'); // 2nd series.
+                            await waitForAllChartUpdates(page);
                             await expect(crosshairLocator).toHaveCount(4);
                             await expect(crosshairLocator.nth(0)).not.toBeVisible();
                             await expect(crosshairLocator.nth(1)).toBeVisible();
@@ -483,6 +499,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('ArrowDown'); // Activate tooltips on all charts so they are present.
                 await page.keyboard.press('ArrowUp');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -494,6 +511,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('ArrowDown');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -506,6 +524,7 @@ test.describe('synchronised', () => {
 
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Tab');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -517,6 +536,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('ArrowDown');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).not.toBeVisible();
                 await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -529,6 +549,7 @@ test.describe('synchronised', () => {
 
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Tab');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -540,6 +561,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('ArrowDown');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).not.toBeVisible();
                 await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -556,7 +578,6 @@ test.describe('synchronised', () => {
             test('should not replicate tooltip for hidden series', async ({ page }) => {
                 await gotoExample(page, url);
 
-                const wrappers = page.locator(SELECTORS.wrapper);
                 const tooltipLocator = page.locator(SELECTORS.tooltip);
 
                 await page.keyboard.press('Tab');
@@ -564,14 +585,13 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Space'); // Hide the 1st series on the 2nd chart.
-                await waitForChartUpdate(wrappers.nth(0));
-                await waitForChartUpdate(wrappers.nth(1));
-                await waitForChartUpdate(wrappers.nth(2));
+                await waitForAllChartUpdates(page);
 
                 await page.keyboard.press('Shift+Tab');
                 await page.keyboard.press('Shift+Tab');
                 await page.keyboard.press('Shift+Tab');
                 await page.keyboard.press('ArrowDown');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -597,6 +617,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -618,6 +639,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('ArrowDown'); // Force all crosshairs to render
                 await page.keyboard.press('ArrowUp'); // 1st series.
+                await waitForAllChartUpdates(page);
                 await expect(crosshairLocator).toHaveCount(3);
 
                 await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -630,6 +652,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('ArrowDown'); // 2nd series.
+                await waitForAllChartUpdates(page);
                 await expect(crosshairLocator.nth(0)).toBeVisible();
                 await expect(crosshairLocator.nth(1)).toBeVisible();
                 await expect(crosshairLocator.nth(2)).not.toBeVisible();
@@ -645,7 +668,6 @@ test.describe('synchronised', () => {
             test('should not replicate crosshair for hidden series', async ({ page }) => {
                 await gotoExample(page, url);
 
-                const wrappers = page.locator(SELECTORS.wrapper);
                 const crosshairLocator = page.locator(
                     `${SELECTORS.crosshairLabel}[data-key="yKey"] .ag-charts-crosshair-label-content`
                 );
@@ -655,15 +677,14 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Space'); // Hide the 1st series on the 2nd chart.
-                await waitForChartUpdate(wrappers.nth(0));
-                await waitForChartUpdate(wrappers.nth(1));
-                await waitForChartUpdate(wrappers.nth(2));
+                await waitForAllChartUpdates(page);
 
                 await page.keyboard.press('Shift+Tab');
                 await page.keyboard.press('Shift+Tab');
                 await page.keyboard.press('Shift+Tab');
 
                 await page.keyboard.press('ArrowDown'); // 2nd series.
+                await waitForAllChartUpdates(page);
 
                 await expect(crosshairLocator).toHaveCount(3);
                 await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -693,6 +714,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight'); // 1st series, 7th datum.
+                await waitForAllChartUpdates(page);
 
                 await expect(crosshairLocator).toHaveCount(3);
                 await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -706,6 +728,7 @@ test.describe('synchronised', () => {
                 await expect(page).toHaveScreenshot('multi-key-crosshair-missing-data-1.png');
 
                 await page.keyboard.press('ArrowDown'); // 2nd series.
+                await waitForAllChartUpdates(page);
                 await expect(crosshairLocator).toHaveCount(3);
                 await expect(crosshairLocator.nth(0)).toBeVisible();
                 await expect(crosshairLocator.nth(1)).not.toBeVisible();
@@ -743,6 +766,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('ArrowDown'); // Activate tooltips on all charts so they are present.
                 await page.keyboard.press('ArrowUp');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -754,6 +778,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('ArrowDown');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -766,6 +791,7 @@ test.describe('synchronised', () => {
 
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Tab');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -777,6 +803,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('ArrowDown');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).not.toBeVisible();
                 await expect(tooltipLocator.nth(1)).toBeVisible();
@@ -789,6 +816,7 @@ test.describe('synchronised', () => {
 
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Tab');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -805,7 +833,6 @@ test.describe('synchronised', () => {
             test('should not replicate tooltip for hidden series', async ({ page }) => {
                 await gotoExample(page, url);
 
-                const wrappers = page.locator(SELECTORS.wrapper);
                 const tooltipLocator = page.locator(SELECTORS.tooltip);
 
                 await page.keyboard.press('Tab');
@@ -813,14 +840,13 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Space'); // Hide the 1st series on the 2nd chart.
-                await waitForChartUpdate(wrappers.nth(0));
-                await waitForChartUpdate(wrappers.nth(1));
-                await waitForChartUpdate(wrappers.nth(2));
+                await waitForAllChartUpdates(page);
 
                 await page.keyboard.press('Shift+Tab');
                 await page.keyboard.press('Shift+Tab');
                 await page.keyboard.press('Shift+Tab');
                 await page.keyboard.press('ArrowDown');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -846,6 +872,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
+                await waitForAllChartUpdates(page);
                 await expect(tooltipLocator).toHaveCount(3);
                 await expect(tooltipLocator.nth(0)).toBeVisible();
                 await expect(tooltipLocator.nth(1)).not.toBeVisible();
@@ -867,6 +894,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('ArrowDown'); // Force all crosshairs to render
                 await page.keyboard.press('ArrowUp'); // 1st series.
+                await waitForAllChartUpdates(page);
                 await expect(crosshairLocator).toHaveCount(3);
 
                 await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -879,6 +907,7 @@ test.describe('synchronised', () => {
                 ]);
 
                 await page.keyboard.press('ArrowDown'); // 2nd series.
+                await waitForAllChartUpdates(page);
                 await expect(crosshairLocator.nth(0)).toBeVisible();
                 await expect(crosshairLocator.nth(1)).toBeVisible();
                 await expect(crosshairLocator.nth(2)).not.toBeVisible();
@@ -894,7 +923,6 @@ test.describe('synchronised', () => {
             test('should not replicate crosshair for hidden series', async ({ page }) => {
                 await gotoExample(page, url);
 
-                const wrappers = page.locator(SELECTORS.wrapper);
                 const crosshairLocator = page.locator(
                     `${SELECTORS.crosshairLabel}[data-key="yKey"] .ag-charts-crosshair-label-content`
                 );
@@ -904,15 +932,14 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Space'); // Hide the 1st series on the 2nd chart.
-                await waitForChartUpdate(wrappers.nth(0));
-                await waitForChartUpdate(wrappers.nth(1));
-                await waitForChartUpdate(wrappers.nth(2));
+                await waitForAllChartUpdates(page);
 
                 await page.keyboard.press('Shift+Tab');
                 await page.keyboard.press('Shift+Tab');
                 await page.keyboard.press('Shift+Tab');
 
                 await page.keyboard.press('ArrowDown'); // 2nd series.
+                await waitForAllChartUpdates(page);
 
                 await expect(crosshairLocator).toHaveCount(3);
                 await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -942,6 +969,7 @@ test.describe('synchronised', () => {
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight'); // 1st series, 7th datum.
+                await waitForAllChartUpdates(page);
 
                 await expect(crosshairLocator).toHaveCount(3);
                 await expect(crosshairLocator.nth(0)).toBeVisible();
@@ -955,6 +983,7 @@ test.describe('synchronised', () => {
                 await expect(page).toHaveScreenshot('mixed-key-crosshair-missing-data-1.png');
 
                 await page.keyboard.press('ArrowDown'); // 2nd series.
+                await waitForAllChartUpdates(page);
                 await expect(crosshairLocator).toHaveCount(3);
                 await expect(crosshairLocator.nth(0)).toBeVisible();
                 await expect(crosshairLocator.nth(1)).not.toBeVisible();
