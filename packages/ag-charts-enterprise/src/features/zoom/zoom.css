@@ -46,7 +46,7 @@
             margin-left: var(--toolbar-gap);
         }
 
-        .ag-charts-zoom-buttons__toolbar--hidden {
+        &.ag-charts-zoom-buttons__toolbar--hidden {
             opacity: 0;
             transition:
                 opacity 0.4s ease-in-out,
