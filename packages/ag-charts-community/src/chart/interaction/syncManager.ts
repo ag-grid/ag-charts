@@ -31,6 +31,7 @@ export type SyncChartLike = {
     syncStatus: SyncStatus;
     modulesManager: { getModule<R>(module: string): R | undefined };
     seriesAreaBoundingBox: BBox;
+    tooltip: { enabled: boolean };
     ctx: {
         highlightManager: HighlightManager;
         tooltipManager: TooltipManager;
