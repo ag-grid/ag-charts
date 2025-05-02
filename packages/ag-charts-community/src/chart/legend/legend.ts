@@ -177,6 +177,7 @@ const fillPatternDefaults: RequiredInternalAgPatternColor = {
 const fillImageDefaults: RequiredInternalAgImageFill = {
     type: 'image',
     backgroundFill: 'black',
+    backgroundFillOpacity: 1,
     rotation: 0,
     repetition: 'no-repeat',
     fit: 'contain',

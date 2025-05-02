@@ -94,6 +94,7 @@ export function getShapeFill(
             width: fill.width,
             height: fill.height,
             backgroundFill: fill.backgroundFill ?? defaultImage.backgroundFill,
+            backgroundFillOpacity: fill.backgroundFillOpacity ?? defaultImage.backgroundFillOpacity,
             rotation: fill.rotation ?? defaultImage.rotation,
             repetition: fill.repetition ?? defaultImage.repetition,
             fit: fill.fit ?? defaultImage.fit,

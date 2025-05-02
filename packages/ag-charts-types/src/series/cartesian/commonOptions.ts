@@ -96,6 +96,8 @@ export interface AgImageFill {
     url: string;
     /** The colour for filling the background in the pattern. */
     backgroundFill?: CssColor;
+    /** The colour for filling the background in the pattern. */
+    backgroundFillOpacity?: Ratio;
     /** Height of the image. */
     width?: number;
     /** Width of the image. */

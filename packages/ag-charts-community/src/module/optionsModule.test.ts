@@ -447,6 +447,7 @@ describe('ChartOptions', () => {
     },
     "fillImageDefaults": {
       "backgroundFill": "#5090dc",
+      "backgroundFillOpacity": 1,
       "fit": "contain",
       "repetition": "no-repeat",
       "rotation": 0,
@@ -524,6 +525,7 @@ describe('ChartOptions', () => {
     },
     "fillImageDefaults": {
       "backgroundFill": "#ffa03a",
+      "backgroundFillOpacity": 1,
       "fit": "contain",
       "repetition": "no-repeat",
       "rotation": 0,
@@ -601,6 +603,7 @@ describe('ChartOptions', () => {
     },
     "fillImageDefaults": {
       "backgroundFill": "#459d55",
+      "backgroundFillOpacity": 1,
       "fit": "contain",
       "repetition": "no-repeat",
       "rotation": 0,
@@ -678,6 +681,7 @@ describe('ChartOptions', () => {
     },
     "fillImageDefaults": {
       "backgroundFill": "#34bfe1",
+      "backgroundFillOpacity": 1,
       "fit": "contain",
       "repetition": "no-repeat",
       "rotation": 0,
@@ -769,6 +773,7 @@ describe('ChartOptions', () => {
       },
       "fillImageDefaults": {
         "backgroundFill": "#e1cc00",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -841,6 +846,7 @@ describe('ChartOptions', () => {
       },
       "fillImageDefaults": {
         "backgroundFill": "#9669cb",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -910,6 +916,7 @@ describe('ChartOptions', () => {
     },
     "fillImageDefaults": {
       "backgroundFill": "#5090dc",
+      "backgroundFillOpacity": 1,
       "fit": "contain",
       "repetition": "no-repeat",
       "rotation": 0,
@@ -987,6 +994,7 @@ describe('ChartOptions', () => {
     },
     "fillImageDefaults": {
       "backgroundFill": "#ffa03a",
+      "backgroundFillOpacity": 1,
       "fit": "contain",
       "repetition": "no-repeat",
       "rotation": 0,
@@ -1064,6 +1072,7 @@ describe('ChartOptions', () => {
     },
     "fillImageDefaults": {
       "backgroundFill": "#459d55",
+      "backgroundFillOpacity": 1,
       "fit": "contain",
       "repetition": "no-repeat",
       "rotation": 0,
@@ -1141,6 +1150,7 @@ describe('ChartOptions', () => {
     },
     "fillImageDefaults": {
       "backgroundFill": "#34bfe1",
+      "backgroundFillOpacity": 1,
       "fit": "contain",
       "repetition": "no-repeat",
       "rotation": 0,
@@ -1232,6 +1242,7 @@ describe('ChartOptions', () => {
       },
       "fillImageDefaults": {
         "backgroundFill": "#e1cc00",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -1304,6 +1315,7 @@ describe('ChartOptions', () => {
       },
       "fillImageDefaults": {
         "backgroundFill": "#9669cb",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -1373,6 +1385,7 @@ describe('ChartOptions', () => {
     },
     "fillImageDefaults": {
       "backgroundFill": "#5090dc",
+      "backgroundFillOpacity": 1,
       "fit": "contain",
       "repetition": "no-repeat",
       "rotation": 0,
@@ -1450,6 +1463,7 @@ describe('ChartOptions', () => {
     },
     "fillImageDefaults": {
       "backgroundFill": "#ffa03a",
+      "backgroundFillOpacity": 1,
       "fit": "contain",
       "repetition": "no-repeat",
       "rotation": 0,
@@ -1527,6 +1541,7 @@ describe('ChartOptions', () => {
     },
     "fillImageDefaults": {
       "backgroundFill": "#459d55",
+      "backgroundFillOpacity": 1,
       "fit": "contain",
       "repetition": "no-repeat",
       "rotation": 0,
@@ -1604,6 +1619,7 @@ describe('ChartOptions', () => {
     },
     "fillImageDefaults": {
       "backgroundFill": "#34bfe1",
+      "backgroundFillOpacity": 1,
       "fit": "contain",
       "repetition": "no-repeat",
       "rotation": 0,
@@ -1695,6 +1711,7 @@ describe('ChartOptions', () => {
       },
       "fillImageDefaults": {
         "backgroundFill": "#e1cc00",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -1767,6 +1784,7 @@ describe('ChartOptions', () => {
       },
       "fillImageDefaults": {
         "backgroundFill": "#9669cb",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,

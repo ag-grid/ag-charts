@@ -593,6 +593,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             {
                 type: 'image',
                 backgroundFill: defaultPatternFill,
+                backgroundFillOpacity: 1,
                 fit: 'contain',
                 repetition: 'no-repeat',
                 rotation: 0,
