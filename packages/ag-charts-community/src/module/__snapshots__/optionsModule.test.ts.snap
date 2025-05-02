@@ -4,23 +4,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
 {
   "axes": [
     {
-      "division": {
-        "enabled": false,
-        "label": {
-          "avoidCollisions": true,
-          "color": "#3f7cbf",
-          "fontFamily": "Impact, Charcoal, Sans-Serif",
-          "fontSize": 14,
-          "fontWeight": "bold",
-          "spacing": 11,
-        },
-        "tick": {
-          "enabled": true,
-          "size": 6,
-          "stroke": "#3f7cbf",
-          "width": 3,
-        },
-      },
       "gridLine": {
         "enabled": true,
         "style": [
@@ -66,6 +49,23 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "width": 1,
       },
       "nice": false,
+      "parentLevel": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#3f7cbf",
+          "fontFamily": "Impact, Charcoal, Sans-Serif",
+          "fontSize": 14,
+          "fontWeight": "bold",
+          "spacing": 11,
+        },
+        "tick": {
+          "enabled": true,
+          "size": 6,
+          "stroke": "#3f7cbf",
+          "width": 3,
+        },
+      },
       "position": "top",
       "tick": {
         "enabled": true,
@@ -2866,24 +2866,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
 {
   "axes": [
     {
-      "division": {
-        "enabled": false,
-        "label": {
-          "avoidCollisions": true,
-          "color": "#464646",
-          "fontFamily": "Verdana, sans-serif",
-          "fontSize": 12,
-          "fontWeight": "bold",
-          "format": "%d/%m",
-          "spacing": 11,
-        },
-        "tick": {
-          "enabled": false,
-          "size": 6,
-          "stroke": "#c3c3c3",
-          "width": 1,
-        },
-      },
       "gridLine": {
         "enabled": false,
         "style": [
@@ -2907,6 +2889,24 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "enabled": true,
         "stroke": "#c3c3c3",
         "width": 1,
+      },
+      "parentLevel": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "format": "%d/%m",
+          "spacing": 11,
+        },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
       },
       "position": "bottom",
       "tick": {
@@ -10892,23 +10892,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
 {
   "axes": [
     {
-      "division": {
-        "enabled": false,
-        "label": {
-          "avoidCollisions": true,
-          "color": "#464646",
-          "fontFamily": "Verdana, sans-serif",
-          "fontSize": 12,
-          "fontWeight": "bold",
-          "spacing": 11,
-        },
-        "tick": {
-          "enabled": false,
-          "size": 6,
-          "stroke": "#c3c3c3",
-          "width": 1,
-        },
-      },
       "gridLine": {
         "enabled": false,
         "style": [
@@ -10941,6 +10924,23 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "enabled": true,
         "stroke": "#c3c3c3",
         "width": 1,
+      },
+      "parentLevel": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "spacing": 11,
+        },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
       },
       "position": "bottom",
       "tick": {
@@ -12120,23 +12120,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
 {
   "axes": [
     {
-      "division": {
-        "enabled": false,
-        "label": {
-          "avoidCollisions": true,
-          "color": "#464646",
-          "fontFamily": "Verdana, sans-serif",
-          "fontSize": 12,
-          "fontWeight": "bold",
-          "spacing": 11,
-        },
-        "tick": {
-          "enabled": false,
-          "size": 6,
-          "stroke": "#c3c3c3",
-          "width": 1,
-        },
-      },
       "gridLine": {
         "enabled": false,
         "style": [
@@ -12177,6 +12160,23 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "enabled": true,
         "stroke": "#c3c3c3",
         "width": 1,
+      },
+      "parentLevel": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "spacing": 11,
+        },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
       },
       "position": "bottom",
       "tick": {
@@ -12990,24 +12990,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
 {
   "axes": [
     {
-      "division": {
-        "enabled": false,
-        "label": {
-          "avoidCollisions": true,
-          "color": "#464646",
-          "fontFamily": "Verdana, sans-serif",
-          "fontSize": 12,
-          "fontWeight": "bold",
-          "format": "%b",
-          "spacing": 11,
-        },
-        "tick": {
-          "enabled": false,
-          "size": 6,
-          "stroke": "#c3c3c3",
-          "width": 1,
-        },
-      },
       "gridLine": {
         "enabled": false,
         "style": [
@@ -13049,6 +13031,24 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": true,
         "stroke": "#c3c3c3",
         "width": 1,
+      },
+      "parentLevel": {
+        "enabled": false,
+        "label": {
+          "avoidCollisions": true,
+          "color": "#464646",
+          "fontFamily": "Verdana, sans-serif",
+          "fontSize": 12,
+          "fontWeight": "bold",
+          "format": "%b",
+          "spacing": 11,
+        },
+        "tick": {
+          "enabled": false,
+          "size": 6,
+          "stroke": "#c3c3c3",
+          "width": 1,
+        },
       },
       "position": "bottom",
       "tick": {
