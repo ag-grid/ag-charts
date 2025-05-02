@@ -71,13 +71,14 @@ export class Text<D = any> extends Shape<D> {
     lineHeight?: number;
 
     static computeBBox(lines: string | string[], x: number, y: number, opts: MeasureOptions): BBox {
-        const { offsetTop, offsetLeft, width, height } = CachedTextMeasurerPool.measureLines(lines, opts);
+        const { offsetTop, offsetLeft, width, height: exactHeight } = CachedTextMeasurerPool.measureLines(lines, opts);
+        const height = opts.lineHeight ? opts.lineHeight * lines.length : exactHeight;
         return new BBox(x - offsetLeft, y - offsetTop, width, height);
     }
 
     protected override computeBBox(): BBox {
-        const { x, y, lines, textBaseline, textAlign } = this;
-        return Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign });
+        const { x, y, lines, textBaseline, textAlign, lineHeight } = this;
+        return Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign, lineHeight });
     }
 
     isPointInPath(x: number, y: number): boolean {

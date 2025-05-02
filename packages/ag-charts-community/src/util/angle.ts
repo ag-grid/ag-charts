@@ -92,3 +92,12 @@ export function getAngleRatioRadians(angle: number): number {
         return (twoPi - normalizedAngle) / halfPi;
     }
 }
+
+export function angularPadding(hPadding: number, vPadding: number, angle: number) {
+    const angleRatio = getAngleRatioRadians(angle);
+    return hPadding * angleRatio + vPadding * Math.abs(1 - angleRatio);
+}
+
+export function normalizeAngle360FromDegrees(degrees?: number): number {
+    return degrees ? normalizeAngle360(toRadians(degrees)) : 0;
+}

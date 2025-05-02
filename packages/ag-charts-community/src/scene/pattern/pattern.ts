@@ -1,7 +1,7 @@
 import { type InternalAgPatternColor, type RequiredInternalAgPatternColor, createSvgElement } from 'ag-charts-core';
 import type { AgPatternName, CssColor } from 'ag-charts-types';
 
-import { normalizeAngle360, toRadians } from '../../util/angle';
+import { normalizeAngle360FromDegrees } from '../../util/angle';
 import { parseSvg } from '../../util/svg';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import { ExtendedPath2D } from '../extendedPath2D';
@@ -98,7 +98,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     }
 
     setPatternTransform(pattern: CanvasPattern | null | undefined, pixelRatio: number, tx: number = 0, ty: number = 0) {
-        const angle = normalizeAngle360(toRadians(this.rotation));
+        const angle = normalizeAngle360FromDegrees(this.rotation);
         const scale = 1 / pixelRatio;
         const cos = Math.cos(angle) * scale;
         const sin = Math.sin(angle) * scale;
