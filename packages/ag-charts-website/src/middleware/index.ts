@@ -5,7 +5,7 @@ import * as prettier from 'prettier';
 const env = import.meta.env;
 
 const rewriteAstroGeneratedContent = (body: string) => {
-    const html = parse(body);
+    const html = parse(body, { comment: true });
 
     // In dev, add public site url base for all scripts, so it works in external sites
     if (env.DEV) {

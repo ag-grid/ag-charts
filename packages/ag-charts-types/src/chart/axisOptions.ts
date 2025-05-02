@@ -133,7 +133,7 @@ export interface AgAxisLabelFormatterParams {
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;
-    readonly timeInterval?: TimeIntervalUnit;
+    readonly unit?: TimeIntervalUnit;
     readonly boundSeries: AgAxisBoundSeries[];
     readonly domain: any[];
 }
@@ -163,7 +163,7 @@ export interface AgNumericAxisFormattableLabelOptions extends AgBaseAxisLabelOpt
     format?: string;
 }
 
-export interface AgTimeAxisFormattableLabelFormat {
+export interface AgTimeAxisFormattableLabelUnitFormat {
     millisecond?: string;
     second?: string;
     hour?: string;
@@ -172,9 +172,11 @@ export interface AgTimeAxisFormattableLabelFormat {
     year?: string;
 }
 
+export type AgTimeAxisFormattableLabelFormat = string | AgTimeAxisFormattableLabelUnitFormat;
+
 export interface AgTimeAxisFormattableLabelOptions extends AgBaseAxisLabelOptions {
     /** Format string used when rendering labels. */
-    format?: string | AgTimeAxisFormattableLabelFormat;
+    format?: AgTimeAxisFormattableLabelFormat;
 }
 
 export type AgFormattableLabelOptions = AgNumericAxisFormattableLabelOptions & AgTimeAxisFormattableLabelOptions;

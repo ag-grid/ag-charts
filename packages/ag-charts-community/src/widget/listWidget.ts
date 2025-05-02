@@ -1,11 +1,12 @@
 import { createElement, setAttribute, setElementStyle } from 'ag-charts-core';
 
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
+import type { SwitchWidget } from './switchWidget';
 import { type BeforeWidget, Widget } from './widget';
 
-type TChildWidget = Parameters<RovingTabContainerWidget['addChildToDOM']>[0];
+type TChildWidget = SwitchWidget;
 
-export class ListWidget extends RovingTabContainerWidget {
+export class ListWidget extends RovingTabContainerWidget<TChildWidget> {
     constructor() {
         super('both', 'list');
         this.setHidden(true);

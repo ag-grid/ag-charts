@@ -1,3 +1,5 @@
+import type { StrictHTMLElement } from 'ag-charts-core';
+
 import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import { HistoryManager } from '../api/state/historyManager';
 import { StateManager } from '../api/state/stateManager';
@@ -105,7 +107,7 @@ export class ChartContext implements ModuleContext {
             'canvas',
             'scene-canvas',
             scene?.canvas.element
-        ) as HTMLCanvasElement;
+        ) as HTMLCanvasElement & StrictHTMLElement;
 
         this.scene = scene ?? new Scene({ canvasElement });
         this.scene.setRoot(root);

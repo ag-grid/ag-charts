@@ -21,13 +21,14 @@ HTMLCollection [
       role="menu"
       tabindex="-1"
     >
-      <button
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="0"
       >
         Download
-      </button>
+      </div>
     </div>
   </div>,
 ]
@@ -45,13 +46,14 @@ HTMLCollection [
       role="menu"
       tabindex="-1"
     >
-      <button
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="0"
       >
         Download
-      </button>
+      </div>
     </div>
   </div>,
 ]
@@ -69,27 +71,30 @@ HTMLCollection [
       role="menu"
       tabindex="-1"
     >
-      <button
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="0"
       >
         Download
-      </button>
-      <button
+      </div>
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="-1"
       >
         Toggle Visibility
-      </button>
-      <button
+      </div>
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="-1"
       >
         Toggle Other Series
-      </button>
+      </div>
     </div>
   </div>,
 ]
@@ -107,29 +112,65 @@ HTMLCollection [
       role="menu"
       tabindex="-1"
     >
-      <button
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="0"
       >
         Download
-      </button>
-      <button
+      </div>
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="-1"
       >
         Toggle Visibility
-      </button>
-      <button
+      </div>
+      <div
         aria-disabled="false"
         class="ag-charts-context-menu__item"
+        role="menuitem"
         tabindex="-1"
       >
         Toggle Other Series
-      </button>
+      </div>
     </div>
   </div>,
+]
+`;
+
+exports[`Context Menu submenu cycle detection 1`] = `
+[
+  [
+    "AG Charts - cycle detected in array",
+    {
+      "items": [
+        {
+          "action": [Function],
+          "label": "subaction",
+          "type": "action",
+        },
+        {
+          "items": [
+            "defaults",
+            "separator",
+            {
+              "action": [Function],
+              "label": "my action",
+              "type": "action",
+            },
+            [Circular],
+          ],
+          "label": "subsubmenu",
+          "type": "submenu",
+        },
+      ],
+      "label": "my submenu",
+      "type": "submenu",
+    },
+  ],
 ]
 `;
 

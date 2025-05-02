@@ -1436,7 +1436,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
                 horizontalAxis.type === 'unit-time' ||
                 horizontalAxis.type === 'ordinal-time'
             ) {
-                (horizontalAxis as TimeAxis).division.enabled = false;
+                (horizontalAxis as TimeAxis).parentLevel.enabled = false;
             }
 
             const step = intervalOptions?.step;

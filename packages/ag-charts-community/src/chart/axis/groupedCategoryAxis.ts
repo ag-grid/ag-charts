@@ -388,7 +388,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 minTickCount: 0,
                 maxTickCount: Infinity,
             })
-            .map((t, index) => ({
+            .ticks.map((t, index) => ({
                 tickId: createDatumId(t, index),
                 offset: Math.round(tickScale.convert(t)),
             }));

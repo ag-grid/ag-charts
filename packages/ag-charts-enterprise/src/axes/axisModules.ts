@@ -40,7 +40,7 @@ const {
     commonCrossLineLabelOptionsDefs,
     numberFormatValidator,
     cartesianTimeAxisLabel,
-    cartesianTimeAxisDivision,
+    cartesianTimeAxisParentLevel,
 } = _ModuleSupport;
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
@@ -50,7 +50,7 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
     paddingOuter: ratio,
     groupPaddingInner: ratio,
     label: cartesianTimeAxisLabel,
-    division: cartesianTimeAxisDivision,
+    parentLevel: cartesianTimeAxisParentLevel,
     interval: continuousAxisOptions(or(number, date), true).interval,
     crosshair: cartesianAxisCrosshairOptions(true),
 };

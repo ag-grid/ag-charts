@@ -215,10 +215,7 @@ export function sparklineDataPreset(data: any[] | undefined): {
     return { data };
 }
 
-function axisPreset(
-    opts: AgSparklineAxisOptions | undefined,
-    defaultType: AgCartesianAxisOptions['type']
-): AgCartesianAxisOptions {
+function axisPreset(opts: AgSparklineAxisOptions | undefined): AgCartesianAxisOptions {
     switch (opts?.type) {
         case 'number': {
             const { type, min, max, reverse } = opts;
@@ -238,18 +235,19 @@ function axisPreset(
                 max,
             });
         }
-        case 'category': {
-            const { type, paddingInner, paddingOuter, reverse } = opts;
-            return pickProps<Pick<AgCategoryAxisOptions, 'type' | 'reverse' | 'paddingInner' | 'paddingOuter'>>(opts, {
-                type,
-                reverse,
-                paddingInner,
-                paddingOuter,
-            });
-        }
+        case 'category':
+        default:
+            const { paddingInner, paddingOuter, reverse } = opts ?? {};
+            return pickProps<Pick<AgCategoryAxisOptions, 'type' | 'reverse' | 'paddingInner' | 'paddingOuter'>>(
+                { ...opts, type: 'category' },
+                {
+                    type: 'category',
+                    reverse,
+                    paddingInner,
+                    paddingOuter,
+                }
+            );
     }
-
-    return { type: defaultType };
 }
 
 function gridLinePreset(
@@ -371,7 +369,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     const [xAxisPosition, yAxisPosition] = swapAxes ? (['bottom', 'left'] as const) : (['left', 'bottom'] as const);
 
     const xAxis: AgCartesianAxisOptions = {
-        ...axisPreset(axis, 'category'),
+        ...axisPreset(axis),
         position: xAxisPosition,
         ...pickProps<Pick<AgCartesianAxisOptions, 'crosshair'>>(opts, { crosshair }),
     };

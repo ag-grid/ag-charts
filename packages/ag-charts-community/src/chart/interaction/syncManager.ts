@@ -31,6 +31,7 @@ export type SyncChartLike = {
     syncStatus: SyncStatus;
     modulesManager: { getModule<R>(module: string): R | undefined };
     seriesAreaBoundingBox: BBox;
+    tooltip: { enabled: boolean };
     ctx: {
         highlightManager: HighlightManager;
         tooltipManager: TooltipManager;
@@ -102,12 +103,6 @@ export class SyncManager extends BaseManager {
 
     getGroupSiblings(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         return this.getGroupMembers(groupId).filter((chart) => chart !== this.chart);
-    }
-
-    getGroupSiblingAxes(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
-        return this.getGroupMembers(groupId)
-            .map((chart) => chart.axes.map((axis) => [chart, axis] as const))
-            .flat(1);
     }
 
     private get(groupId: GroupId) {

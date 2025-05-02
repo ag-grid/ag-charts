@@ -1,4 +1,12 @@
-import { createElement, createId, entries, getDocument, getWindow, setAttribute } from 'ag-charts-core';
+import {
+    type StrictHTMLElement,
+    createElement,
+    createId,
+    entries,
+    getDocument,
+    getWindow,
+    setAttribute,
+} from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
 import { BBox } from '../scene/bbox';
@@ -60,7 +68,7 @@ function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => 
 type Events = { readonly type: 'hidden' } | { readonly type: 'resize' } | { readonly type: 'container-changed' };
 type LiveDOMElement = {
     element: HTMLElement;
-    children: Map<string, HTMLElement>;
+    children: Map<string, StrictHTMLElement>;
     listeners: [string, Function, boolean | AddEventListenerOptions | undefined][];
 };
 
@@ -191,7 +199,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
             rootElements[domElement] = {
                 element: el,
-                children: new Map<string, HTMLElement>(),
+                children: new Map<string, StrictHTMLElement>(),
                 listeners: [],
             };
         }
@@ -590,7 +598,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             throw new Error('AG Charts - mismatching DOM element type');
         }
 
-        const newChild = child ?? createElement(childElementType);
+        // Only allow return values from createElementId() to be used for newChild.id
+        const newChild = (child ?? (createElement(childElementType) satisfies HTMLElement)) as StrictHTMLElement;
         for (const [type, fn, opts] of listeners) {
             newChild.addEventListener(type, fn as any, opts);
         }

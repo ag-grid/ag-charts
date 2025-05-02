@@ -136,23 +136,27 @@ const commonSparklineOptionsDef: OptionsDefs<
     locale: defined,
     data: defined,
 
-    axis: typeUnion<AgSparklineAxisOptions>({
-        number: {
-            ...commonSparklineAxisOptionsDef,
-            min: and(number, lessThan('max')),
-            max: and(number, greaterThan('min')),
+    axis: typeUnion<AgSparklineAxisOptions>(
+        {
+            number: {
+                ...commonSparklineAxisOptionsDef,
+                min: and(number, lessThan('max')),
+                max: and(number, greaterThan('min')),
+            },
+            category: {
+                ...commonSparklineAxisOptionsDef,
+                paddingInner: ratio,
+                paddingOuter: ratio,
+            },
+            time: {
+                ...commonSparklineAxisOptionsDef,
+                min: and(or(number, date), lessThan('max')),
+                max: and(or(number, date), greaterThan('min')),
+            },
         },
-        category: {
-            ...commonSparklineAxisOptionsDef,
-            paddingInner: ratio,
-            paddingOuter: ratio,
-        },
-        time: {
-            ...commonSparklineAxisOptionsDef,
-            min: and(or(number, date), lessThan('max')),
-            max: and(or(number, date), greaterThan('min')),
-        },
-    }),
+        'axis options',
+        'category' // AG-14799 - Contrary to the AgSparklineAxisOptions interface, type is optional and defaults to 'category'.
+    ),
     min: and(number, lessThan('max')),
     max: and(number, greaterThan('min')),
     crosshair: {
@@ -180,16 +184,19 @@ export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
     name: 'gauge-preset',
     enterprise: true,
 
-    options: typeUnion<AgGaugeOptions>({
-        'linear-gauge': {
-            ...without(linearGaugeSeriesOptionsDef, ['type']),
-            ...commonGaugeOptions,
+    options: typeUnion<AgGaugeOptions>(
+        {
+            'linear-gauge': {
+                ...without(linearGaugeSeriesOptionsDef, ['type']),
+                ...commonGaugeOptions,
+            },
+            'radial-gauge': {
+                ...without(radialGaugeSeriesOptionsDef, ['type']),
+                ...commonGaugeOptions,
+            },
         },
-        'radial-gauge': {
-            ...without(radialGaugeSeriesOptionsDef, ['type']),
-            ...commonGaugeOptions,
-        },
-    }),
+        'gauge options'
+    ),
 
     create: gauge,
 };
@@ -198,20 +205,23 @@ export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> =
     type: 'preset',
     name: 'sparkline',
 
-    options: typeUnion<AgSparklineOptions>({
-        area: {
-            ...commonSparklineOptionsDef,
-            ...without(areaSeriesOptionsDef, commonSparklineOmit),
+    options: typeUnion<AgSparklineOptions>(
+        {
+            area: {
+                ...commonSparklineOptionsDef,
+                ...without(areaSeriesOptionsDef, commonSparklineOmit),
+            },
+            bar: {
+                ...commonSparklineOptionsDef,
+                ...without(barSeriesOptionsDef, commonSparklineOmit),
+            },
+            line: {
+                ...commonSparklineOptionsDef,
+                ...without(lineSeriesOptionsDef, commonSparklineOmit),
+            },
         },
-        bar: {
-            ...commonSparklineOptionsDef,
-            ...without(barSeriesOptionsDef, commonSparklineOmit),
-        },
-        line: {
-            ...commonSparklineOptionsDef,
-            ...without(lineSeriesOptionsDef, commonSparklineOmit),
-        },
-    }),
+        'sparkline options'
+    ),
 
     create: sparkline,
     processData: sparklineDataPreset,

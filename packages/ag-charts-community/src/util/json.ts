@@ -19,7 +19,7 @@ import { SKIP_JS_BUILTINS, getPath, mergeDefaults, without } from './object';
 import { isProperties } from './properties';
 
 type StringSet = { has(value: string): boolean };
-export type CloneOptions = { shallow?: StringSet; assign?: StringSet };
+export type CloneOptions = { shallow?: StringSet; assign?: StringSet; seen?: unknown[] };
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
 
@@ -104,7 +104,7 @@ export function jsonPropertyCompare<T>(source: Partial<T>, target: T) {
  */
 export function deepClone<T>(source: T, opts?: CloneOptions): T {
     if (isArray(source)) {
-        return source.map((item) => deepClone(item, opts)) as T;
+        return cloneArray(source, opts) as T;
     }
     if (isPlainObject(source)) {
         return clonePlainObject(source, opts) as T;
@@ -113,6 +113,21 @@ export function deepClone<T>(source: T, opts?: CloneOptions): T {
         return new Map(deepClone(Array.from(source))) as T;
     }
     return shallowClone(source);
+}
+
+function cloneArray<T>(source: T[], opts?: CloneOptions): T[] {
+    const result: T[] = [];
+    const seen = opts?.seen;
+    for (const item of source) {
+        if (typeof item === 'object' && seen?.includes(item)) {
+            Logger.warn('cycle detected in array', item);
+            continue;
+        }
+        seen?.push(item);
+        result.push(deepClone(item, opts));
+        seen?.pop();
+    }
+    return result;
 }
 
 function clonePlainObject(source: PlainObject, opts?: CloneOptions) {
@@ -358,7 +373,11 @@ function jsonResolveInner<T extends object, P extends object>(
                 continue;
             }
             const node = json[key as keyof T];
-            jsonResolveInner(node, params, source, meta, skip, [...path, key], modifiedPaths);
+            if (getOperation(node)) {
+                json[key] = jsonResolveVisitorValue(node, params, source, meta, [...path, key], modifiedPaths);
+            } else {
+                jsonResolveInner(node, params, source, meta, skip, [...path, key], modifiedPaths);
+            }
         }
     }
 

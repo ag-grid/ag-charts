@@ -213,6 +213,53 @@ so that it's clear where the number format begins and ends. For example: `I'm #{
 {% /tabItem %}
 {% /tabs %}
 
+## Parent Levels
+
+The `parentLevel` option allows customising key labels of time axes. For example, every January for monthly data, or
+the start of each day for hourly data.
+
+{% chartExampleRunner title="Parent Label" name="axis-parent-label" type="generated" /%}
+
+```js
+{
+    parentLevel: {
+        enabled: true,
+    },
+}
+```
+
+### Format
+
+You can customise the format of these labels using format property. In addition to a format string, this can also be
+specified in an object mapping the granularity of axis labels to time format strings.
+
+{% chartExampleRunner title="Parent Label Format" name="axis-parent-label-format" type="generated" /%}
+
+```js
+{
+    label: {
+        format: {
+            day: '%e',
+            month: '%b',
+        }
+    },
+    parentLevel: {
+        enabled: true,
+        label: {
+            format: {
+                month: '%e\n%b',
+                year: '%b\n%Y',
+            }
+        }
+    }
+}
+```
+
+In this configuration:
+
+-   Parent labels are formatted as `day month` or `month year`, depending on the granularity.
+-   All other labels are formatted as `day` or `month`.
+
 ## Next Up
 
 Continue to the next section to learn about [Grid Lines](./axes-grid-lines/).

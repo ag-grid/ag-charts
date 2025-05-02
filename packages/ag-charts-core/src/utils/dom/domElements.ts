@@ -1,3 +1,4 @@
+import type { StrictHTMLElement } from '../attributeUtil';
 import { getDocument } from './globalsProxy';
 
 /**
@@ -11,11 +12,11 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
     tagName: K,
     className?: string,
     style?: Partial<CSSStyleDeclaration>
-): HTMLElementTagNameMap[K];
+): HTMLElementTagNameMap[K] & StrictHTMLElement;
 export function createElement<K extends keyof HTMLElementTagNameMap>(
     tagName: K,
     style?: Partial<CSSStyleDeclaration>
-): HTMLElementTagNameMap[K];
+): HTMLElementTagNameMap[K] & StrictHTMLElement;
 export function createElement<K extends keyof HTMLElementTagNameMap>(
     tagName: K,
     className?: string | Partial<CSSStyleDeclaration>,

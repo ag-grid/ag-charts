@@ -190,13 +190,44 @@ describe('Validation utils', () => {
     describe('TypeUnion Validator', () => {
         test('validates an object by the `type` property', () => {
             const isTypeUnionOfFoo = optionsDefs(
-                typeUnion<{ type: 'a'; aa?: boolean } | { type: 'b'; bb: number }>({
-                    a: { aa: boolean },
-                    b: { bb: required(number) },
-                })
+                typeUnion<{ type: 'a'; aa?: boolean } | { type: 'b'; bb: number }>(
+                    {
+                        a: { aa: boolean },
+                        b: { bb: required(number) },
+                    },
+                    'an object'
+                )
             );
             expect(runValidator(isTypeUnionOfFoo, { type: 'a', aa: true })).toBe(true);
             expect(runValidator(isTypeUnionOfFoo, { type: 'a' })).toBe(true);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'b', bb: 1 })).toBe(true);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'b' })).toBe(false);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'b', bb: false })).toBe(false);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'a', aa: 'not a boolean' })).toBe(true);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'a', bb: 1 })).toBe(true);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'c', aa: 1 })).toBe(false);
+        });
+
+        test('validates an object by the `type` property with a default type', () => {
+            const isTypeUnionOfFoo = optionsDefs(
+                typeUnion<{ type: 'a'; aa?: boolean } | { type: 'b'; bb: number }>(
+                    {
+                        a: { aa: boolean },
+                        b: { bb: required(number) },
+                    },
+                    'an object',
+                    'b' // Default type.
+                )
+            );
+
+            // Verify defaulting.
+            expect(runValidator(isTypeUnionOfFoo, {})).toBe(false);
+            expect(runValidator(isTypeUnionOfFoo, { aa: true })).toBe(false);
+            expect(runValidator(isTypeUnionOfFoo, { bb: 1 })).toBe(true);
+
+            // Verify non-defaulting cases too.
+            expect(runValidator(isTypeUnionOfFoo, { type: 'a' })).toBe(true);
+            expect(runValidator(isTypeUnionOfFoo, { type: 'a', aa: true })).toBe(true);
             expect(runValidator(isTypeUnionOfFoo, { type: 'b', bb: 1 })).toBe(true);
             expect(runValidator(isTypeUnionOfFoo, { type: 'b' })).toBe(false);
             expect(runValidator(isTypeUnionOfFoo, { type: 'b', bb: false })).toBe(false);
