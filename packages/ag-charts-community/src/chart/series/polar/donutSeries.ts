@@ -1589,6 +1589,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 datum,
                 itemId: datumIndex,
                 seriesId,
+                hideToggleOtherSeries: true,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                 label: {
                     text: labelParts.join(' - '),
