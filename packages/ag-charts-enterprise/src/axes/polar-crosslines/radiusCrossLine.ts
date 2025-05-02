@@ -8,8 +8,7 @@ const {
     Property,
     getCrossLineValue,
     validateCrossLineValue,
-    normalizeAngle360,
-    toRadians,
+    normalizeAngle360FromDegrees,
     Group,
     Path,
     Sector,
@@ -155,7 +154,7 @@ export class RadiusCrossLine extends PolarCrossLine {
             return;
         }
 
-        const angle = normalizeAngle360(toRadians((label.positionAngle ?? 0) - 90));
+        const angle = normalizeAngle360FromDegrees((label.positionAngle ?? 0) - 90);
         const isBottomSide = (isNumberEqual(angle, 0) || angle > 0) && angle < Math.PI;
         const rotation = isBottomSide ? angle - Math.PI / 2 : angle + Math.PI / 2;
 

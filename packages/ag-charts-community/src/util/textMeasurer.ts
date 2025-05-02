@@ -18,6 +18,7 @@ export interface MeasureOptions {
     font: string | FontOptions;
     textAlign?: CanvasTextAlign;
     textBaseline?: CanvasTextBaseline;
+    lineHeight?: number;
 }
 
 // Metrics for a single line of text.

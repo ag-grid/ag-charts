@@ -105,6 +105,8 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
             label: {
                 enabled: boolean,
                 avoidCollisions: boolean,
+                rotation: number,
+                spacing: number,
                 ...fontOptionsDef,
             },
             tick: {

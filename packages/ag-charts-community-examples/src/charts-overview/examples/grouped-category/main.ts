@@ -15,7 +15,7 @@ const options: AgCartesianChartOptions = {
             depthOptions: [
                 { tick: { enabled: false } },
                 { label: { fontWeight: 'bold' } },
-                { label: { fontSize: 10 } },
+                { label: { fontSize: 10, rotation: 10 } },
             ],
         },
         {
