@@ -72,7 +72,7 @@ export function isSymbol(value: unknown): value is symbol {
 }
 
 export function isColor(value: unknown): value is CssColor {
-    return isString(value) && parseColor(value) != null;
+    return isString(value) && (value === 'none' || parseColor(value) != null);
 }
 
 export function isKeyOf<T extends object>(value: keyof any, container: T): value is keyof T {
