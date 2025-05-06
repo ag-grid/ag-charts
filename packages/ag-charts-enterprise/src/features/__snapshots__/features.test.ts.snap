@@ -18,7 +18,17 @@ HTMLCollection [
         role="menuitem"
         tabindex="0"
       >
-        Download
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__label"
+        >
+          Download
+        </div>
+        <div
+          class="ag-charts-context-menu__rightarrowhead"
+        />
       </div>
       <div
         aria-disabled="false"
@@ -26,7 +36,17 @@ HTMLCollection [
         role="menuitem"
         tabindex="-1"
       >
-        Zoom to here
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__label"
+        >
+          Zoom to here
+        </div>
+        <div
+          class="ag-charts-context-menu__rightarrowhead"
+        />
       </div>
       <div
         aria-disabled="true"
@@ -34,7 +54,17 @@ HTMLCollection [
         role="menuitem"
         tabindex="-1"
       >
-        Pan to here
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__label"
+        >
+          Pan to here
+        </div>
+        <div
+          class="ag-charts-context-menu__rightarrowhead"
+        />
       </div>
     </div>
   </div>,
@@ -59,7 +89,17 @@ HTMLCollection [
         role="menuitem"
         tabindex="0"
       >
-        Download
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__label"
+        >
+          Download
+        </div>
+        <div
+          class="ag-charts-context-menu__rightarrowhead"
+        />
       </div>
       <div
         aria-disabled="false"
@@ -67,7 +107,17 @@ HTMLCollection [
         role="menuitem"
         tabindex="-1"
       >
-        Zoom to here
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__label"
+        >
+          Zoom to here
+        </div>
+        <div
+          class="ag-charts-context-menu__rightarrowhead"
+        />
       </div>
       <div
         aria-disabled="true"
@@ -75,7 +125,17 @@ HTMLCollection [
         role="menuitem"
         tabindex="-1"
       >
-        Pan to here
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__label"
+        >
+          Pan to here
+        </div>
+        <div
+          class="ag-charts-context-menu__rightarrowhead"
+        />
       </div>
     </div>
   </div>,
@@ -100,7 +160,17 @@ HTMLCollection [
         role="menuitem"
         tabindex="0"
       >
-        Download
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__label"
+        >
+          Download
+        </div>
+        <div
+          class="ag-charts-context-menu__rightarrowhead"
+        />
       </div>
       <div
         aria-disabled="true"
@@ -108,7 +178,17 @@ HTMLCollection [
         role="menuitem"
         tabindex="-1"
       >
-        Zoom to here
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__label"
+        >
+          Zoom to here
+        </div>
+        <div
+          class="ag-charts-context-menu__rightarrowhead"
+        />
       </div>
       <div
         aria-disabled="false"
@@ -116,7 +196,17 @@ HTMLCollection [
         role="menuitem"
         tabindex="-1"
       >
-        Pan to here
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__label"
+        >
+          Pan to here
+        </div>
+        <div
+          class="ag-charts-context-menu__rightarrowhead"
+        />
       </div>
     </div>
   </div>,
