@@ -316,15 +316,19 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         button.setEnabled(item.enabled);
         const label = this.ctx.localeManager.t(item.label);
 
+        const cellPaddingClass = `${DEFAULT_CONTEXT_MENU_CLASS}__cellpadding`;
         const { cellIcon, cellLabel, cellArrow } = this.initTableCells(button.getElement());
         cellLabel.textContent = label;
+        cellLabel.classList.add(cellPaddingClass);
         if (item.iconUrl != null) {
             const img = createElement('img');
             img.src = item.iconUrl;
             cellIcon.append(img);
+            cellIcon.classList.add(cellPaddingClass);
         }
         if (item.type === 'submenu') {
             cellArrow.textContent = '❯';
+            cellArrow.classList.add(cellPaddingClass);
         }
 
         const { showOn, action } = item;

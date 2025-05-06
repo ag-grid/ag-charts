@@ -22,7 +22,7 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label"
+          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
         >
           Download
         </div>
@@ -40,7 +40,7 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label"
+          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
         >
           Zoom to here
         </div>
@@ -58,7 +58,7 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label"
+          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
         >
           Pan to here
         </div>
@@ -93,7 +93,7 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label"
+          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
         >
           Download
         </div>
@@ -111,7 +111,7 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label"
+          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
         >
           Zoom to here
         </div>
@@ -129,7 +129,7 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label"
+          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
         >
           Pan to here
         </div>
@@ -164,7 +164,7 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label"
+          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
         >
           Download
         </div>
@@ -182,7 +182,7 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label"
+          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
         >
           Zoom to here
         </div>
@@ -200,7 +200,7 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label"
+          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
         >
           Pan to here
         </div>
