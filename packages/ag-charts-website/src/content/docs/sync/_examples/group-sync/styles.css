@@ -5,3 +5,17 @@
     gap: 8px;
     height: 100%;
 }
+
+.labels-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.label {
+    color: #464646;
+    font-family: Verdana, sans-serif;
+    font-size: 17px;
+    font-weight: 400;
+}

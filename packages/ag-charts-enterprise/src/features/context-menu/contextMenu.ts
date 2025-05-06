@@ -138,11 +138,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             for (const { action, label } of items) {
                 const type = 'action';
                 const iconUrl = undefined;
-                const enable = true;
+                const enabled = true;
                 // Signature typing cannot be verified at compile, because callbacks in api options are just JS
                 // functions assigned at runtime (typing info is lost).
                 action satisfies AnyFn;
-                result.push({ type, showOn, iconUrl, enable, label, action: action as AnyFn });
+                result.push({ type, showOn, iconUrl, enabled, label, action: action as AnyFn });
             }
         }
         return result;
@@ -204,13 +204,22 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.style.display = 'none';
     }
 
-    private onSubMenuOpen(button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
+    private onSubMenuOpen(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
         const bounds = button.getBounds();
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
         menu.getElement().style.position = 'absolute';
-        menu.setBounds({ x: bounds.x + bounds.width, y: bounds.y });
+
+        const buttonClientRect = button.getBoundingClientRect();
+        const remainingSpaceOnRight = window.innerWidth - buttonClientRect.right;
+        const menuOffsetWidth = menu.getElement().offsetWidth;
+
+        if (remainingSpaceOnRight >= menuOffsetWidth) {
+            menu.setBounds({ x: bounds.x + bounds.width, y: bounds.y });
+        } else {
+            menu.setBounds({ x: bounds.x - menuOffsetWidth, y: bounds.y });
+        }
     }
-    private onSubMenuClose(_button: _Widget.ButtonWidget, menu: _Widget.MenuWidget) {
+    private onSubMenuClose(_button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
         menu.remove();
     }
 
@@ -231,7 +240,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     sep.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
                     break;
                 case 'action':
-                    const btn = new _Widget.ButtonWidget();
+                    const btn = new _Widget.MenuItemWidget();
                     this.initButtonElement(btn, item);
                     menuWidget.addChild(btn);
                     break;
@@ -287,10 +296,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private initButtonElement(button: _Widget.ButtonWidget, item: ContextMenuItem) {
+    private initButtonElement(button: _Widget.MenuItemWidget, item: ContextMenuItem) {
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         button.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        button.setEnabled(item.enable);
+        button.setEnabled(item.enabled);
         button.setTextContent(this.ctx.localeManager.t(item.label));
         const { showOn, action } = item;
         if (action != null) {

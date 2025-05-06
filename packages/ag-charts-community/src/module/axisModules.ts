@@ -33,8 +33,8 @@ import {
     cartesianAxisLabelOptionsDefs,
     cartesianAxisOptionsDefs,
     cartesianNumericAxisLabel,
-    cartesianTimeAxisDivision,
     cartesianTimeAxisLabel,
+    cartesianTimeAxisParentLevel,
     continuousAxisOptions,
 } from '../chart/axesOptionsDefs';
 import { CategoryAxis } from '../chart/axis/categoryAxis';
@@ -43,7 +43,6 @@ import { LogAxis } from '../chart/axis/logAxis';
 import { NumberAxis } from '../chart/axis/numberAxis';
 import { TimeAxis } from '../chart/axis/timeAxis';
 import { UnitTimeAxis } from '../chart/axis/unitTimeAxis';
-import { without } from '../util/object';
 import { TimeInterval } from '../util/time';
 import type { ModuleContext } from './moduleContext';
 
@@ -72,9 +71,17 @@ export const timeAxisOptionsDefs: OptionsDefs<AgContinuousTimeAxisOptions> = {
     ...continuousAxisOptions(or(number, date), true),
     type: required(constant('time')),
     label: cartesianTimeAxisLabel,
-    division: cartesianTimeAxisDivision,
+    parentLevel: cartesianTimeAxisParentLevel,
     crosshair: cartesianAxisCrosshairOptions(true),
 };
+
+// @todo(AG-14472) - Remove padding options
+// @ts-expect-error Remove
+timeAxisOptionsDefs.paddingInner = positiveNumber;
+// @ts-expect-error Remove
+timeAxisOptionsDefs.paddingOuter = positiveNumber;
+// @ts-expect-error Remove
+timeAxisOptionsDefs.groupPaddingInner = positiveNumber;
 
 export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
     ...cartesianAxisOptionsDefs,
@@ -98,6 +105,8 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
             label: {
                 enabled: boolean,
                 avoidCollisions: boolean,
+                rotation: number,
+                spacing: number,
                 ...fontOptionsDef,
             },
             tick: {
@@ -112,11 +121,13 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
 
 export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
-    ...without(continuousAxisOptions(or(number, date), true), ['nice']),
+    // @todo(AG-14472) - Remove nice
+    // ...without(continuousAxisOptions(or(number, date), true), ['nice']),
+    ...continuousAxisOptions(or(number, date), true),
     type: required(constant('unit-time')),
     unit: instanceOf(TimeInterval),
     label: cartesianTimeAxisLabel,
-    division: cartesianTimeAxisDivision,
+    parentLevel: cartesianTimeAxisParentLevel,
     paddingInner: ratio,
     paddingOuter: ratio,
     groupPaddingInner: ratio,

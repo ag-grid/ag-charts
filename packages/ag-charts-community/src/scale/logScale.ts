@@ -87,9 +87,9 @@ export class LogScale extends ContinuousScale<number> {
         { interval, tickCount = ContinuousScale.defaultTickCount }: ScaleTickParams<number>,
         domain: number[] = this.domain,
         visibleRange?: [number, number]
-    ): number[] {
+    ): { ticks: number[]; count: number } | undefined {
         if (!domain || domain.length < 2 || tickCount < 1) {
-            return [];
+            return;
         }
         const base = this.base;
         const [d0, d1] = domain;
@@ -103,20 +103,26 @@ export class LogScale extends ContinuousScale<number> {
         if (interval) {
             const inBounds = (tick: number) => tick >= start && tick <= stop;
             const step = Math.min(Math.abs(interval), Math.abs(p1 - p0));
-            const ticks = range(p0, p1, step).map(this.pow).filter(inBounds);
+            const { ticks: rangeTicks, count } = range(p0, p1, step, visibleRange);
+            const ticks = rangeTicks.map(this.pow).filter(inBounds);
 
             if (!isDenseInterval(ticks.length, this.getPixelRange())) {
-                return ticks;
+                return { ticks, count };
             }
         }
 
         // If base is a float or the difference between p1 and p0 is large,
         // returns ticks in the format [10^1, 10^2, 10^3, 10^4, ...].
         if (!isInteger(base) || p1 - p0 >= tickCount) {
-            return createTicks(p0, p1, Math.min(p1 - p0, tickCount)).map(this.pow);
+            const step = Math.min(p1 - p0, tickCount);
+            const { ticks, count } = createTicks(p0, p1, step, undefined, undefined, visibleRange);
+            return {
+                ticks: ticks.map(this.pow),
+                count,
+            };
         }
 
-        let ticks: number[] = [];
+        const ticks: number[] = [];
         const isPositive = start > 0;
         p0 = Math.floor(p0) - 1;
         p1 = Math.round(p1) + 1;
@@ -139,9 +145,7 @@ export class LogScale extends ContinuousScale<number> {
             }
         }
 
-        ticks = filterVisibleTicks(ticks, isPositive, visibleRange);
-
-        return ticks;
+        return filterVisibleTicks(ticks, isPositive, visibleRange);
     }
 
     override tickFormatter({ specifier }: ScaleFormatParams<number>): (x: number) => string {

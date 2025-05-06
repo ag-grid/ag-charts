@@ -51,6 +51,7 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     type: string;
     visible: boolean;
     connectsToYAxis: boolean;
+    tooltipEnabled?: boolean;
 }
 
 /**

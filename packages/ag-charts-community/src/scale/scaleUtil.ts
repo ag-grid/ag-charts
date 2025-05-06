@@ -4,8 +4,8 @@ export function filterVisibleTicks<T = any>(
     ticks: T[],
     reversed: boolean,
     visibleRange: [number, number] | undefined
-): T[] {
-    if (visibleRange == null || (visibleRange[0] === 0 && visibleRange[1] === 1)) return ticks;
+): { ticks: T[]; count: number } {
+    if (visibleRange == null || (visibleRange[0] === 0 && visibleRange[1] === 1)) return { ticks, count: ticks.length };
 
     const vt0 = clamp(0, Math.floor(visibleRange[0] * ticks.length), ticks.length);
     const vt1 = clamp(0, Math.ceil(visibleRange[1] * ticks.length), ticks.length);
@@ -13,5 +13,8 @@ export function filterVisibleTicks<T = any>(
     const t0 = reversed ? ticks.length - vt1 : vt0;
     const t1 = reversed ? ticks.length - vt0 : vt1;
 
-    return ticks.slice(t0, t1);
+    return {
+        ticks: ticks.slice(t0, t1),
+        count: ticks.length,
+    };
 }

@@ -1,4 +1,45 @@
 (function (global) {
+    process = { env: { NODE_ENV: 'development' } };
+
+    // Valid values: 18 / 19
+    const REACT_VERSION = 19;
+    const reactConfig =
+        REACT_VERSION == 18
+            ? {
+                  map: {
+                      react: 'npm:react@18.2.0',
+                      'react-dom': 'npm:react-dom@18.2.0',
+                      'react-dom/client': 'npm:react-dom@18.2.0',
+                  },
+                  packages: {
+                      react: {
+                          main: './umd/react.development.js',
+                      },
+                      'react-dom': {
+                          main: './umd/react-dom.development.js',
+                      },
+                  },
+              }
+            : {
+                  map: {
+                      react: 'npm:react@19.1.0/cjs/react.development.js',
+                      'react-dom': 'npm:react-dom@19.1.0/cjs/react-dom.development.js',
+                      'react-dom/client': 'npm:react-dom@19.1.0/cjs/react-dom-client.development.js',
+                      scheduler: 'npm:scheduler@0.26.0/cjs/scheduler.development.js',
+                  },
+                  packages: {
+                      react: {
+                          format: 'cjs',
+                      },
+                      'react-dom': {
+                          format: 'cjs',
+                      },
+                      scheduler: {
+                          format: 'cjs',
+                      },
+                  },
+              };
+
     System.config({
         transpiler: 'ts',
         typescriptOptions: {
@@ -14,9 +55,7 @@
             css: boilerplatePath + 'css.js',
 
             // react
-            react: 'npm:react@18.2.0',
-            'react-dom': 'npm:react-dom@18.2.0',
-            'react-dom/client': 'npm:react-dom@18.2.0',
+            ...reactConfig.map,
 
             clone: 'npm:clone@2.1.2',
 
@@ -29,15 +68,7 @@
         },
         packages: {
             css: {},
-            react: {
-                main: './umd/react.profiling.min.js',
-            },
-            'react-dom': {
-                main: './umd/react-dom.profiling.min.js',
-            },
-            'react-dom/server': {
-                main: '../umd/react-dom-server.browser.production.min.js',
-            },
+            ...reactConfig.packages,
 
             app: {
                 main: './index.jsx',

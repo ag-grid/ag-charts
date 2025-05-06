@@ -8,7 +8,11 @@ export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> 
     abstract toDomain(value: number): D | undefined;
     abstract convert(value: D, options: { clamp?: boolean; interpolate?: boolean }): R;
     abstract invert(value: R, nearest?: boolean): D | undefined;
-    ticks(_ticks: ScaleTickParams<I>, _domain?: D[], _visibleRange?: [number, number]): D[] | undefined {
+    ticks(
+        _ticks: ScaleTickParams<I>,
+        _domain?: D[],
+        _visibleRange?: [number, number]
+    ): { ticks: D[]; count: number | undefined } | undefined {
         return undefined;
     }
     niceDomain(_ticks: ScaleTickParams<I>, domain: D[] = this.domain): D[] {

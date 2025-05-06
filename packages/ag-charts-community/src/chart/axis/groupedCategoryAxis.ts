@@ -1,4 +1,4 @@
-import { countLines, inRange, isArray, isObject, sortBasedOnArray, toArray } from 'ag-charts-core';
+import { inRange, isArray, isObject, sortBasedOnArray, toArray } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -6,7 +6,7 @@ import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { getAngleRatioRadians, normalizeAngle360, toRadians } from '../../util/angle';
+import { angularPadding, normalizeAngle360FromDegrees } from '../../util/angle';
 import { extent } from '../../util/extent';
 import { BaseProperties, PropertiesArray, Property } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
@@ -42,6 +42,9 @@ class DepthLabelProperties extends BaseProperties {
 
     @Property
     spacing?: number;
+
+    @Property
+    rotation?: number;
 
     @Property
     fontStyle?: FontStyle;
@@ -125,16 +128,17 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private getDepthOptionsMap(maxDepth: number) {
         const optionsMap = [];
         const { depthOptions, label } = this;
+        const defaultNonLeafRotation = this.horizontal ? 0 : -90;
         for (let i = 0; i < maxDepth; i++) {
             optionsMap.push(
                 depthOptions[i]?.label.enabled ?? label.enabled
                     ? {
                           enabled: true,
                           spacing: depthOptions[i]?.label.spacing ?? label.spacing,
-                          lineHeight: TextUtils.getLineHeight(depthOptions[i]?.label.fontSize ?? label.fontSize ?? 10),
+                          rotation: depthOptions[i]?.label.rotation ?? (i ? defaultNonLeafRotation : label.rotation), // Default top-level label roration only applies to label leaves
                           avoidCollisions: depthOptions[i]?.label.avoidCollisions ?? label.avoidCollisions,
                       }
-                    : { enabled: false, spacing: 0, lineHeight: 0, avoidCollisions: false }
+                    : { enabled: false, spacing: 0, rotation: 0, avoidCollisions: false }
             );
         }
         return optionsMap;
@@ -175,7 +179,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const labelBBoxes: Map<number, BBox> = new Map();
         const tempText = new TransformableText();
 
-        const labelRotation = label.rotation ? normalizeAngle360(toRadians(label.rotation)) : 0;
         const optionsMap = this.getDepthOptionsMap(maxDepth);
         const labelSpacing = sideFlag * optionsMap[0].spacing;
 
@@ -194,6 +197,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 text,
                 textAlign: 'center',
                 textBaseline: label.parallel ? 'hanging' : 'bottom',
+                lineHeight: TextUtils.getLineHeight(labelStyles.fontSize!),
                 x: horizontal ? datum.screen : labelSpacing,
                 y: horizontal ? labelSpacing : datum.screen,
                 rotation: 0,
@@ -202,39 +206,34 @@ export class GroupedCategoryAxis extends CategoryAxis {
             return true;
         };
 
-        let maxLeafLabelSize = 0;
-        const depthLines: Record<number, number> = {};
+        const depthLabelMaxSize: Record<number, number> = {};
         treeLabels.forEach((datum, index) => {
             const depth = maxDepth - datum.depth;
-            const nodeLines = countLines(datum.label);
-
-            depthLines[depth] ??= 1;
-            if (depthLines[depth] < nodeLines) {
-                depthLines[depth] = nodeLines;
-            }
 
             const isVisible = setLabelProps(datum, index);
             if (!isVisible || !tempText.getBBox()) return;
-            labelBBoxes.set(index, tempText.getBBox());
 
-            if (!datum.leafCount) {
-                tempText.rotation = labelRotation;
-                const { width, height } = tempText.getBBox();
-                const labelSize = horizontal ? height : width;
-                if (maxLeafLabelSize < labelSize) {
-                    maxLeafLabelSize = labelSize;
-                }
+            labelBBoxes.set(index, tempText.getBBox());
+            tempText.rotation = normalizeAngle360FromDegrees(optionsMap[depth]?.rotation);
+
+            const { width, height } = tempText.getBBox();
+            const labelSize = horizontal ? height : width;
+
+            depthLabelMaxSize[depth] ??= 0;
+            if (depthLabelMaxSize[depth] < labelSize) {
+                depthLabelMaxSize[depth] = labelSize;
             }
         });
 
         const idGenerator = createIdsGenerator();
         const separatorData: Map<number, SeparatorDatum> = new Map();
         const nestedPadding = (d: number) => {
-            let v = maxLeafLabelSize;
+            if (d === 0) return 0;
+            let v = depthLabelMaxSize[0];
             for (let i = 1; i <= d; i++) {
                 v += optionsMap[i].spacing;
-                if (label.mirrored || i !== d) {
-                    v += depthLines[i] * optionsMap[i].lineHeight;
+                if (i !== d) {
+                    v += depthLabelMaxSize[i];
                 }
             }
             return v;
@@ -252,11 +251,11 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 const separatorX = isLeaf ? datum.position : datum.position - (datum.leafCount - 1) / 2;
                 if (!separatorData.has(separatorX)) {
                     const tickOptions = this.depthOptions[depth]?.tick;
-                    let v = maxLeafLabelSize;
+                    let v = depthLabelMaxSize[0];
                     for (let i = 0; i <= depth; i++) {
                         v += optionsMap[i].spacing;
                         if (i !== 0) {
-                            v += depthLines[i] * optionsMap[i].lineHeight;
+                            v += depthLabelMaxSize[i];
                         }
                     }
                     separatorData.set(separatorX, {
@@ -269,37 +268,29 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
             if (!visible) return;
 
-            if (isLeaf) {
-                const { width, height } = labelBBoxes.get(index)!;
-                const angleRatio = getAngleRatioRadians(labelRotation);
+            const labelRotation = normalizeAngle360FromDegrees(optionsMap[depth].rotation);
+            const { width: w, height: h } = labelBBoxes.get(index)!;
+            const depthPadding = nestedPadding(depth);
 
-                tempText.rotation = labelRotation;
-                tempText.textAlign = 'end';
-                tempText.textBaseline = 'middle';
+            tempText.textAlign = 'end';
+            tempText.textBaseline = 'middle';
+            tempText.rotation = labelRotation;
 
-                if (horizontal) {
-                    tempText.x += width / 2;
-                    tempText.y += (height / 2 + ((width - optionsMap[depth].spacing) / 2) * angleRatio) * sideFlag;
-                    tempText.rotationCenterX = datum.screen;
-                    tempText.rotationCenterY = tempText.y;
-                } else {
-                    tempText.x += ((optionsMap[depth].spacing + width * sideFlag) / 2) * angleRatio * sideFlag;
-                    if (label.mirrored) {
-                        tempText.x += width * Math.abs(1 - angleRatio);
-                    }
-                    tempText.rotationCenterX = tempText.x - width / 2;
-                    tempText.rotationCenterY = datum.screen;
-                }
+            if (horizontal) {
+                tempText.x += w / 2;
+                tempText.y += (depthPadding + angularPadding(w / 2, h / 2, labelRotation)) * sideFlag;
+                tempText.rotationCenterX = datum.screen;
+                tempText.rotationCenterY = tempText.y;
             } else {
-                const depthPadding = sideFlag * nestedPadding(depth);
-                if (horizontal) {
-                    tempText.y += depthPadding;
-                } else {
-                    tempText.x += depthPadding;
-                    tempText.rotation = Math.PI / -2;
-                    tempText.rotationCenterX = tempText.x;
-                    tempText.rotationCenterY = datum.screen;
-                }
+                tempText.x +=
+                    depthPadding * sideFlag +
+                    angularPadding(
+                        (optionsMap[depth].spacing * sideFlag + w) / 2,
+                        label.mirrored ? w : 0,
+                        labelRotation
+                    );
+                tempText.rotationCenterX = tempText.x - w / 2;
+                tempText.rotationCenterY = datum.screen;
             }
 
             if (optionsMap[depth].avoidCollisions) {
@@ -397,7 +388,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 minTickCount: 0,
                 maxTickCount: Infinity,
             })
-            .map((t, index) => ({
+            .ticks.map((t, index) => ({
                 tickId: createDatumId(t, index),
                 offset: Math.round(tickScale.convert(t)),
             }));

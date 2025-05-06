@@ -4,11 +4,11 @@ import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import { NumberAxis } from './axis/numberAxis';
+import { themes } from './mapping/themes';
 import { AreaSeries } from './series/cartesian/areaSeries';
 import { BarSeries } from './series/cartesian/barSeries';
 import { LineSeries } from './series/cartesian/lineSeries';
 import { deproxy, setupMockConsole, waitForChartStability } from './test/utils';
-import { ChartTheme } from './themes/chartTheme';
 
 const revenueProfitData = [
     {
@@ -126,7 +126,7 @@ describe('AgChart', () => {
         });
         await waitForChartStability(chartProxy);
 
-        const theme = new ChartTheme();
+        const theme = themes['ag-default']!();
 
         const chart = deproxy(chartProxy);
         expect(chart.container).toBeInstanceOf(HTMLElement);

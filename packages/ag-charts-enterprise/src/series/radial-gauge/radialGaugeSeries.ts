@@ -341,7 +341,8 @@ export class RadialGaugeSeries
                 minTickCount,
                 maxTickCount,
                 tickCount,
-            });
+            })?.ticks ??
+            [];
         const fractionDigits = ticks.reduce(
             (f, tick) => Math.max(f, typeof tick === 'number' ? countFractionDigits(tick) : 0),
             0

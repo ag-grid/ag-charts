@@ -47,7 +47,7 @@ import type {
     AgCrosshairLabel,
     AgCrosshairLabelRendererResult,
     AgCrosshairOptions,
-    AgTimeAxisDivision,
+    AgTimeAxisParentLevel,
 } from 'ag-charts-types';
 
 import { TimeInterval } from '../util/time';
@@ -147,7 +147,7 @@ const cartesianAxisTick = {
     stroke: color,
 };
 
-export const cartesianTimeAxisDivision: OptionsDefs<AgTimeAxisDivision> = {
+export const cartesianTimeAxisParentLevel: OptionsDefs<AgTimeAxisParentLevel> = {
     enabled: boolean,
     label: cartesianTimeAxisLabel,
     tick: cartesianAxisTick,

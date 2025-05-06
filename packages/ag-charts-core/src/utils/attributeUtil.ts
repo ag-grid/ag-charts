@@ -1,9 +1,10 @@
 import type { Direction } from 'ag-charts-types';
 
 import type { Nullable } from '../interfaces/globalTypes';
+import type { ElementID } from './id';
 import { entries } from './iterators';
 
-type ElementID = string;
+export type StrictHTMLElement = HTMLElement & { id: ElementID };
 
 type AriaRole =
     | 'figure'
@@ -15,6 +16,7 @@ type AriaRole =
     | 'menuitem'
     | 'radio'
     | 'radiogroup'
+    | 'separator'
     | 'status'
     | 'switch'
     | 'tab'
@@ -38,6 +40,7 @@ export type BaseAttributeTypeMap = {
     'aria-selected': boolean;
     'data-preventdefault': boolean;
     class: string;
+    for: ElementID;
     id: ElementID;
     tabindex: 0 | -1;
     title: string;
@@ -74,6 +77,7 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     'aria-selected': booleanParser,
     'data-preventdefault': booleanParser,
     class: stringParser,
+    for: stringParser<ElementID>,
     id: stringParser<ElementID>,
     tabindex: numberParser<0 | -1>,
     title: stringParser,

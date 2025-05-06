@@ -177,7 +177,8 @@ export const annotationInitialStateOptionsDef = typeUnion<AgAnnotation>({
         start: annotationPointOptionsDef,
         end: annotationPointOptionsDef,
     },
-});
+    'an annotation initial state object'
+);
 
 export const initialStateOptionsDef: OptionsDefs<AgInitialStateOptions> = {
     chartType: union('candlestick', 'hollow-candlestick', 'ohlc', 'line', 'step-line', 'hlc', 'high-low'),

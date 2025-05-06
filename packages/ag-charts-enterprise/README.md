@@ -313,7 +313,7 @@ AG Charts is developed by a team of co-located developers in London. If you want
 
 `ag-charts-enterprise` has a **Commercial** license.
 
-See the [LICENSE file](./LICENSE.txt) for more info.
+See the [LICENSE file](./LICENSE.html) for more info.
 
 <div><h2><img vertical-align="middle" width="32" height="32" src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/ag-logos/svg-logos/AG-BrandMark_Light-Theme.svg?raw=true" alt="AG ChartsLogo">AG Grid</h2></div>
 

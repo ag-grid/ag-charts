@@ -75,6 +75,9 @@ export class ExtendedPath2D {
     }
 
     appendSvg(parts: SVGPathSegment[]) {
+        let sx = 0; // start of path x
+        let sy = 0; // start of path y
+
         let cx: number; // current point x
         let cy: number; // current point y
 
@@ -94,12 +97,14 @@ export class ExtendedPath2D {
             // quadratic curves - Q, q, T and t
             // elliptical arc - A and a
 
-            switch (command.toLocaleLowerCase()) {
+            switch (command.toLowerCase()) {
                 case 'm':
                     this.moveTo(dx + params[0], dy + params[1]);
                     cx = dx + params[0];
                     cy = dy + params[1];
 
+                    sx = cx;
+                    sy = cy;
                     break;
 
                 case 'c':
@@ -212,6 +217,9 @@ export class ExtendedPath2D {
 
                 case 'z':
                     this.closePath();
+                    cx = sx;
+                    cy = sy;
+
                     break;
 
                 default:

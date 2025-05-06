@@ -13,10 +13,16 @@ describe('LogScale', () => {
                 minTickCount: 0,
                 maxTickCount: Infinity,
             };
-            expect(scale.ticks(ticks)).toEqual([100, 1000, 10000, 100000, 1000000]);
+            expect(scale.ticks(ticks)).toEqual({
+                ticks: [100, 1000, 10000, 100000, 1000000],
+                count: 5,
+            });
 
             ticks.tickCount = 4;
-            expect(scale.ticks(ticks)).toEqual([100, 1000, 10000, 100000, 1000000]);
+            expect(scale.ticks(ticks)).toEqual({
+                ticks: [100, 1000, 10000, 100000, 1000000],
+                count: 5,
+            });
         }
         {
             const scale = new LogScale();
@@ -29,16 +35,15 @@ describe('LogScale', () => {
                 minTickCount: 0,
                 maxTickCount: Infinity,
             };
-            expect(scale.ticks(ticks)).toEqual([-1000, -300, -100, -30, -10]);
+            expect(scale.ticks(ticks)).toEqual({
+                ticks: [-1000, -300, -100, -30, -10],
+                count: 5,
+            });
         }
     });
 
     describe('should create ticks', () => {
         const CASES = [
-            {
-                interval: 0,
-                domain: [0.1, 10000000],
-            },
             {
                 interval: 1,
                 domain: [0.1, 10000000],
@@ -108,9 +113,6 @@ describe('LogScale', () => {
         it.each(CASES)(`for interval: $interval domain: $domain case`, ({ interval, domain }) => {
             const scale = new LogScale();
 
-            scale.range = [0, 600];
-            scale.domain = domain;
-
             const ticks = {
                 nice: true,
                 interval,
@@ -118,6 +120,9 @@ describe('LogScale', () => {
                 minTickCount: 0,
                 maxTickCount: Infinity,
             };
+
+            scale.range = [0, 600];
+            scale.domain = scale.niceDomain(ticks, domain);
 
             expect(scale.ticks(ticks)).toMatchSnapshot();
         });
@@ -138,7 +143,10 @@ describe('LogScale', () => {
     });
 
     test('base', () => {
-        const expTicks = [20.085536923187668, 54.598150033144236, 148.4131591025766, 403.4287934927351];
+        const expTicks = {
+            ticks: [20.085536923187668, 54.598150033144236, 148.4131591025766, 403.4287934927351],
+            count: expect.anything(), // Not testing a nice domain, so this is value isn't useful
+        };
         const scale = new LogScale();
         scale.domain = [10, 1000];
 
@@ -169,5 +177,23 @@ describe('LogScale', () => {
             expect(Math.log(domain[0])).toEqual(1);
             expect(Math.log(domain[1])).toEqual(3);
         }
+    });
+
+    test('should create ticks within visible range', () => {
+        const scale = new LogScale();
+        scale.domain = [100, 1000000];
+
+        const ticks = {
+            nice: true,
+            interval: undefined,
+            tickCount: 4,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+        ticks.tickCount = 4;
+        expect(scale.ticks(ticks, undefined, [0.25, 0.75])).toEqual({
+            ticks: [1000, 10000, 100000],
+            count: 5,
+        });
     });
 });

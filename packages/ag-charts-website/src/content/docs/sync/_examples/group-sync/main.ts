@@ -55,7 +55,6 @@ const chartOptions1: AgChartOptions = {
         enabled: true,
         groupId: 'sales',
     },
-    title: { text: 'Sales' },
     subtitle: { text: 'Product A', textAlign: 'left' },
     data: salesProductA,
     padding: { bottom: 5 },
@@ -78,7 +77,6 @@ const chartOptions2: AgChartOptions = {
         enabled: true,
         groupId: 'costs',
     },
-    title: { text: 'Costs' },
     subtitle: { text: 'Product A', textAlign: 'left' },
     data: costsProductA,
     series: [
@@ -86,6 +84,8 @@ const chartOptions2: AgChartOptions = {
             type: 'line',
             xKey: 'quarter',
             yKey: 'costs',
+            stroke: '#FCA03A',
+            marker: { fill: '#FCA03A' },
         },
     ],
 };
@@ -125,6 +125,8 @@ const chartOptions4: AgChartOptions = {
             type: 'line',
             xKey: 'quarter',
             yKey: 'efficiency',
+            stroke: '#FCA03A',
+            marker: { fill: '#FCA03A' },
         },
     ],
 };

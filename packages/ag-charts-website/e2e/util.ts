@@ -160,6 +160,10 @@ export async function gotoExample(page: Page, url: string, opts = { skipStabilit
     }
 
     if (opts.skipStabilityChecks) return;
+    await waitForAllChartUpdates(page);
+}
+
+export async function waitForAllChartUpdates(page: Page) {
     for (const elements of await page.locator(SELECTORS.wrapper).all()) {
         const count: number = await elements.count();
         for (let i = 0; i < count; i++) {

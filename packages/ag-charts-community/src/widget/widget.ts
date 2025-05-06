@@ -1,6 +1,7 @@
 import {
     type BaseAttributeTypeMap,
     type BaseStyleTypeMap,
+    type ElementID,
     getAttribute,
     getWindow,
     setAttribute,
@@ -75,6 +76,14 @@ export abstract class Widget<
 
     protected abstract destructor(): void;
 
+    set id(elementId: ElementID | undefined) {
+        setAttribute(this.elem, 'id', elementId);
+    }
+
+    get id(): ElementID | undefined {
+        return getAttribute(this.elem, 'id');
+    }
+
     getElement(): TElement {
         return this.elem;
     }
@@ -99,9 +108,7 @@ export abstract class Widget<
         });
         this.children.length = 0;
         this.destructor();
-        this.elem.remove();
         this.remove();
-        this.elemContainer?.remove();
         this.internalListener?.destroy();
         this.htmlListener?.destroy(this);
     }
@@ -139,6 +146,14 @@ export abstract class Widget<
         setAttribute(this.elem, 'aria-label', ariaLabel);
     }
 
+    setAriaExpanded(ariaExpanded: BaseAttributeTypeMap['aria-expanded'] | undefined) {
+        setAttribute(this.elem, 'aria-expanded', ariaExpanded);
+    }
+
+    setAriaControls(ariaControls: BaseAttributeTypeMap['aria-controls'] | undefined) {
+        setAttribute(this.elem, 'aria-controls', ariaControls);
+    }
+
     setAriaHasPopup(ariaHasPopup: BaseAttributeTypeMap['aria-haspopup'] | undefined) {
         setAttribute(this.elem, 'aria-haspopup', ariaHasPopup);
     }
@@ -153,6 +168,11 @@ export abstract class Widget<
 
     isDisabled() {
         return getAttribute(this.elem, 'aria-disabled', false);
+    }
+
+    hasPopup(): boolean {
+        const ariaHasPopup = getAttribute(this.elem, 'aria-haspopup');
+        return ariaHasPopup !== undefined && ariaHasPopup !== 'false';
     }
 
     private parseFloat(s: string) {

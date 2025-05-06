@@ -6,7 +6,7 @@ import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
 
-export class TimeAxisDivision extends BaseProperties {
+export class TimeAxisParentLevel extends BaseProperties {
     @Property
     enabled = false;
 
@@ -22,7 +22,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     static readonly type = 'time' as const;
 
     @Property
-    readonly division = new TimeAxisDivision();
+    readonly parentLevel = new TimeAxisParentLevel();
 
     @Property
     min?: Date | number = undefined;
@@ -30,16 +30,24 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     @Property
     max?: Date | number = undefined;
 
+    // @todo(AG-14472) - Remove padding options
+    @Property
+    groupPaddingInner: number = 0.1;
+    @Property
+    paddingInner?: number;
+    @Property
+    paddingOuter?: number;
+
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new TimeScale());
     }
 
     override get primaryLabel(): AxisLabel | undefined {
-        return this.division.enabled ? this.division.label : undefined;
+        return this.parentLevel.enabled ? this.parentLevel.label : undefined;
     }
 
     override get primaryTick(): AxisTick | undefined {
-        return this.division.enabled ? this.division.tick : undefined;
+        return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
     }
 
     override normaliseDataDomain(d: Date[]) {

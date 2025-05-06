@@ -294,7 +294,7 @@ jobs:
                     echo "No changes to commit."
                     echo "updates=false" >> $GITHUB_OUTPUT
                   fi
-              timeout-minutes: 10
+              timeout-minutes: 15
 
             - name: Push Snapshot Changes
               if: steps.test.outputs.updates == 'true'

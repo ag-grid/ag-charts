@@ -87,6 +87,13 @@ export const SITE_BASE_URL_SEGMENTS = SITE_BASE_URL?.split('/').filter(Boolean).
  */
 export const DEV_FILE_BASE_PATH = '/dev';
 
+/**
+ * URL path used to redirect to the user selected framework
+ *
+ * Useful when the framework is not known eg, root pages
+ */
+export const FRAMEWORK_REDIRECT_PATH = 'r';
+
 export const ASTRO_ALGOLIA_APP_ID = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_APP_ID;
 
 export const ASTRO_ALGOLIA_SEARCH_KEY = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_SEARCH_KEY;

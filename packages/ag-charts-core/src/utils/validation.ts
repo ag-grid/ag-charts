@@ -20,6 +20,7 @@ const requiredSymbol = Symbol('required');
 const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
 const unionSymbol = Symbol('union');
+const unionDefaultSymbol = Symbol('unionDefault');
 
 const similarOptionsMap = [
     ['placement', 'position'],
@@ -52,6 +53,7 @@ type PrivateSymbols = {
     [requiredSymbol]?: boolean;
     [undocumentedSymbol]?: boolean;
     [unionSymbol]?: boolean;
+    [unionDefaultSymbol]?: string;
 };
 
 // Definitions for options validation with support for nested structures.
@@ -164,8 +166,12 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 
     if (optionsDefs[unionSymbol]) {
         const validTypes = Object.keys(optionsDefs);
-        if (validTypes.includes(options.type)) {
-            const { type, ...rest } = options;
+        const defaultType = optionsDefs[unionDefaultSymbol];
+        if (
+            (options.type != null && validTypes.includes(options.type)) ||
+            (options.type == null && defaultType != null)
+        ) {
+            const { type = defaultType, ...rest } = options;
             const nestedResult = validate(rest, (optionsDefs as any)[type], path);
             Object.assign(cleared, { type }, nestedResult.cleared);
             for (const error of nestedResult.invalid) {
@@ -321,8 +327,17 @@ export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
         return { valid, cleared: result.cleared, invalid: result.invalid };
     }, description);
 
-export const typeUnion = <T extends { type: string }>(defs: TypeUnionDefs<T, T['type']>, description = 'an object') =>
-    ({ ...defs, [descriptionSymbol]: description, [unionSymbol]: true }) as OptionsDefs<T>;
+export const typeUnion = <T extends { type: string }>(
+    defs: TypeUnionDefs<T, T['type']>,
+    description: string,
+    defaultType?: T['type']
+) =>
+    ({
+        ...defs,
+        [descriptionSymbol]: description,
+        [unionSymbol]: true,
+        [unionDefaultSymbol]: defaultType,
+    }) as OptionsDefs<T>;
 
 /**
  * Creates a validator for ensuring an object matches the provided option definitions. Ignores unknown properties.

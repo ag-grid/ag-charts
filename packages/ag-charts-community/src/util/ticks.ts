@@ -56,6 +56,11 @@ function isCloseToInteger(n: number, delta: number) {
     return Math.abs(Math.round(n) - n) < delta;
 }
 
+function countTicks(d0: number, d1: number, step: number) {
+    const extent = Math.abs(d1 - d0);
+    return extent >= step ? Math.abs(d1 - d0) / step + 1 : 1;
+}
+
 export function createTicks(
     start: number,
     stop: number,
@@ -63,27 +68,32 @@ export function createTicks(
     minCount?: number,
     maxCount?: number,
     visibleRange?: [number, number]
-): number[] {
-    if (count < 2) {
-        return [start, stop];
-    }
+): { ticks: number[]; count: number } {
+    if (start === stop) return { ticks: [start], count: 1 };
+    if (count < 2) return { ticks: [start, stop], count: 2 };
+
     const step = tickStep(start, stop, count, minCount, maxCount);
-    if (!Number.isFinite(step)) {
-        return [];
+    if (!Number.isFinite(step)) return { ticks: [], count: 0 };
+
+    let d0 = start;
+    let d1 = stop;
+    if (!isCloseToInteger(d0 / step, 1e-12)) {
+        d0 = Math.ceil(d0 / step) * step;
     }
-    if (!isCloseToInteger(start / step, 1e-12)) {
-        start = Math.ceil(start / step) * step;
+    if (!isCloseToInteger(d1 / step, 1e-12)) {
+        d1 = Math.floor(d1 / step) * step;
     }
-    if (!isCloseToInteger(stop / step, 1e-12)) {
-        stop = Math.floor(stop / step) * step;
+
+    if (visibleRange != null) {
+        const dr = d1 - d0;
+        const vr = stop - start;
+        const vd0 = start + vr * visibleRange[0];
+        const vd1 = start + vr * visibleRange[1];
+        visibleRange = [(vd0 - d0) / dr, (vd1 - d0) / dr];
     }
-    if (visibleRange != null && visibleRange[0] !== 0 && visibleRange[1] !== 1) {
-        const rangeExtent = stop - start;
-        const adjustedStart = start + rangeExtent * visibleRange[0];
-        const adjustedEnd = stop - rangeExtent * (1 - visibleRange[1]);
-        return range(adjustedStart - (adjustedStart % step), adjustedEnd + (adjustedEnd % step), step);
-    }
-    return range(start, stop, step);
+
+    const { ticks } = range(d0, d1, step, visibleRange);
+    return { ticks, count: countTicks(start, stop, step) };
 }
 
 const minPrimaryTickRatio = Math.floor(((2 * week.milliseconds) / month.milliseconds) * 10) / 10;
@@ -199,23 +209,48 @@ export function tickFormat(ticks: any[], format?: string): (n: number | { valueO
     return (n) => formatter(Number(n));
 }
 
-export function range(start: number, end: number, step: number): number[] {
+export function range(
+    start: number,
+    end: number,
+    step: number,
+    visibleRange?: [number, number]
+): { ticks: number[]; count: number } {
     if (!Number.isFinite(step) || step <= 0) {
-        return [];
+        return { ticks: [], count: 0 };
+    } else if (start === end) {
+        return { ticks: [start], count: 1 };
     }
 
     const f = 10 ** countFractionDigits(step);
     const d0 = Math.min(start, end);
     const d1 = Math.max(start, end);
-    const out: number[] = [];
 
+    let vd0: number;
+    let vd1: number;
+    if (visibleRange != null && (visibleRange[0] !== 0 || visibleRange[1] !== 1)) {
+        const rangeExtent = end - start;
+        const adjustedStart = start + rangeExtent * visibleRange[0];
+        const adjustedEnd = end - rangeExtent * (1 - visibleRange[1]);
+        vd0 = Math.min(adjustedStart, adjustedEnd);
+        vd1 = Math.max(adjustedStart, adjustedEnd);
+    } else {
+        vd0 = d0;
+        vd1 = d1;
+    }
+
+    vd0 = Math.floor(vd0 * f) / f;
+    vd1 = Math.ceil(vd1 * f) / f;
+
+    const ticks: number[] = [];
     for (let i = 0; ; i += 1) {
         const p = Math.round((d0 + step * i) * f) / f;
         if (p > d1) break;
-        out.push(p);
+        if (p >= vd0 && p <= vd1) {
+            ticks.push(p);
+        }
     }
 
-    return out;
+    return { ticks, count: countTicks(d0, d1, step) };
 }
 
 export function isDenseInterval(count: number, availableRange: number) {
