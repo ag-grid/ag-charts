@@ -92,9 +92,15 @@
 }
 
 .ag-charts-context-menu__divider {
-    margin: 5px 0;
-    background: #babfc7;
-    height: 1px;
+    display: table-row;
+}
+.ag-charts-context-menu__divider > div {
+    padding: 0.5em 0em;
+}
+.ag-charts-context-menu__divider > div::after {
+    content: '';
+    display: block;
+    border-top: 1px solid #babfc7;
 }
 
 .ag-charts-context-menu__divider.ag-charts-dark-context-menu {

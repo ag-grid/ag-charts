@@ -238,6 +238,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     const sep = menuWidget.addSeparator();
                     sep.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
                     sep.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
+                    this.initTableCells(sep);
                     break;
                 case 'action':
                     const btn = new _Widget.MenuItemWidget();
@@ -296,31 +297,35 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
+    private initTableCells(elem: Element) {
+        const cellIcon = createElement('div');
+        const cellLabel = createElement('div');
+        const cellArrow = createElement('div');
+        cellIcon.classList.toggle('ag-charts-context-menu__icon', true);
+        cellLabel.classList.toggle('ag-charts-context-menu__label', true);
+        cellArrow.classList.toggle('ag-charts-context-menu__rightarrowhead', true);
+        cellIcon.ariaHidden = 'true';
+        cellArrow.ariaHidden = 'true';
+        elem.append(cellIcon, cellLabel, cellArrow);
+        return { cellIcon, cellLabel, cellArrow };
+    }
+
     private initButtonElement(button: _Widget.MenuItemWidget, item: ContextMenuItem) {
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         button.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         button.setEnabled(item.enabled);
         const label = this.ctx.localeManager.t(item.label);
-        const spanIcon = createElement('span');
-        const spanLabel = createElement('span');
-        const spanArrow = createElement('span');
-        spanIcon.classList.toggle('ag-charts-context-menu__icon', true);
-        spanIcon.ariaHidden = 'true';
-        spanLabel.classList.toggle('ag-charts-context-menu__label', true);
-        spanLabel.textContent = label;
-        spanArrow.classList.toggle('ag-charts-context-menu__rightarrowhead', true);
-        spanArrow.ariaHidden = 'true';
 
+        const { cellIcon, cellLabel, cellArrow } = this.initTableCells(button.getElement());
+        cellLabel.textContent = label;
         if (item.iconUrl != null) {
             const img = createElement('img');
             img.src = item.iconUrl;
-            spanIcon.append(img);
+            cellIcon.append(img);
         }
         if (item.type === 'submenu') {
-            spanArrow.textContent = '❯';
+            cellArrow.textContent = '❯';
         }
-
-        button.getElement().append(spanIcon, spanLabel, spanArrow);
 
         const { showOn, action } = item;
         if (action != null) {
