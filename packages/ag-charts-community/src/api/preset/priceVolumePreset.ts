@@ -200,7 +200,7 @@ export function priceVolume(
             ...mergeDefaults(typeof theme === 'object' ? theme : null, {
                 overrides: {
                     common: {
-                        title: { spacing: 4 },
+                        title: { padding: 4 },
                         padding: {
                             top: 6,
                             right: 8,

@@ -337,20 +337,6 @@ export const typeUnion = <T extends { type: string }>(
     }) as OptionsDefs<T>;
 
 /**
- * Creates a validator for ensuring an object matches the provided option definitions. Ignores unknown properties.
- * @param defs The option definitions against which to validate an object.
- * @param description (Optional) A description for the validator, defaulting to 'an object'.
- * @returns A validator function for the given option definitions.
- */
-export const partialDefs = <T>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
-    attachDescription((value, context) => {
-        const result = validate(value, defs, context.path);
-        const valid = !hasRequiredInPath(result.invalid, context.path);
-        const invalid = result.invalid.filter((error) => error.type !== ErrorType.Unknown);
-        return { valid, cleared: result.cleared, invalid };
-    }, description);
-
-/**
  * Combines multiple validators, requiring all to pass.
  * @param validators An array of validators to combine.
  * @returns A validator that requires all specified validators to pass.

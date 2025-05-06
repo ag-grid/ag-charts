@@ -1,5 +1,6 @@
 import {
     type OptionsDefs,
+    type PlainObject,
     type Validator,
     array,
     arrayOf,
@@ -48,7 +49,7 @@ import {
     timeAxisOptionsDefs,
     unitTimeAxisOptionsDefs,
 } from '../../module/axisModules';
-import { mapValues, without } from '../../util/object';
+import { without } from '../../util/object';
 import {
     cartesianCrossLineOptionsDefs,
     commonCrossLineLabelOptionsDefs,
@@ -638,6 +639,14 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         },
     },
 };
+
+function mapValues<T extends PlainObject, R>(object: T, mapper: (value: T[keyof T], key: keyof T, object: T) => R) {
+    const result: Record<string | symbol, R> = {};
+    for (const key of Reflect.ownKeys(object)) {
+        result[key] = mapper(object[key], key, object);
+    }
+    return result as Record<keyof T, R>;
+}
 
 export const themeOverridesOptionsWithOperatorsDef = mapValues(
     themeOverridesOptionsDef,

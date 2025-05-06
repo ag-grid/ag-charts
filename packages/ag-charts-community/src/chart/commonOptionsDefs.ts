@@ -121,6 +121,9 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     ...fontOptionsDef,
 };
 
+// @ts-expect-error undocumented option
+chartCaptionOptionsDefs.padding = undocumented(positiveNumber);
+
 const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     enabled: boolean,
     text: string,
@@ -542,7 +545,6 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
 commonSeriesOptionsDefs.context = undocumented(() => true);
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.seriesGrouping = undocumented(defined);
-
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.highlight = undocumented({ enabled: boolean });
 
