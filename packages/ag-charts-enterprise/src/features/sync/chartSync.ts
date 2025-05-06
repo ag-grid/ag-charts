@@ -16,6 +16,19 @@ const {
 
 const debug = _ModuleSupport.Debug.create('sync');
 
+function getDirectionKeys(
+    series: _ModuleSupport.ISeries<any, any, any, any>,
+    primary: _ModuleSupport.ChartAxisDirection,
+    secondary: _ModuleSupport.ChartAxisDirection
+) {
+    const primaryKeys = series.getKeys(primary);
+    const secondaryKeys = series.getKeys(secondary);
+    if (series.shouldFlipXY?.()) {
+        return [secondaryKeys, primaryKeys];
+    }
+    return [primaryKeys, secondaryKeys];
+}
+
 export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
     static readonly className = 'Sync';
 
@@ -96,11 +109,14 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
         debug('ChartSync.onHighlightChange()', event);
 
+        const series = event.currentHighlight?.series;
+
         const mainDirection =
             this.axes === 'xy' ? ChartAxisDirection.X : _ModuleSupport.toChartAxisDirection(this.axes);
         const secondaryDirection = mainDirection === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
-        const eventValueKey = event.currentHighlight?.[`${mainDirection}Key`];
-        let eventValue = eventValueKey ? event.currentHighlight?.datum[eventValueKey] : undefined;
+
+        const [primaryKeys, secondaryKeys] = series ? getDirectionKeys(series, mainDirection, secondaryDirection) : [];
+        let eventValue = primaryKeys?.[0] ? event.currentHighlight?.datum[primaryKeys[0]] : undefined;
         const valueIsDate = isDate(eventValue);
         if (valueIsDate) {
             eventValue = eventValue.getTime();
@@ -116,26 +132,30 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             return;
         }
 
-        this.findMatchingHighlightNodes(mainDirection, secondaryDirection, valueIsDate, eventValue, event);
+        const useSecondaryDirectionKey = syncManager.getGroupMembers(this.groupId).some((c) => c.series.length > 1);
+
+        this.findMatchingHighlightNodes(
+            mainDirection,
+            secondaryDirection,
+            useSecondaryDirectionKey ? secondaryKeys : [],
+            valueIsDate,
+            eventValue,
+            event
+        );
     }
 
     private findMatchingHighlightNodes(
-        mainDirection: _ModuleSupport.ChartAxisDirection,
+        primaryDirection: _ModuleSupport.ChartAxisDirection,
         secondaryDirection: _ModuleSupport.ChartAxisDirection,
+        secondaryKeys: string[],
         valueIsDate: boolean,
         eventValue: any,
         event: _ModuleSupport.HighlightChangeEvent
     ) {
         const { syncManager } = this.moduleContext;
 
-        const useSecondaryDirectionKey = syncManager.getGroupMembers(this.groupId).some((c) => c.series.length > 1);
-        const secondaryKeys = useSecondaryDirectionKey
-            ? event.currentHighlight?.series.getKeys(secondaryDirection) ?? []
-            : [];
-
         debug('ChartSync.findMatchingHighlightNodes()', {
-            mainDirection,
-            secondaryDirection,
+            mainDirection: primaryDirection,
             secondaryKeys,
         });
 
@@ -144,7 +164,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
             let dispatched = false;
             for (const axis of chart.axes) {
-                if (!CartesianAxis.is(axis) || axis.direction !== mainDirection) continue;
+                if (!CartesianAxis.is(axis) || axis.direction !== primaryDirection) continue;
 
                 // Find matching nodes for the main direction.
                 const matchingNodes = chart.series
@@ -153,12 +173,12 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
                         // Narrow matches by matching the secondary direction keys of series, if multiple series are present.
                         if (secondaryKeys.length > 0) {
-                            const seriesKeys = s.getKeys(secondaryDirection);
+                            const [, seriesKeys] = getDirectionKeys(s, primaryDirection, secondaryDirection);
                             return secondaryKeys.every((key) => seriesKeys.includes(key));
                         }
                         return true;
                     })
-                    .map(this.findMatchingNodes(axis, mainDirection, valueIsDate, eventValue))
+                    .map(this.findMatchingNodes(axis, primaryDirection, valueIsDate, eventValue))
                     .filter(isDefined);
 
                 if (
