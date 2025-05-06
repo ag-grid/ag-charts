@@ -1361,8 +1361,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
     }
 
     private shouldClearLegendData(options: AgChartOptions, oldOpts: AgChartOptions, seriesStatus: SeriesChangeType) {
-        const seriesChanged =
-            seriesStatus === 'replaced' || seriesStatus === 'series-grouping-change' || seriesStatus === 'updated';
+        const seriesChanged = seriesStatus === 'replaced' || seriesStatus === 'series-grouping-change';
         const legendRemoved = oldOpts.legend != null && options.legend == null;
 
         return seriesChanged || legendRemoved;
