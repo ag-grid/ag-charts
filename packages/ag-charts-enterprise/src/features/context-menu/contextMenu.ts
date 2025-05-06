@@ -241,17 +241,18 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     this.initTableCells(sep);
                     break;
                 case 'action':
-                    const btn = new _Widget.MenuItemWidget();
-                    this.initButtonElement(btn, item);
-                    menuWidget.addChild(btn);
-                    break;
-                case 'submenu':
-                    const { subMenuButton, subMenu } = menuWidget.addSubMenu();
-                    subMenu.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
-                    subMenu.addListener('open-widget', () => this.onSubMenuOpen(subMenuButton, subMenu));
-                    subMenu.addListener('close-widget', () => this.onSubMenuClose(subMenuButton, subMenu));
-                    this.initButtonElement(subMenuButton, item);
-                    this.createMenuItems(subMenu, item.items);
+                    if (item.items.length === 0) {
+                        const btn = new _Widget.MenuItemWidget();
+                        this.initButtonElement(btn, item);
+                        menuWidget.addChild(btn);
+                    } else {
+                        const { subMenuButton, subMenu } = menuWidget.addSubMenu();
+                        subMenu.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
+                        subMenu.addListener('open-widget', () => this.onSubMenuOpen(subMenuButton, subMenu));
+                        subMenu.addListener('close-widget', () => this.onSubMenuClose(subMenuButton, subMenu));
+                        this.initButtonElement(subMenuButton, item);
+                        this.createMenuItems(subMenu, item.items);
+                    }
                     break;
                 default:
                     throw new Error('unhandled case');
@@ -326,7 +327,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             cellIcon.append(img);
             cellIcon.classList.add(cellPaddingClass);
         }
-        if (item.type === 'submenu') {
+        if (item.items.length > 0) {
             cellArrow.textContent = '❯';
             cellArrow.classList.add(cellPaddingClass);
         }

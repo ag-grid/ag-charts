@@ -137,7 +137,7 @@ const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [
 ];
 
 const contextMenuItemObjectValidator: Validator = optionsDefs<Extract<AgContextMenuItem, object>>({
-    type: union('action', 'submenu', 'separator'),
+    type: union('action', 'separator'),
     showOn: union('always', 'series-area', 'series-node', 'legend-item'),
     label: required(string),
     enabled: boolean,

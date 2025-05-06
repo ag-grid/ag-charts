@@ -72,7 +72,7 @@ export function expandItems(
             expandBuiltin(showing, registry, item, result);
         } else {
             const menuItem = appendItem(showing, item, result);
-            if (item.items && menuItem && menuItem.type === 'submenu') {
+            if (item.items && menuItem && item.items.length > 0) {
                 expandItems(showing, registry, item.items, menuItem.items);
             }
         }
