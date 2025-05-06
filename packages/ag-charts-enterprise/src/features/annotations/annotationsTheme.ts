@@ -283,11 +283,11 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         text: { ...lineText },
     },
     'arrow-up': {
-        fill: ThemeSymbols.PALETTE_UP_FILL,
+        fill: { $palette: 'up.fill' },
         handle: { ...handle, stroke: { $ref: 'foregroundColor' } },
     },
     'arrow-down': {
-        fill: ThemeSymbols.PALETTE_DOWN_FILL,
+        fill: { $palette: 'down.fill' },
         handle: { ...handle, stroke: { $ref: 'foregroundColor' } },
     },
 

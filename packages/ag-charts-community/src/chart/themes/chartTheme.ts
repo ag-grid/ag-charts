@@ -15,7 +15,6 @@ import type {
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
-import { enterpriseModule } from '../../module/enterpriseModule';
 import { Color } from '../../util/color';
 import { deepClone, jsonWalk } from '../../util/json';
 import { deepFreeze, mergeDefaults } from '../../util/object';
@@ -48,21 +47,7 @@ import {
     DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TEXT_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
-    IS_COMMUNITY,
     IS_DARK_THEME,
-    IS_ENTERPRISE,
-    PALETTE_ALT_DOWN_FILL,
-    PALETTE_ALT_DOWN_STROKE,
-    PALETTE_ALT_NEUTRAL_FILL,
-    PALETTE_ALT_NEUTRAL_STROKE,
-    PALETTE_ALT_UP_FILL,
-    PALETTE_ALT_UP_STROKE,
-    PALETTE_DOWN_FILL,
-    PALETTE_DOWN_STROKE,
-    PALETTE_NEUTRAL_FILL,
-    PALETTE_NEUTRAL_STROKE,
-    PALETTE_UP_FILL,
-    PALETTE_UP_STROKE,
 } from './symbols';
 import { getSequentialColors } from './util';
 
@@ -669,12 +654,8 @@ export class ChartTheme {
 
     // Private parameters that are not exposed in the themes API.
     getTemplateParameters() {
-        const { isEnterprise } = enterpriseModule;
-
         const params = new Map();
         params.set(IS_DARK_THEME, false);
-        params.set(IS_ENTERPRISE, isEnterprise);
-        params.set(IS_COMMUNITY, !isEnterprise);
         params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#d9d9d9');
         params.set(DEFAULT_SHADOW_COLOUR, '#00000080');
         params.set(DEFAULT_SPARKLINE_CROSSHAIR_STROKE, '#aaa');
@@ -712,20 +693,6 @@ export class ChartTheme {
 
         params.set(DEFAULT_TOOLBAR_POSITION, 'top');
         params.set(DEFAULT_GRIDLINE_ENABLED, false);
-
-        const defaultColors = this.getDefaultColors();
-        params.set(PALETTE_UP_STROKE, this.palette.up?.stroke ?? defaultColors.up.stroke);
-        params.set(PALETTE_UP_FILL, this.palette.up?.fill ?? defaultColors.up.fill);
-        params.set(PALETTE_DOWN_STROKE, this.palette.down?.stroke ?? defaultColors.down.stroke);
-        params.set(PALETTE_DOWN_FILL, this.palette.down?.fill ?? defaultColors.down.fill);
-        params.set(PALETTE_NEUTRAL_STROKE, this.palette.neutral?.stroke ?? defaultColors.neutral.stroke);
-        params.set(PALETTE_NEUTRAL_FILL, this.palette.neutral?.fill ?? defaultColors.neutral.fill);
-        params.set(PALETTE_ALT_UP_STROKE, this.palette.altUp?.stroke ?? defaultColors.up.stroke);
-        params.set(PALETTE_ALT_UP_FILL, this.palette.altUp?.fill ?? defaultColors.up.fill);
-        params.set(PALETTE_ALT_DOWN_STROKE, this.palette.altDown?.stroke ?? defaultColors.down.stroke);
-        params.set(PALETTE_ALT_DOWN_FILL, this.palette.altDown?.fill ?? defaultColors.down.fill);
-        params.set(PALETTE_ALT_NEUTRAL_FILL, this.palette.altNeutral?.fill ?? defaultColors.altNeutral.fill);
-        params.set(PALETTE_ALT_NEUTRAL_STROKE, this.palette.altNeutral?.stroke ?? defaultColors.altNeutral.stroke);
 
         return params;
     }

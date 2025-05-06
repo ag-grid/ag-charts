@@ -22,8 +22,6 @@ import {
     DEFAULT_TEXTBOX_FILL,
     DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TEXT_ANNOTATION_COLOR,
-    PALETTE_DOWN_FILL,
-    PALETTE_UP_FILL,
 } from '../../chart/themes/symbols';
 
 const stroke = {
@@ -192,11 +190,11 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         text: { ...lineText },
     },
     'arrow-up': {
-        fill: PALETTE_UP_FILL,
+        fill: { $palette: 'up.fill' },
         handle: { ...handle, stroke: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR },
     },
     'arrow-down': {
-        fill: PALETTE_DOWN_FILL,
+        fill: { $palette: 'down.fill' },
         handle: { ...handle, stroke: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR },
     },
 

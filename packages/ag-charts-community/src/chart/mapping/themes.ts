@@ -32,7 +32,6 @@ import { PolychromaDark } from '../themes/polychromaDark';
 import { PolychromaLight } from '../themes/polychromaLight';
 import { SheetsDark } from '../themes/sheetsDark';
 import { SheetsLight } from '../themes/sheetsLight';
-import { themeOverridesOptionsWithOperatorsDef } from '../themes/themeOptionsDef';
 import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
@@ -118,7 +117,8 @@ function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
 
 export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     baseTheme: or(string, object),
-    overrides: themeOverridesOptionsWithOperatorsDef,
+    // overrides: themeOverridesOptionsWithOperatorsDef,
+    overrides: object,
     params: {
         accentColor: color,
         axisColor: color,

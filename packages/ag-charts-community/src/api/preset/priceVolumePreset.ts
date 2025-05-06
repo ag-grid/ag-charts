@@ -16,18 +16,10 @@ import type {
     AgRangeBarSeriesOptions,
     AgRangesOptions,
     AgZoomOptions,
+    WithThemeParams,
 } from 'ag-charts-types';
 
 import type { ChartTheme } from '../../chart/themes/chartTheme';
-import {
-    PALETTE_ALT_NEUTRAL_STROKE,
-    PALETTE_DOWN_FILL,
-    PALETTE_DOWN_STROKE,
-    PALETTE_NEUTRAL_FILL,
-    PALETTE_NEUTRAL_STROKE,
-    PALETTE_UP_FILL,
-    PALETTE_UP_STROKE,
-} from '../../chart/themes/symbols';
 import { SAFE_STROKE_FILL_OPERATION } from '../../chart/themes/util';
 import { mergeDefaults } from '../../util/object';
 import { annotationsTheme } from './priceVolumePresetTheme';
@@ -91,7 +83,7 @@ export function priceVolume(
         ...unusedOpts
     } = opts;
 
-    const priceSeries = createPriceSeries(chartType, dateKey, highKey, lowKey, openKey, closeKey);
+    const priceSeries: any = createPriceSeries(chartType, dateKey, highKey, lowKey, openKey, closeKey);
     const volumeSeries = createVolumeSeries(getTheme, openKey, closeKey, volume, volumeKey);
 
     const miniChart = volume
@@ -201,7 +193,7 @@ export function priceVolume(
             ...mergeDefaults(typeof theme === 'object' ? theme : null, {
                 overrides: {
                     common: {
-                        title: { padding: 4 },
+                        // title: { padding: 4 },
                         padding: {
                             top: 6,
                             right: 8,
@@ -228,14 +220,14 @@ export function priceVolume(
                             marker: { enabled: false },
                             ...inlineSwitch(chartType, {
                                 hlc: {
-                                    stroke: PALETTE_ALT_NEUTRAL_STROKE,
+                                    stroke: { $palette: 'altNeutral.stroke' },
                                     strokeWidth: 2,
                                 },
                                 line: {
-                                    stroke: PALETTE_NEUTRAL_STROKE,
+                                    stroke: { $palette: 'neutral.stroke' },
                                 },
                                 'step-line': {
-                                    stroke: PALETTE_NEUTRAL_STROKE,
+                                    stroke: { $palette: 'neutral.stroke' },
                                     interpolation: { type: 'step' },
                                 },
                             }),
@@ -433,9 +425,9 @@ function createPriceSeriesHLC(
             xKey,
             yHighKey: highKey,
             yLowKey: closeKey,
-            fill: PALETTE_UP_FILL,
-            stroke: PALETTE_UP_STROKE,
-        } satisfies AgRangeAreaSeriesOptions,
+            fill: { $palette: 'up.fill' },
+            stroke: { $palette: 'up.stroke' },
+        } satisfies WithThemeParams<AgRangeAreaSeriesOptions>,
         {
             type: RANGE_AREA_TYPE,
             // @ts-expect-error undocumented option
@@ -444,9 +436,9 @@ function createPriceSeriesHLC(
             xKey,
             yHighKey: closeKey,
             yLowKey: lowKey,
-            fill: PALETTE_DOWN_FILL,
-            stroke: PALETTE_DOWN_STROKE,
-        } satisfies AgRangeAreaSeriesOptions,
+            fill: { $palette: 'down.fill' },
+            stroke: { $palette: 'down.stroke' },
+        } satisfies WithThemeParams<AgRangeAreaSeriesOptions>,
         {
             type: 'line',
             ...common,
@@ -463,15 +455,15 @@ function createPriceSeriesHighLow(common: PriceSeriesCommon, { xKey, highKey, lo
             xKey,
             yHighKey: highKey,
             yLowKey: lowKey,
-            fill: PALETTE_NEUTRAL_FILL,
-            stroke: PALETTE_NEUTRAL_STROKE,
+            fill: { $palette: 'neutral.fill' },
+            stroke: { $palette: 'neutral.stroke' },
             tooltip: {
                 range: 'nearest',
             },
             // @ts-expect-error undocumented option
             focusPriority: 0,
             fastDataProcessing: true,
-        } satisfies AgRangeBarSeriesOptions,
+        } satisfies WithThemeParams<AgRangeBarSeriesOptions>,
     ];
 }
 
