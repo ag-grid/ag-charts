@@ -59,7 +59,7 @@ export interface AgBaseAxisOptions<LabelType = any> {
 
 export interface AgContinuousAxisOptions<
     TDatum extends Date | number = number,
-    TInterval extends TimeInterval | number = number,
+    TInterval extends TimeInterval | TimeIntervalUnit | number = number,
 > {
     /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
     nice?: boolean;
@@ -71,7 +71,8 @@ export interface AgContinuousAxisOptions<
     interval?: AgAxisContinuousIntervalOptions<TInterval>;
 }
 
-export interface AgAxisContinuousIntervalOptions<T extends TimeInterval | number> extends AgAxisBaseIntervalOptions {
+export interface AgAxisContinuousIntervalOptions<T extends TimeInterval | TimeIntervalUnit | number>
+    extends AgAxisBaseIntervalOptions {
     /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: T;
     /** Maximum gap in pixels between items. */
@@ -189,6 +190,8 @@ export interface AgAxisGridStyle {
     lineDash?: PixelSize[];
 }
 
+export type TimeIntervalUnit = 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'month' | 'year';
+
 export interface TimeInterval {
     /**
      * Returns a new date representing the latest interval boundary date before or equal to date.
@@ -211,5 +214,3 @@ export interface TimeInterval {
      */
     range(start: Date, stop: Date, params?: { extend?: boolean }): Date[];
 }
-
-export type TimeIntervalUnit = 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'month' | 'year';

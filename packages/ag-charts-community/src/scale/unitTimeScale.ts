@@ -1,6 +1,8 @@
 import { findMaxIndex, findMinIndex } from 'ag-charts-core';
+import type { TimeIntervalUnit } from 'ag-charts-types';
 
 import { TimeInterval } from '../util/time';
+import { intervalFloor, intervalMilliseconds, intervalRange } from '../util/timeInterop';
 import { normalizeContinuousDomains } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
@@ -25,11 +27,13 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return this._domain;
     }
 
-    private _interval: TimeInterval | undefined;
-    get interval(): TimeInterval | undefined {
+    // eslint-disable-next-line sonarjs/use-type-alias
+    private _interval: TimeInterval | TimeIntervalUnit | undefined;
+    // eslint-disable-next-line sonarjs/function-return-type
+    get interval(): TimeInterval | TimeIntervalUnit | undefined {
         return this._interval;
     }
-    set interval(interval: TimeInterval | undefined) {
+    set interval(interval: TimeInterval | TimeIntervalUnit | undefined) {
         if (this._interval === interval) return;
 
         this._interval = interval;
@@ -54,18 +58,18 @@ export class UnitTimeScale extends DiscreteTimeScale {
             const [start, stop] = this.calculateBandRange(domain, interval);
             const d0 = Math.min(start.valueOf(), stop.valueOf());
             const d1 = Math.max(start.valueOf(), stop.valueOf());
-            if (t < d0 || t >= d1 + interval.milliseconds) return NaN;
+            if (t < d0 || t >= d1 + intervalMilliseconds(interval)) return NaN;
         }
         return super.convert(d, options);
     }
 
-    private calculateBandRange(domain: Date[], interval: TimeInterval) {
-        const start = interval.floor(domain[0]);
-        const stop = interval.floor(domain[1]);
-        return [start, stop] as const;
+    private calculateBandRange(domain: Date[], interval: TimeInterval | TimeIntervalUnit): [Date, Date] {
+        const start = intervalFloor(interval, domain[0]);
+        const stop = intervalFloor(interval, domain[1]);
+        return [start, stop];
     }
 
-    private calculateBands(domain: Date[], visibleRange: [number, number], extend: boolean = false) {
+    private calculateBands(domain: Date[], visibleRange: [number, number], extend: boolean = false): Date[] {
         if (
             domain === this.domain &&
             visibleRange[0] === 0 &&
@@ -82,11 +86,11 @@ export class UnitTimeScale extends DiscreteTimeScale {
         if (interval == null) return [];
 
         const [start, stop] = this.calculateBandRange(domain, interval);
-        return interval.range(start, stop, { visibleRange, extend });
+        return intervalRange(interval, start, stop, { visibleRange, extend });
     }
 
     override ticks(
-        { interval }: ScaleTickParams<TimeInterval | number>,
+        { interval }: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
         extend = false

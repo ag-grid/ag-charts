@@ -1,4 +1,5 @@
 import { findMaxIndex, findMinIndex } from 'ag-charts-core';
+import type { TimeIntervalUnit } from 'ag-charts-types';
 
 import { type TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
@@ -6,7 +7,7 @@ import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
 import type { ScaleFormatParams } from './scale';
 
-export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | number> {
+export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | TimeIntervalUnit | number> {
     static override is(value: unknown): value is DiscreteTimeScale {
         return value instanceof DiscreteTimeScale;
     }

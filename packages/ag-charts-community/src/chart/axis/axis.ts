@@ -7,6 +7,7 @@ import type {
     FontSize,
     FontStyle,
     FontWeight,
+    TimeIntervalUnit,
 } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
@@ -33,6 +34,7 @@ import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { TimeInterval } from '../../util/time';
+import { intervalStep, intervalUnit } from '../../util/timeInterop';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -546,7 +548,7 @@ export abstract class Axis<
         ticks: D[];
         rawTickCount: number | undefined;
         fractionDigits: number;
-        timeInterval: TimeInterval | undefined;
+        timeInterval: TimeInterval | TimeIntervalUnit | undefined;
         bbox?: BBox;
     };
 
@@ -578,7 +580,7 @@ export abstract class Axis<
         index: number,
         domain: D[],
         fractionDigits?: number,
-        timeInterval?: TimeInterval,
+        timeInterval?: TimeInterval | TimeIntervalUnit,
         defaultFormatter?: (datum: unknown) => string
     ): string {
         const {
@@ -589,8 +591,8 @@ export abstract class Axis<
         let result: string | undefined;
         if (formatter) {
             const boundSeries = this.getFormatterBoundSeries();
-            const unit = timeInterval?.unit;
-            const step = timeInterval?.step;
+            const unit = timeInterval ? intervalUnit(timeInterval) : undefined;
+            const step = timeInterval ? intervalStep(timeInterval) : undefined;
             result = this.callWithContext(formatter, {
                 value,
                 index,

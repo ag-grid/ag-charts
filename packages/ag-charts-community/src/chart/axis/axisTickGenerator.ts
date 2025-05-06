@@ -1,4 +1,5 @@
 import { countFractionDigits, dropFirstWhile, dropLastWhile } from 'ag-charts-core';
+import type { TimeIntervalUnit } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -17,6 +18,7 @@ import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
 import { TimeInterval, sunday } from '../../util/time';
+import { intervalHierarchy, intervalMilliseconds } from '../../util/timeInterop';
 import type { ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
 import {
     calculateLabelRotation,
@@ -38,7 +40,7 @@ export interface TickData<D = any> {
     rawTickCount: number | undefined;
     fractionDigits: number;
     ticks: TickDatum[];
-    timeInterval: TimeInterval | undefined;
+    timeInterval: TimeInterval | TimeIntervalUnit | undefined;
     niceDomain?: D[];
 }
 
@@ -102,7 +104,7 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
         index: number,
         domain: D[],
         fractionDigits?: number,
-        timeInterval?: TimeInterval,
+        timeInterval?: TimeInterval | TimeIntervalUnit,
         formatter?: (datum: any) => string
     ): string;
 }
@@ -471,9 +473,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     private getTimeIntervalTicks(
         visibleRange: [number, number],
         tickParams: Readonly<ScaleTickParams<any>>,
-        timeInterval: TimeInterval
+        timeInterval: TimeInterval | TimeIntervalUnit
     ) {
-        const parentInterval = timeInterval.hierarchy;
+        const parentInterval = intervalHierarchy(timeInterval);
         if (parentInterval == null) return;
 
         const { scale, reverse } = this.axis;
@@ -494,9 +496,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         if (dp1.valueOf() <= dv1) dp1 = parentInterval.next(dp1);
         const primaryTicks = parentInterval.range(dp0, dp1);
 
-        const { milliseconds } = timeInterval;
+        const milliseconds = intervalMilliseconds(timeInterval);
         const interpolate =
-            UnitTimeScale.is(scale) && scale.interval != null && scale.interval.milliseconds < milliseconds;
+            UnitTimeScale.is(scale) && scale.interval != null && intervalMilliseconds(scale.interval) < milliseconds;
 
         let ticks: Date[];
         let primaryTicksIndices: Set<number> | undefined = new Set<number>();
@@ -661,7 +663,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let tickDomain: D[] = niceDomain;
         let rawTicks: any[] | undefined;
         let rawTickCount: number | undefined;
-        let timeInterval: TimeInterval | undefined;
+        let timeInterval: TimeInterval | TimeIntervalUnit | undefined;
         let primaryTicksIndices: Set<number> | undefined;
         let interpolate = false;
 
@@ -718,7 +720,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 if (
                     minTimeInterval != null &&
                     timeInterval != null &&
-                    minTimeInterval.milliseconds > timeInterval.milliseconds
+                    intervalMilliseconds(minTimeInterval) > intervalMilliseconds(timeInterval)
                 ) {
                     timeInterval = minTimeInterval;
                 }
@@ -753,7 +755,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         };
         const labelFormatter = scale.tickFormatter(formatParams);
 
-        const primarySpecifier = labelSpecifier(primaryLabel?.format, timeInterval?.hierarchy);
+        const primarySpecifier = labelSpecifier(
+            primaryLabel?.format,
+            timeInterval ? intervalHierarchy(timeInterval) : undefined
+        );
         const primaryLabelFormatter = primarySpecifier
             ? scale.tickFormatter({
                   ...formatParams,

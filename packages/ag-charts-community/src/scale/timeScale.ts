@@ -1,11 +1,15 @@
+import type { TimeIntervalUnit } from 'ag-charts-types';
+
 import { TickIntervals, getTickTimeInterval, isDenseInterval } from '../util/ticks';
 import { TimeInterval, sunday } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
+import { intervalRange } from '../util/timeInterop';
 import { ContinuousScale } from './continuousScale';
 import type { ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
 
-export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
+// eslint-disable-next-line sonarjs/use-type-alias
+export class TimeScale extends ContinuousScale<Date, TimeInterval | TimeIntervalUnit | number> {
     static override is(value: unknown): value is TimeScale {
         return value instanceof TimeScale;
     }
@@ -134,7 +138,7 @@ export function getDateTicksForInterval({
 }: {
     start: number;
     stop: number;
-    interval: number | TimeInterval;
+    interval: number | TimeInterval | TimeIntervalUnit;
     availableRange: number;
     visibleRange: [number, number] | undefined;
     extend: boolean;
@@ -143,8 +147,8 @@ export function getDateTicksForInterval({
         return [];
     }
 
-    if (interval instanceof TimeInterval) {
-        const ticks = interval.range(new Date(start), new Date(stop), { visibleRange, extend });
+    if (interval instanceof TimeInterval || typeof interval === 'string') {
+        const ticks = intervalRange(interval, new Date(start), new Date(stop), { visibleRange, extend });
         if (isDenseInterval(ticks.length, availableRange)) {
             return;
         }
@@ -178,16 +182,18 @@ export function getDateTicksForInterval({
 function updateNiceDomainIteration(
     d0: Date,
     d1: Date,
-    ticks: ScaleTickParams<TimeInterval | number>,
+    ticks: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
     availableRange: number
 ): [Date, Date] {
     const { interval } = ticks;
     const start = Math.min(dateToNumber(d0), dateToNumber(d1));
     const stop = Math.max(dateToNumber(d0), dateToNumber(d1));
 
-    let i;
+    let i: TimeInterval | TimeIntervalUnit | undefined;
 
     if (interval instanceof TimeInterval) {
+        i = interval;
+    } else if (typeof interval === 'string') {
         i = interval;
     } else {
         let tickCount: number | undefined;
@@ -201,7 +207,9 @@ function updateNiceDomainIteration(
         i = getTickTimeInterval(start, stop, tickCount, ticks.minTickCount, ticks.maxTickCount, { weekStart: sunday });
     }
 
-    const domain = i?.range(new Date(start), new Date(stop), { extend: true });
+    if (i == null) return [d0, d1];
+
+    const domain = intervalRange(i, new Date(start), new Date(stop), { extend: true });
 
     if (domain == null || domain.length < 2) return [d0, d1];
 

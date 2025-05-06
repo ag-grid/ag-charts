@@ -52,6 +52,8 @@ import type {
 
 import { TimeInterval } from '../util/time';
 
+export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
+
 export const numberFormatValidator = attachDescription(isValidNumberFormat, 'a valid number format string');
 
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
@@ -248,7 +250,9 @@ export function continuousAxisOptions(
         max: and(validDatum, greaterThan('min')),
         nice: boolean,
         interval: {
-            step: supportTimeInterval ? or(positiveNumberNonZero, instanceOf(TimeInterval)) : positiveNumberNonZero,
+            step: supportTimeInterval
+                ? or(positiveNumberNonZero, timeIntervalUnit, instanceOf(TimeInterval))
+                : positiveNumberNonZero,
             values: arrayOf(validDatum),
             minSpacing: and(positiveNumber, lessThan('maxSpacing')),
             maxSpacing: and(positiveNumber, greaterThan('minSpacing')),

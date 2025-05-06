@@ -5,6 +5,7 @@ import {
     type FontStyle,
     type FontWeight,
     type TimeInterval,
+    type TimeIntervalUnit,
     _ModuleSupport,
 } from 'ag-charts-community';
 
@@ -150,7 +151,7 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
         index: number,
         domain: number[],
         _fractionDigits?: number,
-        _timeInterval?: TimeInterval,
+        _timeInterval?: TimeInterval | TimeIntervalUnit,
         defaultFormatter?: (datum: unknown) => string
     ): string {
         const { label } = this;

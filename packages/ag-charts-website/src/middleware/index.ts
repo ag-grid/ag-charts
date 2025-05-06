@@ -1,5 +1,8 @@
+import { getIsDev } from '@utils/env';
 import { defineMiddleware } from 'astro/middleware';
 import { parse } from 'node-html-parser';
+import { basename, extname } from 'path';
+import type { BuiltInParserName } from 'prettier';
 import * as prettier from 'prettier';
 
 const env = import.meta.env;
@@ -22,6 +25,32 @@ const rewriteAstroGeneratedContent = (body: string) => {
 
 const BINARY_EXTENSIONS = ['png', 'webp', 'jpeg', 'jpg'];
 
+async function formatContents(body: any) {
+    const { files } = body;
+
+    for (const file in files) {
+        let parser: BuiltInParserName | undefined;
+        switch (extname(file)) {
+            case '.js':
+            case '.jsx':
+                parser = 'babel';
+                break;
+            case '.ts':
+            case '.tsx':
+                parser = 'typescript';
+                break;
+        }
+
+        if (parser != null) {
+            try {
+                files[file] = await prettier.format(files[file], { parser });
+            } catch {
+                // Ignored
+            }
+        }
+    }
+}
+
 function isHtml(path: string) {
     const pathItems = path.split('/');
     const fileName = pathItems.slice(-1)[0];
@@ -41,6 +70,16 @@ function isBinary(path: string) {
 
 export const onRequest = defineMiddleware(async (context, next) => {
     const response = await next();
+
+    if (getIsDev() && basename(context.url.pathname) === 'contents.json') {
+        const body = await response.json();
+        await formatContents(body);
+
+        return new Response(JSON.stringify(body), {
+            status: 200,
+            headers: response.headers,
+        });
+    }
 
     const isExample = context.url.pathname.includes('/examples/');
     if (!isExample || isBinary(context.url.pathname)) {
