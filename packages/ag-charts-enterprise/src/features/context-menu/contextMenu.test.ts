@@ -111,14 +111,13 @@ describe('Context Menu', () => {
     });
 
     test('submenu cycle detection', () => {
-        const subsubmenu: Exclude<AgContextMenuItem, string> = { type: 'submenu', label: 'subsubmenu', items: [] };
+        const subsubmenu: Exclude<AgContextMenuItem, string> = { label: 'subsubmenu', items: [] };
         const contextMenu: AgChartOptions['contextMenu'] = {
             items: [
                 'defaults',
                 'separator',
                 { type: 'action', label: 'my action', action: () => {} },
                 {
-                    type: 'submenu',
                     label: 'my submenu',
                     items: [{ type: 'action', label: 'subaction', action: () => {} }, subsubmenu],
                 },

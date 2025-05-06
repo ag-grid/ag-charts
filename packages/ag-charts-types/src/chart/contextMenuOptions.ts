@@ -17,7 +17,7 @@ export type AgContextMenuItemLiteral =
 
 export type AgContextMenuItemShowOn = 'always' | 'series-area' | 'series-node' | 'legend-item';
 
-export type AgContextMenuItemType = 'action' | 'submenu' | 'separator';
+export type AgContextMenuItemType = 'action' | 'separator';
 
 interface ItemMixin {
     /**  TODO: writeme. */
