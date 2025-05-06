@@ -225,49 +225,56 @@ export class ChartTheme {
                     format: {
                         millisecond: {
                             $if: [
-                                { $path: '../../parentLevel/enabled' },
+                                // @todo(AG-14472) - remove ../enabled fallback
+                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
                                 timeDivisionLabelFormat.millisecond,
                                 timeLabelFormat?.millisecond,
                             ],
                         },
                         second: {
                             $if: [
-                                { $path: '../../parentLevel/enabled' },
+                                // @todo(AG-14472) - remove ../enabled fallback
+                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
                                 timeDivisionLabelFormat.second,
                                 timeLabelFormat?.second,
                             ],
                         },
                         minute: {
                             $if: [
-                                { $path: '../../parentLevel/enabled' },
+                                // @todo(AG-14472) - remove ../enabled fallback
+                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
                                 timeDivisionLabelFormat.minute,
                                 timeLabelFormat?.minute,
                             ],
                         },
                         hour: {
                             $if: [
-                                { $path: '../../parentLevel/enabled' },
+                                // @todo(AG-14472) - remove ../enabled fallback
+                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
                                 timeDivisionLabelFormat.hour,
                                 timeLabelFormat?.hour,
                             ],
                         },
                         day: {
                             $if: [
-                                { $path: '../../parentLevel/enabled' },
+                                // @todo(AG-14472) - remove ../enabled fallback
+                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
                                 timeDivisionLabelFormat.day,
                                 timeLabelFormat?.day,
                             ],
                         },
                         month: {
                             $if: [
-                                { $path: '../../parentLevel/enabled' },
+                                // @todo(AG-14472) - remove ../enabled fallback
+                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
                                 timeDivisionLabelFormat.month,
                                 timeLabelFormat?.month,
                             ],
                         },
                         year: {
                             $if: [
-                                { $path: '../../parentLevel/enabled' },
+                                // @todo(AG-14472) - remove ../enabled fallback
+                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
                                 timeDivisionLabelFormat.year,
                                 timeLabelFormat?.year,
                             ],
@@ -277,6 +284,7 @@ export class ChartTheme {
                 parentLevel: {
                     enabled: false,
                     label: {
+                        enabled: { $path: '../../label/enabled' },
                         fontSize: { $path: '../../label/fontSize' },
                         fontFamily: { $path: '../../label/fontFamily' },
                         fontWeight: 'bold',
@@ -305,6 +313,7 @@ export class ChartTheme {
             },
             {
                 label: {
+                    enabled: true,
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
                     fontWeight: { $ref: 'fontWeight' },
