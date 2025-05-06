@@ -1,10 +1,10 @@
 import type { InternalFramework } from '@ag-grid-types';
+import { getLoadingIFrameId } from '@ag-website-shared/components/loading-logo/getElementId';
 import { excludeHiddenFiles } from '@components/docs/utils/excludeHiddenFiles';
 import type { ExampleType } from '@components/example-generator/types';
 import { ExampleRunner } from '@components/example-runner/components/ExampleRunner';
 import { ExternalLinks } from '@components/example-runner/components/ExternalLinks';
 import type { ExampleOptions } from '@components/example-runner/types';
-import { getLoadingIFrameId } from '@components/example-runner/utils/getLoadingLogoId';
 import { useStore } from '@nanostores/react';
 import { $internalFramework } from '@stores/frameworkStore';
 import { useEffect, useState } from 'react';
