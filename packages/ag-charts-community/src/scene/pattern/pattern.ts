@@ -1,4 +1,9 @@
-import { type InternalAgPatternColor, type RequiredInternalAgPatternColor, createSvgElement } from 'ag-charts-core';
+import {
+    type InternalAgPatternColor,
+    Logger,
+    type RequiredInternalAgPatternColor,
+    createSvgElement,
+} from 'ag-charts-core';
 import type { AgPatternName, CssColor } from 'ag-charts-types';
 
 import { normalizeAngle360FromDegrees } from '../../util/angle';
@@ -78,9 +83,14 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     }
 
     private createCanvasPattern(ctx: CanvasRenderingContext2D, pixelRatio: number): CanvasPattern | null {
-        const { width, height, backgroundFill, backgroundFillOpacity } = this;
+        const { width, height, scale, backgroundFill, backgroundFillOpacity } = this;
 
-        const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio: pixelRatio * this.scale });
+        if (width * scale < 1 || height * scale < 1) {
+            Logger.warnOnce('Image fill is too small to render');
+            return null;
+        }
+
+        const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio: pixelRatio * scale });
         const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
 
         offscreenPatternCtx.fillStyle = backgroundFill;
