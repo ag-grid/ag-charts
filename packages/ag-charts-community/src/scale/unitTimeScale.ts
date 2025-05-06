@@ -27,9 +27,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return this._domain;
     }
 
-    // eslint-disable-next-line sonarjs/use-type-alias
+    /* eslint-disable sonarjs/use-type-alias */
     private _interval: TimeInterval | TimeIntervalUnit | undefined;
-    // eslint-disable-next-line sonarjs/function-return-type
     get interval(): TimeInterval | TimeIntervalUnit | undefined {
         return this._interval;
     }
@@ -39,6 +38,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         this._interval = interval;
         this._bands = undefined;
     }
+    /* eslint-enable */
 
     private _bands: Date[] | undefined = undefined;
     get bands(): readonly Date[] {
