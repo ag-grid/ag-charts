@@ -214,7 +214,7 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected renderFill(ctx: CanvasContext, path?: Path2D) {
-        if (this.fill) {
+        if (this.fill && this.fill !== 'none') {
             const { globalAlpha } = ctx;
             if (isImageFill(this.fill)) {
                 // image pattern background fill

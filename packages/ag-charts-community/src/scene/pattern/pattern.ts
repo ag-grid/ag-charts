@@ -68,6 +68,10 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     private renderFill(path2d: Path2D, ctx: OffscreenCanvasRenderingContext2D) {
         const { fill, fillOpacity } = this;
 
+        if (fill === 'none') {
+            return;
+        }
+
         ctx.fillStyle = fill;
         ctx.globalAlpha = fillOpacity;
         ctx.fill(path2d);
