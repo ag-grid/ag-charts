@@ -805,7 +805,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private removeDisabledOptions(options: Partial<T>) {
         // Remove configurations from all option objects with a `false` value for the `enabled` property.
-        jsonWalk(options, ChartOptions.removeDisabledOptionJson, new Set(['data', 'theme']));
+        jsonWalk(options, ChartOptions.removeDisabledOptionJson, new Set(['data', 'theme', 'contextMenu']));
     }
 
     private static removeLeftoverSymbolsJson(this: void, optionsNode: any) {

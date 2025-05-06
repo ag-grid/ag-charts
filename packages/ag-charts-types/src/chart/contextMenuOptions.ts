@@ -13,7 +13,6 @@ export type AgContextMenuItemLiteral =
     | 'pan-to-cursor'
     | 'toggle-series-visibility'
     | 'toggle-other-series'
-    | 'reset-zoom'
     | 'separator';
 
 export type AgContextMenuItemShowOn = 'always' | 'series-area' | 'series-node' | 'legend-item';
@@ -30,7 +29,7 @@ interface ItemMixin {
     /**  TODO: writeme. */
     iconUrl?: string;
     /**  TODO: writeme. */
-    enable?: boolean;
+    enabled?: boolean;
     /**  TODO: writeme. */
     items?: AgContextMenuItem[];
 }

@@ -88,7 +88,7 @@ export class ContextMenuItem implements _ModuleSupport.ContextMenuItemContract {
     showOn: AgContextMenuItemShowOn = 'always';
     label: string = '';
     iconUrl: string | undefined = undefined;
-    enable: boolean = true;
+    enabled: boolean = true;
     items: ContextMenuItem[] = [];
     action: _ModuleSupport.ContextMenuItemContract['action'] = undefined;
 

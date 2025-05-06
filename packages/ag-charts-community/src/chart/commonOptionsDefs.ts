@@ -133,7 +133,6 @@ const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [
     'pan-to-cursor',
     'toggle-series-visibility',
     'toggle-other-series',
-    'reset-zoom',
     'separator',
 ];
 
@@ -141,7 +140,7 @@ const contextMenuItemObjectValidator: Validator = optionsDefs<Extract<AgContextM
     type: union('action', 'submenu', 'separator'),
     showOn: union('always', 'series-area', 'series-node', 'legend-item'),
     label: required(string),
-    enable: boolean,
+    enabled: boolean,
     iconUrl: string,
     action: callback,
     items: (value, context) => contextMenuItemsArray(value, context),
@@ -155,7 +154,7 @@ const contextMenuItemValidator = attachDescription(
             if (allowedValues.includes(value)) {
                 result = true;
             } else {
-                result = { valid: false, invalid: [], cleared: {} } satisfies ValidatorResult;
+                result = { valid: false, invalid: [], cleared: null } satisfies ValidatorResult;
                 result.invalid.push(
                     new ValidationError(
                         ErrorType.Invalid,
