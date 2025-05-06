@@ -16,9 +16,10 @@ type DeprecatedMap = {
     };
 };
 
-const { Property, ContextMenuRegistry } = _ModuleSupport;
+const { Deprecated, Property, ContextMenuRegistry } = _ModuleSupport;
 
 const moduleId = 'context-menu';
+const DEPRECATION_MESSAGE = 'Use [items] instead';
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Property
@@ -30,10 +31,15 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     @Property
     readonly items: readonly Readonly<AgContextMenuItem>[] = ['defaults'];
 
+    @Deprecated(DEPRECATION_MESSAGE)
     public extraActions: DeprecatedAction<'extraActions'> = [];
+    @Deprecated(DEPRECATION_MESSAGE)
     public extraNodeActions: DeprecatedAction<'extraNodeActions'> = [];
+    @Deprecated(DEPRECATION_MESSAGE)
     public extraSeriesAreaActions: DeprecatedAction<'extraSeriesAreaActions'> = [];
+    @Deprecated(DEPRECATION_MESSAGE)
     public extraLegendItemActions: DeprecatedAction<'extraLegendItemActions'> = [];
+
     private readonly deprecationMap: DeprecatedMap;
 
     // Module context
