@@ -1,10 +1,9 @@
 import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
-import LoadingLogo from '@ag-website-shared/images/inline-svgs/ag-grid-logomark-loading.svg?react';
-import { getLoadingIFrameId, getLoadingLogoId } from '@components/example-runner/utils/getLoadingLogoId';
-import { onMessageRemoveLoadingLogo } from '@components/example-runner/utils/onMessageRemoveLoadingLogo';
+import { LoadingLogo } from '@ag-website-shared/components/loading-logo/LoadingLogo';
+import { getLoadingIFrameId } from '@ag-website-shared/components/loading-logo/getElementId';
 import { GalleryExampleRunner } from '@components/gallery/components/GalleryExampleRunner';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import styles from './HomepageGalleryExamples.module.scss';
 
@@ -22,14 +21,7 @@ export const HomepageGalleryExamples = ({ examples, pageName }: Props) => {
     const [currentExampleName, setCurrentExampleName] = useState(examples[0].exampleName);
     const currentExample = examples.find((example) => example.exampleName === currentExampleName) ?? examples[0];
     const { title, exampleName } = currentExample;
-    const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
     const loadingIFrameId = getLoadingIFrameId({ pageName, exampleName });
-
-    useEffect(() => {
-        const { cleanUp } = onMessageRemoveLoadingLogo({ pageName, exampleName });
-
-        return cleanUp;
-    }, [pageName, exampleName]);
 
     const handleExampleSelect = (name: string) => {
         setCurrentExampleName(name);
@@ -59,7 +51,7 @@ export const HomepageGalleryExamples = ({ examples, pageName }: Props) => {
                 ))}
             </div>
             <div className={styles.exampleContainer}>
-                <LoadingLogo id={loadingLogoId} />
+                <LoadingLogo pageName={pageName} exampleName={exampleName} />
                 <GalleryExampleRunner
                     title={title}
                     exampleName={exampleName}

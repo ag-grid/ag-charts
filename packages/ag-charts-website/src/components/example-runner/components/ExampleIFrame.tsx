@@ -1,4 +1,4 @@
-import { useIntersectionObserver } from '@utils/hooks/useIntersectionObserver';
+import { useIntersectionObserver } from '@ag-website-shared/utils/hooks/useIntersectionObserver';
 import classnames from 'classnames';
 import { type FunctionComponent, useEffect, useRef, useState } from 'react';
 

@@ -1,7 +1,5 @@
 ---
-import LoadingLogo from '@ag-website-shared/images/inline-svgs/ag-grid-logomark-loading.svg?react';
-import RemoveLogoOnInitScript from './RemoveLogoOnInitScript.astro';
-import { getLoadingLogoId } from '@components/example-runner/utils/getLoadingLogoId';
+import { LoadingLogo } from '@ag-website-shared/components/loading-logo/LoadingLogo';
 
 interface Props {
     exampleHeight?: number;
@@ -30,7 +28,6 @@ const EXAMPLE_CONSOLE_LOG_HEIGHT = hasExampleConsoleLog ? 100 : 0;
 
 const minHeight = exampleHeight + FRAME_WRAPPER_HEIGHT + EXAMPLE_CONSOLE_LOG_HEIGHT;
 const maxWidth = exampleWidth;
-const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
 const id = `example-${exampleName}`;
 ---
 
@@ -46,7 +43,7 @@ const id = `example-${exampleName}`;
     ]}
     style={{ minHeight: `${minHeight}px`, maxWidth: maxWidth != null ? `${maxWidth}px` : undefined }}
 >
-    <LoadingLogo id={loadingLogoId} />
+    <LoadingLogo client:load pageName={pageName} exampleName={exampleName} />
     <slot />
 </div>
 
@@ -85,5 +82,3 @@ const id = `example-${exampleName}`;
         }
     }
 </style>
-
-<RemoveLogoOnInitScript pageName={pageName} exampleName={exampleName} />
