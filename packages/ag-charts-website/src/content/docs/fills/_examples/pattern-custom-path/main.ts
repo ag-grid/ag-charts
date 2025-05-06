@@ -24,6 +24,7 @@ const options: AgCartesianChartOptions = {
                 width: 16,
                 height: 10,
                 strokeWidth: 1,
+                fill: 'none',
             },
         },
     ],
