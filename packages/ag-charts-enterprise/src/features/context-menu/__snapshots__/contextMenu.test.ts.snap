@@ -216,7 +216,24 @@ exports[`Context Menu submenu cycle detection 1`] = `
 ]
 `;
 
-exports[`Extra Actions callbacks 1`] = `
+exports[`Extra Actions - deprecated callbacks 1`] = `
+[
+  [
+    "AG Charts - Property [extraActions] is deprecated. Use [items] instead",
+  ],
+  [
+    "AG Charts - Property [extraSeriesAreaActions] is deprecated. Use [items] instead",
+  ],
+  [
+    "AG Charts - Property [extraNodeActions] is deprecated. Use [items] instead",
+  ],
+  [
+    "AG Charts - Property [extraLegendItemActions] is deprecated. Use [items] instead",
+  ],
+]
+`;
+
+exports[`Extra Actions - deprecated callbacks 2`] = `
 [
   {
     "args": [
