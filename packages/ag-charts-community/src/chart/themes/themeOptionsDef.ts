@@ -22,6 +22,7 @@ import {
     required,
     string,
     themeOperator,
+    unionSymbol,
 } from 'ag-charts-core';
 import type {
     AgCartesianAxesTheme,
@@ -656,7 +657,15 @@ export const themeOverridesOptionsWithOperatorsDef = mapValues(
         if (isFunction(value)) {
             return or(value as Validator, themeOperator, isSymbol);
         } else if (isObject(value)) {
-            return or(optionsDefs(mapValues(value, themeOperatorMapper)), themeOperator, isSymbol);
+            return or(
+                optionsDefs(
+                    unionSymbol in value
+                        ? mapValues(value, (val) => (isObject(val) ? mapValues(val, themeOperatorMapper) : val))
+                        : mapValues(value, themeOperatorMapper)
+                ),
+                themeOperator,
+                isSymbol
+            );
         }
         throw new Error(`Invalid theme override value: ${String(value)}`);
     }

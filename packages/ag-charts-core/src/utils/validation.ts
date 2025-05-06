@@ -19,7 +19,7 @@ const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
 const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
-const unionSymbol = Symbol('union');
+export const unionSymbol = Symbol('union');
 
 const similarOptionsMap = [
     ['placement', 'position'],
