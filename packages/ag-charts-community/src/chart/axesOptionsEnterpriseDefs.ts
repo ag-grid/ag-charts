@@ -26,8 +26,8 @@ import type {
 import {
     cartesianAxisCrosshairOptions,
     cartesianAxisOptionsDefs,
-    cartesianTimeAxisDivision,
     cartesianTimeAxisLabel,
+    cartesianTimeAxisParentLevel,
     commonAxisLabelOptionsDefs,
     commonAxisOptionsDefs,
     commonCrossLineLabelOptionsDefs,
@@ -43,7 +43,7 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
     paddingOuter: ratio,
     groupPaddingInner: ratio,
     label: cartesianTimeAxisLabel,
-    division: cartesianTimeAxisDivision,
+    parentLevel: cartesianTimeAxisParentLevel,
     interval: continuousAxisOptions(or(number, date), true).interval,
     crosshair: cartesianAxisCrosshairOptions(true),
 };
