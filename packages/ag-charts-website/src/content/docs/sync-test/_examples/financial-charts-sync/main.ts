@@ -9,9 +9,7 @@ const commonOptions: AgFinancialChartOptions = {
     toolbar: false,
     rangeButtons: false,
     volume: true,
-    sync: {
-        enabled: true,
-    },
+    sync: true,
 };
 
 const chartOptions1: AgFinancialChartOptions = {

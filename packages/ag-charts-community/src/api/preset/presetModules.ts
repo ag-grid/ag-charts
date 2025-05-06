@@ -58,7 +58,7 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     statusBar: boolean,
     toolbar: boolean,
     zoom: boolean,
-
+    sync: boolean,
     // Valid pass-through options
     theme: defined,
     container: defined,
@@ -70,7 +70,6 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     initialState: defined,
     title: defined,
     data: defined,
-    sync: defined,
 };
 
 const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgSeriesTooltip<any> }> = {

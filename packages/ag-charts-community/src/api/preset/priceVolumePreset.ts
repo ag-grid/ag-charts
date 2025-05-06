@@ -7,6 +7,7 @@ import type {
     AgBaseFinancialPresetOptions,
     AgCandlestickSeriesOptions,
     AgCartesianChartOptions,
+    AgChartSyncOptions,
     AgLineSeriesOptions,
     AgNavigatorOptions,
     AgNumberAxisOptions,
@@ -86,6 +87,7 @@ export function priceVolume(
         statusBar = true,
         toolbar = true,
         zoom = true,
+        sync = false,
         theme,
         data,
         ...unusedOpts
@@ -173,6 +175,16 @@ export function priceVolume(
             enabled: rangeButtons,
         } satisfies AgRangesOptions,
     };
+
+    const syncGroup = sync
+        ? {
+              sync: {
+                  enabled: sync,
+                  nodeInteraction: true,
+                  zoom: true,
+              } satisfies AgChartSyncOptions,
+          }
+        : null;
 
     const volumeAxis = volume
         ? [
@@ -303,6 +315,7 @@ export function priceVolume(
         ...statusBarOpts,
         ...zoomOpts,
         ...toolbarOpts,
+        ...syncGroup,
         ...unusedOpts,
     } satisfies AgCartesianChartOptions;
 }
