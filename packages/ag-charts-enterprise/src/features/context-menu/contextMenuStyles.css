@@ -17,7 +17,7 @@
     border: var(--ag-charts-border);
     box-shadow: var(--ag-charts-shadow);
     color: var(--ag-charts-chrome-text-color);
-    display: flex;
+    display: table;
     flex-direction: column;
     padding: 0.5em 0;
     transition: transform 0.1s ease;
@@ -32,15 +32,37 @@
 }
 
 .ag-charts-context-menu__item {
+    align-items: center;
     background: none;
     border: none;
     box-sizing: border-box;
     color: inherit;
+    display: table-row;
     font: inherit;
-    padding: 0.5em 1em;
+    justify-content: space-between;
     text-align: left;
+    width: 100%;
     -webkit-appearance: none;
     -moz-appearance: none;
+}
+
+.ag-charts-context-menu__icon > img {
+    width: var(--ag-charts-icon-size);
+    height: var(--ag-charts-icon-size);
+}
+
+.ag-charts-context-menu__icon,
+.ag-charts-context-menu__label,
+.ag-charts-context-menu__rightarrowhead {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.ag-charts-context-menu__cellpadding {
+    padding: 0.5em 1em;
+}
+.ag-charts-context-menu__icon {
+    padding-right: 0;
 }
 
 .ag-charts-context-menu__item:focus,
@@ -72,9 +94,15 @@
 }
 
 .ag-charts-context-menu__divider {
-    margin: 5px 0;
-    background: #babfc7;
-    height: 1px;
+    display: table-row;
+}
+.ag-charts-context-menu__divider > div {
+    padding: 5px 0;
+}
+.ag-charts-context-menu__divider > div::after {
+    content: '';
+    display: block;
+    border-top: 1px solid #babfc7;
 }
 
 .ag-charts-context-menu__divider.ag-charts-dark-context-menu {

@@ -1,6 +1,6 @@
 import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { type AnyFn, Logger, clamp } from 'ag-charts-core';
+import { type AnyFn, Logger, clamp, createElement } from 'ag-charts-core';
 
 import { ContextMenuItem, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
@@ -238,6 +238,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     const sep = menuWidget.addSeparator();
                     sep.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
                     sep.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
+                    this.initTableCells(sep);
                     break;
                 case 'action':
                     const btn = new _Widget.MenuItemWidget();
@@ -296,11 +297,40 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
+    private initTableCells(elem: Element) {
+        const cellIcon = createElement('div');
+        const cellLabel = createElement('div');
+        const cellArrow = createElement('div');
+        cellIcon.classList.toggle('ag-charts-context-menu__icon', true);
+        cellLabel.classList.toggle('ag-charts-context-menu__label', true);
+        cellArrow.classList.toggle('ag-charts-context-menu__rightarrowhead', true);
+        cellIcon.ariaHidden = 'true';
+        cellArrow.ariaHidden = 'true';
+        elem.append(cellIcon, cellLabel, cellArrow);
+        return { cellIcon, cellLabel, cellArrow };
+    }
+
     private initButtonElement(button: _Widget.MenuItemWidget, item: ContextMenuItem) {
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         button.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         button.setEnabled(item.enabled);
-        button.setTextContent(this.ctx.localeManager.t(item.label));
+        const label = this.ctx.localeManager.t(item.label);
+
+        const cellPaddingClass = `${DEFAULT_CONTEXT_MENU_CLASS}__cellpadding`;
+        const { cellIcon, cellLabel, cellArrow } = this.initTableCells(button.getElement());
+        cellLabel.textContent = label;
+        cellLabel.classList.add(cellPaddingClass);
+        if (item.iconUrl != null) {
+            const img = createElement('img');
+            img.src = item.iconUrl;
+            cellIcon.append(img);
+            cellIcon.classList.add(cellPaddingClass);
+        }
+        if (item.type === 'submenu') {
+            cellArrow.textContent = '❯';
+            cellArrow.classList.add(cellPaddingClass);
+        }
+
         const { showOn, action } = item;
         if (action != null) {
             button.addListener('click', this.createButtonOnClick(showOn, action));
