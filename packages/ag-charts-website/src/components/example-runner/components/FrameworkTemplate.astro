@@ -64,7 +64,14 @@ const indexFragment = files?.['index.html'];
 const bodyPadding = `
 <style>
     body {
-        padding: 2rem;
+      padding: 1rem;
+    }
+
+    div:has(> .ag-charts-wrapper),
+    ag-charts,
+    ag-financial-charts {
+      padding: 0 !important;
+      border: none !important;
     }
 </style>
 `;
