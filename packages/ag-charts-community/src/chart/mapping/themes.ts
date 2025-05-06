@@ -5,6 +5,7 @@ import {
     color,
     colorUnion,
     gradientStrict,
+    isObject,
     number,
     object,
     or,
@@ -32,6 +33,7 @@ import { PolychromaDark } from '../themes/polychromaDark';
 import { PolychromaLight } from '../themes/polychromaLight';
 import { SheetsDark } from '../themes/sheetsDark';
 import { SheetsLight } from '../themes/sheetsLight';
+import { themeOverridesOptionsWithOperatorsDef } from '../themes/themeOptionsDef';
 import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
@@ -75,32 +77,32 @@ function createChartTheme(value: unknown): ChartTheme {
         if (stockTheme) {
             return stockTheme();
         }
-        Logger.warnOnce(`the theme [${value}] is invalid, using [ag-default] instead.`);
+        Logger.warnOnce(`the theme \`${value}\` is invalid, ignoring.`);
         return lightTheme();
     }
 
-    const { invalid } = validate(value, themeOptionsDef, 'theme');
-
-    if (!invalid.length) {
-        const flattenedTheme = reduceThemeOptions(value);
-        const baseTheme: any = flattenedTheme.baseTheme ? getChartTheme(flattenedTheme.baseTheme) : lightTheme();
-        return new baseTheme.constructor(flattenedTheme);
-    }
+    const { cleared, invalid } = validate(reduceThemeOptions(value), themeOptionsDef, 'theme');
 
     for (const error of invalid) {
         Logger.warnOnce(String(error));
+    }
+
+    if (cleared) {
+        const baseTheme: any = cleared.baseTheme ? getChartTheme(cleared.baseTheme) : lightTheme();
+        return new baseTheme.constructor(cleared);
     }
 
     return lightTheme();
 }
 
 function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
+    if (!isObject(options) || !isObject(options.baseTheme)) return options;
     let maybeNested: AgChartTheme | AgChartThemeName | undefined = options;
     let palette: AgChartThemePalette | undefined;
     let params: AgChartThemeParams | undefined;
     const overrides: AgChartThemeOverrides[] = [];
     while (typeof maybeNested === 'object') {
-        palette ??= maybeNested.palette; // Use first palette found, they can't be merged.
+        palette ??= maybeNested.palette; // Use the first palette found; they can't be merged.
         params ??= maybeNested.params;
         if (maybeNested.overrides) {
             overrides.push(maybeNested.overrides);
@@ -117,8 +119,7 @@ function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
 
 export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     baseTheme: or(string, object),
-    // overrides: themeOverridesOptionsWithOperatorsDef,
-    overrides: object,
+    overrides: themeOverridesOptionsWithOperatorsDef,
     params: {
         accentColor: color,
         axisColor: color,

@@ -47,11 +47,6 @@ const font: WithThemeParams<FontOptions> = {
     fontFamily: { $ref: 'fontFamily' },
 };
 
-const text = {
-    ...font,
-    textAlign: 'left',
-};
-
 const measurerStatistics: WithThemeParams<AgMeasurerAnnotationStatistics> = {
     ...font,
     fontSize: { $ref: 'fontSize' },
@@ -151,21 +146,21 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Texts
     callout: {
         ...stroke,
-        ...text,
+        ...font,
         color: { $ref: 'textColor' },
         handle: { ...handle },
         fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
         fillOpacity: 0.2,
     },
     comment: {
-        ...text,
+        ...font,
         color: 'white',
         fontWeight: 700,
         handle: { ...handle },
         fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
     },
     note: {
-        ...text,
+        ...font,
         color: DEFAULT_TEXTBOX_COLOR,
         fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
         stroke: { $ref: 'backgroundColor' },
@@ -179,7 +174,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         },
     },
     text: {
-        ...text,
+        ...font,
         handle: { ...handle },
     },
 

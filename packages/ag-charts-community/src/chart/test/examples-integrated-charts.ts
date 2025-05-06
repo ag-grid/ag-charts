@@ -1325,29 +1325,6 @@ const CROSSFILTER_THEME = {
                 },
             },
         },
-        overrides: {
-            cartesian: {
-                tooltip: {
-                    delay: 500,
-                },
-                legend: {
-                    listeners: {},
-                },
-                listeners: {},
-                series: {},
-            },
-        },
-    },
-    overrides: {
-        cartesian: {
-            axes: {
-                category: {
-                    label: {
-                        rotation: 0,
-                    },
-                },
-            },
-        },
     },
 };
 

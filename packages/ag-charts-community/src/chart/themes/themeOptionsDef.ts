@@ -4,7 +4,6 @@ import {
     array,
     arrayOf,
     arrayOfDefs,
-    attachDescription,
     boolean,
     callback,
     color,
@@ -21,6 +20,7 @@ import {
     ratio,
     required,
     string,
+    themeOperator,
 } from 'ag-charts-core';
 import type {
     AgCartesianAxesTheme,
@@ -120,12 +120,6 @@ const serializableDate = optionsDefs<AgStateSerializableDate>(
     },
     'a serializable date object'
 );
-
-const themeOperator = attachDescription((value) => {
-    if (!isObject(value)) return false;
-    const keys = Object.keys(value);
-    return keys.length === 1 && keys[0].startsWith('$');
-}, 'a theme operator');
 
 // const commonIgnoredMiniChartProperties: CommonIgnoredProperties[] = [
 //     'cursor',

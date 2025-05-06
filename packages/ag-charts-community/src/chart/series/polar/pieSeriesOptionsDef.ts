@@ -99,3 +99,9 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
 pieSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
 // @ts-expect-error undocumented option
 pieSeriesOptionsDef.defaultPatternFills = undocumented(arrayOf(color));
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.title._enabledFromTheme = undocumented(boolean);
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.calloutLabel._enabledFromTheme = undocumented(boolean);
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.sectorLabel._enabledFromTheme = undocumented(boolean);

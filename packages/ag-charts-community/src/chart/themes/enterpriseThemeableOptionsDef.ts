@@ -66,7 +66,7 @@ import { without } from '../../util/object';
 import {
     autoSizedLabelOptionsDefs,
     commonSeriesThemeableOptionsDefs,
-    interpolationValidator,
+    interpolationOptionsDefs,
     markerOptionsDefs,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
@@ -446,7 +446,7 @@ export const radialColumnSeriesThemeableOptionsDef: OptionsDefs<AgRadialColumnSe
 export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesThemeableOptions> = {
     showInMiniChart: boolean,
     connectMissingData: boolean,
-    interpolation: interpolationValidator,
+    interpolation: interpolationOptionsDefs,
     label: {
         ...seriesLabelOptionsDefs,
         padding: positiveNumber,

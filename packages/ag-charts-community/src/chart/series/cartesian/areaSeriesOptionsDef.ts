@@ -14,7 +14,7 @@ import type { AgAreaSeriesOptions, AgAreaSeriesThemeableOptions } from 'ag-chart
 import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
-    interpolationValidator,
+    interpolationOptionsDefs,
     markerOptionsDefs,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
@@ -24,7 +24,7 @@ import {
 export const areaSeriesThemeableOptionsDef: OptionsDefs<AgAreaSeriesThemeableOptions> = {
     showInMiniChart: boolean,
     connectMissingData: boolean,
-    interpolation: interpolationValidator,
+    interpolation: interpolationOptionsDefs,
     label: seriesLabelOptionsDefs,
     marker: markerOptionsDefs,
     tooltip: tooltipOptionsDefs,

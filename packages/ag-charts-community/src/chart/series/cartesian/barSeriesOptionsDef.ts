@@ -50,6 +50,9 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     ...lineDashOptionsDef,
 };
 
+// @ts-expect-error undocumented option
+barSeriesThemeableOptionsDef.sparklineMode = undocumented(boolean);
+
 export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     ...barSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
@@ -73,5 +76,3 @@ barSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 barSeriesOptionsDef.fastDataProcessing = undocumented(boolean);
 // @ts-expect-error undocumented option
 barSeriesOptionsDef.focusPriority = undocumented(number);
-// @ts-expect-error undocumented option
-barSeriesOptionsDef.sparklineMode = undocumented(boolean);

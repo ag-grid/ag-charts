@@ -319,12 +319,12 @@ export class StatusBar
         } else {
             const { title } = this.ctx.chartService;
             textVAlign = 'top';
-            offsetTop = spacingAbove + title.padding;
+            offsetTop = spacingAbove + title.spacing;
             if (title.enabled) {
                 const titleBox = title.node.getBBox();
                 left = titleBox.x + titleBox.width + outerSpacing;
             } else {
-                left = title.padding;
+                left = title.spacing;
             }
         }
 

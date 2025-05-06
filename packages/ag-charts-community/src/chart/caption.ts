@@ -56,7 +56,7 @@ export class Caption extends BaseProperties implements CaptionLike {
     color?: string;
 
     @Property
-    spacing?: number;
+    spacing: number = 0;
 
     @Property
     maxWidth?: number;
@@ -66,9 +66,6 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     @Property
     wrapping: TextWrap = 'always';
-
-    @Property
-    padding: number = 0;
 
     @Property
     layoutStyle: 'block' | 'overlay' = 'block';
@@ -81,9 +78,9 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
-        const { text, padding, wrapping } = this;
-        const maxWidth = Math.min(this.maxWidth ?? Infinity, containerWidth) - padding * 2;
-        const maxHeight = this.maxHeight ?? containerHeight - padding * 2;
+        const { text, spacing, wrapping } = this;
+        const maxWidth = Math.min(this.maxWidth ?? Infinity, containerWidth) - spacing * 2;
+        const maxHeight = this.maxHeight ?? containerHeight - spacing * 2;
         if (!isFinite(maxWidth) && !isFinite(maxHeight)) {
             this.node.text = text;
             return;

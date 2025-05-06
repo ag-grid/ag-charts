@@ -14,6 +14,7 @@ import type {
     StrokeOptions,
 } from 'ag-charts-types';
 
+import { isObject } from '../utils/typeGuards';
 import {
     type OptionsDefs,
     and,
@@ -35,6 +36,12 @@ import {
     undocumented,
     union,
 } from '../utils/validation';
+
+export const themeOperator = attachDescription((value) => {
+    if (!isObject(value)) return false;
+    const keys = Object.keys(value);
+    return keys.length === 1 && keys[0].startsWith('$');
+}, 'a theme operator');
 
 const colorStop = optionsDefs<AgGradientColorStop>({ color: color, stop: ratio }, '');
 export const colorStopsOrderValidator = attachDescription((value) => {

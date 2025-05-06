@@ -57,45 +57,6 @@ export const integratedChartOptions = {
                     },
                 },
             },
-            overrides: {
-                polar: {
-                    series: {
-                        pie: {
-                            calloutLabel: {
-                                enabled: false,
-                            },
-                            tooltip: {},
-                        },
-                    },
-                },
-                cartesian: {
-                    axes: {
-                        number: {
-                            label: {},
-                        },
-                    },
-                    series: {
-                        column: {
-                            tooltip: {},
-                        },
-                        bar: {
-                            tooltip: {},
-                        },
-                        line: {
-                            tooltip: {},
-                        },
-                        area: {
-                            tooltip: {},
-                        },
-                        scatter: {
-                            tooltip: {},
-                        },
-                        histogram: {
-                            tooltip: {},
-                        },
-                    },
-                },
-            },
         } as any,
         overrides: {},
     },

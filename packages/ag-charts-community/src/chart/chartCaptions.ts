@@ -44,10 +44,10 @@ export class ChartCaptions {
             if (caption.layoutStyle !== 'overlay') continue;
 
             if (caption.textAlign === 'left') {
-                caption.node.x = rect.x + caption.padding;
+                caption.node.x = rect.x + caption.spacing;
             } else if (caption.textAlign === 'right') {
                 const bbox = caption.node.getBBox();
-                caption.node.x = rect.x + rect.width - bbox.width - caption.padding;
+                caption.node.x = rect.x + rect.width - bbox.width - caption.spacing;
             }
         }
     }
@@ -63,8 +63,8 @@ export class ChartCaptions {
 
     private positionCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox, maxHeight: number) {
         const containerHeight = Math.max(TextUtils.getLineHeight(caption.fontSize), maxHeight);
-        caption.node.x = this.computeX(caption.textAlign, layoutBox) + caption.padding;
-        caption.node.y = layoutBox.y + (vAlign === 'top' ? 0 : layoutBox.height) + caption.padding;
+        caption.node.x = this.computeX(caption.textAlign, layoutBox) + caption.spacing;
+        caption.node.y = layoutBox.y + (vAlign === 'top' ? 0 : layoutBox.height) + caption.spacing;
         caption.node.textBaseline = vAlign;
         caption.computeTextWrap(layoutBox.width, containerHeight);
     }

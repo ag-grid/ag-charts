@@ -656,7 +656,7 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     color: color,
 };
 
-export const interpolationValidator = typeUnion<AgInterpolationType>(
+export const interpolationOptionsDefs = typeUnion<AgInterpolationType>(
     {
         linear: {},
         smooth: {

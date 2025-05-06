@@ -16,7 +16,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
-    interpolationValidator,
+    interpolationOptionsDefs,
     markerOptionsDefs,
     seriesLabelOptionsDefs,
     tooltipOptionsDefs,
@@ -26,7 +26,7 @@ export const lineSeriesThemeableOptionsDef: OptionsDefs<AgLineSeriesThemeableOpt
     title: string,
     showInMiniChart: boolean,
     connectMissingData: boolean,
-    interpolation: interpolationValidator,
+    interpolation: interpolationOptionsDefs,
     label: seriesLabelOptionsDefs,
     marker: markerOptionsDefs,
     tooltip: tooltipOptionsDefs,
@@ -35,6 +35,9 @@ export const lineSeriesThemeableOptionsDef: OptionsDefs<AgLineSeriesThemeableOpt
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
 };
+
+// @ts-expect-error undocumented option
+lineSeriesThemeableOptionsDef.sparklineMode = undocumented(boolean);
 
 export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     ...lineSeriesThemeableOptionsDef,
@@ -55,5 +58,3 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
 lineSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
 lineSeriesOptionsDef.focusPriority = undocumented(number);
-// @ts-expect-error undocumented option
-lineSeriesOptionsDef.sparklineMode = undocumented(boolean);
