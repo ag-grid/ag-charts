@@ -1,4 +1,4 @@
-import { type InternalAgImageFill, createSvgElement } from 'ag-charts-core';
+import { type InternalAgImageFill, Logger, createSvgElement } from 'ag-charts-core';
 import type { AgColorRepetition, AgImageFillFit } from 'ag-charts-types';
 
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
@@ -8,6 +8,7 @@ import type { ImageLoader } from './imageLoader';
 export class Image implements Omit<InternalAgImageFill, 'type'> {
     url: string;
     backgroundFill: string;
+    backgroundFillOpacity: number;
     width?: number;
     height?: number;
     repetition: AgColorRepetition;
@@ -20,6 +21,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
     ) {
         this.url = imageOptions.url;
         this.backgroundFill = imageOptions.backgroundFill ?? 'black';
+        this.backgroundFillOpacity = imageOptions.backgroundFillOpacity ?? 1;
         this.repetition = imageOptions.repetition ?? 'repeat';
         this.width = imageOptions.width;
         this.height = imageOptions.height;
@@ -36,6 +38,11 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
     ): CanvasPattern | null {
         if (!image) return null;
         const { dw, dh } = this.getDimensions(image.width, image.height, width, height);
+
+        if (dw < 1 || dh < 1) {
+            Logger.warnOnce('Image fill is too small to render');
+            return null;
+        }
 
         const offscreenPattern = new HdpiOffscreenCanvas({ width: dw, height: dh, pixelRatio });
         const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;

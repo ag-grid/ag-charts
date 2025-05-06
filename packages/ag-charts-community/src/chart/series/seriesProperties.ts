@@ -169,6 +169,9 @@ export class FillImageDefaults
     backgroundFill: CssColor = 'black';
 
     @Property
+    backgroundFillOpacity: Opacity = 1;
+
+    @Property
     repetition: AgColorRepetition = 'repeat';
 
     @Property

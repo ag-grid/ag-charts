@@ -218,8 +218,10 @@ export abstract class Shape<D = any> extends Node<D> {
             const { globalAlpha } = ctx;
             if (isImageFill(this.fill)) {
                 // image pattern background fill
+                ctx.globalAlpha = this.fill.backgroundFillOpacity ?? 1;
                 ctx.fillStyle = this.fill.backgroundFill ?? 'transparent';
                 this.executeFill(ctx, path);
+                ctx.globalAlpha = globalAlpha;
             }
 
             this.applyFill(ctx);

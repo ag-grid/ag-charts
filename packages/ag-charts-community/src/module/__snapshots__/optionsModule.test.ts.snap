@@ -240,6 +240,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         },
         "fillImageDefaults": {
           "backgroundFill": "#5090dc",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -313,6 +314,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         },
         "fillImageDefaults": {
           "backgroundFill": "#ffa03a",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -386,6 +388,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         },
         "fillImageDefaults": {
           "backgroundFill": "#459d55",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -726,6 +729,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -802,6 +806,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -893,6 +898,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         },
         "fillImageDefaults": {
           "backgroundFill": "#459d55",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -1209,6 +1215,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
         "fillImageDefaults": {
           "backgroundFill": "#5090dc",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -1287,6 +1294,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
         "fillImageDefaults": {
           "backgroundFill": "#ffa03a",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -1365,6 +1373,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
         "fillImageDefaults": {
           "backgroundFill": "#459d55",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -1443,6 +1452,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
         "fillImageDefaults": {
           "backgroundFill": "#34bfe1",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -1521,6 +1531,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
         "fillImageDefaults": {
           "backgroundFill": "#e1cc00",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -1599,6 +1610,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
         "fillImageDefaults": {
           "backgroundFill": "#9669cb",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -1677,6 +1689,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         },
         "fillImageDefaults": {
           "backgroundFill": "#b5b5b5",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -1979,6 +1992,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -2056,6 +2070,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -2133,6 +2148,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillImageDefaults": {
         "backgroundFill": "#459d55",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -2210,6 +2226,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillImageDefaults": {
         "backgroundFill": "#34bfe1",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -2287,6 +2304,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillImageDefaults": {
         "backgroundFill": "#e1cc00",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -2364,6 +2382,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillImageDefaults": {
         "backgroundFill": "#9669cb",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -2441,6 +2460,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillImageDefaults": {
         "backgroundFill": "#b5b5b5",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -2518,6 +2538,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillImageDefaults": {
         "backgroundFill": "#bd5aa7",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -2770,6 +2791,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -3077,6 +3099,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         },
         "fillImageDefaults": {
           "backgroundFill": "#5090dc",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -3150,6 +3173,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         },
         "fillImageDefaults": {
           "backgroundFill": "#ffa03a",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -3223,6 +3247,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         },
         "fillImageDefaults": {
           "backgroundFill": "#459d55",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -3296,6 +3321,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         },
         "fillImageDefaults": {
           "backgroundFill": "#34bfe1",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -3590,6 +3616,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -3707,6 +3734,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -3824,6 +3852,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "fillImageDefaults": {
         "backgroundFill": "#459d55",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -3941,6 +3970,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "fillImageDefaults": {
         "backgroundFill": "#34bfe1",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -4058,6 +4088,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "fillImageDefaults": {
         "backgroundFill": "#e1cc00",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -4373,6 +4404,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -4624,6 +4656,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -4876,6 +4909,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -5112,6 +5146,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -5388,6 +5423,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -5469,6 +5505,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -5780,6 +5817,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -5862,6 +5900,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -6177,6 +6216,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -6261,6 +6301,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -6345,6 +6386,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillImageDefaults": {
         "backgroundFill": "#459d55",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -6429,6 +6471,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillImageDefaults": {
         "backgroundFill": "#34bfe1",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -6513,6 +6556,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillImageDefaults": {
         "backgroundFill": "#e1cc00",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -6597,6 +6641,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillImageDefaults": {
         "backgroundFill": "#9669cb",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -6681,6 +6726,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillImageDefaults": {
         "backgroundFill": "#b5b5b5",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -7015,6 +7061,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#5090dc",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -7094,6 +7141,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#ffa03a",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -7173,6 +7221,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#459d55",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -7252,6 +7301,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#34bfe1",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -7331,6 +7381,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#e1cc00",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -7410,6 +7461,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#9669cb",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -7489,6 +7541,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#b5b5b5",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -7568,6 +7621,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#bd5aa7",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -7647,6 +7701,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#8a6224",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -7726,6 +7781,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#ef5452",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -7805,6 +7861,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#5090dc",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -7884,6 +7941,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#ffa03a",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -7963,6 +8021,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#459d55",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -8042,6 +8101,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#34bfe1",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -8121,6 +8181,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#e1cc00",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -8200,6 +8261,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         },
         "fillImageDefaults": {
           "backgroundFill": "#9669cb",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -8493,6 +8555,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         },
         "fillImageDefaults": {
           "backgroundFill": "#5090dc",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -8757,6 +8820,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -8882,6 +8946,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -9007,6 +9072,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillImageDefaults": {
         "backgroundFill": "#459d55",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -9132,6 +9198,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillImageDefaults": {
         "backgroundFill": "#34bfe1",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -9257,6 +9324,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillImageDefaults": {
         "backgroundFill": "#e1cc00",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -9382,6 +9450,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillImageDefaults": {
         "backgroundFill": "#9669cb",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -9507,6 +9576,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillImageDefaults": {
         "backgroundFill": "#b5b5b5",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -9856,6 +9926,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -9939,6 +10010,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -10022,6 +10094,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "fillImageDefaults": {
         "backgroundFill": "#459d55",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -10340,6 +10413,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -10422,6 +10496,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -10504,6 +10579,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "fillImageDefaults": {
         "backgroundFill": "#459d55",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -10586,6 +10662,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "fillImageDefaults": {
         "backgroundFill": "#34bfe1",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -10668,6 +10745,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "fillImageDefaults": {
         "backgroundFill": "#e1cc00",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -10750,6 +10828,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "fillImageDefaults": {
         "backgroundFill": "#9669cb",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -11097,6 +11176,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -11208,6 +11288,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -11319,6 +11400,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "fillImageDefaults": {
         "backgroundFill": "#459d55",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -11430,6 +11512,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "fillImageDefaults": {
         "backgroundFill": "#34bfe1",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -11718,6 +11801,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -12356,6 +12440,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         },
         "fillImageDefaults": {
           "backgroundFill": "#5090dc",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -12433,6 +12518,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         },
         "fillImageDefaults": {
           "backgroundFill": "#ffa03a",
+          "backgroundFillOpacity": 1,
           "fit": "contain",
           "repetition": "no-repeat",
           "rotation": 0,
@@ -12904,6 +12990,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -13209,6 +13296,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -13332,6 +13420,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -13455,6 +13544,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "fillImageDefaults": {
         "backgroundFill": "#459d55",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -13578,6 +13668,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "fillImageDefaults": {
         "backgroundFill": "#34bfe1",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -13701,6 +13792,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "fillImageDefaults": {
         "backgroundFill": "#e1cc00",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -13824,6 +13916,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "fillImageDefaults": {
         "backgroundFill": "#9669cb",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -14190,6 +14283,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -14272,6 +14366,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -14354,6 +14449,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "fillImageDefaults": {
         "backgroundFill": "#459d55",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -14436,6 +14532,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "fillImageDefaults": {
         "backgroundFill": "#34bfe1",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -14741,6 +14838,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "fillImageDefaults": {
         "backgroundFill": "#5090dc",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -14823,6 +14921,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "fillImageDefaults": {
         "backgroundFill": "#ffa03a",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -14905,6 +15004,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "fillImageDefaults": {
         "backgroundFill": "#459d55",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -14987,6 +15087,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "fillImageDefaults": {
         "backgroundFill": "#34bfe1",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
@@ -15069,6 +15170,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "fillImageDefaults": {
         "backgroundFill": "#e1cc00",
+        "backgroundFillOpacity": 1,
         "fit": "contain",
         "repetition": "no-repeat",
         "rotation": 0,
