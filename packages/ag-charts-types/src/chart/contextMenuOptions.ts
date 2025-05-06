@@ -20,45 +20,56 @@ export type AgContextMenuItemShowOn = 'always' | 'series-area' | 'series-node' |
 export type AgContextMenuItemType = 'action' | 'separator';
 
 interface ItemMixin {
-    /**  TODO: writeme. */
+    /**
+     * The type of UI element that this item represents.
+     *
+     * Default: `'action'`, which is just a regular button element.
+     */
     type?: AgContextMenuItemType;
-    /**  TODO: writeme. */
+    /**
+     * Type of `'contextmenu'` clicks that this menu item should be shown for.
+     *
+     * Default: `'always'`
+     */
     showOn?: AgContextMenuItemShowOn;
-    /**  TODO: writeme. */
+    /** The text label of this menu item. This property is required for Accessibility compliance. */
     label: string;
-    /**  TODO: writeme. */
+    /** URL for this menu item's icon. */
     iconUrl?: string;
-    /**  TODO: writeme. */
+    /**
+     * Dimmed state of this menu-item.
+     *
+     * Default: `false` */
     enabled?: boolean;
-    /**  TODO: writeme. */
+    /** The submenu items. If undefined or empty, then this item will just be treat like a regular menu item. Otherwise, this menu item will have a submenu popup attached to it. */
     items?: AgContextMenuItem[];
 }
 
 export interface AgContextMenuItemAlways extends ItemMixin {
-    /**  TODO: writeme. */
+    /** Type of `'contextmenu'` clicks that this menu item should be shown for. `'always'` menu items are always shown. */
     showOn?: 'always';
-    /**  TODO: writeme. */
+    /** Function called when clicking on this menu item. */
     action?: (event: AgChartContextMenuEvent) => void;
 }
 
 export interface AgContextMenuItemSeriesArea extends ItemMixin {
-    /**  TODO: writeme. */
+    /** Type of `'contextmenu'` clicks that this menu item should be shown for. `'series-area'` menu items are always shown when clicking anywhere in the series area bounds, including on a datum node. */
     showOn: 'series-area';
-    /**  TODO: writeme. */
+    /** Function called when clicking on this menu item. */
     action?: (event: AgSeriesAreaContextMenuActionEvent) => void;
 }
 
 export interface AgContextMenuItemSeriesNode extends ItemMixin {
-    /**  TODO: writeme. */
+    /** Type of `'contextmenu'` clicks that this menu item should be shown for. `'series-node'` menu items only when clicking on a datum node. */
     showOn: 'series-node';
-    /**  TODO: writeme. */
+    /** Function called when clicking on this menu item. */
     action?: (event: AgNodeContextMenuActionEvent) => void;
 }
 
 export interface AgContextMenuItemLegendItem extends ItemMixin {
-    /**  TODO: writeme. */
+    /** Type of `'contextmenu'` clicks that this menu item should be shown for. `'legend-item'` menu items only when clicking on a legend item. */
     showOn: 'legend-item';
-    /**  TODO: writeme. */
+    /** Function called when clicking on this menu item. */
     action?: (event: AgChartLegendContextMenuEvent) => void;
 }
 
@@ -72,7 +83,7 @@ export type AgContextMenuItem =
 export interface AgContextMenuOptions {
     /**  Whether to show the context menu. */
     enabled?: boolean;
-    /**  TODO: writeme. */
+    /**  List of menu items (and submenus) for the context menu. */
     items?: AgContextMenuItem[];
     /**
      * Custom actions displayed in the context menu when right-clicking anywhere on the chart.
