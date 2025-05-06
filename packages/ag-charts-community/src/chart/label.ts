@@ -5,6 +5,7 @@ import type {
     FontStyle,
     FontWeight,
     Formatter,
+    TimeIntervalUnit,
 } from 'ag-charts-types';
 
 import type { Scale, ScaleFormatParams } from '../scale/scale';
@@ -15,6 +16,7 @@ import { normalizeAngle360FromDegrees } from '../util/angle';
 import { BaseProperties, Property } from '../util/properties';
 import { type TextMeasurer, TextUtils } from '../util/textMeasurer';
 import type { TimeInterval } from '../util/time';
+import { intervalHierarchy, intervalRange, intervalUnit } from '../util/timeInterop';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
 
 export class Label<TParams = never, TDatum = any>
@@ -123,14 +125,14 @@ export function getTextAlign(
 
 export function labelSpecifier(
     format: ChartAxisLabel['format'] | undefined,
-    timeInterval: TimeInterval | undefined
+    timeInterval: TimeInterval | TimeIntervalUnit | undefined
 ): string | undefined {
     if (format == null) return;
 
     if (typeof format === 'string') {
         return format;
     } else if (isPlainObject(format) && timeInterval != null) {
-        return format[timeInterval.unit];
+        return format[intervalUnit(timeInterval)];
     }
 }
 
@@ -140,7 +142,7 @@ export function timeIntervalMaxLabelSize(
     primaryLabel: ChartAxisLabel | undefined,
     domain: Date[],
     ticks: Date[],
-    timeInterval: TimeInterval,
+    timeInterval: TimeInterval | TimeIntervalUnit,
     textMeasurer: TextMeasurer
 ) {
     const specifier =
@@ -154,7 +156,8 @@ export function timeIntervalMaxLabelSize(
     };
     const labelFormatter = scale.tickFormatter(formatParams as ScaleFormatParams<any>);
 
-    const primarySpecifier = labelSpecifier(primaryLabel?.format, timeInterval?.hierarchy);
+    const hierarchy = timeInterval ? intervalHierarchy(timeInterval) : undefined;
+    const primarySpecifier = labelSpecifier(primaryLabel?.format, hierarchy);
     const primaryLabelFormatter = primarySpecifier
         ? scale.tickFormatter({
               ...formatParams,
@@ -165,7 +168,7 @@ export function timeIntervalMaxLabelSize(
     const d0 = new Date(scale.domain[0] as any);
     const d1 = new Date(scale.domain[scale.domain.length - 1] as any);
 
-    const hierarchyRange = timeInterval.hierarchy?.range(
+    const hierarchyRange = hierarchy?.range(
         new Date(scale.domain[0] as any),
         new Date(scale.domain[scale.domain.length - 1] as any),
         { extend: true }
@@ -183,7 +186,7 @@ export function timeIntervalMaxLabelSize(
             l0 = d0;
             l1 = d1;
         }
-        const labelRange = timeInterval.range(l0, l1, { limit: 50 });
+        const labelRange = intervalRange(timeInterval, l0, l1, { limit: 50 });
         for (const date of labelRange) {
             const text = labelFormatter(date);
             const { width, height } = textMeasurer.measureLines(text);

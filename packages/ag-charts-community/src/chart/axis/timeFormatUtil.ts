@@ -2,6 +2,7 @@ import { isPlainObject } from 'ag-charts-core';
 import type { TimeIntervalUnit } from 'ag-charts-types';
 
 import type { TimeInterval } from '../../util/time';
+import { intervalUnit } from '../../util/timeInterop';
 
 const hardCodedTimeFormats: Record<TimeIntervalUnit, string> = {
     millisecond: '%Y %b %e %H:%M:%S.%L',
@@ -33,13 +34,15 @@ const YEAR_FORMAT = /^%[-_0]?[Yy]$/;
 
 export function deriveTimeSpecifier(
     format: string | Record<string, string> | undefined,
-    timeInterval: TimeInterval
+    timeInterval: TimeInterval | TimeIntervalUnit
 ): string | undefined {
     if (!isPlainObject(format)) return format;
 
+    const unit = intervalUnit(timeInterval);
+
     const { millisecond, second, minute, hour, day, month, year } = format;
-    const formatOrder = FORMAT_ORDERS[timeInterval.unit];
-    const hardcodedTimeFormat = hardCodedTimeFormats[timeInterval.unit];
+    const formatOrder = FORMAT_ORDERS[unit];
+    const hardcodedTimeFormat = hardCodedTimeFormats[unit];
 
     if (
         (formatOrder >= FORMAT_ORDERS.year && !YEAR_FORMAT.test(year)) ||
@@ -49,8 +52,8 @@ export function deriveTimeSpecifier(
         return hardcodedTimeFormat;
     }
 
-    let time: string;
-    switch (timeInterval.unit) {
+    let specifier: string;
+    switch (unit) {
         case 'year':
             return year;
         case 'month':
@@ -58,29 +61,29 @@ export function deriveTimeSpecifier(
         case 'day':
             return `${month} ${day} ${year}`;
         case 'hour':
-            time = hour;
+            specifier = hour;
             break;
         case 'minute':
-            time = minute;
+            specifier = minute;
             break;
         case 'second':
-            time = second;
+            specifier = second;
             break;
         case 'millisecond':
-            time = millisecond;
+            specifier = millisecond;
             break;
         default:
             return hardcodedTimeFormat;
     }
 
     if (
-        (formatOrder >= FORMAT_ORDERS.hour && !HOUR_FORMAT.test(time)) ||
-        (formatOrder >= FORMAT_ORDERS.minute && !MINUTE_FORMAT.test(time)) ||
-        (formatOrder >= FORMAT_ORDERS.second && !SECOND_FORMAT.test(time)) ||
-        (formatOrder >= FORMAT_ORDERS.millisecond && !MILLISECOND_FORMAT.test(time))
+        (formatOrder >= FORMAT_ORDERS.hour && !HOUR_FORMAT.test(specifier)) ||
+        (formatOrder >= FORMAT_ORDERS.minute && !MINUTE_FORMAT.test(specifier)) ||
+        (formatOrder >= FORMAT_ORDERS.second && !SECOND_FORMAT.test(specifier)) ||
+        (formatOrder >= FORMAT_ORDERS.millisecond && !MILLISECOND_FORMAT.test(specifier))
     ) {
         return hardcodedTimeFormat;
     }
 
-    return `${time} ${month} ${day} ${year}`;
+    return `${specifier} ${month} ${day} ${year}`;
 }

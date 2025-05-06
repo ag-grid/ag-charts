@@ -36,6 +36,7 @@ import {
     cartesianTimeAxisLabel,
     cartesianTimeAxisParentLevel,
     continuousAxisOptions,
+    timeIntervalUnit,
 } from '../chart/axesOptionsDefs';
 import { CategoryAxis } from '../chart/axis/categoryAxis';
 import { GroupedCategoryAxis } from '../chart/axis/groupedCategoryAxis';
@@ -125,7 +126,7 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     // ...without(continuousAxisOptions(or(number, date), true), ['nice']),
     ...continuousAxisOptions(or(number, date), true),
     type: required(constant('unit-time')),
-    unit: instanceOf(TimeInterval),
+    unit: or(instanceOf(TimeInterval), timeIntervalUnit),
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,
     paddingInner: ratio,

@@ -197,7 +197,7 @@ module.exports = {
             comment: 'Options modules should be isolated from implementation modules.',
             severity: 'error',
             from: { path: '^src/scale/' },
-            to: { pathNot: ['ag-charts-core', '^src/(util|core|scale)/', 'node_modules'] },
+            to: { pathNot: ['ag-charts-core', 'ag-charts-types', '^src/(util|core|scale)/', 'node_modules'] },
         },
         {
             name: 'ag-isolated-scene',
