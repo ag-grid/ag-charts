@@ -33,7 +33,7 @@ interface Props {
     /**
      * Whether to add padding to the body element
      */
-    addBodyPadding?: boolean;
+    addExternalExampleStyles?: boolean;
     /**
      * Whether to not include system js code
      */
@@ -49,7 +49,7 @@ const {
     relativePath,
     addInitMessageScript,
     addE2ECheckScript,
-    addBodyPadding,
+    addExternalExampleStyles,
     ignoreSystemJs,
 } = Astro.props as Props;
 
@@ -61,7 +61,7 @@ const { entryFileName, files, scriptFiles, styleFiles, isEnterprise, hasLocale, 
     generatedContents || {};
 const indexFragment = files?.['index.html'];
 
-const bodyPadding = `
+const externalExampleStyles = `
 <style>
     body {
       padding: 1rem;
@@ -75,7 +75,7 @@ const bodyPadding = `
     }
 </style>
 `;
-const headFragment = (addBodyPadding ? bodyPadding : '') + (files?.['head.html'] ?? '');
+const headFragment = (addExternalExampleStyles ? externalExampleStyles : '') + (files?.['head.html'] ?? '');
 const appLocation = relativePath ? '' : exampleUrl;
 const boilerPlateUrl = relativePath
     ? ''
