@@ -18,7 +18,7 @@ export const integratedChartOptions = {
                                     _enabledFromTheme: true,
                                 },
                             },
-                            groupedCategory: {
+                            'grouped-category': {
                                 title: {
                                     _enabledFromTheme: true,
                                 },
