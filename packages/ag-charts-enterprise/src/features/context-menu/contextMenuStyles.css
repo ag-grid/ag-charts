@@ -55,12 +55,12 @@
 .ag-charts-context-menu__label,
 .ag-charts-context-menu__rightarrowhead {
     display: table-cell;
-    padding: 0.5em 1em;
+    padding: 0; /* AG-14807 Add conditional left/right padding when icons/arrowheads are shown */
     vertical-align: middle;
 }
 
-.ag-charts-context-menu__icon {
-    padding-right: 0;
+.ag-charts-context-menu__label {
+    padding: 0.5em 1em;
 }
 
 .ag-charts-context-menu__item:focus,
@@ -95,7 +95,7 @@
     display: table-row;
 }
 .ag-charts-context-menu__divider > div {
-    padding: 0.5em 0em;
+    padding: 5px 0;
 }
 .ag-charts-context-menu__divider > div::after {
     content: '';
