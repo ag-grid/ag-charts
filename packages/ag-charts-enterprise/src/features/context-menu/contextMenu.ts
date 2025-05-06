@@ -32,13 +32,13 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     readonly items: readonly Readonly<AgContextMenuItem>[] = ['defaults'];
 
     @Deprecated(DEPRECATION_MESSAGE)
-    public extraActions: DeprecatedAction<'extraActions'> = [];
+    public extraActions?: DeprecatedAction<'extraActions'>;
     @Deprecated(DEPRECATION_MESSAGE)
-    public extraNodeActions: DeprecatedAction<'extraNodeActions'> = [];
+    public extraNodeActions?: DeprecatedAction<'extraNodeActions'>;
     @Deprecated(DEPRECATION_MESSAGE)
-    public extraSeriesAreaActions: DeprecatedAction<'extraSeriesAreaActions'> = [];
+    public extraSeriesAreaActions?: DeprecatedAction<'extraSeriesAreaActions'>;
     @Deprecated(DEPRECATION_MESSAGE)
-    public extraLegendItemActions: DeprecatedAction<'extraLegendItemActions'> = [];
+    public extraLegendItemActions?: DeprecatedAction<'extraLegendItemActions'>;
 
     private readonly deprecationMap: DeprecatedMap;
 
@@ -64,25 +64,25 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.deprecationMap = {
             extraActions: {
                 get items() {
-                    return that.extraActions;
+                    return that.extraActions ?? [];
                 },
                 showOn: 'always',
             },
             extraSeriesAreaActions: {
                 get items() {
-                    return that.extraSeriesAreaActions;
+                    return that.extraSeriesAreaActions ?? [];
                 },
                 showOn: 'series-area',
             },
             extraNodeActions: {
                 get items() {
-                    return that.extraNodeActions;
+                    return that.extraNodeActions ?? [];
                 },
                 showOn: 'series-node',
             },
             extraLegendItemActions: {
                 get items() {
-                    return that.extraLegendItemActions;
+                    return that.extraLegendItemActions ?? [];
                 },
                 showOn: 'legend-item',
             },
