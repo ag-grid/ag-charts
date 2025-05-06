@@ -1500,6 +1500,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 datum,
                 itemId: datumIndex,
                 seriesId,
+                hideToggleOtherSeries: true,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                 label: {
                     text: labelParts.join(' - '),
