@@ -208,11 +208,9 @@ exports[`Context Menu submenu cycle detection 1`] = `
             [Circular],
           ],
           "label": "subsubmenu",
-          "type": "submenu",
         },
       ],
       "label": "my submenu",
-      "type": "submenu",
     },
   ],
 ]

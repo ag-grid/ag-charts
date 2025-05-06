@@ -327,7 +327,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             cellIcon.append(img);
             cellIcon.classList.add(cellPaddingClass);
         }
-        if (item.type === 'submenu') {
+        if (item.items.length > 0) {
             cellArrow.textContent = '❯';
             cellArrow.classList.add(cellPaddingClass);
         }
