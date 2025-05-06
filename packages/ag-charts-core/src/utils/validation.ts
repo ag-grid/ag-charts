@@ -20,7 +20,6 @@ const requiredSymbol = Symbol('required');
 const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
 const unionSymbol = Symbol('union');
-const unionDefaultSymbol = Symbol('unionDefault');
 
 const similarOptionsMap = [
     ['placement', 'position'],
@@ -52,8 +51,7 @@ type PrivateSymbols = {
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
     [undocumentedSymbol]?: boolean;
-    [unionSymbol]?: boolean;
-    [unionDefaultSymbol]?: string;
+    [unionSymbol]?: string;
 };
 
 // Definitions for options validation with support for nested structures.
@@ -164,9 +162,9 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     const optionsKeys = new Set(Object.keys(options));
     const unusedKeys = [];
 
-    if (optionsDefs[unionSymbol]) {
+    if (unionSymbol in optionsDefs) {
         const validTypes = Object.keys(optionsDefs);
-        const defaultType = optionsDefs[unionDefaultSymbol];
+        const defaultType = optionsDefs[unionSymbol];
         if (
             (options.type != null && validTypes.includes(options.type)) ||
             (options.type == null && defaultType != null)
@@ -335,8 +333,7 @@ export const typeUnion = <T extends { type: string }>(
     ({
         ...defs,
         [descriptionSymbol]: description,
-        [unionSymbol]: true,
-        [unionDefaultSymbol]: defaultType,
+        [unionSymbol]: defaultType,
     }) as OptionsDefs<T>;
 
 /**
