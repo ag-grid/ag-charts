@@ -109,7 +109,7 @@ function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverri
     return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
 }
 
-const timeLabelFormats: Record<TimeIntervalUnit, string> = {
+const modernTimeLabelFormat: Record<TimeIntervalUnit, string> = {
     millisecond: '%H:%M:%S.L',
     second: '%H:%M:%S',
     minute: '%H:%M',
@@ -119,7 +119,7 @@ const timeLabelFormats: Record<TimeIntervalUnit, string> = {
     year: '%Y',
 };
 
-const timeDivisionLabelFormats: Record<TimeIntervalUnit, string> = {
+const timeDivisionLabelFormat: Record<TimeIntervalUnit, string> = {
     millisecond: '%H:%M:%S.%L',
     second: '%H:%M:%S',
     minute: '%H:%M',
@@ -205,6 +205,8 @@ export class ChartTheme {
         overrideDefaults: object,
         { title, time }: { title: boolean; time: 'off' | 'legacy' | 'modern' }
     ) {
+        const timeLabelFormat = time === 'modern' ? modernTimeLabelFormat : undefined;
+
         return mergeDefaults(
             overrideDefaults,
             title && {
@@ -221,11 +223,55 @@ export class ChartTheme {
             time !== 'off' && {
                 label: {
                     format: {
-                        $if: [
-                            { $path: '../parentLevel/enabled' },
-                            timeDivisionLabelFormats,
-                            time === 'modern' ? timeLabelFormats : undefined,
-                        ],
+                        millisecond: {
+                            $if: [
+                                { $path: '../../parentLevel/enabled' },
+                                timeDivisionLabelFormat.millisecond,
+                                timeLabelFormat?.millisecond,
+                            ],
+                        },
+                        second: {
+                            $if: [
+                                { $path: '../../parentLevel/enabled' },
+                                timeDivisionLabelFormat.second,
+                                timeLabelFormat?.second,
+                            ],
+                        },
+                        minute: {
+                            $if: [
+                                { $path: '../../parentLevel/enabled' },
+                                timeDivisionLabelFormat.minute,
+                                timeLabelFormat?.minute,
+                            ],
+                        },
+                        hour: {
+                            $if: [
+                                { $path: '../../parentLevel/enabled' },
+                                timeDivisionLabelFormat.hour,
+                                timeLabelFormat?.hour,
+                            ],
+                        },
+                        day: {
+                            $if: [
+                                { $path: '../../parentLevel/enabled' },
+                                timeDivisionLabelFormat.day,
+                                timeLabelFormat?.day,
+                            ],
+                        },
+                        month: {
+                            $if: [
+                                { $path: '../../parentLevel/enabled' },
+                                timeDivisionLabelFormat.month,
+                                timeLabelFormat?.month,
+                            ],
+                        },
+                        year: {
+                            $if: [
+                                { $path: '../../parentLevel/enabled' },
+                                timeDivisionLabelFormat.year,
+                                timeLabelFormat?.year,
+                            ],
+                        },
                     },
                 },
                 parentLevel: {
@@ -238,28 +284,15 @@ export class ChartTheme {
                         color: { $path: '../../label/color' },
                         avoidCollisions: { $path: '../../label/avoidCollisions' },
                         format: {
-                            $if: [
-                                { $isOperation: '../../label/format' },
-                                {
-                                    $if: [
-                                        { $path: '../enabled' },
-                                        timeDivisionLabelFormats,
-                                        time === 'modern' ? timeLabelFormats : undefined,
-                                    ],
-                                },
-                                {
-                                    $path: [
-                                        '../../label/format',
-                                        {
-                                            $if: [
-                                                { $path: '../enabled' },
-                                                timeDivisionLabelFormats,
-                                                time === 'modern' ? timeLabelFormats : undefined,
-                                            ],
-                                        },
-                                    ],
-                                },
-                            ],
+                            millisecond: {
+                                $path: ['../../../label/format/millisecond', timeDivisionLabelFormat.millisecond],
+                            },
+                            second: { $path: ['../../../label/format/second', timeDivisionLabelFormat.second] },
+                            minute: { $path: ['../../../label/format/minute', timeDivisionLabelFormat.minute] },
+                            hour: { $path: ['../../../label/format/hour', timeDivisionLabelFormat.hour] },
+                            day: { $path: ['../../../label/format/day', timeDivisionLabelFormat.day] },
+                            month: { $path: ['../../../label/format/month', timeDivisionLabelFormat.month] },
+                            year: { $path: ['../../../label/format/year', timeDivisionLabelFormat.year] },
                         },
                     },
                     tick: {
