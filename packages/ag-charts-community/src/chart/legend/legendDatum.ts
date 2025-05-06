@@ -41,6 +41,7 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
     };
     skipAnimations?: boolean;
     isFixed?: boolean;
+    hideToggleOtherSeries?: true; // used to hide "Toggle Other Series" for Multi-Donut and Pie/Donut combo charts.
 }
 
 export interface GradientLegendDatum extends BaseChartLegendDatum {
