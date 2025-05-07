@@ -282,5 +282,8 @@ export function gauge(
         case 'linear-gauge':
             const linearGaugeOpts = applyThemeDefaults(opts, presetTheme as any);
             return linearGaugeOptions(linearGaugeOpts);
+
+        default:
+            return {};
     }
 }

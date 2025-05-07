@@ -90,23 +90,6 @@ const tooltipDeprecatedTypeValidator = union(
     'bottom-right'
 );
 export const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
-// const themeValidator = or(
-//     union(
-//         'ag-default',
-//         'ag-default-dark',
-//         'ag-sheets',
-//         'ag-sheets-dark',
-//         'ag-polychroma',
-//         'ag-polychroma-dark',
-//         'ag-vivid',
-//         'ag-vivid-dark',
-//         'ag-material',
-//         'ag-material-dark',
-//         'ag-financial',
-//         'ag-financial-dark'
-//     ),
-//     optionsDefs(themeOptionsDef, 'a theme object')
-// );
 
 const zoomAnchorPoint = union('pointer', 'start', 'middle', 'end');
 

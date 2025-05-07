@@ -11,6 +11,7 @@ import {
     object,
     or,
     string,
+    union,
     validate,
 } from 'ag-charts-core';
 import type {
@@ -71,6 +72,8 @@ export const getChartTheme = simpleMemorize(createChartTheme, cacheCallback);
 function createChartTheme(value: unknown): ChartTheme {
     if (value instanceof ChartTheme) {
         return value;
+    } else if (!validateStructure(value)) {
+        return lightTheme();
     }
 
     if (value == null || typeof value === 'string') {
@@ -78,8 +81,7 @@ function createChartTheme(value: unknown): ChartTheme {
         if (stockTheme) {
             return stockTheme();
         }
-        Logger.warnOnce(`the theme \`${value}\` is invalid, ignoring.`);
-        return lightTheme();
+        throw new Error(`Cannot find theme \`${value}\`.`);
     }
 
     const { cleared, invalid } = validate(reduceThemeOptions(value), themeOptionsDef, 'theme');
@@ -88,12 +90,8 @@ function createChartTheme(value: unknown): ChartTheme {
         Logger.warnOnce(String(error));
     }
 
-    if (cleared) {
-        const baseTheme: any = cleared.baseTheme ? getChartTheme(cleared.baseTheme) : lightTheme();
-        return new baseTheme.constructor(cleared);
-    }
-
-    return lightTheme();
+    const baseTheme: any = cleared?.baseTheme ? getChartTheme(cleared.baseTheme) : lightTheme();
+    return cleared ? new baseTheme.constructor(cleared) : baseTheme;
 }
 
 function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
@@ -156,3 +154,29 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         neutral: { fill: or(color, gradientStrict), stroke: color },
     },
 };
+
+const themeNameValidator = union(
+    'ag-default',
+    'ag-default-dark',
+    'ag-sheets',
+    'ag-sheets-dark',
+    'ag-polychroma',
+    'ag-polychroma-dark',
+    'ag-vivid',
+    'ag-vivid-dark',
+    'ag-material',
+    'ag-material-dark',
+    'ag-financial',
+    'ag-financial-dark'
+);
+
+function validateStructure(value: unknown) {
+    const { invalid } = validate<{ theme?: AgChartTheme | AgChartThemeName }>(
+        { theme: value },
+        { theme: or(themeNameValidator, object) }
+    );
+    for (const error of invalid) {
+        Logger.warnOnce(String(error));
+    }
+    return invalid.length === 0;
+}
