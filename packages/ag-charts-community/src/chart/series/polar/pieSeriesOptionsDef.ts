@@ -18,22 +18,17 @@ import {
     strokeOptionsDef,
     undocumented,
 } from 'ag-charts-core';
-import type { AgPieSeriesOptions, AgPieSeriesStyle } from 'ag-charts-types';
+import type { AgPieSeriesOptions, AgPieSeriesStyle, AgPieSeriesThemeableOptions } from 'ag-charts-types';
 
 import { without } from '../../../util/object';
-import { commonSeriesOptionsDefs, shadowOptionsDefs, tooltipOptionsDefs } from '../../commonOptionsDefs';
+import {
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
+    shadowOptionsDefs,
+    tooltipOptionsDefs,
+} from '../../commonOptionsDefs';
 
-export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
-    type: required(constant('pie')),
-    angleKey: required(string),
-    radiusKey: string,
-    calloutLabelKey: string,
-    sectorLabelKey: string,
-    legendItemKey: string,
-    angleName: string,
-    radiusName: string,
-    calloutLabelName: string,
-    sectorLabelName: string,
+export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptions> = {
     radiusMin: positiveNumber,
     radiusMax: positiveNumber,
     rotation: number,
@@ -79,13 +74,34 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     strokes: arrayOf(color),
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
-    ...commonSeriesOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
     ...lineDashOptionsDef,
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
+};
+
+export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
+    ...pieSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
+    type: required(constant('pie')),
+    angleKey: required(string),
+    radiusKey: string,
+    calloutLabelKey: string,
+    sectorLabelKey: string,
+    legendItemKey: string,
+    angleName: string,
+    radiusName: string,
+    calloutLabelName: string,
+    sectorLabelName: string,
 };
 
 // @ts-expect-error undocumented option
 pieSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
 // @ts-expect-error undocumented option
 pieSeriesOptionsDef.defaultPatternFills = undocumented(arrayOf(color));
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.title._enabledFromTheme = undocumented(boolean);
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.calloutLabel._enabledFromTheme = undocumented(boolean);
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.sectorLabel._enabledFromTheme = undocumented(boolean);

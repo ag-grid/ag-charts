@@ -1,25 +1,11 @@
-import { type AgOhlcSeriesItemOptions, type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import {
-    type OptionsDefs,
-    boolean,
-    callbackDefs,
-    constant,
-    lineDashOptionsDef,
-    number,
-    required,
-    string,
-    strokeOptionsDef,
-    undocumented,
-} from 'ag-charts-core';
+import { type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type OptionsDefs, boolean, constant, number, required, string, undocumented } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
-
-const ohlcSeriesItemOptionsDef: OptionsDefs<AgOhlcSeriesItemOptions> = {
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
-};
+const { commonSeriesOptionsDefs, ohlcSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
+    ...ohlcSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
     type: required(constant('ohlc')),
     xKey: required(string),
     openKey: required(string),
@@ -32,17 +18,6 @@ export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
     highName: string,
     lowName: string,
     closeName: string,
-    showInMiniChart: boolean,
-    itemStyler: callbackDefs<AgOhlcSeriesItemOptions>({
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    }),
-    item: {
-        up: ohlcSeriesItemOptionsDef,
-        down: ohlcSeriesItemOptionsDef,
-    },
-    tooltip: tooltipOptionsDefs,
-    ...commonSeriesOptionsDefs,
 };
 
 // @ts-expect-error undocumented option

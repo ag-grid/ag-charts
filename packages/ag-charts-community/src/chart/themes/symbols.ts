@@ -1,6 +1,4 @@
 export const IS_DARK_THEME = Symbol('is-dark-theme') as unknown as boolean;
-export const IS_COMMUNITY = Symbol('is-community') as unknown as boolean;
-export const IS_ENTERPRISE = Symbol('is-enterprise') as unknown as boolean;
 export const DEFAULT_SEPARATION_LINES_COLOUR = Symbol('default-separation-lines-colour') as unknown as string;
 export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour') as unknown as string;
 export const DEFAULT_CAPTION_LAYOUT_STYLE = Symbol('default-caption-layout-style') as unknown as string;

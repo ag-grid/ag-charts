@@ -37,7 +37,7 @@ import {
 
 import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
-import { getChartTheme, themeOptionsDef } from '../chart/mapping/themes';
+import { getChartTheme } from '../chart/mapping/themes';
 import {
     type SeriesOptionsTypes,
     isAgCartesianChartOptions,
@@ -340,7 +340,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.enableConfiguredOptions(processedOptions, options);
 
-        const themeParameters = this.getThemeParameters(activeTheme, processedOptions) as AgChartThemeParams;
+        const themeParameters = activeTheme.getPublicParameters() as AgChartThemeParams;
         (themeParameters as any).__palette = deepClone(activeTheme.palette);
         (themeParameters as any).__palette.type = isObject(options.theme)
             ? paletteType(options.theme?.palette)
@@ -576,20 +576,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         });
 
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
-    }
-
-    private getThemeParameters(theme: ChartTheme, options: T) {
-        const defaultParameters = theme.getPublicParameters();
-
-        if (!isPlainObject(options.theme) || !options.theme.params) {
-            return defaultParameters;
-        }
-
-        const { cleared, invalid } = validate(options.theme.params, themeOptionsDef.params);
-
-        invalid.forEach((error) => Logger.warn(error));
-
-        return mergeDefaults(cleared, defaultParameters);
     }
 
     private resolveThemeOperations(params: WithThemeParams<AgChartThemeParams>, options: object) {

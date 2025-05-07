@@ -1,8 +1,11 @@
+import { _ModuleSupport } from 'ag-charts-community';
 import type { PluginModuleDefinition } from 'ag-charts-core';
 import type { AgAnnotationsOptions, AgInitialStateOptions, AgNavigatorOptions } from 'ag-charts-types';
 
-import { annotationOptionsDef, initialStateOptionsDef } from '../annotations/annotationOptionsDef';
+import { initialStateOptionsDef } from '../annotations/annotationOptionsDef';
 import { navigatorOptionsDef } from '../navigator/navigatorOptionsDefs';
+
+const { annotationOptionsDef } = _ModuleSupport;
 
 export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions> = {
     type: 'plugin',

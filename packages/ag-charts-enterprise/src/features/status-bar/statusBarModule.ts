@@ -20,19 +20,19 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
                 fontWeight: { $ref: 'fontWeight' },
             },
             positive: {
-                color: _ModuleSupport.ThemeSymbols.PALETTE_UP_STROKE,
+                color: { $palette: 'up.stroke' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: { $ref: 'fontWeight' },
             },
             negative: {
-                color: _ModuleSupport.ThemeSymbols.PALETTE_DOWN_STROKE,
+                color: { $palette: 'down.stroke' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: { $ref: 'fontWeight' },
             },
             neutral: {
-                color: _ModuleSupport.ThemeSymbols.PALETTE_NEUTRAL_STROKE,
+                color: { $palette: 'neutral.stroke' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: { $ref: 'fontWeight' },

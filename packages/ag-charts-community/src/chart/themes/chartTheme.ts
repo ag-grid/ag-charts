@@ -15,7 +15,6 @@ import type {
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
-import { enterpriseModule } from '../../module/enterpriseModule';
 import { Color } from '../../util/color';
 import { deepClone, jsonWalk } from '../../util/json';
 import { deepFreeze, mergeDefaults } from '../../util/object';
@@ -48,9 +47,7 @@ import {
     DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TEXT_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
-    IS_COMMUNITY,
     IS_DARK_THEME,
-    IS_ENTERPRISE,
     PALETTE_ALT_DOWN_FILL,
     PALETTE_ALT_DOWN_STROKE,
     PALETTE_ALT_NEUTRAL_FILL,
@@ -669,12 +666,8 @@ export class ChartTheme {
 
     // Private parameters that are not exposed in the themes API.
     getTemplateParameters() {
-        const { isEnterprise } = enterpriseModule;
-
         const params = new Map();
         params.set(IS_DARK_THEME, false);
-        params.set(IS_ENTERPRISE, isEnterprise);
-        params.set(IS_COMMUNITY, !isEnterprise);
         params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#d9d9d9');
         params.set(DEFAULT_SHADOW_COLOUR, '#00000080');
         params.set(DEFAULT_SPARKLINE_CROSSHAIR_STROKE, '#aaa');

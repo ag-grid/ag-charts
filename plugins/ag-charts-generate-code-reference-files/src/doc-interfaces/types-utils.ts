@@ -35,10 +35,16 @@ export class TypeMapper {
     }
 
     resolvedEntries() {
-        return this.entries().map(([name]) => {
+        const result: any[] = [];
+        for (const [name] of this.entries()) {
             this.genericsMap = new Map();
-            return this.resolveType(name);
-        });
+            try {
+                result.push(this.resolveType(name));
+            } catch (e) {
+                console.error('Failed to resolve', name);
+            }
+        }
+        return result;
     }
 
     protected isTopLevelDeclaration(
@@ -67,9 +73,12 @@ export class TypeMapper {
             const mapItem = this.nodeMap.get(nameOrNode);
             if (mapItem) {
                 return this.resolveNode(mapItem, typeArguments);
-            } else {
-                console.error('Missing!', nameOrNode);
             }
+            const genericItem = this.genericsMap.get(nameOrNode);
+            if (genericItem) {
+                return this.resolveType(genericItem, typeArguments);
+            }
+            console.error('Missing!', nameOrNode);
         } else {
             return this.resolveNode({ node: nameOrNode }, typeArguments);
         }
@@ -164,25 +173,7 @@ export class TypeMapper {
             const n = this.resolveType(node.typeArguments[0]);
             return { ...n, members: n.members.map((member) => ({ ...member, optional: false })) };
         } else if (node.type === 'Omit' || node.type === 'Pick') {
-            const resolveTypeKeyType = (typeKey) => {
-                if (typeof typeKey === 'string' && !typeKey.match(/^'.*'$/)) {
-                    return this.resolveType(typeKey).type;
-                } else if (typeKey?.kind === 'union') {
-                    typeKey.type = typeKey.type.flatMap((t) => {
-                        t = resolveTypeKeyType(t);
-                        if (t.kind === 'union') {
-                            return t.type;
-                        } else {
-                            return [t];
-                        }
-                    });
-                    return typeKey;
-                } else {
-                    return typeKey;
-                }
-            };
-            const typeKeys = resolveTypeKeyType(node.typeArguments[1]);
-
+            const typeKeys = this.resolveUnionKeyType(node.typeArguments[1]);
             const expectedFilter = node.type === 'Pick';
             const matchType =
                 typeKeys.kind === 'union'
@@ -202,6 +193,22 @@ export class TypeMapper {
         } else {
             return this.resolveType(node.type, node.type.typeArguments);
         }
+    }
+
+    protected resolveUnionKeyType(unionKey: any) {
+        if (typeof unionKey === 'string' && !unionKey.match(/^'.*'$/)) {
+            return this.resolveType(unionKey).type;
+        } else if (unionKey?.kind === 'union') {
+            unionKey.type = unionKey.type.flatMap((t) => {
+                t = this.resolveUnionKeyType(t);
+                if (t.kind === 'union') {
+                    return t.type;
+                } else {
+                    return [t];
+                }
+            });
+        }
+        return unionKey;
     }
 
     cleanupMembers(members) {

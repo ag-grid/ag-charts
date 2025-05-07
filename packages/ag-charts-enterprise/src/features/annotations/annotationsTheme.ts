@@ -3,8 +3,8 @@ import {
     type AgAnnotationOptionsToolbar,
     type AgAnnotationsThemeableOptions,
     type AgAnnotationsToolbar,
-    type AgChannelAnnotationTextOptions,
-    type AgLineAnnotationTextOptions,
+    type AgChannelAnnotationTextStyles,
+    type AgLineAnnotationTextStyles,
     type AgMeasurerAnnotationStatistics,
     type AgMeasurerAnnotationStyles,
     type FontOptions,
@@ -45,14 +45,14 @@ const text = {
     textAlign: 'left',
 };
 
-const lineText: WithThemeParams<AgLineAnnotationTextOptions> = {
+const lineText: WithThemeParams<AgLineAnnotationTextStyles> = {
     ...font,
     position: 'top',
     alignment: 'center',
     color: { $ref: 'textColor' },
 };
 
-const channelText: WithThemeParams<AgChannelAnnotationTextOptions> = {
+const channelText: WithThemeParams<AgChannelAnnotationTextStyles> = {
     ...font,
     position: 'top',
     alignment: 'center',
@@ -283,11 +283,11 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         text: { ...lineText },
     },
     'arrow-up': {
-        fill: ThemeSymbols.PALETTE_UP_FILL,
+        fill: { $palette: 'up.fill' },
         handle: { ...handle, stroke: { $ref: 'foregroundColor' } },
     },
     'arrow-down': {
-        fill: ThemeSymbols.PALETTE_DOWN_FILL,
+        fill: { $palette: 'down.fill' },
         handle: { ...handle, stroke: { $ref: 'foregroundColor' } },
     },
 

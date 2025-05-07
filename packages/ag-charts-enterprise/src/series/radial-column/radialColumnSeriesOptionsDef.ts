@@ -1,22 +1,11 @@
-import { type AgRadialColumnSeriesOptions, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import {
-    type OptionsDefs,
-    boolean,
-    callbackDefs,
-    constant,
-    fillOptionsDef,
-    lineDashOptionsDef,
-    number,
-    positiveNumber,
-    ratio,
-    required,
-    string,
-    strokeOptionsDef,
-} from 'ag-charts-core';
+import { type AgRadialColumnSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type OptionsDefs, boolean, constant, number, required, string } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
+const { commonSeriesOptionsDefs, radialColumnSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptions> = {
+    ...radialColumnSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
     type: required(constant('radial-column')),
     angleKey: required(string),
     radiusKey: required(string),
@@ -26,19 +15,4 @@ export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptio
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,
-    cornerRadius: positiveNumber,
-    columnWidthRatio: ratio,
-    maxColumnWidthRatio: ratio,
-    itemStyler: callbackDefs<AgRadialSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-    }),
-    label: seriesLabelOptionsDefs,
-    tooltip: tooltipOptionsDefs,
-    ...commonSeriesOptionsDefs,
-    ...fillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
 };

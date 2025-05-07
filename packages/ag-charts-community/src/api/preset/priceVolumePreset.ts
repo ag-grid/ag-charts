@@ -20,7 +20,6 @@ import type {
 
 import type { ChartTheme } from '../../chart/themes/chartTheme';
 import {
-    PALETTE_ALT_NEUTRAL_STROKE,
     PALETTE_DOWN_FILL,
     PALETTE_DOWN_STROKE,
     PALETTE_NEUTRAL_FILL,
@@ -228,14 +227,14 @@ export function priceVolume(
                             marker: { enabled: false },
                             ...inlineSwitch(chartType, {
                                 hlc: {
-                                    stroke: PALETTE_ALT_NEUTRAL_STROKE,
+                                    stroke: { $palette: 'altNeutral.stroke' },
                                     strokeWidth: 2,
                                 },
                                 line: {
-                                    stroke: PALETTE_NEUTRAL_STROKE,
+                                    stroke: { $palette: 'neutral.stroke' },
                                 },
                                 'step-line': {
-                                    stroke: PALETTE_NEUTRAL_STROKE,
+                                    stroke: { $palette: 'neutral.stroke' },
                                     interpolation: { type: 'step' },
                                 },
                             }),

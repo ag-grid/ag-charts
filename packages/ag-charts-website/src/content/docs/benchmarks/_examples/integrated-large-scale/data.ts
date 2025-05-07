@@ -18,7 +18,7 @@ export const integratedChartOptions = {
                                     _enabledFromTheme: true,
                                 },
                             },
-                            groupedCategory: {
+                            'grouped-category': {
                                 title: {
                                     _enabledFromTheme: true,
                                 },
@@ -53,45 +53,6 @@ export const integratedChartOptions = {
                                 enabled: false,
                                 _enabledFromTheme: true,
                             },
-                        },
-                    },
-                },
-            },
-            overrides: {
-                polar: {
-                    series: {
-                        pie: {
-                            calloutLabel: {
-                                enabled: false,
-                            },
-                            tooltip: {},
-                        },
-                    },
-                },
-                cartesian: {
-                    axes: {
-                        number: {
-                            label: {},
-                        },
-                    },
-                    series: {
-                        column: {
-                            tooltip: {},
-                        },
-                        bar: {
-                            tooltip: {},
-                        },
-                        line: {
-                            tooltip: {},
-                        },
-                        area: {
-                            tooltip: {},
-                        },
-                        scatter: {
-                            tooltip: {},
-                        },
-                        histogram: {
-                            tooltip: {},
                         },
                     },
                 },

@@ -9,26 +9,18 @@ import {
     string,
     union,
 } from 'ag-charts-core';
-import type { AgBubbleSeriesOptions } from 'ag-charts-types';
+import type { AgBubbleSeriesOptions, AgBubbleSeriesThemeableOptions } from 'ag-charts-types';
 
 import { without } from '../../../util/object';
 import {
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     markerOptionsDefs,
     seriesLabelOptionsDefs,
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
-export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
-    type: required(constant('bubble')),
-    xKey: required(string),
-    yKey: required(string),
-    sizeKey: required(string),
-    labelKey: string,
-    xName: string,
-    yName: string,
-    sizeName: string,
-    labelName: string,
+export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeableOptions> = {
     title: string,
     domain: arrayOf(number),
     maxSize: positiveNumber,
@@ -38,6 +30,20 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
         ...seriesLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
-    ...commonSeriesOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
+};
+
+export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
+    ...bubbleSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
+    type: required(constant('bubble')),
+    xKey: required(string),
+    yKey: required(string),
+    sizeKey: required(string),
+    labelKey: string,
+    xName: string,
+    yName: string,
+    sizeName: string,
+    labelName: string,
 };

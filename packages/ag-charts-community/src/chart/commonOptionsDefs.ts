@@ -36,6 +36,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
     AgBaseThemeableChartOptions,
     AgChartAutoSizedBaseLabelOptions,
     AgChartCaptionOptions,
@@ -119,6 +120,9 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     maxHeight: positiveNumber,
     ...fontOptionsDef,
 };
+
+// @ts-expect-error undocumented option
+chartCaptionOptionsDefs.padding = undocumented(positiveNumber);
 
 const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     enabled: boolean,
@@ -512,11 +516,8 @@ commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.sync.domainMode = undocumented(union('direction', 'position', 'key'));
 
-export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
-    id: string,
+export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeableOptions<any>> = {
     cursor: string,
-    visible: boolean,
-    data: array,
     showInLegend: boolean,
     nodeClickRange: rangeValidator,
     listeners: {
@@ -533,11 +534,17 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     },
 };
 
+export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
+    ...commonSeriesThemeableOptionsDefs,
+    id: string,
+    visible: boolean,
+    data: array,
+};
+
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.context = undocumented(() => true);
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.seriesGrouping = undocumented(defined);
-
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.highlight = undocumented({ enabled: boolean });
 
@@ -571,8 +578,21 @@ export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOpt
     overflowStrategy: union('ellipsis', 'hide'),
 };
 
-export const errorBarOptionsDefs: OptionsDefs<AgErrorBarOptions<any>> = {
+export const errorBarThemeableOptionsDefs: OptionsDefs<AgErrorBarThemeableOptions> = {
     visible: boolean,
+    cap: {
+        visible: boolean,
+        length: positiveNumber,
+        lengthRatio: ratio,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+export const errorBarOptionsDefs: OptionsDefs<AgErrorBarOptions<any>> = {
+    ...errorBarThemeableOptionsDefs,
     xLowerKey: string,
     xUpperKey: string,
     yLowerKey: string,
@@ -593,15 +613,6 @@ export const errorBarOptionsDefs: OptionsDefs<AgErrorBarOptions<any>> = {
             ...lineDashOptionsDef,
         },
     }),
-    cap: {
-        visible: boolean,
-        length: positiveNumber,
-        lengthRatio: ratio,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    },
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
 };
 
 export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
@@ -647,7 +658,7 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     color: color,
 };
 
-export const interpolationValidator = typeUnion<AgInterpolationType>(
+export const interpolationOptionsDefs = typeUnion<AgInterpolationType>(
     {
         linear: {},
         smooth: {
