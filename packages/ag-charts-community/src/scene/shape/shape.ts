@@ -257,8 +257,8 @@ export abstract class Shape<D = any> extends Node<D> {
             if (pattern) {
                 ctx.fillStyle = pattern;
             } else {
-                ctx.fillStyle = fillPattern.backgroundFill;
-                ctx.globalAlpha *= fillPattern.backgroundFillOpacity;
+                ctx.fillStyle = fillPattern.fill;
+                ctx.globalAlpha *= fillPattern.fillOpacity;
             }
         } else if (fillImage) {
             const { x, y, width, height } = this.getBBox();

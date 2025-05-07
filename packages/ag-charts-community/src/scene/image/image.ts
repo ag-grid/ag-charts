@@ -40,7 +40,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         const { dw, dh } = this.getDimensions(image.width, image.height, width, height);
 
         if (dw < 1 || dh < 1) {
-            Logger.warnOnce('Image fill is too small to render');
+            Logger.warnOnce('Image fill is too small to render, ignoring.');
             return null;
         }
 

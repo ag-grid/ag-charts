@@ -572,7 +572,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 pattern: 'forward-slanted-lines',
                 fill: defaultPatternFill,
                 fillOpacity: 1,
-                backgroundFill: 'transparent',
+                backgroundFill: 'none',
                 backgroundFillOpacity: 1,
                 stroke: defaultPatternFill,
                 strokeOpacity: 1,
