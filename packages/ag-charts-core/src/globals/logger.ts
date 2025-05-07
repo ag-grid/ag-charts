@@ -24,23 +24,29 @@ export function table(...logContent: any[]) {
     console.table(...logContent);
 }
 
-export function warnOnce(message: Stringifiable, ...logContent: any[]) {
-    const cacheKey = `Logger.warn: ${message}`;
+function guardOnce<T>(messageOrError: T, prefix: string, cb: (message: T) => void) {
+    let message: string;
+    if (messageOrError instanceof Error) {
+        message = messageOrError.message;
+    } else if (typeof messageOrError === 'string') {
+        message = messageOrError;
+    } else if (typeof messageOrError === 'object') {
+        message = JSON.stringify(messageOrError);
+    } else {
+        message = String(messageOrError);
+    }
+    const cacheKey = `${prefix}: ${message}`;
     if (doOnceCache.has(cacheKey)) return;
-    warn(message, ...logContent);
+    cb(messageOrError);
     doOnceCache.add(cacheKey);
 }
 
-export function errorOnce(messageOrError: Stringifiable | Error, ...logContent: any[]) {
-    let cacheKey: string;
-    if (messageOrError instanceof Error) {
-        cacheKey = `Logger.error: ${messageOrError.message}`;
-    } else {
-        cacheKey = `Logger.error: ${messageOrError}`;
-    }
-    if (doOnceCache.has(cacheKey)) return;
-    error(messageOrError, ...logContent);
-    doOnceCache.add(cacheKey);
+export function warnOnce(messageOrError: unknown, ...logContent: any[]) {
+    guardOnce(messageOrError, 'Logger.warn', (message) => warn(message, ...logContent));
+}
+
+export function errorOnce(messageOrError: unknown, ...logContent: any[]) {
+    guardOnce(messageOrError, 'Logger.error', (message) => error(message, ...logContent));
 }
 
 export function reset() {

@@ -39,12 +39,8 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
         for (const listener of this.getListenersByType(eventType)) {
             try {
                 listener.handler(...params);
-            } catch (e: unknown) {
-                if (e instanceof Error) {
-                    Logger.errorOnce(e);
-                } else {
-                    Logger.errorOnce(String(e));
-                }
+            } catch (e) {
+                Logger.errorOnce(e);
             }
         }
     }
