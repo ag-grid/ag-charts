@@ -5,18 +5,15 @@ export enum ChartAxisDirection {
     Radius = 'radius',
 }
 
-export function toChartAxisDirection(d: 'x' | 'y' | 'angle' | 'radius'): ChartAxisDirection {
+export function isChartAxisDirection(d: string): d is ChartAxisDirection {
     switch (d) {
         case 'x':
-            return ChartAxisDirection.X;
         case 'y':
-            return ChartAxisDirection.Y;
         case 'angle':
-            return ChartAxisDirection.Angle;
         case 'radius':
-            return ChartAxisDirection.Radius;
+            return true;
         default:
-            throw new Error(`Invalid axis direction: ${d as unknown as string}`);
+            return false;
     }
 }
 

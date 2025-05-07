@@ -111,8 +111,10 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
         const series = event.currentHighlight?.series;
 
-        const mainDirection =
-            this.axes === 'xy' ? ChartAxisDirection.X : _ModuleSupport.toChartAxisDirection(this.axes);
+        let mainDirection = ChartAxisDirection.X;
+        if (_ModuleSupport.isChartAxisDirection(this.axes)) {
+            mainDirection = this.axes;
+        }
         const secondaryDirection = mainDirection === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
         const [primaryKeys, secondaryKeys] = series ? getDirectionKeys(series, mainDirection, secondaryDirection) : [];

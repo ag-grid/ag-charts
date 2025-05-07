@@ -1,7 +1,5 @@
 /* eslint-disable no-console */
 
-type Stringifiable = string | number | boolean;
-
 const doOnceCache = new Set<string>();
 
 export function log(...logContent: any[]) {
