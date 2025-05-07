@@ -52,6 +52,15 @@ A hovered node in one chart will highlight and show tooltips and crosshairs (if 
 
 The nodes are matched on identical values along the axis specified in `sync.axes`. This can be `x` or `y`, if `xy` is specified values are matched on the `x` axis only.
 
+For multi-series charts, series with matching key configurations will be matched together.
+
+{% chartExampleRunner title="Multi-Series Synchronization" name="multi-series-sync" type="generated" /%}
+
+In the above example:
+
+-   Node interactions are synchronized with by using X-axis values, and series selected based on matching Y-axis series keys.
+-   Hovering on a node in one chart will highlight the corresponding node in the other chart based upon X-axis value and series keys.
+
 This synchronisation is enabled by default. To disable, set `nodeInteraction` to `false`.
 
 ```js
@@ -100,15 +109,6 @@ In the above example:
 {% note %}
 Charts without a `groupId` will be allocated to a default group.
 {% /note %}
-
-## Multi-Series Synchronization with Secondary Axes
-
-{% chartExampleRunner title="Multi-Series Synchronization with Secondary Axes" name="multi-series-sync" type="generated" /%}
-
-In the above example:
-
--   The charts are synchronized with each other by using the keys of the axes.
--   Hovering on a node in one chart will highlight the corresponding node in the other chart based upon X-axis value and series keys.
 
 ## API Reference
 
