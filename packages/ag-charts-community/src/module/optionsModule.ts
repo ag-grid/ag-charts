@@ -340,7 +340,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.enableConfiguredOptions(processedOptions, options);
 
-        const themeParameters = activeTheme.getPublicParameters() as AgChartThemeParams;
+        const themeParameters = activeTheme.params;
         (themeParameters as any).__palette = deepClone(activeTheme.palette);
         (themeParameters as any).__palette.type = isObject(options.theme)
             ? paletteType(options.theme?.palette)
