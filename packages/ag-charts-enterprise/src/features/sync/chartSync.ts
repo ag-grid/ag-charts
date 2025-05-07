@@ -116,7 +116,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const secondaryDirection = mainDirection === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
         const [primaryKeys, secondaryKeys] = series ? getDirectionKeys(series, mainDirection, secondaryDirection) : [];
-        let eventValue = primaryKeys?.[0] ? event.currentHighlight?.datum[primaryKeys[0]] : undefined;
+        let eventValue = primaryKeys?.[0] ? event.currentHighlight?.datum?.[primaryKeys[0]] : undefined;
         const valueIsDate = isDate(eventValue);
         if (valueIsDate) {
             eventValue = eventValue.getTime();
