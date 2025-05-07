@@ -248,6 +248,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     @Property
     suppressFieldDotNotation: boolean = false;
 
+    @Property
+    loadGoogleFonts: boolean = false;
+
     public destroyed = false;
 
     private readonly _destroyFns: (() => void)[] = [];

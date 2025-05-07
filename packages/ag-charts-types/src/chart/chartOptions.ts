@@ -11,7 +11,16 @@ import type { AgLocaleOptions } from './localeOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
 import type { AgRangesOptions } from './rangesOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextAlign, TextWrap } from './types';
+import type {
+    CssColor,
+    FontFamilyFull,
+    FontSize,
+    FontStyle,
+    FontWeight,
+    PixelSize,
+    TextAlign,
+    TextWrap,
+} from './types';
 import type { AgZoomOptions } from './zoomOptions';
 
 export interface AgChartPaddingOptions {
@@ -81,7 +90,7 @@ export interface AgChartCaptionOptions {
     /** The font size in pixels to use for the text. */
     fontSize?: FontSize;
     /** The font family to use for the text. */
-    fontFamily?: FontFamily;
+    fontFamily?: FontFamilyFull;
     /** The colour to use for the text. */
     color?: CssColor;
     /** Spacing added to help position the text. */
@@ -240,6 +249,12 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     styleNonce?: string;
     /** A map of event names to event listeners. */
     listeners?: AgBaseChartListeners<TDatum>;
+    /**
+     * Load fonts automatically from Google's CDN.
+     *
+     * Default: `false`
+     */
+    loadGoogleFonts?: boolean;
 
     // Cartesian-specific options - special care required.
     /** Configuration for the Navigator. */

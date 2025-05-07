@@ -250,6 +250,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Fonts",
+                            "path": "fonts"
+                        },
+                        {
+                            "type": "item",
                             "title": "Background Image",
                             "path": "background-image",
                             "isEnterprise": true

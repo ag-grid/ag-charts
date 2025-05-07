@@ -185,7 +185,7 @@ export class ChartTheme {
             textColor: { $ref: 'foregroundColor' },
 
             chromeBackgroundColor: { $foregroundBackgroundMix: [0.975] },
-            chromeFontFamily: { $ref: 'fontFamily' },
+            chromeFontFamily: { $ref: 'fontFamily' } as any,
             chromeFontSize: { $ref: 'fontSize' },
             chromeFontWeight: { $ref: 'fontWeight' },
             chromeTextColor: '#181d1f',

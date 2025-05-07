@@ -1,0 +1,62 @@
+import type { DOMManager } from '../../dom/domManager';
+import { ChartUpdateType } from '../chartUpdateType';
+import type { UpdateService } from '../updateService';
+
+export class FontManager {
+    private observers: Array<ResizeObserver> = [];
+
+    constructor(
+        private readonly domManager: DOMManager,
+        private readonly updateService: UpdateService
+    ) {}
+
+    public updateFonts(fonts?: Set<string>) {
+        if (!fonts || fonts.size === 0) return;
+        this.loadFonts(fonts);
+        fonts.forEach((font) => {
+            this.observeFontStatus(font);
+        });
+    }
+
+    public destroy() {
+        for (const observer of this.observers) {
+            observer.disconnect();
+        }
+        this.observers = [];
+    }
+
+    private loadFonts(fonts: Set<string>) {
+        const fontStrings = Array.from(fonts).map((font) => encodeURIComponent(font));
+        const css = `@import url('https://fonts.googleapis.com/css2?family=${fontStrings.join('&family=')}:wght@100;200;300;400;500;600;700;800;900&display=swap');\n`;
+        this.domManager.addStyles(`google-font-${fontStrings.join('-')}`, css);
+    }
+
+    private observeFontStatus(font: string) {
+        const fontCheckElement = window.document.createElement('div');
+        fontCheckElement.style.setProperty('position', 'absolute');
+        fontCheckElement.style.setProperty('top', '0');
+        fontCheckElement.style.setProperty('margin', '0');
+        fontCheckElement.style.setProperty('padding', '0');
+        fontCheckElement.style.setProperty('overflow', 'hidden');
+        fontCheckElement.style.setProperty('visibility', 'hidden');
+        fontCheckElement.style.setProperty('width', 'auto');
+        fontCheckElement.style.setProperty('max-width', 'none');
+        fontCheckElement.style.setProperty('font-synthesis', 'none');
+        fontCheckElement.style.setProperty('font-family', font);
+        fontCheckElement.style.setProperty('font-size', '16px');
+        fontCheckElement.style.setProperty('white-space', 'nowrap');
+        fontCheckElement.textContent = 'UVWxyz';
+
+        this.domManager.addChild('canvas-container', `font-check-${encodeURIComponent(font)}`, fontCheckElement);
+
+        // Observe changes to the element size as a proxy for the font loading
+        const fontCheckObserver = new ResizeObserver((entries) => {
+            const width = entries?.at(0)?.contentBoxSize.at(0)?.inlineSize;
+            if (width != null && width > 0) {
+                this.updateService.update(ChartUpdateType.PERFORM_LAYOUT);
+            }
+        });
+        fontCheckObserver.observe(fontCheckElement);
+        this.observers.push(fontCheckObserver);
+    }
+}

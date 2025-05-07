@@ -1,4 +1,4 @@
-import type { AxisValue, CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
+import type { AxisValue, CssColor, FontFamilyFull, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
 
 export interface AgCrossLineThemeOptions extends Omit<AgBaseCrossLineOptions, 'type'> {}
 
@@ -39,7 +39,7 @@ export interface AgBaseCrossLineLabelOptions {
     /** The font size in pixels to use for the label. */
     fontSize?: FontSize;
     /** The font family to use for the label. */
-    fontFamily?: FontFamily;
+    fontFamily?: FontFamilyFull;
     /** Padding in pixels between the label and the edge of the Cross Line. */
     padding?: PixelSize;
     /** The colour to use for the label. */

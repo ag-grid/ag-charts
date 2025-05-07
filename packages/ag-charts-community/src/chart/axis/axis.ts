@@ -384,7 +384,7 @@ export abstract class Axis<
         additionalStyles?: AgBaseAxisLabelStyleOptions,
         label: AxisLabel = this.label
     ) {
-        const defaultStyle: AgBaseAxisLabelStyleOptions = {
+        const defaultStyle = {
             color: label.color,
             spacing: label.spacing,
             fontFamily: label.fontFamily,

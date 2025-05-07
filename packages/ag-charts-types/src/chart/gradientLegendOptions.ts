@@ -1,7 +1,7 @@
 import type { AgAxisContinuousIntervalOptions, AgAxisLabelFormatterParams } from './axisOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgChartLegendPosition } from './legendOptions';
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
+import type { CssColor, FontFamilyFull, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgGradientLegendLabelOptions {
     /** The font style to use for the labels. */
@@ -11,7 +11,7 @@ export interface AgGradientLegendLabelOptions {
     /** The font size in pixels to use for the labels. */
     fontSize?: FontSize;
     /** The font family to use for the labels. */
-    fontFamily?: FontFamily;
+    fontFamily?: FontFamilyFull;
     /** The colour to use for the labels. */
     color?: CssColor;
     /** Format string used when rendering labels. */
