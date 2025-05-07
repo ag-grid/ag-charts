@@ -313,7 +313,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.tooltip = new Tooltip();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.mode = (options.userOptions as { mode?: ChartMode }).mode ?? this.mode;
-        this.styleNonce = options.userOptions.styleNonce;
+        this.styleNonce = options.processedOptions.styleNonce;
         const ctx = (this.ctx = new ChartContext(this, {
             chartType: this.getChartType(),
             scene,
