@@ -72,9 +72,9 @@ function downloadJSON() {
 }
 
 function downloadCSV() {
-    const headers = Object.keys(options.data[0]).join(',') + '\n';
-    const rows = options.data
-        .map((row) =>
+    const headers = Object.keys(options.data![0]).join(',') + '\n';
+    const rows = options
+        .data!.map((row) =>
             Object.values(row)
                 .map((value) => `"${String(value).replace(/"/g, '""')}"`)
                 .join(',')
