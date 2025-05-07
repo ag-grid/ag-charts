@@ -7,6 +7,8 @@ const options: AgCartesianChartOptions = {
     },
     contextMenu: {
         items: [
+            'defaults',
+            'separator',
             {
                 showOn: 'always',
                 label: 'Say hello',
@@ -14,6 +16,7 @@ const options: AgCartesianChartOptions = {
                     console.log('Hello world!');
                 },
             },
+            'separator',
             {
                 showOn: 'series-area',
                 label: 'Say hello in the series area',
@@ -21,6 +24,7 @@ const options: AgCartesianChartOptions = {
                     console.log('Hello in the series area!');
                 },
             },
+            'separator',
             {
                 showOn: 'series-node',
                 label: 'Say hello to a node',
@@ -28,6 +32,7 @@ const options: AgCartesianChartOptions = {
                     console.log(`Hello ${yKey} in ${datum.month}!`);
                 },
             },
+            'separator',
             {
                 showOn: 'legend-item',
                 label: 'Say hello to a legend item',
