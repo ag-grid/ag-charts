@@ -31,10 +31,15 @@ export function warnOnce(message: Stringifiable, ...logContent: any[]) {
     doOnceCache.add(cacheKey);
 }
 
-export function errorOnce(message: Stringifiable, ...logContent: any[]) {
-    const cacheKey = `Logger.error: ${message}`;
+export function errorOnce(messageOrError: Stringifiable | Error, ...logContent: any[]) {
+    let cacheKey: string;
+    if (messageOrError instanceof Error) {
+        cacheKey = `Logger.error: ${messageOrError.message}`;
+    } else {
+        cacheKey = `Logger.error: ${messageOrError}`;
+    }
     if (doOnceCache.has(cacheKey)) return;
-    error(message, ...logContent);
+    error(messageOrError, ...logContent);
     doOnceCache.add(cacheKey);
 }
 
