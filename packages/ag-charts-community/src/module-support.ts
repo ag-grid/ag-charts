@@ -171,7 +171,7 @@ export * from './scale/colorScale';
 export * from './scale/linearScale';
 export * from './scale/scale';
 export * from './scale/invalidating';
-export type { SyncGroupState, SyncDerivedDomain, SyncChartLike } from './chart/interaction/syncManager';
+export type { SyncGroupState, SyncDerivedDomain, SyncAxisLike, SyncChartLike } from './chart/interaction/syncManager';
 
 export { DropShadow } from './scene/dropShadow';
 export { ChangeDetectableProperties } from './scene/util/changeDetectableProperties';

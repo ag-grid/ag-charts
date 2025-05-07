@@ -11,7 +11,7 @@ import type { ZoomManager } from './zoomManager';
 type GroupId = string | symbol;
 
 /** Breaks circular dependencies which occur when importing ChartAxis. */
-type AxisLike = {
+export type SyncAxisLike = {
     boundSeries: ISeries<any, any, any>[];
     direction: ChartAxisDirection;
     keys: string[];
@@ -26,7 +26,7 @@ export type SyncStatus = 'init' | 'domains-calculated' | 'ready';
 /** Breaks circular dependencies which occur when importing Chart. */
 export type SyncChartLike = {
     id: string;
-    axes: AxisLike[];
+    axes: SyncAxisLike[];
     series: ISeries<any, any, any>[];
     syncStatus: SyncStatus;
     modulesManager: { getModule<R>(module: string): R | undefined };
@@ -103,6 +103,13 @@ export class SyncManager extends BaseManager {
 
     getGroupSiblings(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         return this.getGroupMembers(groupId).filter((chart) => chart !== this.chart);
+    }
+
+    getGroupSyncMode(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
+        if (this.getGroupMembers(groupId).some((c) => c.series.length > 1)) {
+            return 'multi-series';
+        }
+        return 'single-series';
     }
 
     private get(groupId: GroupId) {
