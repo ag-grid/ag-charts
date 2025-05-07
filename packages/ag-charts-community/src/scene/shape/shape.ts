@@ -380,7 +380,8 @@ export abstract class Shape<D = any> extends Node<D> {
         } else if (isImageFill(fill) && this.fillImage) {
             defs ??= [];
 
-            const { width, height } = this.getBBox();
+            const { width, height, x, y } = this.getBBox();
+            console.log(x, y);
             const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
             const pattern = this.fillImage.toSvg(width, height, pixelRatio);
 

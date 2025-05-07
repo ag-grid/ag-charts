@@ -22,7 +22,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         this.url = imageOptions.url;
         this.backgroundFill = imageOptions.backgroundFill ?? 'black';
         this.backgroundFillOpacity = imageOptions.backgroundFillOpacity ?? 1;
-        this.repetition = imageOptions.repetition ?? 'repeat';
+        this.repetition = imageOptions.repetition ?? 'no-repeat';
         this.width = imageOptions.width;
         this.height = imageOptions.height;
         this.fit = imageOptions.fit ?? 'stretch';
@@ -157,24 +157,27 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
     }
 
     toSvg(shapeWidth: number, shapeHeight: number, pixelRatio: number): SVGElement {
-        const { url, width = shapeWidth, height = shapeHeight, rotation } = this;
+        const { url, rotation } = this;
+
+        // const cx = shapeWidth / 2;
+        // const cy = shapeHeight / 2;
 
         const pattern = createSvgElement('pattern');
-        pattern.setAttribute('viewBox', `0 0 ${width} ${height}`);
-        pattern.setAttribute('width', String(width));
-        pattern.setAttribute('height', String(height));
+        pattern.setAttribute('viewBox', `0 0 ${shapeWidth} ${shapeHeight}`);
+        pattern.setAttribute('width', String(shapeWidth));
+        pattern.setAttribute('height', String(shapeHeight));
         pattern.setAttribute('patternUnits', 'userSpaceOnUse');
         pattern.setAttribute(
             'patternTransform',
-            `scale(${1 / pixelRatio}) rotate(${rotation}, ${width / 2}, ${height / 2})`
+            `scale(${1 / pixelRatio}) rotate(${rotation}, ${shapeWidth / 2}, ${shapeHeight / 2})`
         );
 
         const image = createSvgElement('image');
         image.setAttribute('href', url);
         image.setAttribute('x', '0');
         image.setAttribute('y', '0');
-        image.setAttribute('width', String(width));
-        image.setAttribute('height', String(height));
+        image.setAttribute('width', String(shapeWidth));
+        image.setAttribute('height', String(shapeHeight));
         image.setAttribute('preserveAspectRatio', 'none');
 
         pattern.appendChild(image);

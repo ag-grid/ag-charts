@@ -64,6 +64,7 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         const y = height / 2 + (anchor.y - 0.5) * size;
         const scale = size / (size + markerStrokeWidth);
 
+        console.log(x, y);
         marker.x = x;
         marker.y = y;
 

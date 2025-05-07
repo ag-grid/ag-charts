@@ -172,10 +172,10 @@ export class FillImageDefaults
     backgroundFillOpacity: Opacity = 1;
 
     @Property
-    repetition: AgColorRepetition = 'repeat';
+    repetition: AgColorRepetition = 'no-repeat';
 
     @Property
-    fit: AgImageFillFit = 'stretch';
+    fit: AgImageFillFit = 'contain';
 }
 
 export class HighlightStyle extends BaseProperties {
