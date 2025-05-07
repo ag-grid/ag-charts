@@ -260,7 +260,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#3d7ab0",
           "fillOpacity": 1,
@@ -334,7 +334,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#b03d65",
           "fillOpacity": 1,
@@ -408,7 +408,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#80b03d",
           "fillOpacity": 1,
@@ -753,7 +753,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#c16068",
         "fillOpacity": 1,
@@ -830,7 +830,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#a2bf8a",
         "fillOpacity": 1,
@@ -921,7 +921,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#80a0c3",
           "fillOpacity": 1,
@@ -1240,7 +1240,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#f3622d",
           "fillOpacity": 1,
@@ -1319,7 +1319,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#fba71b",
           "fillOpacity": 1,
@@ -1398,7 +1398,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#57b757",
           "fillOpacity": 1,
@@ -1477,7 +1477,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#41a9c9",
           "fillOpacity": 1,
@@ -1556,7 +1556,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#4258c9",
           "fillOpacity": 1,
@@ -1635,7 +1635,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#9a42c8",
           "fillOpacity": 1,
@@ -1714,7 +1714,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#c84164",
           "fillOpacity": 1,
@@ -2020,7 +2020,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5090dc",
         "fillOpacity": 1,
@@ -2098,7 +2098,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#ffa03a",
         "fillOpacity": 1,
@@ -2176,7 +2176,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#459d55",
         "fillOpacity": 1,
@@ -2254,7 +2254,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#34bfe1",
         "fillOpacity": 1,
@@ -2332,7 +2332,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#e1cc00",
         "fillOpacity": 1,
@@ -2410,7 +2410,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#9669cb",
         "fillOpacity": 1,
@@ -2488,7 +2488,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#b5b5b5",
         "fillOpacity": 1,
@@ -2566,7 +2566,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#bd5aa7",
         "fillOpacity": 1,
@@ -2821,7 +2821,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       },
       "fillOpacity": 0.7,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5090dc",
         "fillOpacity": 1,
@@ -3139,7 +3139,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#5BC0EB",
           "fillOpacity": 1,
@@ -3213,7 +3213,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#FDE74C",
           "fillOpacity": 1,
@@ -3287,7 +3287,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#9BC53D",
           "fillOpacity": 1,
@@ -3361,7 +3361,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#E55934",
           "fillOpacity": 1,
@@ -3659,7 +3659,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "fillOpacity": 0.6,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#FA7921",
         "fillOpacity": 1,
@@ -3710,7 +3710,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#FA7921",
           "fillOpacity": 1,
@@ -3777,7 +3777,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "fillOpacity": 0.6,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5BC0EB",
         "fillOpacity": 1,
@@ -3828,7 +3828,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#5BC0EB",
           "fillOpacity": 1,
@@ -3895,7 +3895,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "fillOpacity": 0.6,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#9BC53D",
         "fillOpacity": 1,
@@ -3946,7 +3946,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#9BC53D",
           "fillOpacity": 1,
@@ -4013,7 +4013,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "fillOpacity": 0.6,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#E55934",
         "fillOpacity": 1,
@@ -4064,7 +4064,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#E55934",
           "fillOpacity": 1,
@@ -4131,7 +4131,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "fillOpacity": 0.6,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#FDE74C",
         "fillOpacity": 1,
@@ -4182,7 +4182,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#FDE74C",
           "fillOpacity": 1,
@@ -4449,7 +4449,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5090dc",
         "fillOpacity": 1,
@@ -4703,7 +4703,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5090dc",
         "fillOpacity": 1,
@@ -4958,7 +4958,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       },
       "fillOpacity": 0.85,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5090dc",
         "fillOpacity": 1,
@@ -5197,7 +5197,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       },
       "fillOpacity": 0.5,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5090dc",
         "fillOpacity": 1,
@@ -5476,7 +5476,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#19A0AA",
         "fillOpacity": 1,
@@ -5558,7 +5558,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#F15F36",
         "fillOpacity": 1,
@@ -5872,7 +5872,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "rgba(0, 117, 163, 0.9)",
         "fillOpacity": 1,
@@ -5955,7 +5955,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "rgba(226, 188, 34, 0.9)",
         "fillOpacity": 1,
@@ -6273,7 +6273,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5090dc",
         "fillOpacity": 1,
@@ -6358,7 +6358,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#ffa03a",
         "fillOpacity": 1,
@@ -6443,7 +6443,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#459d55",
         "fillOpacity": 1,
@@ -6528,7 +6528,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#34bfe1",
         "fillOpacity": 1,
@@ -6613,7 +6613,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#e1cc00",
         "fillOpacity": 1,
@@ -6698,7 +6698,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#9669cb",
         "fillOpacity": 1,
@@ -6783,7 +6783,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#b5b5b5",
         "fillOpacity": 1,
@@ -7119,7 +7119,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#0b1791",
           "fillOpacity": 1,
@@ -7199,7 +7199,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#be2a2c",
           "fillOpacity": 1,
@@ -7279,7 +7279,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#f6d24a",
           "fillOpacity": 1,
@@ -7359,7 +7359,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#ce1126",
           "fillOpacity": 1,
@@ -7439,7 +7439,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#002d62",
           "fillOpacity": 1,
@@ -7519,7 +7519,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#1b4e9e",
           "fillOpacity": 1,
@@ -7599,7 +7599,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#f6d24a",
           "fillOpacity": 1,
@@ -7679,7 +7679,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#0073cf",
           "fillOpacity": 1,
@@ -7759,7 +7759,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#e88532",
           "fillOpacity": 1,
@@ -7839,7 +7839,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#000000",
           "fillOpacity": 1,
@@ -7919,7 +7919,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#006847",
           "fillOpacity": 1,
@@ -7999,7 +7999,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#c22b38",
           "fillOpacity": 1,
@@ -8079,7 +8079,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#042279",
           "fillOpacity": 1,
@@ -8159,7 +8159,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#4997d0",
           "fillOpacity": 1,
@@ -8239,7 +8239,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#2868c1",
           "fillOpacity": 1,
@@ -8319,7 +8319,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#459945",
           "fillOpacity": 1,
@@ -8615,7 +8615,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#5090dc",
           "fillOpacity": 1,
@@ -8883,7 +8883,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5090dc",
         "fillOpacity": 1,
@@ -8934,7 +8934,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#5090dc",
           "fillOpacity": 1,
@@ -9009,7 +9009,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#ffa03a",
         "fillOpacity": 1,
@@ -9060,7 +9060,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#ffa03a",
           "fillOpacity": 1,
@@ -9135,7 +9135,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#459d55",
         "fillOpacity": 1,
@@ -9186,7 +9186,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#459d55",
           "fillOpacity": 1,
@@ -9261,7 +9261,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#34bfe1",
         "fillOpacity": 1,
@@ -9312,7 +9312,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#34bfe1",
           "fillOpacity": 1,
@@ -9387,7 +9387,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#e1cc00",
         "fillOpacity": 1,
@@ -9438,7 +9438,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#e1cc00",
           "fillOpacity": 1,
@@ -9513,7 +9513,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#9669cb",
         "fillOpacity": 1,
@@ -9564,7 +9564,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#9669cb",
           "fillOpacity": 1,
@@ -9639,7 +9639,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#b5b5b5",
         "fillOpacity": 1,
@@ -9690,7 +9690,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#b5b5b5",
           "fillOpacity": 1,
@@ -9991,7 +9991,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#00c851",
         "fillOpacity": 1,
@@ -10075,7 +10075,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#ffbb33",
         "fillOpacity": 1,
@@ -10159,7 +10159,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#ff4444",
         "fillOpacity": 1,
@@ -10480,7 +10480,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#f1c40f",
         "fillOpacity": 1,
@@ -10563,7 +10563,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#e67e22",
         "fillOpacity": 1,
@@ -10646,7 +10646,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#2ecc71",
         "fillOpacity": 1,
@@ -10729,7 +10729,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#3498db",
         "fillOpacity": 1,
@@ -10812,7 +10812,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#9b59b6",
         "fillOpacity": 1,
@@ -10895,7 +10895,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#34495e",
         "fillOpacity": 1,
@@ -11256,7 +11256,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5090dc",
         "fillOpacity": 1,
@@ -11301,7 +11301,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#5090dc",
           "fillOpacity": 1,
@@ -11368,7 +11368,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#ffa03a",
         "fillOpacity": 1,
@@ -11413,7 +11413,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#ffa03a",
           "fillOpacity": 1,
@@ -11480,7 +11480,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#459d55",
         "fillOpacity": 1,
@@ -11525,7 +11525,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#459d55",
           "fillOpacity": 1,
@@ -11592,7 +11592,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#34bfe1",
         "fillOpacity": 1,
@@ -11637,7 +11637,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#34bfe1",
           "fillOpacity": 1,
@@ -11883,7 +11883,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5090dc",
         "fillOpacity": 1,
@@ -12534,7 +12534,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#5090dc",
           "fillOpacity": 1,
@@ -12612,7 +12612,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "type": "image",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#ffa03a",
           "fillOpacity": 1,
@@ -13087,7 +13087,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       },
       "fillOpacity": 0.5,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5090dc",
         "fillOpacity": 1,
@@ -13404,7 +13404,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5BC0EB",
         "fillOpacity": 1,
@@ -13454,7 +13454,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#5BC0EB",
           "fillOpacity": 1,
@@ -13528,7 +13528,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#FDE74C",
         "fillOpacity": 1,
@@ -13578,7 +13578,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#FDE74C",
           "fillOpacity": 1,
@@ -13652,7 +13652,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#9BC53D",
         "fillOpacity": 1,
@@ -13702,7 +13702,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#9BC53D",
           "fillOpacity": 1,
@@ -13776,7 +13776,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#E55934",
         "fillOpacity": 1,
@@ -13826,7 +13826,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#E55934",
           "fillOpacity": 1,
@@ -13900,7 +13900,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#FA7921",
         "fillOpacity": 1,
@@ -13950,7 +13950,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#FA7921",
           "fillOpacity": 1,
@@ -14024,7 +14024,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "fillOpacity": 0.8,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#fa3081",
         "fillOpacity": 1,
@@ -14074,7 +14074,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "type": "gradient",
         },
         "fillPatternDefaults": {
-          "backgroundFill": "transparent",
+          "backgroundFill": "none",
           "backgroundFillOpacity": 1,
           "fill": "#fa3081",
           "fillOpacity": 1,
@@ -14393,7 +14393,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5090dc",
         "fillOpacity": 1,
@@ -14476,7 +14476,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#ffa03a",
         "fillOpacity": 1,
@@ -14559,7 +14559,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#459d55",
         "fillOpacity": 1,
@@ -14642,7 +14642,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#34bfe1",
         "fillOpacity": 1,
@@ -14950,7 +14950,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#5BC0EB",
         "fillOpacity": 1,
@@ -15033,7 +15033,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#FDE74C",
         "fillOpacity": 1,
@@ -15116,7 +15116,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#9BC53D",
         "fillOpacity": 1,
@@ -15199,7 +15199,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#E55934",
         "fillOpacity": 1,
@@ -15282,7 +15282,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "fillOpacity": 1,
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#FA7921",
         "fillOpacity": 1,

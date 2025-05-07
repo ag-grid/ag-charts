@@ -31,9 +31,9 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     constructor(patternOptions: InternalAgPatternColor) {
         this.width = Math.max(patternOptions?.width ?? 10, 1);
         this.height = Math.max(patternOptions?.height ?? 10, 1);
-        this.fill = patternOptions.fill ?? 'transparent';
+        this.fill = patternOptions.fill ?? 'none';
         this.fillOpacity = patternOptions.fillOpacity ?? 1;
-        this.backgroundFill = patternOptions.backgroundFill ?? 'transparent';
+        this.backgroundFill = patternOptions.backgroundFill ?? 'none';
         this.backgroundFillOpacity = patternOptions.backgroundFillOpacity ?? 1;
         this.stroke = patternOptions.stroke ?? 'black';
         this.strokeOpacity = patternOptions.strokeOpacity ?? 1;
@@ -86,16 +86,18 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         const { width, height, scale, backgroundFill, backgroundFillOpacity } = this;
 
         if (width * scale < 1 || height * scale < 1) {
-            Logger.warnOnce('Pattern fill is too small to render');
+            Logger.warnOnce('Pattern fill is too small to render, ingoring.');
             return null;
         }
 
         const offscreenPattern = new HdpiOffscreenCanvas({ width, height, pixelRatio: pixelRatio * scale });
         const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
 
-        offscreenPatternCtx.fillStyle = backgroundFill;
-        offscreenPatternCtx.globalAlpha = backgroundFillOpacity;
-        offscreenPatternCtx.fillRect(0, 0, width, height);
+        if (backgroundFill !== 'none') {
+            offscreenPatternCtx.fillStyle = backgroundFill;
+            offscreenPatternCtx.globalAlpha = backgroundFillOpacity;
+            offscreenPatternCtx.fillRect(0, 0, width, height);
+        }
 
         const path2d = this.getPath(pixelRatio).getPath2D();
 

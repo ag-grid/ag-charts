@@ -91,7 +91,7 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
     stroke: SAFE_STROKE_FILL_OPERATION,
     strokeOpacity: 1,
     strokeWidth: 4,
-    backgroundFill: 'transparent',
+    backgroundFill: 'none',
     backgroundFillOpacity: 1,
     rotation: 0,
     scale: 1,
