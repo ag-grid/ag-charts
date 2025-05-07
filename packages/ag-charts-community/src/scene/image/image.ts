@@ -95,7 +95,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
     setImageTransform(pattern: CanvasPattern | string | undefined, pixelRatio: number, bbox: BBox) {
         if (typeof pattern === 'string') return;
 
-        const { url, rotation, width, height, repetition } = this;
+        const { url, rotation, width, height } = this;
 
         const image = this.imageLoader?.loadImage(url);
         if (!image) {
@@ -110,18 +110,12 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         const bboxCenterX = bbox.x + bbox.width / 2;
         const bboxCenterY = bbox.y + bbox.height / 2;
 
-        const { dx, dy, dw, dh } = this.getDimensions(
-            image.width,
-            image.height,
-            width ?? bbox.width,
-            height ?? bbox.height
-        );
+        const { dw, dh } = this.getDimensions(image.width, image.height, width ?? bbox.width, height ?? bbox.height);
         const rotatedW = cos * dw - sin * dh;
         const rotatedH = sin * dw + cos * dh;
 
-        const centerImage = repetition === 'no-repeat';
-        const shapeCenterX = (centerImage ? 0 : dx) + rotatedW / 2;
-        const shapeCenterY = (centerImage ? 0 : dy) + rotatedH / 2;
+        const shapeCenterX = rotatedW / 2;
+        const shapeCenterY = rotatedH / 2;
 
         pattern?.setTransform(
             new DOMMatrix([
