@@ -23,7 +23,7 @@ interface ItemMixin {
     /**
      * The type of UI element that this item represents.
      *
-     * Default: `'action'`, which is just a regular button element.
+     * Default: `'action'`
      */
     type?: AgContextMenuItemType;
     /**
@@ -39,7 +39,7 @@ interface ItemMixin {
     /**
      * Dimmed state of this menu-item.
      *
-     * Default: `false` */
+     * Default: `true` */
     enabled?: boolean;
     /** The submenu items. If undefined or empty, then this item will just be treat like a regular menu item. Otherwise, this menu item will have a submenu popup attached to it. */
     items?: AgContextMenuItem[];
@@ -81,9 +81,17 @@ export type AgContextMenuItem =
     | AgContextMenuItemLegendItem;
 
 export interface AgContextMenuOptions {
-    /**  Whether to show the context menu. */
+    /**
+     * Whether to show the context menu.
+     *
+     * Default: `true`
+     */
     enabled?: boolean;
-    /**  List of menu items (and submenus) for the context menu. */
+    /**
+     * List of menu items (and submenus) for the context menu.
+     *
+     * Default: `['defaults']`
+     */
     items?: AgContextMenuItem[];
     /**
      * Custom actions displayed in the context menu when right-clicking anywhere on the chart.
