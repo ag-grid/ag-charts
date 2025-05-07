@@ -455,7 +455,7 @@ describe('ChartOptions', () => {
     },
     "fillOpacity": 1,
     "fillPatternDefaults": {
-      "backgroundFill": "transparent",
+      "backgroundFill": "none",
       "backgroundFillOpacity": 1,
       "fill": "#5090dc",
       "fillOpacity": 1,
@@ -533,7 +533,7 @@ describe('ChartOptions', () => {
     },
     "fillOpacity": 1,
     "fillPatternDefaults": {
-      "backgroundFill": "transparent",
+      "backgroundFill": "none",
       "backgroundFillOpacity": 1,
       "fill": "#ffa03a",
       "fillOpacity": 1,
@@ -611,7 +611,7 @@ describe('ChartOptions', () => {
     },
     "fillOpacity": 1,
     "fillPatternDefaults": {
-      "backgroundFill": "transparent",
+      "backgroundFill": "none",
       "backgroundFillOpacity": 1,
       "fill": "#459d55",
       "fillOpacity": 1,
@@ -689,7 +689,7 @@ describe('ChartOptions', () => {
     },
     "fillOpacity": 1,
     "fillPatternDefaults": {
-      "backgroundFill": "transparent",
+      "backgroundFill": "none",
       "backgroundFillOpacity": 1,
       "fill": "#34bfe1",
       "fillOpacity": 1,
@@ -780,7 +780,7 @@ describe('ChartOptions', () => {
         "type": "image",
       },
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#e1cc00",
         "fillOpacity": 1,
@@ -853,7 +853,7 @@ describe('ChartOptions', () => {
         "type": "image",
       },
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#9669cb",
         "fillOpacity": 1,
@@ -924,7 +924,7 @@ describe('ChartOptions', () => {
     },
     "fillOpacity": 1,
     "fillPatternDefaults": {
-      "backgroundFill": "transparent",
+      "backgroundFill": "none",
       "backgroundFillOpacity": 1,
       "fill": "#5090dc",
       "fillOpacity": 1,
@@ -1002,7 +1002,7 @@ describe('ChartOptions', () => {
     },
     "fillOpacity": 1,
     "fillPatternDefaults": {
-      "backgroundFill": "transparent",
+      "backgroundFill": "none",
       "backgroundFillOpacity": 1,
       "fill": "#ffa03a",
       "fillOpacity": 1,
@@ -1080,7 +1080,7 @@ describe('ChartOptions', () => {
     },
     "fillOpacity": 1,
     "fillPatternDefaults": {
-      "backgroundFill": "transparent",
+      "backgroundFill": "none",
       "backgroundFillOpacity": 1,
       "fill": "#459d55",
       "fillOpacity": 1,
@@ -1158,7 +1158,7 @@ describe('ChartOptions', () => {
     },
     "fillOpacity": 1,
     "fillPatternDefaults": {
-      "backgroundFill": "transparent",
+      "backgroundFill": "none",
       "backgroundFillOpacity": 1,
       "fill": "#34bfe1",
       "fillOpacity": 1,
@@ -1249,7 +1249,7 @@ describe('ChartOptions', () => {
         "type": "image",
       },
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#e1cc00",
         "fillOpacity": 1,
@@ -1322,7 +1322,7 @@ describe('ChartOptions', () => {
         "type": "image",
       },
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#9669cb",
         "fillOpacity": 1,
@@ -1393,7 +1393,7 @@ describe('ChartOptions', () => {
     },
     "fillOpacity": 1,
     "fillPatternDefaults": {
-      "backgroundFill": "transparent",
+      "backgroundFill": "none",
       "backgroundFillOpacity": 1,
       "fill": "#5090dc",
       "fillOpacity": 1,
@@ -1471,7 +1471,7 @@ describe('ChartOptions', () => {
     },
     "fillOpacity": 1,
     "fillPatternDefaults": {
-      "backgroundFill": "transparent",
+      "backgroundFill": "none",
       "backgroundFillOpacity": 1,
       "fill": "#ffa03a",
       "fillOpacity": 1,
@@ -1549,7 +1549,7 @@ describe('ChartOptions', () => {
     },
     "fillOpacity": 1,
     "fillPatternDefaults": {
-      "backgroundFill": "transparent",
+      "backgroundFill": "none",
       "backgroundFillOpacity": 1,
       "fill": "#459d55",
       "fillOpacity": 1,
@@ -1627,7 +1627,7 @@ describe('ChartOptions', () => {
     },
     "fillOpacity": 1,
     "fillPatternDefaults": {
-      "backgroundFill": "transparent",
+      "backgroundFill": "none",
       "backgroundFillOpacity": 1,
       "fill": "#34bfe1",
       "fillOpacity": 1,
@@ -1718,7 +1718,7 @@ describe('ChartOptions', () => {
         "type": "image",
       },
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#e1cc00",
         "fillOpacity": 1,
@@ -1791,7 +1791,7 @@ describe('ChartOptions', () => {
         "type": "image",
       },
       "fillPatternDefaults": {
-        "backgroundFill": "transparent",
+        "backgroundFill": "none",
         "backgroundFillOpacity": 1,
         "fill": "#9669cb",
         "fillOpacity": 1,
