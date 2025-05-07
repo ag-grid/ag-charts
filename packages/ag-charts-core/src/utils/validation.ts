@@ -95,21 +95,25 @@ function extendPath(path: string, key: string | number) {
 }
 
 export class ValidationError {
-    public unionType?: string;
-
     constructor(
         public readonly type: ErrorType | `${ErrorType}`,
-        public description: string | undefined,
+        public readonly description: string | undefined,
         public readonly value: any,
-        public readonly path: string,
+        public path: string,
         public readonly key?: string
     ) {}
+
+    setUnionType(unionType: string, path: string) {
+        if (this.path.startsWith(path)) {
+            const suffix = this.path.slice(path.length);
+            this.path = `${path}[type=${unionType}]${suffix}`;
+        }
+    }
 
     getPrefix(): string {
         const { path, key } = this;
         if (!path && !key) return 'Value';
-        const unionPath = this.unionType ? `${path}[type=${this.unionType}]` : path;
-        return `Option \`${key ? extendPath(unionPath, key) : unionPath}\``;
+        return `Option \`${key ? extendPath(path, key) : path}\``;
     }
 
     toString() {
@@ -173,7 +177,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
             const nestedResult = validate(rest, (optionsDefs as any)[type], path);
             Object.assign(cleared, { type }, nestedResult.cleared);
             for (const error of nestedResult.invalid) {
-                error.unionType = type;
+                error.setUnionType(type, path);
             }
             invalid.push(...nestedResult.invalid);
         } else {

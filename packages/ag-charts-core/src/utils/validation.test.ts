@@ -235,6 +235,20 @@ describe('Validation utils', () => {
             expect(runValidator(isTypeUnionOfFoo, { type: 'a', bb: 1 })).toBe(true);
             expect(runValidator(isTypeUnionOfFoo, { type: 'c', aa: 1 })).toBe(false);
         });
+
+        test('nested warning messages should attach type to option path', () => {
+            const nestedTypeUnionDefs = {
+                test: typeUnion<any>(
+                    {
+                        a: { sub: { value: boolean } },
+                        b: { sub: { value: number } },
+                    },
+                    'a test object'
+                ),
+            };
+            const result = validate({ test: { type: 'b', sub: { value: true } } }, nestedTypeUnionDefs);
+            expect(result.invalid.map(String)).toMatchSnapshot();
+        });
     });
 
     describe('Conditional Validators', () => {

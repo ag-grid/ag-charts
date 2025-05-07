@@ -12,6 +12,12 @@ exports[`Validation utils Conditional Validators validates axis schema with opti
 ]
 `;
 
+exports[`Validation utils TypeUnion Validator nested warning messages should attach type to option path 1`] = `
+[
+  "Option \`test[type=b].sub.value\` cannot be set to \`true\`; expecting a number, ignoring.",
+]
+`;
+
 exports[`Validation utils Utility Functions attachDescription adds a description to a validator 1`] = `
 [
   ValidationError {
