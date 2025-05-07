@@ -93,6 +93,62 @@ In this configuration:
 -   Right clicking on one of these areas will show these additional actions in the Context Menu.
 -   Clicking these extra actions will display information in the console, demonstrating that the action is aware of details about the right-clicked item.
 
+## Sub-Menus
+
+To add Sub-Menus to the Context Menu, simply use the `items` property recursively:
+
+{% chartExampleRunner title="Context Menu Custom Actions" name="context-menu-submenus" type="generated" /%}
+
+```ts
+contextMenu: {
+    items: [
+        'download',
+        {
+            showOn: 'series-area',
+            label: 'Zoom Controls',
+            items: ['zoom-to-cursor', 'pan-to-cursor'],
+        },
+        {
+            showOn: 'legend-item',
+            label: 'Legend Controls',
+            items: ['toggle-series-visibility', 'toggle-other-series'],
+        },
+        'separator',
+        {
+            label: 'Debug Console',
+            items: [
+                {
+                    type: 'action',
+                    showOn: 'always',
+                    label: `On 'always'`,
+                    action: (param) => console.log('always:', JSON.stringify(param)),
+                },
+                {
+                    showOn: 'series-area',
+                    label: `On 'series-area'`,
+                    action: (param) => console.log('series-area:', JSON.stringify(param)),
+                },
+                {
+                    showOn: 'series-node',
+                    label: `On 'series-node'`,
+                    action: (param) => console.log('series-node:', JSON.stringify(param)),
+                },
+                {
+                    showOn: 'legend-item',
+                    label: `On 'legend-item'`,
+                    action: (param) => console.log('legend-item:', JSON.stringify(param)),
+                },
+            ],
+        },
+    ],
+},
+```
+
+In this configuration:
+
+-   The built-in Zoom and Legend menu items are placed into Sub-Menus.
+-   An additional "Debug Console" Sub-Menu is added to log events.
+
 ## API Reference
 
 {% tabs %}
