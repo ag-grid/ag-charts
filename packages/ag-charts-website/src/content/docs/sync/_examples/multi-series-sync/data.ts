@@ -1,4 +1,4 @@
-const regionAdata = [
+export const regionAdata = [
     {
         date: new Date('2024-02-01'),
         product: 700,
@@ -36,7 +36,7 @@ const regionAdata = [
     },
 ];
 
-const regionBdata = [
+export const regionBdata = [
     {
         date: new Date('2024-02-01'),
         product: 850,
