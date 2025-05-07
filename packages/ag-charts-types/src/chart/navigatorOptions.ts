@@ -17,7 +17,7 @@ import type { AgScatterSeriesOptions, AgScatterSeriesThemeableOptions } from '..
 import type { AgWaterfallSeriesOptions, AgWaterfallSeriesThemeableOptions } from '../series/cartesian/waterfallOptions';
 import type { AgAxisLabelFormatterParams } from './axisOptions';
 import type { Formatter } from './callbackOptions';
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
+import type { CssColor, FontFamilyFull, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
 
 type SharedProperties<A, B> = {
     [K in keyof A & keyof B as A[K] extends B[K] ? (B[K] extends A[K] ? K : never) : never]: A[K];
@@ -46,7 +46,7 @@ export interface AgNavigatorMiniChartLabelOptions {
     /** The font size in pixels to use for the labels. */
     fontSize?: FontSize;
     /** The font family to use for the labels. */
-    fontFamily?: FontFamily;
+    fontFamily?: FontFamilyFull;
     /** Padding in pixels between the axis labels and the Mini Chart. */
     spacing?: PixelSize;
     /** The colour to use for the labels. */

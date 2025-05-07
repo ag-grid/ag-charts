@@ -124,6 +124,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     optionMetadata: ChartInternalOptionMetadata;
     themeParameters: AgChartThemeParams = {};
     annotationThemes: any;
+    googleFonts?: Set<string>;
     fastDelta?: DeepPartial<T>;
     chartDef?: ChartModuleDefinition<any>;
 
@@ -173,7 +174,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.removeLeftoverSymbols(this.userOptions);
         }
 
-        let activeTheme, processedOptions, defaultAxes, fastDelta, themeParameters, annotationThemes;
+        let activeTheme, processedOptions, defaultAxes, fastDelta, themeParameters, annotationThemes, googleFonts;
         if (
             !stripSymbols &&
             deltaOptions !== undefined &&
@@ -188,11 +189,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             annotationThemes = baseChartOptions.annotationThemes;
         } else {
             ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
-            ({ activeTheme, processedOptions, defaultAxes, themeParameters, annotationThemes } = this.slowSetup(
-                processedOverrides,
-                deltaOptions,
-                stripSymbols
-            ));
+            ({ activeTheme, processedOptions, defaultAxes, themeParameters, annotationThemes, googleFonts } =
+                this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
         }
 
         this.activeTheme = activeTheme;
@@ -201,6 +199,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.fastDelta = fastDelta ?? undefined;
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
+        this.googleFonts = googleFonts;
 
         // This ChartOptions should be treated as immutable from here-on, force immutability to
         // flush out runtime issues.
@@ -339,8 +338,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         this.enableConfiguredOptions(processedOptions, options);
+        let googleFonts = this.processFonts(processedOptions);
 
         const themeParameters = activeTheme.params;
+        googleFonts = this.processFonts(themeParameters, googleFonts);
+
         (themeParameters as any).__palette = deepClone(activeTheme.palette);
         (themeParameters as any).__palette.type = isObject(options.theme)
             ? paletteType(options.theme?.palette)
@@ -361,9 +363,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.validatePluginOptions(processedOptions);
         this.processMiniChartSeriesOptions(processedOptions);
 
+        if (!processedOptions.loadGoogleFonts) {
+            googleFonts.clear();
+        }
+
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
-        return { activeTheme, processedOptions, defaultAxes, themeParameters, annotationThemes };
+        return { activeTheme, processedOptions, defaultAxes, themeParameters, annotationThemes, googleFonts };
     }
 
     private validatePluginOptions(options: T) {
@@ -778,6 +784,38 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // Cleanup any special properties.
         jsonWalk(options, ChartOptions.cleanupEnabledFromThemeJsonOptions, new Set(['data', 'theme']));
+    }
+
+    private static processFontOptions(this: void, node: any, _?: any, __?: any, googleFonts: Set<string> = new Set()) {
+        if (typeof node === 'object' && 'fontFamily' in node) {
+            if (Array.isArray(node.fontFamily)) {
+                const fontFamily = [];
+                for (const font of node.fontFamily) {
+                    if (typeof font === 'object' && 'googleFont' in font) {
+                        fontFamily.push(font.googleFont);
+                        googleFonts?.add(font.googleFont);
+                    } else {
+                        fontFamily.push(font);
+                    }
+                }
+                node.fontFamily = fontFamily.join(', ');
+            } else if (typeof node.fontFamily === 'object' && 'googleFont' in node.fontFamily) {
+                node.fontFamily = node.fontFamily.googleFont;
+                googleFonts?.add(node.fontFamily);
+            }
+        }
+        return googleFonts;
+    }
+
+    private processFonts(options: object, googleFonts: Set<string> = new Set()) {
+        return jsonWalk<any, any, Set<string>>(
+            options,
+            ChartOptions.processFontOptions,
+            new Set(['data', 'theme']),
+            undefined,
+            undefined,
+            googleFonts
+        );
     }
 
     private static removeDisabledOptionJson(this: void, optionsNode: any) {

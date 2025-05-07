@@ -1,0 +1,30 @@
+---
+title: 'Fonts'
+---
+
+Altering typography within charts.
+
+## Font Theme Parameters
+
+The font for the whole chart can be set once with [theme parameters](./themes/#parameters).
+
+## Extended Syntax for Font Families
+
+Font families can accept the following value types:
+
+| Syntax                            | Description                                                                                                                                                                                                                                    |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `string`                          | A CSS font-family value, such as 'Arial, sans-serif' or variable expression 'var(--myFontFamilyVar)'.                                                                                                                                          |
+| `{ googleFont: 'IBM Plex Sans' }` | A Google font. You must load the font or ask the grid to load it for you, see Loading Google Fonts below.                                                                                                                                      |
+| `['Arial', 'sans-serif']`         | An array of fonts. Each item can be a string font name or a `{ googleFont: "..." }` object. The browser will attempt to use the first font and fall back to later fonts if the first one fails to load or is not available on the host system. |
+
+## Loading Google Fonts
+
+To prevent potential licensing and privacy implications, the chart will not load Google fonts unless requested to. If your theme uses Google fonts you should either:
+
+-   set the `loadGoogleFonts` option to `true`, and the chart will load the font from Google's CDN
+-   load the font yourself using a `@font-face` rule in your application's CSS
+
+If the font has not been loaded through either of the above methods, the theme will fall back to the most appropriate font available on the system.
+
+{% chartExampleRunner title="Google Fonts" name="google-fonts" type="generated"  /%}

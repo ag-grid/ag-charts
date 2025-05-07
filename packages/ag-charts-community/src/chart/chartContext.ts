@@ -21,6 +21,7 @@ import type { ChartService } from './chartService';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataService } from './data/dataService';
 import type { ChartType } from './factory/chartTypes';
+import { FontManager } from './fonts/fontManager';
 import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
@@ -57,6 +58,7 @@ export class ChartContext implements ModuleContext {
     contextMenuRegistry: ContextMenuRegistry;
     dataService: DataService<any>;
     domManager: DOMManager;
+    fontManager: FontManager;
     historyManager: HistoryManager;
     interactionManager: InteractionManager;
     proxyInteractionService: ProxyInteractionService;
@@ -125,6 +127,7 @@ export class ChartContext implements ModuleContext {
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
+        this.fontManager = new FontManager(this.domManager, this.updateService);
         this.historyManager = new HistoryManager(this.chartEventManager);
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.animationManager);
@@ -148,6 +151,7 @@ export class ChartContext implements ModuleContext {
         this.callbackCache.invalidateCache();
         this.chartEventManager.destroy();
         this.domManager.destroy();
+        this.fontManager.destroy();
         this.highlightManager.destroy();
         this.proxyInteractionService.destroy();
         this.syncManager.destroy();

@@ -1,7 +1,16 @@
 import type { AgColorType } from '../series/cartesian/commonOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
-import type { AgMarkerShape, CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
+import type {
+    AgMarkerShape,
+    CssColor,
+    FontFamilyFull,
+    FontSize,
+    FontStyle,
+    FontWeight,
+    Opacity,
+    PixelSize,
+} from './types';
 
 export type AgChartLegendPosition = 'top' | 'right' | 'bottom' | 'left';
 export type AgChartLegendOrientation = 'horizontal' | 'vertical';
@@ -43,7 +52,7 @@ export interface AgChartLegendLabelOptions {
     /** The font size in pixels to use for the legend. */
     fontSize?: FontSize;
     /** The font family to use for the legend. */
-    fontFamily?: FontFamily;
+    fontFamily?: FontFamilyFull;
     /** Function used to render legend labels. Where `id` is a series ID, `itemId` is component ID within a series, such as a field name or an item index. */
     formatter?: Formatter<AgChartLegendLabelFormatterParams>;
 }
@@ -161,7 +170,7 @@ export interface AgPaginationLabelOptions {
     /** The font size in pixels to use for the pagination label. */
     fontSize?: FontSize;
     /** The font family to use for the pagination label. */
-    fontFamily?: FontFamily;
+    fontFamily?: FontFamilyFull;
 }
 
 export interface AgInitialStateLegendOptions {

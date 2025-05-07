@@ -1,5 +1,5 @@
 import type { Formatter, Styler } from './callbackOptions';
-import type { CssColor, Degree, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
+import type { CssColor, Degree, FontFamilyFull, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgAxisBoundSeries {
     /** Key used by the series for values on the related axis. */
@@ -31,7 +31,7 @@ export interface AgAxisCaptionOptions {
     /** The font size in pixels to use for the title. */
     fontSize?: FontSize;
     /** The font family to use for the title. */
-    fontFamily?: FontFamily;
+    fontFamily?: FontFamilyFull;
     /** The colour to use for the title. */
     color?: CssColor;
     /** Spacing between the axis labels and the axis title. */
@@ -123,7 +123,7 @@ export interface AgBaseAxisLabelStyleOptions {
     /** The font size in pixels to use for the labels. */
     fontSize?: FontSize;
     /** The font family to use for the labels */
-    fontFamily?: FontFamily;
+    fontFamily?: FontFamilyFull;
     /** Padding in pixels between the axis label and the tick. */
     spacing?: PixelSize;
     /** The colour to use for the labels */

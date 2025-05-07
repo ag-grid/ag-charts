@@ -10,6 +10,7 @@ import type {
     CssColor,
     FillOptions,
     FontOptions,
+    GoogleFontFamily,
     LineDashOptions,
     StrokeOptions,
 } from 'ag-charts-types';
@@ -231,9 +232,12 @@ export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDashOffset: number,
 };
 
+export const googleFont = optionsDefs<GoogleFontFamily>({ googleFont: string }, 'google font');
+export const fontFamilyFull = or(string, themeOperator, googleFont, arrayOf(or(string, googleFont)));
+
 export const fontOptionsDef: OptionsDefs<FontOptions> = {
     color: color,
-    fontFamily: string,
+    fontFamily: fontFamilyFull,
     fontSize: positiveNumber,
     fontStyle: union('normal', 'italic', 'oblique'),
     fontWeight: or(positiveNumber, union('normal', 'bold', 'bolder', 'lighter')),

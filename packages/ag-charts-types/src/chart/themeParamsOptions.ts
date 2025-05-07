@@ -1,4 +1,4 @@
-import type { CssColor, FontFamily, FontSize, FontWeight, PixelSize } from './types';
+import type { CssColor, FontFamilyFull, FontSize, FontWeight, PixelSize } from './types';
 
 export interface AgBaseChartThemeParams {
     /**
@@ -60,7 +60,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      *
      * Default: `fontFamily`
      */
-    chromeFontFamily?: FontFamily;
+    chromeFontFamily?: FontFamilyFull;
     /**
      * Font size used for text in tooltips, menus, dialogs, toolbars, buttons and text inputs.
      *
@@ -98,7 +98,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     crosshairLabelTextColor?: CssColor;
     /** Font family used for all text. */
-    fontFamily?: FontFamily;
+    fontFamily?: FontFamilyFull;
     /** Default font weight used for all text. */
     fontWeight?: FontWeight;
     /** Default colour for grid lines. */

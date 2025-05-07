@@ -359,6 +359,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         annotations: callback,
         zoom: callback,
     },
+    loadGoogleFonts: boolean,
     highlight: {
         range: union('tooltip', 'node'),
     },

@@ -226,6 +226,8 @@ class AgChartsInternal {
             chart.ctx.domManager.addStyles(id, css);
         });
 
+        chart.ctx.fontManager.updateFonts(chartOptions.googleFonts);
+
         if (proxy == null) {
             proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi, licenseManager);
             proxy.releaseChart = poolResult?.release;
