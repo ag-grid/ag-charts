@@ -57,15 +57,13 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         imageWidth: number,
         imageHeight: number,
         width: number,
-        height: number,
-        shapeWidth: number = width,
-        shapeHeight: number = height
+        height: number
     ): { dx: number; dy: number; dw: number; dh: number } {
         const { fit } = this;
         if (fit === 'stretch' || imageWidth === 0 || imageHeight === 0) {
             return {
-                dx: (shapeWidth - width) / 2,
-                dy: (shapeHeight - height) / 2,
+                dx: 0,
+                dy: 0,
                 dw: Math.max(1, width),
                 dh: Math.max(1, height),
             };
@@ -85,8 +83,8 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         const scaledHeight = Math.max(1, imageHeight * scale);
 
         return {
-            dx: (shapeWidth - scaledWidth) / 2,
-            dy: (shapeHeight - scaledHeight) / 2,
+            dx: scaledWidth / 2,
+            dy: scaledHeight / 2,
             dw: scaledWidth,
             dh: scaledHeight,
         };
