@@ -75,4 +75,9 @@ export interface AgPriceVolumePreset {
      * Default: `true`
      */
     zoom?: boolean;
+    /** Whether to enable chart synchronization.
+     *
+     * Default: `false`
+     */
+    sync?: boolean;
 }

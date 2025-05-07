@@ -997,4 +997,82 @@ test.describe('synchronised', () => {
             });
         });
     });
+
+    test.describe('for financial charts', () => {
+        const { url } = toExamplePageUrl('sync-test', 'financial-charts-sync', 'vanilla');
+        test.describe('tooltip', () => {
+            test('should not replicate tooltip', async ({ page }) => {
+                await gotoExample(page, url);
+
+                const tooltipLocator = page.locator(SELECTORS.tooltip);
+
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('ArrowDown'); // Activate tooltips on all charts so they are present.
+                await page.keyboard.press('ArrowUp');
+                await waitForAllChartUpdates(page);
+                await expect(tooltipLocator).toHaveCount(4);
+                await expect(tooltipLocator.nth(0)).not.toBeVisible();
+                await expect(tooltipLocator.nth(1)).not.toBeVisible();
+                await expect(tooltipLocator.nth(2)).not.toBeVisible();
+                await expect(tooltipLocator.nth(3)).not.toBeVisible();
+
+                await expect(page).toHaveScreenshot('financial-charts-tooltip-not-replicated.png');
+            });
+        });
+
+        test.describe('crosshair', () => {
+            test('should replicate crosshair', async ({ page }) => {
+                await gotoExample(page, url);
+
+                const crosshairLocator = page.locator(`${SELECTORS.crosshairLabel} .ag-charts-crosshair-label-content`);
+
+                await page.keyboard.press('Tab');
+                await waitForAllChartUpdates(page);
+                await expect(crosshairLocator).toHaveCount(4);
+
+                await expect(crosshairLocator.nth(0)).toBeVisible();
+                await expect(crosshairLocator.nth(1)).toBeVisible();
+                await expect(crosshairLocator.nth(2)).toBeVisible();
+                await expect(crosshairLocator.nth(3)).toBeVisible();
+                expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
+                    '2022',
+                    '2022',
+                    '2022',
+                    '2022',
+                ]);
+
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await waitForAllChartUpdates(page);
+
+                await expect(crosshairLocator.nth(0)).toBeVisible();
+                await expect(crosshairLocator.nth(1)).toBeVisible();
+                await expect(crosshairLocator.nth(2)).toBeVisible();
+                await expect(crosshairLocator.nth(3)).toBeVisible();
+                expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
+                    '2023',
+                    '2023',
+                    '2023',
+                    '2023',
+                ]);
+
+                await expect(page).toHaveScreenshot('financial-charts-crosshair-replicated.png');
+
+                await page.keyboard.press('ArrowDown');
+                await waitForAllChartUpdates(page);
+
+                await expect(page).toHaveScreenshot('financial-charts-crosshair-replicated-2.png');
+            });
+        });
+    });
 });

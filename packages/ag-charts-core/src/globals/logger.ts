@@ -1,7 +1,5 @@
 /* eslint-disable no-console */
 
-type Stringifiable = string | number | boolean;
-
 const doOnceCache = new Set<string>();
 
 export function log(...logContent: any[]) {
@@ -24,18 +22,29 @@ export function table(...logContent: any[]) {
     console.table(...logContent);
 }
 
-export function warnOnce(message: Stringifiable, ...logContent: any[]) {
-    const cacheKey = `Logger.warn: ${message}`;
+function guardOnce<T>(messageOrError: T, prefix: string, cb: (message: T) => void) {
+    let message: string;
+    if (messageOrError instanceof Error) {
+        message = messageOrError.message;
+    } else if (typeof messageOrError === 'string') {
+        message = messageOrError;
+    } else if (typeof messageOrError === 'object') {
+        message = JSON.stringify(messageOrError);
+    } else {
+        message = String(messageOrError);
+    }
+    const cacheKey = `${prefix}: ${message}`;
     if (doOnceCache.has(cacheKey)) return;
-    warn(message, ...logContent);
+    cb(messageOrError);
     doOnceCache.add(cacheKey);
 }
 
-export function errorOnce(message: Stringifiable, ...logContent: any[]) {
-    const cacheKey = `Logger.error: ${message}`;
-    if (doOnceCache.has(cacheKey)) return;
-    error(message, ...logContent);
-    doOnceCache.add(cacheKey);
+export function warnOnce(messageOrError: unknown, ...logContent: any[]) {
+    guardOnce(messageOrError, 'Logger.warn', (message) => warn(message, ...logContent));
+}
+
+export function errorOnce(messageOrError: unknown, ...logContent: any[]) {
+    guardOnce(messageOrError, 'Logger.error', (message) => error(message, ...logContent));
 }
 
 export function reset() {
