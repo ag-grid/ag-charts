@@ -25,7 +25,7 @@ test.describe('security', () => {
         test.describe('complex-csp example', () => {
             const { url } = toExamplePageUrl('security-test', 'complex-csp', 'vanilla');
 
-            test('should replicate tooltip', async ({ page }) => {
+            test('should load successfully', async ({ page }) => {
                 await gotoExample(page, url);
 
                 const tooltipLocator = page.locator(SELECTORS.tooltip);
