@@ -336,9 +336,10 @@ export function TypeCodeBlock({ apiNode, member }: { apiNode: ApiNode | ApiNode[
         return null;
     }
 
+    const seen = new Set<string>();
     const codeSample = Array.isArray(apiNode)
-        ? apiNode.map((arrayApiNode) => formatTypeToCode(arrayApiNode, member, reference))
-        : formatTypeToCode(apiNode, member, reference);
+        ? apiNode.map((arrayApiNode) => formatTypeToCode(arrayApiNode, member, reference, seen))
+        : formatTypeToCode(apiNode, member, reference, seen);
 
     if (!codeSample?.length) {
         // eslint-disable-next-line no-console
