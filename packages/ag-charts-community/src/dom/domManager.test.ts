@@ -16,7 +16,7 @@ describe('DOMManager', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
 
-            const dm = new DOMManager(container);
+            const dm = new DOMManager({}, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchInlineSnapshot(`
@@ -116,7 +116,7 @@ describe('DOMManager', () => {
             const container = doc.createElement('div');
             // doc.body.append(container);
 
-            const dm = new DOMManager(container);
+            const dm = new DOMManager({}, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchInlineSnapshot(`
@@ -216,7 +216,7 @@ describe('DOMManager', () => {
             const shadow = component.attachShadow({ mode: 'open' });
             shadow.appendChild(container);
 
-            const dm = new DOMManager(container);
+            const dm = new DOMManager({ styleNonce: '416d1177' }, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchInlineSnapshot(`
@@ -284,6 +284,7 @@ describe('DOMManager', () => {
 
     <style
       data-ag-charts="ag-charts-community"
+      nonce="416d1177"
     >
       @import url(./dom/domStyles.css);
 @import url(./dom/proxyInteractionStyles.css);
