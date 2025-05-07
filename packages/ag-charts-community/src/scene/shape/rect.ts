@@ -5,7 +5,7 @@ import { SceneChangeDetection, SceneObjectChangeDetection } from '../changeDetec
 import { ExtendedPath2D } from '../extendedPath2D';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
-import { Shape } from './shape';
+import { type CanvasContext, Shape } from './shape';
 
 interface CornerRadii {
     topLeft: number;
@@ -436,9 +436,14 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         return this.distanceCalculator(x, y);
     }
 
-    protected override applyFillAlpha(ctx: CanvasRenderingContext2D) {
-        const { fillOpacity, microPixelEffectOpacity, opacity } = this;
-        ctx.globalAlpha *= opacity * fillOpacity * microPixelEffectOpacity;
+    protected override applyFillAndAlpha(ctx: CanvasRenderingContext2D) {
+        super.applyFillAndAlpha(ctx);
+        ctx.globalAlpha *= this.microPixelEffectOpacity;
+    }
+
+    protected override applyStrokeAndAlpha(ctx: CanvasContext): void {
+        super.applyStrokeAndAlpha(ctx);
+        ctx.globalAlpha *= this.microPixelEffectOpacity;
     }
 
     protected override renderStroke(
@@ -448,24 +453,13 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
 
         if (stroke && effectiveStrokeWidth) {
             const { globalAlpha } = ctx;
-            const {
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                lineCap,
-                lineJoin,
-                borderPath,
-                borderClipPath,
-                opacity,
-                microPixelEffectOpacity,
-            } = this;
+            const { lineDash, lineDashOffset, lineCap, lineJoin, borderPath, borderClipPath } = this;
 
             if (borderClipPath) {
                 ctx.clip(borderClipPath.getPath2D());
             }
 
-            this.applyStroke(ctx);
-            ctx.globalAlpha *= opacity * strokeOpacity * microPixelEffectOpacity;
+            this.applyStrokeAndAlpha(ctx);
             ctx.lineWidth = effectiveStrokeWidth;
 
             if (lineDash) {

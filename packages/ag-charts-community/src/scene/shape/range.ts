@@ -55,13 +55,12 @@ export class Range<D = any> extends Shape<D> {
         x2 = this.align(x2);
         y2 = this.align(y2);
 
-        const { fill, opacity, horizontal } = this;
+        const { fill, horizontal } = this;
+
+        const { globalAlpha } = ctx;
 
         if (fill != null) {
-            const { fillOpacity } = this;
-
-            this.applyFill(ctx);
-            ctx.globalAlpha = opacity * fillOpacity;
+            this.applyFillAndAlpha(ctx);
 
             ctx.beginPath();
             ctx.moveTo(x1, y1);
@@ -71,16 +70,17 @@ export class Range<D = any> extends Shape<D> {
             ctx.closePath();
 
             ctx.fill();
+
+            ctx.globalAlpha = globalAlpha;
         }
 
         const { stroke, strokeWidth, startLine, endLine } = this;
         const strokeActive = !!((startLine || endLine) && stroke && strokeWidth);
 
         if (strokeActive) {
-            const { strokeOpacity, lineDash, lineDashOffset, lineCap, lineJoin } = this;
+            const { lineDash, lineDashOffset, lineCap, lineJoin } = this;
 
-            this.applyStroke(ctx);
-            ctx.globalAlpha = opacity * strokeOpacity;
+            this.applyStrokeAndAlpha(ctx);
 
             ctx.lineWidth = strokeWidth;
             if (lineDash) {
@@ -117,6 +117,8 @@ export class Range<D = any> extends Shape<D> {
             }
 
             ctx.stroke();
+
+            ctx.globalAlpha = globalAlpha;
         }
 
         this.fillShadow?.markClean();

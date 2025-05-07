@@ -86,7 +86,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         const { width, height, scale, backgroundFill, backgroundFillOpacity } = this;
 
         if (width * scale < 1 || height * scale < 1) {
-            Logger.warnOnce('Image fill is too small to render');
+            Logger.warnOnce('Pattern fill is too small to render');
             return null;
         }
 
@@ -148,6 +148,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
             strokeWidth,
             strokeOpacity,
             rotation,
+            scale,
         } = this;
 
         const pattern = createSvgElement('pattern');
@@ -171,7 +172,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         path.setAttribute('stroke-opacity', String(strokeOpacity));
         path.setAttribute('stroke', stroke);
         path.setAttribute('stroke-width', String(strokeWidth));
-        path.setAttribute('transform', `rotate(${rotation})`);
+        path.setAttribute('transform', `rotate(${rotation}) scale(${scale})`);
         path.setAttribute('d', this.getPath(1).toSVG());
         pattern.appendChild(path);
 

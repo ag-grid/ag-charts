@@ -214,18 +214,18 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected renderFill(ctx: CanvasContext, path?: Path2D) {
-        if (this.fill && this.fill !== 'none') {
+        const { fill, fillImage } = this;
+        if (fill && fill !== 'none') {
             const { globalAlpha } = ctx;
-            if (isImageFill(this.fill)) {
+            if (fillImage) {
                 // image pattern background fill
-                ctx.globalAlpha = this.fill.backgroundFillOpacity ?? 1;
-                ctx.fillStyle = this.fill.backgroundFill ?? 'transparent';
+                ctx.globalAlpha = fillImage.backgroundFillOpacity;
+                ctx.fillStyle = fillImage.backgroundFill;
                 this.executeFill(ctx, path);
                 ctx.globalAlpha = globalAlpha;
             }
 
-            this.applyFill(ctx);
-            this.applyFillAlpha(ctx);
+            this.applyFillAndAlpha(ctx);
             this.applyShadow(ctx);
             this.executeFill(ctx, path);
             ctx.globalAlpha = globalAlpha;
@@ -241,8 +241,11 @@ export abstract class Shape<D = any> extends Node<D> {
         }
     }
 
-    protected applyFill(ctx: CanvasContext) {
-        const { fill, fillGradient, fillPattern, fillImage: imageFill } = this;
+    protected applyFillAndAlpha(ctx: CanvasContext) {
+        const { fill, fillGradient, fillPattern, fillImage, fillOpacity, opacity } = this;
+
+        ctx.globalAlpha *= opacity * fillOpacity;
+
         if (fillGradient) {
             const { fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
             ctx.fillStyle = fillGradient.createGradient(ctx as any, fillBBox, fillParams) ?? 'black';
@@ -251,27 +254,32 @@ export abstract class Shape<D = any> extends Node<D> {
             const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
             const pattern = fillPattern.createPattern(ctx as any, pixelRatio);
             fillPattern.setPatternTransform(pattern, pixelRatio, x, y);
-            ctx.fillStyle = pattern ?? 'black';
-        } else if (imageFill) {
+            if (pattern) {
+                ctx.fillStyle = pattern;
+            } else {
+                ctx.fillStyle = fillPattern.backgroundFill;
+                ctx.globalAlpha *= fillPattern.backgroundFillOpacity;
+            }
+        } else if (fillImage) {
             const { x, y, width, height } = this.getBBox();
             const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-            const fillImage = imageFill.createPattern(ctx as any, pixelRatio, width, height, this);
-            imageFill.setImageTransform(fillImage, pixelRatio, x, y, width, height);
-            ctx.fillStyle = fillImage ?? 'black';
+            const image = fillImage.createPattern(ctx as any, pixelRatio, width, height, this);
+            fillImage.setImageTransform(image, pixelRatio, x, y, width, height);
+            ctx.fillStyle = image ?? 'transparent';
         } else {
             ctx.fillStyle = typeof fill === 'string' ? fill : 'black';
         }
     }
 
-    protected applyStroke(ctx: CanvasContext) {
-        ctx.strokeStyle =
-            this.strokeGradient?.createGradient(ctx as any, this.getBBox()) ??
-            (typeof this.stroke === 'string' ? this.stroke : undefined) ??
-            'black';
-    }
+    protected applyStrokeAndAlpha(ctx: CanvasContext) {
+        const { stroke, strokeOpacity, strokeGradient, opacity } = this;
 
-    protected applyFillAlpha(ctx: CanvasContext) {
-        ctx.globalAlpha *= this.opacity * this.fillOpacity;
+        ctx.strokeStyle =
+            strokeGradient?.createGradient(ctx as any, this.getBBox()) ??
+            (typeof stroke === 'string' ? stroke : undefined) ??
+            'black';
+
+        ctx.globalAlpha *= opacity * strokeOpacity;
     }
 
     protected applyShadow(ctx: CanvasContext) {
@@ -289,26 +297,26 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected renderStroke(ctx: CanvasContext & { setLineDash(lineDash: readonly number[]): void }, path?: Path2D) {
-        if (this.stroke && this.strokeWidth) {
+        const { stroke, strokeWidth, lineDash, lineDashOffset, lineCap, lineJoin, miterLimit } = this;
+        if (stroke && strokeWidth) {
             const { globalAlpha } = ctx;
-            this.applyStroke(ctx);
-            ctx.globalAlpha *= this.opacity * this.strokeOpacity;
+            this.applyStrokeAndAlpha(ctx);
 
-            ctx.lineWidth = this.strokeWidth;
-            if (this.lineDash) {
-                ctx.setLineDash(this.lineDash);
+            ctx.lineWidth = strokeWidth;
+            if (lineDash) {
+                ctx.setLineDash(lineDash);
             }
-            if (this.lineDashOffset) {
-                ctx.lineDashOffset = this.lineDashOffset;
+            if (lineDashOffset) {
+                ctx.lineDashOffset = lineDashOffset;
             }
-            if (this.lineCap) {
-                ctx.lineCap = this.lineCap;
+            if (lineCap) {
+                ctx.lineCap = lineCap;
             }
-            if (this.lineJoin) {
-                ctx.lineJoin = this.lineJoin;
+            if (lineJoin) {
+                ctx.lineJoin = lineJoin;
             }
-            if (this.miterLimit != null) {
-                ctx.miterLimit = this.miterLimit;
+            if (miterLimit != null) {
+                ctx.miterLimit = miterLimit;
             }
 
             this.executeStroke(ctx, path);
