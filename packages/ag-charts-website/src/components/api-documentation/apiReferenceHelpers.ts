@@ -163,10 +163,10 @@ export function formatTypeToCode(
     apiNode: ApiReferenceNode | MemberNode,
     member: MemberNode,
     reference: ApiReferenceType,
-    relatedTypes = new Set<string>()
+    seen: Set<string>
 ): string {
     if (apiNode.kind === 'interface' || apiNode.kind === 'typeAlias') {
-        relatedTypes.add(apiNode.name);
+        seen.add(apiNode.name);
     }
 
     if (apiNode.kind === 'interface') {
@@ -177,7 +177,7 @@ export function formatTypeToCode(
                 const memberType = normalizeType(
                     nodeMember.type.kind === 'array' ? nodeMember.type.type : nodeMember.type
                 );
-                if (!isInterfaceHidden(memberType) && !relatedTypes.has(memberType)) {
+                if (!isInterfaceHidden(memberType) && !seen.has(memberType)) {
                     additionalTypes.add(memberType);
                 }
             }
@@ -193,7 +193,7 @@ export function formatTypeToCode(
         for (const type of additionalTypes) {
             const typeRef = reference.get(type);
             if (typeRef) {
-                result.push(formatTypeToCode(typeRef, member, reference, additionalTypes));
+                result.push(formatTypeToCode(typeRef, member, reference, seen));
             }
         }
         return result.join('\n\n');
@@ -220,12 +220,12 @@ export function formatTypeToCode(
             for (const type of additionalTypes) {
                 if (
                     reference.has(type) &&
-                    !relatedTypes.has(type) &&
+                    !seen.has(type) &&
                     !isInterfaceHidden(type) &&
                     !('deprecated' in reference.get(type)!)
                 ) {
                     const subType = reference.get(type)!;
-                    const codeResult = formatTypeToCode(subType, member, reference, additionalTypes);
+                    const codeResult = formatTypeToCode(subType, member, reference, seen);
                     if (codeResult) {
                         result.push(codeResult);
                     }
@@ -329,7 +329,9 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
     const codeSample = `function ${name}(${paramsString}): ${normalizeType(returnType, true)};`;
 
     return additionalTypes
-        ? [codeSample].concat(additionalTypes.map((type) => formatTypeToCode(type, member, reference))).join('\n\n')
+        ? [codeSample]
+              .concat(additionalTypes.map((type) => formatTypeToCode(type, member, reference, new Set<string>())))
+              .join('\n\n')
         : codeSample;
 }
 
