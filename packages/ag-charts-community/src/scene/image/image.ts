@@ -1,6 +1,8 @@
 import { type InternalAgImageFill, Logger, createSvgElement } from 'ag-charts-core';
 import type { AgColorRepetition, AgImageFillFit } from 'ag-charts-types';
 
+import { normalizeAngle360FromDegrees } from '../../util/angle';
+import type { BBox } from '../bbox';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import type { Node } from '../node';
 import type { ImageLoader } from './imageLoader';
@@ -90,36 +92,47 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         };
     }
 
-    setImageTransform(
-        pattern: CanvasPattern | string | undefined,
-        pixelRatio: number,
-        tx: number = 0,
-        ty: number = 0,
-        shapeWidth: number = 0,
-        shapeHeight: number = 0
-    ) {
+    setImageTransform(pattern: CanvasPattern | string | undefined, pixelRatio: number, bbox: BBox) {
         if (typeof pattern === 'string') return;
 
-        const image = this.imageLoader?.loadImage(this.url);
+        const { url, rotation, width, height, repetition } = this;
+
+        const image = this.imageLoader?.loadImage(url);
         if (!image) {
             return;
         }
 
-        const width = this.width ?? shapeWidth;
-        const height = this.height ?? shapeHeight;
+        const angle = normalizeAngle360FromDegrees(rotation);
+        const scale = 1 / pixelRatio;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
 
-        const { dx, dy } = this.getDimensions(image.width, image.height, width, height, shapeWidth, shapeHeight);
+        const bboxCenterX = bbox.x + bbox.width / 2;
+        const bboxCenterY = bbox.y + bbox.height / 2;
 
-        const cx = shapeWidth / 2;
-        const cy = shapeHeight / 2;
+        const { dx, dy, dw, dh } = this.getDimensions(
+            image.width,
+            image.height,
+            width ?? bbox.width,
+            height ?? bbox.height
+        );
+        const rotatedW = cos * dw - sin * dh;
+        const rotatedH = sin * dw + cos * dh;
 
-        const transform = new DOMMatrix()
-            .translate(cx, cy)
-            .rotate(this.rotation)
-            .translate(tx + dx - cx, ty + dy - cy)
-            .scale(1 / pixelRatio);
+        const centerImage = repetition === 'no-repeat';
+        const shapeCenterX = (centerImage ? 0 : dx) + rotatedW / 2;
+        const shapeCenterY = (centerImage ? 0 : dy) + rotatedH / 2;
 
-        pattern?.setTransform(transform);
+        pattern?.setTransform(
+            new DOMMatrix([
+                cos * scale,
+                sin * scale,
+                -sin * scale,
+                cos * scale,
+                bboxCenterX - shapeCenterX,
+                bboxCenterY - shapeCenterY,
+            ])
+        );
     }
 
     private _cache:
@@ -142,7 +155,13 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         const height = this.height ?? shapeHeight;
 
         const cache = this._cache;
-        if (cache != null && cache.ctx === ctx && cache.width === width && cache.height === height) {
+        if (
+            cache != null &&
+            cache.ctx === ctx &&
+            cache.width === width &&
+            cache.height === height &&
+            cache.pixelRatio === pixelRatio
+        ) {
             return cache.pattern;
         }
 
@@ -156,30 +175,35 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         return pattern;
     }
 
-    toSvg(shapeWidth: number, shapeHeight: number, pixelRatio: number): SVGElement {
-        const { url, rotation } = this;
-
-        // const cx = shapeWidth / 2;
-        // const cy = shapeHeight / 2;
+    toSvg(bbox: BBox, pixelRatio: number): SVGElement {
+        const { url, rotation, backgroundFill, backgroundFillOpacity } = this;
+        const { x, y, width, height } = bbox;
 
         const pattern = createSvgElement('pattern');
-        pattern.setAttribute('viewBox', `0 0 ${shapeWidth} ${shapeHeight}`);
-        pattern.setAttribute('width', String(shapeWidth));
-        pattern.setAttribute('height', String(shapeHeight));
+        pattern.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        pattern.setAttribute('x', String(x));
+        pattern.setAttribute('y', String(y));
+        pattern.setAttribute('width', String(width));
+        pattern.setAttribute('height', String(height));
         pattern.setAttribute('patternUnits', 'userSpaceOnUse');
-        pattern.setAttribute(
-            'patternTransform',
-            `scale(${1 / pixelRatio}) rotate(${rotation}, ${shapeWidth / 2}, ${shapeHeight / 2})`
-        );
+
+        const rect = createSvgElement('rect');
+        rect.setAttribute('x', '0');
+        rect.setAttribute('y', '0');
+        rect.setAttribute('width', String(width));
+        rect.setAttribute('height', String(height));
+        rect.setAttribute('fill', backgroundFill);
+        rect.setAttribute('fill-opacity', String(backgroundFillOpacity));
+        pattern.appendChild(rect);
 
         const image = createSvgElement('image');
         image.setAttribute('href', url);
         image.setAttribute('x', '0');
         image.setAttribute('y', '0');
-        image.setAttribute('width', String(shapeWidth));
-        image.setAttribute('height', String(shapeHeight));
+        image.setAttribute('width', String(width));
+        image.setAttribute('height', String(height));
         image.setAttribute('preserveAspectRatio', 'none');
-
+        image.setAttribute('transform', `scale(${1 / pixelRatio}) rotate(${rotation}, ${width / 2}, ${height / 2})`);
         pattern.appendChild(image);
 
         return pattern;

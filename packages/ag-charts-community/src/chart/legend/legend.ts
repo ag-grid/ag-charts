@@ -26,7 +26,7 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
-import { isPatternFill } from '../../scene/util/fill';
+import { isImageFill, isPatternFill } from '../../scene/util/fill';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
@@ -813,11 +813,11 @@ export class Legend extends BaseProperties {
             fill.strokeWidth = Math.min(2, fill.strokeWidth ?? 2);
         }
 
-        // if (isImageFill(fill)) {
-        //     fill.width = 8;
-        //     fill.height = 8;
-        //     fill.repetition = 'no-repeat';
-        // }
+        if (isImageFill(fill)) {
+            fill.width = 8;
+            fill.height = 8;
+            fill.repetition = 'no-repeat';
+        }
 
         return getShapeStyle(
             {
