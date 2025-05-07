@@ -20,6 +20,39 @@ contextMenu: {
 }
 ```
 
+## Built-in Items
+
+By default, the Context Menu includes some menu items in a pre-determined
+order. The `contextMenu.items` accepts special string values to conveniently
+reconfigure the defaults:
+
+-   `'defaults'`: This string represents a list of built-in menu-items in the
+    pre-determined order.
+-   `'separator'`: The string is an alias for a non-interaction separator.
+
+{% chartExampleRunner title="Context Menu Built-in Items" name="context-menu-builtins" type="generated" /%}
+
+```ts
+contextMenu: {
+    items: [
+        'toggle-series-visibility',
+        'toggle-other-series',
+        'separator',
+        'zoom-to-cursor',
+        'pan-to-cursor',
+        'separator',
+        'download',
+    ],
+},
+```
+
+In this example:
+
+-   The "Custom Order" buttom reorders the default built-in menu items and adds separators.
+-   The "Default Order" button resets the menu items to the default `['defaults']` value.
+
+These string values can be used in combination with Custom Actions.
+
 ## Custom Actions
 
 The Context Menu's extra actions can be used to run arbitrary functions based on the element that is right-clicked.
