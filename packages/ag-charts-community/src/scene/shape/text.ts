@@ -96,6 +96,7 @@ export class Text<D = any> extends Shape<D> {
         }
 
         const { fill, stroke, strokeWidth } = this;
+        const { globalAlpha } = ctx;
         const { pixelRatio } = this.layerManager.canvas;
 
         if (!fill && !(stroke != null && strokeWidth > 0)) {
@@ -112,8 +113,7 @@ export class Text<D = any> extends Shape<D> {
         ctx.textBaseline = this.textBaseline;
 
         if (fill) {
-            this.applyFill(ctx);
-            ctx.globalAlpha *= this.opacity * this.fillOpacity;
+            this.applyFillAndAlpha(ctx);
 
             const { fillShadow } = this;
 
@@ -125,12 +125,13 @@ export class Text<D = any> extends Shape<D> {
             }
 
             this.renderLines((line, x, y) => ctx.fillText(line, x, y));
+
+            ctx.globalAlpha = globalAlpha;
         }
 
         if (stroke && strokeWidth) {
-            this.applyStroke(ctx);
+            this.applyStrokeAndAlpha(ctx);
             ctx.lineWidth = strokeWidth;
-            ctx.globalAlpha *= this.opacity * this.strokeOpacity;
 
             const { lineDash, lineDashOffset, lineCap, lineJoin } = this;
 
@@ -151,6 +152,8 @@ export class Text<D = any> extends Shape<D> {
             }
 
             this.renderLines((line, x, y) => ctx.strokeText(line, x, y));
+
+            ctx.globalAlpha = globalAlpha;
         }
 
         super.render(renderCtx);
