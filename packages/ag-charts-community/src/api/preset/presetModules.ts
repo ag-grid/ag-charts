@@ -59,7 +59,7 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     statusBar: boolean,
     toolbar: boolean,
     zoom: boolean,
-
+    sync: boolean,
     // Valid pass-through options
     theme: defined,
     container: defined,

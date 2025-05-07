@@ -5,6 +5,8 @@ import type { SeriesNodeDatum } from '../series/seriesTypes';
 export interface HighlightNodeDatum extends SeriesNodeDatum<unknown> {
     readonly xKey?: string;
     readonly yKey?: string;
+    readonly angleKey?: string;
+    readonly radiusKey?: string;
     readonly colorValue?: number;
     readonly cumulativeValue?: number;
     readonly aggregatedValue?: number;

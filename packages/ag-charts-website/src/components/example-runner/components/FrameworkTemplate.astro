@@ -10,7 +10,7 @@ import type { GeneratedContents } from '@components/example-generator/types';
 import AngularTemplate from '../framework-templates/AngularTemplate.astro';
 import PostInitMessageScript from '@components/example-runner/components/PostInitMessageScript.astro';
 import { toTitle } from '@utils/toTitle';
-import E2ECheckScript from '@components/example-runner/components/E2ECheckScript.astro';
+import { E2E_STYLE_START, E2E_STYLE_END } from '@components/example-runner/constants';
 
 interface Props {
     internalFramework: InternalFramework;
@@ -174,4 +174,12 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
     )
 }
 
-{addE2ECheckScript && <E2ECheckScript />}
+{
+    addE2ECheckScript && (
+        <Fragment>
+            <Fragment set:html={E2E_STYLE_START} />
+            <script is:inline src="../scripts/e2eStyle.js" />
+            <Fragment set:html={E2E_STYLE_END} />
+        </Fragment>
+    )
+}
