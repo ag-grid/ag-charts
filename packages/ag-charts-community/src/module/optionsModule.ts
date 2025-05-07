@@ -544,6 +544,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             const seriesDef = ModuleRegistry.getSeriesModule(series.type);
             const tooltipDefined = Boolean(seriesDef?.options.tooltip);
+            const visibleDefined = Boolean(seriesDef?.options.visible);
             const defaultTooltipRange = tooltipDefined && this.getTooltipRangeDefaults(options, series.type);
 
             const seriesOptions = mergeDefaults(
@@ -551,7 +552,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 series,
                 tooltipDefined && defaultTooltipPosition,
                 defaultTooltipRange,
-                seriesTheme
+                seriesTheme,
+                visibleDefined && { visible: true }
             );
 
             if (seriesOptions.innerLabels) {
