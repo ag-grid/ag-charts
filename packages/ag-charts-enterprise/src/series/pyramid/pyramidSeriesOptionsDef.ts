@@ -1,49 +1,12 @@
-import { type AgPyramidSeriesOptions, type AgPyramidSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import {
-    type OptionsDefs,
-    arrayOf,
-    boolean,
-    callbackDefs,
-    color,
-    colorUnion,
-    constant,
-    fillOptionsDef,
-    lineDashOptionsDef,
-    positiveNumber,
-    required,
-    string,
-    strokeOptionsDef,
-    union,
-} from 'ag-charts-core';
+import { type AgPyramidSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type OptionsDefs, constant, required, string } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, seriesLabelOptionsDefs, shadowOptionsDefs, tooltipOptionsDefs, without } =
-    _ModuleSupport;
+const { commonSeriesOptionsDefs, pyramidSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const pyramidSeriesOptionsDef: OptionsDefs<AgPyramidSeriesOptions> = {
+    ...pyramidSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
     type: required(constant('pyramid')),
     stageKey: required(string),
     valueKey: required(string),
-    direction: union('horizontal', 'vertical'),
-    aspectRatio: positiveNumber,
-    spacing: positiveNumber,
-    reverse: boolean,
-    itemStyler: callbackDefs<AgPyramidSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    }),
-    fills: arrayOf(colorUnion),
-    strokes: arrayOf(color),
-    label: seriesLabelOptionsDefs,
-    stageLabel: {
-        spacing: positiveNumber,
-        placement: union('before', 'after'),
-        ...seriesLabelOptionsDefs,
-    },
-    tooltip: tooltipOptionsDefs,
-    shadow: shadowOptionsDefs,
-    ...commonSeriesOptionsDefs,
-    ...without(fillOptionsDef, ['fill']),
-    ...without(strokeOptionsDef, ['stroke']),
-    ...lineDashOptionsDef,
 };

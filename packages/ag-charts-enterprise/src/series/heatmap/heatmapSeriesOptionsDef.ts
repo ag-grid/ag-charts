@@ -1,22 +1,11 @@
-import { type AgHeatmapSeriesOptions, type AgHeatmapSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import {
-    type OptionsDefs,
-    arrayOf,
-    boolean,
-    callbackDefs,
-    color,
-    constant,
-    fillOptionsDef,
-    positiveNumber,
-    required,
-    string,
-    strokeOptionsDef,
-    union,
-} from 'ag-charts-core';
+import { type AgHeatmapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type OptionsDefs, arrayOf, color, constant, required, string } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, autoSizedLabelOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
+const { commonSeriesOptionsDefs, heatmapSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const heatmapSeriesOptionsDef: OptionsDefs<AgHeatmapSeriesOptions> = {
+    ...heatmapSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
     type: required(constant('heatmap')),
     xKey: required(string),
     yKey: required(string),
@@ -25,17 +14,4 @@ export const heatmapSeriesOptionsDef: OptionsDefs<AgHeatmapSeriesOptions> = {
     yName: string,
     colorName: string,
     colorRange: arrayOf(color),
-    title: string,
-    textAlign: union('left', 'center', 'right'),
-    verticalAlign: union('top', 'middle', 'bottom'),
-    itemPadding: positiveNumber,
-    itemStyler: callbackDefs<AgHeatmapSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-    }),
-    showInMiniChart: boolean,
-    label: autoSizedLabelOptionsDefs,
-    tooltip: tooltipOptionsDefs,
-    ...commonSeriesOptionsDefs,
-    ...strokeOptionsDef,
 };

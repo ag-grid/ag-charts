@@ -4,7 +4,7 @@ import type {
     AgContinuousAxisOptions,
     AgFormattableLabelOptions,
 } from './axisOptions';
-import type { AgBaseCrossLineOptions } from './crossLineOptions';
+import type { AgBaseCrossLineOptions, AgCrossLineThemeOptions } from './crossLineOptions';
 import type { Degree, Ratio } from './types';
 
 export type AgPolarAxisShape = 'polygon' | 'circle';
@@ -29,6 +29,10 @@ export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleAxi
      * It is a proportion between 0 and 1 which determines the size of the gap between the groups of items along the angle axis.
      */
     paddingInner?: Ratio;
+}
+
+export interface AgAngleAxesCrossLineThemeOptions {
+    crossLines?: AgAngleCrossLineThemeOptions;
 }
 
 export interface AgAngleNumberAxisOptions
@@ -61,3 +65,4 @@ export interface AgAngleAxisFormattableLabelOptions extends AgFormattableLabelOp
 export interface AgAngleAxisLabelOptions extends AgBaseAxisLabelOptions, OrientableLabel {}
 
 export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions {}
+export interface AgAngleCrossLineThemeOptions extends AgCrossLineThemeOptions {}

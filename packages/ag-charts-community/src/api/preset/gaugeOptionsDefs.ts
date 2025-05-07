@@ -29,8 +29,10 @@ import type {
     AgGaugeColorStop,
     AgLinearGaugePreset,
     AgLinearGaugeTarget,
+    AgLinearGaugeThemeableOptions,
     AgRadialGaugePreset,
     AgRadialGaugeTarget,
+    AgRadialGaugeThemeableOptions,
     FillsOptions,
 } from 'ag-charts-types';
 
@@ -38,6 +40,7 @@ import { numberFormatValidator } from '../../chart/axesOptionsDefs';
 import {
     autoSizedLabelOptionsDefs,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     seriesLabelOptionsDefs,
     tooltipOptionsDefs,
 } from '../../chart/commonOptionsDefs';
@@ -88,37 +91,11 @@ export const radialGaugeTargetOptionsDef: OptionsDefs<AgRadialGaugeTarget> = {
     ...lineDashOptionsDef,
 };
 
-export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
-    type: required(constant('linear-gauge')),
-    value: required(number),
+export const linearGaugeSeriesThemeableOptionsDef: OptionsDefs<AgLinearGaugeThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     cornerMode: union('container', 'item'),
     cornerRadius: positiveNumber,
     thickness: positiveNumber,
-    scale: {
-        min: and(number, lessThan('max')),
-        max: and(number, greaterThan('min')),
-        label: {
-            enabled: boolean,
-            formatter: callback,
-            rotation: number,
-            spacing: positiveNumber,
-            minSpacing: positiveNumber,
-            placement: union('before', 'after'),
-            avoidCollisions: boolean,
-            format: numberFormatValidator,
-            ...fontOptionsDef,
-        },
-        interval: {
-            values: arrayOf(number),
-            step: number,
-        },
-        ...fillsOptionsDef,
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    },
-    targets: arrayOfDefs(linearGaugeTargetOptionsDef, 'target options array'),
     segmentation: {
         enabled: boolean,
         spacing: positiveNumber,
@@ -155,7 +132,38 @@ export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
         ),
     },
     tooltip: tooltipOptionsDefs,
+    ...without(commonSeriesThemeableOptionsDefs, ['listeners']),
+};
+
+export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
+    ...linearGaugeSeriesThemeableOptionsDef,
     ...without(commonSeriesOptionsDefs, ['listeners']),
+    type: required(constant('linear-gauge')),
+    value: required(number),
+    scale: {
+        min: and(number, lessThan('max')),
+        max: and(number, greaterThan('min')),
+        label: {
+            enabled: boolean,
+            formatter: callback,
+            rotation: number,
+            spacing: positiveNumber,
+            minSpacing: positiveNumber,
+            placement: union('before', 'after'),
+            avoidCollisions: boolean,
+            format: numberFormatValidator,
+            ...fontOptionsDef,
+        },
+        interval: {
+            values: arrayOf(number),
+            step: number,
+        },
+        ...fillsOptionsDef,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    targets: arrayOfDefs(linearGaugeTargetOptionsDef, 'target options array'),
 };
 
 // @ts-expect-error undocumented option
@@ -176,9 +184,7 @@ linearGaugeSeriesOptionsDef.defaultScale = undocumented(linearGaugeSeriesOptions
 // @ts-expect-error undocumented option
 linearGaugeSeriesOptionsDef.scale.defaultFill = undocumented(color);
 
-export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
-    type: required(constant('radial-gauge')),
-    value: required(number),
+export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThemeableOptions> = {
     outerRadius: positiveNumber,
     innerRadius: positiveNumber,
     outerRadiusRatio: ratio,
@@ -210,7 +216,6 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
-    targets: arrayOfDefs(radialGaugeTargetOptionsDef, 'target options array'),
     segmentation: {
         enabled: boolean,
         spacing: positiveNumber,
@@ -245,7 +250,15 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
         ...autoSizedLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+};
+
+export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
+    ...radialGaugeSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
+    type: required(constant('radial-gauge')),
+    value: required(number),
+    targets: arrayOfDefs(radialGaugeTargetOptionsDef, 'target options array'),
 };
 
 // @ts-expect-error undocumented option

@@ -32,7 +32,7 @@ export interface AgBaseSeriesThemeableOptions<TDatum> {
     listeners?: AgSeriesListeners<TDatum>;
 }
 
-export interface AgBaseCartesianThemeableOptions<TDatum> extends AgBaseSeriesOptions<TDatum> {
+export interface AgBaseCartesianThemeableOptions<TDatum> extends AgBaseSeriesThemeableOptions<TDatum> {
     /** Whether to include the series in the Mini Chart. */
     showInMiniChart?: boolean;
 }

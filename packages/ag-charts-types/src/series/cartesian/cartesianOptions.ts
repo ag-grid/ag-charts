@@ -189,15 +189,6 @@ export interface AgTimeAxisOptions extends AgContinuousTimeAxisOptions, AgUnitTi
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
 
-export type AgCartesianAxisType =
-    | 'category'
-    | 'grouped-category'
-    | 'ordinal-time'
-    | 'unit-time'
-    | 'number'
-    | 'log'
-    | 'time';
-
 export type AgCartesianAxisOptions =
     | AgNumberAxisOptions
     | AgLogAxisOptions
@@ -205,6 +196,8 @@ export type AgCartesianAxisOptions =
     | AgOrdinalTimeAxisOptions
     | AgGroupedCategoryAxisOptions
     | AgTimeAxisOptions;
+
+export type AgCartesianAxisType = AgCartesianAxisOptions['type'];
 
 type AgCartesianAxisThemeSpecialOptions = 'position' | 'type' | 'crossLines';
 /** This is the configuration shared by all types of axis. */
@@ -242,7 +235,7 @@ export interface AgCartesianAxesTheme {
     /** This extends the common axis configuration with options specific to grouped-category axes. */
     'grouped-category'?: AgGroupedCategoryAxisThemeOptions;
     /** This extends the common axis configuration with options specific to unit-time axes. */
-    'unit-time'?: AgUnitTimeAxisOptions;
+    'unit-time'?: AgUnitTimeAxisThemeOptions;
 }
 
 export type AgContinuousCartesianAxesTheme = Pick<AgCartesianAxesTheme, 'number' | 'log' | 'time'>;
@@ -268,8 +261,12 @@ export interface AgGroupedCategoryAxisThemeOptions
         AgCartesianAxisThemeOptions<AgGroupedCategoryAxisOptions>,
         AgCartesianAxesCrossLineThemeOptions {}
 export interface AgTimeAxisThemeOptions
-    extends Omit<AgTimeAxisOptions, 'type' | 'crossLines'>,
-        AgCartesianAxisThemeOptions<AgTimeAxisOptions>,
+    extends Omit<AgContinuousTimeAxisOptions, 'type' | 'crossLines'>,
+        AgCartesianAxisThemeOptions<AgContinuousTimeAxisOptions>,
+        AgCartesianAxesCrossLineThemeOptions {}
+export interface AgUnitTimeAxisThemeOptions
+    extends Omit<AgUnitTimeAxisOptions, 'type' | 'crossLines'>,
+        AgCartesianAxisThemeOptions<AgUnitTimeAxisOptions>,
         AgCartesianAxesCrossLineThemeOptions {}
 
 export interface AgCartesianCrossLineOptions extends AgBaseCrossLineOptions<AgCartesianCrossLineLabelOptions> {}

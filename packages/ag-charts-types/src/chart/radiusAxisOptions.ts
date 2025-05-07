@@ -62,6 +62,11 @@ export interface AgRadiusCategoryAxisOptions extends AgBaseAxisOptions<AgRadiusA
 }
 
 export interface AgRadiusCrossLineOptions extends AgBaseCrossLineOptions<AgRadiusCrossLineLabelOptions> {}
+export interface AgRadiusCrossLineThemeOptions extends Omit<AgRadiusCrossLineOptions, 'type'> {}
+
+export interface AgRadiusAxesCrossLineThemeOptions {
+    crossLines?: AgRadiusCrossLineThemeOptions;
+}
 
 interface AgRadiusCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
     positionAngle?: Degree;

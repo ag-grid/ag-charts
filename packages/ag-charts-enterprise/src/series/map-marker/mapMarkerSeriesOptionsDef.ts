@@ -1,24 +1,12 @@
-import { type AgMapMarkerSeriesOptions, type AgSeriesHighlightStyle, _ModuleSupport } from 'ag-charts-community';
-import {
-    type OptionsDefs,
-    arrayOf,
-    color,
-    constant,
-    fillOptionsDef,
-    geoJson,
-    positiveNumber,
-    required,
-    string,
-    strokeOptionsDef,
-    union,
-} from 'ag-charts-core';
+import { type AgMapMarkerSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type OptionsDefs, constant, geoJson, required, string } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, markerOptionsDefs, seriesLabelOptionsDefs, tooltipOptionsDefs, without } =
-    _ModuleSupport;
+const { commonSeriesOptionsDefs, mapMarkerSeriesThemeableOptionsDef, without } = _ModuleSupport;
 
 export const mapMarkerSeriesOptionsDef: OptionsDefs<AgMapMarkerSeriesOptions> = {
+    ...mapMarkerSeriesThemeableOptionsDef,
+    ...without(commonSeriesOptionsDefs, ['highlightStyle']),
     type: required(constant('map-marker')),
-    // TODO idKey OR latitudeKey & longitudeKey should be required - support for such conditions needed
     idKey: string,
     latitudeKey: string,
     longitudeKey: string,
@@ -34,20 +22,5 @@ export const mapMarkerSeriesOptionsDef: OptionsDefs<AgMapMarkerSeriesOptions> = 
     topology: geoJson,
     topologyIdKey: string,
     legendItemName: string,
-    colorRange: arrayOf(color),
     title: string,
-    maxSize: positiveNumber,
-    sizeDomain: arrayOf(positiveNumber),
-    label: {
-        placement: union('top', 'bottom', 'left', 'right'),
-        ...seriesLabelOptionsDefs,
-    },
-    tooltip: tooltipOptionsDefs,
-    ...commonSeriesOptionsDefs,
-    ...without(markerOptionsDefs, ['enabled']),
-    highlightStyle: {
-        ...(commonSeriesOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-    },
 };

@@ -19,8 +19,7 @@ const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
 const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
-const unionSymbol = Symbol('union');
-const unionDefaultSymbol = Symbol('unionDefault');
+export const unionSymbol = Symbol('union');
 
 const similarOptionsMap = [
     ['placement', 'position'],
@@ -52,8 +51,7 @@ type PrivateSymbols = {
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
     [undocumentedSymbol]?: boolean;
-    [unionSymbol]?: boolean;
-    [unionDefaultSymbol]?: string;
+    [unionSymbol]?: string;
 };
 
 // Definitions for options validation with support for nested structures.
@@ -164,9 +162,9 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     const optionsKeys = new Set(Object.keys(options));
     const unusedKeys = [];
 
-    if (optionsDefs[unionSymbol]) {
+    if (unionSymbol in optionsDefs) {
         const validTypes = Object.keys(optionsDefs);
-        const defaultType = optionsDefs[unionDefaultSymbol];
+        const defaultType = optionsDefs[unionSymbol];
         if (
             (options.type != null && validTypes.includes(options.type)) ||
             (options.type == null && defaultType != null)
@@ -335,23 +333,8 @@ export const typeUnion = <T extends { type: string }>(
     ({
         ...defs,
         [descriptionSymbol]: description,
-        [unionSymbol]: true,
-        [unionDefaultSymbol]: defaultType,
+        [unionSymbol]: defaultType,
     }) as OptionsDefs<T>;
-
-/**
- * Creates a validator for ensuring an object matches the provided option definitions. Ignores unknown properties.
- * @param defs The option definitions against which to validate an object.
- * @param description (Optional) A description for the validator, defaulting to 'an object'.
- * @returns A validator function for the given option definitions.
- */
-export const partialDefs = <T>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
-    attachDescription((value, context) => {
-        const result = validate(value, defs, context.path);
-        const valid = !hasRequiredInPath(result.invalid, context.path);
-        const invalid = result.invalid.filter((error) => error.type !== ErrorType.Unknown);
-        return { valid, cleared: result.cleared, invalid };
-    }, description);
 
 /**
  * Combines multiple validators, requiring all to pass.

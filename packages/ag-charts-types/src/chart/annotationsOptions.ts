@@ -22,8 +22,8 @@ export interface AgAnnotationsThemeableOptions extends AgAnnotationsOptions {
     'vertical-line'?: AgCrossLineAnnotationStyles;
 
     // Channels
-    'disjoint-channel'?: AgChannelAnnotationStyles;
-    'parallel-channel'?: AgChannelAnnotationStyles;
+    'disjoint-channel'?: AgDisjointChannelAnnotationStyles;
+    'parallel-channel'?: AgParallelChannelAnnotationStyles;
 
     // Fibonaccis
     'fibonacci-retracement'?: AgFibonacciAnnotationStyles;
@@ -57,20 +57,19 @@ export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, Li
 // Lines
 export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
-    text?: AgLineAnnotationText;
+    text?: AgLineAnnotationTextStyles;
 }
 
-export interface AgCrossLineAnnotationStyles extends AgLineAnnotationStyles {
+export interface AgCrossLineAnnotationStyles extends Lockable, Visible, StrokeOptions, LineOptions {
     axisLabel?: AgAnnotationAxisLabel;
+    handle?: AgAnnotationHandleStyles;
+    text?: AgLineAnnotationTextStyles;
 }
 
 // Channels
-export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
-    handle?: AgAnnotationHandleStyles;
+export interface AgDisjointChannelAnnotationStyles extends AgChannelAnnotationStyles {}
+export interface AgParallelChannelAnnotationStyles extends AgChannelAnnotationStyles {
     middle?: AgChannelAnnotationMiddle;
-    /** The fill colour for the middle of the channel. */
-    background?: AgChannelAnnotationBackground;
-    text?: AgChannelAnnotationTextOptions;
 }
 
 // Fibonaccis
@@ -79,11 +78,11 @@ export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
     label?: FontOptions;
     /** Whether to show the fills between the Fibonacci range lines. */
     showFill?: boolean;
-    /** Whether the Fibonacci range lines are multicoloured. */
+    /** Whether the Fibonacci range lines are multicolored. */
     isMultiColor?: boolean;
-    /** The colours to cycle through for the strokes of the Fibonacci lines. */
+    /** The colors to cycle through for the strokes of the Fibonacci lines. */
     strokes?: CssColor[];
-    /** The colour for the strokes of the Fibonacci lines if isMultiColor is `false`. */
+    /** The color for the strokes of the Fibonacci lines if isMultiColor is `false`. */
     rangeStroke?: CssColor;
     /** The number of fibonacci range bands. */
     bands?: 10 | 6 | 4;
@@ -99,6 +98,7 @@ export interface AgCalloutAnnotationStyles extends AgTextAnnotationStyles, Strok
 export interface AgCommentAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
 
 export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {
+    /** The fill and stroke for note icon. */
     background?: AgNoteAnnotationBackground;
 }
 
@@ -112,7 +112,7 @@ export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, 
     background?: FillOptions;
     handle?: AgAnnotationHandleStyles;
     statistics?: AgMeasurerAnnotationStatistics;
-    text?: AgLineAnnotationTextOptions;
+    text?: AgLineAnnotationTextStyles;
 }
 
 export interface AgQuickMeasurerAnnotationStyles extends Visible {
@@ -238,45 +238,33 @@ export interface AgFibonacciRetracementTrendBasedAnnotation extends AgFibonacciA
 // ***********************
 // * Channel Annotations *
 // ***********************/
+export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
+    /** Configuration for the drag handles. */
+    handle?: AgAnnotationHandle;
+    /** Configuration for the channel text. */
+    text?: AgChannelAnnotationTextStyles;
+    /** The fill color for the middle of the channel. */
+    background?: AgChannelAnnotationBackground;
+}
 
-export interface AgParallelChannelAnnotation
-    extends AnnotationLinePoints,
-        Extendable,
-        Lockable,
-        Visible,
-        StrokeOptions,
-        LineOptions {
+export interface AgParallelChannelAnnotation extends AgChannelAnnotationStyles, AnnotationLinePoints {
     /** Configuration for the parallel-channel annotation.*/
     type: 'parallel-channel';
     /** The height of the annotation along the y-axis. */
     height: number;
-    /** Configuration for the drag handles. */
-    handle?: AgAnnotationHandle;
-    /** Configuration for the line in the middle of the channel. */
-    middle?: AgChannelAnnotationMiddle;
-    /** The fill colour for the middle of the channel. */
-    background?: AgChannelAnnotationBackground;
     /** Configuration for the channel text. */
     text?: AgChannelAnnotationText;
+    /** Configuration for the line in the middle of the channel. */
+    middle?: AgChannelAnnotationMiddle;
 }
 
-export interface AgDisjointChannelAnnotation
-    extends AnnotationLinePoints,
-        Extendable,
-        Lockable,
-        Visible,
-        StrokeOptions,
-        LineOptions {
+export interface AgDisjointChannelAnnotation extends AgChannelAnnotationStyles, AnnotationLinePoints {
     /** Configuration for the disjoint-channel annotation.*/
     type: 'disjoint-channel';
     /** The height of the annotation along the y-axis at the start. */
     startHeight: number;
     /** The height of the annotation along the y-axis at the end. */
     endHeight: number;
-    /** Configuration for the drag handles. */
-    handle?: AgAnnotationHandle;
-    /** The fill colour for the middle of the channel. */
-    background?: AgChannelAnnotationBackground;
     /** Configuration for the channel text. */
     text?: AgChannelAnnotationText;
 }
@@ -285,38 +273,34 @@ export interface AgDisjointChannelAnnotation
 // * Text Annotations *
 // ********************/
 
-export interface AgCalloutAnnotation extends TextualStartEndAnnotation, FillOptions, StrokeOptions {
+export interface AgCalloutAnnotation extends AgCalloutAnnotationStyles {
     /** Configuration for the callout annotation. */
     type: 'callout';
-}
-
-export interface AgCommentAnnotation extends TextualPointAnnotation, FillOptions {
-    /** Configuration for the comment annotation. */
-    type: 'comment';
-}
-
-export interface AgNoteAnnotation extends TextualPointAnnotation, FillOptions, StrokeOptions {
-    /** Configuration for the note annotation. */
-    type: 'note';
-    /** The fill and stroke for note icon. */
-    background?: AgNoteAnnotationBackground;
-}
-
-export interface AgTextAnnotation extends TextualPointAnnotation {
-    /** Configuration for the text annotation. */
-    type: 'text';
-}
-
-interface TextualPointAnnotation extends TextualAnnotation, AgAnnotationPoint {}
-interface TextualStartEndAnnotation extends TextualAnnotation {
     /** The starting point of the annotation. */
     start: AgAnnotationPoint;
     /** The end point of the annotation. */
     end: AgAnnotationPoint;
+    /** The text content. */
+    text: string;
 }
-interface TextualAnnotation extends Lockable, Visible, FontOptions {
-    /** Configuration for the drag handle. */
-    handle?: AgAnnotationHandle;
+
+export interface AgCommentAnnotation extends AgCommentAnnotationStyles, AgAnnotationPoint {
+    /** Configuration for the comment annotation. */
+    type: 'comment';
+    /** The text content. */
+    text: string;
+}
+
+export interface AgNoteAnnotation extends AgNoteAnnotationStyles, AgAnnotationPoint {
+    /** Configuration for the note annotation. */
+    type: 'note';
+    /** The text content. */
+    text: string;
+}
+
+export interface AgTextAnnotation extends AgTextAnnotationStyles, AgAnnotationPoint {
+    /** Configuration for the text annotation. */
+    type: 'text';
     /** The text content. */
     text: string;
 }
@@ -420,7 +404,7 @@ export interface LineOptions extends LineDashOptions {
     lineStyle?: AgAnnotationLineStyleType;
 }
 
-export interface AgAnnotationHandle extends FillOptions, StrokeOptions, LineDashOptions {}
+export interface AgAnnotationHandle extends AgAnnotationHandleStyles {}
 
 export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineOptions {}
 
@@ -443,20 +427,20 @@ export interface AgAnnotationLabelFormatterParams {
     value: any;
 }
 
-export interface AgLineAnnotationText extends AgLineAnnotationTextOptions {
+export interface AgLineAnnotationText extends AgLineAnnotationTextStyles {
     label?: string;
 }
 
-export interface AgChannelAnnotationText extends AgChannelAnnotationTextOptions {
+export interface AgChannelAnnotationText extends AgChannelAnnotationTextStyles {
     label?: string;
 }
 
-export interface AgLineAnnotationTextOptions extends FontOptions {
+export interface AgLineAnnotationTextStyles extends FontOptions {
     position?: 'top' | 'center' | 'bottom';
     alignment?: 'left' | 'center' | 'right';
 }
 
-export interface AgChannelAnnotationTextOptions extends FontOptions {
+export interface AgChannelAnnotationTextStyles extends FontOptions {
     position?: 'top' | 'inside' | 'bottom';
     alignment?: 'left' | 'center' | 'right';
 }

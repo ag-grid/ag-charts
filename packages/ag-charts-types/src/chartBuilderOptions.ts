@@ -90,6 +90,8 @@ export type AgFinancialChartOptions = AgBaseFinancialPresetOptions & AgFinancial
 
 export interface AgBaseGaugePresetOptions extends AgBaseGaugePresetThemeOptions {
     theme?: AgChartTheme | AgChartThemeName;
+    /** The element to place the rendered chart into. */
+    container?: HTMLElement | null;
 }
 
 export type AgLinearGaugeOptions = AgBaseGaugePresetOptions & AgLinearGaugePreset;

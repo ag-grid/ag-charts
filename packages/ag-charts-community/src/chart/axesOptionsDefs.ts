@@ -28,6 +28,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    themeOperator,
     undocumented,
     union,
 } from 'ag-charts-core';
@@ -162,7 +163,7 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
         width: positiveNumber,
         style: arrayOfDefs<AgAxisGridStyle>(
             {
-                stroke: color,
+                stroke: or(color, themeOperator),
                 lineDash: arrayOf(positiveNumber),
             },
             'a grid-line style object array'
@@ -208,6 +209,9 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
         ...fontOptionsDef,
     },
 };
+
+// @ts-expect-error undocumented option
+cartesianAxisOptionsDefs.title._enabledFromTheme = undocumented(boolean);
 
 export function cartesianAxisCrosshairOptions<T extends boolean>(canFormat?: T) {
     const crosshairLabel = {

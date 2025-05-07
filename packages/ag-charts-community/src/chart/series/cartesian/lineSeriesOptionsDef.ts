@@ -9,43 +9,52 @@ import {
     strokeOptionsDef,
     undocumented,
 } from 'ag-charts-core';
-import type { AgLineSeriesOptions } from 'ag-charts-types';
+import type { AgLineSeriesOptions, AgLineSeriesThemeableOptions } from 'ag-charts-types';
 
 import {
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     errorBarOptionsDefs,
-    interpolationValidator,
+    errorBarThemeableOptionsDefs,
+    interpolationOptionsDefs,
     markerOptionsDefs,
     seriesLabelOptionsDefs,
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
+export const lineSeriesThemeableOptionsDef: OptionsDefs<AgLineSeriesThemeableOptions> = {
+    title: string,
+    showInMiniChart: boolean,
+    connectMissingData: boolean,
+    interpolation: interpolationOptionsDefs,
+    label: seriesLabelOptionsDefs,
+    marker: markerOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    errorBar: errorBarThemeableOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+// @ts-expect-error undocumented option
+lineSeriesThemeableOptionsDef.sparklineMode = undocumented(boolean);
+
 export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
+    ...lineSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
     type: constant('line'),
     xKey: required(string),
     yKey: required(string),
     xName: string,
     yName: string,
-    title: string,
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,
     legendItemName: string,
-    showInMiniChart: boolean,
-    connectMissingData: boolean,
-    interpolation: interpolationValidator,
-    label: seriesLabelOptionsDefs,
-    marker: markerOptionsDefs,
-    tooltip: tooltipOptionsDefs,
     errorBar: errorBarOptionsDefs,
-    ...commonSeriesOptionsDefs,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
 };
 
 // @ts-expect-error undocumented option
 lineSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
 lineSeriesOptionsDef.focusPriority = undocumented(number);
-// @ts-expect-error undocumented option
-lineSeriesOptionsDef.sparklineMode = undocumented(boolean);

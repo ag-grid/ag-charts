@@ -1,20 +1,27 @@
-import type { AgAreaSeriesOptions } from '../series/cartesian/areaOptions';
-import type { AgBarSeriesOptions } from '../series/cartesian/barOptions';
-import type { AgBoxPlotSeriesOptions } from '../series/cartesian/boxPlotOptions';
-import type { AgBubbleSeriesOptions } from '../series/cartesian/bubbleOptions';
-import type { AgCandlestickSeriesOptions } from '../series/cartesian/candlestickOptions';
+import type { AgAreaSeriesOptions, AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptions';
+import type { AgBarSeriesOptions, AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions';
+import type { AgBoxPlotSeriesOptions, AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
+import type { AgBubbleSeriesOptions, AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleOptions';
+import type {
+    AgCandlestickSeriesOptions,
+    AgCandlestickSeriesThemeableOptions,
+} from '../series/cartesian/candlestickOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
-import type { AgHeatmapSeriesOptions } from '../series/cartesian/heatmapOptions';
-import type { AgHistogramSeriesOptions } from '../series/cartesian/histogramOptions';
-import type { AgLineSeriesOptions } from '../series/cartesian/lineOptions';
-import type { AgOhlcSeriesOptions } from '../series/cartesian/ohlcOptions';
-import type { AgRangeAreaSeriesOptions } from '../series/cartesian/rangeAreaOptions';
-import type { AgRangeBarSeriesOptions } from '../series/cartesian/rangeBarOptions';
-import type { AgScatterSeriesOptions } from '../series/cartesian/scatterOptions';
-import type { AgWaterfallSeriesOptions } from '../series/cartesian/waterfallOptions';
+import type { AgHeatmapSeriesOptions, AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
+import type { AgHistogramSeriesOptions, AgHistogramSeriesThemeableOptions } from '../series/cartesian/histogramOptions';
+import type { AgLineSeriesOptions, AgLineSeriesThemeableOptions } from '../series/cartesian/lineOptions';
+import type { AgOhlcSeriesOptions, AgOhlcSeriesThemeableOptions } from '../series/cartesian/ohlcOptions';
+import type { AgRangeAreaSeriesOptions, AgRangeAreaSeriesThemeableOptions } from '../series/cartesian/rangeAreaOptions';
+import type { AgRangeBarSeriesOptions, AgRangeBarSeriesThemeableOptions } from '../series/cartesian/rangeBarOptions';
+import type { AgScatterSeriesOptions, AgScatterSeriesThemeableOptions } from '../series/cartesian/scatterOptions';
+import type { AgWaterfallSeriesOptions, AgWaterfallSeriesThemeableOptions } from '../series/cartesian/waterfallOptions';
 import type { AgAxisLabelFormatterParams } from './axisOptions';
 import type { Formatter } from './callbackOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
+
+type SharedProperties<A, B> = {
+    [K in keyof A & keyof B as A[K] extends B[K] ? (B[K] extends A[K] ? K : never) : never]: A[K];
+};
 
 export interface AgNavigatorMiniChartIntervalOptions {
     /** Maximum gap in pixels between labels. */
@@ -138,6 +145,21 @@ export type AgMiniChartSeriesOptions =
     | AgCandlestickMiniChartSeriesOptions
     | AgOhlcMiniChartSeriesOptions;
 
+export type AgMiniChartSeriesThemeableOptions =
+    | SharedProperties<AgLineMiniChartSeriesOptions, AgLineSeriesThemeableOptions>
+    | SharedProperties<AgScatterMiniChartSeriesOptions, AgScatterSeriesThemeableOptions>
+    | SharedProperties<AgBubbleMiniChartSeriesOptions, AgBubbleSeriesThemeableOptions>
+    | SharedProperties<AgAreaMiniChartSeriesOptions, AgAreaSeriesThemeableOptions>
+    | SharedProperties<AgBarMiniChartSeriesOptions, AgBarSeriesThemeableOptions>
+    | SharedProperties<AgBoxPlotMiniChartSeriesOptions, AgBoxPlotSeriesThemeableOptions>
+    | SharedProperties<AgHistogramMiniChartSeriesOptions, AgHistogramSeriesThemeableOptions>
+    | SharedProperties<AgHeatmapMiniChartSeriesOptions, AgHeatmapSeriesThemeableOptions>
+    | SharedProperties<AgWaterfallMiniChartSeriesOptions, AgWaterfallSeriesThemeableOptions>
+    | SharedProperties<AgRangeBarMiniChartSeriesOptions, AgRangeBarSeriesThemeableOptions>
+    | SharedProperties<AgRangeAreaMiniChartSeriesOptions, AgRangeAreaSeriesThemeableOptions>
+    | SharedProperties<AgCandlestickMiniChartSeriesOptions, AgCandlestickSeriesThemeableOptions>
+    | SharedProperties<AgOhlcMiniChartSeriesOptions, AgOhlcSeriesThemeableOptions>;
+
 type IgnoredMiniChartSeries = 'funnel' | 'cone-funnel';
 
 // Verification checks for completeness/correctness.
@@ -157,6 +179,17 @@ export interface AgNavigatorMiniChartOptions {
     enabled?: boolean;
     /** Override series used in Mini Chart. */
     series?: AgMiniChartSeriesOptions[];
+    /** Configuration for the Mini Chart's axis labels. */
+    label?: AgNavigatorMiniChartLabelOptions;
+    /** Configuration for the padding inside the Mini Chart. */
+    padding?: AgNavigatorMiniChartPadding;
+}
+
+export interface AgNavigatorMiniChartThemeableOptions {
+    /** Whether to show a Mini Chart in the Navigator. */
+    enabled?: boolean;
+    /** Override series used in Mini Chart. */
+    series?: AgMiniChartSeriesThemeableOptions;
     /** Configuration for the Mini Chart's axis labels. */
     label?: AgNavigatorMiniChartLabelOptions;
     /** Configuration for the padding inside the Mini Chart. */
@@ -208,4 +241,9 @@ export interface AgNavigatorOptions {
     maxHandle?: AgNavigatorHandleOptions;
     /** Mini Chart options. */
     miniChart?: AgNavigatorMiniChartOptions;
+}
+
+export interface AgNavigatorThemeableOptions extends Omit<AgNavigatorOptions, 'miniChart'> {
+    /** Mini Chart options. */
+    miniChart?: AgNavigatorMiniChartThemeableOptions;
 }

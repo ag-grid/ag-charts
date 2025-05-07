@@ -48,7 +48,6 @@ import type { AgBaseTopologyThemeOptions } from '../series/topology/topologyOpti
 import type { AgAnnotationsThemeableOptions } from './annotationsOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 import type { AgChartToolbarThemeableOptions } from './chartToolbarOptions';
-import type { AgLocaleThemeableOptions } from './localeOptions';
 import type { AgChartThemeParams } from './themeParamsOptions';
 import type { CssColor } from './types';
 
@@ -202,7 +201,6 @@ export type AgBaseGaugePresetThemeOptions = Pick<
     AgBaseChartOptions<any>,
     | 'animation'
     | 'background'
-    | 'container'
     | 'contextMenu'
     | 'footnote'
     | 'height'
@@ -237,10 +235,7 @@ export interface AgCommonThemeableChartOptions extends AgBaseThemeableChartOptio
     annotations?: AgAnnotationsThemeableOptions;
     chartToolbar?: AgChartToolbarThemeableOptions;
     initialState?: AgInitialStateThemeableOptions;
-    locale?: AgLocaleThemeableOptions;
 }
-
-export type AgGaugeThemeOverrides = AgRadialGaugeThemeOverrides | AgLinearGaugeThemeOverrides;
 
 export interface AgChartThemeOverrides {
     /** Common theme overrides for series. */

@@ -12,16 +12,31 @@ import {
     strokeOptionsDef,
     union,
 } from 'ag-charts-core';
-import type { AgHistogramSeriesOptions } from 'ag-charts-types';
+import type { AgHistogramSeriesOptions, AgHistogramSeriesThemeableOptions } from 'ag-charts-types';
 
 import {
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
+export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesThemeableOptions> = {
+    showInMiniChart: boolean,
+    cornerRadius: positiveNumber,
+    label: seriesLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
 export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = {
+    ...histogramSeriesThemeableOptionsDef,
+    ...commonSeriesOptionsDefs,
     type: required(constant('histogram')),
     xKey: required(string),
     yKey: string,
@@ -31,13 +46,4 @@ export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = 
     aggregation: union('count', 'sum', 'mean'),
     bins: arrayOf(arrayOf(number)),
     binCount: positiveNumber,
-    showInMiniChart: boolean,
-    cornerRadius: positiveNumber,
-    label: seriesLabelOptionsDefs,
-    tooltip: tooltipOptionsDefs,
-    shadow: shadowOptionsDefs,
-    ...commonSeriesOptionsDefs,
-    ...fillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
 };

@@ -2,6 +2,7 @@ import {
     type OptionsDefs,
     type PresetModuleDefinition,
     and,
+    array,
     boolean,
     color,
     date,
@@ -69,7 +70,7 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     listeners: defined,
     initialState: defined,
     title: defined,
-    data: defined,
+    data: array,
 };
 
 const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgSeriesTooltip<any> }> = {

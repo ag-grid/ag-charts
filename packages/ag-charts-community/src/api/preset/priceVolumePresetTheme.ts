@@ -22,8 +22,6 @@ import {
     DEFAULT_TEXTBOX_FILL,
     DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TEXT_ANNOTATION_COLOR,
-    PALETTE_DOWN_FILL,
-    PALETTE_UP_FILL,
 } from '../../chart/themes/symbols';
 
 const stroke = {
@@ -47,11 +45,6 @@ const font: WithThemeParams<FontOptions> = {
     color: DEFAULT_TEXT_ANNOTATION_COLOR,
     fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
     fontFamily: { $ref: 'fontFamily' },
-};
-
-const text = {
-    ...font,
-    textAlign: 'left',
 };
 
 const measurerStatistics: WithThemeParams<AgMeasurerAnnotationStatistics> = {
@@ -153,21 +146,21 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Texts
     callout: {
         ...stroke,
-        ...text,
+        ...font,
         color: { $ref: 'textColor' },
         handle: { ...handle },
         fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
         fillOpacity: 0.2,
     },
     comment: {
-        ...text,
+        ...font,
         color: 'white',
         fontWeight: 700,
         handle: { ...handle },
         fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
     },
     note: {
-        ...text,
+        ...font,
         color: DEFAULT_TEXTBOX_COLOR,
         fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
         stroke: { $ref: 'backgroundColor' },
@@ -181,7 +174,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         },
     },
     text: {
-        ...text,
+        ...font,
         handle: { ...handle },
     },
 
@@ -192,11 +185,11 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         text: { ...lineText },
     },
     'arrow-up': {
-        fill: PALETTE_UP_FILL,
+        fill: { $palette: 'up.fill' },
         handle: { ...handle, stroke: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR },
     },
     'arrow-down': {
-        fill: PALETTE_DOWN_FILL,
+        fill: { $palette: 'down.fill' },
         handle: { ...handle, stroke: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR },
     },
 
