@@ -18,3 +18,6 @@
 
 # Comment in astro file
 external/ag-website-shared/src/components/documentation-archive/DocumentationArchiveSection.astro
+
+# With script tag
+packages/ag-charts-website/src/components/example-runner/components/FrameworkTemplate.astro
