@@ -269,8 +269,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '');
                 invalid.forEach((error) => Logger.warn(error));
 
-                ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', cleared);
-                options = presetDef.create(cleared, presetTheme, () => this.activeTheme);
+                if (hasRequiredInPath(invalid, '')) {
+                    options = {} as any;
+                } else {
+                    ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', cleared);
+                    options = presetDef.create(cleared, presetTheme, () => this.activeTheme);
+                }
             }
         }
 
