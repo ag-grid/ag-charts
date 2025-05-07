@@ -814,8 +814,10 @@ export class Legend extends BaseProperties {
         }
 
         if (isImageFill(fill)) {
-            fill.width = 8;
-            fill.height = 8;
+            fill.fit = 'contain';
+            fill.width = undefined;
+            fill.height = undefined;
+            fill.backgroundFill = 'transparent';
             fill.repeat = 'no-repeat';
         }
 
