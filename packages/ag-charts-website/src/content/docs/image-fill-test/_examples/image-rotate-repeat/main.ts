@@ -22,7 +22,7 @@ const options: AgChartOptions = {
             fill: {
                 type: 'image',
                 url: '${baseWWWUrl}/example-assets/e2e-test-images/parakeet-drinking-water.png',
-                repetition: 'repeat',
+                repeat: 'repeat',
                 rotation: 90,
             },
         },

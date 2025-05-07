@@ -1,5 +1,5 @@
 import { type InternalAgImageFill, Logger, createSvgElement } from 'ag-charts-core';
-import type { AgColorRepetition, AgImageFillFit } from 'ag-charts-types';
+import type { AgColorRepeat, AgImageFillFit } from 'ag-charts-types';
 
 import { normalizeAngle360FromDegrees } from '../../util/angle';
 import type { BBox } from '../bbox';
@@ -13,7 +13,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
     backgroundFillOpacity: number;
     width?: number;
     height?: number;
-    repetition: AgColorRepetition;
+    repeat: AgColorRepeat;
     fit: AgImageFillFit;
     rotation: number;
 
@@ -24,7 +24,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         this.url = imageOptions.url;
         this.backgroundFill = imageOptions.backgroundFill ?? 'black';
         this.backgroundFillOpacity = imageOptions.backgroundFillOpacity ?? 1;
-        this.repetition = imageOptions.repetition ?? 'no-repeat';
+        this.repeat = imageOptions.repeat ?? 'no-repeat';
         this.width = imageOptions.width;
         this.height = imageOptions.height;
         this.fit = imageOptions.fit ?? 'stretch';
@@ -50,7 +50,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
 
         offscreenPatternCtx.drawImage(image, 0, 0, dw, dh);
-        return ctx.createPattern(offscreenPattern.canvas, this.repetition);
+        return ctx.createPattern(offscreenPattern.canvas, this.repeat);
     }
 
     private getDimensions(

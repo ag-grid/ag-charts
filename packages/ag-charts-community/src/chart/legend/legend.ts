@@ -179,7 +179,7 @@ const fillImageDefaults: RequiredInternalAgImageFill = {
     backgroundFill: 'black',
     backgroundFillOpacity: 1,
     rotation: 0,
-    repetition: 'no-repeat',
+    repeat: 'no-repeat',
     fit: 'contain',
     width: 8,
     height: 8,
@@ -816,7 +816,7 @@ export class Legend extends BaseProperties {
         if (isImageFill(fill)) {
             fill.width = 8;
             fill.height = 8;
-            fill.repetition = 'no-repeat';
+            fill.repeat = 'no-repeat';
         }
 
         return getShapeStyle(

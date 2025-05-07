@@ -103,14 +103,14 @@ export interface AgImageFill {
     /** Width of the image. */
     height?: number;
     /** A string indicating how to repeat the pattern's unit.*/
-    repetition?: AgColorRepetition;
+    repeat?: AgColorRepeat;
     /** The fit mode of the image. */
     fit?: AgImageFillFit;
     /** The rotation angle of the image. */
     rotation?: number;
 }
 
-export type AgColorRepetition = 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat';
+export type AgColorRepeat = 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat';
 export type AgImageFillFit = 'stretch' | 'cover' | 'contain' | 'none';
 
 export type AgPatternName =
