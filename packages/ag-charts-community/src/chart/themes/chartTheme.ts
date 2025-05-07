@@ -141,6 +141,7 @@ export class ChartTheme {
 
     readonly config: any;
     readonly presets: AgPresetOverrides;
+    readonly params: AgChartThemeParams;
 
     public static getDefaultColors(): DefaultColors {
         return {
@@ -527,7 +528,7 @@ export class ChartTheme {
     };
 
     constructor(options: AgChartTheme = {}) {
-        const { overrides, palette } = deepClone(options) as AgChartThemeOptions;
+        const { overrides, palette, params } = deepClone(options) as AgChartThemeOptions;
         const defaults = this.createChartConfigPerChartType(this.getDefaults());
         const presets: Record<string, any> = {};
 
@@ -545,6 +546,8 @@ export class ChartTheme {
             })
         );
         this.paletteType = paletteType(palette);
+
+        this.params = mergeDefaults(params, this.getPublicParameters());
 
         this.config = deepFreeze(this.templateTheme(defaults));
         this.presets = deepFreeze(presets);
