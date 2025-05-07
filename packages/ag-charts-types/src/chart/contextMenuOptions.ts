@@ -46,7 +46,11 @@ interface ItemMixin {
 }
 
 export interface AgContextMenuItemAlways extends ItemMixin {
-    /** Type of `'contextmenu'` clicks that this menu item should be shown for. `'always'` menu items are always shown. */
+    /**
+     * Type of `'contextmenu'` clicks that this menu item should be shown for. `'always'` menu items are always shown.
+     *
+     * Default: `'always'`
+     */
     showOn?: 'always';
     /** Function called when clicking on this menu item. */
     action?: (event: AgChartContextMenuEvent) => void;
