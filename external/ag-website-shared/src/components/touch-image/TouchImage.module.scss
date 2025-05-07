@@ -51,15 +51,17 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
+
+    img {
+        height: auto;
+        display: block;
+    }
 }
 
-hr {
-    flex: 1 1 0;
-}
-
-img {
-    height: auto;
-    display: block;
+.deviceContainer {
+    hr {
+        flex: 1 1 0;
+    }
 }
 
 @media (max-width: 720px) {
