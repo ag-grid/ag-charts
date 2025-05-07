@@ -17,9 +17,9 @@ The `script-src` policy will work only with `'self'` rule.
 
 ### style-src
 
-By default this requires a `style-src 'unsafe-inline'` directive in your CSP.
+The `style-src` policy requires the `unsafe-inline` for a few reasons, including positioning tooltips, and styling canvases to accommodate for HiDPI screens.
 
-However, you can avoid this requirement using the `styleNonce` chart option as shown below. The `styleNonce` property should be set to a random value that changes with each page load.
+However, you can avoid this requirement by using the `styleNonce` chart option as shown below. The `styleNonce` property should be set to a random value that changes with each page load.
 
 ```js
 {
@@ -29,7 +29,15 @@ However, you can avoid this requirement using the `styleNonce` chart option as s
 
 This sets the nonce attribute on any added style tags, so the chart will now work with the CSP directive `style-src 'nonce-416d1177'` without the need for `'unsafe-inline'`.
 
-CSP nonces are global to a page, so when a page has multiple charts, all charts must have the same styleNonce set. Consider using a [custom theme](./themes/#making-custom-themes) to set the styleNonce property for all charts.
+CSP nonces are global to a page, so when a page has multiple charts, all charts must have the same `styleNonce` value.
+
+Consider using a [theme override](./themes/#overrides) in a [custom theme](./themes/#making-custom-themes) to set the styleNonce property for all charts.
+
+```js
+const myTheme = { overrides: { common: { styleNonce: '416d1177' }}};
+
+const options = { theme: myTheme, ...};
+```
 
 ### img-src
 
@@ -51,6 +59,8 @@ However if you are using all the features mentioned above, the rule is:
     content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
 />
 ```
+
+Alternatively, you can use the `styleNonce` chart option to avoid the `unsafe-inline` requirement.
 
 ## Security Vulnerability Testing
 

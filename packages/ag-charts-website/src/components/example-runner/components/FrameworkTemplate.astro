@@ -178,7 +178,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
     addE2ECheckScript && (
         <Fragment>
             <Fragment set:html={E2E_STYLE_START} />
-            <script>
+            <script nonce="123123">
                 if (window.location.hash.includes('e2e=true')) {
                     const e2eStyleEl = document.createElement('style');
                     e2eStyleEl.textContent = `

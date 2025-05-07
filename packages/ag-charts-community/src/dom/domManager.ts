@@ -539,6 +539,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             }
 
             const styleEl = createElement('style');
+            if (this.chart.styleNonce != null) {
+                styleEl.nonce = this.chart.styleNonce;
+            }
             if (insertAfterEl == null) {
                 el.prepend(styleEl);
             } else {
@@ -562,10 +565,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         } else if (this.documentRoot != null) {
             // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
             styleElement = this.addChild('styles', id);
-        }
-
-        if (this.chart.styleNonce != null) {
-            styleElement?.setAttribute('nonce', this.chart.styleNonce);
         }
 
         // Avoid setting innerHTML on elements we've already configured to avoid style recalculations
@@ -609,6 +608,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             newChild.addEventListener(type, fn as any, opts);
         }
         children.set(id, newChild);
+        if (childElementType === 'style' && this.chart.styleNonce != null) {
+            newChild.nonce = this.chart.styleNonce;
+        }
         if (insert) {
             const queryResult = element.querySelector(insert.query);
             if (queryResult == null) {
