@@ -23,7 +23,7 @@ const options: AgChartOptions = {
                 type: 'image',
                 url: '${baseWWWUrl}/example-assets/e2e-test-images/parakeet-side-eye.png',
                 fit: 'contain',
-                repetition: 'repeat-x',
+                repeat: 'repeat-x',
                 width: 125,
                 height: 315,
             },
