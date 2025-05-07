@@ -1635,6 +1635,10 @@ export abstract class Chart extends Observable implements ModuleInstance {
             }
         }
 
+        if (seriesOptions.visible != null) {
+            target.visible = seriesOptions.visible;
+        }
+
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
