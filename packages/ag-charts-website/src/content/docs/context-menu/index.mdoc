@@ -20,6 +20,39 @@ contextMenu: {
 }
 ```
 
+## Built-in Items
+
+By default, the Context Menu includes some Menu Items in a pre-determined
+order. The `contextMenu.items` accepts special string values to conveniently
+reconfigure the defaults:
+
+-   `'defaults'`: This string represents a list of built-in menu-items in the
+    pre-determined order.
+-   `'separator'`: The string is an alias for a non-interaction separator.
+
+{% chartExampleRunner title="Context Menu Built-in Items" name="context-menu-builtins" type="generated" /%}
+
+```ts
+contextMenu: {
+    items: [
+        'toggle-series-visibility',
+        'toggle-other-series',
+        'separator',
+        'zoom-to-cursor',
+        'pan-to-cursor',
+        'separator',
+        'download',
+    ],
+},
+```
+
+In this example:
+
+-   The "Custom Order" buttom reorders the default built-in Menu Items and adds separators.
+-   The "Default Order" button resets the Menu Items to the default `['defaults']` value.
+
+These string values can be used in combination with Custom Actions.
+
 ## Custom Actions
 
 The Context Menu's extra actions can be used to run arbitrary functions based on the element that is right-clicked.
@@ -60,19 +93,111 @@ In this configuration:
 -   Right clicking on one of these areas will show these additional actions in the Context Menu.
 -   Clicking these extra actions will display information in the console, demonstrating that the action is aware of details about the right-clicked item.
 
+## Sub-Menus
+
+To add Sub-Menus to the Context Menu, simply use the `items` property recursively:
+
+{% chartExampleRunner title="Context Menu Custom Actions" name="context-menu-submenus" type="generated" /%}
+
+```ts
+contextMenu: {
+    items: [
+        'download',
+        {
+            showOn: 'series-area',
+            label: 'Zoom Controls',
+            items: ['zoom-to-cursor', 'pan-to-cursor'],
+        },
+        {
+            showOn: 'legend-item',
+            label: 'Legend Controls',
+            items: ['toggle-series-visibility', 'toggle-other-series'],
+        },
+        'separator',
+        {
+            label: 'Debug Console',
+            items: [
+                {
+                    type: 'action',
+                    showOn: 'always',
+                    label: `On 'always'`,
+                    action: (param) => console.log('always:', JSON.stringify(param)),
+                },
+                {
+                    showOn: 'series-area',
+                    label: `On 'series-area'`,
+                    action: (param) => console.log('series-area:', JSON.stringify(param)),
+                },
+                {
+                    showOn: 'series-node',
+                    label: `On 'series-node'`,
+                    action: (param) => console.log('series-node:', JSON.stringify(param)),
+                },
+                {
+                    showOn: 'legend-item',
+                    label: `On 'legend-item'`,
+                    action: (param) => console.log('legend-item:', JSON.stringify(param)),
+                },
+            ],
+        },
+    ],
+},
+```
+
+In this configuration:
+
+-   The built-in Zoom and Legend Menu Items are placed into Sub-Menus.
+-   An additional "Debug Console" Sub-Menu is added to log events.
+
+## Icons
+
+To add Icons beside the Menu Items, use the `iconUrl` property:
+
+{% chartExampleRunner title="Context Menu Icons" name="context-menu-icons" type="generated" /%}
+
+```ts
+contextMenu: {
+    items: [
+        {
+            label: 'Download PNG',
+            iconUrl: DOWNLOAD_URL,
+            action: () => downloadPNG(),
+        },
+        {
+            label: 'Download JSON',
+            iconUrl: JSON_URL,
+            action: () => downloadJSON(),
+        },
+        {
+            label: 'Download CSV',
+            iconUrl: CSV_URL,
+            action: () => downloadCSV(),
+        },
+    ],
+},
+```
+
 ## API Reference
 
 {% tabs %}
-
 {% tabItem id="AgContextMenuOptions" label="Context Menu" %}
 {% apiReference id="AgContextMenuOptions" /%}
 {% /tabItem %}
+{% /tabs %}
 
-{% tabItem id="AgContextMenuItem" label="Items" %}
-{% apiReference id="AgContextMenuItemLiteral" /%}
-{% apiReference id="AgContextMenuItemAll" /%}
+## API Reference (items)
+
+{% tabs %}
+{% tabItem id="AgContextMenuItemAlways" label="Always" %}
+{% apiReference id="AgContextMenuItemAlways" /%}
+{% /tabItem %}
+{% tabItem id="AgContextMenuItemSeriesArea" label="Series-Area" %}
 {% apiReference id="AgContextMenuItemSeriesArea" /%}
+{% /tabItem %}
+{% tabItem id="AgContextMenuItemSeriesNode" label="Series-Node" %}
 {% apiReference id="AgContextMenuItemSeriesNode" /%}
+{% /tabItem %}
+{% tabItem id="AgContextMenuItemLegendItem" label="Legend" %}
 {% apiReference id="AgContextMenuItemLegendItem" /%}
 {% /tabItem %}
 

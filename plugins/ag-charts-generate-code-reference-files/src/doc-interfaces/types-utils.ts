@@ -10,7 +10,7 @@ type TypingMapItem = { node: NodeType; heritage?: HeritageType[] };
 
 const tsPrinter = ts.createPrinter({ removeComments: true, omitTrailingSemicolon: true });
 
-const prioritisedMembers = ['type'];
+const prioritisedMembers = ['type', 'showOn'];
 
 export class TypeMapper {
     protected nodeMap: Map<string, TypingMapItem> = new Map();
