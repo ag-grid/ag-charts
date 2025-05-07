@@ -60,33 +60,25 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         height: number
     ): { dw: number; dh: number } {
         const { fit } = this;
-        if (fit === 'stretch' || imageWidth === 0 || imageHeight === 0) {
-            return {
-                dw: Math.max(1, width),
-                dh: Math.max(1, height),
-            };
-        }
 
-        if (fit === 'none') {
-            return {
-                dw: Math.max(1, imageWidth),
-                dh: Math.max(1, imageHeight),
-            };
-        }
-
+        let dw = imageWidth;
+        let dh = imageHeight;
+        let scale = 1;
         const shapeAspectRatio = width / height;
         const imageAspectRatio = imageWidth / imageHeight;
 
-        let scale = 1;
-        if (fit === 'contain') {
+        if (fit === 'stretch' || imageWidth === 0 || imageHeight === 0) {
+            dw = width;
+            dh = height;
+        } else if (fit === 'contain') {
             scale = imageAspectRatio > shapeAspectRatio ? width / imageWidth : height / imageHeight;
-        } else {
+        } else if (fit === 'cover') {
             scale = imageAspectRatio > shapeAspectRatio ? height / imageHeight : width / imageWidth;
         }
 
         return {
-            dw: Math.max(1, imageWidth * scale),
-            dh: Math.max(1, imageHeight * scale),
+            dw: Math.max(1, dw * scale),
+            dh: Math.max(1, dh * scale),
         };
     }
 
