@@ -58,14 +58,19 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         imageHeight: number,
         width: number,
         height: number
-    ): { dx: number; dy: number; dw: number; dh: number } {
+    ): { dw: number; dh: number } {
         const { fit } = this;
         if (fit === 'stretch' || imageWidth === 0 || imageHeight === 0) {
             return {
-                dx: 0,
-                dy: 0,
                 dw: Math.max(1, width),
                 dh: Math.max(1, height),
+            };
+        }
+
+        if (fit === 'none') {
+            return {
+                dw: Math.max(1, imageWidth),
+                dh: Math.max(1, imageHeight),
             };
         }
 
@@ -79,14 +84,9 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
             scale = imageAspectRatio > shapeAspectRatio ? height / imageHeight : width / imageWidth;
         }
 
-        const scaledWidth = Math.max(1, imageWidth * scale);
-        const scaledHeight = Math.max(1, imageHeight * scale);
-
         return {
-            dx: scaledWidth / 2,
-            dy: scaledHeight / 2,
-            dw: scaledWidth,
-            dh: scaledHeight,
+            dw: Math.max(1, imageWidth * scale),
+            dh: Math.max(1, imageHeight * scale),
         };
     }
 

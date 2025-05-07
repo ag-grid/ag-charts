@@ -206,7 +206,7 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
             backgroundFillOpacity: ratio,
             width: positiveNumber,
             height: positiveNumber,
-            fit: union('stretch', 'contain', 'cover'),
+            fit: union('stretch', 'contain', 'cover', 'none'),
             repetition: union('repeat', 'repeat-x', 'repeat-y', 'no-repeat'),
             rotation: number,
         },

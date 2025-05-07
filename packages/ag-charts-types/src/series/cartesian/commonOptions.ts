@@ -111,7 +111,7 @@ export interface AgImageFill {
 }
 
 export type AgColorRepetition = 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat';
-export type AgImageFillFit = 'stretch' | 'cover' | 'contain';
+export type AgImageFillFit = 'stretch' | 'cover' | 'contain' | 'none';
 
 export type AgPatternName =
     | 'vertical-lines'
