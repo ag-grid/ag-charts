@@ -436,6 +436,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             opacity: ratio,
         },
     },
+    styleNonce: string,
     sync: {
         enabled: boolean,
         groupId: string,

@@ -117,6 +117,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private minHeight: number = 0;
 
     constructor(
+        private readonly chart: { styleNonce?: string },
         initialContainer?: HTMLElement,
         private readonly styleContainer?: HTMLElement,
         readonly mode: 'normal' | 'minimal' = 'normal'
@@ -538,6 +539,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             }
 
             const styleEl = createElement('style');
+            if (this.chart.styleNonce != null) {
+                styleEl.setAttribute('nonce', this.chart.styleNonce);
+            }
             if (insertAfterEl == null) {
                 el.prepend(styleEl);
             } else {

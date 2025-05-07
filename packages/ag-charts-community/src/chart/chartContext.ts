@@ -99,7 +99,7 @@ export class ChartContext implements ModuleContext {
 
         this.chartService = chart;
         this.syncManager = syncManager;
-        this.domManager = new DOMManager(container, styleContainer, domMode);
+        this.domManager = new DOMManager(this.chartService, container, styleContainer, domMode);
         this.widgets = new WidgetSet(this.domManager);
 
         // Sets canvas element if scene exists, otherwise use return value with scene constructor

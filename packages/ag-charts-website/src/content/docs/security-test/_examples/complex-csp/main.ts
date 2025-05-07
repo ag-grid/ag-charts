@@ -14,6 +14,7 @@ const options: AgChartOptions = {
     ],
     // Series: Defines which chart type and data to use
     series: [{ type: 'bar', xKey: 'data.month', yKey: 'data.iceCreamSales' }],
+    styleNonce: '416d1177',
 };
 
 // Create Chart
