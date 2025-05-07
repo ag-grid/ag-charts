@@ -17,15 +17,19 @@ The `script-src` policy will work only with `'self'` rule.
 
 ### style-src
 
-The `style-src` policy requires the `unsafe-inline` for a few reasons, including positioning tooltips, and styling canvases to accommodate for HiDPI screens.
+By default this requires a `style-src 'unsafe-inline'` directive in your CSP.
 
-{% note %}
-Even though the `style-src` policy requires `unsafe-inline`, the specific way AG Charts uses it causes no actual security vulnerability.
+However, you can avoid this requirement using the `styleNonce` chart option as shown below. The `styleNonce` property should be set to a random value that changes with each page load.
 
-The reason is that AG Charts doesn't require `unsafe-inline` for scripts, but only for styles. The inline-style injection is only a problem if you allow users to upload their own content to your servers and then they can use injected styles to show that content over your page.
+```js
+{
+    styleNonce: '416d1177';
+}
+```
 
-Also, as styles aren't executed, a user would need to upload their own content to your servers and then reference it from an injected style. In order to fully prevent this scenario from occurring, we recommend sanitising user-uploaded content in your application to ensure that only valid content gets uploaded and fully prevent this risk.
-{% /note %}
+This sets the nonce attribute on any added style tags, so the chart will now work with the CSP directive `style-src 'nonce-416d1177'` without the need for `'unsafe-inline'`.
+
+CSP nonces are global to a page, so when a page has multiple charts, all charts must have the same styleNonce set. Consider using a [custom theme](./themes/#making-custom-themes) to set the styleNonce property for all charts.
 
 ### img-src
 

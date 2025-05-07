@@ -52,6 +52,7 @@ import { ChartCaptions } from './chartCaptions';
 import { ChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
+import type { ChartService } from './chartService';
 import { ChartUpdateType } from './chartUpdateType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
@@ -108,7 +109,7 @@ class SeriesArea extends BaseProperties {
     padding = new Padding(0);
 }
 
-export abstract class Chart extends Observable implements ModuleInstance {
+export abstract class Chart extends Observable implements ModuleInstance, ChartService {
     private static readonly chartsInstances = new WeakMap<HTMLElement, Chart>();
 
     static getInstance(element: HTMLElement): Chart | undefined {
@@ -228,6 +229,9 @@ export abstract class Chart extends Observable implements ModuleInstance {
     @Property
     mode: ChartMode = 'standalone';
 
+    @Property
+    styleNonce?: string;
+
     private readonly chartCaptions = new ChartCaptions();
 
     @ProxyProperty('chartCaptions.title')
@@ -306,6 +310,7 @@ export abstract class Chart extends Observable implements ModuleInstance {
         this.tooltip = new Tooltip();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.mode = (options.userOptions as { mode?: ChartMode }).mode ?? this.mode;
+        this.styleNonce = options.userOptions.styleNonce;
         const ctx = (this.ctx = new ChartContext(this, {
             chartType: this.getChartType(),
             scene,

@@ -16,7 +16,7 @@ describe('DOMManager', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
 
-            const dm = new DOMManager(container);
+            const dm = new DOMManager({ styleNonce: '416d1177' }, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchInlineSnapshot(`
@@ -89,6 +89,7 @@ describe('DOMManager', () => {
 <head>
   <style
     data-ag-charts="ag-charts-community"
+    nonce="416d1177"
   >
     @import url(./dom/domStyles.css);
 @import url(./dom/proxyInteractionStyles.css);
@@ -102,6 +103,7 @@ describe('DOMManager', () => {
   </style>
   <style
     data-ag-charts="test"
+    nonce="416d1177"
   >
     .test { width: 100% }
   </style>
@@ -116,7 +118,7 @@ describe('DOMManager', () => {
             const container = doc.createElement('div');
             // doc.body.append(container);
 
-            const dm = new DOMManager(container);
+            const dm = new DOMManager({ styleNonce: '416d1171' }, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchInlineSnapshot(`
@@ -184,6 +186,7 @@ describe('DOMManager', () => {
 
     <style
       data-ag-charts="ag-charts-community"
+      nonce="416d1171"
     >
       @import url(./dom/domStyles.css);
 @import url(./dom/proxyInteractionStyles.css);
@@ -197,6 +200,7 @@ describe('DOMManager', () => {
     </style>
     <style
       data-ag-charts="test"
+      nonce="416d1171"
     >
       .test { width: 100% }
     </style>
@@ -216,7 +220,7 @@ describe('DOMManager', () => {
             const shadow = component.attachShadow({ mode: 'open' });
             shadow.appendChild(container);
 
-            const dm = new DOMManager(container);
+            const dm = new DOMManager({ styleNonce: '416d1177' }, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchInlineSnapshot(`
@@ -284,6 +288,7 @@ describe('DOMManager', () => {
 
     <style
       data-ag-charts="ag-charts-community"
+      nonce="416d1177"
     >
       @import url(./dom/domStyles.css);
 @import url(./dom/proxyInteractionStyles.css);
@@ -297,6 +302,7 @@ describe('DOMManager', () => {
     </style>
     <style
       data-ag-charts="test"
+      nonce="416d1177"
     >
       .test { width: 100% }
     </style>

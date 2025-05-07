@@ -117,6 +117,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private minHeight: number = 0;
 
     constructor(
+        private readonly chart: { styleNonce?: string },
         initialContainer?: HTMLElement,
         private readonly styleContainer?: HTMLElement,
         readonly mode: 'normal' | 'minimal' = 'normal'
@@ -561,6 +562,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         } else if (this.documentRoot != null) {
             // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
             styleElement = this.addChild('styles', id);
+        }
+
+        if (this.chart.styleNonce != null) {
+            styleElement?.setAttribute('nonce', this.chart.styleNonce);
         }
 
         // Avoid setting innerHTML on elements we've already configured to avoid style recalculations
