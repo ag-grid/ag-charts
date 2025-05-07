@@ -95,23 +95,25 @@ function extendPath(path: string, key: string | number) {
 }
 
 export class ValidationError {
+    private altPath?: string;
+
     constructor(
         public readonly type: ErrorType | `${ErrorType}`,
         public readonly description: string | undefined,
         public readonly value: any,
-        public path: string,
+        public readonly path: string,
         public readonly key?: string
     ) {}
 
     setUnionType(unionType: string, path: string) {
         if (this.path.startsWith(path)) {
             const suffix = this.path.slice(path.length);
-            this.path = `${path}[type=${unionType}]${suffix}`;
+            this.altPath = `${path}[type=${unionType}]${suffix}`;
         }
     }
 
     getPrefix(): string {
-        const { path, key } = this;
+        const { altPath: path = this.path, key } = this;
         if (!path && !key) return 'Value';
         return `Option \`${key ? extendPath(path, key) : path}\``;
     }
