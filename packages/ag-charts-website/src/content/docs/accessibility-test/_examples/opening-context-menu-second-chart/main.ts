@@ -13,9 +13,15 @@ const options1: AgCartesianChartOptions = {
     height: 600,
     width: 800,
     contextMenu: {
-        extraActions: [{ label: 'Say hello', action }],
-        extraNodeActions: [{ label: 'Say hello to a node', action: nodeAction }],
-        extraLegendItemActions: [{ label: 'Say hello to a legend item', action: legendItemAction }],
+        items: [
+            'defaults',
+            'separator',
+            { showOn: 'always', label: 'Say hello', action },
+            'separator',
+            { showOn: 'series-node', label: 'Say hello to a node', action: nodeAction },
+            'separator',
+            { showOn: 'legend-item', label: 'Say hello to a legend item', action: legendItemAction },
+        ],
     },
     data: [
         { month: 'Jun', sweaters: 50, hats: 40 },
