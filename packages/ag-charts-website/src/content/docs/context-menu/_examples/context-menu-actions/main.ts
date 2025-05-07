@@ -6,32 +6,35 @@ const options: AgCartesianChartOptions = {
         text: 'Sweaters made',
     },
     contextMenu: {
-        extraActions: [
+        items: [
+            'defaults',
+            'separator',
             {
+                showOn: 'always',
                 label: 'Say hello',
                 action: () => {
                     console.log('Hello world!');
                 },
             },
-        ],
-        extraSeriesAreaActions: [
+            'separator',
             {
+                showOn: 'series-area',
                 label: 'Say hello in the series area',
                 action: () => {
                     console.log('Hello in the series area!');
                 },
             },
-        ],
-        extraNodeActions: [
+            'separator',
             {
+                showOn: 'series-node',
                 label: 'Say hello to a node',
                 action: ({ datum, yKey }) => {
                     console.log(`Hello ${yKey} in ${datum.month}!`);
                 },
             },
-        ],
-        extraLegendItemActions: [
+            'separator',
             {
+                showOn: 'legend-item',
                 label: 'Say hello to a legend item',
                 action: ({ itemId }) => {
                     console.log(`Hello ${itemId}!`);

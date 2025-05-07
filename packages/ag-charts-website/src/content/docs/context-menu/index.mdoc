@@ -28,17 +28,27 @@ The Context Menu's extra actions can be used to run arbitrary functions based on
 
 ```ts
 contextMenu: {
-    extraActions: [
-        { label: 'Say hello', action: () => console.log('Hello world') },
-    ],
-    extraSeriesAreaActions: [
-        { label: 'Say hello in the series area', action: () => console.log('Hello in the series area!') },
-    ],
-    extraNodeActions: [
-        { label: 'Say hello to a node', action: ({ datum }) => console.log(`Hello ${datum?.month ?? 'world'}`) }
-    ],
-    extraLegendItemActions: [
-        { label: 'Say hello to a legend item', action: ({ itemId }) => console.log(`Hello ${itemId ?? 'world'}`) }
+    items: [
+        {
+            showOn: 'always',
+            label: 'Say hello',
+            action: () => log('Hello world!'),
+        },
+        {
+            showOn: 'series-area',
+            label: 'Say hello in the series area',
+            action: () => log('Hello in the series area!'),
+        },
+        {
+            showOn: 'series-node',
+            label: 'Say hello to a node',
+            action: ({ datum, yKey }) => console.log(`Hello ${yKey} in ${datum.month}!`),
+        },
+        {
+            showOn: 'legend-item',
+            label: 'Say hello to a legend item',
+            action: ({ itemId }) => console.log(`Hello ${itemId}!`),
+        },
     ],
 }
 ```

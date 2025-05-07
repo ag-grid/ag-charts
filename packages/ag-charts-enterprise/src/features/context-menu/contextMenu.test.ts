@@ -129,7 +129,7 @@ describe('Context Menu', () => {
     });
 });
 
-describe('Extra Actions', () => {
+describe('Extra Actions - deprecated', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -182,6 +182,8 @@ describe('Extra Actions', () => {
     });
 
     test('callbacks', async () => {
+        expectWarningsCalls().toMatchSnapshot();
+
         const landmark1 = { x: 102, y: 562 }; // bottom left corner (i.e. background of the chart).
         const landmark2 = { x: 533, y: 291 }; // series-area between two nodes (i.e. pickNode miss)
         const landmark3 = { x: 366, y: 299 }; // 2nd node of 1st bar series.
