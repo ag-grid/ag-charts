@@ -38,11 +38,12 @@ import {
     union,
 } from '../utils/validation';
 
-export const themeOperator = attachDescription((value) => {
+// TODO set description once operators are officially released
+export const themeOperator = (value: unknown) => {
     if (!isObject(value)) return false;
     const keys = Object.keys(value);
     return keys.length === 1 && keys[0].startsWith('$');
-}, 'a theme operator');
+};
 
 const colorStop = optionsDefs<AgGradientColorStop>({ color: color, stop: ratio }, '');
 export const colorStopsOrderValidator = attachDescription((value) => {
