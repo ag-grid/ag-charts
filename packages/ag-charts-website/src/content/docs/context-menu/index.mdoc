@@ -151,7 +151,7 @@ In this configuration:
 
 ## Icons
 
-To add Icons beside the Menu Items, use the `iconUrl` property:
+To add Icons beside the Menu Items, use the `iconClassName` property:
 
 {% chartExampleRunner title="Context Menu Icons" name="context-menu-icons" type="generated" /%}
 
@@ -160,17 +160,17 @@ contextMenu: {
     items: [
         {
             label: 'Download PNG',
-            iconUrl: DOWNLOAD_URL,
+            iconClassName: 'icon icon-download',
             action: () => downloadPNG(),
         },
         {
             label: 'Download JSON',
-            iconUrl: JSON_URL,
+            iconClassName: 'icon icon-sheet',
             action: () => downloadJSON(),
         },
         {
             label: 'Download CSV',
-            iconUrl: CSV_URL,
+            iconClassName: 'icon icon-table',
             action: () => downloadCSV(),
         },
     ],

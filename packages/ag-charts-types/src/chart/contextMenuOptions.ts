@@ -34,8 +34,8 @@ interface ItemMixin {
     showOn?: AgContextMenuItemShowOn;
     /** The text label of this menu item. This property is required for Accessibility compliance. */
     label: string;
-    /** URL for this menu item's icon. */
-    iconUrl?: string;
+    /** CSS class name for this menu item's icon. */
+    iconClassName?: string;
     /**
      * Dimmed state of this menu-item.
      *

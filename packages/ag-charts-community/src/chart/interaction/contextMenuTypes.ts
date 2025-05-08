@@ -80,7 +80,7 @@ type MergeUnion<T, CanBeUndefined extends keyof T> = {
  * of 1. Therefore, limit this depth to 1:
  */
 export type ContextMenuItemContractNonRecursive = Omit<
-    MergeUnion<Extract<AgContextMenuItem, object>, 'iconUrl' | 'action'>,
+    MergeUnion<Extract<AgContextMenuItem, object>, 'iconClassName' | 'action'>,
     'items'
 >;
 export type ContextMenuItemContract = ContextMenuItemContractNonRecursive & {
@@ -102,7 +102,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         showOn: 'always',
         label: 'contextMenuDownload',
         enabled: true,
-        iconUrl: undefined,
+        iconClassName: undefined,
         action: undefined,
         items: undefined,
     };
@@ -111,7 +111,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         showOn: 'series-area',
         label: 'contextMenuZoomToCursor',
         enabled: true,
-        iconUrl: undefined,
+        iconClassName: undefined,
         action: undefined,
         items: undefined,
     };
@@ -120,7 +120,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         showOn: 'series-area',
         label: 'contextMenuPanToCursor',
         enabled: true,
-        iconUrl: undefined,
+        iconClassName: undefined,
         action: undefined,
         items: undefined,
     };
@@ -129,7 +129,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         showOn: 'legend-item',
         label: 'contextMenuToggleSeriesVisibility',
         enabled: true,
-        iconUrl: undefined,
+        iconClassName: undefined,
         action: undefined,
         items: undefined,
     };
@@ -138,7 +138,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         showOn: 'legend-item',
         label: 'contextMenuToggleOtherSeries',
         enabled: true,
-        iconUrl: undefined,
+        iconClassName: undefined,
         action: undefined,
         items: undefined,
     };
@@ -147,7 +147,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         showOn: 'always',
         label: 'separator',
         enabled: true,
-        iconUrl: undefined,
+        iconClassName: undefined,
         action: undefined,
         items: undefined,
     };

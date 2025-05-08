@@ -87,7 +87,7 @@ export class ContextMenuItem implements _ModuleSupport.ContextMenuItemContract {
     type: AgContextMenuItemType = 'action';
     showOn: AgContextMenuItemShowOn = 'always';
     label: string = '';
-    iconUrl: string | undefined = undefined;
+    iconClassName: string | undefined = undefined;
     enabled: boolean = true;
     items: ContextMenuItem[] = [];
     action: _ModuleSupport.ContextMenuItemContract['action'] = undefined;
@@ -108,6 +108,6 @@ export class ContextMenuItem implements _ModuleSupport.ContextMenuItemContract {
                 this.setField(key, this, options[key]);
             }
         }
-        this.iconUrl = options.iconUrl;
+        this.iconClassName = options.iconClassName;
     }
 }

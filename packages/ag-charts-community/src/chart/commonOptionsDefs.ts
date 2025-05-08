@@ -128,7 +128,7 @@ const contextMenuItemObjectValidator: Validator = optionsDefs<Extract<AgContextM
     showOn: union('always', 'series-area', 'series-node', 'legend-item'),
     label: required(string),
     enabled: boolean,
-    iconUrl: string,
+    iconClassName: string,
     action: callback,
     items: (value, context) => contextMenuItemsArray(value, context),
 });

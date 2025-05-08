@@ -143,12 +143,12 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             result.push('separator');
             for (const { action, label } of items) {
                 const type = 'action';
-                const iconUrl = undefined;
+                const iconClassName = undefined;
                 const enabled = true;
                 // Signature typing cannot be verified at compile, because callbacks in api options are just JS
                 // functions assigned at runtime (typing info is lost).
                 action satisfies AnyFn;
-                result.push({ type, showOn, iconUrl, enabled, label, action: action as AnyFn });
+                result.push({ type, showOn, iconClassName, enabled, label, action: action as AnyFn });
             }
         }
         return result;
@@ -327,10 +327,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const { cellIcon, cellLabel, cellArrow } = this.initTableCells(button.getElement());
         cellLabel.textContent = label;
         cellLabel.classList.add(cellPaddingClass);
-        if (item.iconUrl != null) {
-            const img = createElement('span');
-            img.className = item.iconUrl;
-            cellIcon.append(img);
+        if (item.iconClassName != null) {
+            const icon = createElement('span');
+            icon.className = item.iconClassName;
+            cellIcon.append(icon);
             cellIcon.classList.add(cellPaddingClass);
         }
         if (item.items.length > 0) {

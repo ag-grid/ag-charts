@@ -14,17 +14,17 @@ const options: AgPolarChartOptions = {
         items: [
             {
                 label: 'Download PNG',
-                iconUrl: 'icon icon-download',
+                iconClassName: 'icon icon-download',
                 action: () => downloadPNG(),
             },
             {
                 label: 'Download JSON',
-                iconUrl: 'icon icon-sheet',
+                iconClassName: 'icon icon-sheet',
                 action: () => downloadJSON(),
             },
             {
                 label: 'Download CSV',
-                iconUrl: 'icon icon-table',
+                iconClassName: 'icon icon-table',
                 action: () => downloadCSV(),
             },
         ],
