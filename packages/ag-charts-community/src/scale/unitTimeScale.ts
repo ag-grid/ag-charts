@@ -130,8 +130,18 @@ export class UnitTimeScale extends DiscreteTimeScale {
             if (tick != null && intervalTickValue - tick.getTime() <= milliseconds) ticks.push(tick);
         }
 
-        let firstTickIndex = findMinIndex(0, ticks.length - 1, (i) => ticks[i].valueOf() >= d0) ?? 0;
-        let lastTickIndex = findMaxIndex(0, ticks.length - 1, (i) => ticks[i].valueOf() <= d1) ?? ticks.length - 1;
+        let bandStart: number;
+        let bandEnd: number;
+        if (this.interval) {
+            const bandRange = this.calculateBandRange([new Date(d0), new Date(d1)], this.interval);
+            bandStart = bandRange[0].valueOf();
+            bandEnd = bandRange[1].valueOf();
+        } else {
+            bandStart = d0;
+            bandEnd = d1;
+        }
+        let firstTickIndex = findMinIndex(0, ticks.length - 1, (i) => ticks[i].valueOf() >= bandStart) ?? 0;
+        let lastTickIndex = findMaxIndex(0, ticks.length - 1, (i) => ticks[i].valueOf() <= bandEnd) ?? ticks.length - 1;
 
         if (extend) {
             firstTickIndex = Math.max(firstTickIndex - 1, 0);

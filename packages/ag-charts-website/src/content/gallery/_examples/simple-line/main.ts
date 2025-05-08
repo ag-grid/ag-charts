@@ -48,9 +48,6 @@ const options: AgChartOptions = {
             title: {
                 text: 'Date',
             },
-            label: {
-                format: '%b',
-            },
         },
         {
             position: 'left',
