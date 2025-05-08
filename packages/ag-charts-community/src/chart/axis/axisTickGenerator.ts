@@ -508,6 +508,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 ...tickParams,
                 interval: timeInterval as any,
             };
+            const timeScaleTicks = !UnitTimeScale.is(scale) || interpolate;
             for (let i = 0; i < primaryTicks.length - 1; i += 1) {
                 const p0 = primaryTicks[i];
                 const p1 = primaryTicks[i + 1];
@@ -520,7 +521,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     Math.min((dv1 - p0.valueOf()) / dp, 1),
                 ];
 
-                const timeScaleTicks = !UnitTimeScale.is(scale) || interpolate;
                 const intervalTicks = timeScaleTicks
                     ? this.timeScaleTicks(intervalTickParams, [p0, p1], pVisibleRange, true)
                     : scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, true)?.ticks ?? [];

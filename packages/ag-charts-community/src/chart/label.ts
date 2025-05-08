@@ -165,14 +165,12 @@ export function timeIntervalMaxLabelSize(
           } as ScaleFormatParams<any>)
         : labelFormatter;
 
-    const d0 = new Date(scale.domain[0] as any);
-    const d1 = new Date(scale.domain[scale.domain.length - 1] as any);
+    const d0 = new Date(domain[0] as any);
+    const d1 = new Date(domain[domain.length - 1] as any);
 
-    const hierarchyRange = hierarchy?.range(
-        new Date(scale.domain[0] as any),
-        new Date(scale.domain[scale.domain.length - 1] as any),
-        { extend: true }
-    );
+    const hierarchyRange = hierarchy?.range(new Date(domain[0] as any), new Date(domain[domain.length - 1] as any), {
+        extend: true,
+    });
 
     let maxWidth = 0;
     let maxHeight = 0;
