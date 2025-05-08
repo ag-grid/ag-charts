@@ -3,7 +3,6 @@ import type { AgColorRepeat, AgImageFillFit } from 'ag-charts-types';
 
 import { normalizeAngle360FromDegrees } from '../../util/angle';
 import type { BBox } from '../bbox';
-import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import type { Node } from '../node';
 import type { ImageLoader } from './imageLoader';
 
@@ -35,30 +34,20 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         ctx: CanvasRenderingContext2D,
         image: HTMLImageElement | undefined,
         width: number,
-        height: number,
-        pixelRatio: number
+        height: number
     ): CanvasPattern | null {
         if (!image) return null;
-        const { dw, dh } = this.getDimensions(image.width, image.height, width, height);
+        const [renderedWidth, renderedHeight] = this.getSize(image.width, image.height, width, height);
 
-        if (dw < 1 || dh < 1) {
+        if (renderedWidth < 1 || renderedHeight < 1) {
             Logger.warnOnce('Image fill is too small to render, ignoring.');
             return null;
         }
 
-        const offscreenPattern = new HdpiOffscreenCanvas({ width: dw, height: dh, pixelRatio });
-        const offscreenPatternCtx: OffscreenCanvasRenderingContext2D = offscreenPattern.context;
-
-        offscreenPatternCtx.drawImage(image, 0, 0, dw, dh);
-        return ctx.createPattern(offscreenPattern.canvas, this.repeat);
+        return ctx.createPattern(image, this.repeat);
     }
 
-    private getDimensions(
-        imageWidth: number,
-        imageHeight: number,
-        width: number,
-        height: number
-    ): { dw: number; dh: number } {
+    private getSize(imageWidth: number, imageHeight: number, width: number, height: number): [number, number] {
         const { fit } = this;
 
         let dw = imageWidth;
@@ -76,13 +65,10 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
             scale = imageAspectRatio > shapeAspectRatio ? height / imageHeight : width / imageWidth;
         }
 
-        return {
-            dw: Math.max(1, dw * scale),
-            dh: Math.max(1, dh * scale),
-        };
+        return [Math.max(1, dw * scale), Math.max(1, dh * scale)];
     }
 
-    setImageTransform(pattern: CanvasPattern | string | undefined, pixelRatio: number, bbox: BBox) {
+    setImageTransform(pattern: CanvasPattern | string | undefined, bbox: BBox) {
         if (typeof pattern === 'string') return;
 
         const { url, rotation, width, height } = this;
@@ -93,26 +79,34 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         }
 
         const angle = normalizeAngle360FromDegrees(rotation);
-        const scale = 1 / pixelRatio;
         const cos = Math.cos(angle);
         const sin = Math.sin(angle);
+
+        const [renderedWidth, renderedHeight] = this.getSize(
+            image.width,
+            image.height,
+            width ?? bbox.width,
+            height ?? bbox.height
+        );
+
+        const widthScale = renderedWidth / image.width;
+        const heightScale = renderedHeight / image.height;
 
         const bboxCenterX = bbox.x + bbox.width / 2;
         const bboxCenterY = bbox.y + bbox.height / 2;
 
-        const { dw, dh } = this.getDimensions(image.width, image.height, width ?? bbox.width, height ?? bbox.height);
-        const rotatedW = cos * dw - sin * dh;
-        const rotatedH = sin * dw + cos * dh;
+        const rotatedW = cos * renderedWidth - sin * renderedHeight;
+        const rotatedH = sin * renderedWidth + cos * renderedHeight;
 
         const shapeCenterX = rotatedW / 2;
         const shapeCenterY = rotatedH / 2;
 
         pattern?.setTransform(
             new DOMMatrix([
-                cos * scale,
-                sin * scale,
-                -sin * scale,
-                cos * scale,
+                cos * widthScale,
+                sin * heightScale,
+                -sin * widthScale,
+                cos * heightScale,
                 bboxCenterX - shapeCenterX,
                 bboxCenterY - shapeCenterY,
             ])
@@ -123,14 +117,12 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         | {
               ctx: CanvasRenderingContext2D;
               pattern: CanvasPattern | undefined;
-              pixelRatio: number;
               width: number;
               height: number;
           }
         | undefined = undefined;
     createPattern(
         ctx: CanvasRenderingContext2D,
-        pixelRatio: number,
         shapeWidth: number,
         shapeHeight: number,
         node: Node
@@ -139,22 +131,16 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         const height = this.height ?? shapeHeight;
 
         const cache = this._cache;
-        if (
-            cache != null &&
-            cache.ctx === ctx &&
-            cache.width === width &&
-            cache.height === height &&
-            cache.pixelRatio === pixelRatio
-        ) {
+        if (cache != null && cache.ctx === ctx && cache.width === width && cache.height === height) {
             return cache.pattern;
         }
 
         const image = this.imageLoader?.loadImage(this.url, node);
-        const pattern = this.createCanvasImage(ctx, image, width, height, pixelRatio);
+        const pattern = this.createCanvasImage(ctx, image, width, height);
 
         if (pattern == null) return this.backgroundFill;
 
-        this._cache = { ctx, pattern, width, height, pixelRatio };
+        this._cache = { ctx, pattern, width, height };
 
         return pattern;
     }
