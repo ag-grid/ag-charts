@@ -733,19 +733,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
                 if (intervalTicks) {
                     ({ ticks: rawTicks, tickCount: rawTickCount, primaryTicksIndices, interpolate } = intervalTicks);
-                } else if (UnitTimeScale.is(scale) && timeInterval != null) {
-                    // interpolate = false;
-                    const intervalTickParams = {
-                        ...tickParams,
-                        interval: timeInterval as any,
-                    };
-                    // rawTicks = this.timeScaleTicks(intervalTickParams, niceDomain as any, visibleRange);
-                    // console.log(niceDomain, rawTicks);
-                    const tickGeneration = scale.ticks(intervalTickParams, niceDomain, visibleRange);
-                    rawTicks = tickGeneration?.ticks ?? [];
-                    rawTickCount = tickGeneration?.count;
                 } else {
-                    const tickGeneration = scale.ticks(tickParams, niceDomain, visibleRange);
+                    const intervalTickParams =
+                        UnitTimeScale.is(scale) && timeInterval != null
+                            ? { ...tickParams, interval: tickParams.interval ?? (timeInterval as any) }
+                            : tickParams;
+                    const tickGeneration = scale.ticks(intervalTickParams, niceDomain, visibleRange);
                     rawTicks = tickGeneration?.ticks ?? [];
                     rawTickCount = tickGeneration?.count;
                 }
