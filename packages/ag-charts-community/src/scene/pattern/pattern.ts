@@ -86,7 +86,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         const { width, height, scale, backgroundFill, backgroundFillOpacity } = this;
 
         if (width * scale < 1 || height * scale < 1) {
-            Logger.warnOnce('Pattern fill is too small to render, ingoring.');
+            Logger.warnOnce('Pattern fill is too small to render, ignoring.');
             return null;
         }
 

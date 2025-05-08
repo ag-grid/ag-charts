@@ -5,10 +5,12 @@ const options: AgChartOptions = {
     title: {
         text: 'Title in Pacifico',
         fontFamily: { googleFont: 'Pacifico' },
+        fontSize: 25,
     },
     subtitle: {
         text: 'Subtitle in DM Serif Text',
         fontFamily: [{ googleFont: 'DM Serif Text' }, 'monospace'],
+        fontSize: 18,
     },
     data: [
         { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },
@@ -28,7 +30,14 @@ const options: AgChartOptions = {
     ],
     axes: [
         { position: 'left', type: 'number', label: { fontFamily: ['Helvetica', 'Arial', 'sans-serif'] } },
-        { position: 'bottom', type: 'category', label: { fontFamily: { googleFont: 'Orbitron' } } },
+        {
+            position: 'bottom',
+            type: 'category',
+            label: {
+                fontFamily: { googleFont: 'Orbitron' },
+                fontSize: 12,
+            },
+        },
     ],
     loadGoogleFonts: true,
 };

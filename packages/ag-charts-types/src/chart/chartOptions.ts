@@ -240,9 +240,10 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
      */
     suppressFieldDotNotation?: boolean;
     /**
-     * A nonce to be used by any dynamically injected CSS <style> tags to assist with Content Security Policy.
+     * A nonce to be used by any dynamically injected CSS `<style>` tags to assist with Content Security Policy.
      *
-     * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/nonce
+     *
+     * See [https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/nonce](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/nonce).
      *
      * Default: `undefined`
      */

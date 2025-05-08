@@ -4,15 +4,15 @@
         "date": "May 13th, 2025",
         "highlights": [
             {
-                "text": "Unit-Based Time Axis",
+                "text": "Unit Time Axis",
                 "path": "./axes-types/#unit-time"
             },
             {
-                "text": "Parent Level Labels for Time Axis",
+                "text": "Axis Parent Label/Ticks Support",
                 "path": "./axes-labels/#parent-levels"
             },
             {
-                "text": "Context Menu - Submenus and Icons",
+                "text": "Improved Context Menu",
                 "path": "./context-menu/"
             },
             {
