@@ -145,6 +145,8 @@ The domain of a log axis should be strictly positive or strictly negative (becau
 
 ## Time
 
+{% chartExampleRunner title="Time Axis Types" name="time-vs-unit-time-vs-ordinal-time" type="generated" /%}
+
 The time axis is similar to the number axis in the sense that it is also used to plot continuous values. The time axis
 can even be used with numeric data (in addition to `Date` objects), but the numbers will be interpreted as JavaScript
 timestamps. The time axis differs from the number axis in tick segmentation and label formatting. For example, you could
@@ -166,7 +168,7 @@ For a full list of configuration options see [Time Axis Options](#reference-AgTi
 
 ## Unit Time
 
-The time axis will shows monthly data with different distances between the data, because months have different lengths.
+The Time Axis will shows monthly data with different distances between the data, because months have different lengths.
 The `unit` property on the Time Axis can be used to specify the period of the data. It will plot the data on a band
 scale, which will make every interval the same distance apart.
 
@@ -178,7 +180,7 @@ scale, which will make every interval the same distance apart.
 }
 ```
 
-Any data that is not aligned to a unit will align to the closest unit before the datum.
+Any data that is not aligned to a unit will align to the closest unit before the datum. The Unit Time Axis does not aggregate data, so no more than one datum should correspond to each band.
 
 For a full list of configuration options see [Time Axis Options](#reference-AgTimeAxisOptions).
 
@@ -206,8 +208,6 @@ Ordinal Time axes are commonly used for financial data on the x-axis, usually pl
 For a full list of configuration options see [Ordinal Time Axis Options](#reference-AgOrdinalTimeAxisOptions).
 
 The difference between a continuous [Time Axis](#time), a [Unit Time Axis](#unit-time), and an [Ordinal Time Axis](#ordinal-time) is demonstrated in the following example:
-
-{% chartExampleRunner title="Ordinal Time Axis" name="time-vs-unit-time-vs-ordinal-time" type="generated" /%}
 
 ## API Reference
 

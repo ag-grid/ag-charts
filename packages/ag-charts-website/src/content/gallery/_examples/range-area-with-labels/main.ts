@@ -57,10 +57,8 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'bottom',
+            unit: 'month',
             nice: false,
-            label: {
-                format: `%b %y`,
-            },
             tick: {
                 size: 14,
             },

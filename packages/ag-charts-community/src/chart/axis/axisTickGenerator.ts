@@ -18,7 +18,7 @@ import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
 import { TimeInterval, sunday } from '../../util/time';
-import { intervalHierarchy, intervalMilliseconds } from '../../util/timeInterop';
+import { intervalHierarchy, intervalInstance, intervalMilliseconds } from '../../util/timeInterop';
 import type { ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
 import {
     calculateLabelRotation,
@@ -578,7 +578,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     }
 
     private timeScaleTicks(
-        params: ScaleTickParams<TimeInterval | number>,
+        params: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
         domain: [Date, Date],
         visibleRange?: [number, number],
         extend?: boolean
@@ -589,8 +589,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const d0 = domain[0].valueOf();
         const d1 = domain[1].valueOf();
 
-        if (interval instanceof TimeInterval) {
-            return interval.every(1, { snapTo: domain[0] }).range(domain[0], domain[1], { visibleRange, extend });
+        if (typeof interval !== 'number') {
+            return intervalInstance(interval)
+                .every(1, { snapTo: domain[0] })
+                .range(domain[0], domain[1], { visibleRange, extend });
         }
 
         const ticks: Date[] = [];
@@ -731,6 +733,17 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
                 if (intervalTicks) {
                     ({ ticks: rawTicks, tickCount: rawTickCount, primaryTicksIndices, interpolate } = intervalTicks);
+                } else if (UnitTimeScale.is(scale) && timeInterval != null) {
+                    // interpolate = false;
+                    const intervalTickParams = {
+                        ...tickParams,
+                        interval: timeInterval as any,
+                    };
+                    // rawTicks = this.timeScaleTicks(intervalTickParams, niceDomain as any, visibleRange);
+                    // console.log(niceDomain, rawTicks);
+                    const tickGeneration = scale.ticks(intervalTickParams, niceDomain, visibleRange);
+                    rawTicks = tickGeneration?.ticks ?? [];
+                    rawTickCount = tickGeneration?.count;
                 } else {
                     const tickGeneration = scale.ticks(tickParams, niceDomain, visibleRange);
                     rawTicks = tickGeneration?.ticks ?? [];

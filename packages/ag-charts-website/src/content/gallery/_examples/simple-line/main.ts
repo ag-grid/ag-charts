@@ -3,6 +3,7 @@ import {
     AgChartOptions,
     AgCharts,
     AgTooltipRendererResult,
+    time,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
@@ -28,12 +29,14 @@ const options: AgChartOptions = {
             type: 'line',
             xKey: 'date',
             yKey: 'petrol',
+            yName: 'Petrol',
             tooltip,
         },
         {
             type: 'line',
             xKey: 'date',
             yKey: 'diesel',
+            yName: 'Diesel',
             tooltip,
         },
     ],
@@ -41,11 +44,9 @@ const options: AgChartOptions = {
         {
             position: 'bottom',
             type: 'time',
+            unit: time.monday,
             title: {
                 text: 'Date',
-            },
-            label: {
-                format: '%b',
             },
         },
         {
