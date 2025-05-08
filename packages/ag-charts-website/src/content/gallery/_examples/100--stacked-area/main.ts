@@ -27,7 +27,7 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'area',
-            xKey: 'month',
+            xKey: 'date',
             yKey: 'coal',
             yName: 'Coal',
             normalizedTo: 100,
@@ -40,7 +40,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'area',
-            xKey: 'month',
+            xKey: 'date',
             yKey: 'petroleum',
             yName: 'Petroleum',
             normalizedTo: 100,
@@ -50,7 +50,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'area',
-            xKey: 'month',
+            xKey: 'date',
             yKey: 'naturalGas',
             yName: 'Natural gas',
             normalizedTo: 100,
@@ -63,7 +63,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'area',
-            xKey: 'month',
+            xKey: 'date',
             yKey: 'bioenergyWaste',
             yName: 'Bioenergy & waste',
             normalizedTo: 100,
@@ -73,7 +73,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'area',
-            xKey: 'month',
+            xKey: 'date',
             yKey: 'nuclear',
             yName: 'Nuclear',
             normalizedTo: 100,
@@ -86,7 +86,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'area',
-            xKey: 'month',
+            xKey: 'date',
             yKey: 'windSolarHydro',
             yName: 'Wind, solar & hydro',
             normalizedTo: 100,
@@ -96,7 +96,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'area',
-            xKey: 'month',
+            xKey: 'date',
             yKey: 'imported',
             yName: 'Imported',
             normalizedTo: 100,
@@ -110,8 +110,9 @@ const options: AgChartOptions = {
     ],
     axes: [
         {
-            type: 'category',
+            type: 'time',
             position: 'bottom',
+            unit: 'month',
         },
         {
             type: 'number',

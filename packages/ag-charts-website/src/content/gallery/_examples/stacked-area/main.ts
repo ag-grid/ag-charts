@@ -67,10 +67,7 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            label: {
-                format: '%b',
-            },
-            nice: false,
+            unit: 'month',
             crossLines: [
                 {
                     type: 'range',

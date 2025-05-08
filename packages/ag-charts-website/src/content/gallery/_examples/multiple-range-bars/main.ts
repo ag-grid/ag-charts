@@ -23,8 +23,9 @@ const options: AgChartOptions = {
     })),
     axes: [
         {
-            type: 'category',
+            type: 'time',
             position: 'bottom',
+            unit: 'month',
             paddingInner: 0.5,
             groupPaddingInner: 0,
             gridLine: {

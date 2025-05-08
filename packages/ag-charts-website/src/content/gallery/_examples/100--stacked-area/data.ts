@@ -2,7 +2,7 @@
 export function getData(): any[] {
     return [
         {
-            month: 'Jan',
+            date: new Date(2020, 0, 1),
             coal: 0.8,
             petroleum: 5.6,
             naturalGas: 9.4,
@@ -12,7 +12,7 @@ export function getData(): any[] {
             imported: 0.2,
         },
         {
-            month: 'Feb',
+            date: new Date(2020, 1, 1),
             coal: 1.1,
             petroleum: 5.6,
             naturalGas: 8.8,
@@ -22,7 +22,7 @@ export function getData(): any[] {
             imported: 0.1,
         },
         {
-            month: 'Mar',
+            date: new Date(2020, 2, 1),
             coal: 1.4,
             petroleum: 5.4,
             naturalGas: 9.0,
@@ -32,7 +32,7 @@ export function getData(): any[] {
             imported: 0.1,
         },
         {
-            month: 'Apr',
+            date: new Date(2020, 3, 1),
             coal: 0.6,
             petroleum: 5.9,
             naturalGas: 6.3,
@@ -42,7 +42,7 @@ export function getData(): any[] {
             imported: 0.1,
         },
         {
-            month: 'May',
+            date: new Date(2020, 4, 1),
             coal: 0.5,
             petroleum: 5.6,
             naturalGas: 4.5,
@@ -52,7 +52,7 @@ export function getData(): any[] {
             imported: 0.2,
         },
         {
-            month: 'Jun',
+            date: new Date(2020, 5, 1),
             coal: 0.5,
             petroleum: 5.8,
             naturalGas: 3.8,
@@ -62,7 +62,7 @@ export function getData(): any[] {
             imported: 0.1,
         },
         {
-            month: 'Jul',
+            date: new Date(2020, 6, 1),
             coal: 0.4,
             petroleum: 5.6,
             naturalGas: 3.9,
@@ -72,7 +72,7 @@ export function getData(): any[] {
             imported: 0.2,
         },
         {
-            month: 'Aug',
+            date: new Date(2020, 7, 1),
             coal: 0.4,
             petroleum: 5.9,
             naturalGas: 3.7,
@@ -82,7 +82,7 @@ export function getData(): any[] {
             imported: 0.1,
         },
         {
-            month: 'Sep',
+            date: new Date(2020, 8, 1),
             coal: 0.7,
             petroleum: 5.8,
             naturalGas: 4.1,
@@ -92,7 +92,7 @@ export function getData(): any[] {
             imported: 0.1,
         },
         {
-            month: 'Oct',
+            date: new Date(2020, 9, 1),
             coal: 0.6,
             petroleum: 5.5,
             naturalGas: 5.9,
@@ -102,7 +102,7 @@ export function getData(): any[] {
             imported: 0.1,
         },
         {
-            month: 'Nov',
+            date: new Date(2020, 10, 1),
             coal: 0.9,
             petroleum: 5.9,
             naturalGas: 7.3,
@@ -112,7 +112,7 @@ export function getData(): any[] {
             imported: 0.1,
         },
         {
-            month: 'Dec',
+            date: new Date(2020, 11, 1),
             coal: 0.7,
             petroleum: 5.8,
             naturalGas: 8.2,

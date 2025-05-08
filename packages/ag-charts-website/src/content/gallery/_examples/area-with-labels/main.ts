@@ -53,10 +53,7 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            nice: false,
-            interval: {
-                values: [new Date(2009, 0, 1), new Date(2013, 0, 1), new Date(2017, 0, 1), new Date(2021, 0, 1)],
-            },
+            unit: 'month',
             crosshair: {
                 label: {
                     renderer: ({ value }) =>
