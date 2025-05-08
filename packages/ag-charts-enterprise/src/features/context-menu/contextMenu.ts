@@ -218,14 +218,23 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const canvasBounds = this.ctx.widgets.chartWidget.getElement().getBoundingClientRect();
         const buttonClientRect = button.getBoundingClientRect();
         const remainingSpaceOnRight = canvasBounds.width - buttonClientRect.right;
+        const remainingSpaceOnLeft = buttonClientRect.left - canvasBounds.left
         const menuOffsetWidth = menu.getElement().offsetWidth;
 
         if (remainingSpaceOnRight >= menuOffsetWidth) {
-            // Right-side popout
+            // Right-side Popout
             menu.setBounds({ x: bounds.x + bounds.width, y: bounds.y });
         } else {
-            // Left-side popout
-            menu.setBounds({ x: bounds.x - menuOffsetWidth, y: bounds.y });
+            // Left-side Popout
+            const x = bounds.x - menuOffsetWidth;
+            const leftDelta = remainingSpaceOnLeft + x;
+            if (leftDelta >= 0) {
+                // Regular Left-side Popout
+                menu.setBounds({ x, y: bounds.y });
+            } else {
+                // Left-side Popout (clipped to the left edge of the canvas)
+                menu.setBounds({ x: x - leftDelta, y: bounds.y });
+            }
         }
     }
     private onSubMenuClose(_button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
