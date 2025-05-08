@@ -20,7 +20,7 @@ const paperTheme: AgChartTheme = {
         accentColor: '#0d7680',
         chromeBackgroundColor: '#fff7ef',
         chromeTextColor: '#262a33',
-        fontFamily: 'Georgia, serif',
+        fontFamily: [{ googleFont: 'DM Serif Text' }, 'Georgia', 'sans-serif'],
         fontSize: 14,
     },
 };
@@ -41,7 +41,7 @@ const oceanTheme: AgChartTheme = {
         foregroundColor: '#0a54a4',
         backgroundColor: '#d9e0ed',
         accentColor: '#0ba268',
-        fontFamily: 'Savoye LET, cursive',
+        fontFamily: [{ googleFont: 'Pacifico' }, 'Savoye LET', 'cursive'],
         fontSize: 16,
     },
 };
@@ -64,7 +64,7 @@ const neonTheme: AgChartTheme = {
         accentColor: '#ff00dd',
         chromeBackgroundColor: '#00ff1e',
         chromeTextColor: '#000000',
-        fontFamily: 'monospace',
+        fontFamily: [{ googleFont: 'IBM Plex Mono' }, 'monospace'],
         fontSize: 12,
         axisColor: '#00ff1e',
         gridLineColor: '#00ff1e',
@@ -91,6 +91,7 @@ const options: AgCartesianChartOptions = {
     subtitle: {
         enabled: true,
     },
+    loadGoogleFonts: true,
     data: getData(),
     series: [
         {

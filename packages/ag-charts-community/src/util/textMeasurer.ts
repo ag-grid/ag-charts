@@ -72,6 +72,10 @@ export class CachedTextMeasurerPool {
         return this.instanceMap.get(key) ?? this.createFontMeasurer(font, options, key);
     }
 
+    static clear() {
+        this.instanceMap.clear();
+    }
+
     // Creates or retrieves a TextMeasurer instance for a specific font.
     private static createFontMeasurer(font: string, options: MeasureOptions, key: string) {
         const ctx = createCanvasContext();
