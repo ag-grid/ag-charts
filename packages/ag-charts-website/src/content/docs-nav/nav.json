@@ -235,6 +235,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Fonts",
+                            "path": "fonts"
+                        },
+                        {
+                            "type": "item",
                             "title": "Layout",
                             "path": "layout"
                         },
@@ -247,11 +252,6 @@
                             "type": "item",
                             "title": "Themes",
                             "path": "themes"
-                        },
-                        {
-                            "type": "item",
-                            "title": "Fonts",
-                            "path": "fonts"
                         },
                         {
                             "type": "item",
