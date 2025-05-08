@@ -326,6 +326,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         max,
         tooltip,
         context,
+        styleNonce,
         ...optsRest
     } = opts as any as AgBaseSparklinePresetOptions & UndocumentedProperties;
 
@@ -340,6 +341,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         overrideDevicePixelRatio,
         padding,
         width,
+        styleNonce,
         tooltip: IGNORED_PROP,
         context: IGNORED_PROP,
         data: IGNORED_PROP,
