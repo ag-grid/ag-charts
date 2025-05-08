@@ -3,7 +3,7 @@ import type { TimeIntervalUnit } from 'ag-charts-types';
 import * as time from './time';
 import type { TimeInterval } from './time/interval';
 
-function intervalInstance(interval: TimeInterval | TimeIntervalUnit): TimeInterval {
+export function intervalInstance(interval: TimeInterval | TimeIntervalUnit): TimeInterval {
     return typeof interval === 'string' ? time[interval] : interval;
 }
 

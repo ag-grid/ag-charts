@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, time } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -63,9 +63,11 @@ const options: AgChartOptions = {
         {
             position: 'bottom',
             type: 'time',
-            min: new Date(2000, 0, 1),
-            max: new Date(2022, 0, 1),
+            unit: 'year',
             nice: false,
+            interval: {
+                step: time.year.every(5),
+            },
             crosshair: {
                 label: {
                     format: `%b %Y`,
