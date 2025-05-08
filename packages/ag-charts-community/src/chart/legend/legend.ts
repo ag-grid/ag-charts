@@ -817,7 +817,6 @@ export class Legend extends BaseProperties {
             fill.fit = 'contain';
             fill.width = undefined;
             fill.height = undefined;
-            fill.backgroundFill = 'transparent';
             fill.repeat = 'no-repeat';
         }
 
