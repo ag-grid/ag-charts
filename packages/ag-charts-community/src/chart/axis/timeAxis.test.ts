@@ -6,9 +6,9 @@ import type {
     AgCartesianAxisType,
     AgCartesianChartOptions,
     AgPolarChartOptions,
-} from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
+} from 'ag-charts-types';
 
+import { ChartAxis } from '../chartAxis';
 import {
     ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -485,7 +485,7 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
     return result;
 }
 
-function calculateAxisBBox(axis: _ModuleSupport.ChartAxis): { x: number; y: number; width: number; height: number } {
+function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: number; height: number } {
     const bbox = axis.getBBox();
 
     const { x, y, width, height } = bbox;
