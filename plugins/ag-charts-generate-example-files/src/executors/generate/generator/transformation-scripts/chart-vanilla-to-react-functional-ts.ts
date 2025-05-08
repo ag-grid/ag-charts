@@ -93,10 +93,7 @@ function getTemplate(bindings: any, componentAttributes: string[]): string {
 }
 
 function getComponentMetadata(bindings: any, id: string, property: any) {
-    const {
-        optionsTypeInfo,
-        chartSettings: { enterprise = false },
-    } = bindings;
+    const { optionsTypeInfo } = bindings;
 
     const stateProperties = [];
     const componentAttributes = [];
@@ -107,12 +104,7 @@ function getComponentMetadata(bindings: any, id: string, property: any) {
         `const [${property.name}, set${toTitleCase(property.name)}] = useState<${chartOptionsType}>(${property.value});`
     );
 
-    if (enterprise) {
-        // @todo(AG-8492): Temporary workaround for typings mismatch.
-        componentAttributes.push(`options={${property.name} as any}`);
-    } else {
-        componentAttributes.push(`options={${property.name}}`);
-    }
+    componentAttributes.push(`options={${property.name}}`);
 
     Object.entries(bindings.chartAttributes[id]).forEach(([key, value]) => {
         if (key === 'style') {
