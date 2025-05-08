@@ -1,6 +1,6 @@
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
-import type { BBox } from '../../scene/bbox';
+import { BBox } from '../../scene/bbox';
 import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { Group } from '../../scene/group';
 import type { ChildNodeCounts, RenderContext } from '../../scene/node';
@@ -83,6 +83,11 @@ export class LegendMarkerLabel extends Translatable(Group) {
     setEnabled(enabled: boolean) {
         this.enabled = enabled;
         this.refreshVisibilities();
+    }
+
+    getTextMeasureBBox() {
+        this.layout();
+        return BBox.merge([this.symbolsGroup.getBBox(), this.label.getTextMeasureBBox()]);
     }
 
     private refreshVisibilities() {

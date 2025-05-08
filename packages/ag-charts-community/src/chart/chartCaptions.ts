@@ -71,7 +71,7 @@ export class ChartCaptions {
 
     private shrinkLayoutByCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox, spacing: number = 0) {
         if (caption.layoutStyle === 'block') {
-            const bbox = caption.node.getBBox();
+            const bbox = caption.node.getTextMeasureBBox();
             layoutBox.shrink(
                 vAlign === 'top'
                     ? Math.ceil(bbox.y - layoutBox.y + bbox.height + spacing)
