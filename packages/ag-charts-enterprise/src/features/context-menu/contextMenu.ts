@@ -328,8 +328,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         cellLabel.textContent = label;
         cellLabel.classList.add(cellPaddingClass);
         if (item.iconUrl != null) {
-            const img = createElement('img');
-            img.src = item.iconUrl;
+            const img = createElement('span');
+            img.className = item.iconUrl;
             cellIcon.append(img);
             cellIcon.classList.add(cellPaddingClass);
         }

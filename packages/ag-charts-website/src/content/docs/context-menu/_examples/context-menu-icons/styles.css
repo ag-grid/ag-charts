@@ -1,3 +1,18 @@
-.icon {
-    stroke: var(--ag-charts-input-text-color);
+.icon-download::before {
+    mask-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20class%3D%22icon%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20viewBox%3D%220%200%2024%2024%22%3E%0A%20%20%3Cstyle%3E%2A%20%7B%20vector-effect%3A%20non-scaling-stroke%3B%20%7D%3C/style%3E%0A%20%20%3Cpath%20d%3D%22M12%2017V3%22/%3E%0A%20%20%3Cpath%20d%3D%22m6%2011%206%206%206-6%22/%3E%0A%20%20%3Cpath%20d%3D%22M19%2021H5%22/%3E%0A%3C/svg%3E%0A');
+}
+
+.icon-sheet::before {
+    mask-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20class%3D%22icon%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20viewBox%3D%220%200%2024%2024%22%3E%0A%20%20%3Cstyle%3E%2A%20%7B%20vector-effect%3A%20non-scaling-stroke%3B%20%7D%3C/style%3E%0A%20%20%3Cpath%20d%3D%22M14.5%202H6a2%202%200%200%200-2%202v16a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V7.5L14.5%202z%22/%3E%0A%20%20%3Cpolyline%20points%3D%2214%202%2014%208%2020%208%22/%3E%0A%20%20%3Cpath%20d%3D%22M8%2013h2%22/%3E%0A%20%20%3Cpath%20d%3D%22M8%2017h2%22/%3E%0A%20%20%3Cpath%20d%3D%22M14%2013h2%22/%3E%0A%20%20%3Cpath%20d%3D%22M14%2017h2%22/%3E%0A%3C/svg%3E%0A');
+}
+.icon-table::before {
+    mask-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20class%3D%22icon%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20viewBox%3D%220%200%2024%2024%22%3E%0A%20%20%3Cstyle%3E%2A%20%7B%20vector-effect%3A%20non-scaling-stroke%3B%20%7D%3C/style%3E%0A%20%20%3Cpath%20d%3D%22M9%203H5a2%202%200%200%200-2%202v4m6-6h10a2%202%200%200%201%202%202v4M9%203v18m0%200h10a2%202%200%200%200%202-2V9M9%2021H5a2%202%200%200%201-2-2V9m0%200h18%22/%3E%0A%3C/svg%3E%0A');
+}
+
+.icon:before {
+    content: '';
+    display: block;
+    width: var(--ag-charts-icon-size);
+    height: var(--ag-charts-icon-size);
+    background: var(--ag-charts-input-text-color);
 }
