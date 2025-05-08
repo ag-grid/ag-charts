@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, time } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -19,21 +19,9 @@ const options: AgCartesianChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            unit: time.day,
-            label: {
-                format: {
-                    day: '%e',
-                    month: '%b',
-                },
-            },
+            unit: 'day',
             parentLevel: {
                 enabled: true,
-                label: {
-                    format: {
-                        month: '%e\n%b',
-                        year: '%b\n%Y',
-                    },
-                },
             },
         },
         {
@@ -41,8 +29,20 @@ const options: AgCartesianChartOptions = {
             position: 'left',
         },
     ],
-    zoom: {},
-    navigator: {},
+    zoom: {
+        enabled: true,
+        autoScaling: {
+            enabled: true,
+        },
+    },
+    navigator: {
+        enabled: true,
+    },
+    initialState: {
+        zoom: {
+            ratioX: { start: 0.95, end: 1 },
+        },
+    },
 };
 
 const chart = AgCharts.create(options);
