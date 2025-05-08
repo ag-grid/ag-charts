@@ -108,6 +108,5 @@ export class ContextMenuItem implements _ModuleSupport.ContextMenuItemContract {
                 this.setField(key, this, options[key]);
             }
         }
-        this.iconUrl = options.iconUrl;
     }
 }
