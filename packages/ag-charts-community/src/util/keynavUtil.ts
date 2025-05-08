@@ -46,7 +46,7 @@ export function addEscapeEventListener(
 
 export function addMouseCloseListener(destroyFns: DestroyFns, menu: HTMLElement, hideCallback: () => void): () => void {
     const self = addRemovableEventListener(destroyFns, window, 'mousedown', (event: MouseEvent) => {
-        if ([0, 2].includes(event.button) && !containsPoint(menu, event)) {
+        if ([0, 2].includes(event.button) && !containsEvent(menu, event)) {
             hideCallback();
             self();
         }
@@ -57,7 +57,7 @@ export function addMouseCloseListener(destroyFns: DestroyFns, menu: HTMLElement,
 export function addTouchCloseListener(destroyFns: DestroyFns, menu: HTMLElement, hideCallback: () => void): () => void {
     const self = addRemovableEventListener(destroyFns, window, 'touchstart', (event: TouchEvent) => {
         const touches = Array.from(event.targetTouches);
-        if (touches.some((touch) => !containsPoint(menu, touch))) {
+        if (touches.some((touch) => !containsEvent(menu, touch))) {
             hideCallback();
             self();
         }
@@ -65,13 +65,8 @@ export function addTouchCloseListener(destroyFns: DestroyFns, menu: HTMLElement,
     return self;
 }
 
-function containsPoint(container: Element, event: Pick<MouseEvent & TouchEvent, 'target' | 'clientX' | 'clientY'>) {
-    if (event.target instanceof Element) {
-        const { x, y, width, height } = container.getBoundingClientRect();
-        const { clientX: ex, clientY: ey } = event;
-        return ex >= x && ey >= y && ex <= x + width && ey <= y + height;
-    }
-    return false;
+function containsEvent(container: Element, event: Pick<MouseEvent & TouchEvent, 'target' | 'clientX' | 'clientY'>) {
+    return event.target instanceof Node && container.contains(event.target);
 }
 
 export function addOverrideFocusVisibleEventListener(
