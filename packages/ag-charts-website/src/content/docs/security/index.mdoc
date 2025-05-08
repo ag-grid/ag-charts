@@ -17,7 +17,7 @@ The `script-src` policy will work only with `'self'` rule.
 
 ### style-src
 
-The `style-src` policy requires the `unsafe-inline` for a few reasons, including positioning tooltips, and styling canvases to accommodate for HiDPI screens.
+The `style-src` policy requires the `unsafe-inline` rule for a few reasons, including positioning tooltips, and styling canvases to accommodate for HiDPI screens.
 
 However, you can avoid this requirement by using the `styleNonce` chart option as shown below. The `styleNonce` property should be set to a random value that changes with each page load.
 
@@ -31,7 +31,7 @@ This sets the nonce attribute on any added style tags, so the chart will now wor
 
 CSP nonces are global to a page, so when a page has multiple charts, all charts must have the same `styleNonce` value.
 
-Consider using a [theme override](./themes/#overrides) in a [custom theme](./themes/#making-custom-themes) to set the styleNonce property for all charts.
+Consider using a [theme override](./themes/#overrides) in a [custom theme](./themes/#making-custom-themes) to set the `styleNonce` property for all charts.
 
 ```js
 const myTheme = { overrides: { common: { styleNonce: '416d1177' }}};
