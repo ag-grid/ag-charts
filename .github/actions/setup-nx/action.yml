@@ -44,6 +44,11 @@ outputs:
 runs:
     using: 'composite'
     steps:
+        - name: Dump GitHub context
+          env:
+              GITHUB_CONTEXT: ${{ toJson(github) }}
+          run: echo "$GITHUB_CONTEXT"
+
         - name: Nx Affected SHA Setup
           id: nx_config
           shell: bash
