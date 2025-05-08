@@ -141,35 +141,16 @@ SVG Path Data can be used to create custom patterns.
 }
 ```
 
-{% chartExampleRunner title="Pattern Custom Path" name="pattern-custom-path" type="generated" /%}
-
 For detailed SVG Path Data syntax, refer to the [SVG Path Specification](https://www.w3.org/TR/SVG/paths.html#TheDProperty).
-
-A path consists of multiple segments defined by various commands. Each command (except `moveto` and `closepath`) creates a new path segment.
-All coordinates and lengths in the path data are interpreted in user units relative to the current coordinate system.
 
 To be valid, the path string must follow the SVG path grammar outlined in the [Path Data BNF](https://www.w3.org/TR/SVG/paths.html#PathDataBNF).
 
-Line Drawing Commands:
+The path can be a line or a shape.
 
--   L, l — Lineto (absolute and relative)
--   H, h — Horizontal lineto
--   V, v — Vertical lineto
--   Z, z — Close path
+{% chartExampleRunner title="Pattern Custom Path" name="pattern-custom-path" type="generated" /%}
 
-Cubic Bézier Curve Drawing Commands:
-
--   C, c — Specify two control points and an endpoint
--   S, s — Smooth cubic Bézier, uses the reflection of the previous control point
-
-Quadratic Bézier Curve Drawing Commands:
-
--   Q, q — Specify one control point and an endpoint
--   T, t — Smooth quadratic Bézier, uses the reflection of the previous control point
-
-Elliptical Arc Drawing Commands:
-
--   A, a — Draws an elliptical arc segment
+-   To remove the stroke, set `strokeWidth` to `0`
+-   To remove the fill, set `fill` to `none`.
 
 ## Images
 
