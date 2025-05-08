@@ -81,6 +81,10 @@ export class Text<D = any> extends Shape<D> {
         return Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign, lineHeight });
     }
 
+    getTextMeasureBBox() {
+        return this.computeBBox();
+    }
+
     isPointInPath(x: number, y: number): boolean {
         const bbox = this.getBBox();
 
