@@ -98,6 +98,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         if (domain.length < 2) return;
 
         const bands = this.calculateBands(domain, visibleRange, extend);
+        const milliseconds = this.interval ? intervalMilliseconds(this.interval) : Infinity;
 
         if (interval == null) return { ticks: bands, count: undefined };
 
@@ -106,23 +107,27 @@ export class UnitTimeScale extends DiscreteTimeScale {
         const ticks: Date[] = [];
 
         let intervalTicks: Date[];
+        let intervalStartIndex: number;
+        let intervalEndIndex: number;
         if (interval instanceof TimeInterval) {
             intervalTicks = interval.range(domain[0], domain[1], { extend: true, visibleRange });
+            intervalStartIndex = 0;
+            intervalEndIndex = intervalTicks.length - 1;
         } else {
-            const i0Index = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0) ?? 0;
-            const i1Index =
+            intervalTicks = bands; // Could be large array - avoid copying
+            intervalStartIndex = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0) ?? 0;
+            intervalEndIndex =
                 findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1) ?? bands.length - 1;
-            intervalTicks = i1Index - i0Index === bands.length - 1 ? bands : bands.slice(i0Index, i1Index + 1);
         }
 
         let lastIndex: number | undefined;
-        for (const intervalTick of intervalTicks) {
-            const intervalTickValue = intervalTick.valueOf();
+        for (let i = intervalStartIndex; i <= intervalEndIndex; i++) {
+            const intervalTickValue = intervalTicks[i].valueOf();
             const bandIndex = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= intervalTickValue);
             const tick = bandIndex != null && bandIndex != lastIndex ? bands[bandIndex] : undefined;
             lastIndex = bandIndex;
 
-            if (tick != null) ticks.push(tick);
+            if (tick != null && intervalTickValue - tick.getTime() <= milliseconds) ticks.push(tick);
         }
 
         let firstTickIndex = findMinIndex(0, ticks.length - 1, (i) => ticks[i].valueOf() >= d0) ?? 0;
